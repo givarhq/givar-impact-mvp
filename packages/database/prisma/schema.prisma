@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------
+// ENUMS
+// ---------------------------
+
+enum Currency {
+  NGN
+  USD
+  GBP
+}
+
+enum TxType {
+  DEBIT   // Money leaving a wallet
+  CREDIT  // Money entering a wallet
+}
+
+enum TxStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// ---------------------------
+// USER & AUTH
+// ---------------------------
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  role          UserRole  @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relationships
+  wallets       Wallet[]
+  donations     Donation[]
+
+  @@map("users")
+}
+
+// ---------------------------
+// FINANCIAL LEDGER CORE
+// ---------------------------
+
+model Wallet {
+  id          String    @id @default(uuid())
+  userId      String
+  currency    Currency
+  
+  // CAUTION: This is a read-optimization snapshot.
+  // The Source of Truth is the sum of WalletTransactions.
+  balance     BigInt    @default(0) 
+  
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationships
+  user         User                 @relation(fields: [userId], references: [id])
+  transactions WalletTransaction[]
+
+  // Constraint: One wallet per currency per user
+  @@unique([userId, currency]) 
+  @@map("wallets")
+}
+
+// The Immutable Ledger
+model WalletTransaction {
+  id              String    @id @default(uuid())
+  walletId        String
+  
+  // Amounts are always positive absolute values in storage.
+  // 'type' determines the arithmetic direction.
+  amount          BigInt    
+  currency        Currency
+  
+  type            TxType
+  status          TxStatus  @default(PENDING)
+  
+  reference       String    // External Payment ID or Internal ref
+  description     String?
+  metadata        Json?     // Audit logs (IP, UserAgent)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relationships
+  wallet      Wallet    @relation(fields: [walletId], references: [id])
+  donation    Donation? 
+
+  @@index([walletId])
+  @@index([reference])
+  @@map("wallet_transactions")
+}
+
+// ---------------------------
+// GIVAR IMPACT (PROJECTS)
+// ---------------------------
+
+model Project {
+  id          String   @id @default(uuid())
+  slug        String   @unique 
+  title       String
+  description String   
+  imageUrl    String?
+  
+  targetAmount BigInt
+  raisedAmount BigInt   @default(0)
+  currency     Currency
+  
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  donations    Donation[]
+
+  @@map("projects")
+}
+
+model Donation {
+  id            String   @id @default(uuid())
+  userId        String
+  projectId     String
+  transactionId String   @unique // Strict link to ledger
+
+  amount        BigInt
+  currency      Currency
+  message       String?  
+
+  createdAt     DateTime @default(now())
+
+  // Relationships
+  user        User              @relation(fields: [userId], references: [id])
+  project     Project           @relation(fields: [projectId], references: [id])
+  transaction WalletTransaction @relation(fields: [transactionId], references: [id])
+
+  @@map("donations")
+}

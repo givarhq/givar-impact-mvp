@@ -1,0 +1,24 @@
+{
+    "name": "@givar/database",
+    "version": "0.0.0",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "db:generate": "prisma generate",
+        "db:push": "prisma db push",
+        "db:studio": "prisma studio",
+        "dev": "tsc --watch"
+    },
+    "dependencies": {
+        "@prisma/client": "^5.10.0"
+    },
+    "devDependencies": {
+        "prisma": "^5.10.0",
+        "typescript": "^5.0.0",
+        "@types/node": "^20.0.0"
+    },
+    "exports": {
+        ".": "./dist/index.js"
+    }
+}
