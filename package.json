@@ -7,9 +7,17 @@
         "dev": "turbo run dev",
         "lint": "turbo run lint",
         "clean": "turbo run clean && rm -rf node_modules",
+        "test": "turbo run test",
+
+        "// --- DATABASE COMMANDS ---": "",
         "db:generate": "turbo run db:generate",
         "db:push": "turbo run db:push",
-        "test": "turbo run test"
+        "db:studio": "pnpm --filter @givar/database db:studio",
+
+        "// --- SHORTCUTS ---": "",
+        "dev:api": "pnpm --filter api dev",
+        "dev:web": "pnpm --filter web dev",
+        "dev:db": "pnpm --filter @givar/database dev"
     },
     "devDependencies": {
         "turbo": "^2.0.0",
