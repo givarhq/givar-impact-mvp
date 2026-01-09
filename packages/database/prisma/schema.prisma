@@ -79,6 +79,7 @@ model Wallet {
   // Constraint: One wallet per currency per user
   @@unique([userId, currency]) 
   @@map("wallets")
+  version     Int       @default(0) // For Optimistic Concurrency Control
 }
 
 // The Immutable Ledger
@@ -94,7 +95,7 @@ model WalletTransaction {
   type            TxType
   status          TxStatus  @default(PENDING)
   
-  reference       String    // External Payment ID or Internal ref
+  reference       String    @unique
   description     String?
   metadata        Json?     // Audit logs (IP, UserAgent)
   
