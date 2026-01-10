@@ -8,50 +8,12 @@ import { Card } from '../../ui/card';
 import { Input } from '../../ui/input';
 import { apiClient } from '../../../lib/api-client';
 import toast from 'react-hot-toast';
+import { SmartCurrency } from '../../ui/smart-currency';
 
 interface WalletCardProps {
   balance: string;
   currency: string;
 }
-
-// --- SMART FORMATTER (Premium Sans Font) ---
-const SmartCurrency = ({ amount, currency, visible }: { amount: string; currency: string; visible: boolean }) => {
-  if (!visible) return <span className="text-muted-foreground/50 tracking-widest text-3xl select-none">••••••</span>;
-
-  const numericAmount = Number(amount) / 100;
-  
-  let mainPart = '';
-  let secondaryPart = '';
-  
-  if (numericAmount >= 1_000_000_000) {
-    mainPart = (numericAmount / 1_000_000_000).toFixed(1);
-    secondaryPart = 'B';
-  } else if (numericAmount >= 1_000_000) {
-    mainPart = (numericAmount / 1_000_000).toFixed(1);
-    secondaryPart = 'M';
-  } else {
-     const formattedTotal = new Intl.NumberFormat('en-NG', { 
-       minimumFractionDigits: 2, 
-       maximumFractionDigits: 2 
-     }).format(numericAmount);
-     
-     const raw = formattedTotal.replace(/[^\d.]/g, ''); 
-     const parts = raw.split('.');
-     mainPart = parts[0];
-     secondaryPart = `.${parts[1]}`;
-  }
-
-  return (
-    <span className="inline-flex items-baseline font-sans tabular-nums">
-      <span className="text-2xl md:text-3xl font-medium text-muted-foreground/60 mr-1.5">
-        {currency === 'NGN' ? '₦' : currency}
-      </span>
-      {/* SOTA: Tracking-tight makes large numbers look tighter and more cohesive */}
-      <span className="text-foreground font-bold tracking-tight">{mainPart}</span>
-      <span className="text-2xl md:text-3xl font-medium text-muted-foreground/60 ml-0.5">{secondaryPart}</span>
-    </span>
-  );
-};
 
 export function WalletCard({ balance, currency }: WalletCardProps) {
   const [isVisible, setIsVisible] = useState(true);
@@ -84,17 +46,10 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
   return (
     <>
       <div className="group relative rounded-2xl p-[1px] bg-gradient-to-br from-primary/60 via-primary/10 to-transparent">
-        
-        {/* SOTA: No hover translation, clean static card with internal interactions */}
         <Card className="relative h-full w-full overflow-hidden bg-card border-none rounded-2xl p-6 flex flex-col justify-between shadow-none min-h-[180px]">
-          
-          {/* Inner Glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-20 pointer-events-none" />
-          
-          {/* Background Icon */}
           <Wallet className="absolute -bottom-6 -right-6 h-36 w-36 text-primary opacity-[0.03] pointer-events-none transition-transform group-hover:scale-105 duration-500" />
 
-          {/* Header */}
           <div className="relative z-10 flex items-start justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl shadow-sm backdrop-blur-md bg-primary/10 text-primary">
@@ -105,7 +60,6 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
                 <p className="text-sm font-semibold text-foreground">Available Liquidity</p>
               </div>
             </div>
-            
             <Button 
                 variant="ghost" 
                 size="icon" 
@@ -116,7 +70,6 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
             </Button>
           </div>
 
-          {/* Value */}
           <div className="relative z-10 mt-7">
             <div className="flex items-end gap-2">
                <h3 className="text-4xl md:text-5xl truncate max-w-full leading-none py-1">
@@ -125,7 +78,6 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
             </div>
           </div>
 
-          {/* Footer Actions */}
           <div className="relative z-10 mt-7 flex items-center gap-3">
              <Button 
                 onClick={() => setIsFundModalOpen(true)}
@@ -133,7 +85,6 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
             >
               <Plus className="mr-2 h-4 w-4" /> Fund Wallet
             </Button>
-            
             <Button 
                 variant="outline"
                 className="h-10 px-5 text-xs font-semibold border-border hover:bg-secondary rounded-xl"
