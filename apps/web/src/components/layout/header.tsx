@@ -1,11 +1,22 @@
 'use client';
 
+import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, CornerDownLeft, Plus, CircleUser, LogOut, Settings, ChevronDown } from 'lucide-react';
+import {
+  Search,
+  CornerDownLeft,
+  Plus,
+  CircleUser,
+  LogOut,
+  Settings,
+  ChevronDown,
+} from 'lucide-react';
 import { deleteCookie, getCookie } from 'cookies-next';
 import { dashboardNav } from '../../config/dashboard';
 import { Button } from '../ui/button';
-import { ThemeToggle } from './theme-toggle'; // Import
+// Assuming you have a ThemeToggle component, otherwise this can be commented out
+// import { ThemeToggle } from './theme-toggle'; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +29,7 @@ import {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  
+
   const userCookie = getCookie('givar_user');
   const user = userCookie ? JSON.parse(userCookie as string) : null;
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
@@ -30,15 +41,39 @@ export function Header() {
     router.push('/login');
   };
 
-  const currentPage = dashboardNav.find(item => item.href === pathname)?.title || 'Overview';
+  const currentPage =
+    dashboardNav.find((item) => item.href === pathname)?.title || 'Overview';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
       
+      {/* 
+        Mobile Logo - Shows only on mobile
+      */}
+      <div className="md:hidden flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-2 group">
+          <div>
+            <Image
+              src="/Givar1.png"
+              alt="Givar Logo"
+              width={32}
+              height={32}
+              className="object-contain"
+              priority
+            />
+          </div>
+          <span className="text-xl font-bold tracking-tight">
+            Givar<span className="text-primary">.</span>
+          </span>
+        </Link>
+      </div>
+
       {/* Desktop Title */}
       <div className="hidden md:flex flex-col">
         <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold text-foreground">{currentPage}</h1>
+          <h1 className="text-lg font-semibold text-foreground">
+            {currentPage}
+          </h1>
         </div>
       </div>
 
@@ -46,13 +81,12 @@ export function Header() {
 
       {/* Right Actions */}
       <div className="flex items-center gap-2 md:gap-3">
-        
         {/* Search */}
         <div className="hidden md:flex items-center rounded-full bg-secondary/50 px-4 py-2.5 transition-colors hover:bg-secondary border border-transparent hover:border-border/50">
           <Search className="mr-2 h-4 w-4 text-muted-foreground" />
-          <input 
-            type="text" 
-            placeholder="Search..." 
+          <input
+            type="text"
+            placeholder="Search..."
             className="bg-transparent text-sm outline-none placeholder:text-muted-foreground w-24 lg:w-36 text-foreground"
           />
           <kbd className="ml-2 flex h-5 w-5 items-center justify-center rounded border border-border bg-background text-muted-foreground select-none">
@@ -69,9 +103,8 @@ export function Header() {
           <Plus className="h-4 w-4" />
           <span>Donate</span>
         </Button>
-        
-        {/* SOTA Theme Toggle */}
-        <ThemeToggle />
+
+        {/* <ThemeToggle />  Placeholder for your theme toggle */}
 
         <div className="h-8 w-px bg-border/50 mx-1 hidden md:block" />
 
@@ -80,11 +113,13 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
               <div className="relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm bg-primary/10 flex items-center justify-center text-primary">
-                 {user?.firstName ? (
-                   <span className="font-bold text-sm">{user.firstName[0]}</span>
-                 ) : (
-                   <CircleUser className="h-6 w-6" />
-                 )}
+                {user?.firstName ? (
+                  <span className="font-bold text-sm">
+                    {user.firstName[0]}
+                  </span>
+                ) : (
+                  <CircleUser className="h-6 w-6" />
+                )}
               </div>
               <div className="hidden text-left md:block">
                 <div className="flex items-center gap-2">
@@ -96,29 +131,36 @@ export function Header() {
               <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
             </button>
           </DropdownMenuTrigger>
-          
+
           <DropdownMenuContent align="end">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{displayName}</p>
+                <p className="text-sm font-medium leading-none">
+                  {displayName}
+                </p>
                 <p className="text-xs leading-none text-muted-foreground">
                   {displayEmail}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
-               <Settings className="mr-2 h-4 w-4" />
-               <span>Settings</span>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => router.push('/dashboard/settings')}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer">
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
       </div>
     </header>
   );
