@@ -5,10 +5,11 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc",
+        "clean": "rm -rf dist",
         "db:generate": "prisma generate",
         "db:push": "prisma db push",
         "db:studio": "prisma studio",
-        "dev": "tsc --watch"
+        "dev": "prisma generate --watch"
     },
     "dependencies": {
         "@prisma/client": "^5.10.0"

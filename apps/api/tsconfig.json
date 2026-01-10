@@ -22,8 +22,8 @@
     "noFallthroughCasesInSwitch": false,
     "noEmit": false,
     "paths": {
-      "@givar/database": ["../../packages/database/src"],
-      "@givar/types": ["../../packages/types/src"]
+      "@givar/database": ["../../packages/database/dist"],
+      "@givar/types": ["../../packages/types/dist"]
     }
   },
   "include": ["src/**/*"],
