@@ -7,6 +7,7 @@ import { PrismaModule } from './common/prisma.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { DonationModule } from './modules/donation/donation.module';
 import { ProjectModule } from './modules/project/project.module';
+import { HealthModule } from './modules/health/health.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ProjectModule } from './modules/project/project.module';
     WalletModule,
     DonationModule,
     ProjectModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [
