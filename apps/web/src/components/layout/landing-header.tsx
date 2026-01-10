@@ -74,7 +74,7 @@ export function LandingHeader({
             Transparency
           </Link>
           <Link href="/#projects" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
-            Explore Causes
+            Explore Projects
           </Link>
         </nav>
 
