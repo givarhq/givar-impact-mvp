@@ -4,23 +4,29 @@ import { cn } from '../../lib/utils/cn';
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
+  label?: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, error, ...props }, ref) => {
+  ({ className, type, error, label, ...props }, ref) => {
     return (
-      <div className="w-full">
+      <div className="w-full space-y-1.5">
+        {label && (
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground/80">
+            {label}
+          </label>
+        )}
         <input
           type={type}
           className={cn(
-            'flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-red-500 focus-visible:ring-red-500',
+            'flex h-11 w-full rounded-lg border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',
+            error && 'border-destructive focus-visible:ring-destructive/30',
             className
           )}
           ref={ref}
           {...props}
         />
-        {error && <span className="text-xs text-red-500 mt-1">{error}</span>}
+        {error && <p className="text-[0.8rem] font-medium text-destructive animate-in slide-in-from-top-1 fade-in-0">{error}</p>}
       </div>
     );
   }

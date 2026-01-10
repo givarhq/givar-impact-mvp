@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '../lib/utils/cn';
+import { ThemeProvider } from '../components/themeprovider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,10 +18,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={cn(inter.className, 'bg-slate-50 min-h-screen antialiased')}>
-        {children}
-        <Toaster position="top-right" />
+    <html lang="en" suppressHydrationWarning> 
+      <body className={cn(inter.className, 'bg-background min-h-screen antialiased')}>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster position="top-right" />
+        </ThemeProvider>
       </body>
     </html>
   );
