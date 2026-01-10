@@ -11,16 +11,13 @@ async function getProjects(): Promise<Project[]> {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      next: { tags: ['projects'], revalidate: 0 }, // Always fresh for MVP
+      next: { tags: ['projects'], revalidate: 0 }, 
     });
 
     if (!res.ok) throw new Error('Failed to fetch projects');
     const json = await res.json();
-    
-    // API returns { data: [], meta: {} } because of pagination
     return json.data || [];
   } catch (error) {
-    console.error('Project fetch error:', error);
     return [];
   }
 }
@@ -30,9 +27,15 @@ export default async function ImpactPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-1">
+      
+      {/* 
+        Page Title
+        - Visible on Mobile
+        - Hidden on Desktop
+      */}
+      <div className="md:hidden flex flex-col gap-1 mb-2">
         <h1 className="text-2xl font-bold tracking-tight">Make an Impact</h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Browse active causes and contribute directly from your wallet.
         </p>
       </div>

@@ -2,25 +2,62 @@
 
 import { useState } from 'react';
 import { Eye, EyeOff, Plus, Wallet, ArrowUpRight } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
-import { Modal } from '../../../components/ui/modal';
-import { Input } from '../../../components/ui/input';
-import { formatCurrency } from '../../../lib/utils/format';
+import { Button } from '../../ui/button';
+import { Modal } from '../../ui/modal';
+import { Card } from '../../ui/card';
+import { Input } from '../../ui/input';
 import { apiClient } from '../../../lib/api-client';
 import toast from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
 
 interface WalletCardProps {
   balance: string;
   currency: string;
 }
 
+// --- SMART FORMATTER (Premium Sans Font) ---
+const SmartCurrency = ({ amount, currency, visible }: { amount: string; currency: string; visible: boolean }) => {
+  if (!visible) return <span className="text-muted-foreground/50 tracking-widest text-3xl select-none">••••••</span>;
+
+  const numericAmount = Number(amount) / 100;
+  
+  let mainPart = '';
+  let secondaryPart = '';
+  
+  if (numericAmount >= 1_000_000_000) {
+    mainPart = (numericAmount / 1_000_000_000).toFixed(1);
+    secondaryPart = 'B';
+  } else if (numericAmount >= 1_000_000) {
+    mainPart = (numericAmount / 1_000_000).toFixed(1);
+    secondaryPart = 'M';
+  } else {
+     const formattedTotal = new Intl.NumberFormat('en-NG', { 
+       minimumFractionDigits: 2, 
+       maximumFractionDigits: 2 
+     }).format(numericAmount);
+     
+     const raw = formattedTotal.replace(/[^\d.]/g, ''); 
+     const parts = raw.split('.');
+     mainPart = parts[0];
+     secondaryPart = `.${parts[1]}`;
+  }
+
+  return (
+    <span className="inline-flex items-baseline font-sans tabular-nums">
+      <span className="text-2xl md:text-3xl font-medium text-muted-foreground/60 mr-1.5">
+        {currency === 'NGN' ? '₦' : currency}
+      </span>
+      {/* SOTA: Tracking-tight makes large numbers look tighter and more cohesive */}
+      <span className="text-foreground font-bold tracking-tight">{mainPart}</span>
+      <span className="text-2xl md:text-3xl font-medium text-muted-foreground/60 ml-0.5">{secondaryPart}</span>
+    </span>
+  );
+};
+
 export function WalletCard({ balance, currency }: WalletCardProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleFund = async () => {
     if (!amount || isNaN(Number(amount))) {
@@ -30,97 +67,119 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
     
     setIsLoading(true);
     try {
-        // API expects major units string? 
-        // Our WalletService expects "500000" (Minor) if we pass raw string.
-        // Let's standardise: User types "5000". We send "500000".
         const minorAmount = (Number(amount) * 100).toString();
-
         const { data } = await apiClient.post('/wallet/fund', {
             amount: minorAmount,
             currency: currency
         });
 
-        // Redirect to Paystack
         if (data.authorizationUrl) {
             window.location.href = data.authorizationUrl;
         }
     } catch (error) {
-        // Error handled by interceptor
         setIsLoading(false);
     }
   };
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary to-emerald-900 p-6 text-primary-foreground shadow-xl">
-        {/* Decorative Circles */}
-        <div className="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-10 -left-6 h-40 w-40 rounded-full bg-white/5 blur-3xl" />
+      <div className="group relative rounded-2xl p-[1px] bg-gradient-to-br from-primary/60 via-primary/10 to-transparent">
+        
+        {/* SOTA: No hover translation, clean static card with internal interactions */}
+        <Card className="relative h-full w-full overflow-hidden bg-card border-none rounded-2xl p-6 flex flex-col justify-between shadow-none min-h-[180px]">
+          
+          {/* Inner Glow */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-20 pointer-events-none" />
+          
+          {/* Background Icon */}
+          <Wallet className="absolute -bottom-6 -right-6 h-36 w-36 text-primary opacity-[0.03] pointer-events-none transition-transform group-hover:scale-105 duration-500" />
 
-        <div className="relative z-10 flex flex-col justify-between h-full space-y-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-primary-foreground/80 flex items-center gap-2">
-                <Wallet className="w-4 h-4" /> Available Balance
-              </p>
-              <div className="flex items-center gap-3">
-                <h2 className="text-3xl font-bold tracking-tight">
-                  {isVisible ? formatCurrency(balance, currency) : '••••••••'}
-                </h2>
-                <button
-                  onClick={() => setIsVisible(!isVisible)}
-                  className="rounded-full p-1 hover:bg-white/10 transition-colors"
-                >
-                  {isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
+          {/* Header */}
+          <div className="relative z-10 flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl shadow-sm backdrop-blur-md bg-primary/10 text-primary">
+                <Wallet className="h-5 w-5" />
               </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground leading-tight">Total Balance</p>
+                <p className="text-sm font-semibold text-foreground">Available Liquidity</p>
+              </div>
+            </div>
+            
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 text-muted-foreground hover:text-foreground rounded-xl" 
+                onClick={() => setIsVisible(!isVisible)}
+            >
+                {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          {/* Value */}
+          <div className="relative z-10 mt-7">
+            <div className="flex items-end gap-2">
+               <h3 className="text-4xl md:text-5xl truncate max-w-full leading-none py-1">
+                  <SmartCurrency amount={balance} currency={currency} visible={isVisible} />
+               </h3>
             </div>
           </div>
 
-          <div className="flex gap-3">
-            <Button 
+          {/* Footer Actions */}
+          <div className="relative z-10 mt-7 flex items-center gap-3">
+             <Button 
                 onClick={() => setIsFundModalOpen(true)}
-                className="bg-white text-emerald-900 hover:bg-white/90 shadow-sm border-0 font-semibold"
+                className="h-10 px-5 text-xs font-semibold shadow-lg shadow-primary/20 rounded-xl"
             >
               <Plus className="mr-2 h-4 w-4" /> Fund Wallet
             </Button>
-            {/* Placeholder for Withdraw/Transfer in future */}
+            
             <Button 
-                variant="outline" 
-                className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                variant="outline"
+                className="h-10 px-5 text-xs font-semibold border-border hover:bg-secondary rounded-xl"
             >
               <ArrowUpRight className="mr-2 h-4 w-4" /> Withdraw
             </Button>
           </div>
-        </div>
+        </Card>
       </div>
 
-      {/* Fund Modal Isolated Here */}
       <Modal
         isOpen={isFundModalOpen}
         onClose={() => setIsFundModalOpen(false)}
         title="Fund Your Wallet"
-        description="Add money securely using Paystack. You will be redirected to complete payment."
+        description="Add money securely using Paystack."
       >
-        <div className="space-y-4">
-            <div className="space-y-2">
-                <label className="text-sm font-medium">Amount ({currency})</label>
+        <div className="space-y-5 pt-2">
+            <div className="space-y-3">
+                <label className="text-sm font-medium leading-none">Amount ({currency})</label>
                 <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground">₦</span>
+                    <span className="absolute left-3 top-2.5 text-muted-foreground font-semibold">₦</span>
                     <Input 
                         type="number" 
                         placeholder="5,000" 
-                        className="pl-8 text-lg" 
+                        className="pl-8 text-lg font-medium" 
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         autoFocus
                     />
                 </div>
+                <div className="flex gap-2 text-xs flex-wrap">
+                    {['1000', '5000', '10000', '50000'].map((val) => (
+                        <button 
+                            key={val}
+                            onClick={() => setAmount(val)}
+                            className="bg-card border border-border px-3 py-2 rounded-xl hover:border-primary hover:text-primary transition-colors font-medium"
+                        >
+                            ₦{Number(val).toLocaleString()}
+                        </button>
+                    ))}
+                </div>
             </div>
             <div className="flex justify-end gap-3 pt-2">
-                <Button variant="outline" onClick={() => setIsFundModalOpen(false)}>Cancel</Button>
-                <Button onClick={handleFund} isLoading={isLoading}>
-                    Proceed to Pay
+                <Button variant="outline" onClick={() => setIsFundModalOpen(false)} className="rounded-xl">Cancel</Button>
+                <Button onClick={handleFund} isLoading={isLoading} className="min-w-[120px] rounded-xl">
+                    Proceed
                 </Button>
             </div>
         </div>

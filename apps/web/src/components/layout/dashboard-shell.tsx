@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
@@ -9,23 +11,34 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   return (
-    <div className="relative min-h-screen bg-background">
-      {/* 1. Desktop Sidebar */}
-      <Sidebar />
-
-      {/* 2. Main Layout Column */}
-      <div className="flex flex-col md:ml-64 min-h-screen">
+    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300">
+      
+      {/* 
+        SOTA Grid Layout 
+        - Mobile: 1 Column
+        - Desktop: [280px Sidebar] [Rest Content]
+      */}
+      <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
         
-        {/* 3. Desktop Header */}
-        <Header />
-
-        {/* 4. Page Content */}
-        <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8 max-w-7xl mx-auto w-full animate-in fade-in-0 duration-300">
-            {children}
-        </main>
+        {/* Desktop Sidebar Column */}
+        <div className="hidden md:block relative">
+           {/* Sidebar Component handles its own sticky positioning */}
+           <Sidebar />
+        </div>
+        
+        {/* Main Content Column */}
+        <div className="flex flex-col min-w-0">
+          <Header />
+          
+          <main className="flex-1 px-4 py-4 sm:px-6 md:px-8 pb-24 md:pb-8 overflow-x-hidden">
+            <div className="mx-auto w-full max-w-7xl animate-in fade-in-0 duration-300">
+                {children}
+            </div>
+          </main>
+        </div>
       </div>
 
-      {/* 5. Mobile Bottom Dock */}
+      {/* Mobile Bottom Dock (Fixed overlay) */}
       <MobileNav />
     </div>
   );

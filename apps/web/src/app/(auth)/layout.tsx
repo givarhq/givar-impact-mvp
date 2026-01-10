@@ -1,4 +1,7 @@
+import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { LandingHeader } from '../../components/layout/landing-header';
 
 export default function AuthLayout({
   children,
@@ -6,34 +9,98 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden bg-background">
-      {/* SOTA Background Effect: Subtle Green Glow */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+    <div className="min-h-screen w-full bg-background">
+      
+      {/* Global Header */}
+      <LandingHeader hideAuthButtons={true} variant="auth" />
 
-      {/* Grid Pattern Overlay (CSS only) */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
-      <div className="relative z-10 w-full max-w-lg">
-        <div className="mb-8 text-center space-y-2">
-          <Link href="/" className="inline-block">
-             {/* Simple Text Logo for now, but styled */}
-            <span className="text-4xl font-extrabold tracking-tighter text-primary">
-              Givar.
-            </span>
-          </Link>
-          <p className="text-muted-foreground text-sm font-medium">
-            The modern way to give with impact.
-          </p>
-        </div>
+      {/* 
+        FIX: Removed 'pt-20' from this parent grid. 
+        The grid now starts at the very top of the viewport (y=0).
+      */}
+      <div className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
         
-        {/* The Card */}
-        <div className="bg-card text-card-foreground p-8 md:p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border backdrop-blur-sm">
-          {children}
+        {/* 
+          LEFT COLUMN 
+          FIX: Added 'pt-24' here. 
+          The background/border extends to top, but content starts below header.
+        */}
+        <div className="relative hidden h-full flex-col bg-background p-10 lg:flex border-r border-border overflow-hidden pt-24">
+
+          {/* Background Effects */}
+          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+
+          {/* GIVAR2 Pattern */}
+          <div className="absolute inset-0 pointer-events-none opacity-30">
+            <Image
+              src="/Givar2.png"
+              alt=""
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+
+          {/* Content */}
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            {/* Logo Section */}
+            <div className="flex items-center gap-3">
+              {/* Logo Section */}
+<div className="flex justify-center w-full">
+  <Image
+    src="/Givar1.png"
+    alt="Givar Logo"
+    width={150}
+    height={150}
+    className="object-contain"
+    priority
+  />
+</div>
+            </div>
+
+            {/* Marketing Copy */}
+            <div className="max-w-md">
+              <h2 className="text-3xl font-bold leading-tight mb-4 tracking-tight text-foreground">
+                Making generosity simple, transparent, and impactful.
+              </h2>
+              <p className="text-muted-foreground text-lg leading-relaxed">
+                Join thousands of givers changing the world one transaction at a time.
+                Real-time tracking, zero-friction donations, and verified causes.
+              </p>
+            </div>
+
+            {/* Footer Tags */}
+            <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono">
+              <span>SECURE LEDGER</span>
+              <span>•</span>
+              <span>VERIFIED IMPACT</span>
+              <span>•</span>
+              <span>ISO 27001</span>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-8 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Givar Inc. Secure & Transparent.
+        {/* 
+          RIGHT COLUMN 
+          FIX: Added 'pt-24' here (and adjusted mobile padding).
+          This ensures form doesn't go under header, but scroll is smooth.
+        */}
+        <div className="flex items-center justify-center p-6 lg:p-12 pt-24 lg:pt-24 relative">
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[400px]">
+            {children}
+
+            <div className="text-center text-xs text-muted-foreground mt-4">
+              By continuing, you agree to our{' '}
+              <Link href="#" className="underline hover:text-primary">
+                Terms
+              </Link>{' '}
+              and{' '}
+              <Link href="#" className="underline hover:text-primary">
+                Privacy Policy
+              </Link>.
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,64 +1,100 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
-import { deleteCookie } from 'cookies-next';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { Rocket, ArrowRight } from 'lucide-react';
 import { dashboardNav } from '../../config/dashboard';
 import { cn } from '../../lib/utils/cn';
-import { Button } from '../ui/button';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleLogout = () => {
-    deleteCookie('givar_token');
-    deleteCookie('givar_user');
-    router.push('/login');
-  };
 
   return (
-    <aside className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 border-r border-border bg-card/50 backdrop-blur-xl">
-      <div className="h-16 flex items-center px-6 border-b border-border/50">
-        <Link href="/dashboard">
-            <span className="text-2xl font-bold tracking-tighter text-primary">Givar.</span>
-        </Link>
-      </div>
+    <div className="sticky top-0 h-screen p-4">
+      <div className="h-full flex flex-col gap-4 rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-xl overflow-hidden">
+        
+        {/* Brand Area */}
+        <div className="flex h-[80px] shrink-0 items-center px-6">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-3 font-semibold group"
+          >
+            <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/10 transition-transform duration-300 group-hover:scale-105">
+              <Image
+                src="/Givar1.png"
+                alt="Givar Logo"
+                width={50}
+                height={50}
+                className="object-contain"
+                priority
+              />
+            </div>
 
-      <div className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
-        <nav className="grid gap-1">
-          {dashboardNav.map((item, index) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
+            <div className="flex flex-col">
+              <span className="text-xl tracking-wide font-bold transition-colors">
+                <span className="text-foreground">Givar</span>
+                <span className="text-primary">.</span>
+              </span>
+            </div>
+          </Link>
+        </div>
 
-            return (
-              <Link
-                key={index}
-                href={item.href}
-                className={cn(
-                  'group flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-all duration-200',
-                  isActive ? 'bg-primary/10 text-primary' : 'text-muted-foreground'
-                )}
-              >
-                <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                <span>{item.title}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+        {/* Navigation */}
+        <div className="flex-1 px-3 py-2 overflow-y-auto no-scrollbar">
+          <nav className="grid items-start gap-2 text-sm font-medium">
+            {dashboardNav.map((item, index) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
 
-      <div className="p-4 border-t border-border/50">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-          onClick={handleLogout}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
-        </Button>
+              return (
+                <Link
+                  key={index}
+                  href={item.href}
+                  className={cn(
+                    'group flex items-center gap-3 px-4 py-3 transition-all duration-300 rounded-xl',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-semibold'
+                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                  )}
+                >
+                  <Icon
+                    className={cn(
+                      'h-5 w-5 transition-colors',
+                      isActive
+                        ? 'text-primary-foreground'
+                        : 'text-muted-foreground group-hover:text-foreground'
+                    )}
+                  />
+                  {item.title}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Start a Cause */}
+        <div className="p-3 mt-auto shrink-0">
+          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10 p-4 transition-all hover:shadow-lg hover:shadow-primary/5">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
+                <Rocket className="h-3 w-3" />
+              </div>
+              <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
+                Start a Cause
+              </span>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
+              Raise funds for your community with transparent tracking.
+            </p>
+
+            <button className="flex items-center text-[10px] font-bold uppercase tracking-wider text-primary hover:text-primary/80 transition-colors bg-background/50 px-2 py-1 rounded-md w-full justify-center shadow-sm">
+              Launch Now <ArrowRight className="ml-1 h-3 w-3" />
+            </button>
+          </div>
+        </div>
       </div>
-    </aside>
+    </div>
   );
 }

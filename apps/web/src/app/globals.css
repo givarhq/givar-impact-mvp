@@ -3,62 +3,67 @@
 @tailwind utilities;
 @layer base {
      :root {
-        /* Base: Pure White */
+        /* Base */
         --background: 0 0% 100%;
         --foreground: 240 10% 3.9%;
-        /* Card: Very slight off-white for depth */
+        /* Card */
         --card: 0 0% 100%;
         --card-foreground: 240 10% 3.9%;
-        /* Popover/Modals */
+        /* Popover */
         --popover: 0 0% 100%;
         --popover-foreground: 240 10% 3.9%;
-        /* Primary: Givar Green (Emerald-600) */
-        --primary: 158 64% 52%;
+        /* Primary: Locked Vibrant Green */
+        --primary: 152 80% 45%;
         --primary-foreground: 0 0% 98%;
-        /* White text on green button */
-        /* Secondary: Light Mint Green for accents */
-        --secondary: 158 30% 96%;
+        /* Secondary */
+        --secondary: 152 45% 94%;
         --secondary-foreground: 240 5.9% 10%;
-        /* Muted/Grays */
+        /* Muted */
         --muted: 240 4.8% 95.9%;
         --muted-foreground: 240 3.8% 46.1%;
         /* Accent */
         --accent: 240 4.8% 95.9%;
         --accent-foreground: 240 5.9% 10%;
-        /* Destructive (Red) */
+        /* Destructive */
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 98%;
-        /* Borders */
+        /* Borders & Inputs */
         --border: 240 5.9% 90%;
         --input: 240 5.9% 90%;
-        --ring: 158 64% 52%;
-        /* Focus ring is green */
+        /* Ring: Locked to Primary */
+        --ring: 152 80% 45%;
         --radius: 0.5rem;
     }
     .dark {
-        /* Base: 95% Black (#0D0D0D) */
+        /* Base */
         --background: 0 0% 5%;
         --foreground: 0 0% 98%;
-        /* Card: Slightly lighter black for separation (#171717) */
+        /* Card */
         --card: 0 0% 9%;
         --card-foreground: 0 0% 98%;
+        /* Popover */
         --popover: 0 0% 9%;
         --popover-foreground: 0 0% 98%;
-        /* Primary: Slightly brighter Green for Dark Mode contrast */
-        --primary: 158 64% 52%;
+        /* Primary: SAME green as light mode */
+        --primary: 152 80% 45%;
         --primary-foreground: 0 0% 98%;
-        /* Secondary: Dark Green/Gray */
-        --secondary: 158 30% 15%;
+        /* Secondary */
+        --secondary: 152 35% 18%;
         --secondary-foreground: 0 0% 98%;
+        /* Muted */
         --muted: 240 3.7% 15.9%;
         --muted-foreground: 240 5% 64.9%;
+        /* Accent */
         --accent: 240 3.7% 15.9%;
         --accent-foreground: 0 0% 98%;
+        /* Destructive */
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 0 0% 98%;
+        /* Borders & Inputs */
         --border: 240 3.7% 15.9%;
         --input: 240 3.7% 15.9%;
-        --ring: 158 64% 52%;
+        /* Ring: SAME green as light mode */
+        --ring: 152 80% 45%;
     }
 }
 
