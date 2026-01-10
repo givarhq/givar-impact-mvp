@@ -4,7 +4,6 @@
     "module": "node16",
     "moduleResolution": "node16",
     "declaration": false,
-    "declarationMap": false, 
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -13,7 +12,11 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
-    "noEmit": false
+    "noEmit": false,
+    "paths": {
+      "@givar/database": ["../../packages/database/src"],
+      "@givar/types": ["../../packages/types/src"]
+    }
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules", "dist"]
