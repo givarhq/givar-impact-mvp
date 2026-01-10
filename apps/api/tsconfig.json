@@ -12,12 +12,17 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "incremental": false,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
     "noEmit": false,
     "paths": {
       "@givar/database": ["../../packages/database/src"],
       "@givar/types": ["../../packages/types/src"]
     }
-  },
-  "include": ["src/**/*", "test/**/*"],
-  "exclude": ["node_modules", "dist"]
+  }
 }
