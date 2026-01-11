@@ -46,6 +46,17 @@ enum SubscriptionInterval {
   MONTHLY
 }
 
+enum GoalInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
 // ---------------------------
 // USER & AUTH
 // ---------------------------
@@ -64,6 +75,7 @@ model User {
   wallets       Wallet[]
   donations     Donation[]
   subscriptions Subscription[]
+  givingGoals   GivingGoal[]
 
   @@map("users")
 }
@@ -188,4 +200,26 @@ model Subscription {
   project     Project   @relation(fields: [projectId], references: [id])
 
   @@map("subscriptions")
+}
+
+model GivingGoal {
+  id            String       @id @default(uuid())
+  userId        String
+  
+  targetAmount  BigInt
+  currency      Currency
+  interval      GoalInterval
+  status        GoalStatus   @default(ACTIVE)
+
+  startDate     DateTime
+  endDate       DateTime
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user          User         @relation(fields: [userId], references: [id])
+
+  // Constraint: A user can only have one active goal of a certain type at a time.
+  @@unique([userId, interval, status])
+  @@map("giving_goals")
 }
