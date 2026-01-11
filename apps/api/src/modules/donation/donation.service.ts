@@ -128,4 +128,22 @@ export class DonationService {
     this.logger.log(`Subscription created for User ${userId} to Project ${dto.projectId}`);
     return subscription;
   }
+
+  async getMySubscriptions(userId: string) {
+    return this.prisma.subscription.findMany({
+      where: { userId },
+      include: {
+        project: {
+          select: {
+            title: true,
+            slug: true,
+            imageUrl: true,
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }

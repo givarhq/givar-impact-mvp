@@ -1,4 +1,4 @@
-import { LayoutDashboard, Heart, History, Settings } from 'lucide-react';
+import { LayoutDashboard, Heart, History, Settings, Repeat } from 'lucide-react';
 
 export const dashboardNav = [
   {
@@ -15,6 +15,11 @@ export const dashboardNav = [
     title: 'History',
     href: '/dashboard/history',
     icon: History,
+  },
+  {
+    title: 'Subscriptions',
+    href: '/dashboard/subscriptions',
+    icon: Repeat,
   },
   {
     title: 'Settings',

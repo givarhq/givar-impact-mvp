@@ -23,4 +23,9 @@ export class DonationController {
   createSubscription(@Req() req: any, @Body() dto: CreateSubscriptionDto) {
     return this.service.createSubscription(req.user.id, dto);
   }
+
+  @Get('subscriptions')
+  getMySubscriptions(@Req() req: any) {
+    return this.service.getMySubscriptions(req.user.id);
+  }
 }
