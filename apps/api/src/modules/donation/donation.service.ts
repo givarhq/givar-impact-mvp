@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { TxStatus, TxType } from '@givar/database';
+import { Currency, TxStatus, TxType } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
 import { WalletRepository } from '../wallet/wallet.repository';
-import { CreateDonationDto } from './dto/donation.dto';
+import { CreateDonationDto, InitiateDirectDonationDto } from './dto/donation.dto';
 import * as crypto from 'crypto';
 import { CreateSubscriptionDto } from './dto/subscription.dto';
-import { add, nextDay } from 'date-fns';
+import { add } from 'date-fns';
+import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DonationService {
@@ -13,6 +15,7 @@ export class DonationService {
   constructor(
     private prisma: PrismaService,
     private walletRepo: WalletRepository,
+    private config: ConfigService,
   ) {}
 
   async donate(userId: string, dto: CreateDonationDto) {
@@ -74,6 +77,132 @@ export class DonationService {
     });
   }
 
+  // Initiate a direct, wallet-bypassing donation
+  async initiateDirectDonation(userId: string, userEmail: string, dto: InitiateDirectDonationDto) {
+    const { projectId, amount, currency } = dto;
+    const amountInMinor = Number(amount);
+
+    // 1. Validate Project
+    const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+    if (!project || !project.isActive) {
+      throw new BadRequestException('Project is not active or does not exist');
+    }
+    if (project.currency !== currency) {
+        throw new BadRequestException(`Project only accepts ${currency}`);
+    }
+
+    // 2. Call Paystack to get a checkout URL
+    try {
+      const response = await axios.post(
+        'https://api.paystack.co/transaction/initialize',
+        {
+          email: userEmail,
+          amount: amountInMinor,
+          currency,
+          // SOTA: Embed critical metadata for the webhook to use later
+          metadata: {
+            donationType: 'DIRECT',
+            userId,
+            projectId,
+          },
+          callback_url: `${this.config.get('FRONTEND_URL')}/dashboard/impact`,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      return {
+        authorizationUrl: response.data.data.authorization_url,
+        reference: response.data.data.reference,
+      };
+    } catch (error) {
+      this.logger.error('Paystack Direct Donation Init Failed', error);
+      throw new InternalServerErrorException('Payment provider unavailable');
+    }
+  }
+
+  // Atomically fulfill a direct donation from a webhook
+  async fulfillDirectDonation(data: {
+    userId: string;
+    projectId: string;
+    amount: bigint;
+    currency: Currency;
+    reference: string; // The Paystack reference
+  }) {
+    const { userId, projectId, amount, currency, reference } = data;
+
+    // We wrap the entire logic in a Prisma transaction.
+    // All of these steps must succeed, or they all roll back.
+    return this.prisma.$transaction(async (tx) => {
+      // Step 1: Create a "Virtual" Wallet Transaction for our ledger.
+      // This transaction is NOT linked to a user's persistent wallet,
+      // but it allows us to have a complete, auditable record of all money movement.
+      // We use a fake walletId or a designated system walletId for this.
+      // For robustness, let's create a temporary wallet and transaction.
+
+      // We need a wallet to associate the transaction with. Let's find the user's NGN wallet
+      // or create it if it doesn't exist. This ensures user record consistency.
+      const wallet = await tx.wallet.upsert({
+          where: { userId_currency: { userId, currency } },
+          update: {},
+          create: { userId, currency }
+      });
+      
+      const virtualTx = await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount,
+          currency,
+          type: 'CREDIT', // Logically, money is "credited" to the system via Paystack...
+          status: 'COMPLETED',
+          reference: `${reference}-CREDIT`, // Ensure uniqueness from the DEBIT
+          description: `Direct donation charge via Paystack`,
+        },
+      });
+
+      // Step 2: Create the corresponding DEBIT transaction record
+      const donationTx = await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount,
+          currency,
+          type: 'DEBIT', // ...and then immediately "debited" to the project.
+          status: 'COMPLETED',
+          reference: reference, // The main Paystack reference, this must be unique.
+          description: `Direct donation to project ${projectId}`,
+        },
+      });
+
+      // Step 3: Create the actual Donation record, linking it to the DEBIT transaction
+      const donation = await tx.donation.create({
+        data: {
+          userId,
+          projectId,
+          transactionId: donationTx.id, // Link to the debit record
+          amount,
+          currency,
+          message: 'Direct donation via Paystack',
+        },
+      });
+
+      // Step 4: Atomically update the project's raised amount
+      await tx.project.update({
+        where: { id: projectId },
+        data: {
+          raisedAmount: { increment: amount },
+        },
+      });
+      
+      this.logger.log(`Fulfilled direct donation ${donation.id} from webhook ref ${reference}`);
+
+      return donation;
+    });
+  }
+
   async getUserDonations(userId: string) {
     return this.prisma.donation.findMany({
       where: { userId },
@@ -82,7 +211,7 @@ export class DonationService {
     });
   }
 
-  // SOTA: Create Recurring Donation
+  // Create Recurring Donation
   async createSubscription(userId: string, dto: CreateSubscriptionDto) {
     const amount = BigInt(dto.amount);
     

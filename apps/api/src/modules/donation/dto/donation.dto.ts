@@ -15,3 +15,14 @@ export class CreateDonationDto {
   @IsOptional()
   message?: string;
 }
+
+export class InitiateDirectDonationDto {
+  @IsUUID()
+  projectId: string;
+
+  @IsNumberString()
+  amount: string;
+
+  @IsEnum(Currency)
+  currency: Currency;
+}

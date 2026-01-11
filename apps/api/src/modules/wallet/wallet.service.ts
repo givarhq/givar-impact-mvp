@@ -13,6 +13,7 @@ import { PrismaService } from '../../common/prisma.service';
 import { Prisma } from '@givar/database';
 import { json2csv } from 'json-2-csv';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
+import { DonationService } from '../donation/donation.service';
 
 @Injectable()
 export class WalletService {
@@ -22,6 +23,7 @@ export class WalletService {
     private repository: WalletRepository,
     private config: ConfigService,
     private prisma: PrismaService,
+    private donationService: DonationService,
   ) {}
 
   /**
@@ -70,12 +72,8 @@ export class WalletService {
 
   // Handle Webhook
   async handleWebhook(signature: string, payload: any) {
-    // 1. Security: Verify HMAC Signature
     const secret = this.config.get('PAYSTACK_SECRET_KEY');
-    const hash = crypto
-      .createHmac('sha512', secret)
-      .update(JSON.stringify(payload))
-      .digest('hex');
+    const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(payload)).digest('hex');
 
     if (hash !== signature) {
       this.logger.error('Invalid Webhook Signature');
@@ -84,13 +82,54 @@ export class WalletService {
 
     const event = payload.event;
     const data = payload.data;
+    const metadata = data.metadata || {};
 
-    // 2. Process "charge.success"
     if (event === 'charge.success') {
-      await this.processSuccessfulFunding(data);
+      // Route webhook based on metadata
+      if (metadata.donationType === 'DIRECT') {
+        // This is a wallet-bypass donation
+        await this.processDirectDonation(data);
+      } else {
+        // This is a standard wallet funding event
+        await this.processSuccessfulFunding(data);
+      }
     }
 
     return true;
+  }
+
+  // New private method to handle the direct donation logic
+  private async processDirectDonation(data: any) {
+    const { reference, amount, currency, metadata } = data;
+    const { userId, projectId } = metadata;
+
+    if (!userId || !projectId) {
+      this.logger.warn(`Direct Donation webhook received without required metadata: ${reference}`);
+      return;
+    }
+
+    try {
+      // We pass the full data to a new, dedicated service method in DonationService
+      // This keeps concerns separated: WalletService routes, DonationService executes.
+      await this.donationService.fulfillDirectDonation({
+        userId,
+        projectId,
+        amount: BigInt(amount),
+        currency: currency as Currency,
+        reference,
+      });
+      this.logger.log(`Direct donation fulfilled: ${amount} ${currency} for User ${userId} to Project ${projectId}`);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        this.logger.warn(`Attempted to process duplicate direct donation webhook: ${reference}`);
+      } else {
+        if (error instanceof Error) {
+          this.logger.error(`Failed to process direct donation webhook: ${error.message}`);
+        } else {
+          this.logger.error('Failed to process direct donation webhook with an unknown error type', error);
+        }
+      }
+    }
   }
 
   private async processSuccessfulFunding(data: any) {
