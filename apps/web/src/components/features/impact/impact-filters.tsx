@@ -9,7 +9,7 @@ import { cn } from '../../../lib/utils/cn';
 
 // Categories (Ideally fetched from API, hardcoded for MVP speed based on seed)
 const categories = [
-  { name: 'All Causes', slug: 'all' },
+  { name: 'All Projects', slug: 'all' },
   { name: 'Education', slug: 'education' },
   { name: 'Health', slug: 'health' },
   { name: 'Environment', slug: 'environment' },

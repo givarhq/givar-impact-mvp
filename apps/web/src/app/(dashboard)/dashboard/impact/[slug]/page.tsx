@@ -34,7 +34,7 @@ export default async function ProjectDetailsPage({ params }: { params: { slug: s
       {/* Back Button */}
       <Link href="/dashboard/impact">
         <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Causes
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Projects
         </Button>
       </Link>
 
