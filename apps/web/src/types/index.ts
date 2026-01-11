@@ -24,3 +24,16 @@ export interface Transaction {
   isDonation: boolean;
   projectName?: string;
 }
+
+export interface Subscription {
+  id: string;
+  amount: string;
+  currency: string;
+  interval: 'WEEKLY' | 'MONTHLY';
+  status: 'ACTIVE' | 'PAUSED' | 'CANCELLED';
+  nextChargeDate: string;
+  project: {
+    title: string;
+    imageUrl?: string;
+  };
+}
