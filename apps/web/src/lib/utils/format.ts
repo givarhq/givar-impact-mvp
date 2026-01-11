@@ -25,3 +25,15 @@ export const formatDate = (dateString: string | Date) => {
     minute: '2-digit',
   }).format(new Date(dateString));
 };
+
+export const formatNumberInput = (value: string): string => {
+  const digitsOnly = value.replace(/\D/g, '');
+  if (!digitsOnly) return '';
+
+  const number = Number(digitsOnly);
+  return new Intl.NumberFormat('en-US').format(number);
+};
+
+export const parseFormattedNumber = (value: string): string => {
+  return value.replace(/,/g, '');
+};
