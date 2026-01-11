@@ -5,25 +5,31 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('givar_token')?.value;
   const { pathname } = request.nextUrl;
 
-  // 1. Protected Routes: /dashboard/*
-  if (pathname.startsWith('/dashboard')) {
-    if (!token) {
-      const loginUrl = new URL('/login', request.url);
-      // Optional: Add ?next=/dashboard to redirect back after login
-      return NextResponse.redirect(loginUrl);
-    }
-  }
+  // Public vs. Protected Routes
+  const publicPaths = ['/', '/login', '/signup'];
+  const isPublicPath = publicPaths.includes(pathname);
 
-  // 2. Auth Routes: /login, /signup (Redirect to dashboard if already logged in)
-  if (pathname === '/login' || pathname === '/signup') {
-    if (token) {
+  // 1. If user is logged in...
+  if (token) {
+    // ...and they are on a public page (like landing, login), redirect to dashboard.
+    if (isPublicPath) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 
+  // 2. If user is NOT logged in...
+  if (!token) {
+    // ...and they are trying to access a protected page, redirect to login.
+    if (!isPublicPath && pathname.startsWith('/dashboard')) {
+      const loginUrl = new URL('/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Otherwise, allow the request to proceed.
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/signup'],
+  matcher: ['/', '/login', '/signup', '/dashboard/:path*'],
 };
