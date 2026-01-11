@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { UpsertGoalDto } from './dto/goal.dto';
-import { GoalInterval } from '@givar/database';
+import { GoalInterval, GoalStatus } from '@givar/database';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 @Injectable()
@@ -13,23 +13,32 @@ export class GoalService {
     const now = new Date();
     const startDate = dto.interval === 'MONTHLY' ? startOfMonth(now) : startOfYear(now);
     const endDate = dto.interval === 'MONTHLY' ? endOfMonth(now) : endOfYear(now);
-
-    // Deactivate any other existing active goals of the same interval
-    await this.prisma.givingGoal.updateMany({
-        where: { userId, interval: dto.interval, status: 'ACTIVE' },
-        data: { status: 'CANCELLED' }
-    });
-
-    return this.prisma.givingGoal.create({
-      data: {
+    
+    const data = {
         userId,
         targetAmount: BigInt(dto.targetAmount),
         currency: dto.currency,
         interval: dto.interval,
-        status: 'ACTIVE',
+        status: GoalStatus.ACTIVE,
         startDate,
         endDate,
+    };
+
+    return this.prisma.givingGoal.upsert({
+      where: {
+        // Look for an existing ACTIVE goal for this user and interval
+        userId_interval_status: {
+          userId,
+          interval: dto.interval,
+          status: GoalStatus.ACTIVE,
+        },
       },
+      // If found, just update the target amount
+      update: {
+        targetAmount: BigInt(dto.targetAmount),
+      },
+      // If not found, create a new one
+      create: data,
     });
   }
 
