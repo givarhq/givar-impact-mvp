@@ -13,7 +13,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { deleteCookie, getCookie } from 'cookies-next';
-import { dashboardNav } from '../../config/dashboard';
 import { Button } from '../ui/button';
 import { ThemeToggle } from './theme-toggle'; 
 import {
@@ -24,6 +23,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+
+// Define exact page titles to match the hidden H1s
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/dashboard/impact': 'Discover Impact',
+  '/dashboard/history': 'Transaction History',
+  '/dashboard/subscriptions': 'Recurring Donations',
+  '/dashboard/settings': 'Account Settings',
+};
 
 export function Header() {
   const pathname = usePathname();
@@ -40,15 +48,13 @@ export function Header() {
     router.push('/login');
   };
 
-  const currentPage =
-    dashboardNav.find((item) => item.href === pathname)?.title || 'Overview';
+  // Logic: Check specific page titles first, otherwise fallback to "Dashboard"
+  const currentTitle = PAGE_TITLES[pathname] || 'Dashboard';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
       
-      {/* 
-        Mobile Logo - Shows only on mobile
-      */}
+      {/* Mobile Logo */}
       <div className="md:hidden flex items-center gap-3">
         <Link href="/dashboard" className="flex items-center gap-2 group">
           <div>
@@ -67,11 +73,11 @@ export function Header() {
         </Link>
       </div>
 
-      {/* Desktop Title */}
+      {/* Desktop Title - Dynamic based on Route Map */}
       <div className="hidden md:flex flex-col">
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold text-foreground">
-            {currentPage}
+          <h1 className="text-xl font-semibold text-foreground">
+            {currentTitle}
           </h1>
         </div>
       </div>
@@ -103,7 +109,7 @@ export function Header() {
           <span>Donate</span>
         </Button>
 
-       <ThemeToggle />
+        <ThemeToggle />
 
         <div className="h-8 w-px bg-border/50 mx-1 hidden md:block" />
 
