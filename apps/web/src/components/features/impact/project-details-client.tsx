@@ -46,7 +46,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
                     </Badge>
                 ))}
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
                 {project.title}
             </h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
