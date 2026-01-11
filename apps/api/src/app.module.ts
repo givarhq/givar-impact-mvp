@@ -8,6 +8,7 @@ import { WalletModule } from './modules/wallet/wallet.module';
 import { DonationModule } from './modules/donation/donation.module';
 import { ProjectModule } from './modules/project/project.module';
 import { HealthModule } from './modules/health/health.module';
+import { GoalModule } from './modules/goals/goal.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { HealthModule } from './modules/health/health.module';
     DonationModule,
     ProjectModule,
     HealthModule,
+    GoalModule,
   ],
   controllers: [],
   providers: [
