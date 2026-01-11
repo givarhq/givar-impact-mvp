@@ -1,12 +1,15 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { TxStatus, TxType } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
 import { WalletRepository } from '../wallet/wallet.repository';
 import { CreateDonationDto } from './dto/donation.dto';
 import * as crypto from 'crypto';
+import { CreateSubscriptionDto } from './dto/subscription.dto';
+import { add, nextDay } from 'date-fns';
 
 @Injectable()
 export class DonationService {
+  private readonly logger = new Logger(DonationService.name);
   constructor(
     private prisma: PrismaService,
     private walletRepo: WalletRepository,
@@ -77,5 +80,52 @@ export class DonationService {
       include: { project: { select: { title: true, slug: true } } },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  // SOTA: Create Recurring Donation
+  async createSubscription(userId: string, dto: CreateSubscriptionDto) {
+    const amount = BigInt(dto.amount);
+    
+    // 1. Validate Project and Wallet (First charge is immediate)
+    const project = await this.prisma.project.findUnique({
+      where: { id: dto.projectId },
+    });
+    if (!project || !project.isActive) {
+      throw new BadRequestException('Project is not active or does not exist');
+    }
+    
+    // 2. Perform the FIRST donation immediately as part of creation
+    // This confirms the user has funds and validates the flow.
+    await this.donate(userId, {
+        projectId: dto.projectId,
+        amount: dto.amount,
+        currency: dto.currency,
+        message: `Initial donation for recurring plan.`
+    });
+    
+    // 3. Calculate next charge date
+    const now = new Date();
+    let nextChargeDate: Date;
+    if (dto.interval === 'WEEKLY') {
+        nextChargeDate = add(now, { weeks: 1 });
+    } else { // MONTHLY
+        nextChargeDate = add(now, { months: 1 });
+    }
+
+    // 4. Create the Subscription record
+    const subscription = await this.prisma.subscription.create({
+      data: {
+        userId,
+        projectId: dto.projectId,
+        amount,
+        currency: dto.currency,
+        interval: dto.interval,
+        status: 'ACTIVE',
+        nextChargeDate,
+      },
+    });
+
+    this.logger.log(`Subscription created for User ${userId} to Project ${dto.projectId}`);
+    return subscription;
   }
 }

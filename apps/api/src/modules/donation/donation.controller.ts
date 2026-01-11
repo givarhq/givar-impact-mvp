@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DonationService } from './donation.service';
 import { CreateDonationDto } from './dto/donation.dto';
+import { CreateSubscriptionDto } from './dto/subscription.dto';
 
 @Controller('donations')
 @UseGuards(AuthGuard('jwt'))
@@ -16,5 +17,10 @@ export class DonationController {
   @Get('my-history')
   getHistory(@Req() req: any) {
     return this.service.getUserDonations(req.user.id);
+  }
+
+  @Post('subscribe')
+  createSubscription(@Req() req: any, @Body() dto: CreateSubscriptionDto) {
+    return this.service.createSubscription(req.user.id, dto);
   }
 }
