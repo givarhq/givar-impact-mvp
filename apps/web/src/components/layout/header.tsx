@@ -15,8 +15,7 @@ import {
 import { deleteCookie, getCookie } from 'cookies-next';
 import { dashboardNav } from '../../config/dashboard';
 import { Button } from '../ui/button';
-// Assuming you have a ThemeToggle component, otherwise this can be commented out
-// import { ThemeToggle } from './theme-toggle'; 
+import { ThemeToggle } from './theme-toggle'; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,7 +103,7 @@ export function Header() {
           <span>Donate</span>
         </Button>
 
-        {/* <ThemeToggle />  Placeholder for your theme toggle */}
+       <ThemeToggle />
 
         <div className="h-8 w-px bg-border/50 mx-1 hidden md:block" />
 
