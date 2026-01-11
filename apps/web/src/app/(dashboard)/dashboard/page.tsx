@@ -4,7 +4,6 @@ import { RecentActivity } from '../../../components/features/dashboard/recent-ac
 import { DashboardGoalClient } from '../../../components/features/goals/dashboard-goal-client';
 import { GivingGoal } from '../../../types';
 
-// 1. Fetch Wallet
 async function getWalletData(token: string) {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet`, {
@@ -12,11 +11,11 @@ async function getWalletData(token: string) {
       cache: 'no-store',
     });
     if (!res.ok) return null;
-    return res.json();
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
   } catch (e) { return null; }
 }
 
-// 2. Fetch History
 async function getHistory(token: string) {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/donations/my-history`, {
@@ -24,20 +23,20 @@ async function getHistory(token: string) {
       cache: 'no-store',
     });
     if (!res.ok) return [];
-    return res.json();
+    const text = await res.text();
+    return text ? JSON.parse(text) : [];
   } catch (e) { return []; }
 }
 
-// SOTA UPDATE: Fetch Active Goal
 async function getActiveGoal(token: string): Promise<GivingGoal | null> {
     try {
-        // Fetches MONTHLY goal by default. Can be extended to fetch YEARLY too.
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/goals/active?interval=MONTHLY`, {
           headers: { Authorization: `Bearer ${token}` },
           cache: 'no-store',
         });
         if (!res.ok) return null;
-        return res.json();
+        const text = await res.text();
+        return text ? JSON.parse(text) : null;
       } catch (e) { return null; }
 }
 
@@ -54,7 +53,6 @@ export default async function DashboardPage() {
 
   if (!token) return <div>Unauthorized</div>;
 
-  // SOTA UPDATE: Fetch all data in parallel
   const [walletData, history, activeGoal] = await Promise.all([
     getWalletData(token),
     getHistory(token),
@@ -68,7 +66,6 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       
-      {/* Page Title & Greeting */}
       <div className="md:hidden flex flex-col gap-1 mb-2">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
@@ -76,21 +73,17 @@ export default async function DashboardPage() {
         </p>
       </div>
       
-      {/* 1. Overview Grid */}
       <OverviewCards 
         wallet={walletData || { balance: '0', currency: 'NGN' }} 
         totalImpact={totalImpactBigInt.toString()}
         donationCount={history.length}
       />
 
-      {/* 2. Content Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         {/* Main Column */}
          <div className="lg:col-span-2 space-y-6">
             <RecentActivity transactions={history.slice(0, 5)} />
          </div>
 
-         {/* Side Column */}
          <div className="space-y-6">
             <DashboardGoalClient initialGoal={activeGoal} />
          </div>

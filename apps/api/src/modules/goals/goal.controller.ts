@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Post, Query, Req, UseGuards } from '@nestjs/common'; // SOTA: Add NotFoundException
 import { AuthGuard } from '@nestjs/passport';
 import { GoalService } from './goal.service';
 import { UpsertGoalDto } from './dto/goal.dto';
@@ -15,12 +15,17 @@ export class GoalController {
   }
 
   @Get('active')
-  getActiveGoalProgress(
+  async getActiveGoalProgress(
     @Req() req: any,
     @Query('interval') interval: GoalInterval,
   ) {
-    // Validate that a valid interval is passed, default to MONTHLY
     const validInterval = interval || GoalInterval.MONTHLY;
-    return this.goalService.getActiveGoalProgress(req.user.id, validInterval);
+    const goal = await this.goalService.getActiveGoalProgress(req.user.id, validInterval);
+    
+    if (!goal) {
+        throw new NotFoundException('No active goal found for the specified interval.');
+    }
+    
+    return goal;
   }
 }
