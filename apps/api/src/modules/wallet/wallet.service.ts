@@ -9,6 +9,10 @@ import { Currency, TxType, TxStatus } from '@givar/database';
 import { WalletRepository } from './wallet.repository';
 import axios from 'axios';
 import * as crypto from 'crypto';
+import { PrismaService } from '../../common/prisma.service';
+import { Prisma } from '@givar/database';
+import { json2csv } from 'json-2-csv';
+import { TransactionQueryDto } from './dto/transaction-query.dto';
 
 @Injectable()
 export class WalletService {
@@ -17,6 +21,7 @@ export class WalletService {
   constructor(
     private repository: WalletRepository,
     private config: ConfigService,
+    private prisma: PrismaService,
   ) {}
 
   /**
@@ -119,5 +124,102 @@ export class WalletService {
         currency: wallet.currency, 
         balance: wallet.balance.toString()
     };
+  }
+
+  // Advanced Transaction Fetching
+  async getTransactions(userId: string, query: TransactionQueryDto) {
+    const { page = 1, limit = 15, search, type, status, startDate, endDate } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.WalletTransactionWhereInput = {
+      wallet: { userId },
+      ...(type && { type }),
+      ...(status && { status }),
+      ...(startDate && endDate && {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      }),
+      ...(search && {
+        OR: [
+          { description: { contains: search, mode: 'insensitive' } },
+          { reference: { contains: search, mode: 'insensitive' } },
+          { donation: { project: { title: { contains: search, mode: 'insensitive' } } } },
+        ],
+      }),
+    };
+
+    const [transactions, total] = await this.prisma.$transaction([
+      this.prisma.walletTransaction.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          donation: {
+            select: { project: { select: { title: true } } },
+          },
+        },
+      }),
+      this.prisma.walletTransaction.count({ where }),
+    ]);
+    
+    // Enhance data with readable descriptions before sending
+    const enhancedData = transactions.map(tx => ({
+        ...tx,
+        isDonation: !!tx.donation,
+        projectName: tx.donation?.project?.title,
+    }));
+
+    return {
+      data: enhancedData,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  // CSV Export Logic
+  async exportTransactionsToCsv(userId: string, query: TransactionQueryDto) {
+    const { search, type, status, startDate, endDate } = query;
+    const where: Prisma.WalletTransactionWhereInput = {
+        wallet: { userId },
+        ...(type && { type }),
+        ...(status && { status }),
+        ...(startDate && endDate && { createdAt: { gte: new Date(startDate), lte: new Date(endDate) } }),
+        ...(search && {
+        OR: [
+          { description: { contains: search, mode: 'insensitive' } },
+          { reference: { contains: search, mode: 'insensitive' } },
+          { donation: { project: { title: { contains: search, mode: 'insensitive' } } } },
+        ],
+      }),
+    };
+    const transactions = await this.prisma.walletTransaction.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: { donation: { select: { project: { select: { title: true } } } } },
+    });
+    
+    // Flatten data for clean CSV columns
+    const flattenedData = transactions.map(tx => ({
+        ID: tx.id,
+        Date: tx.createdAt.toISOString(),
+        Type: tx.type,
+        Amount: (Number(tx.amount) / 100).toFixed(2),
+        Currency: tx.currency,
+        Status: tx.status,
+        Description: tx.description || (tx.donation ? `Donation to ${tx.donation.project.title}` : 'N/A'),
+        Reference: tx.reference,
+    }));
+
+    if (flattenedData.length === 0) {
+        return '';
+    }
+    
+    return json2csv(flattenedData);
   }
 }
