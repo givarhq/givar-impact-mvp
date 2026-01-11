@@ -2,14 +2,7 @@
 
 import * as React from 'react';
 import { X } from 'lucide-react';
-
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  description?: string;
-  children: React.ReactNode;
-}
+import { ModalProps } from '../../types';
 
 export function Modal({ isOpen, onClose, title, description, children }: ModalProps) {
   

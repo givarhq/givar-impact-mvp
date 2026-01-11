@@ -7,17 +7,11 @@ import { Loader2, Repeat, CheckCircle2 } from 'lucide-react';
 import { Modal } from '../../ui/modal';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Project } from '../../../types';
+import { DonationModalProps } from '../../../types';
 import { apiClient } from '../../../lib/api-client';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format'; // SOTA: Import new helpers
 import { Tabs, TabsList, TabsTrigger } from '../../ui/tabs';
 import { cn } from '../../../lib/utils/cn';
-
-interface DonationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  project: Project | null;
-}
 
 export function DonationModal({ isOpen, onClose, project }: DonationModalProps) {
   const router = useRouter();

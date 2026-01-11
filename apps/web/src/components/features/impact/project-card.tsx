@@ -2,13 +2,8 @@
 
 import { Heart } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { Project } from '../../../types';
+import { ProjectCardProps } from '../../../types';
 import { formatCurrency } from '../../../lib/utils/format';
-
-interface ProjectCardProps {
-  project: Project;
-  onDonate: (project: Project) => void;
-}
 
 export function ProjectCard({ project, onDonate }: ProjectCardProps) {
   return (

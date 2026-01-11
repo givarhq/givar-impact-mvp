@@ -4,10 +4,7 @@ import * as React from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { MobileNav } from './mobile-nav';
-
-interface DashboardShellProps {
-  children: React.ReactNode;
-}
+import { DashboardShellProps } from '../../types';
 
 export function DashboardShell({ children }: DashboardShellProps) {
   return (

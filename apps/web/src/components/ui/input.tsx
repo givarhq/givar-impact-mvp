@@ -1,11 +1,6 @@
 import * as React from 'react';
 import { cn } from '../../lib/utils/cn';
-
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  error?: string;
-  label?: string;
-}
+import { InputProps } from '../../types';
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, error, label, ...props }, ref) => {

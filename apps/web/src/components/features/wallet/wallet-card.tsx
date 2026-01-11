@@ -9,11 +9,7 @@ import { Input } from '../../ui/input';
 import { apiClient } from '../../../lib/api-client';
 import toast from 'react-hot-toast';
 import { SmartCurrency } from '../../ui/smart-currency';
-
-interface WalletCardProps {
-  balance: string;
-  currency: string;
-}
+import { WalletCardProps } from '../../../types';
 
 export function WalletCard({ balance, currency }: WalletCardProps) {
   const [isVisible, setIsVisible] = useState(true);

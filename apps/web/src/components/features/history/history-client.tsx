@@ -14,18 +14,7 @@ import {
 } from '../../ui/select';
 import { HistoryTable } from './history-table';
 import { Pagination } from './pagination';
-import { Transaction } from '../../../types';
-
-interface HistoryClientProps {
-  initialData: {
-    data: Transaction[];
-    meta: {
-      total: number;
-      page: number;
-      lastPage: number;
-    };
-  };
-}
+import { HistoryClientProps } from '../../../types';
 
 export function HistoryClient({ initialData }: HistoryClientProps) {
   const router = useRouter();

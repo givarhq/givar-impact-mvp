@@ -1,19 +1,9 @@
 'use client';
 
+import { Transaction } from '../../../types';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { Card, CardHeader, CardTitle, CardContent } from '../../ui/card';
 import { ArrowUpRight, Heart } from 'lucide-react';
-
-interface Transaction {
-  id: string;
-  amount: string;
-  currency: string;
-  project: {
-    title: string;
-    slug: string;
-  };
-  createdAt: string;
-}
 
 export function RecentActivity({ transactions }: { transactions: Transaction[] }) {
   if (transactions.length === 0) {

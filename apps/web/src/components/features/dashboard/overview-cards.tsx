@@ -7,12 +7,7 @@ import { Card } from '../../ui/card';
 import { cn } from '../../../lib/utils/cn';
 import { WalletCard } from '../wallet/wallet-card';
 import { SmartCurrency } from '../../ui/smart-currency';
-
-interface OverviewCardsProps {
-  wallet: { balance: string; currency: string };
-  totalImpact: string; 
-  donationCount: number;
-}
+import { OverviewCardsProps } from '../../../types';
 
 const ImpactStatCard = ({ value, subValue, theme }: any) => {
     return (

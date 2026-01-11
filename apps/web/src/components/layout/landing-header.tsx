@@ -6,11 +6,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useEffect, useState } from 'react';
 import { cn } from '../../lib/utils/cn';
-
-interface LandingHeaderProps {
-  hideAuthButtons?: boolean;
-  variant?: 'default' | 'auth';
-}
+import { LandingHeaderProps } from '../../types';
 
 export function LandingHeader({
   hideAuthButtons = false,

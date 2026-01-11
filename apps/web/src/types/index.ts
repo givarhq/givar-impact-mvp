@@ -23,8 +23,11 @@ export interface Transaction {
   createdAt: string;
   isDonation: boolean;
   projectName?: string;
+  project: {
+    title: string;
+    slug: string;
+  };
 }
-
 export interface Subscription {
   id: string;
   amount: string;
@@ -36,4 +39,76 @@ export interface Subscription {
     title: string;
     imageUrl?: string;
   };
+}
+
+export interface OverviewCardsProps {
+  wallet: { balance: string; currency: string };
+  totalImpact: string; 
+  donationCount: number;
+}
+
+export interface DonationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  project: Project | null;
+}
+
+export interface HistoryClientProps {
+  initialData: {
+    data: Transaction[];
+    meta: {
+      total: number;
+      page: number;
+      lastPage: number;
+    };
+  };
+}
+
+export interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+}
+
+export interface ImpactFeedProps {
+  projects: Project[];
+}
+
+export interface ProjectCardProps {
+  project: Project;
+  onDonate: (project: Project) => void;
+}
+
+export interface WalletCardProps {
+  balance: string;
+  currency: string;
+}
+
+export interface DashboardShellProps {
+  children: React.ReactNode;
+}
+
+export interface LandingHeaderProps {
+  hideAuthButtons?: boolean;
+  variant?: 'default' | 'auth';
+}
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: string;
+  label?: string;
+}
+
+export interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}
+
+export interface SmartCurrencyProps {
+  amount: string;
+  currency: string;
+  visible: boolean;
+  className?: string;
 }

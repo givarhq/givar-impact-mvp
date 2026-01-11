@@ -1,13 +1,7 @@
 'use client';
 
 import React from 'react';
-
-interface SmartCurrencyProps {
-  amount: string;
-  currency: string;
-  visible: boolean;
-  className?: string;
-}
+import { SmartCurrencyProps } from '../../types';
 
 export const SmartCurrency = ({ amount, currency, visible, className }: SmartCurrencyProps) => {
   if (!visible) {

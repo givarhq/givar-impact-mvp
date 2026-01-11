@@ -1,13 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Project } from '../../../types';
+import { ImpactFeedProps, Project } from '../../../types';
 import { ProjectCard } from './project-card';
 import { DonationModal } from '../donation/donation-modal';
-
-interface ImpactFeedProps {
-  projects: Project[];
-}
 
 export function ImpactFeed({ projects }: ImpactFeedProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
