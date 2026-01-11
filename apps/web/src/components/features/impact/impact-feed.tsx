@@ -1,13 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import { ImpactFeedProps, Project } from '../../../types';
+import { useState, useEffect } from 'react';
+import { Project, Wallet } from '../../../types';
 import { ProjectCard } from './project-card';
 import { DonationModal } from '../donation/donation-modal';
+import { apiClient } from '../../../lib/api-client';
+
+interface ImpactFeedProps {
+  projects: Project[];
+}
 
 export function ImpactFeed({ projects }: ImpactFeedProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [wallet, setWallet] = useState<Wallet | null>(null);
+
+  // SOTA: Fetch wallet balance on client to provide real-time data to the modal
+  useEffect(() => {
+    apiClient.get('/wallet')
+      .then(res => setWallet(res.data))
+      .catch(console.error);
+  }, []);
 
   const handleDonateClick = (project: Project) => {
     setSelectedProject(project);
@@ -16,7 +29,6 @@ export function ImpactFeed({ projects }: ImpactFeedProps) {
 
   const handleClose = () => {
     setIsModalOpen(false);
-    // Tiny delay to prevent UI jump before clearing data
     setTimeout(() => setSelectedProject(null), 200);
   };
 
@@ -42,6 +54,7 @@ export function ImpactFeed({ projects }: ImpactFeedProps) {
         isOpen={isModalOpen} 
         onClose={handleClose} 
         project={selectedProject} 
+        wallet={wallet}
       />
     </>
   );

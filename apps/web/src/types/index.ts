@@ -53,16 +53,17 @@ export interface GivingGoal {
   percentComplete: number;
 }
 
+export interface Wallet {
+  id: string;
+  userId: string;
+  currency: 'NGN' | 'USD' | 'GBP';
+  balance: string;
+}
+
 export interface OverviewCardsProps {
   wallet: { balance: string; currency: string };
   totalImpact: string; 
   donationCount: number;
-}
-
-export interface DonationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  project: Project | null;
 }
 
 export interface HistoryClientProps {
