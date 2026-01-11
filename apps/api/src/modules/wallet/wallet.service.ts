@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
+  forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Currency, TxType, TxStatus } from '@givar/database';
@@ -23,6 +25,7 @@ export class WalletService {
     private repository: WalletRepository,
     private config: ConfigService,
     private prisma: PrismaService,
+    @Inject(forwardRef(() => DonationService))
     private donationService: DonationService,
   ) {}
 
