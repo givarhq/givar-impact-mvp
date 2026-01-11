@@ -5,12 +5,14 @@ export interface Project {
   slug: string;
   title: string;
   description: string;
-  targetAmount: string; // BigInt serialized as string
+  targetAmount: string;
   raisedAmount: string;
   currency: string;
   percentFunded: number;
   imageUrl?: string;
   isActive: boolean;
+  createdAt: string; 
+  updatedAt: string;
 }
 
 export interface Transaction {
