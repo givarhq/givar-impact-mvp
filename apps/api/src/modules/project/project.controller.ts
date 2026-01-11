@@ -13,13 +13,13 @@ export class ProjectController {
   // Public: Search & Pagination
   @Get()
   getAll(@Query() query: ProjectQueryDto) {
-    return this.service.findAll(query);
+    return this.service.findAllAdvanced(query);
   }
 
-  // Public: Single Project (SEO friendly)
+  // Public: Single Project (SEO friendly) with full details
   @Get(':slug')
   getOne(@Param('slug') slug: string) {
-    return this.service.findOneBySlug(slug);
+    return this.service.findOneWithUpdates(slug);
   }
 
   // Protected: Admin Only

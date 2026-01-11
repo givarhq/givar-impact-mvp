@@ -57,6 +57,20 @@ enum GoalStatus {
   CANCELLED
 }
 
+enum ProjectStatus {
+  DRAFT
+  ACTIVE
+  FUNDED
+  COMPLETED
+  SUSPENDED
+}
+
+enum UpdateType {
+  MILESTONE
+  ANNOUNCEMENT
+  IMPACT_REPORT
+}
+
 // ---------------------------
 // USER & AUTH
 // ---------------------------
@@ -144,12 +158,26 @@ model Project {
   id          String   @id @default(uuid())
   slug        String   @unique 
   title       String
-  description String   
-  imageUrl    String?
-  
+  description String  
+  shortDesc   String? 
+  imageUrl      String?  // Main Hero Image
+  gallery       String[] // Array of additional image URLs
+
   targetAmount BigInt
   raisedAmount BigInt   @default(0)
   currency     Currency
+  status        ProjectStatus @default(ACTIVE)
+
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  tags          String[]  // Simple array for "Urgent", "Verified", etc.
+
+  location      String?   // "Lagos, Nigeria"
+  
+  updates       ProjectUpdate[]
+
+  donorCount    Int      @default(0)
+  endDate       DateTime?
   
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -159,6 +187,35 @@ model Project {
   subscriptions Subscription[]
 
   @@map("projects")
+  @@index([categoryId])
+  @@index([status])
+}
+
+model ProjectUpdate {
+  id          String     @id @default(uuid())
+  projectId   String
+  title       String
+  content     String     @db.Text
+  type        UpdateType @default(ANNOUNCEMENT)
+  imageUrl    String?
+  
+  createdAt   DateTime   @default(now())
+  
+  project     Project    @relation(fields: [projectId], references: [id])
+
+  @@map("project_updates")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique // e.g. "Education", "Health"
+  slug        String    @unique
+  description String?
+  icon        String?   // Lucide icon name or emoji
+  
+  projects    Project[]
+
+  @@map("categories")
 }
 
 model Donation {
