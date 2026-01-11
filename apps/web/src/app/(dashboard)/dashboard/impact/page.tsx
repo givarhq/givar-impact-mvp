@@ -45,7 +45,7 @@ export default async function ImpactPage({
             Discover Impact
         </h1>
         {/* Mobile Header handled by layout/sidebar */}
-        <p className="text-muted-foreground max-w-2xl">
+        <p className="text-muted-foreground text-sm">
           Browse verified causes, filter by your interests, and fund the change you want to see in the world.
         </p>
       </div>
