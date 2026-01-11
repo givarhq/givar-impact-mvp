@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Clock, CheckCircle2, XCircle, ArrowDown, ArrowUp } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Card, CardContent } from '../../ui/card';
@@ -30,7 +30,47 @@ const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> 
     REVERSED: { icon: XCircle, text: 'text-muted-foreground' },
 };
 
-export function HistoryTable({ transactions }: { transactions: Transaction[] }) {
+const SortableHeader = ({
+  column,
+  title,
+  sortBy,
+  sortOrder,
+  onSort,
+  className = ''
+}: {
+  column: string;
+  title: string;
+  sortBy: string;
+  sortOrder: string;
+  onSort: (column: any) => void;
+  className?: string;
+}) => {
+  const isActive = sortBy === column;
+  return (
+    <th className={`px-6 py-3 font-medium text-muted-foreground ${className}`}>
+        <button className="flex items-center gap-2 group" onClick={() => onSort(column)}>
+            {title}
+            {isActive ? (
+                sortOrder === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+            ) : (
+                <ArrowUp className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />
+            )}
+        </button>
+    </th>
+  );
+};
+
+export function HistoryTable({
+  transactions,
+  sortBy,
+  sortOrder,
+  onSort,
+}: {
+  transactions: Transaction[];
+  sortBy: string;
+  sortOrder: string;
+  onSort: (column: 'createdAt' | 'amount' | 'status' | 'description') => void;
+}) {
   if (transactions.length === 0) {
     return (
         <Card className="border-dashed">
@@ -53,17 +93,26 @@ export function HistoryTable({ transactions }: { transactions: Transaction[] }) 
             <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                     <tr className="border-b border-border">
-                        <th className="px-6 py-3 text-left font-medium text-muted-foreground w-1/2">Transaction</th>
-                        <th className="px-6 py-3 text-left font-medium text-muted-foreground hidden md:table-cell">Date</th>
-                        <th className="px-6 py-3 text-right font-medium text-muted-foreground">Amount</th>
-                        <th className="px-6 py-3 text-center font-medium text-muted-foreground hidden lg:table-cell">Status</th>
+                        <SortableHeader 
+                            column="description" 
+                            title="Transaction" 
+                            sortBy={sortBy} 
+                            sortOrder={sortOrder} 
+                            onSort={onSort}
+                            className="text-left w-1/2"
+                        />
+                        
+                        <SortableHeader column="createdAt" title="Date" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} className="text-left hidden md:table-cell" />
+                        <SortableHeader column="amount" title="Amount" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} className="text-right" />
+                        <SortableHeader column="status" title="Status" sortBy={sortBy} sortOrder={sortOrder} onSort={onSort} className="text-center hidden lg:table-cell" />
+
                         <th className="px-6 py-3 text-right"></th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                     {transactions.map((tx) => {
                         const typeStyle = typeStyles[tx.type];
-                        const statusStyle = statusStyles[tx.status]; // <-- This line is now type-safe
+                        const statusStyle = statusStyles[tx.status];
                         
                         return (
                             <tr key={tx.id} className="hover:bg-muted/50 transition-colors">

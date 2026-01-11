@@ -128,7 +128,7 @@ export class WalletService {
 
   // Advanced Transaction Fetching
   async getTransactions(userId: string, query: TransactionQueryDto) {
-    const { page = 1, limit = 15, search, type, status, startDate, endDate } = query;
+    const { page = 1, limit = 15, search, type, status, startDate, endDate, sortBy, sortOrder } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.WalletTransactionWhereInput = {
@@ -150,23 +150,35 @@ export class WalletService {
       }),
     };
 
+    const orderBy: Prisma.WalletTransactionOrderByWithRelationInput = 
+      sortBy && sortOrder
+        ? { [sortBy]: sortOrder }
+        : { createdAt: 'desc' };
+
+    const includeClause = {
+        donation: {
+            select: { project: { select: { title: true } } },
+        },
+    };
+
+    type TransactionWithDonation = Prisma.WalletTransactionGetPayload<{
+        include: typeof includeClause
+    }>;
+    
     const [transactions, total] = await this.prisma.$transaction([
       this.prisma.walletTransaction.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          donation: {
-            select: { project: { select: { title: true } } },
-          },
-        },
+        orderBy,
+        include: includeClause,
       }),
       this.prisma.walletTransaction.count({ where }),
     ]);
     
-    // Enhance data with readable descriptions before sending
-    const enhancedData = transactions.map(tx => ({
+    const typedTransactions = transactions as TransactionWithDonation[];
+
+    const enhancedData = typedTransactions.map(tx => ({
         ...tx,
         isDonation: !!tx.donation,
         projectName: tx.donation?.project?.title,

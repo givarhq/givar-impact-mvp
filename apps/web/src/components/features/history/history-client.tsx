@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Download, Search, X } from 'lucide-react';
 import { Input } from '../../ui/input';
@@ -14,10 +14,11 @@ import {
 } from '../../ui/select';
 import { HistoryTable } from './history-table';
 import { Pagination } from './pagination';
+import { Transaction } from '../../../types';
 
 interface HistoryClientProps {
   initialData: {
-    data: any[];
+    data: Transaction[];
     meta: {
       total: number;
       page: number;
@@ -30,41 +31,65 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  // State is initialized from the URL search params, making links shareable
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     type: searchParams.get('type') || 'all',
     status: searchParams.get('status') || 'all',
+    sortBy: searchParams.get('sortBy') || 'createdAt',
+    sortOrder: searchParams.get('sortOrder') || 'desc',
   });
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  const handleSort = (column: 'createdAt' | 'amount' | 'status' | 'description') => {
+    const newSortOrder = filters.sortBy === column && filters.sortOrder === 'asc' ? 'desc' : 'asc';
+    setFilters(prev => ({
+        ...prev,
+        sortBy: column,
+        sortOrder: newSortOrder,
+    }));
+  };
+
   const clearFilters = () => {
-    setFilters({ search: '', type: 'all', status: 'all' });
+    // Reset all filters to their default state, including sorting.
+    setFilters({
+      search: '',
+      type: 'all',
+      status: 'all',
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    });
   };
   
-  // This effect syncs the URL with the filter state
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    // Reset page to 1 whenever filters change
-    params.set('page', '1'); 
+    if(!params.has('page') || params.get('page') !== searchParams.get('page')) {
+        params.set('page', '1');
+    }
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value && value !== 'all') {
         params.set(key, value);
       } else {
-        params.delete(key);
+        if (key === 'type' || key === 'status' || key === 'search') {
+            params.delete(key);
+        }
       }
     });
     
-    const handler = setTimeout(() => {
-        router.replace(`${pathname}?${params.toString()}`);
-    }, 300);
-
-    return () => clearTimeout(handler);
+    if (filters.sortBy === 'createdAt' && filters.sortOrder === 'desc') {
+        params.delete('sortBy');
+        params.delete('sortOrder');
+    }
+    
+    startTransition(() => {
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    });
+    
   }, [filters, pathname, router]);
 
 
@@ -73,10 +98,9 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
     params.delete('page');
     params.delete('limit');
     
-    // Construct the full URL for the export endpoint
-    const exportUrl = `/api/wallet/transactions/export?${params.toString()}`;
+    // Use the absolute URL for the API endpoint
+    const exportUrl = `${process.env.NEXT_PUBLIC_API_URL}/wallet/transactions/export?${params.toString()}`;
     
-    // Trigger download
     window.open(exportUrl, '_blank');
   };
 
@@ -84,7 +108,6 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
 
   return (
     <div className="space-y-6">
-      {/* Filter Bar */}
       <div className="p-4 rounded-2xl border border-border bg-card shadow-sm space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative lg:col-span-2">
@@ -115,20 +138,25 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
           </Select>
         </div>
         
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2">
             {hasActiveFilters ? (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="rounded-xl">
                     <X className="mr-2 h-4 w-4" /> Clear Filters
                 </Button>
             ) : <div />}
 
-            <Button variant="outline" size="sm" onClick={handleExport}>
+            <Button variant="outline" size="sm" onClick={handleExport} className="rounded-xl">
                 <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
         </div>
       </div>
 
-      <HistoryTable transactions={initialData.data} />
+      <HistoryTable
+        transactions={initialData.data}
+        sortBy={filters.sortBy}
+        sortOrder={filters.sortOrder}
+        onSort={handleSort}
+      />
 
       <Pagination
         currentPage={initialData.meta.page}

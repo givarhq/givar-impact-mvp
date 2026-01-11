@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TxType, TxStatus } from '@givar/database';
 
@@ -30,4 +30,12 @@ export class TransactionQueryDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @IsOptional()
+  @IsIn(['createdAt', 'amount', 'status', 'description'])
+  sortBy?: 'createdAt' | 'amount' | 'status' | 'description';
+
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
 }
