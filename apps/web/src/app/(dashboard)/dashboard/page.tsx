@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
 import { OverviewCards } from '../../../components/features/dashboard/overview-cards';
 import { RecentActivity } from '../../../components/features/dashboard/recent-activity';
+import { DashboardGoalClient } from '../../../components/features/goals/dashboard-goal-client';
+import { GivingGoal } from '../../../types';
 
 // 1. Fetch Wallet
 async function getWalletData(token: string) {
@@ -26,6 +28,19 @@ async function getHistory(token: string) {
   } catch (e) { return []; }
 }
 
+// SOTA UPDATE: Fetch Active Goal
+async function getActiveGoal(token: string): Promise<GivingGoal | null> {
+    try {
+        // Fetches MONTHLY goal by default. Can be extended to fetch YEARLY too.
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/goals/active?interval=MONTHLY`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store',
+        });
+        if (!res.ok) return null;
+        return res.json();
+      } catch (e) { return null; }
+}
+
 async function getUser() {
     const cookieStore = cookies();
     const userCookie = cookieStore.get('givar_user')?.value;
@@ -39,9 +54,11 @@ export default async function DashboardPage() {
 
   if (!token) return <div>Unauthorized</div>;
 
-  const [walletData, history] = await Promise.all([
+  // SOTA UPDATE: Fetch all data in parallel
+  const [walletData, history, activeGoal] = await Promise.all([
     getWalletData(token),
     getHistory(token),
+    getActiveGoal(token),
   ]);
 
   const totalImpactBigInt = history.reduce((acc: bigint, tx: any) => {
@@ -51,11 +68,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       
-      {/* 
-        Page Title & Greeting 
-        - Visible on Mobile (default)
-        - Hidden on Desktop (md:hidden) because Header handles it
-      */}
+      {/* Page Title & Greeting */}
       <div className="md:hidden flex flex-col gap-1 mb-2">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
@@ -79,19 +92,7 @@ export default async function DashboardPage() {
 
          {/* Side Column */}
          <div className="space-y-6">
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-                <h3 className="font-semibold mb-2 text-sm">Impact Goals</h3>
-                <p className="text-xs text-muted-foreground mb-4">
-                    Set a monthly giving goal to track your progress and maximize impact.
-                </p>
-                <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
-                    <div className="h-full bg-primary w-[0%]" /> 
-                </div>
-                <div className="flex justify-between mt-2">
-                    <span className="text-[10px] text-muted-foreground font-medium">Start</span>
-                    <span className="text-[10px] text-muted-foreground font-medium">0%</span>
-                </div>
-            </div>
+            <DashboardGoalClient initialGoal={activeGoal} />
          </div>
       </div>
     </div>
