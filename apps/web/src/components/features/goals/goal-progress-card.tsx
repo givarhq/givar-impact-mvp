@@ -62,12 +62,12 @@ export function GoalProgressCard({ goal, onEditGoal }: GoalProgressCardProps) {
             
             <p className="mt-4 text-sm text-muted-foreground">
               <span className="font-bold text-foreground">
-                <SmartCurrency amount={goal.currentAmount} currency={goal.currency} visible={true} />
-              </span>
-              {' '}of your{' '}
-              <SmartCurrency amount={goal.targetAmount} currency={goal.currency} visible={true} />
-              {' '}goal
-            </p>
+                <SmartCurrency amount={goal.currentAmount} currency={goal.currency} visible={true} size="default" />
+  </span>
+  {' '}of your{' '}
+  <SmartCurrency amount={goal.targetAmount} currency={goal.currency} visible={true} size="default" />
+  {' '}goal
+</p>
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center">

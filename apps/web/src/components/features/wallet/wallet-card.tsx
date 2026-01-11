@@ -69,7 +69,7 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
           <div className="relative z-10 mt-7">
             <div className="flex items-end gap-2">
                <h3 className="text-4xl md:text-5xl truncate max-w-full leading-none py-1">
-                  <SmartCurrency amount={balance} currency={currency} visible={isVisible} />
+                  <SmartCurrency amount={balance} currency={currency} visible={isVisible} size="large" />
                </h3>
             </div>
           </div>
