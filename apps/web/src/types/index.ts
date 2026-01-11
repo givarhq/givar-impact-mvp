@@ -41,6 +41,18 @@ export interface Subscription {
   };
 }
 
+export interface GivingGoal {
+  id: string;
+  targetAmount: string;
+  currentAmount: string;
+  currency: string;
+  interval: 'MONTHLY' | 'YEARLY';
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  startDate: string;
+  endDate: string;
+  percentComplete: number;
+}
+
 export interface OverviewCardsProps {
   wallet: { balance: string; currency: string };
   totalImpact: string; 
