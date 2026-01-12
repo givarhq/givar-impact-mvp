@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 async function getProject(slug: string) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
 
   try {
@@ -22,8 +22,14 @@ async function getProject(slug: string) {
   }
 }
 
-export default async function ProjectDetailsPage({ params }: { params: { slug: string } }) {
-  const project = await getProject(params.slug);
+export default async function ProjectDetailsPage({ 
+  params 
+}: { 
+  params: Promise<{ slug: string }> 
+}) {
+  const { slug } = await params;
+  
+  const project = await getProject(slug);
 
   if (!project) {
     notFound();

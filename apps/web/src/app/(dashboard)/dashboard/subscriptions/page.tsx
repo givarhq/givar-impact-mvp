@@ -18,7 +18,7 @@ async function getSubscriptions(token: string) {
 }
 
 export default async function SubscriptionsPage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
 
   if (!token) return null;

@@ -18,16 +18,16 @@ async function getInitialHistory(token: string, searchParams: URLSearchParams) {
 export default async function HistoryPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
 
   if (!token) return null;
 
-  // SOTA: The server reads the URL params and fetches the exact data the user requested
-  const initialData = await getInitialHistory(token, new URLSearchParams(searchParams as any));
+  const resolvedParams = await searchParams;
 
+  const initialData = await getInitialHistory(token, new URLSearchParams(resolvedParams as any));
   return (
     <div className="space-y-6">
       {/* Mobile Title */}

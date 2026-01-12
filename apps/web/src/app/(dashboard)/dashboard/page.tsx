@@ -41,13 +41,13 @@ async function getActiveGoal(token: string): Promise<GivingGoal | null> {
 }
 
 async function getUser() {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const userCookie = cookieStore.get('givar_user')?.value;
     return userCookie ? JSON.parse(userCookie) : null;
 }
 
 export default async function DashboardPage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
   const user = await getUser();
 

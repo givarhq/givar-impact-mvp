@@ -5,7 +5,7 @@ import { Project } from '../../../../types';
 
 // Fetch with filters
 async function getProjects(searchParams: { [key: string]: string | string[] | undefined }): Promise<Project[]> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
   
   // Construct Query String
@@ -32,9 +32,11 @@ async function getProjects(searchParams: { [key: string]: string | string[] | un
 export default async function ImpactPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const projects = await getProjects(searchParams);
+  const resolvedParams = await searchParams;
+  
+  const projects = await getProjects(resolvedParams);
 
   return (
     <div className="space-y-8 min-h-screen pb-10">
