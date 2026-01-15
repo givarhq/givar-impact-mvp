@@ -103,11 +103,16 @@ export class ProjectService {
           include: {
               category: true,
               updates: { orderBy: { createdAt: 'desc' } },
-              _count: { select: { donations: true } }
           }
       });
 
       if (!project) throw new NotFoundException('Project not found');
+
+      const uniqueDonors = await this.prisma.donation.groupBy({
+          by: ['userId'],
+          where: { projectId: project.id },
+      });
+      const donorCount = uniqueDonors.length;
 
       const raised = Number(project.raisedAmount);
       const target = Number(project.targetAmount);
@@ -117,7 +122,7 @@ export class ProjectService {
           targetAmount: project.targetAmount.toString(),
           raisedAmount: project.raisedAmount.toString(),
           percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
-          donorCount: project._count.donations
+          donorCount: donorCount
       };
   }
 
