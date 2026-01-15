@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { Currency, TxStatus, TxType } from '@givar/database';
+import { Currency, TxStatus, TxType, AuditAction } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
 import { WalletRepository } from '../wallet/wallet.repository';
 import { CreateDonationDto, InitiateDirectDonationDto } from './dto/donation.dto';
@@ -8,6 +8,7 @@ import { CreateSubscriptionDto } from './dto/subscription.dto';
 import { add } from 'date-fns';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class DonationService {
@@ -16,6 +17,7 @@ export class DonationService {
     private prisma: PrismaService,
     private walletRepo: WalletRepository,
     private config: ConfigService,
+    private audit: AuditService,
   ) {}
 
   async donate(userId: string, dto: CreateDonationDto) {
@@ -73,6 +75,23 @@ export class DonationService {
         },
       });
 
+      // STRICT AUDIT LOGGING
+      // We pass 'tx' here. If this line fails, the debit is reverted.
+      // If the debit fails, this line never runs.
+      // If power cuts, neither exists.
+      await this.audit.log({
+          userId,
+          action: AuditAction.DONATION_CREATED,
+          entityId: donation.id,
+          entityType: 'Donation',
+          metadata: { 
+              projectId: dto.projectId, 
+              amount: dto.amount, 
+              currency: dto.currency,
+              reference 
+          }
+      }, tx);
+
       return donation;
     });
   }
@@ -99,7 +118,7 @@ export class DonationService {
           email: userEmail,
           amount: amountInMinor,
           currency,
-          // SOTA: Embed critical metadata for the webhook to use later
+          // Embed critical metadata for the webhook to use later
           metadata: {
             donationType: 'DIRECT',
             userId,
@@ -199,6 +218,20 @@ export class DonationService {
       
       this.logger.log(`Fulfilled direct donation ${donation.id} from webhook ref ${reference}`);
 
+      await this.audit.log({
+          userId,
+          action: AuditAction.DIRECT_PAYMENT_INITIATED, // or DONATION_CREATED
+          entityId: donation.id,
+          entityType: 'Donation',
+          metadata: { 
+              projectId, 
+              amount: amount.toString(), 
+              currency,
+              reference,
+              method: 'DIRECT_WEBHOOK'
+          }
+      }, tx);
+      
       return donation;
     });
   }
