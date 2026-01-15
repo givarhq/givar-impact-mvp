@@ -43,7 +43,7 @@ export default async function ImpactPage({
       
       {/* Header Section */}
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground md:hidden">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground md:hidden">
             Discover Impact
         </h1>
         {/* Mobile Header handled by layout/sidebar */}
