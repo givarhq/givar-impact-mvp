@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { DonationModal } from '../donation/donation-modal';
 import { apiClient } from '../../../lib/api-client';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
+import { TransparencyCard } from './transparency-card';
 
 interface ProjectDetailsClientProps {
   project: Project & { 
@@ -82,7 +83,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
 
             <TabsContent value="story" className="mt-6 space-y-6 animate-in fade-in-50">
                 <div className="prose prose-slate dark:prose-invert max-w-none">
-                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground text-lg">
+                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground text-md">
                         {project.description}
                     </p>
                 </div>
@@ -120,63 +121,26 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
         <div className="sticky top-24 space-y-6">
             
             {/* Progress Card */}
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-xl shadow-primary/5">
-                <div className="mb-6">
-                    <div className="flex justify-between items-baseline mb-2">
-                        <span className="text-3xl font-bold text-foreground">
-                            {formatCurrency(project.raisedAmount, project.currency)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                            of {formatCurrency(project.targetAmount, project.currency)}
-                        </span>
-                    </div>
-                    <div className="h-3 w-full bg-secondary rounded-full overflow-hidden">
-                        <div 
-                            className="h-full bg-primary transition-all duration-1000 ease-out" 
-                            style={{ width: `${project.percentFunded}%` }}
-                        />
-                    </div>
-                    <div className="flex justify-between mt-3 text-sm font-medium">
-                        <span className="flex items-center gap-1.5 text-foreground">
-                            <User className="h-4 w-4 text-primary" /> {project.donorCount || 0} Donors
-                        </span>
-                        <span className="text-primary">{project.percentFunded}% Funded</span>
-                    </div>
-                </div>
+            <TransparencyCard project={project} />
 
-                <div className="space-y-3">
-                    <Button 
-                        size="lg" 
-                        className="w-full h-14 text-base font-bold shadow-lg shadow-primary/20 rounded-xl"
-                        onClick={() => setIsModalOpen(true)}
-                    >
-                        Donate Now
-                    </Button>
-                    <Button variant="outline" className="w-full rounded-xl border-primary/20 text-primary hover:bg-primary/5">
-                        <Share2 className="mr-2 h-4 w-4" /> Share Cause
-                    </Button>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-border flex items-start gap-3">
-                    <Flag className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                        <strong>Givar Guarantee:</strong> This project has been verified. Funds are released in tranches based on milestone completion.
-                    </p>
-                </div>
+            <div className="space-y-3">
+                <Button 
+                    size="lg" 
+                    className="w-full h-14 text-base font-bold shadow-lg shadow-primary/20 rounded-xl bg-primary hover:bg-primary/90"
+                    onClick={() => setIsModalOpen(true)}
+                >
+                    Donate Now
+                </Button>
+                <Button variant="outline" className="w-full h-12 rounded-xl border-primary/20 text-primary hover:bg-primary/5">
+                    <Share2 className="mr-2 h-4 w-4" /> Share Cause
+                </Button>
             </div>
 
-            {/* Organizer Card (Placeholder) */}
-            <div className="rounded-2xl border border-border bg-card p-5 flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-                    O
-                </div>
-                <div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Organizer</p>
-                    <p className="font-semibold text-foreground">Verified Organization</p>
-                </div>
-                <div className="ml-auto">
-                    <CheckCircle2 className="h-5 w-5 text-blue-500" />
-                </div>
+            <div className="mt-6 pt-6 border-t border-border flex items-start gap-3 opacity-80">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                    <strong>Givar Guarantee:</strong> Funds are released in tranches. We audit every milestone before releasing the next batch of funds.
+                </p>
             </div>
 
         </div>
