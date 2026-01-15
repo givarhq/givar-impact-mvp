@@ -7,12 +7,12 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Currency, TxType, TxStatus } from '@givar/database';
 import { WalletRepository } from './wallet.repository';
 import axios from 'axios';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma.service';
-import { Prisma } from '@givar/database';
+import { Prisma, Currency, TxType, TxStatus, AuditAction } from '@givar/database';
+import { AuditService } from '../audit/audit.service';
 import { json2csv } from 'json-2-csv';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
 import { DonationService } from '../donation/donation.service';
@@ -27,6 +27,7 @@ export class WalletService {
     private prisma: PrismaService,
     @Inject(forwardRef(() => DonationService))
     private donationService: DonationService,
+    private audit: AuditService,
   ) {}
 
   /**
@@ -79,17 +80,24 @@ export class WalletService {
     const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(payload)).digest('hex');
 
     if (hash !== signature) {
-      this.logger.error('Invalid Webhook Signature');
-      throw new BadRequestException('Invalid signature');
+        await this.audit.log({
+            action: AuditAction.WEBHOOK_RECEIVED,
+            metadata: { status: 'FAILED', reason: 'Invalid Signature', ip: 'unknown' }
+        });
+        throw new BadRequestException('Invalid signature');
     }
 
     const event = payload.event;
     const data = payload.data;
-    const metadata = data.metadata || {};
+
+    await this.audit.log({
+        action: AuditAction.WEBHOOK_RECEIVED,
+        metadata: { event, reference: data.reference }
+    });
 
     if (event === 'charge.success') {
       // Route webhook based on metadata
-      if (metadata.donationType === 'DIRECT') {
+      if (data.metadata.donationType === 'DIRECT') {
         // This is a wallet-bypass donation
         await this.processDirectDonation(data);
       } else {
@@ -145,7 +153,7 @@ export class WalletService {
     }
 
     try {
-      await this.repository.processTransaction({
+      const result = await this.repository.processTransaction({
         userId,
         amount: BigInt(amount),
         currency: currency as Currency,
@@ -154,6 +162,15 @@ export class WalletService {
         status: TxStatus.COMPLETED,
         description: 'Wallet Funding via Paystack',
       });
+
+      await this.audit.log({
+        userId,
+        action: AuditAction.WALLET_FUND,
+        entityId: result.transaction.id,
+        entityType: 'WalletTransaction',
+        metadata: { amount, currency, reference, newBalance: result.newBalance.toString() }
+      });
+
       this.logger.log(`Wallet funded: ${amount} ${currency} for User ${userId}`);
     } catch (error) {
       this.logger.error(`Failed to process funding webhook: ${error}`);
