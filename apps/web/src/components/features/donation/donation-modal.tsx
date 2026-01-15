@@ -106,13 +106,17 @@ export function DonationModal({ isOpen, onClose, project, wallet }: DonationModa
       title={`Support ${project.title}`}
       description="Your contribution goes directly to this cause."
     >
-        <Tabs value={donationType} onValueChange={(v) => setDonationType(v as 'one-time' | 'recurring')} className="w-full">
-            <TabsList>
-                <TabsTrigger value="one-time">One-Time</TabsTrigger>
-                <TabsTrigger value="recurring">Recurring</TabsTrigger>
-            </TabsList>
+        <Tabs value={donationType} onValueChange={(v) => setDonationType(v as 'one-time' | 'recurring')} className="w-full flex flex-col h-full">
+            {/* Header: Tabs */}
+            <div className="shrink-0 pt-2 pb-4">
+                <TabsList className="w-full">
+                    <TabsTrigger value="one-time" className="flex-1">One-Time</TabsTrigger>
+                    <TabsTrigger value="recurring" className="flex-1">Recurring</TabsTrigger>
+                </TabsList>
+            </div>
 
-            <div className="space-y-6 pt-4">
+            {/* SOTA FIX: Scrollable Body Area (Max Height constraint) */}
+            <div className="flex-1 overflow-y-auto max-h-[55vh] px-1 -mx-1 space-y-5">
                  <div className="space-y-3">
                     <label className="text-sm font-medium">Amount ({project.currency})</label>
                     <div className="relative">
@@ -164,20 +168,20 @@ export function DonationModal({ isOpen, onClose, project, wallet }: DonationModa
                 )}
                 
                 {amount && (
-                    <div className="space-y-3 pt-2 animate-in fade-in-0 duration-300">
+                    <div className="space-y-3 pt-2 animate-in fade-in-0 duration-300 pb-2">
                         <p className="text-sm font-medium">Payment Method</p>
                         <button
                             onClick={() => setSelectedMethod('wallet')}
                             disabled={!hasSufficientFunds}
                             className={cn(
                                 "w-full h-auto justify-start p-4 text-left border rounded-xl transition-all relative",
-                                selectedMethod === 'wallet' ? "border-primary ring-2 ring-primary/50" : "hover:border-border",
-                                !hasSufficientFunds && "opacity-50 cursor-not-allowed"
+                                selectedMethod === 'wallet' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
+                                !hasSufficientFunds && "opacity-50 cursor-not-allowed grayscale"
                             )}
                         >
                             {selectedMethod === 'wallet' && <CheckCircle className="absolute top-3 right-3 h-5 w-5 text-primary" />}
                             <div className="flex">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary"><Wallet className="h-5 w-5" /></div>
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary shrink-0"><Wallet className="h-5 w-5" /></div>
                                 <div>
                                     <p className="font-semibold text-foreground">Use Givar Wallet</p>
                                     <p className="text-xs text-muted-foreground">Balance: {formatCurrency(wallet?.balance || '0', project.currency)}</p>
@@ -190,13 +194,13 @@ export function DonationModal({ isOpen, onClose, project, wallet }: DonationModa
                             disabled={donationType === 'recurring'}
                             className={cn(
                                 "w-full h-auto justify-start p-4 text-left border rounded-xl transition-all relative",
-                                selectedMethod === 'direct' ? "border-primary ring-2 ring-primary/50" : "hover:border-border",
+                                selectedMethod === 'direct' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
                                 donationType === 'recurring' && "opacity-50 cursor-not-allowed"
                             )}
                         >
                             {selectedMethod === 'direct' && <CheckCircle className="absolute top-3 right-3 h-5 w-5 text-primary" />}
                             <div className="flex">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted mr-4 text-muted-foreground"><CreditCard className="h-5 w-5" /></div>
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted mr-4 text-muted-foreground shrink-0"><CreditCard className="h-5 w-5" /></div>
                                 <div>
                                     <p className="font-semibold text-foreground">Donate Directly</p>
                                     <p className="text-xs text-muted-foreground">Pay with Card, Bank, USSD</p>
@@ -206,15 +210,16 @@ export function DonationModal({ isOpen, onClose, project, wallet }: DonationModa
                         </button>
                     </div>
                 )}
+            </div>
 
-                <div className="flex justify-end gap-3 pt-4">
-                    <Button variant="outline" onClick={onCloseAndReset} disabled={isLoading}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleConfirm} disabled={isLoading || !amount || !selectedMethod} className="min-w-[150px]">
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm & Proceed'}
-                    </Button>
-                </div>
+            {/* Footer: Action Buttons (Sticky) */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-border mt-2 shrink-0 bg-card">
+                <Button variant="outline" onClick={onCloseAndReset} disabled={isLoading} className="rounded-xl">
+                    Cancel
+                </Button>
+                <Button onClick={handleConfirm} disabled={isLoading || !amount || !selectedMethod} className="min-w-[150px] rounded-xl">
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm & Proceed'}
+                </Button>
             </div>
         </Tabs>
     </Modal>
