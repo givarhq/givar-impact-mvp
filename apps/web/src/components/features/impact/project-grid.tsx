@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { SearchX } from 'lucide-react';
 import { Project, Wallet } from '../../../types';
 import { ProjectCard } from './project-card';
 import { DonationModal } from '../donation/donation-modal';
 import { ShareModal } from './share-modal';
-import { SearchX } from 'lucide-react';
-import { apiClient } from '../../../lib/api-client';
+import { ApiService } from '../../../services/api';
 
 interface ProjectGridProps {
   projects: Project[];
@@ -14,16 +14,18 @@ interface ProjectGridProps {
 
 export function ProjectGrid({ projects }: ProjectGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [shareProject, setShareProject] = useState<Project | null>(null); // State for sharing
+  const [shareProject, setShareProject] = useState<Project | null>(null);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isShareOpen, setIsShareOpen] = useState(false); // State for share modal
+  const [isShareOpen, setIsShareOpen] = useState(false);
   
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
   const handleDonateClick = (project: Project) => {
     if (!wallet) {
-        apiClient.get('/wallet').then(res => setWallet(res.data)).catch(console.error);
+        ApiService.wallet.get()
+            .then(setWallet)
+            .catch(console.error);
     }
     setSelectedProject(project);
     setIsModalOpen(true);
@@ -61,7 +63,7 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
             key={project.id} 
             project={project} 
             onDonate={handleDonateClick} 
-            onShare={handleShareClick} // Pass share handler
+            onShare={handleShareClick}
           />
         ))}
       </div>

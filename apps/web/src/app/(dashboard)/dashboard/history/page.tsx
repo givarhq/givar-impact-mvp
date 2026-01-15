@@ -1,19 +1,6 @@
 import { cookies } from 'next/headers';
 import { HistoryClient } from '../../../../components/features/history/history-client';
-
-async function getInitialHistory(token: string, searchParams: URLSearchParams) {
-  try {
-    // Pass server-side searchParams to the API
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/transactions?${searchParams.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error();
-    return res.json();
-  } catch (error) {
-    return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
-  }
-}
+import { ApiService } from '../../../../services/api';
 
 export default async function HistoryPage({
   searchParams,
@@ -25,9 +12,20 @@ export default async function HistoryPage({
 
   if (!token) return null;
 
+  // 1. Await params
   const resolvedParams = await searchParams;
+  
+  const response = await ApiService.wallet.getTransactions(
+    token, 
+    new URLSearchParams(resolvedParams as any)
+  );
 
-  const initialData = await getInitialHistory(token, new URLSearchParams(resolvedParams as any));
+  // 3. Robust Fallback
+  const initialData = response || { 
+    data: [], 
+    meta: { total: 0, page: 1, lastPage: 1 } 
+  };
+
   return (
     <div className="space-y-6">
       {/* Mobile Title */}

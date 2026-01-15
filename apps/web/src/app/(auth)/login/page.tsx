@@ -9,7 +9,7 @@ import * as z from 'zod';
 import { setCookie } from 'cookies-next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
-import { apiClient } from '../../../lib/api-client';
+import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -35,8 +35,7 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     try {
-      const response = await apiClient.post('/auth/login', data);
-      const { accessToken, user } = response.data;
+      const { accessToken, user } = await ApiService.auth.login(data);
       
       setCookie('givar_token', accessToken, { maxAge: 86400 });
       setCookie('givar_user', JSON.stringify(user), { maxAge: 86400 });

@@ -9,11 +9,11 @@ import * as z from 'zod';
 import { setCookie } from 'cookies-next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
-import { apiClient } from '../../../lib/api-client';
+import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
 
-// SOTA Validation Schema
+// Validation Schema
 const signupSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
@@ -38,21 +38,20 @@ export default function SignupPage() {
   async function onSubmit(data: SignupFormValues) {
     setIsLoading(true);
     try {
-      // Register User
-      await apiClient.post('/auth/signup', {
+      // 1. Register User via Service
+      await ApiService.auth.signup({
         ...data,
         defaultCurrency: 'NGN',
       });
 
       toast.success('Account created! Logging you in...');
 
-      // Auto-Login immediately
-      const loginResponse = await apiClient.post('/auth/login', {
+      // 2. Auto-Login via Service
+      // Service returns data directly, so we destructure immediately
+      const { accessToken, user } = await ApiService.auth.login({
         email: data.email,
         password: data.password,
       });
-
-      const { accessToken, user } = loginResponse.data;
       
       setCookie('givar_token', accessToken, { maxAge: 86400 });
       setCookie('givar_user', JSON.stringify(user), { maxAge: 86400 });

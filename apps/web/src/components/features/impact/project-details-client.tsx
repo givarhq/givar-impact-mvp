@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Share2, MapPin, Calendar, CheckCircle2, User, Flag, Clock } from 'lucide-react';
+import { Share2, MapPin, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Project, Wallet } from '../../../types';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { DonationModal } from '../donation/donation-modal';
-import { apiClient } from '../../../lib/api-client';
-import { formatCurrency, formatDate } from '../../../lib/utils/format';
+import { ApiService } from '../../../services/api';
+import { formatDate } from '../../../lib/utils/format';
 import { TransparencyCard } from './transparency-card';
-import toast from 'react-hot-toast';
 import { ShareModal } from './share-modal';
 
 interface ProjectDetailsClientProps {
@@ -25,17 +25,20 @@ interface ProjectDetailsClientProps {
 
 export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // New state
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
   useEffect(() => {
-    apiClient.get('/wallet').then(res => setWallet(res.data)).catch(() => {});
+    ApiService.wallet.get()
+      .then(setWallet)
+      .catch(() => {
+      });
   }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      {/* LEFT COLUMN: Content (Unchanged) */}
+      {/* LEFT COLUMN: Content */}
       <div className="lg:col-span-2 space-y-8">
         <div className="space-y-4">
             <div className="flex items-center gap-2 flex-wrap">
@@ -111,7 +114,6 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
                     Donate Now
                 </Button>
                 
-                {/* SOTA Share Button Trigger */}
                 <Button 
                     variant="outline" 
                     className="w-full h-12 rounded-xl border-primary/20 text-primary hover:bg-primary/5 active:scale-95 transition-all"

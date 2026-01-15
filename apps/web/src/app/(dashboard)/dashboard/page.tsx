@@ -2,43 +2,7 @@ import { cookies } from 'next/headers';
 import { OverviewCards } from '../../../components/features/dashboard/overview-cards';
 import { ImpactPortfolio } from '../../../components/features/dashboard/impact-portfolio';
 import { DashboardGoalClient } from '../../../components/features/goals/dashboard-goal-client';
-import { GivingGoal } from '../../../types';
-
-async function getWalletData(token: string) {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    const text = await res.text();
-    return text ? JSON.parse(text) : null;
-  } catch (e) { return null; }
-}
-
-async function getHistory(token: string) {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/donations/my-history`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    const text = await res.text();
-    return text ? JSON.parse(text) : [];
-  } catch (e) { return []; }
-}
-
-async function getActiveGoal(token: string): Promise<GivingGoal | null> {
-    try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/goals/active?interval=MONTHLY`, {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: 'no-store',
-        });
-        if (!res.ok) return null;
-        const text = await res.text();
-        return text ? JSON.parse(text) : null;
-      } catch (e) { return null; }
-}
+import { ApiService } from '../../../services/api';
 
 async function getUser() {
     const cookieStore = await cookies();
@@ -54,12 +18,12 @@ export default async function DashboardPage() {
   if (!token) return <div>Unauthorized</div>;
 
   const [walletData, history, activeGoal] = await Promise.all([
-    getWalletData(token),
-    getHistory(token),
-    getActiveGoal(token),
+    ApiService.wallet.get(token),
+    ApiService.donations.getHistory(token),
+    ApiService.goals.getActive(token, 'MONTHLY'),
   ]);
 
-  const totalImpactBigInt = history.reduce((acc: bigint, tx: any) => {
+  const totalImpactBigInt = (history || []).reduce((acc: bigint, tx: any) => {
     return acc + BigInt(tx.amount);
   }, 0n);
 
@@ -76,12 +40,12 @@ export default async function DashboardPage() {
       <OverviewCards 
         wallet={walletData || { balance: '0', currency: 'NGN' }} 
         totalImpact={totalImpactBigInt.toString()}
-        donationCount={history.length}
+        donationCount={history?.length || 0}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
          
-         <ImpactPortfolio items={history} />
+         <ImpactPortfolio items={history || []} />
 
          <div className="space-y-6">
             <DashboardGoalClient initialGoal={activeGoal} />

@@ -1,13 +1,16 @@
 import { cookies } from 'next/headers';
 import { ProjectGrid } from '../../../../components/features/impact/project-grid';
 import { ImpactFilters } from '../../../../components/features/impact/impact-filters';
+import { ApiService } from '../../../../services/api';
 import { Project } from '../../../../types';
 
-// Fetch with filters
+// Fetch with filters using ApiService
 async function getProjects(searchParams: { [key: string]: string | string[] | undefined }): Promise<Project[]> {
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
   
+  if (!token) return [];
+
   // Construct Query String
   const params = new URLSearchParams();
   if (searchParams.search) params.set('search', searchParams.search as string);
@@ -16,14 +19,8 @@ async function getProjects(searchParams: { [key: string]: string | string[] | un
   if (searchParams.page) params.set('page', searchParams.page as string);
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects?${params.toString()}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store', // SOTA: Always fresh for filtering
-    });
-
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data || [];
+    const response = await ApiService.projects.list(token, params);
+    return response?.data || [];
   } catch (error) {
     return [];
   }

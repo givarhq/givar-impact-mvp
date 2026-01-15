@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { getCookie, deleteCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/v1` || 'http://localhost:3001/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_URL,

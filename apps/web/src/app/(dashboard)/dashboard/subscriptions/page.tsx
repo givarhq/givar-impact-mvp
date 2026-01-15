@@ -2,20 +2,7 @@ import { cookies } from 'next/headers';
 import { Repeat } from 'lucide-react';
 import { SubscriptionCard } from '../../../../components/features/subscriptions/subscription-card';
 import { Card, CardContent } from '../../../../components/ui/card';
-
-async function getSubscriptions(token: string) {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/donations/subscriptions`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: 'no-store',
-    });
-    if (!res.ok) return [];
-    return res.json();
-  } catch (error) {
-    console.error("Failed to fetch subscriptions:", error);
-    return [];
-  }
-}
+import { ApiService } from '../../../../services/api';
 
 export default async function SubscriptionsPage() {
   const cookieStore = await cookies();
@@ -23,7 +10,7 @@ export default async function SubscriptionsPage() {
 
   if (!token) return null;
 
-  const subscriptions = await getSubscriptions(token);
+  const subscriptions = (await ApiService.donations.getSubscriptions(token)) || [];
 
   const activeSubs = subscriptions.filter((s: any) => s.status === 'ACTIVE');
   const inactiveSubs = subscriptions.filter((s: any) => s.status !== 'ACTIVE');

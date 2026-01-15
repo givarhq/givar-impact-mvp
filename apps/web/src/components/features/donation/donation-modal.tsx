@@ -8,7 +8,7 @@ import { Modal } from '../../ui/modal';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Project, Wallet as WalletType } from '../../../types';
-import { apiClient } from '../../../lib/api-client';
+import { ApiService } from '../../../services/api';
 import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../lib/utils/format';
 import { Tabs, TabsList, TabsTrigger } from '../../ui/tabs';
 import { cn } from '../../../lib/utils/cn';
@@ -61,21 +61,29 @@ export function DonationModal({ isOpen, onClose, project, wallet }: DonationModa
 
     setIsLoading(true);
     try {
+        const minorAmount = donationAmountMinor.toString();
+
         if (selectedMethod === 'wallet') {
-            const minorAmount = donationAmountMinor.toString();
-            const endpoint = donationType === 'one-time' ? '/donations' : '/donations/subscribe';
-            await apiClient.post(endpoint, {
-                projectId: project.id,
-                amount: minorAmount,
-                currency: project.currency,
-                interval: donationType === 'recurring' ? interval : undefined,
-            });
+            if (donationType === 'one-time') {
+                await ApiService.donations.create({
+                    projectId: project.id,
+                    amount: minorAmount,
+                    currency: project.currency,
+                });
+            } else {
+                await ApiService.donations.subscribe({
+                    projectId: project.id,
+                    amount: minorAmount,
+                    currency: project.currency,
+                    interval: interval,
+                });
+            }
+            
             toast.success(donationType === 'one-time' ? `Successfully donated!` : `Recurring donation started!`);
             onCloseAndReset();
             router.refresh();
         } else if (selectedMethod === 'direct') {
-            const minorAmount = donationAmountMinor.toString();
-            const { data } = await apiClient.post('/donations/direct', {
+            const data = await ApiService.donations.direct({
                 projectId: project.id,
                 amount: minorAmount,
                 currency: project.currency,
@@ -115,7 +123,7 @@ export function DonationModal({ isOpen, onClose, project, wallet }: DonationModa
                 </TabsList>
             </div>
 
-            {/* SOTA FIX: Scrollable Body Area (Max Height constraint) */}
+            {/* Scrollable Body Area */}
             <div className="flex-1 overflow-y-auto max-h-[55vh] px-1 -mx-1 space-y-5">
                  <div className="space-y-3">
                     <label className="text-sm font-medium">Amount ({project.currency})</label>

@@ -4,19 +4,16 @@ import { ProjectDetailsClient } from '../../../../../components/features/impact/
 import { Button } from '../../../../../components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { ApiService } from '../../../../../services/api';
 
 async function getProject(slug: string) {
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
 
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects/${slug}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      next: { revalidate: 0 },
-    });
+  if (!token) return null;
 
-    if (!res.ok) return null;
-    return res.json();
+  try {
+    return await ApiService.projects.get(token, slug);
   } catch (error) {
     return null;
   }

@@ -8,7 +8,7 @@ import { Modal } from '../../ui/modal';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { cn } from '../../../lib/utils/cn';
-import { apiClient } from '../../../lib/api-client';
+import { ApiService } from '../../../services/api';
 import { GivingGoal } from '../../../types';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 
@@ -24,7 +24,6 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
   const [interval, setInterval] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
   const [isLoading, setIsLoading] = useState(false);
   
-  // SOTA: Pre-fill form if editing an existing goal
   useEffect(() => {
     if (goal && isOpen) {
       setTargetAmount((Number(goal.targetAmount) / 100).toString());
@@ -48,17 +47,18 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
     setIsLoading(true);
 
     try {
-      await apiClient.post('/goals', {
-        targetAmount: (Number(targetAmount) * 100).toString(),
-        currency: 'NGN', // Assuming NGN for now
+      await ApiService.goals.upsert({
+        targetAmount: (Number(targetAmount) * 100).toString(), // Convert to minor units
+        currency: 'NGN',
         interval,
       });
 
       toast.success(goal ? 'Goal updated successfully!' : 'Goal set successfully!');
       onClose();
-      router.refresh(); // SOTA: Refresh server components
+      router.refresh(); 
     } catch (error) {
       // Interceptor handles generic errors
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +77,7 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => setInterval('MONTHLY')}
-              className={cn("p-3 rounded-xl border text-sm",
+              className={cn("p-3 rounded-xl border text-sm transition-all duration-200",
                 interval === 'MONTHLY' ? 'bg-primary/10 border-primary text-primary font-semibold' : 'bg-muted/50 hover:border-border'
               )}
             >
@@ -85,7 +85,7 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
             </button>
             <button
               onClick={() => setInterval('YEARLY')}
-              className={cn("p-3 rounded-xl border text-sm",
+              className={cn("p-3 rounded-xl border text-sm transition-all duration-200",
                 interval === 'YEARLY' ? 'bg-primary/10 border-primary text-primary font-semibold' : 'bg-muted/50 hover:border-border'
               )}
             >
@@ -110,11 +110,11 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
         </div>
         
         <div className="flex justify-end gap-3 pt-2">
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" onClick={onClose} disabled={isLoading} className="rounded-xl">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} isLoading={isLoading} className="min-w-[120px]">
-            {goal ? 'Update Goal' : 'Set Goal'}
+          <Button onClick={handleSubmit} isLoading={isLoading} className="min-w-[120px] rounded-xl">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (goal ? 'Update Goal' : 'Set Goal')}
           </Button>
         </div>
       </div>

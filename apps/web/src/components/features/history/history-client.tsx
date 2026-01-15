@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Download, Loader2, Search, X } from 'lucide-react';
 import { Input } from '../../ui/input';
@@ -14,9 +14,19 @@ import {
 } from '../../ui/select';
 import { HistoryTable } from './history-table';
 import { Pagination } from './pagination';
-import { HistoryClientProps } from '../../../types';
-import { apiClient } from 'apps/web/src/lib/api-client';
+import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
+
+interface HistoryClientProps {
+  initialData: {
+    data: any[];
+    meta: {
+      total: number;
+      page: number;
+      lastPage: number;
+    };
+  };
+}
 
 export function HistoryClient({ initialData }: HistoryClientProps) {
   const router = useRouter();
@@ -72,7 +82,7 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
     }, 300);
 
     return () => clearTimeout(handler);
-  }, [filters, sort, pathname, router]); // Added sort dependency
+  }, [filters, sort, pathname, router]);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -81,9 +91,8 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
       params.delete('page');
       params.delete('limit');
       
-      const response = await apiClient.get(`/wallet/transactions/export?${params.toString()}`, {
-        responseType: 'blob',
-      });
+      
+      const response = await ApiService.wallet.exportCsv(params);
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');

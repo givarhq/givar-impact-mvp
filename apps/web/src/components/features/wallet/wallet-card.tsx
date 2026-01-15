@@ -6,16 +6,29 @@ import { Button } from '../../ui/button';
 import { Modal } from '../../ui/modal';
 import { Card } from '../../ui/card';
 import { Input } from '../../ui/input';
-import { apiClient } from '../../../lib/api-client';
-import toast from 'react-hot-toast';
+import { ApiService } from '../../../services/api';
+import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 import { SmartCurrency } from '../../ui/smart-currency';
-import { WalletCardProps } from '../../../types';
+import toast from 'react-hot-toast';
+
+interface WalletCardProps {
+  balance: string;
+  currency: string;
+}
 
 export function WalletCard({ balance, currency }: WalletCardProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(parseFormattedNumber(formatNumberInput(e.target.value)));
+  };
+
+  const setQuickAmount = (val: string) => {
+    setAmount(val);
+  };
 
   const handleFund = async () => {
     if (!amount || isNaN(Number(amount))) {
@@ -26,7 +39,8 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
     setIsLoading(true);
     try {
         const minorAmount = (Number(amount) * 100).toString();
-        const { data } = await apiClient.post('/wallet/fund', {
+        
+        const data = await ApiService.wallet.fund({
             amount: minorAmount,
             currency: currency
         });
@@ -103,11 +117,11 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
                 <div className="relative">
                     <span className="absolute left-3 top-2.5 text-muted-foreground font-semibold">₦</span>
                     <Input 
-                        type="number" 
+                        type="text" 
                         placeholder="5,000" 
                         className="pl-8 text-lg font-medium" 
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        value={formatNumberInput(amount)}
+                        onChange={handleAmountChange}
                         autoFocus
                     />
                 </div>
@@ -115,7 +129,7 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
                     {['1000', '5000', '10000', '50000'].map((val) => (
                         <button 
                             key={val}
-                            onClick={() => setAmount(val)}
+                            onClick={() => setQuickAmount(val)}
                             className="bg-card border border-border px-3 py-2 rounded-xl hover:border-primary hover:text-primary transition-colors font-medium"
                         >
                             ₦{Number(val).toLocaleString()}
