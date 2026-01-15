@@ -84,7 +84,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
 
             <TabsContent value="story" className="mt-6 space-y-6 animate-in fade-in-50">
                 <div className="prose prose-slate dark:prose-invert max-w-none">
-                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground text-lg">
+                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground text-md">
                         {project.description}
                     </p>
                 </div>
