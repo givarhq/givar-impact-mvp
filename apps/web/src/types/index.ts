@@ -126,5 +126,5 @@ export interface SmartCurrencyProps {
   currency: string;
   visible: boolean;
   className?: string;
-  size?: 'default' | 'large';
+  size?: 'small' | 'default' | 'large';
 }

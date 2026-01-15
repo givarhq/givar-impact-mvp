@@ -1,81 +1,120 @@
 'use client';
 
-import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import { Heart, ShieldCheck, Share2 } from 'lucide-react';
 import { Button } from '../../ui/button';
+import { Badge } from '../../ui/badge';
 import { Project } from '../../../types';
-import { formatCurrency } from '../../../lib/utils/format';
+import { SmartCurrency } from '../../ui/smart-currency';
+import Link from 'next/link';
 
 interface ProjectCardProps {
-  project: Project;
+  project: Project & { categoryName?: string; donorCount?: number };
   onDonate: (project: Project) => void;
+  onShare: (project: Project) => void;
 }
 
-export function ProjectCard({ project, onDonate }: ProjectCardProps) {
-  return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1">
-      
-      {/* 1. Clickable Image Area */}
-      <Link href={`/dashboard/impact/${project.slug}`} className="block relative h-48 w-full bg-muted/50 overflow-hidden cursor-pointer">
-        {project.imageUrl ? (
-          <img 
-            src={project.imageUrl} 
-            alt={project.title} 
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-primary/5 text-primary/20">
-             <Heart className="h-12 w-12" />
-          </div>
-        )}
-        
-        {/* Currency Badge */}
-        <div className="absolute top-3 right-3 rounded-lg bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground backdrop-blur-sm shadow-sm border border-border/50">
-            {project.currency}
-        </div>
-      </Link>
+export function ProjectCard({ project, onDonate, onShare }: ProjectCardProps) {
+  const raised = Number(project.raisedAmount || 0);
+  const target = Number(project.targetAmount || 0);
+  const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
 
-      <div className="flex flex-1 flex-col p-5 space-y-4">
-        {/* 2. Clickable Content Area */}
-        <Link href={`/dashboard/impact/${project.slug}`} className="space-y-2 block cursor-pointer">
-          <h3 className="font-bold tracking-tight text-lg leading-tight line-clamp-1 group-hover:text-primary transition-colors">
-            {project.title}
-          </h3>
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {project.description}
-          </p>
+  return (
+    <div className="group relative flex flex-col rounded-2xl p-[1px] bg-gradient-to-b from-border/50 to-transparent hover:from-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
+      
+      <div className="relative flex flex-col h-full overflow-hidden bg-card rounded-[15px]">
+        
+        <Link href={`/dashboard/impact/${project.slug}`} className="block flex-1">
+            
+            <div className="h-44 w-full bg-muted relative overflow-hidden group-hover:opacity-95 transition-opacity">
+                {project.imageUrl ? (
+                <img 
+                    src={project.imageUrl} 
+                    alt={project.title} 
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+                ) : (
+                <div className="flex h-full items-center justify-center bg-secondary/30 text-muted-foreground">
+                    <Heart className="h-8 w-8 opacity-20" />
+                </div>
+                )}
+                
+                <div className="absolute top-2 left-2 flex gap-2">
+                    <Badge variant="secondary" className="backdrop-blur-md bg-background/90 shadow-sm text-[10px] h-5 px-1.5">
+                        {project.categoryName || 'General'}
+                    </Badge>
+                </div>
+                <div className="absolute top-2 right-2">
+                    <div className="bg-emerald-500/90 text-white p-0.5 rounded-full shadow-sm backdrop-blur-sm" title="Verified">
+                        <ShieldCheck className="h-4 w-4" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-4 flex flex-col gap-3">
+                <div className="space-y-1">
+                    <h3 className="font-bold text-base leading-tight text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                        {project.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed h-10">
+                        {project.description}
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex justify-between items-end">
+                        <div className="flex flex-col">
+                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-0.5">Raised / Goal</span>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="font-bold text-foreground">
+                                    <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" className="text-sm" />
+                                </span>
+                                <span className="text-muted-foreground/50 text-xs">/</span>
+                                <span className="text-muted-foreground">
+                                    <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" className="text-xs font-medium" />
+                                </span>
+                            </div>
+                        </div>
+                        <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md">
+                            {percent.toFixed(0)}%
+                        </span>
+                    </div>
+
+                    <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-gradient-to-r from-primary to-emerald-400 transition-all duration-1000 ease-out" 
+                            style={{ width: `${percent}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
         </Link>
 
-        <div className="mt-auto space-y-4">
-          {/* Progress Bar (Visual Only) */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-medium">
-              <span className="text-foreground">
-                {formatCurrency(project.raisedAmount, project.currency)}
-              </span>
-              <span className="text-muted-foreground">
-                of {formatCurrency(project.targetAmount, project.currency)}
-              </span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-              <div 
-                className="h-full bg-primary transition-all duration-500 ease-out" 
-                style={{ width: `${project.percentFunded}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Donate Action - Stops propagation to allow modal open instead of navigation if clicked */}
-          <Button 
-            onClick={(e) => {
-                e.stopPropagation();
-                onDonate(project);
-            }}
-            className="w-full h-10 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground shadow-none hover:shadow-md transition-all font-semibold"
-          >
-            Donate Now
-          </Button>
+        <div className="p-4 pt-0 mt-auto flex gap-2">
+            <Button 
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDonate(project);
+                }}
+                className="flex-1 h-9 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-semibold shadow-none transition-all"
+            >
+                Donate
+            </Button>
+            
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onShare(project);
+                }}
+                className="h-9 w-9 rounded-xl border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+            >
+                <Share2 className="h-4 w-4" />
+            </Button>
         </div>
+
       </div>
     </div>
   );
