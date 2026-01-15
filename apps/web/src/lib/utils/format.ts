@@ -1,19 +1,38 @@
 export const formatCurrency = (amount: string | number | bigint, currency = 'NGN') => {
-  // Convert BigInt string (e.g., "500000" for 5k) to float if coming from API
-  // OR handle raw numbers.
-  // In our DB: stored as BigInt minor units. 
-  // For UI display, we typically receive the minor unit count or already converted.
-  
-  const numericAmount = typeof amount === 'bigint' 
+  let numericAmount = typeof amount === 'bigint' 
     ? Number(amount) / 100 
-    : Number(amount) / 100; // API sends "100000" (1000.00). Ledger is in minor units.
+    : Number(amount) / 100;
 
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numericAmount);
+  const isNegative = numericAmount < 0;
+  if (isNegative) numericAmount = Math.abs(numericAmount);
+
+  let formatted = '';
+
+  if (numericAmount >= 100_000_000) {
+    // Condition 3: >= 100M -> Abbreviated (e.g., 253.44M)
+    const abbreviated = numericAmount / 1_000_000;
+    formatted = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(abbreviated) + 'M';
+  } else if (numericAmount >= 10_000_000) {
+    // Condition 2: 10M <= X < 100M -> Full amount, NO kobo
+    formatted = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(numericAmount);
+  } else {
+    // Condition 1: < 10M -> Full amount WITH kobo
+    formatted = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(numericAmount);
+  }
+
+  const symbol = currency === 'NGN' ? '₦' : currency;
+  
+  // Return format: -₦2,500.00 or ₦253.44M
+  return `${isNegative ? '-' : ''}${symbol}${formatted}`;
 };
 
 export const formatDate = (dateString: string | Date) => {
@@ -29,7 +48,6 @@ export const formatDate = (dateString: string | Date) => {
 export const formatNumberInput = (value: string): string => {
   const digitsOnly = value.replace(/\D/g, '');
   if (!digitsOnly) return '';
-
   const number = Number(digitsOnly);
   return new Intl.NumberFormat('en-US').format(number);
 };
