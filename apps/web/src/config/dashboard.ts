@@ -21,9 +21,4 @@ export const dashboardNav = [
     href: '/dashboard/subscriptions',
     icon: Repeat,
   },
-  {
-    title: 'Settings',
-    href: '/dashboard/settings',
-    icon: Settings,
-  },
 ];
