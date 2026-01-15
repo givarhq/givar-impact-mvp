@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { OverviewCards } from '../../../components/features/dashboard/overview-cards';
-import { RecentActivity } from '../../../components/features/dashboard/recent-activity';
+import { ImpactPortfolio } from '../../../components/features/dashboard/impact-portfolio';
 import { DashboardGoalClient } from '../../../components/features/goals/dashboard-goal-client';
 import { GivingGoal } from '../../../types';
 
@@ -79,10 +79,9 @@ export default async function DashboardPage() {
         donationCount={history.length}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-         <div className="lg:col-span-2 space-y-6">
-            <RecentActivity transactions={history.slice(0, 5)} />
-         </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+         
+         <ImpactPortfolio items={history} />
 
          <div className="space-y-6">
             <DashboardGoalClient initialGoal={activeGoal} />

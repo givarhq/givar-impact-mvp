@@ -203,14 +203,6 @@ export class DonationService {
     });
   }
 
-  async getUserDonations(userId: string) {
-    return this.prisma.donation.findMany({
-      where: { userId },
-      include: { project: { select: { title: true, slug: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
-  }
-
   // Create Recurring Donation
   async createSubscription(userId: string, dto: CreateSubscriptionDto) {
     const amount = BigInt(dto.amount);
@@ -272,6 +264,27 @@ export class DonationService {
       },
       orderBy: {
         createdAt: 'desc',
+      },
+    });
+  }
+
+  async getUserDonations(userId: string) {
+    return this.prisma.donation.findMany({
+      where: { userId },
+      take: 5, // Limit to last 5 for the dashboard
+      orderBy: { createdAt: 'desc' },
+      include: {
+        project: {
+          select: {
+            title: true,
+            slug: true,
+            imageUrl: true,
+            targetAmount: true,
+            raisedAmount: true,
+            currency: true,
+            status: true,
+          },
+        },
       },
     });
   }
