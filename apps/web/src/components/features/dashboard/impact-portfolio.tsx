@@ -94,7 +94,7 @@ export function ImpactPortfolio({ items }: { items: PortfolioItem[] }) {
                                             amount={item.amount} 
                                             currency={item.currency} 
                                             visible={true} 
-                                            size="default" // Will default to standard size
+                                            size="small"
                                             className="text-xs" 
                                         />
                                     </span>
@@ -106,7 +106,7 @@ export function ImpactPortfolio({ items }: { items: PortfolioItem[] }) {
                                     </span>
                                 ) : (
                                     <span className="text-muted-foreground text-[10px]">
-                                        Target: <SmartCurrency amount={item.project.targetAmount} currency={item.project.currency} visible={true} className="text-[10px]" />
+                                        Target: <SmartCurrency amount={item.project.targetAmount} currency={item.project.currency} visible={true} size="small" className="text-[10px]" />
                                     </span>
                                 )}
                             </div>
