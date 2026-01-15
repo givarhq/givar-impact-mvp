@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // ---------------------------
@@ -71,6 +70,30 @@ enum UpdateType {
   IMPACT_REPORT
 }
 
+enum AuditAction {
+  // Auth
+  USER_LOGIN
+  USER_LOGIN_FAILED
+  USER_REGISTER
+  PASSWORD_CHANGE
+  
+  // Financial
+  WALLET_FUND
+  WALLET_DEBIT
+  DONATION_CREATED
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_CANCELLED
+  DIRECT_PAYMENT_INITIATED
+  
+  // Project/Admin
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  PROJECT_DELETED
+  
+  // System
+  WEBHOOK_RECEIVED
+}
+
 // ---------------------------
 // USER & AUTH
 // ---------------------------
@@ -90,6 +113,7 @@ model User {
   donations     Donation[]
   subscriptions Subscription[]
   givingGoals   GivingGoal[]
+  auditLogs     AuditLog[]
 
   @@map("users")
 }
@@ -279,4 +303,29 @@ model GivingGoal {
   // Constraint: A user can only have one active goal of a certain type at a time.
   @@unique([userId, interval, status])
   @@map("giving_goals")
+}
+
+model AuditLog {
+  id            String      @id @default(uuid())
+  userId        String?     // Nullable for system events or failed logins
+  action        AuditAction
+  
+  // Target Resource (What was touched?)
+  entityId      String?     
+  entityType    String?     // e.g., "Project", "Wallet", "User"
+  
+  // Context
+  metadata      Json?       // Stores { before: ..., after: ... } or details
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime    @default(now())
+
+  // Relationships
+  user          User?       @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityId])
+  @@map("audit_logs")
 }
