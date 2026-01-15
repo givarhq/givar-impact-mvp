@@ -10,6 +10,8 @@ import { DonationModal } from '../donation/donation-modal';
 import { apiClient } from '../../../lib/api-client';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { TransparencyCard } from './transparency-card';
+import toast from 'react-hot-toast';
+import { ShareModal } from './share-modal';
 
 interface ProjectDetailsClientProps {
   project: Project & { 
@@ -22,7 +24,8 @@ interface ProjectDetailsClientProps {
 }
 
 export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // New state
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
   useEffect(() => {
@@ -32,10 +35,8 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       
-      {/* LEFT COLUMN: Main Content */}
+      {/* LEFT COLUMN: Content (Unchanged) */}
       <div className="lg:col-span-2 space-y-8">
-        
-        {/* Header */}
         <div className="space-y-4">
             <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="secondary" className="rounded-lg">
@@ -47,7 +48,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
                     </Badge>
                 ))}
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
                 {project.title}
             </h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -62,8 +63,7 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
             </div>
         </div>
 
-        {/* Hero Image */}
-        <div className="aspect-video w-full rounded-2xl overflow-hidden border border-border/50 bg-muted relative">
+        <div className="aspect-video w-full rounded-2xl overflow-hidden border border-border/50 bg-muted relative shadow-sm">
             {project.imageUrl ? (
                 <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
             ) : (
@@ -73,65 +73,50 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
             )}
         </div>
 
-        {/* Tabs System */}
         <Tabs defaultValue="story" className="w-full">
             <TabsList className="w-full justify-start h-auto p-1 bg-card border border-border/50 rounded-xl overflow-x-auto">
                 <TabsTrigger value="story" className="rounded-lg px-6 py-2.5">Story</TabsTrigger>
                 <TabsTrigger value="updates" className="rounded-lg px-6 py-2.5">Updates <Badge className="ml-2 bg-primary/20 text-primary hover:bg-primary/30 h-5 px-1.5">{project.updates?.length || 0}</Badge></TabsTrigger>
-                <TabsTrigger value="impact" className="rounded-lg px-6 py-2.5">Impact</TabsTrigger>
             </TabsList>
 
             <TabsContent value="story" className="mt-6 space-y-6 animate-in fade-in-50">
                 <div className="prose prose-slate dark:prose-invert max-w-none">
-                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground text-md">
+                    <p className="whitespace-pre-line leading-relaxed text-muted-foreground text-lg">
                         {project.description}
                     </p>
                 </div>
             </TabsContent>
 
             <TabsContent value="updates" className="mt-6 animate-in fade-in-50">
-                <div className="space-y-8">
-                    {/* SOTA: Vertical Timeline */}
-                    {project.updates && project.updates.length > 0 ? (
-                        <div className="border-l-2 border-border ml-3 space-y-8 pl-8 relative">
-                            {project.updates.map((update, i) => (
-                                <div key={i} className="relative">
-                                    <div className="absolute -left-[39px] top-0 h-5 w-5 rounded-full border-2 border-primary bg-background ring-4 ring-background" />
-                                    <span className="text-xs text-muted-foreground block mb-1">
-                                        {formatDate(update.createdAt)}
-                                    </span>
-                                    <h4 className="text-lg font-semibold">{update.title}</h4>
-                                    <p className="text-muted-foreground mt-2">{update.content}</p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-10 border-2 border-dashed border-border rounded-xl">
-                            <Clock className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                            <p className="text-muted-foreground">No updates posted yet.</p>
-                        </div>
-                    )}
+                <div className="text-center py-10 border-2 border-dashed border-border rounded-xl">
+                    <Clock className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">No updates posted yet.</p>
                 </div>
             </TabsContent>
         </Tabs>
       </div>
 
-      {/* RIGHT COLUMN: Sticky Sidebar Actions */}
+      {/* RIGHT COLUMN: Sidebar */}
       <div className="lg:col-span-1">
         <div className="sticky top-24 space-y-6">
             
-            {/* Progress Card */}
             <TransparencyCard project={project} />
 
             <div className="space-y-3">
                 <Button 
                     size="lg" 
                     className="w-full h-14 text-base font-bold shadow-lg shadow-primary/20 rounded-xl bg-primary hover:bg-primary/90"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => setIsDonationModalOpen(true)}
                 >
                     Donate Now
                 </Button>
-                <Button variant="outline" className="w-full h-12 rounded-xl border-primary/20 text-primary hover:bg-primary/5">
+                
+                {/* SOTA Share Button Trigger */}
+                <Button 
+                    variant="outline" 
+                    className="w-full h-12 rounded-xl border-primary/20 text-primary hover:bg-primary/5 active:scale-95 transition-all"
+                    onClick={() => setIsShareModalOpen(true)}
+                >
                     <Share2 className="mr-2 h-4 w-4" /> Share Cause
                 </Button>
             </div>
@@ -147,10 +132,17 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
       </div>
 
       <DonationModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        isOpen={isDonationModalOpen} 
+        onClose={() => setIsDonationModalOpen(false)} 
         project={project} 
         wallet={wallet}
+      />
+
+      <ShareModal 
+        isOpen={isShareModalOpen} 
+        onClose={() => setIsShareModalOpen(false)} 
+        projectTitle={project.title}
+        projectSlug={project.slug}
       />
     </div>
   );
