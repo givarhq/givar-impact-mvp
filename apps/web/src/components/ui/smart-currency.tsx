@@ -5,6 +5,11 @@ import { SmartCurrencyProps } from '../../types';
 import { cn } from '../../lib/utils/cn';
 
 const sizeStyles = {
+    small: {
+        symbol: 'text-xs font-medium',
+        main: 'text-sm font-bold',
+        fraction: 'text-[10px] font-medium',
+    },
     default: {
         symbol: 'text-xl font-medium',
         main: 'text-2xl font-bold',
