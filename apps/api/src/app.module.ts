@@ -9,6 +9,7 @@ import { DonationModule } from './modules/donation/donation.module';
 import { ProjectModule } from './modules/project/project.module';
 import { HealthModule } from './modules/health/health.module';
 import { GoalModule } from './modules/goals/goal.module';
+import { AuditModule } from './modules/audit/audit.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { GoalModule } from './modules/goals/goal.module';
     ProjectModule,
     HealthModule,
     GoalModule,
+    AuditModule
   ],
   controllers: [],
   providers: [
