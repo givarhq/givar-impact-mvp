@@ -20,7 +20,7 @@ const categories = [
 export function ImpactFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
 
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
@@ -44,6 +44,10 @@ export function ImpactFilters() {
 
     // Reset page on filter change
     params.delete('page');
+
+    if (params.toString() === searchParams.toString()) {
+        return;
+    }
 
     const timer = setTimeout(() => {
       startTransition(() => {
@@ -102,11 +106,6 @@ export function ImpactFilters() {
         ))}
       </div>
       
-      {isPending && (
-          <div className="h-1 w-full overflow-hidden bg-secondary rounded-full">
-              <div className="h-full bg-primary w-1/3 animate-progress origin-left"></div>
-          </div>
-      )}
     </div>
   );
 }
