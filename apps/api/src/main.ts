@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 
 // MONKEY PATCH: BigInt Serialization
@@ -29,6 +29,11 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1', // Routes default to v1 automatically
+  });
 
   app.setGlobalPrefix('api');
 
