@@ -170,7 +170,11 @@ export class WalletService {
 
   // Advanced Transaction Fetching
   async getTransactions(userId: string, query: TransactionQueryDto) {
-    const { page = 1, limit = 15, search, type, status, startDate, endDate, sortBy, sortOrder } = query;
+    const { 
+        page = 1, limit = 15, search, type, status, 
+        startDate, endDate, 
+        sortBy = 'createdAt', sortOrder = 'desc'
+    } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.WalletTransactionWhereInput = {

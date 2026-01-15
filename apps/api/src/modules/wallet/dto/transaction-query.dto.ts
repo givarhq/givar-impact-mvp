@@ -37,5 +37,5 @@ export class TransactionQueryDto {
 
   @IsOptional()
   @IsIn(['asc', 'desc'])
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: 'asc' | 'desc' = 'desc';
 }

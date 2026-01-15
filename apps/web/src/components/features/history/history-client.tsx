@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Download, Search, X } from 'lucide-react';
+import { Download, Loader2, Search, X } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import {
@@ -15,82 +15,99 @@ import {
 import { HistoryTable } from './history-table';
 import { Pagination } from './pagination';
 import { HistoryClientProps } from '../../../types';
+import { apiClient } from 'apps/web/src/lib/api-client';
+import toast from 'react-hot-toast';
 
 export function HistoryClient({ initialData }: HistoryClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [isExporting, setIsExporting] = useState(false);
+
+  // 1. Initialize Sort State from URL
+  const [sort, setSort] = useState({
+    column: (searchParams.get('sortBy') || 'createdAt') as "status" | "createdAt" | "amount" | "description",
+    order: (searchParams.get('sortOrder') || 'desc') as "asc" | "desc",
+  });
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
     type: searchParams.get('type') || 'all',
     status: searchParams.get('status') || 'all',
-    sortBy: searchParams.get('sortBy') || 'createdAt',
-    sortOrder: searchParams.get('sortOrder') || 'desc',
   });
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleSort = (column: 'createdAt' | 'amount' | 'status' | 'description') => {
-    const newSortOrder = filters.sortBy === column && filters.sortOrder === 'asc' ? 'desc' : 'asc';
-    setFilters(prev => ({
-        ...prev,
-        sortBy: column,
-        sortOrder: newSortOrder,
+  // 2. Handle Sort Click
+  const handleSort = (column: "status" | "createdAt" | "amount" | "description") => {
+    setSort(prev => ({
+      column,
+      order: prev.column === column && prev.order === 'desc' ? 'asc' : 'desc'
     }));
   };
 
   const clearFilters = () => {
-    // Reset all filters to their default state, including sorting.
-    setFilters({
-      search: '',
-      type: 'all',
-      status: 'all',
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-    });
+    setFilters({ search: '', type: 'all', status: 'all' });
+    setSort({ column: 'createdAt', order: 'desc' });
   };
   
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    if(!params.has('page') || params.get('page') !== searchParams.get('page')) {
-        params.set('page', '1');
-    }
+    const params = new URLSearchParams(searchParams);
+    params.set('page', '1'); 
 
+    // Sync Filters
     Object.entries(filters).forEach(([key, value]) => {
-      if (value && value !== 'all') {
-        params.set(key, value);
-      } else {
-        if (key === 'type' || key === 'status' || key === 'search') {
-            params.delete(key);
-        }
+      if (value && value !== 'all') params.set(key, value);
+      else params.delete(key);
+    });
+
+    // 3. Sync Sort to URL
+    params.set('sortBy', sort.column);
+    params.set('sortOrder', sort.order);
+    
+    const handler = setTimeout(() => {
+        router.replace(`${pathname}?${params.toString()}`);
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [filters, sort, pathname, router]); // Added sort dependency
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const params = new URLSearchParams(searchParams);
+      params.delete('page');
+      params.delete('limit');
+      
+      const response = await apiClient.get(`/wallet/transactions/export?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const contentDisposition = response.headers['content-disposition'];
+      let fileName = 'givar-transactions.csv';
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (fileNameMatch && fileNameMatch.length === 2) fileName = fileNameMatch[1];
       }
-    });
-    
-    if (filters.sortBy === 'createdAt' && filters.sortOrder === 'desc') {
-        params.delete('sortBy');
-        params.delete('sortOrder');
+      link.setAttribute('download', fileName);
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Export downloaded successfully');
+    } catch (error) {
+      toast.error('Failed to export transactions');
+    } finally {
+      setIsExporting(false);
     }
-    
-    startTransition(() => {
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    });
-    
-  }, [filters, pathname, router]);
-
-
-  const handleExport = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('page');
-    params.delete('limit');
-    
-    // Use the absolute URL for the API endpoint
-    const exportUrl = `${process.env.NEXT_PUBLIC_API_URL}/wallet/transactions/export?${params.toString()}`;
-    
-    window.open(exportUrl, '_blank');
   };
 
   const hasActiveFilters = filters.search || filters.type !== 'all' || filters.status !== 'all';
@@ -127,23 +144,24 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
           </Select>
         </div>
         
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between">
             {hasActiveFilters ? (
-                <Button variant="ghost" size="sm" onClick={clearFilters} className="rounded-xl">
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
                     <X className="mr-2 h-4 w-4" /> Clear Filters
                 </Button>
             ) : <div />}
 
-            <Button variant="outline" size="sm" onClick={handleExport} className="rounded-xl">
-                <Download className="mr-2 h-4 w-4" /> Export CSV
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
+                {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                Export CSV
             </Button>
         </div>
       </div>
 
-      <HistoryTable
-        transactions={initialData.data}
-        sortBy={filters.sortBy}
-        sortOrder={filters.sortOrder}
+      <HistoryTable 
+        transactions={initialData.data} 
+        sortBy={sort.column}
+        sortOrder={sort.order}
         onSort={handleSort}
       />
 
