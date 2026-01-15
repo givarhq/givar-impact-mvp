@@ -15,6 +15,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
+      "@givar/database": ["packages/database/src"],
       "@givar/types": ["packages/types/src"] 
     }
   },
