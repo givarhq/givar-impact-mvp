@@ -12,6 +12,7 @@ import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
 import { AuditAction, UserRole } from '@givar/database';
+import { add } from 'date-fns';
 
 @Injectable()
 export class AuthService {
@@ -70,24 +71,62 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, req?: Request) {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { email: dto.email },
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    
+    // Account Lockout Check (Step 1)
+    if (user && user.accountLockedUntil && user.accountLockedUntil > new Date()) {
+      await this.audit.log({
+          action: AuditAction.USER_LOGIN_FAILED,
+          userId: user.id,
+          entityType: 'Session',
+          metadata: { attemptedEmail: dto.email, reason: 'Account Locked' },
+          req,
       });
-      
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    try {
       if (!user) {
         throw new UnauthorizedException('Invalid credentials');
       }
 
       const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
       if (!isMatch) {
+        // Progressive Delay & Lockout (Step 2)
+        const newAttemptCount = user.failedLoginAttempts + 1;
+        
+        if (newAttemptCount >= 5) {
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: newAttemptCount,
+              accountLockedUntil: add(new Date(), { minutes: 15 }), // Lock for 15 mins
+            },
+          });
+        } else {
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: { failedLoginAttempts: newAttemptCount },
+          });
+        }
+        
         throw new UnauthorizedException('Invalid credentials');
       }
       
-      // 1. Generate Token Pair
-      const { accessToken, refreshToken } = await this.getTokens(user.id, user.email, user.role);
+      // Reset attempts on successful login (Step 3)
+      if (user.failedLoginAttempts > 0) {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            failedLoginAttempts: 0,
+            accountLockedUntil: null,
+          },
+        });
+      }
 
-      // 2. Hash and store the new Refresh Token
+      const { accessToken, refreshToken } = await this.getTokens(user.id, user.email, user.role);
       await this.updateRefreshTokenHash(user.id, refreshToken);
 
       await this.audit.log({
@@ -107,8 +146,11 @@ export class AuthService {
       } else if (error instanceof Error) {
         reason = error.message;
       }
+      // Note: We log the failure for both "user not found" and "bad password" here.
+      // The "Account Locked" reason is logged separately above.
       await this.audit.log({
         action: AuditAction.USER_LOGIN_FAILED,
+        userId: user?.id, // May be null if user not found
         entityType: 'Session',
         metadata: { 
             attemptedEmail: dto.email, 
