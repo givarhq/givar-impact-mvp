@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { deleteCookie, getCookie } from 'cookies-next';
+import toast from 'react-hot-toast';
 import { Button } from '../ui/button';
 import { ThemeToggle } from './theme-toggle'; 
 import {
@@ -23,8 +24,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { ApiService } from '../../services/api';
 
-// Define exact page titles to match the hidden H1s
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/dashboard/impact': 'Discover Impact',
@@ -42,19 +43,32 @@ export function Header() {
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
   const displayEmail = user?.email || '';
 
-  const handleLogout = () => {
-    deleteCookie('givar_token');
-    deleteCookie('givar_user');
-    router.push('/login');
+  // SOTA UPDATE: Secure logout logic
+  const handleLogout = async () => {
+    try {
+      // 1. Call the backend to invalidate the session first.
+      await ApiService.auth.logout();
+      
+      // 2. On success, clear local state and redirect.
+      deleteCookie('givar_token');
+      deleteCookie('givar_user');
+      router.push('/login');
+      toast.success("You've been securely logged out.");
+
+    } catch (error) {
+      // Fallback: Even if the API call fails, log the user out on the client.
+      console.error("Server logout failed, performing client-side logout:", error);
+      deleteCookie('givar_token');
+      deleteCookie('givar_user');
+      router.push('/login');
+    }
   };
 
-  // Logic: Check specific page titles first, otherwise fallback to "Dashboard"
   const currentTitle = PAGE_TITLES[pathname] || 'Dashboard';
 
   return (
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
       
-      {/* Mobile Logo */}
       <div className="md:hidden flex items-center gap-3">
         <Link href="/dashboard" className="flex items-center gap-2 group">
           <div>
@@ -73,7 +87,6 @@ export function Header() {
         </Link>
       </div>
 
-      {/* Desktop Title - Dynamic based on Route Map */}
       <div className="hidden md:flex flex-col">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold text-foreground">
@@ -84,9 +97,7 @@ export function Header() {
 
       <div className="flex-1" />
 
-      {/* Right Actions */}
       <div className="flex items-center gap-2 md:gap-3">
-        {/* Search */}
         <div className="hidden md:flex items-center rounded-full bg-secondary/50 px-4 py-2.5 transition-colors hover:bg-secondary border border-transparent hover:border-border/50">
           <Search className="mr-2 h-4 w-4 text-muted-foreground" />
           <input
@@ -99,7 +110,6 @@ export function Header() {
           </kbd>
         </div>
 
-        {/* Quick Donate */}
         <Button
           size="sm"
           className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hidden md:flex items-center gap-2 h-10 px-4"
@@ -113,7 +123,6 @@ export function Header() {
 
         <div className="h-8 w-px bg-border/50 mx-1 hidden md:block" />
 
-        {/* User Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
