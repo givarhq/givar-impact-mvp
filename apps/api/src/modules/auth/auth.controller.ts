@@ -1,9 +1,10 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req } 
+import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } 
 from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { type Request } from 'express';
+import { RefreshTokenGuard } from 'src/common/guards/refresh-token.guard';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -29,5 +30,14 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto, @Req() req: Request) {
     return this.authService.login(dto, req);
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refreshToken(@Req() req: any) {
+    const userId = req.user.sub;
+    const refreshToken = req.user.refreshToken;
+    return this.authService.refreshToken(userId, refreshToken);
   }
 }
