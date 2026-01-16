@@ -34,6 +34,7 @@ export const ApiService = {
   auth: {
     login: (data: any) => apiClient.post('/auth/login', data).then(r => r.data),
     signup: (data: any) => apiClient.post('/auth/signup', data).then(r => r.data),
+    logout: () => apiClient.post('/auth/logout'),
   },
 
   // --- WALLET ---

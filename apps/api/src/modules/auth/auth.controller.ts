@@ -5,6 +5,7 @@ import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { type Request } from 'express';
 import { RefreshTokenGuard } from 'src/common/guards/refresh-token.guard';
+import { AuthGuard } from '@nestjs/passport';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -39,5 +40,13 @@ export class AuthController {
     const userId = req.user.sub;
     const refreshToken = req.user.refreshToken;
     return this.authService.refreshToken(userId, refreshToken);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Req() req: any) {
+    const userId = req.user.sub;
+    return this.authService.logout(userId);
   }
 }

@@ -178,6 +178,20 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  async logout(userId: string) {
+    await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        refreshTokenHash: { not: null },
+      },
+      data: {
+        refreshTokenHash: null,
+      },
+    });
+    
+    return { message: 'Logged out successfully.' };
+  }
+
   private async getTokens(userId: string, email: string, role: UserRole) {
     const payload = { sub: userId, email, role };
     
