@@ -42,9 +42,9 @@ export default async function LandingPage() {
                  </p>
                  
                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link href="/explore">
+                    <Link href="/signup">
                         <Button size="lg" className="h-16 px-12 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg shadow-[0_0_40px_hsl(var(--primary)/0.4)] transition-all hover:scale-105">
-                            <CreditCard className="mr-2 h-6 w-6" /> Give as Guest <ArrowRight className="ml-2 h-6 w-6" />
+                            <CreditCard className="mr-2 h-6 w-6" /> Start Giving Now <ArrowRight className="ml-2 h-6 w-6" />
                         </Button>
                     </Link>
                  </div>
