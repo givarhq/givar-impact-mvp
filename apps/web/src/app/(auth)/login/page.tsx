@@ -11,7 +11,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,6 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -34,6 +35,8 @@ export default function LoginPage() {
 
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
+    setServerError(null);
+    
     try {
       const { accessToken, user } = await ApiService.auth.login(data);
       
@@ -42,8 +45,10 @@ export default function LoginPage() {
 
       toast.success('Successfully logged in');
       router.push('/dashboard');
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
+      setServerError(message);
+      
     } finally {
       setIsLoading(false);
     }
@@ -57,6 +62,13 @@ export default function LoginPage() {
           Enter your credentials to access your wallet
         </p>
       </div>
+
+      {serverError && (
+        <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg animate-in fade-in slide-in-from-top-1">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <p>{serverError}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input
