@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { SearchX } from 'lucide-react';
+import { getCookie } from 'cookies-next';
 import { Project, Wallet } from '../../../types';
 import { ProjectCard } from './project-card';
 import { DonationModal } from '../donation/donation-modal';
@@ -22,11 +23,16 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
   const handleDonateClick = (project: Project) => {
-    if (!wallet) {
+    const token = getCookie('givar_token');
+
+    if (token && !wallet) {
         ApiService.wallet.get()
             .then(setWallet)
-            .catch(console.error);
+            .catch((err) => {
+               console.error("Wallet fetch skipped/failed:", err);
+            });
     }
+    
     setSelectedProject(project);
     setIsModalOpen(true);
   };
