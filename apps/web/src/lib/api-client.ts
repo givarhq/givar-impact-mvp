@@ -27,12 +27,19 @@ apiClient.interceptors.response.use(
   (error: AxiosError<any>) => {
     const message = error.response?.data?.message || 'Something went wrong';
     
-    // Security: If 401 (Unauthorized), Force Logout
     if (error.response?.status === 401) {
+      // 1. Always clear bad credentials
       deleteCookie('givar_token');
-      // Only redirect if we are not already on auth pages
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      deleteCookie('givar_user');
+
+      // 2. Only redirect if on a protected route
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        // If we are on the dashboard, kick them out.
+        // If we are on /explore or /login, stay there.
+        if (path.startsWith('/dashboard')) {
+             window.location.href = '/login';
+        }
       }
     }
 

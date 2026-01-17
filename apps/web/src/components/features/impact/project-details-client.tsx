@@ -12,6 +12,7 @@ import { ApiService } from '../../../services/api';
 import { formatDate } from '../../../lib/utils/format';
 import { TransparencyCard } from './transparency-card';
 import { ShareModal } from './share-modal';
+import { getCookie } from 'cookies-next/client';
 
 interface ProjectDetailsClientProps {
   project: Project & { 
@@ -29,10 +30,14 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
   useEffect(() => {
-    ApiService.wallet.get()
-      .then(setWallet)
-      .catch(() => {
-      });
+    const token = getCookie('givar_token');
+    if (token) {
+        ApiService.wallet.get()
+            .then(res => setWallet(res.data))
+            .catch((err) => {
+                console.error("Wallet fetch failed", err);
+            });
+    }
   }, []);
 
   return (
