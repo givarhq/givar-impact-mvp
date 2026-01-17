@@ -7,7 +7,15 @@ import { ApiService } from '../../../services/api';
 async function getUser() {
     const cookieStore = await cookies();
     const userCookie = cookieStore.get('givar_user')?.value;
-    return userCookie ? JSON.parse(userCookie) : null;
+
+    if (!userCookie || userCookie === 'undefined') return null;
+
+    try {
+        return JSON.parse(userCookie);
+    } catch (err) {
+        console.warn('Failed to parse givar_user cookie:', userCookie);
+        return null;
+    }
 }
 
 export default async function DashboardPage() {

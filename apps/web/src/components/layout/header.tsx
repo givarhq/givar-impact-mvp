@@ -34,12 +34,22 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/settings': 'Account Settings',
 };
 
+function safeParse<T>(value: string | undefined | null): T | null {
+  if (!value || value === 'undefined') return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch (err) {
+    console.warn('Failed to parse JSON cookie:', value, err);
+    return null;
+  }
+}
+
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const userCookie = getCookie('givar_user');
-  const user = userCookie ? JSON.parse(userCookie as string) : null;
+  const userCookie = getCookie('givar_user') as string | undefined;
+const user = safeParse<{ firstName: string; lastName: string; email: string }>(userCookie);
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
   const displayEmail = user?.email || '';
 
