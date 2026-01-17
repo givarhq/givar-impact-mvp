@@ -14,11 +14,6 @@ export function LandingHeader({
 }: LandingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const isAuth = variant === 'auth';
-  
-  // SOTA Theme Logic:
-  // If we are on the landing page (default) AND haven't scrolled yet,
-  // we are sitting on top of a Dark Hero image. Text must be white.
-  // Otherwise, use standard system colors.
   const isDarkHeroState = !isAuth && !scrolled;
 
   useEffect(() => {
@@ -69,7 +64,7 @@ export function LandingHeader({
           <Link href="/#impact" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
             Transparency
           </Link>
-          <Link href="/#projects" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
+          <Link href="/explore" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
             Explore Projects
           </Link>
         </nav>
