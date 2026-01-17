@@ -315,6 +315,6 @@ export function DonationModal({ isOpen, onClose, project, wallet }: DonationModa
                 </div>
             </Tabs>
         )}
-    </Modal>
+    </Modal> 
   );
 }

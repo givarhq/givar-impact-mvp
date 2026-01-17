@@ -69,7 +69,13 @@ export const ApiService = {
     subscribe: (data: { projectId: string; amount: string; currency: string; interval: 'WEEKLY' | 'MONTHLY' }) => 
       apiClient.post('/donations/subscribe', data).then(r => r.data),
       
-    direct: (data: { projectId: string; amount: string; currency: string }) => 
+    direct: (data: { 
+        projectId: string; 
+        amount: string; 
+        currency: string; 
+        guestEmail?: string;
+        guestName?: string;
+    }) => 
       apiClient.post('/donations/direct', data).then(r => r.data),
       
     getHistory: (token: string) => 
