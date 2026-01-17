@@ -165,6 +165,7 @@ export class DonationService {
             Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
             'Content-Type': 'application/json',
           },
+          timeout: 10000, // 10s Timeout prevents thread hanging
         },
       );
 
@@ -173,6 +174,12 @@ export class DonationService {
         reference: response.data.data.reference,
       };
     } catch (error) {
+      // Specific Timeout Handling
+      if (axios.isAxiosError(error) && error.code === 'ECONNABORTED') {
+          this.logger.error('Paystack Connection Timed Out');
+          throw new InternalServerErrorException('Payment provider timed out. Please try again.');
+      }
+      
       this.logger.error('Paystack Direct Donation Init Failed', error);
       throw new InternalServerErrorException('Payment provider unavailable');
     }
