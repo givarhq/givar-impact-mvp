@@ -1,4 +1,4 @@
-import { IsEnum, IsNumberString, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEmail, IsEnum, IsNumberString, IsOptional, IsString, IsUUID } from 'class-validator';
 import { Currency } from '@givar/database';
 
 export class CreateDonationDto {
@@ -25,4 +25,12 @@ export class InitiateDirectDonationDto {
 
   @IsEnum(Currency)
   currency: Currency;
+  
+  @IsOptional()
+  @IsEmail()
+  guestEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  guestName?: string;
 }

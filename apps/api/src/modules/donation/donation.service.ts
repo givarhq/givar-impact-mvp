@@ -97,9 +97,22 @@ export class DonationService {
   }
 
   // Initiate a direct, wallet-bypassing donation
-  async initiateDirectDonation(userId: string, userEmail: string, dto: InitiateDirectDonationDto) {
-    const { projectId, amount, currency } = dto;
+  async initiateDirectDonation(user: any | undefined, dto: InitiateDirectDonationDto) {
+    const { projectId, amount, currency, guestEmail, guestName } = dto;
     const amountInMinor = Number(amount);
+
+    // 1. Determine who is paying
+    let emailToCharge = guestEmail;
+    let userId = null;
+
+    if (user) {
+        // Logged in user overrides guest email
+        emailToCharge = user.email;
+        userId = user.id;
+    } else {
+        // Guest mode
+        if (!guestEmail) throw new BadRequestException('Email is required for guest donations');
+    }
 
     // 1. Validate Project
     const project = await this.prisma.project.findUnique({ where: { id: projectId } });
@@ -115,13 +128,14 @@ export class DonationService {
       const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
         {
-          email: userEmail,
+          email: emailToCharge,
           amount: amountInMinor,
           currency,
-          // Embed critical metadata for the webhook to use later
           metadata: {
             donationType: 'DIRECT',
-            userId,
+            userId: userId || 'GUEST', // Mark as GUEST if no ID
+            guestEmail: emailToCharge, // Store email in metadata for fulfillment
+            guestName: guestName || 'Anonymous',
             projectId,
           },
           callback_url: `${this.config.get('FRONTEND_URL')}/dashboard/impact`,
@@ -146,92 +160,125 @@ export class DonationService {
 
   // Atomically fulfill a direct donation from a webhook
   async fulfillDirectDonation(data: {
-    userId: string;
+    userId: string; // 'GUEST' or UUID
+    guestEmail?: string;
+    guestName?: string;
     projectId: string;
     amount: bigint;
     currency: Currency;
-    reference: string; // The Paystack reference
+    reference: string;
   }) {
-    const { userId, projectId, amount, currency, reference } = data;
+    const { userId, guestEmail, guestName, projectId, amount, currency, reference } = data;
 
-    // We wrap the entire logic in a Prisma transaction.
-    // All of these steps must succeed, or they all roll back.
     return this.prisma.$transaction(async (tx) => {
-      // Step 1: Create a "Virtual" Wallet Transaction for our ledger.
-      // This transaction is NOT linked to a user's persistent wallet,
-      // but it allows us to have a complete, auditable record of all money movement.
-      // We use a fake walletId or a designated system walletId for this.
-      // For robustness, let's create a temporary wallet and transaction.
+      let walletId: string;
 
-      // We need a wallet to associate the transaction with. Let's find the user's NGN wallet
-      // or create it if it doesn't exist. This ensures user record consistency.
-      const wallet = await tx.wallet.upsert({
+      // --- Step 1: Resolve Wallet ---
+      if (userId && userId !== 'GUEST') {
+        // Case A: Logged-in User -> Use their personal wallet
+        const wallet = await tx.wallet.upsert({
           where: { userId_currency: { userId, currency } },
           update: {},
-          create: { userId, currency }
-      });
-      
-      const virtualTx = await tx.walletTransaction.create({
+          create: { userId, currency },
+        });
+        walletId = wallet.id;
+      } else {
+        // Case B: Guest -> Use the "System Guest Wallet"
+        // We find/create a special system user to attach this wallet to.
+        const SYSTEM_GUEST_EMAIL = 'guest@givar.com';
+        
+        let systemUser = await tx.user.findUnique({ where: { email: SYSTEM_GUEST_EMAIL } });
+        if (!systemUser) {
+            systemUser = await tx.user.create({
+                data: {
+                    email: SYSTEM_GUEST_EMAIL,
+                    firstName: 'System',
+                    lastName: 'Guest-Ledger',
+                    passwordHash: 'SYSTEM_ACCOUNT_LOCKED',
+                    role: 'ADMIN', // Protected role
+                    emailVerified: true,
+                }
+            });
+        }
+
+        const wallet = await tx.wallet.upsert({
+          where: { userId_currency: { userId: systemUser.id, currency } },
+          update: {},
+          create: { userId: systemUser.id, currency },
+        });
+        walletId = wallet.id;
+      }
+
+      // --- Step 2: Virtual Ledger Entry (Credit) ---
+      // Money enters the system from Paystack
+      await tx.walletTransaction.create({
         data: {
-          walletId: wallet.id,
+          walletId,
           amount,
           currency,
-          type: 'CREDIT', // Logically, money is "credited" to the system via Paystack...
+          type: 'CREDIT',
           status: 'COMPLETED',
-          reference: `${reference}-CREDIT`, // Ensure uniqueness from the DEBIT
-          description: `Direct donation charge via Paystack`,
+          reference: `${reference}-CREDIT`,
+          description: userId === 'GUEST' 
+            ? `Direct Guest Donation (${guestEmail})` 
+            : `Direct Donation Charge`,
         },
       });
 
-      // Step 2: Create the corresponding DEBIT transaction record
+      // --- Step 3: Virtual Ledger Entry (Debit) ---
+      // Money leaves the wallet to the project
       const donationTx = await tx.walletTransaction.create({
         data: {
-          walletId: wallet.id,
+          walletId,
           amount,
           currency,
-          type: 'DEBIT', // ...and then immediately "debited" to the project.
+          type: 'DEBIT',
           status: 'COMPLETED',
-          reference: reference, // The main Paystack reference, this must be unique.
+          reference, // Main reference
           description: `Direct donation to project ${projectId}`,
         },
       });
 
-      // Step 3: Create the actual Donation record, linking it to the DEBIT transaction
+      // --- Step 4: Create Donation Record ---
       const donation = await tx.donation.create({
         data: {
-          userId,
+          userId: userId !== 'GUEST' ? userId : undefined, // Link only if real user
+          guestEmail: userId === 'GUEST' ? guestEmail : undefined, // Store guest info
+          guestName: userId === 'GUEST' ? guestName : undefined,
           projectId,
-          transactionId: donationTx.id, // Link to the debit record
+          transactionId: donationTx.id,
           amount,
           currency,
           message: 'Direct donation via Paystack',
         },
       });
 
-      // Step 4: Atomically update the project's raised amount
+      // --- Step 5: Update Project ---
       await tx.project.update({
         where: { id: projectId },
         data: {
           raisedAmount: { increment: amount },
         },
       });
-      
-      this.logger.log(`Fulfilled direct donation ${donation.id} from webhook ref ${reference}`);
 
+      this.logger.log(`Fulfilled direct donation ${donation.id} [${userId === 'GUEST' ? 'GUEST' : 'USER'}]`);
+
+      // --- Step 6: Audit Log ---
       await this.audit.log({
-          userId,
-          action: AuditAction.DIRECT_PAYMENT_INITIATED, // or DONATION_CREATED
-          entityId: donation.id,
-          entityType: 'Donation',
-          metadata: { 
-              projectId, 
-              amount: amount.toString(), 
-              currency,
-              reference,
-              method: 'DIRECT_WEBHOOK'
-          }
+        userId: userId !== 'GUEST' ? userId : undefined, // Null for guests
+        action: AuditAction.DIRECT_PAYMENT_INITIATED,
+        entityId: donation.id,
+        entityType: 'Donation',
+        metadata: {
+          projectId,
+          amount: amount.toString(),
+          currency,
+          reference,
+          donorType: userId === 'GUEST' ? 'GUEST' : 'USER',
+          guestEmail, // Capture who the guest was in audit log
+        },
       }, tx);
-      
+
       return donation;
     });
   }
