@@ -31,7 +31,6 @@ export default async function ExplorePage({
   return (
     <PublicLayout>
         <div className="container mx-auto px-4 py-8 space-y-6">
-            {/* SOTA UPDATE: Removed noisy hero text. Straight to business. */}
             <div className="flex flex-col gap-2 mb-4">
                 <h1 className="text-2xl font-bold tracking-tight text-foreground">Explore Causes</h1>
                 <p className="text-sm text-muted-foreground">
@@ -41,7 +40,7 @@ export default async function ExplorePage({
 
             <ImpactFilters />
             
-            <ProjectGrid projects={projects} />
+            <ProjectGrid projects={projects} isPublic={true} />
         </div>
     </PublicLayout>
   );

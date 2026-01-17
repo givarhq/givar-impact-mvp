@@ -11,19 +11,24 @@ interface ProjectCardProps {
   project: Project & { categoryName?: string; donorCount?: number };
   onDonate: (project: Project) => void;
   onShare: (project: Project) => void;
+  isPublic?: boolean;
 }
 
-export function ProjectCard({ project, onDonate, onShare }: ProjectCardProps) {
+export function ProjectCard({ project, onDonate, onShare, isPublic = false }: ProjectCardProps) {
   const raised = Number(project.raisedAmount || 0);
   const target = Number(project.targetAmount || 0);
   const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
+
+  const detailsLink = isPublic 
+    ? `/explore/${project.slug}` 
+    : `/dashboard/impact/${project.slug}`;
 
   return (
     <div className="group relative flex flex-col rounded-2xl p-[1px] bg-gradient-to-b from-border/50 to-transparent hover:from-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
       
       <div className="relative flex flex-col h-full overflow-hidden bg-card rounded-[15px]">
         
-        <Link href={`/dashboard/impact/${project.slug}`} className="block flex-1">
+        <Link href={detailsLink} className="block flex-1">
             
             <div className="h-44 w-full bg-muted relative overflow-hidden group-hover:opacity-95 transition-opacity">
                 {project.imageUrl ? (

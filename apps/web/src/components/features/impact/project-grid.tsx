@@ -11,9 +11,10 @@ import { ApiService } from '../../../services/api';
 
 interface ProjectGridProps {
   projects: Project[];
+  isPublic?: boolean
 }
 
-export function ProjectGrid({ projects }: ProjectGridProps) {
+export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [shareProject, setShareProject] = useState<Project | null>(null);
   
@@ -70,6 +71,7 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
             project={project} 
             onDonate={handleDonateClick} 
             onShare={handleShareClick}
+            isPublic={isPublic}
           />
         ))}
       </div>
