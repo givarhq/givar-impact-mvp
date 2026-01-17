@@ -144,6 +144,27 @@ export class ProjectService {
     });
   }
 
+  async getPlatformStats() {
+    const aggregate = await this.prisma.project.aggregate({
+      _sum: { raisedAmount: true },
+      where: { isActive: true },
+    });
+    
+    const latestDonation = await this.prisma.donation.findFirst({
+        orderBy: { createdAt: 'desc' },
+        include: { project: { select: { title: true } } }
+    });
+
+    return {
+      totalVolume: aggregate._sum.raisedAmount || 0n,
+      latestDonation: latestDonation ? {
+          projectTitle: latestDonation.project.title,
+          amount: latestDonation.amount,
+          createdAt: latestDonation.createdAt
+      } : null
+    };
+  }
+
   private generateSlug(title: string) {
     return title
       .toLowerCase()

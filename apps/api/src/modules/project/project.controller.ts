@@ -5,6 +5,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { ProjectService } from './project.service';
 import { CreateProjectDto, ProjectQueryDto, UpdateProjectDto } from './dto/project.dto';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('projects')
 export class ProjectController {
@@ -20,6 +21,12 @@ export class ProjectController {
   @Get(':slug')
   getOne(@Param('slug') slug: string) {
     return this.service.findOneWithUpdates(slug);
+  }
+
+  @Public()
+  @Get('stats/platform')
+  getStats() {
+    return this.service.getPlatformStats();
   }
 
   // Protected: Admin Only

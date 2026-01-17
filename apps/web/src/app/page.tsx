@@ -1,18 +1,32 @@
 import { LandingHeader } from '../components/layout/landing-header';
 import { HeroSection, FeatureSection } from '../components/features/landing/hero-section';
-import { ArrowRight, Github, Twitter, Linkedin } from 'lucide-react';
+import { ArrowRight, Github, Twitter, Linkedin, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '../components/ui/button';
 
-export default function LandingPage() {
+async function getLandingStats() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/projects/stats/platform`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return { totalVolume: '0', latestDonation: null };
+    return res.json();
+  } catch (error) {
+    return { totalVolume: '0', latestDonation: null };
+  }
+}
+
+export default async function LandingPage() {
+    const stats = await getLandingStats();
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       
       <LandingHeader />
       
       <main>
-        <HeroSection />
+        <HeroSection stats={stats} />
         <FeatureSection />
         
         <section className="py-32 relative overflow-hidden bg-black text-white">
@@ -26,11 +40,14 @@ export default function LandingPage() {
                  <p className="text-zinc-400 text-lg md:text-xl max-w-xl mx-auto mb-12">
                      Join the network of modern givers. Zero friction. 100% Transparency. Real-time Impact.
                  </p>
-                 <Link href="/signup">
-                    <Button size="lg" className="h-16 px-12 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg shadow-[0_0_40px_hsl(var(--primary)/0.4)] transition-all hover:scale-105">
-                        Start Giving Now <ArrowRight className="ml-2 h-6 w-6" />
-                    </Button>
-                 </Link>
+                 
+                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link href="/explore">
+                        <Button size="lg" className="h-16 px-12 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg shadow-[0_0_40px_hsl(var(--primary)/0.4)] transition-all hover:scale-105">
+                            <CreditCard className="mr-2 h-6 w-6" /> Give as Guest <ArrowRight className="ml-2 h-6 w-6" />
+                        </Button>
+                    </Link>
+                 </div>
              </div>
         </section>
       </main>
