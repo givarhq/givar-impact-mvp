@@ -7,9 +7,6 @@ import { Public } from '../../common/decorators/public.decorator';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt.guard';
 
 @Controller('donations')
-// We remove the class-level guard to allow granular control, 
-// OR we keep it and use @Public() + OptionalGuard combo.
-// Ideally for SOTA readability, we explicitly guard endpoints.
 export class DonationController {
   constructor(private service: DonationService) {}
 
@@ -28,15 +25,12 @@ export class DonationController {
   }
 
   // 3. Direct Donation (OPTIONAL Auth)
-  // We use @Public to bypass Global Guards, 
-  // and OptionalJwtAuthGuard to hydrate req.user if a token exists.
-  @Public() 
+  @Public()
   @UseGuards(OptionalJwtAuthGuard)
   @Post('direct')
   async initiateDirect(@Req() req: any, @Body() dto: InitiateDirectDonationDto) {
-    // req.user will be the User object if token is valid,
-    // or null if guest/no token.
-    return this.service.initiateDirectDonation(req.user, dto);
+    const user = req.user;
+    return this.service.initiateDirectDonation(user, dto);
   }
 
   // 4. Subscriptions (Strict Auth)
