@@ -32,6 +32,7 @@ enum TxStatus {
 enum UserRole {
   USER
   ADMIN
+  SYSTEM // Dedicated role for internal accounts
 }
 
 enum SubscriptionStatus {
@@ -85,6 +86,7 @@ enum AuditAction {
   SUBSCRIPTION_CREATED
   SUBSCRIPTION_CANCELLED
   DIRECT_PAYMENT_INITIATED
+  DIRECT_PAYMENT_FULFILLED
   
   // Project/Admin
   PROJECT_CREATED
@@ -253,7 +255,9 @@ model Category {
 
 model Donation {
   id            String   @id @default(uuid())
-  userId        String
+  userId        String?
+  guestEmail    String?  
+  guestName     String?
   projectId     String
   transactionId String   @unique // Strict link to ledger
 
@@ -264,7 +268,7 @@ model Donation {
   createdAt     DateTime @default(now())
 
   // Relationships
-  user        User              @relation(fields: [userId], references: [id])
+  user        User?              @relation(fields: [userId], references: [id])
   project     Project           @relation(fields: [projectId], references: [id])
   transaction WalletTransaction @relation(fields: [transactionId], references: [id])
 

@@ -99,22 +99,42 @@ export class DonationService {
   // Initiate a direct, wallet-bypassing donation
   async initiateDirectDonation(user: any | undefined, dto: InitiateDirectDonationDto) {
     const { projectId, amount, currency, guestEmail, guestName } = dto;
-    const amountInMinor = Number(amount);
 
-    // 1. Determine who is paying
+    // --- Amount Validation ---
+    // Even though DTO Regex catches format, we enforce logical bounds here.
+    // We treat input as BigInt to avoid JS number precision issues.
+    const amountBig = BigInt(amount);
+    
+    // 1. Min Amount: 100.00 (10,000 minor units) to prevent micro-transaction spam
+    const MIN_AMOUNT = 10000n; 
+    if (amountBig < MIN_AMOUNT) {
+        throw new BadRequestException('Minimum donation amount is 100.00 base currency units');
+    }
+
+    // 2. Max Amount: 1 Billion (100,000,000,000 minor units) - Reasonable cap
+    // This prevents "integer overflow" attacks on external payment providers
+    const MAX_AMOUNT = 100000000000n;
+    if (amountBig > MAX_AMOUNT) {
+        throw new BadRequestException('Amount exceeds maximum transaction limit');
+    }
+
+    // Safe Cast: We validated bounds, so Number() is safe for Paystack API (< 2^53)
+    const amountInMinor = Number(amount); 
+
+    // 1. Determine Identity
     let emailToCharge = guestEmail;
     let userId = null;
 
     if (user) {
-        // Logged in user overrides guest email
+        // Strict: Logged in user overrides any guest input
         emailToCharge = user.email;
         userId = user.id;
     } else {
-        // Guest mode
+        // Strict: Guest requires email
         if (!guestEmail) throw new BadRequestException('Email is required for guest donations');
     }
 
-    // 1. Validate Project
+    // 2. Validate Project Integrity
     const project = await this.prisma.project.findUnique({ where: { id: projectId } });
     if (!project || !project.isActive) {
       throw new BadRequestException('Project is not active or does not exist');
@@ -123,7 +143,7 @@ export class DonationService {
         throw new BadRequestException(`Project only accepts ${currency}`);
     }
 
-    // 2. Call Paystack to get a checkout URL
+    // 3. Call Payment Provider
     try {
       const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
@@ -133,8 +153,8 @@ export class DonationService {
           currency,
           metadata: {
             donationType: 'DIRECT',
-            userId: userId || 'GUEST', // Mark as GUEST if no ID
-            guestEmail: emailToCharge, // Store email in metadata for fulfillment
+            userId: userId || 'GUEST',
+            guestEmail: emailToCharge, 
             guestName: guestName || 'Anonymous',
             projectId,
           },
@@ -170,12 +190,25 @@ export class DonationService {
   }) {
     const { userId, guestEmail, guestName, projectId, amount, currency, reference } = data;
 
+    // Idempotency Check (Prevent Replay Attacks)
+    // We check if a donation with this exact reference already exists.
+    // We check the transaction table because that's where the unique constraint lives.
+    const existingTx = await this.prisma.walletTransaction.findFirst({
+        where: { reference, type: 'DEBIT' }
+    });
+    
+    if (existingTx) {
+        this.logger.warn(`Idempotency check: Duplicate webhook processed gracefully: ${reference}`);
+        // Return existing donation associated with this transaction to satisfy return type
+        return this.prisma.donation.findUnique({ where: { transactionId: existingTx.id } });
+    }
+
     return this.prisma.$transaction(async (tx) => {
       let walletId: string;
 
       // --- Step 1: Resolve Wallet ---
       if (userId && userId !== 'GUEST') {
-        // Case A: Logged-in User -> Use their personal wallet
+        // Case A: Logged-in User
         const wallet = await tx.wallet.upsert({
           where: { userId_currency: { userId, currency } },
           update: {},
@@ -183,8 +216,7 @@ export class DonationService {
         });
         walletId = wallet.id;
       } else {
-        // Case B: Guest -> Use the "System Guest Wallet"
-        // We find/create a special system user to attach this wallet to.
+        // Case B: Guest -> System Guest Wallet
         const SYSTEM_GUEST_EMAIL = 'guest@givar.com';
         
         let systemUser = await tx.user.findUnique({ where: { email: SYSTEM_GUEST_EMAIL } });
@@ -195,7 +227,7 @@ export class DonationService {
                     firstName: 'System',
                     lastName: 'Guest-Ledger',
                     passwordHash: 'SYSTEM_ACCOUNT_LOCKED',
-                    role: 'ADMIN', // Protected role
+                    role: 'SYSTEM', // Use dedicated SYSTEM role
                     emailVerified: true,
                 }
             });
@@ -210,7 +242,6 @@ export class DonationService {
       }
 
       // --- Step 2: Virtual Ledger Entry (Credit) ---
-      // Money enters the system from Paystack
       await tx.walletTransaction.create({
         data: {
           walletId,
@@ -226,7 +257,6 @@ export class DonationService {
       });
 
       // --- Step 3: Virtual Ledger Entry (Debit) ---
-      // Money leaves the wallet to the project
       const donationTx = await tx.walletTransaction.create({
         data: {
           walletId,
@@ -234,7 +264,7 @@ export class DonationService {
           currency,
           type: 'DEBIT',
           status: 'COMPLETED',
-          reference, // Main reference
+          reference, // Main reference (Unique Constraint enforces DB-level idempotency too)
           description: `Direct donation to project ${projectId}`,
         },
       });
@@ -242,8 +272,8 @@ export class DonationService {
       // --- Step 4: Create Donation Record ---
       const donation = await tx.donation.create({
         data: {
-          userId: userId !== 'GUEST' ? userId : undefined, // Link only if real user
-          guestEmail: userId === 'GUEST' ? guestEmail : undefined, // Store guest info
+          userId: userId !== 'GUEST' ? userId : undefined,
+          guestEmail: userId === 'GUEST' ? guestEmail : undefined,
           guestName: userId === 'GUEST' ? guestName : undefined,
           projectId,
           transactionId: donationTx.id,
@@ -265,8 +295,8 @@ export class DonationService {
 
       // --- Step 6: Audit Log ---
       await this.audit.log({
-        userId: userId !== 'GUEST' ? userId : undefined, // Null for guests
-        action: AuditAction.DIRECT_PAYMENT_INITIATED,
+        userId: userId !== 'GUEST' ? userId : undefined,
+        action: AuditAction.DIRECT_PAYMENT_FULFILLED,
         entityId: donation.id,
         entityType: 'Donation',
         metadata: {
@@ -275,7 +305,7 @@ export class DonationService {
           currency,
           reference,
           donorType: userId === 'GUEST' ? 'GUEST' : 'USER',
-          guestEmail, // Capture who the guest was in audit log
+          guestEmail,
         },
       }, tx);
 

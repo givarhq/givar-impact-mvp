@@ -74,6 +74,18 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
+
+    // Explicitly block SYSTEM accounts (Guest Wallet holders)
+    if (user && user.role === 'SYSTEM') {
+      await this.audit.log({
+          action: AuditAction.USER_LOGIN_FAILED,
+          userId: user.id,
+          entityType: 'Session',
+          metadata: { attemptedEmail: dto.email, reason: 'System Account Login Attempt' },
+          req,
+      });
+      throw new UnauthorizedException('Invalid credentials');
+    }
     
     // Account Lockout Check (Step 1)
     if (user && user.accountLockedUntil && user.accountLockedUntil > new Date()) {
@@ -147,7 +159,7 @@ export class AuthService {
         reason = error.message;
       }
       // Note: We log the failure for both "user not found" and "bad password" here.
-      // The "Account Locked" reason is logged separately above.
+      // The "Account Locked" and "System Account" reasons are logged separately above.
       await this.audit.log({
         action: AuditAction.USER_LOGIN_FAILED,
         userId: user?.id, // May be null if user not found

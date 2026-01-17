@@ -42,7 +42,7 @@ async function main() {
       firstName: 'System',
       lastName: 'Guest-Ledger',
       passwordHash: '$2b$10$EpRnTzVlqHNP0.fKb.U9H.microservice_locked_account', // Locked account
-      role: 'ADMIN',
+      role: 'SYSTEM',
       emailVerified: true,
     },
   })
