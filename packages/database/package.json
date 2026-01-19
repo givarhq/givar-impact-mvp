@@ -8,6 +8,7 @@
         "clean": "rm -rf dist",
         "db:generate": "prisma generate",
         "db:push": "prisma db push",
+        "db:push:force": "prisma db push --accept-data-loss",
         "db:studio": "prisma studio",
         "db:seed": "tsx prisma/seed.ts",
         "dev": "prisma generate --watch"

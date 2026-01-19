@@ -12,6 +12,7 @@
         "// --- DATABASE COMMANDS ---": "",
         "db:generate": "turbo run db:generate",
         "db:push": "turbo run db:push",
+        "db:push:force": "turbo run db:push:force",
         "db:studio": "pnpm --filter @givar/database db:studio",
         "db:seed": "pnpm --filter @givar/database db:seed",
 
