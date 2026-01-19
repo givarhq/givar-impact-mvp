@@ -21,8 +21,8 @@ import { DonationService } from '../donation/donation.service';
 export class WalletService {
   private readonly logger = new Logger(WalletService.name);
 
-  private readonly MAX_AMOUNT_MINOR = 100_000_000_000_000n; // 1 billion base units
-  private readonly MIN_AMOUNT_MINOR = 10000n; // 100.00 base units
+  private readonly MAX_AMOUNT_MINOR = 100_000_000_000_000n;
+  private readonly MIN_AMOUNT_MINOR = 10000n;
 
   constructor(
     private repository: WalletRepository,
@@ -33,10 +33,6 @@ export class WalletService {
     private audit: AuditService,
   ) {}
 
-  /**
-   * Safely converts string amount (minor units) to number for Paystack
-   * Enforces strict bounds to prevent precision issues & abuse
-   */
   private toPaystackAmount(amountStr: string): number {
     let amountBig: bigint;
     try {
@@ -56,9 +52,6 @@ export class WalletService {
     return Number(amountBig);
   }
 
-  /**
-   * Initialize wallet funding payment with Paystack
-   */
   async initiateFunding(
     userId: string,
     email: string,
@@ -86,7 +79,7 @@ export class WalletService {
             Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
             'Content-Type': 'application/json',
           },
-          timeout: 10000, // 10 seconds
+          timeout: 10000,
         },
       );
 
@@ -108,9 +101,6 @@ export class WalletService {
     }
   }
 
-  /**
-   * Secure webhook handler with strong signature verification
-   */
   async handleWebhook(signature: string, payload: any) {
     const secret = this.config.get<string>('PAYSTACK_SECRET_KEY');
     if (!secret) {
@@ -134,7 +124,6 @@ export class WalletService {
     const event = payload.event;
     const data = payload.data;
 
-    // Log every valid webhook for audit trail
     await this.audit.log({
       action: AuditAction.WEBHOOK_RECEIVED,
       metadata: {
@@ -146,7 +135,6 @@ export class WalletService {
       },
     });
 
-    // Only process successful card/bank/mobile charges
     if (event === 'charge.success') {
       const allowedChannels = ['card', 'bank', 'bank_transfer', 'ussd', 'mobile_money', 'qr'];
 
@@ -167,7 +155,7 @@ export class WalletService {
 
   private async processDirectDonation(data: any) {
     const { reference, amount, currency, metadata } = data;
-    const { userId, projectId } = metadata;
+    const { userId, projectId, guestEmail, guestName } = metadata;
 
     if (!userId || !projectId) {
       this.logger.warn(`Direct donation webhook missing required metadata`, { reference });
@@ -181,6 +169,9 @@ export class WalletService {
         amount: BigInt(amount),
         currency: currency as Currency,
         reference,
+        guestEmail,
+        guestName,
+        channel: data.channel
       });
 
       this.logger.log(`Direct donation successfully fulfilled: ${amount} ${currency}`);
@@ -239,14 +230,14 @@ export class WalletService {
     }
   }
 
+  // ... (rest of methods: getBalance, getTransactions, exportTransactionsToCsv)
   async getBalance(userId: string, currency: Currency) {
-  const wallet = await this.repository.getOrCreateWallet(userId, currency);
-  
-  return {
-    currency: wallet.currency,
-    balance: wallet.balance.toString(),
-  };
-}
+    const wallet = await this.repository.getOrCreateWallet(userId, currency);
+    return {
+      currency: wallet.currency,
+      balance: wallet.balance.toString(),
+    };
+  }
 
   async getTransactions(userId: string, query: TransactionQueryDto) {
     const {
