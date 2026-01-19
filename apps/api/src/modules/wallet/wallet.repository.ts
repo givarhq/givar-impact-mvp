@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import {
   Currency,
@@ -12,27 +13,56 @@ import { PrismaService } from '../../common/prisma.service';
 
 @Injectable()
 export class WalletRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Get a user's wallet. Creates one if it doesn't exist (Lazy loading).
+   * Retrieves or lazily creates a user's wallet for the specified currency.
+   * This method is safe to call concurrently.
    */
-  async getWallet(userId: string, currency: Currency) {
-    let wallet = await this.prisma.wallet.findUnique({
+  async getOrCreateWallet(
+    userId: string,
+    currency: Currency,
+    tx?: Prisma.TransactionClient,
+  ): Promise<{ id: string; balance: bigint; currency: Currency }> {
+    const client = tx ?? this.prisma;
+  
+    let wallet = await client.wallet.findUnique({
       where: { userId_currency: { userId, currency } },
+      select: { 
+        id: true, 
+        balance: true,
+        currency: true   // ← Add this
+      },
     });
-
+  
     if (!wallet) {
-      wallet = await this.prisma.wallet.create({
-        data: { userId, currency, balance: 0n },
-      });
+      try {
+        wallet = await client.wallet.create({
+          data: { userId, currency, balance: 0n },
+          select: { 
+            id: true, 
+            balance: true,
+            currency: true 
+          },
+        });
+      } catch (err) {
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+          wallet = await client.wallet.findUniqueOrThrow({
+            where: { userId_currency: { userId, currency } },
+            select: { id: true, balance: true, currency: true },
+          });
+        } else {
+          throw err;
+        }
+      }
     }
+  
     return wallet;
   }
 
   /**
-   * Public Entry Point
-   * Decides whether to start a new transaction or use the provided one.
+   * Process a credit or debit transaction atomically.
+   * Supports both standalone and nested transaction usage.
    */
   async processTransaction(
     params: {
@@ -45,23 +75,29 @@ export class WalletRepository {
       status?: TxStatus;
     },
     externalTx?: Prisma.TransactionClient,
-  ) {
+  ): Promise<{
+    transaction: Prisma.WalletTransactionGetPayload<{}>;
+    newBalance: bigint;
+  }> {
     if (externalTx) {
       return this._executeLedgerLogic(externalTx, params);
-    } else {
-      // Start a new atomic transaction
-      return this.prisma.$transaction((tx) => 
-        this._executeLedgerLogic(tx, params)
-      );
     }
+
+    return this.prisma.$transaction(
+      async (tx) => this._executeLedgerLogic(tx, params),
+      {
+        maxWait: 5000,      // default 2000
+        timeout: 10000,     // default 5000 - give more time for complex cases
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+      },
+    );
   }
 
   /**
-   * Private Logic Implementation
-   * Contains the hard logic, unaware of transaction boundaries.
+   * Core ledger operation - must be executed inside a transaction
    */
   private async _executeLedgerLogic(
-    tx: Prisma.TransactionClient, 
+    tx: Prisma.TransactionClient,
     params: {
       userId: string;
       amount: bigint;
@@ -70,25 +106,50 @@ export class WalletRepository {
       reference: string;
       description?: string;
       status?: TxStatus;
-    }
-  ) {
+    },
+  ): Promise<{
+    transaction: Prisma.WalletTransactionGetPayload<{}>;
+    newBalance: bigint;
+  }> {
     const { userId, amount, currency, type, reference, description, status } = params;
 
-    // 1. IDEMPOTENCY CHECK (Optimization)
-    if (type === TxType.CREDIT) {
-      const exists = await tx.walletTransaction.findUnique({
-        where: { reference },
-      });
-      if (exists) {
-        return { transaction: exists, newBalance: 0n };
+    if (amount <= 0n) {
+      throw new BadRequestException('Transaction amount must be positive');
+    }
+
+    // 1. Idempotency check (stronger for both CREDIT and DEBIT)
+    const existingTx = await tx.walletTransaction.findUnique({
+      where: { reference },
+      select: { id: true, type: true, amount: true, status: true },
+    });
+
+    if (existingTx) {
+      if (existingTx.type !== type || existingTx.amount !== amount) {
+        throw new BadRequestException(
+          'Transaction reference exists but with different type or amount',
+        );
       }
+
+      // Already processed - return existing result
+      const wallet = await tx.wallet.findUniqueOrThrow({
+        where: { userId_currency: { userId, currency } },
+        select: { balance: true },
+      });
+
+      return {
+        transaction: existingTx as any, // minimal fields
+        newBalance: wallet.balance,
+      };
     }
 
     try {
-      // 2. CREATE LEDGER ENTRY
+      // 2. Ensure wallet exists (race-condition safe)
+      const wallet = await this.getOrCreateWallet(userId, currency, tx);
+
+      // 3. Create transaction record
       const walletTx = await tx.walletTransaction.create({
         data: {
-          wallet: { connect: { userId_currency: { userId, currency } } },
+          walletId: wallet.id,
           amount,
           currency,
           type,
@@ -98,45 +159,66 @@ export class WalletRepository {
         },
       });
 
-      // 3. ATOMIC BALANCE UPDATE
+      // 4. Update balance atomically
+      let updatedWallet;
+
       if (type === TxType.CREDIT) {
-        const updatedWallet = await tx.wallet.update({
-          where: { userId_currency: { userId, currency } },
+        updatedWallet = await tx.wallet.update({
+          where: { id: wallet.id },
           data: { balance: { increment: amount } },
+          select: { balance: true },
         });
-        return { transaction: walletTx, newBalance: updatedWallet.balance };
       } else {
-        // DEBIT: Secure Atomic Decrement with Guard
+        // DEBIT - atomic check + update
         const result = await tx.wallet.updateMany({
           where: {
-            userId,
-            currency,
-            balance: { gte: amount }, // Guard: Must have funds
+            id: wallet.id,
+            balance: { gte: amount },
           },
-          data: {
-            balance: { decrement: amount },
-          },
+          data: { balance: { decrement: amount } },
         });
 
         if (result.count === 0) {
-          throw new BadRequestException('Insufficient funds');
+          throw new BadRequestException('Insufficient wallet balance');
         }
 
-        // Fetch new balance to return
-        const updatedWallet = await tx.wallet.findUniqueOrThrow({
-          where: { userId_currency: { userId, currency } },
+        updatedWallet = await tx.wallet.findUniqueOrThrow({
+          where: { id: wallet.id },
+          select: { balance: true },
         });
-
-        return { transaction: walletTx, newBalance: updatedWallet.balance };
       }
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // Unique Constraint Violation (Double Spending/Crediting)
-        if (error.code === 'P2002') {
-           throw new BadRequestException('Duplicate transaction reference');
+
+      return {
+        transaction: walletTx,
+        newBalance: updatedWallet.balance,
+      };
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        if (err.code === 'P2002') {
+          throw new BadRequestException('Duplicate transaction reference');
         }
       }
-      throw error;
+
+      // Re-throw unexpected errors
+      if (err instanceof Error) {
+        throw new InternalServerErrorException(
+          `Ledger operation failed: ${err.message}`,
+        );
+      }
+
+      throw err;
     }
+  }
+
+  /**
+   * Utility method - mostly for admin/debug purposes
+   */
+  async getCurrentBalance(userId: string, currency: Currency): Promise<bigint> {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { userId_currency: { userId, currency } },
+      select: { balance: true },
+    });
+
+    return wallet?.balance ?? 0n;
   }
 }

@@ -21,6 +21,9 @@ import { DonationService } from '../donation/donation.service';
 export class WalletService {
   private readonly logger = new Logger(WalletService.name);
 
+  private readonly MAX_AMOUNT_MINOR = 100_000_000_000_000n; // 1 billion base units
+  private readonly MIN_AMOUNT_MINOR = 10000n; // 100.00 base units
+
   constructor(
     private repository: WalletRepository,
     private config: ConfigService,
@@ -31,16 +34,38 @@ export class WalletService {
   ) {}
 
   /**
-   * Initialize Payment
-   * We tell Paystack how much we want. They give us a URL.
+   * Safely converts string amount (minor units) to number for Paystack
+   * Enforces strict bounds to prevent precision issues & abuse
    */
-  async initiateFunding(userId: string, email: string, amount: string, currency: Currency) {
-    // 1. Convert "1000" (BigInt string) to number for Paystack
-    const amountInMinor = Number(amount); 
-    
-    if (isNaN(amountInMinor) || amountInMinor <= 0) {
-      throw new BadRequestException('Invalid amount');
+  private toPaystackAmount(amountStr: string): number {
+    let amountBig: bigint;
+    try {
+      amountBig = BigInt(amountStr);
+    } catch {
+      throw new BadRequestException('Invalid amount format');
     }
+
+    if (amountBig < this.MIN_AMOUNT_MINOR) {
+      throw new BadRequestException('Amount below minimum allowed (100.00)');
+    }
+
+    if (amountBig > this.MAX_AMOUNT_MINOR) {
+      throw new BadRequestException('Amount exceeds maximum allowed limit');
+    }
+
+    return Number(amountBig);
+  }
+
+  /**
+   * Initialize wallet funding payment with Paystack
+   */
+  async initiateFunding(
+    userId: string,
+    email: string,
+    amount: string,
+    currency: Currency,
+  ) {
+    const amountInMinor = this.toPaystackAmount(amount);
 
     try {
       const response = await axios.post(
@@ -51,77 +76,105 @@ export class WalletService {
           currency,
           metadata: {
             userId,
-            custom_fields: [{ display_name: "Wallet Action", value: "funding" }]
+            action: 'wallet_funding',
+            custom_fields: [{ display_name: 'Wallet Action', value: 'funding' }],
           },
-          callback_url: `${this.config.get('FRONTEND_URL')}/dashboard`, 
+          callback_url: `${this.config.get('FRONTEND_URL')}/dashboard/wallet`,
         },
         {
           headers: {
             Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
             'Content-Type': 'application/json',
           },
+          timeout: 10000, // 10 seconds
         },
       );
 
+      const { data } = response.data;
+
       return {
-        authorizationUrl: response.data.data.authorization_url,
-        reference: response.data.data.reference,
-        accessCode: response.data.data.access_code,
+        authorizationUrl: data.authorization_url,
+        reference: data.reference,
+        accessCode: data.access_code,
       };
     } catch (error) {
-      this.logger.error('Paystack Init Failed', error);
-      throw new InternalServerErrorException('Payment provider unavailable');
+      this.logger.error('Paystack initialization failed', {
+        error: error instanceof Error ? error.message : String(error),
+        userId,
+        amount,
+        currency,
+      });
+      throw new InternalServerErrorException('Unable to initialize payment at this time');
     }
   }
 
-  // Handle Webhook
+  /**
+   * Secure webhook handler with strong signature verification
+   */
   async handleWebhook(signature: string, payload: any) {
-    const secret = this.config.get('PAYSTACK_SECRET_KEY');
-    const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(payload)).digest('hex');
+    const secret = this.config.get<string>('PAYSTACK_SECRET_KEY');
+    if (!secret) {
+      this.logger.error('PAYSTACK_SECRET_KEY is not configured');
+      throw new InternalServerErrorException('Server configuration error');
+    }
 
-    if (hash !== signature) {
-        await this.audit.log({
-            action: AuditAction.WEBHOOK_RECEIVED,
-            metadata: { status: 'FAILED', reason: 'Invalid Signature', ip: 'unknown' }
-        });
-        throw new BadRequestException('Invalid signature');
+    const computedHash = crypto
+      .createHmac('sha512', secret)
+      .update(JSON.stringify(payload))
+      .digest('hex');
+
+    if (computedHash !== signature) {
+      await this.audit.log({
+        action: AuditAction.WEBHOOK_SIGNATURE_FAILED,
+        metadata: { computedHash, receivedSignature: signature },
+      });
+      throw new BadRequestException('Invalid webhook signature');
     }
 
     const event = payload.event;
     const data = payload.data;
 
+    // Log every valid webhook for audit trail
     await this.audit.log({
-        action: AuditAction.WEBHOOK_RECEIVED,
-        metadata: { event, reference: data.reference }
+      action: AuditAction.WEBHOOK_RECEIVED,
+      metadata: {
+        event,
+        reference: data.reference,
+        amount: data.amount,
+        currency: data.currency,
+        channel: data.channel,
+      },
     });
 
+    // Only process successful card/bank/mobile charges
     if (event === 'charge.success') {
-      // Route webhook based on metadata
-      if (data.metadata.donationType === 'DIRECT') {
-        // This is a wallet-bypass donation
-        await this.processDirectDonation(data);
-      } else {
-        // This is a standard wallet funding event
+      const allowedChannels = ['card', 'bank', 'bank_transfer', 'ussd', 'mobile_money', 'qr'];
+
+      if (!allowedChannels.includes(data.channel)) {
+        this.logger.warn(`Suspicious channel ignored: ${data.channel}`, { reference: data.reference });
+        return true;
+      }
+
+      if (data.metadata?.action === 'wallet_funding') {
         await this.processSuccessfulFunding(data);
+      } else if (data.metadata?.donationType === 'DIRECT') {
+        await this.processDirectDonation(data);
       }
     }
 
     return true;
   }
 
-  // New private method to handle the direct donation logic
   private async processDirectDonation(data: any) {
     const { reference, amount, currency, metadata } = data;
     const { userId, projectId } = metadata;
 
     if (!userId || !projectId) {
-      this.logger.warn(`Direct Donation webhook received without required metadata: ${reference}`);
+      this.logger.warn(`Direct donation webhook missing required metadata`, { reference });
       return;
     }
 
     try {
-      // We pass the full data to a new, dedicated service method in DonationService
-      // This keeps concerns separated: WalletService routes, DonationService executes.
       await this.donationService.fulfillDirectDonation({
         userId,
         projectId,
@@ -129,16 +182,16 @@ export class WalletService {
         currency: currency as Currency,
         reference,
       });
-      this.logger.log(`Direct donation fulfilled: ${amount} ${currency} for User ${userId} to Project ${projectId}`);
+
+      this.logger.log(`Direct donation successfully fulfilled: ${amount} ${currency}`);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        this.logger.warn(`Attempted to process duplicate direct donation webhook: ${reference}`);
+        this.logger.log(`Idempotent skip: duplicate direct donation webhook`, { reference });
       } else {
-        if (error instanceof Error) {
-          this.logger.error(`Failed to process direct donation webhook: ${error.message}`);
-        } else {
-          this.logger.error('Failed to process direct donation webhook with an unknown error type', error);
-        }
+        this.logger.error('Failed to process direct donation webhook', {
+          error: error instanceof Error ? error.message : String(error),
+          reference,
+        });
       }
     }
   }
@@ -148,7 +201,7 @@ export class WalletService {
     const userId = metadata?.userId;
 
     if (!userId) {
-      this.logger.warn(`Webhook received without userId metadata: ${reference}`);
+      this.logger.warn(`Wallet funding webhook missing userId in metadata`, { reference });
       return;
     }
 
@@ -160,50 +213,67 @@ export class WalletService {
         type: TxType.CREDIT,
         reference,
         status: TxStatus.COMPLETED,
-        description: 'Wallet Funding via Paystack',
+        description: 'Wallet funding via Paystack',
       });
 
       await this.audit.log({
         userId,
-        action: AuditAction.WALLET_FUND,
+        action: AuditAction.WALLET_FUND_SUCCESS,
         entityId: result.transaction.id,
         entityType: 'WalletTransaction',
-        metadata: { amount, currency, reference, newBalance: result.newBalance.toString() }
+        metadata: {
+          amount,
+          currency,
+          reference,
+          newBalance: result.newBalance.toString(),
+          channel: data.channel,
+        },
       });
 
-      this.logger.log(`Wallet funded: ${amount} ${currency} for User ${userId}`);
+      this.logger.log(`Wallet funded successfully: ${amount} ${currency} → User ${userId}`);
     } catch (error) {
-      this.logger.error(`Failed to process funding webhook: ${error}`);
+      this.logger.error('Failed to credit wallet from webhook', {
+        error: error instanceof Error ? error.message : String(error),
+        reference,
+      });
     }
   }
 
   async getBalance(userId: string, currency: Currency) {
-    const wallet = await this.repository.getWallet(userId, currency);
-    return { 
-        currency: wallet.currency, 
-        balance: wallet.balance.toString()
-    };
-  }
+  const wallet = await this.repository.getOrCreateWallet(userId, currency);
+  
+  return {
+    currency: wallet.currency,
+    balance: wallet.balance.toString(),
+  };
+}
 
-  // Advanced Transaction Fetching
   async getTransactions(userId: string, query: TransactionQueryDto) {
-    const { 
-        page = 1, limit = 15, search, type, status, 
-        startDate, endDate, 
-        sortBy = 'createdAt', sortOrder = 'desc'
+    const {
+      page = 1,
+      limit = 15,
+      search,
+      type,
+      status,
+      startDate,
+      endDate,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
     } = query;
+
     const skip = (page - 1) * limit;
 
     const where: Prisma.WalletTransactionWhereInput = {
       wallet: { userId },
       ...(type && { type }),
       ...(status && { status }),
-      ...(startDate && endDate && {
-        createdAt: {
-          gte: new Date(startDate),
-          lte: new Date(endDate),
-        },
-      }),
+      ...(startDate &&
+        endDate && {
+          createdAt: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        }),
       ...(search && {
         OR: [
           { description: { contains: search, mode: 'insensitive' } },
@@ -213,42 +283,34 @@ export class WalletService {
       }),
     };
 
-    const orderBy: Prisma.WalletTransactionOrderByWithRelationInput = 
-      sortBy && sortOrder
-        ? { [sortBy]: sortOrder }
-        : { createdAt: 'desc' };
+    const orderBy: Prisma.WalletTransactionOrderByWithRelationInput =
+      sortBy && sortOrder ? { [sortBy]: sortOrder } : { createdAt: 'desc' };
 
-    const includeClause = {
-        donation: {
-            select: { project: { select: { title: true } } },
-        },
+    const include = {
+      donation: {
+        select: { project: { select: { title: true } } },
+      },
     };
 
-    type TransactionWithDonation = Prisma.WalletTransactionGetPayload<{
-        include: typeof includeClause
-    }>;
-    
     const [transactions, total] = await this.prisma.$transaction([
       this.prisma.walletTransaction.findMany({
         where,
         skip,
         take: limit,
         orderBy,
-        include: includeClause,
+        include,
       }),
       this.prisma.walletTransaction.count({ where }),
     ]);
-    
-    const typedTransactions = transactions as TransactionWithDonation[];
 
-    const enhancedData = typedTransactions.map(tx => ({
-        ...tx,
-        isDonation: !!tx.donation,
-        projectName: tx.donation?.project?.title,
+    const enhanced = transactions.map((tx) => ({
+      ...tx,
+      isDonation: !!tx.donation,
+      projectName: tx.donation?.project?.title ?? null,
     }));
 
     return {
-      data: enhancedData,
+      data: enhanced,
       meta: {
         total,
         page,
@@ -257,15 +319,18 @@ export class WalletService {
     };
   }
 
-  // CSV Export Logic
   async exportTransactionsToCsv(userId: string, query: TransactionQueryDto) {
     const { search, type, status, startDate, endDate } = query;
+
     const where: Prisma.WalletTransactionWhereInput = {
-        wallet: { userId },
-        ...(type && { type }),
-        ...(status && { status }),
-        ...(startDate && endDate && { createdAt: { gte: new Date(startDate), lte: new Date(endDate) } }),
-        ...(search && {
+      wallet: { userId },
+      ...(type && { type }),
+      ...(status && { status }),
+      ...(startDate &&
+        endDate && {
+          createdAt: { gte: new Date(startDate), lte: new Date(endDate) },
+        }),
+      ...(search && {
         OR: [
           { description: { contains: search, mode: 'insensitive' } },
           { reference: { contains: search, mode: 'insensitive' } },
@@ -273,28 +338,26 @@ export class WalletService {
         ],
       }),
     };
+
     const transactions = await this.prisma.walletTransaction.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: { donation: { select: { project: { select: { title: true } } } } },
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { donation: { select: { project: { select: { title: true } } } } },
     });
-    
-    // Flatten data for clean CSV columns
-    const flattenedData = transactions.map(tx => ({
-        ID: tx.id,
-        Date: tx.createdAt.toISOString(),
-        Type: tx.type,
-        Amount: (Number(tx.amount) / 100).toFixed(2),
-        Currency: tx.currency,
-        Status: tx.status,
-        Description: tx.description || (tx.donation ? `Donation to ${tx.donation.project.title}` : 'N/A'),
-        Reference: tx.reference,
+
+    const flattened = transactions.map((tx) => ({
+      ID: tx.id,
+      Date: tx.createdAt.toISOString(),
+      Type: tx.type,
+      Amount: (Number(tx.amount) / 100).toFixed(2),
+      Currency: tx.currency,
+      Status: tx.status,
+      Description: tx.description || (tx.donation ? `Donation to ${tx.donation.project.title}` : 'N/A'),
+      Reference: tx.reference,
     }));
 
-    if (flattenedData.length === 0) {
-        return '';
-    }
-    
-    return json2csv(flattenedData);
+    if (flattened.length === 0) return '';
+
+    return json2csv(flattened);
   }
 }
