@@ -32,7 +32,6 @@ enum TxStatus {
 enum UserRole {
   USER
   ADMIN
-  SYSTEM // Dedicated role for internal accounts
 }
 
 enum SubscriptionStatus {
@@ -222,6 +221,7 @@ model Project {
 
   donations    Donation[]
   subscriptions Subscription[]
+  guestDonations GuestDonation[]
 
   @@map("projects")
   @@index([categoryId])
@@ -258,8 +258,6 @@ model Category {
 model Donation {
   id            String   @id @default(uuid())
   userId        String?
-  guestEmail    String?  
-  guestName     String?
   projectId     String
   transactionId String   @unique // Strict link to ledger
 
@@ -275,6 +273,49 @@ model Donation {
   transaction WalletTransaction @relation(fields: [transactionId], references: [id])
 
   @@map("donations")
+}
+
+model GuestDonor {
+  id            String          @id @default(uuid())
+  email         String          @unique // normalized
+  name          String?         
+  totalDonated  BigInt          @default(0)
+  donationCount Int             @default(0)
+  firstDonated  DateTime        @default(now())
+  lastDonated   DateTime        @updatedAt
+
+  donations     GuestDonation[]
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([email])
+  @@map("guest_donors")
+}
+
+model GuestDonation {
+  id            String       @id @default(uuid())
+  
+  guestDonorId  String
+  reference     String       @unique
+  projectId     String
+  
+  amount        BigInt
+  currency      Currency
+  message       String?
+  
+  status        TxStatus     @default(COMPLETED)
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  guestDonor    GuestDonor   @relation(fields: [guestDonorId], references: [id])
+  project       Project      @relation(fields: [projectId], references: [id])
+
+  @@index([guestDonorId])
+  @@index([projectId])
+  @@index([reference])
+  @@map("guest_donations")
 }
 
 model Subscription {

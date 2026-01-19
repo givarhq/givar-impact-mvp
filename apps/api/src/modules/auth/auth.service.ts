@@ -71,23 +71,13 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, req?: Request) {
+    let shouldLogFailure = true;
+    
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
-    // Explicitly block SYSTEM accounts (Guest Wallet holders)
-    if (user && user.role === 'SYSTEM') {
-      await this.audit.log({
-          action: AuditAction.USER_LOGIN_FAILED,
-          userId: user.id,
-          entityType: 'Session',
-          metadata: { attemptedEmail: dto.email, reason: 'System Account Login Attempt' },
-          req,
-      });
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    
-    // Account Lockout Check (Step 1)
+    // 1. Account Lockout Check
     if (user && user.accountLockedUntil && user.accountLockedUntil > new Date()) {
       await this.audit.log({
           action: AuditAction.USER_LOGIN_FAILED,
@@ -96,6 +86,7 @@ export class AuthService {
           metadata: { attemptedEmail: dto.email, reason: 'Account Locked' },
           req,
       });
+      shouldLogFailure = false; // Prevent double logging in catch block
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -106,7 +97,7 @@ export class AuthService {
 
       const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
       if (!isMatch) {
-        // Progressive Delay & Lockout (Step 2)
+        // 2. Progressive Delay & Lockout Logic
         const newAttemptCount = user.failedLoginAttempts + 1;
         
         if (newAttemptCount >= 5) {
@@ -127,7 +118,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
       
-      // Reset attempts on successful login (Step 3)
+      // 3. Reset attempts on successful login
       if (user.failedLoginAttempts > 0) {
         await this.prisma.user.update({
           where: { id: user.id },
@@ -152,24 +143,26 @@ export class AuthService {
       return { accessToken, refreshToken };
 
     } catch (error) {
-      let reason = 'An unknown error occurred';
-      if (error instanceof UnauthorizedException) {
-        reason = 'Bad Credentials';
-      } else if (error instanceof Error) {
-        reason = error.message;
+      // 4. Conditional Failure Logging
+      if (shouldLogFailure) {
+          let reason = 'An unknown error occurred';
+          if (error instanceof UnauthorizedException) {
+            reason = 'Bad Credentials';
+          } else if (error instanceof Error) {
+            reason = error.message;
+          }
+          
+          await this.audit.log({
+            action: AuditAction.USER_LOGIN_FAILED,
+            userId: user?.id, // Capture ID if user existed
+            entityType: 'Session',
+            metadata: { 
+                attemptedEmail: dto.email, 
+                reason: reason
+            },
+            req,
+          });
       }
-      // Note: We log the failure for both "user not found" and "bad password" here.
-      // The "Account Locked" and "System Account" reasons are logged separately above.
-      await this.audit.log({
-        action: AuditAction.USER_LOGIN_FAILED,
-        userId: user?.id, // May be null if user not found
-        entityType: 'Session',
-        metadata: { 
-            attemptedEmail: dto.email, 
-            reason: reason
-        },
-        req,
-      });
 
       throw error;
     }

@@ -206,102 +206,102 @@ export class DonationService {
     amount: bigint;
     currency: Currency;
     reference: string;
+    channel?: string; // Added for security check
   }) {
-    const { userId, guestEmail, guestName, projectId, amount, currency, reference } = data;
+    const { userId, guestEmail, guestName, projectId, amount, currency, reference, channel } = data;
 
-    // Very strong idempotency check
-    const existingDonation = await this.prisma.donation.findFirst({
-      where: {
-        OR: [
-          { transaction: { reference } },
-          { transaction: { reference: `${reference}-CREDIT` } },
-        ],
-      },
-      select: { id: true },
-    });
-
-    if (existingDonation) {
-      this.logger.log(`Idempotent skip - direct donation already processed`, { reference });
-      return this.prisma.donation.findUniqueOrThrow({
-        where: { id: existingDonation.id },
-      });
+    // 1. Channel Validation (Anti-Fraud)
+    // Ensure we only process known secure channels from Paystack
+    if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money'].includes(channel)) {
+      this.logger.warn(`Suspicious payment channel ignored`, { channel, reference });
+      return { status: 'ignored_channel', reference };
     }
 
+    // 2. Robust Global Idempotency Check (Critical)
+    // We must check BOTH tables because guests don't have wallet transactions
+    const [existingUserDonation, existingGuestDonation] = await Promise.all([
+      this.prisma.donation.findFirst({
+        where: { transaction: { reference } },
+        select: { id: true }
+      }),
+      this.prisma.guestDonation.findUnique({
+        where: { reference },
+        select: { id: true }
+      })
+    ]);
+
+    if (existingUserDonation || existingGuestDonation) {
+      this.logger.log(`Idempotent skip - already processed: ${reference}`);
+      return {
+        type: existingUserDonation ? 'user' : 'guest',
+        donationId: existingUserDonation?.id || existingGuestDonation?.id,
+        status: 'duplicate',
+        reference
+      };
+    }
+
+    // 3. Branching Logic
+    if (userId === 'GUEST') {
+        if (!guestEmail) throw new Error("Guest email missing for guest donation");
+        return this.fulfillGuestDonation({
+            email: guestEmail,
+            name: guestName,
+            projectId,
+            amount,
+            currency,
+            reference
+        });
+    } else {
+        return this.fulfillUserDirectDonation(data);
+    }
+  }
+
+  // --- Private Handler: Registered User ---
+  private async fulfillUserDirectDonation(data: {
+    userId: string;
+    projectId: string;
+    amount: bigint;
+    currency: Currency;
+    reference: string;
+  }) {
+    const { userId, projectId, amount, currency, reference } = data;
+
     return this.prisma.$transaction(async (tx) => {
-      let walletId: string;
+      // 1. Find User Wallet (Must exist for logged in user)
+      const wallet = await tx.wallet.findUniqueOrThrow({
+          where: { userId_currency: { userId, currency } }
+      });
 
-      if (userId && userId !== 'GUEST') {
-        const wallet = await tx.wallet.upsert({
-          where: { userId_currency: { userId, currency } },
-          update: {},
-          create: { userId, currency, balance: 0n },
-        });
-        walletId = wallet.id;
-      } else {
-        // Guest donations should ideally go to a different model/table in production
-        // Using system guest wallet is a temporary compromise
-        const SYSTEM_GUEST_EMAIL = 'system.guest-ledger@givar.com';
-
-        let systemUser = await tx.user.findUnique({
-          where: { email: SYSTEM_GUEST_EMAIL },
-          select: { id: true },
-        });
-
-        if (!systemUser) {
-          systemUser = await tx.user.create({
-            data: {
-              email: SYSTEM_GUEST_EMAIL,
-              firstName: 'System',
-              lastName: 'Guest Ledger',
-              passwordHash: 'SYSTEM_LOCKED',
-              role: 'SYSTEM',
-              emailVerified: true,
-            },
-            select: { id: true },
-          });
-        }
-
-        const wallet = await tx.wallet.upsert({
-          where: { userId_currency: { userId: systemUser.id, currency } },
-          update: {},
-          create: { userId: systemUser.id, currency, balance: 0n },
-        });
-        walletId = wallet.id;
-      }
-
-      // Credit leg (virtual - money never really lands here)
+      // 2. Virtual Ledger Credit (In)
       await tx.walletTransaction.create({
         data: {
-          walletId,
+          walletId: wallet.id,
           amount,
           currency,
           type: TxType.CREDIT,
           status: TxStatus.COMPLETED,
           reference: `${reference}-CREDIT`,
-          description: userId === 'GUEST'
-            ? `Direct guest donation credit (${guestEmail})`
-            : `Direct donation charge credit`,
+          description: `Direct Donation Charge`,
         },
       });
 
-      // Debit leg - this is the real movement
+      // 3. Ledger Debit (Out)
       const donationTx = await tx.walletTransaction.create({
         data: {
-          walletId,
+          walletId: wallet.id,
           amount,
           currency,
           type: TxType.DEBIT,
           status: TxStatus.COMPLETED,
-          reference,
+          reference, // Unique reference linkage
           description: `Direct donation to project ${projectId}`,
         },
       });
 
+      // 4. Create User Donation Record
       const donation = await tx.donation.create({
         data: {
-          userId: userId !== 'GUEST' ? userId : undefined,
-          guestEmail: userId === 'GUEST' ? (guestEmail ?? null) : null,
-          guestName: userId === 'GUEST' ? (guestName?.trim() ?? null) : null,
+          userId,
           projectId,
           transactionId: donationTx.id,
           amount,
@@ -310,33 +310,118 @@ export class DonationService {
         },
       });
 
+      // 5. Update Project Stats
       await tx.project.update({
         where: { id: projectId },
-        data: { raisedAmount: { increment: amount } },
+        data: {
+            raisedAmount: { increment: amount },
+        },
       });
 
-      await this.audit.log(
-        {
-          userId: userId !== 'GUEST' ? userId : undefined,
+      // 6. Audit
+      await this.audit.log({
+          userId,
           action: AuditAction.DIRECT_PAYMENT_FULFILLED,
           entityId: donation.id,
           entityType: 'Donation',
-          metadata: {
-            projectId,
-            amount: amount.toString(),
-            currency,
-            reference,
-            donorType: userId === 'GUEST' ? 'GUEST' : 'REGISTERED',
-            guestEmail: userId === 'GUEST' ? guestEmail : undefined,
-          },
-        },
-        tx,
-      );
+          metadata: { 
+              projectId, 
+              amount: amount.toString(), 
+              currency, 
+              reference,
+              method: 'DIRECT_WEBHOOK' 
+          }
+      }, tx);
 
-      this.logger.log(`Direct donation fulfilled: ${donation.id} (${userId === 'GUEST' ? 'guest' : 'user'})`);
-
-      return donation;
+      this.logger.log(`User direct donation fulfilled: ${donation.id}`);
+      
+      return {
+        type: 'user',
+        donationId: donation.id,
+        status: 'processed',
+        reference
+      };
+    }, {
+      timeout: 15000, // 15s timeout to prevent hanging locks
+      maxWait: 5000
     });
+  }
+
+  // --- Private Handler: Guest ---
+  private async fulfillGuestDonation(data: {
+      email: string;
+      name?: string;
+      projectId: string;
+      amount: bigint;
+      currency: Currency;
+      reference: string;
+  }) {
+      const { email, name, projectId, amount, currency, reference } = data;
+      const normalizedEmail = email.toLowerCase().trim();
+
+      return this.prisma.$transaction(async (tx) => {
+          // 1. Find or Create Guest Identity
+          const guestDonor = await tx.guestDonor.upsert({
+              where: { email: normalizedEmail },
+              update: {
+                  totalDonated: { increment: amount },
+                  donationCount: { increment: 1 },
+                  lastDonated: new Date(),
+              },
+              create: {
+                  email: normalizedEmail,
+                  name,
+                  totalDonated: amount,
+                  donationCount: 1,
+              }
+          });
+
+          // 2. Create Guest Ledger Record
+          const guestDonation = await tx.guestDonation.create({
+              data: {
+                  guestDonorId: guestDonor.id,
+                  projectId,
+                  amount,
+                  currency,
+                  reference, // Unique reference
+                  status: TxStatus.COMPLETED
+              }
+          });
+
+          // 3. Update Project Stats (Unified)
+          await tx.project.update({
+              where: { id: projectId },
+              data: {
+                  raisedAmount: { increment: amount },
+              }
+          });
+
+          // 4. Audit
+          await this.audit.log({
+              action: AuditAction.DIRECT_PAYMENT_FULFILLED,
+              entityId: guestDonation.id,
+              entityType: 'GuestDonation',
+              metadata: { 
+                  guestEmail: normalizedEmail, 
+                  amount: amount.toString(), 
+                  projectId,
+                  reference,
+                  method: 'GUEST_WEBHOOK'
+              }
+          }, tx);
+
+          this.logger.log(`Guest donation fulfilled: ${reference}`);
+          
+          return {
+            type: 'guest',
+            donationId: guestDonation.id,
+            status: 'processed',
+            reference
+          };
+      }, {
+        timeout: 15000, // 15s timeout
+        maxWait: 5000
+      });
   }
 
   // Create Recurring Donation

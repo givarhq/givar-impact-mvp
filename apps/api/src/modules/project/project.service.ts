@@ -108,11 +108,20 @@ export class ProjectService {
 
       if (!project) throw new NotFoundException('Project not found');
 
-      const uniqueDonors = await this.prisma.donation.groupBy({
+      // 1. Count Unique Registered Users
+      const userDonors = await this.prisma.donation.groupBy({
           by: ['userId'],
           where: { projectId: project.id },
       });
-      const donorCount = uniqueDonors.length;
+
+      // 2. Count Unique Guest Donors
+      const guestDonors = await this.prisma.guestDonation.groupBy({
+          by: ['guestDonorId'],
+          where: { projectId: project.id },
+      });
+
+      // Unified Count (Users + Guests)
+      const donorCount = userDonors.length + guestDonors.length;
 
       const raised = Number(project.raisedAmount);
       const target = Number(project.targetAmount);
