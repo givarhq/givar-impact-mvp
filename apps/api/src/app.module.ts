@@ -10,6 +10,7 @@ import { ProjectModule } from './modules/project/project.module';
 import { HealthModule } from './modules/health/health.module';
 import { GoalModule } from './modules/goals/goal.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { AuditModule } from './modules/audit/audit.module';
     ProjectModule,
     HealthModule,
     GoalModule,
-    AuditModule
+    AuditModule,
+    AdminModule,
   ],
   controllers: [],
   providers: [
