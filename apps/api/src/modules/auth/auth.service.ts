@@ -140,7 +140,17 @@ export class AuthService {
         req,
       });
 
-      return { accessToken, refreshToken };
+      return { 
+        accessToken, 
+        refreshToken,
+        user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role, // Critical for RBAC
+        }
+      };
 
     } catch (error) {
       // 4. Conditional Failure Logging
