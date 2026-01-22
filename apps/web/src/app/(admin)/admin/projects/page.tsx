@@ -14,6 +14,9 @@ export default async function AdminProjectsPage() {
 
   return (
     <div className="space-y-6">
+        <div className="flex items-center justify-between md:hidden">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Project Management</h1>
+      </div>
       
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">

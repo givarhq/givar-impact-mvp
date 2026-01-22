@@ -17,6 +17,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground md:hidden">Platform Overview</h1>
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <AdminStatCard title="Total Users" value={stats.users} icon={Users} color="text-blue-500" bg="bg-blue-500/10" />
