@@ -92,5 +92,20 @@ export const ApiService = {
       
     getActive: (token: string, interval: 'MONTHLY' | 'YEARLY' = 'MONTHLY') => 
       serverFetch<GivingGoal>(`/goals/active?interval=${interval}`, token),
+  },
+
+  // --- ADMIN ---
+  admin: {
+    getStats: (token: string) => 
+      serverFetch<{ users: number; projects: number; donations: number; volume: string }>('/admin/dashboard', token),
+      
+    getUsers: (token: string, page = 1) => 
+      serverFetch<any[]>(`/admin/users?page=${page}`, token),
+      
+    approveProject: (id: string) => 
+      apiClient.patch(`/admin/projects/${id}/approve`).then(r => r.data),
+      
+    suspendProject: (id: string) => 
+      apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
   }
 };
