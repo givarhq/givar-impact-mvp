@@ -4,12 +4,26 @@ import { AdminSidebar } from '../../components/layout/admin-sidebar';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const userCookie = cookieStore.get('givar_user')?.value;
+  const userCookie = cookieStore.get('givar_user');
+
+  // 1. Check existence
+  if (!userCookie || !userCookie.value) {
+    redirect('/login');
+  }
   
-  if (!userCookie) redirect('/login');
+  let user;
+  try {
+    // 2. Safe Parse
+    user = JSON.parse(userCookie.value);
+  } catch (error) {
+    // If JSON is invalid (e.g. "undefined" string), force re-login
+    redirect('/login');
+  }
   
-  const user = JSON.parse(userCookie);
-  if (user.role !== 'ADMIN') redirect('/dashboard'); // Strict RBAC Redirect
+  // 3. Strict RBAC Check
+  if (!user || user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white">
