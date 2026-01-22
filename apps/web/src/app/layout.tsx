@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: {
     template: '%s | Givar',
-    default: 'Givar - The Modern Way to Give',
+    default: 'Givar - Transparent Giving',
   },
   description: 'Simple, transparent, and impact-driven giving for everyone.',
   icons: {
