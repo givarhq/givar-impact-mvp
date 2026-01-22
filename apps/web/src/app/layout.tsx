@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { cn } from '../lib/utils/cn';
 import { ThemeProvider } from '../components/themeprovider';
 
-// SOTA Font Setup
+// Font Setup
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
@@ -25,12 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning> 
-      <body className={cn(inter.variable, 'font-sans bg-background min-h-screen antialiased')}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn(inter.className, 'bg-background min-h-screen antialiased')}>
         <ThemeProvider
             attribute="class"
-            defaultTheme="system"
-            enableSystem
+            defaultTheme="light"
+            enableSystem={false}
             disableTransitionOnChange
           >
             {children}
