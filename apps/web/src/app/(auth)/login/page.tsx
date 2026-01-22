@@ -44,7 +44,12 @@ export default function LoginPage() {
       setCookie('givar_user', JSON.stringify(user), { maxAge: 86400 });
 
       toast.success('Successfully logged in');
-      router.push('/dashboard');
+      
+      if (user.role === 'ADMIN') {
+          router.push('/admin');
+      } else {
+          router.push('/dashboard');
+      }
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
       setServerError(message);
