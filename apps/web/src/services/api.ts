@@ -4,7 +4,6 @@ import { GivingGoal, Project, Wallet } from '../types';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_V1 = `${BASE_URL}/v1`;
 
-// SOTA: Server-Side Fetch Helper (No caching by default for financial data)
 async function serverFetch<T>(endpoint: string, token: string, options: RequestInit = {}): Promise<T | null> {
   try {
     const res = await fetch(`${API_V1}${endpoint}`, {
@@ -13,11 +12,16 @@ async function serverFetch<T>(endpoint: string, token: string, options: RequestI
         'Content-Type': 'application/json',
         ...options.headers 
       },
-      cache: 'no-store', // SOTA: Financial data must be fresh
+      cache: 'no-store',
       ...options,
     });
     
     if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+            console.error(`Auth Error ${endpoint}: ${res.status} - Access Denied or Expired Token`);
+            return null; // Return null so the calling page can decide to redirect or show empty state
+        }
+
         // Optional: Log error details on server
         console.error(`API Error ${endpoint}: ${res.status}`);
         return null;
