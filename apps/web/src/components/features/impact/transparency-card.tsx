@@ -92,71 +92,74 @@ export function TransparencyCard({ project }: TransparencyCardProps) {
         </div>
 
         {/* Interactive Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-6 transition-all duration-300 ease-spring">
-            
-            {/* GOAL CARD */}
-            {expandedCard !== 'remaining' && (
-                <div 
-                    onClick={() => toggleExpand('goal')}
-                    className={cn(
-                        "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all active:scale-95 select-none",
-                        expandedCard === 'goal' ? "col-span-2 border-primary/50 bg-primary/5" : "col-span-1"
-                    )}
-                >
-                    <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                            <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-xs font-medium text-muted-foreground">Goal</span>
-                        </div>
-                        {expandedCard === 'goal' && <X className="h-3 w-3 text-muted-foreground" />}
-                    </div>
-                    <p className={cn("font-semibold text-sm", expandedCard !== 'goal' && "truncate")}>
-                        <SmartCurrency 
-                            amount={target.toString()} 
-                            currency={project.currency} 
-                            visible={true} 
-                            size="default" 
-                        />
-                    </p>
-                </div>
-            )}
+<div className="grid grid-cols-2 gap-4 mb-6 transition-all duration-300 ease-spring">
 
-            {/* REMAINING CARD */}
-            {expandedCard !== 'goal' && (
-                <div 
-                    onClick={() => toggleExpand('remaining')}
-                    className={cn(
-                        "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all active:scale-95 select-none",
-                        expandedCard === 'remaining' ? "col-span-2 border-amber-500/50 bg-amber-500/5" : "col-span-1"
-                    )}
-                >
-                    <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                            <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                            <span className="text-xs font-medium text-muted-foreground">Remaining</span>
-                        </div>
-                        {expandedCard === 'remaining' && <X className="h-3 w-3 text-muted-foreground" />}
-                    </div>
-                    <p className={cn("font-semibold text-sm text-amber-600 dark:text-amber-400", expandedCard !== 'remaining' && "truncate")}>
-                        <SmartCurrency 
-                            amount={remaining.toString()} 
-                            currency={project.currency} 
-                            visible={true} 
-                            size="default" 
-                        />
-                    </p>
-                </div>
+    {/* GOAL CARD */}
+    {expandedCard !== 'remaining' && (
+        <div
+            onMouseEnter={() => setExpandedCard('goal')}
+            onMouseLeave={() => setExpandedCard(null)}
+            className={cn(
+                "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all select-none",
+                expandedCard === 'goal' ? "col-span-2 border-primary/50 bg-primary/5" : "col-span-1"
             )}
-
-            {/* Donors */}
-            <div className="col-span-2 p-3 rounded-xl bg-background/50 border border-border/50 flex items-center justify-between">
+        >
+            <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                    <Users className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="text-xs font-medium text-muted-foreground">Unique Donors</span>
+                    <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">Goal</span>
                 </div>
-                <p className="font-semibold text-sm">{project.donorCount || 0}</p>
+                {expandedCard === 'goal' && <X className="h-3 w-3 text-muted-foreground" />}
             </div>
+            <p className={cn("font-semibold text-sm", expandedCard !== 'goal' && "truncate")}>
+                <SmartCurrency 
+                    amount={target.toString()} 
+                    currency={project.currency} 
+                    visible={true} 
+                    size="default" 
+                />
+            </p>
         </div>
+    )}
+
+    {/* REMAINING CARD */}
+    {expandedCard !== 'goal' && (
+        <div
+            onMouseEnter={() => setExpandedCard('remaining')}
+            onMouseLeave={() => setExpandedCard(null)}
+            className={cn(
+                "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all select-none",
+                expandedCard === 'remaining' ? "col-span-2 border-amber-500/50 bg-amber-500/5" : "col-span-1"
+            )}
+        >
+            <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                    <span className="text-xs font-medium text-muted-foreground">Remaining</span>
+                </div>
+                {expandedCard === 'remaining' && <X className="h-3 w-3 text-muted-foreground" />}
+            </div>
+            <p className={cn("font-semibold text-sm text-amber-600 dark:text-amber-400", expandedCard !== 'remaining' && "truncate")}>
+                <SmartCurrency 
+                    amount={remaining.toString()} 
+                    currency={project.currency} 
+                    visible={true} 
+                    size="default" 
+                />
+            </p>
+        </div>
+    )}
+
+    {/* Donors */}
+    <div className="col-span-2 p-3 rounded-xl bg-background/50 border border-border/50 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+            <Users className="h-3.5 w-3.5 text-blue-500" />
+            <span className="text-xs font-medium text-muted-foreground">Unique Donors</span>
+        </div>
+        <p className="font-semibold text-sm">{project.donorCount || 0}</p>
+    </div>
+</div>
+
 
         {/* Ledger Link */}
         <Link href={`/dashboard/history?search=${encodeURIComponent(project.title)}`}>

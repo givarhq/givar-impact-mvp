@@ -12,19 +12,31 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAction = async (action: 'approve' | 'suspend') => {
-    setIsLoading(true);
-    try {
-      if (action === 'approve') await ApiService.admin.approveProject(id);
-      else await ApiService.admin.suspendProject(id);
-      
-      toast.success(`Project ${action}d successfully`);
-      router.refresh();
-    } catch (e) {
-      toast.error('Action failed');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  try {
+    // Map action to corresponding API method
+    const actionMap = {
+      approve: () => ApiService.admin.approveProject(id),
+      suspend: () => ApiService.admin.suspendProject(id),
+    };
+
+    // Call the correct API method
+    await actionMap[action]();
+
+    // Map action to proper past tense for toast
+    const pastTenseMap = {
+      approve: 'approved',
+      suspend: 'suspended',
+    };
+
+    toast.success(`Project ${pastTenseMap[action]} successfully`);
+    router.refresh();
+  } catch (e) {
+    toast.error('Action failed');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   if (isLoading) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
 
