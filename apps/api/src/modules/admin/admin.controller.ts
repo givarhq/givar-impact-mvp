@@ -7,7 +7,7 @@ import { AdminService } from './admin.service';
 
 @Controller('admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles(UserRole.ADMIN) // Critical: Locks the entire controller
+@Roles(UserRole.ADMIN)
 export class AdminController {
   constructor(private service: AdminService) {}
 
@@ -19,6 +19,11 @@ export class AdminController {
   @Get('users')
   getUsers(@Query('page') page: number) {
     return this.service.getAllUsers(Number(page));
+  }
+
+  @Get('projects')
+  async getProjects(@Query() query: any) {
+    return this.service.getAllProjects(query);
   }
 
   @Patch('projects/:id/approve')

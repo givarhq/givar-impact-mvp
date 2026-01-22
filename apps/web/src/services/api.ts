@@ -101,6 +101,9 @@ export const ApiService = {
       
     getUsers: (token: string, page = 1) => 
       serverFetch<any[]>(`/admin/users?page=${page}`, token),
+
+    getProjects: (token: string, params: URLSearchParams) => 
+      serverFetch<{ data: Project[]; meta: any }>(`/projects?${params.toString()}`, token),
       
     approveProject: (id: string) => 
       apiClient.patch(`/admin/projects/${id}/approve`).then(r => r.data),

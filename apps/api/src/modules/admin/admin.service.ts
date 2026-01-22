@@ -6,7 +6,7 @@ import { ProjectStatus } from '@givar/database';
 export class AdminService {
   constructor(private prisma: PrismaService) {}
 
-  // 1. Dashboard Stats
+  // Dashboard Stats
   async getDashboardStats() {
     const [totalUsers, totalProjects, totalDonations, totalVolume] = await Promise.all([
       this.prisma.user.count(),
@@ -23,7 +23,17 @@ export class AdminService {
     };
   }
 
-  // 2. Project Moderation
+  async getAllProjects(query: any) {
+    const { page = 1, limit = 20 } = query;
+    return this.prisma.project.findMany({
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+      orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { donations: true } } }
+    });
+  }
+
+  // Project Moderation
   async approveProject(id: string) {
     return this.prisma.project.update({
       where: { id },
@@ -38,7 +48,7 @@ export class AdminService {
     });
   }
 
-  // 3. User Management
+  // User Management
   async getAllUsers(page = 1, limit = 20) {
     return this.prisma.user.findMany({
       skip: (page - 1) * limit,
