@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect, Suspense } from 'react';
-import { Search, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, X, Filter } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
@@ -44,21 +44,24 @@ export function AuditFilters() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col md:flex-row gap-4 p-1">
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
             placeholder="Search IP, Entity ID, or Email..." 
-            className="pl-9 bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 rounded-xl"
+            className="pl-9 h-11 bg-card border-border text-foreground placeholder:text-muted-foreground rounded-xl shadow-sm focus-visible:ring-primary/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
         />
       </div>
       <Select value={action} onValueChange={setAction}>
-        <SelectTrigger className="w-[200px] bg-zinc-900 border-zinc-800 text-zinc-300 rounded-xl">
-            <SelectValue placeholder="Action Type" />
+        <SelectTrigger className="w-full md:w-[240px] h-11 bg-card border-border text-foreground rounded-xl shadow-sm">
+            <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <SelectValue placeholder="Action Type" />
+            </div>
         </SelectTrigger>
-        <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-300 rounded-xl">
+        <SelectContent className="bg-card border-border text-foreground rounded-xl shadow-xl">
             <SelectItem value="all">All Actions</SelectItem>
             <SelectItem value="USER_LOGIN">Logins</SelectItem>
             <SelectItem value="USER_LOGIN_FAILED">Failed Logins</SelectItem>
@@ -69,7 +72,7 @@ export function AuditFilters() {
         </SelectContent>
       </Select>
       {(search || action !== 'all') && (
-          <Button variant="ghost" onClick={clearFilters} className="text-zinc-400 hover:text-white">
+          <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground hover:text-foreground h-11 px-4">
               <X className="h-4 w-4 mr-2" /> Clear
           </Button>
       )}

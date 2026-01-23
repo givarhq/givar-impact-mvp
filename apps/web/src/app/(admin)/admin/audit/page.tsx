@@ -4,6 +4,7 @@ import { AuditTable } from '../../../../components/features/admin/audit-table';
 import { AuditSummary } from '../../../../components/features/admin/audit-summary';
 import { AuditFilters } from '../../../../components/features/admin/audit-filters';
 import { Pagination } from '../../../../components/features/history/pagination';
+import { ShieldCheck } from 'lucide-react';
 
 export default async function AdminAuditPage({
   searchParams,
@@ -35,7 +36,7 @@ export default async function AdminAuditPage({
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between md:hidden">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Audit Log</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Audit Log</h1>
       </div>
 
       {/* 1. Summary Cards */}
@@ -46,9 +47,7 @@ export default async function AdminAuditPage({
 
       {/* 3. Data Table */}
       <div className="space-y-4">
-        <div className="bg-blue-500/5 border border-blue-500/10 p-4 rounded-xl text-sm text-blue-400">
-            <strong>Forensic Trail:</strong> Immutable log of all system activity. Search by IP or Reference ID to trace events.
-        </div>
+        
         
         <AuditTable logs={logs} />
         
