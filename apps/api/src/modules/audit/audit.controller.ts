@@ -5,7 +5,7 @@ import { AuditService } from './audit.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
-@Controller('audit')
+@Controller('admin/audit') 
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
