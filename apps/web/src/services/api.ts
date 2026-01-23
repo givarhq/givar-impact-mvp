@@ -68,6 +68,13 @@ export const ApiService = {
       }),
   },
 
+  // --- PROPOSALS ---
+  proposals: {
+    create: (data: { title: string; categoryId: string }) => 
+      apiClient.post('/proposals', data).then(r => r.data),
+      
+  },
+
   // --- PROJECTS ---
   projects: {
     list: (token: string, params: URLSearchParams) =>
@@ -84,6 +91,11 @@ export const ApiService = {
           donorCount: number;
         }
       >(`/projects/${slug}`, token),
+
+      getCategories: (token?: string) =>
+      token
+        ? serverFetch<any[]>('/projects/categories/list', token)
+        : apiClient.get('/projects/categories/list').then(r => r.data),
   },
 
   // --- DONATIONS ---

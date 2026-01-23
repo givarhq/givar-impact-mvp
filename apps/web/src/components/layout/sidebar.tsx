@@ -75,24 +75,25 @@ export function Sidebar() {
 
         {/* Start a Cause */}
         <div className="p-3 mt-auto shrink-0">
-          <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10 p-4 transition-all hover:shadow-lg hover:shadow-primary/5">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
-                <Rocket className="h-3 w-3" />
-              </div>
-              <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                Start a Cause
-              </span>
+          <Link href="/dashboard/proposals/start" className="block group">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10 p-4 transition-all hover:shadow-lg hover:shadow-primary/5">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
+                            <Rocket className="h-3 w-3" />
+                        </div>
+                        <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                            Start a Cause
+                        </span>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+                </div>
+
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                Raise funds for your community with transparent tracking.
+                </p>
             </div>
-
-            <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">
-              Raise funds for your community with transparent tracking.
-            </p>
-
-            <button className="flex items-center text-[10px] font-bold uppercase tracking-wider text-primary hover:text-primary/80 transition-colors bg-background/50 px-2 py-1 rounded-md w-full justify-center shadow-sm">
-              Launch Now <ArrowRight className="ml-1 h-3 w-3" />
-            </button>
-          </div>
+          </Link>
         </div>
       </div>
     </div>
