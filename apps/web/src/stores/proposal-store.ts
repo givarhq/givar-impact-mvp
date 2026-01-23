@@ -2,27 +2,54 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { ApiService } from '../services/api';
 import toast from 'react-hot-toast';
+import { Currency } from '../types';
 
-// Define the shape of your proposal form data
+// Define types for structured JSON fields for type safety
+export interface BudgetItem {
+  id: string;
+  item: string;
+  cost: number;
+  vendor: string;
+  type: 'SERVICE' | 'GOODS' | 'LOGISTICS' | 'OTHER';
+}
+
+export interface TimelineItem {
+  id: string;
+  phase: string;
+  estimatedDate: string;
+  deliverables: string;
+}
+
 interface ProposalState {
   id: string | null;
   title: string;
-  categoryId: string;
-  description: string;
-  // ... add all other fields from ProjectProposal schema
-  
+  shortDesc: string | null;
+  description: string | null;
+  categoryId: string | null;
+  location: string | null;
+  targetAmount: number | null;
+  currency: Currency;
+
   coverImage: string | null;
   gallery: string[];
-  kycDocuments: string[];
-
-  // Store Actions
-  setProposal: (proposal: any) => void;
-  updateField: <K extends keyof ProposalState>(field: K, value: ProposalState[K]) => void;
+  videoUrl: string | null;
   
-  // SOTA: Auto-saving with debouncing
+  budgetBreakdown: BudgetItem[];
+  executionTimeline: TimelineItem[];
+  riskAnalysis: string | null;
+
+  kycDocuments: string[];
+  organizationName: string | null;
+  contactPhone: string | null;
+
+  setProposal: (proposal: any) => void;
+  updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryImage' | 'removeGalleryImage' | 'addKycDocument' | 'removeKycDocument'>>(
+    field: K, 
+    value: ProposalState[K]
+  ) => void;
+  
   saveDraft: () => Promise<void>;
   
-  // Media Actions
   addGalleryImage: (url: string) => void;
   removeGalleryImage: (url: string) => void;
   addKycDocument: (key: string) => void;
@@ -36,36 +63,65 @@ export const useProposalStore = create<ProposalState>()(
     // Initial State
     id: null,
     title: '',
-    categoryId: '',
-    description: '',
+    shortDesc: null,
+    description: null,
+    categoryId: null,
+    location: null,
+    targetAmount: null,
+    currency: Currency.NGN,
+
     coverImage: null,
     gallery: [],
-    kycDocuments: [],
+    videoUrl: null,
 
-    setProposal: (proposal) => set(proposal),
+    budgetBreakdown: [],
+    executionTimeline: [],
+    riskAnalysis: null,
+
+    kycDocuments: [],
+    organizationName: null,
+    contactPhone: null,
+
+    setProposal: (proposal) => set(state => {
+        // Safely parse JSON fields from DB
+        const budget = proposal.budgetBreakdown && typeof proposal.budgetBreakdown === 'object' ? proposal.budgetBreakdown : [];
+        const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object' ? proposal.executionTimeline : [];
+        
+        return { 
+            ...state, 
+            ...proposal,
+            targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
+            budgetBreakdown: budget,
+            executionTimeline: timeline,
+        };
+    }),
 
     updateField: (field, value) => {
         set({ [field]: value });
-        get().saveDraft(); // Trigger auto-save on any field change
+        get().saveDraft();
     },
     
     saveDraft: async () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
         const state = get();
-        if (!state.id) return; // Can't save if no draft ID exists
+        if (!state.id) return;
 
-        // Construct the DTO for the API call
+        // Construct DTO
         const { id, saveDraft, setProposal, updateField, ...dto } = state;
+        const payload = { ...dto };
+
+        // Convert targetAmount to minor units for backend
+        if (payload.targetAmount) {
+            (payload as any).targetAmount = payload.targetAmount * 100;
+        }
         
         try {
-          await ApiService.proposals.update(state.id, dto);
-          // Optional: Show a subtle "saved" toast
-          // toast.success('Draft saved');
+          await ApiService.proposals.update(state.id, payload);
         } catch (error) {
           toast.error('Failed to save draft.');
         }
-      }, 1500); // 1.5 second debounce
+      }, 1500);
     },
 
     addGalleryImage: (url) => set(state => ({ gallery: [...state.gallery, url] })),
