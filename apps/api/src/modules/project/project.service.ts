@@ -174,6 +174,12 @@ export class ProjectService {
     };
   }
 
+  async getAllCategories() {
+    return this.prisma.category.findMany({
+      orderBy: { name: 'asc' },
+    });
+  }
+
   private generateSlug(title: string) {
     return title
       .toLowerCase()

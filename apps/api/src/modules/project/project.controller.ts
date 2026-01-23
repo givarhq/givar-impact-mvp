@@ -52,4 +52,10 @@ export class ProjectController {
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
+
+  @Public()
+  @Get('categories/list')
+  getCategories() {
+    return this.service.getAllCategories();
+  }
 }
