@@ -100,6 +100,15 @@ enum AuditAction {
   WEBHOOK_RECEIVED
 }
 
+enum ProposalStatus {
+  DRAFT             // User is still writing
+  SUBMITTED         // Locked, waiting for admin
+  UNDER_REVIEW      // Admin is actively investigating
+  CHANGES_REQUESTED // Sent back to user for edits
+  APPROVED          // Promoted to live Project
+  REJECTED          // Final decision, dead end
+}
+
 // ---------------------------
 // USER & AUTH
 // ---------------------------
@@ -128,6 +137,7 @@ model User {
   subscriptions Subscription[]
   givingGoals   GivingGoal[]
   auditLogs     AuditLog[]
+  projectProposals ProjectProposal[]
 
   @@map("users")
 }
@@ -253,6 +263,7 @@ model Category {
   icon        String?   // Lucide icon name or emoji
   
   projects    Project[]
+  proposals ProjectProposal[]
 
   @@map("categories")
 }
@@ -386,4 +397,57 @@ model AuditLog {
   @@index([action])
   @@index([entityId])
   @@map("audit_logs")
+}
+
+model ProjectProposal {
+  id            String          @id @default(uuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id])
+
+  // --- 1. The Hook  ---
+  title         String?
+  shortDesc     String?
+  description   String?         @db.Text
+  categoryId    String?
+  category      Category?       @relation(fields: [categoryId], references: [id])
+  location      String?
+  
+  targetAmount  BigInt?         
+  currency      Currency        @default(NGN)
+
+  // --- 2. The Evidence  ---
+  coverImage    String?
+  gallery       String[]
+  videoUrl      String?
+
+  // --- 3. The Execution Plan ---
+  // JSON Structure: 
+  // [
+  //   { item: "Borehole Drilling", cost: 800000, vendor: "ABC Drilling Ltd", vendorContact: "080...", type: "SERVICE" },
+  //   { item: "Water Tank (2000L)", cost: 150000, vendor: "Jumia/Market", type: "GOODS" }
+  // ]
+  budgetBreakdown Json?
+  
+  executionTimeline Json?
+  riskAnalysis      String?      @db.Text
+
+  // --- 4. The Trust (Identity Only) ---
+  // KYC: to verify the Proposer is real and distinct from the Vendors to prevent kickback fraud.
+  kycDocuments      String[]     
+  organizationName  String?
+  contactPhone      String?
+
+  // --- 5. State Machine ---
+  status        ProposalStatus  @default(DRAFT)
+  adminFeedback String?         @db.Text 
+  reviewedBy    String?         
+  submittedAt   DateTime?
+  approvedAt    DateTime?
+  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("project_proposals")
 }
