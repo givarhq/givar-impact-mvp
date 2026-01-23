@@ -11,6 +11,8 @@ import { HealthModule } from './modules/health/health.module';
 import { GoalModule } from './modules/goals/goal.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ProposalModule } from './modules/proposal/proposal.module';
+import { StorageModule } from './modules/storage/storage.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { AdminModule } from './modules/admin/admin.module';
     GoalModule,
     AuditModule,
     AdminModule,
+    StorageModule,
+    ProposalModule,
   ],
   controllers: [],
   providers: [
