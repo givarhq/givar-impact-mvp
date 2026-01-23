@@ -1,16 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react'; // Added React import
 import { 
   ShieldAlert, LogIn, CreditCard, Activity, 
   ChevronDown, ChevronRight, FileJson, User 
 } from 'lucide-react';
 import { formatDate } from '../../../lib/utils/format';
 import { Badge } from '../../ui/badge';
-import { Button } from '../../ui/button';
 import { cn } from '../../../lib/utils/cn';
 
-// Helper to map actions to visuals
 const getActionStyle = (action: string) => {
   if (action.includes('LOGIN')) return { icon: LogIn, color: 'text-blue-500', bg: 'bg-blue-500/10' };
   if (action.includes('WALLET') || action.includes('PAYMENT')) return { icon: CreditCard, color: 'text-emerald-500', bg: 'bg-emerald-500/10' };
@@ -53,9 +51,8 @@ export function AuditTable({ logs }: { logs: any[] }) {
             const isExpanded = expandedId === log.id;
 
             return (
-              <>
+              <React.Fragment key={log.id}>
                 <tr 
-                    key={log.id} 
                     onClick={() => toggleExpand(log.id)}
                     className={cn(
                         "cursor-pointer transition-colors group",
@@ -94,7 +91,6 @@ export function AuditTable({ logs }: { logs: any[] }) {
                   </td>
                 </tr>
                 
-                {/* Expanded Details Row */}
                 {isExpanded && (
                     <tr className="bg-muted/10">
                         <td colSpan={5} className="px-6 py-4 shadow-inner">
@@ -125,7 +121,7 @@ export function AuditTable({ logs }: { logs: any[] }) {
                         </td>
                     </tr>
                 )}
-              </>
+              </React.Fragment>
             );
           })}
         </tbody>
