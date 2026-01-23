@@ -155,5 +155,8 @@ export const ApiService = {
 
     suspendProject: (id: string) =>
       apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
+
+    getAuditLogs: (token: string, params: URLSearchParams) => 
+      serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token),
   },
 };
