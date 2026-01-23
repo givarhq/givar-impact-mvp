@@ -162,5 +162,8 @@ export const ApiService = {
 
     getAuditLogs: (token: string, params: URLSearchParams) => 
       serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token),
+      
+    getAuditSummary: (token: string) =>
+      serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token),
   },
 };
