@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DonationService } from './donation.service';
 import { CreateDonationDto, InitiateDirectDonationDto } from './dto/donation.dto';
-import { CreateSubscriptionDto } from './dto/subscription.dto';
+import { CreateSubscriptionDto, UpdateSubscriptionStatusDto } from './dto/subscription.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt.guard';
 
@@ -45,5 +45,15 @@ export class DonationController {
   @Get('subscriptions')
   getMySubscriptions(@Req() req: any) {
     return this.service.getMySubscriptions(req.user.id);
+  }
+  // 6. Update Subscription Status (Strict Auth)
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('subscriptions/:id')
+  updateSubscription(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: UpdateSubscriptionStatusDto,
+  ) {
+    return this.service.updateSubscriptionStatus(req.user.id, id, dto);
   }
 }

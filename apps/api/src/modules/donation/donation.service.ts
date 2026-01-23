@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { Currency, TxStatus, TxType, AuditAction } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
@@ -12,7 +14,7 @@ import {
   InitiateDirectDonationDto,
 } from './dto/donation.dto';
 import * as crypto from 'crypto';
-import { CreateSubscriptionDto } from './dto/subscription.dto';
+import { CreateSubscriptionDto, UpdateSubscriptionStatusDto } from './dto/subscription.dto';
 import { add } from 'date-fns';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
@@ -506,5 +508,49 @@ export class DonationService {
         },
       },
     });
+  }
+
+  async updateSubscriptionStatus(userId: string, subscriptionId: string, dto: UpdateSubscriptionStatusDto) {
+    // 1. Ownership Check (Critical Security)
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
+    }
+
+    if (subscription.userId !== userId) {
+      // Log security event
+      await this.audit.log({
+          action: AuditAction.USER_LOGIN_FAILED,
+          userId,
+          metadata: { reason: 'IDOR Attempt on Subscription', targetId: subscriptionId }
+      });
+      throw new ForbiddenException('You do not own this subscription');
+    }
+
+    // 2. Update Status
+    const updated = await this.prisma.subscription.update({
+      where: { id: subscriptionId },
+      data: { status: dto.status },
+      include: { project: { select: { title: true } } }
+    });
+
+    // 3. Audit Log
+    await this.audit.log({
+      userId,
+      action: AuditAction.SUBSCRIPTION_UPDATED,
+      entityId: subscriptionId,
+      entityType: 'Subscription',
+      metadata: { 
+        previousStatus: subscription.status,
+        newStatus: dto.status,
+        project: updated.project.title
+      }
+    });
+
+    this.logger.log(`Subscription ${subscriptionId} status changed to ${dto.status} by user ${userId}`);
+    return updated;
   }
 }

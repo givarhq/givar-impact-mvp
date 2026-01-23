@@ -115,6 +115,9 @@ export const ApiService = {
 
     getSubscriptions: (token: string) =>
       serverFetch<any[]>('/donations/subscriptions', token),
+    
+    updateSubscription: (id: string, status: 'ACTIVE' | 'PAUSED' | 'CANCELLED') =>
+      apiClient.patch(`/donations/subscriptions/${id}`, { status }).then(r => r.data),
   },
 
   // --- GOALS ---

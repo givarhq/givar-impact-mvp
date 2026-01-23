@@ -1,5 +1,5 @@
 import { IsEnum, IsNumberString, IsUUID } from 'class-validator';
-import { Currency, SubscriptionInterval } from '@givar/database';
+import { Currency, SubscriptionInterval, SubscriptionStatus } from '@givar/database';
 
 export class CreateSubscriptionDto {
   @IsUUID()
@@ -13,4 +13,11 @@ export class CreateSubscriptionDto {
 
   @IsEnum(SubscriptionInterval)
   interval: SubscriptionInterval;
+}
+
+export class UpdateSubscriptionStatusDto {
+  @IsEnum(SubscriptionStatus, { 
+    message: 'Status must be ACTIVE, PAUSED, or CANCELLED' 
+  })
+  status!: SubscriptionStatus;
 }
