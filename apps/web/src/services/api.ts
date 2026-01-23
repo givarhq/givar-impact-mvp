@@ -10,20 +10,24 @@ async function serverFetch<T>(
   token: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_V1}${endpoint}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
     cache: 'no-store',
     ...options,
   });
 
-  // AUTH FAILURE → HARD REDIRECT
   if (res.status === 401 || res.status === 403) {
-    console.error(`Auth Error ${endpoint}: ${res.status}`);
-    redirect('/login');
+    console.error(`Auth Error ${endpoint}: ${res.status} - Clearing Session`);
+    redirect('/api/auth/clear-session');
   }
 
   if (!res.ok) {
