@@ -73,6 +73,27 @@ export const ApiService = {
     create: (data: { title: string; categoryId: string }) => 
       apiClient.post('/proposals', data).then(r => r.data),
       
+    // 2. Get a specific proposal for editing
+    get: (id: string, token?: string) =>
+      token
+        ? serverFetch<any>(`/proposals/${id}`, token)
+        : apiClient.get(`/proposals/${id}`).then(r => r.data),
+
+    // 3. Update (Auto-save) a draft
+    update: (id: string, data: any) =>
+      apiClient.patch(`/proposals/${id}`, data).then(r => r.data),
+      
+    // 4. Submit a draft for review
+    submit: (id: string) =>
+      apiClient.patch(`/proposals/${id}/submit`).then(r => r.data),
+      
+    // 5. Get all proposals for the logged-in user
+    getMyProposals: (token: string) =>
+      serverFetch<any[]>(`/proposals`, token),
+
+    // 6. Get a presigned URL for file uploads
+    getUploadUrl: (data: { fileType: string; useCase: 'public' | 'kyc' | 'docs' }) =>
+      apiClient.post('/proposals/upload-url', data).then(r => r.data),
   },
 
   // --- PROJECTS ---

@@ -8,6 +8,7 @@ import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
 import { ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
 import { ImageUploader } from '../../../../../../../../components/features/proposals/media-uploader';
+import toast from 'react-hot-toast';
 
 export default function MediaPage() {
   const router = useRouter();

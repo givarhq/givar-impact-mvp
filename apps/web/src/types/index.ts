@@ -1,3 +1,9 @@
+export enum Currency {
+  NGN = 'NGN',
+  USD = 'USD',
+  GBP = 'GBP',
+}
+
 export type TxType = 'DEBIT' | 'CREDIT';
 export type TxStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
 export interface Project {
