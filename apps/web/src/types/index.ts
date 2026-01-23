@@ -39,6 +39,7 @@ export interface Subscription {
   nextChargeDate: string;
   project: {
     title: string;
+    slug: string;
     imageUrl?: string;
   };
 }
