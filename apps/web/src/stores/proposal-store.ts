@@ -41,6 +41,7 @@ interface ProposalState {
   kycDocuments: string[];
   organizationName: string | null;
   contactPhone: string | null;
+  beneficiaryContact: string | null;
 
   setProposal: (proposal: any) => void;
   updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryImage' | 'removeGalleryImage' | 'addKycDocument' | 'removeKycDocument'>>(
@@ -81,6 +82,7 @@ export const useProposalStore = create<ProposalState>()(
     kycDocuments: [],
     organizationName: null,
     contactPhone: null,
+    beneficiaryContact: null,
 
     setProposal: (proposal) => set(state => {
         // Safely parse JSON fields from DB
