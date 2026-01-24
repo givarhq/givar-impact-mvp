@@ -6,6 +6,7 @@ import { useProposalStore } from '../../../../../../../../stores/proposal-store'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { Input } from '../../../../../../../../components/ui/input';
+import { Textarea } from '../../../../../../../../components/ui/textarea'; // Imported Textarea
 import { ApiService } from '../../../../../../../../services/api';
 import { ArrowRight } from 'lucide-react';
 
@@ -48,26 +49,21 @@ export default function HookPage() {
             onChange={(e) => updateField('title', e.target.value)}
         />
 
-        <div className="space-y-2">
-            <label className="text-sm font-medium">Short Summary (140 chars)</label>
-            <textarea 
-                className="flex w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary min-h-[80px]"
-                placeholder="A punchy tagline for card views..."
-                value={shortDesc || ''}
-                onChange={(e) => updateField('shortDesc', e.target.value)}
-                maxLength={140}
-            />
-        </div>
+        <Textarea 
+            label="Short Summary (140 chars)"
+            placeholder="A punchy tagline for card views..."
+            value={shortDesc || ''}
+            onChange={(e) => updateField('shortDesc', e.target.value)}
+            maxLength={140}
+        />
 
-        <div className="space-y-2">
-            <label className="text-sm font-medium">Full Description</label>
-            <textarea 
-                className="flex w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary min-h-[200px]"
-                placeholder="Tell the full story. Who are the beneficiaries? What is the problem? What is the solution?"
-                value={description || ''}
-                onChange={(e) => updateField('description', e.target.value)}
-            />
-        </div>
+        <Textarea 
+            label="Full Description"
+            className="min-h-[200px]"
+            placeholder="Tell the full story. Who are the beneficiaries? What is the problem? What is the solution?"
+            value={description || ''}
+            onChange={(e) => updateField('description', e.target.value)}
+        />
 
         <Input 
             label="Location"
