@@ -52,8 +52,8 @@ export default function StartProposalPage() {
       const newProposal = await ApiService.proposals.create(data);
       toast.success('Draft created! Lets add the details.');
 
-      // Redirect to the edit flow for the next step (media)
-      router.push(`/dashboard/proposals/edit/${newProposal.id}/media`);
+      // Redirect to the edit flow for the next step (hook)
+      router.push(`/dashboard/proposals/edit/${newProposal.id}/hook`);
     } catch (error) {
       toast.error('Failed to create draft.');
       setIsLoading(false);

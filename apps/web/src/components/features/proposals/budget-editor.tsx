@@ -6,6 +6,7 @@ import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
+import { useEffect } from 'react';
 
 export function BudgetEditor() {
   const { budgetBreakdown, updateField } = useProposalStore();
@@ -31,6 +32,12 @@ export function BudgetEditor() {
   const removeItem = (id: string) => {
     updateField('budgetBreakdown', budgetBreakdown.filter(item => item.id !== id));
   };
+
+  useEffect(() => {
+    const total = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
+    // We update the store's targetAmount whenever budget changes
+    updateField('targetAmount', total);
+  }, [budgetBreakdown, updateField]);
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
 

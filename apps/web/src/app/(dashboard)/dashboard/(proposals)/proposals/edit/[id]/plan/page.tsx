@@ -52,6 +52,17 @@ export default function PlanPage() {
             <TimelineEditor />
         </div>
 
+        <div className="space-y-4">
+            <h3 className="font-semibold">Risk Analysis</h3>
+            <p className="text-sm text-muted-foreground">What could go wrong? How will you mitigate it?</p>
+            <textarea 
+                className="flex w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary min-h-[120px]"
+                placeholder="e.g., Weather delays, price inflation..."
+                value={useProposalStore().riskAnalysis || ''}
+                onChange={(e) => useProposalStore().updateField('riskAnalysis', e.target.value)}
+            />
+        </div>
+
         {/* Navigation */}
         <div className="flex justify-between items-center pt-8 border-t">
             <Button variant="outline" className="rounded-xl" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}>

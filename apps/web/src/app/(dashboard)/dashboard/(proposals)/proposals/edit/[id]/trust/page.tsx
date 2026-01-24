@@ -69,11 +69,22 @@ export default function TrustPage() {
                 onChange={(e) => updateField('organizationName', e.target.value)}
             />
             <Input 
-                label="Contact Phone"
+                label="Your Contact Phone"
                 placeholder="e.g., +234 800 000 0000"
                 value={contactPhone || ''}
                 onChange={(e) => updateField('contactPhone', e.target.value)}
             />
+            <div className="md:col-span-2">
+                 <Input 
+                    label="Beneficiary Contact (Verification)"
+                    placeholder="Name and Phone of a community leader or recipient"
+                    value={useProposalStore().beneficiaryContact || ''}
+                    onChange={(e) => updateField('beneficiaryContact', e.target.value)}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">
+                    Givar admins may call this number to verify the legitimacy of the need.
+                </p>
+            </div>
         </div>
 
         {/* KYC Documents */}

@@ -5,7 +5,7 @@ import { FileText, Image as ImageIcon, Briefcase, Shield } from 'lucide-react';
 import { cn } from '../../../../lib/utils/cn';
 
 const steps = [
-  { href: '/start', name: 'The Hook', icon: FileText, desc: 'Title & Summary' },
+  { href: '/hook', name: 'The Hook', icon: FileText, desc: 'Story & Location' },
   { href: '/media', name: 'The Evidence', icon: ImageIcon, desc: 'Images & Video' },
   { href: '/plan', name: 'The Plan', icon: Briefcase, desc: 'Budget & Timeline' },
   { href: '/trust', name: 'The Trust', icon: Shield, desc: 'KYC & Contacts' },
@@ -13,7 +13,6 @@ const steps = [
 
 export default function ProposalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  // Example: /dashboard/proposals/edit/123/media -> /media
   const currentStepPath = `/${pathname.split('/').pop()}`;
 
   const currentStepIndex = steps.findIndex(step => step.href === currentStepPath);
