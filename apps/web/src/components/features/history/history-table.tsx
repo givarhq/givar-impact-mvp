@@ -218,7 +218,6 @@ export function HistoryTable({
                             <DialogTitle className="text-lg md:text-xl font-extrabold tracking-tight leading-none">Transaction Detail</DialogTitle>
                         </DialogHeader>
 
-                        {/* SOTA: Compressed Amount Card */}
                         <div className="text-center p-4 md:p-6 rounded-[24px] bg-muted/30 border border-border/50 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-5">
                                 <FileText className="h-10 w-10 md:h-12 md:w-12" />
@@ -284,12 +283,10 @@ export function HistoryTable({
                             </div>
                         </div>
 
-                        {/* SOTA: Purpose & Reference Unified Card */}
                         <div className="space-y-2 min-w-0">
                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1">Purpose & Reference</span>
                              <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm space-y-3 min-w-0">
                                 {selectedTx.project ? (
-                                    /* SOTA FIX: The entire text area is now a clickable Link */
                                     <Link 
                                         href={`/dashboard/impact/${selectedTx.project.slug}`} 
                                         className="block group/link min-w-0"
@@ -297,10 +294,7 @@ export function HistoryTable({
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="min-w-0 flex-1">
                                                 <p className="font-bold text-sm text-foreground leading-tight line-clamp-2 group-hover/link:text-primary transition-colors">
-                                                    {selectedTx.description}
-                                                </p>
-                                                <p className="text-[11px] text-muted-foreground truncate mt-0.5 group-hover/link:opacity-80">
-                                                    Cause: {selectedTx.project.title}
+                                                    {selectedTx.project.title}
                                                 </p>
                                             </div>
                                             <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover/link:text-primary group-hover/link:bg-primary/10 transition-all border border-border/50 shrink-0">
@@ -316,7 +310,6 @@ export function HistoryTable({
                                     </div>
                                 )}
                                 
-                                {/* SOTA: Merged Reference ID into this card */}
                                 <div className="pt-3 border-t border-border/50 flex justify-between items-center gap-4">
                                     <div className="min-w-0 flex-1">
                                         <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">Ref ID</span>
@@ -333,7 +326,6 @@ export function HistoryTable({
                              </div>
                         </div>
 
-                        {/* SOTA: Compressed Info Grid */}
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 md:p-4 rounded-2xl bg-card border border-border/50 shadow-sm min-w-0">
                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Status</span>
