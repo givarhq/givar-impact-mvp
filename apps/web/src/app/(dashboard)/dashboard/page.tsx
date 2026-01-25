@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       
-      <div className="md:hidden flex flex-col gap-1 mb-2">
+      <div className="flex flex-col gap-1 -mt-4 -mb-2">
         <p className="text-sm text-muted-foreground">
           Welcome back, {user?.firstName || 'Giver'}.
         </p>
