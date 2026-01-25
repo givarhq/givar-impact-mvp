@@ -24,8 +24,15 @@ export default function MediaPage() {
 
   useEffect(() => {
     ApiService.proposals.get(proposalId)
-      .then(data => {
+      .then(async (data) => {
         setProposal(data);
+        
+        if (data.coverImage && !coverImage) {
+            try {
+                const { viewUrl } = await ApiService.proposals.getPreviewUrl(data.coverImage, proposalId);
+                updateField('coverImage', viewUrl);
+            } catch (e) { console.error("Cover preview failed"); }
+        }
         setIsLoading(false);
       })
       .catch(() => {
@@ -33,6 +40,18 @@ export default function MediaPage() {
         router.push('/dashboard');
       });
   }, [proposalId, setProposal, router]);
+
+  const handleCoverUpload = (data: { key: string; previewUrl: string }) => {
+    // Set the temporary preview URL for display
+    updateField('coverImage', data.previewUrl);
+    // Set the permanent S3 key to be saved to the database
+    updateField('coverImageKey', data.key);
+  };
+
+  const handleRemoveCover = () => {
+      updateField('coverImage', null);
+      updateField('coverImageKey', null);
+  };
 
   if (isLoading) return <div>Loading Draft...</div>;
 
@@ -51,9 +70,10 @@ export default function MediaPage() {
           <label className="text-sm font-medium">Cover Image (Required)</label>
           {coverImage ? (
             <div className="relative w-full aspect-video rounded-xl overflow-hidden group border border-border">
+              {/* `coverImage` from the store is the temporary `previewUrl` */}
               <img src={coverImage} alt="Cover" className="object-cover w-full h-full" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="destructive" onClick={() => updateField('coverImage', null)}>
+                  <Button variant="destructive" onClick={handleRemoveCover}>
                     <Trash2 className="mr-2 h-4 w-4" /> Remove Cover
                   </Button>
               </div>
@@ -61,13 +81,13 @@ export default function MediaPage() {
           ) : (
             <ImageUploader 
                 useCase="public" 
-                onUploadComplete={(url) => updateField('coverImage', url)} 
+                onUploadComplete={handleCoverUpload} 
                 label="Click to Upload Cover Image (Landscape)" 
             />
           )}
         </div>
         
-        {/* Section 2: Detailed Media Gallery (SOTA Manager) */}
+        {/* Section 2: Detailed Media Gallery */}
         <div className="space-y-3">
             <div className="flex justify-between items-baseline">
                 <label className="text-sm font-medium">Project Gallery</label>
