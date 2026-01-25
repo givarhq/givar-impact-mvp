@@ -7,21 +7,17 @@ import { MobileNav } from './mobile-nav';
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300">
       
-      {/* 
-        SOTA Grid Layout FIX: 
-        Added min-w-0 to the content column to allow children to shrink/truncate.
-      */}
       <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
         
-        {/* Desktop Sidebar */}
-        <div className="hidden md:block relative">
+        {/* Desktop Sidebar Column - FIXED/STICKY POSITIONING */}
+        <div className="hidden md:block sticky top-0 h-screen overflow-hidden">
            <Sidebar />
         </div>
         
-        {/* Main Content Column - min-w-0 is CRITICAL here */}
-        <div className="flex flex-col min-w-0 relative">
+        {/* Main Content Column */}
+        <div className="flex flex-col min-w-0">
           <Header />
           
           <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 pb-28 md:pb-8">
@@ -32,6 +28,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
+      {/* Mobile Bottom Dock */}
       <MobileNav />
     </div>
   );
