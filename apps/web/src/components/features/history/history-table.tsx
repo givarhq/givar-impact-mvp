@@ -14,7 +14,9 @@ import {
   Share2,
   Calendar,
   ExternalLink,
-  ArrowUp
+  ArrowUp,
+  Download,
+  Loader2
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -25,6 +27,7 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { Button } from '../../ui/button';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { generateImpactReceipt } from '../../../lib/utils/receipt-generator'; // SOTA Logic
 
 const typeStyles: Record<TxType, { icon: React.ElementType, bg: string, text: string, sign: string }> = {
   DEBIT: { icon: ArrowUpRight, bg: 'bg-rose-500/10', text: 'text-rose-500', sign: '-' },
@@ -80,10 +83,25 @@ export function HistoryTable({
   onSort: (column: 'createdAt' | 'amount' | 'status' | 'description') => void;
 }) {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false); // SOTA: Receipt state
 
   const copyReference = (ref: string) => {
     navigator.clipboard.writeText(ref);
     toast.success('Reference copied');
+  };
+
+  // PDF Download Handler
+  const handleDownloadReceipt = async (tx: Transaction) => {
+    setIsGenerating(true);
+    const loadToast = toast.loading('Preparing your impact receipt...');
+    try {
+      await generateImpactReceipt(tx);
+      toast.success('Receipt downloaded successfully', { id: loadToast });
+    } catch (err) {
+      toast.error('Failed to generate receipt', { id: loadToast });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   if (transactions.length === 0) {
@@ -104,7 +122,6 @@ export function HistoryTable({
 
   return (
     <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-        {/* SOTA: Table layout fixed to prevent horizontal push */}
         <table className="w-full border-collapse table-fixed md:table-auto">
             <thead className="bg-muted/40 border-b border-border hidden md:table-header-group">
                 <tr>
@@ -122,27 +139,22 @@ export function HistoryTable({
                     
                     return (
                         <tr key={tx.id} className="hover:bg-muted/30 transition-colors group block md:table-row w-full overflow-hidden">
-                            {/* Mobile Detail Block */}
                             <td className="block md:table-cell p-4 md:px-6 md:py-4 border-none w-full">
                                 <div className="flex items-center gap-3 w-full">
-                                    {/* Icon */}
                                     <div className={cn("h-10 w-10 shrink-0 flex items-center justify-center rounded-xl shadow-sm border border-border/50", typeStyle.bg, typeStyle.text)}>
                                         <typeStyle.icon className="h-5 w-5" />
                                     </div>
                                     
-                                    {/* Text Info */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center gap-2">
                                             <p className="font-bold text-foreground truncate text-sm md:text-base">
                                                 {tx.description}
                                             </p>
-                                            {/* Mobile Amount */}
                                             <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm", typeStyle.text)}>
                                                 {typeStyle.sign}{formatCurrency(tx.amount, tx.currency)}
                                             </p>
                                         </div>
                                         
-                                        {/* Mobile Sub-line */}
                                         <div className="md:hidden flex items-center gap-2 mt-1 text-[10px] font-bold text-muted-foreground uppercase tracking-tight">
                                             <span className="flex items-center gap-1 shrink-0">
                                                 <Calendar className="h-3 w-3" /> {formatDate(tx.createdAt).split(',')[0]}
@@ -155,7 +167,6 @@ export function HistoryTable({
                                     </div>
                                 </div>
                                 
-                                {/* Mobile-only Action Button - Compact and full width */}
                                 <div className="mt-3 md:hidden">
                                     <Button 
                                         variant="secondary" 
@@ -168,7 +179,6 @@ export function HistoryTable({
                                 </div>
                             </td>
 
-                            {/* Desktop-only Columns */}
                             <td className="px-6 py-4 text-muted-foreground hidden md:table-cell font-medium">
                                 {formatDate(tx.createdAt)}
                             </td>
@@ -200,7 +210,7 @@ export function HistoryTable({
         <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
             <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md rounded-[32px] p-0 overflow-hidden border-none shadow-2xl bg-card">
                 {selectedTx && (
-                    <div className="p-5 md:p-8 space-y-6 overflow-hidden"> {/* overflow-hidden parent */}
+                    <div className="p-5 md:p-8 space-y-6 overflow-hidden">
                         <DialogHeader className="space-y-4">
                             <div className="flex items-center gap-2 text-primary bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/20">
                                 <ShieldCheck className="h-3.5 w-3.5" />
@@ -209,23 +219,75 @@ export function HistoryTable({
                             <DialogTitle className="text-xl md:text-2xl font-extrabold tracking-tight">Transaction Detail</DialogTitle>
                         </DialogHeader>
 
-                        {/* Amount Section */}
                         <div className="text-center p-6 md:p-8 rounded-[24px] bg-muted/30 border border-border/50 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-5">
                                 <FileText className="h-12 w-12 md:h-16 md:w-16" />
                             </div>
                             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-3">Total Amount</p>
-                            {/* Ensure currency doesn't overflow */}
                             <div className="max-w-full overflow-hidden">
                                 <SmartCurrency amount={selectedTx.amount} currency={selectedTx.currency} visible={true} size="large" className="text-foreground" />
                             </div>
                         </div>
 
-                        {/* Purpose Section - FIX: Added gap and min-w-0 */}
+                        {/* --- HIDDEN RECEIPT TEMPLATE FOR PDF GENERATOR --- */}
+                        <div className="absolute left-[-9999px] top-[-9999px]">
+                            <div id={`receipt-${selectedTx.id}`} className="w-[800px] p-16 bg-white text-slate-900 font-sans">
+                                <div className="flex justify-between items-start border-b-2 border-emerald-500 pb-10">
+                                    <div>
+                                        <h1 className="text-4xl font-black tracking-tighter text-emerald-600">Givar.</h1>
+                                        <p className="text-sm text-slate-500 mt-1 uppercase tracking-widest font-bold">Impact Receipt</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-bold">Reference</p>
+                                        <p className="text-xs font-mono text-slate-500">{selectedTx.reference}</p>
+                                    </div>
+                                </div>
+                                <div className="py-12 grid grid-cols-2 gap-10">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Donated By</p>
+                                        <p className="text-lg font-bold">
+                                          {selectedTx.user?.firstName || 'Valued'} {selectedTx.user?.lastName || 'Giver'}
+                                        </p>
+                                        <p className="text-sm text-slate-500">{selectedTx.user?.email}</p>
+                                    </div>
+                                    <div className="space-y-1 text-right">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Date</p>
+                                        <p className="text-lg font-bold">{formatDate(selectedTx.createdAt)}</p>
+                                    </div>
+                                </div>
+                                <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 mb-10">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Beneficiary Project</p>
+                                            <p className="text-xl font-black">{selectedTx.project?.title || selectedTx.description}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Amount</p>
+                                            <p className="text-3xl font-black text-emerald-700">{formatCurrency(selectedTx.amount, selectedTx.currency)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="pt-10 border-t border-slate-100 flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-emerald-600 rounded-full flex items-center justify-center text-white">
+                                            <ShieldCheck className="h-6 w-6" />
+                                        </div>
+                                        <p className="text-[10px] max-w-[200px] text-slate-400 leading-tight">
+                                            This document serves as digital proof of impact. Verified on the Givar Transparent Ledger.
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="h-12 w-32 bg-slate-100 rounded opacity-50 ml-auto mb-2 flex items-center justify-center italic text-xs">Digital Signature</div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Authorized by Givar Platform</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="space-y-3 min-w-0">
                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1">Purpose</span>
                              <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm flex items-center justify-between gap-3 min-w-0">
-                                <div className="min-w-0 flex-1"> {/* CRITICAL: min-w-0 for flex children */}
+                                <div className="min-w-0 flex-1">
                                     <p className="font-bold text-sm text-foreground leading-tight line-clamp-2">
                                         {selectedTx.description}
                                     </p>
@@ -245,7 +307,6 @@ export function HistoryTable({
                              </div>
                         </div>
 
-                        {/* Metadata Grid - FIX: text-xs and truncate */}
                         <div className="grid grid-cols-2 gap-3 md:gap-4">
                             <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm min-w-0">
                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Status</span>
@@ -262,7 +323,6 @@ export function HistoryTable({
                             </div>
                         </div>
 
-                        {/* Reference - FIX: break-all and smaller text */}
                         <div className="p-5 rounded-[20px] bg-secondary/30 border border-border/50 space-y-3 min-w-0">
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Reference</span>
@@ -275,9 +335,20 @@ export function HistoryTable({
                             </p>
                         </div>
 
-                        <Button className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 flex gap-2 active:scale-[0.98] transition-transform">
-                            <Share2 className="h-4 w-4" /> Share Impact
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                              onClick={() => handleDownloadReceipt(selectedTx)} 
+                              disabled={isGenerating || selectedTx.status !== 'COMPLETED'}
+                              className="w-full h-12 rounded-2xl font-bold gap-2 bg-secondary text-foreground hover:bg-secondary/80 border border-border/50"
+                          >
+                              {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                              Download Receipt
+                          </Button>
+
+                          <Button className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 flex gap-2 active:scale-[0.98] transition-transform">
+                              <Share2 className="h-4 w-4" /> Share Impact
+                          </Button>
+                        </div>
                     </div>
                 )}
             </DialogContent>
