@@ -351,4 +351,29 @@ export class WalletService {
 
     return json2csv(flattened);
   }
+
+  /**
+   * Unified Verification
+   * Checks WalletTransactions, Donations, and GuestDonations for a reference.
+   */
+  async verifyAnyTransaction(reference: string) {
+    // Check for standard Wallet Funding or User Direct Donation
+    const walletTx = await this.prisma.walletTransaction.findUnique({
+      where: { reference },
+      select: { status: true }
+    });
+
+    if (walletTx?.status === 'COMPLETED') return { status: 'success' };
+
+    // Check for Guest Donation
+    const guestDonation = await this.prisma.guestDonation.findUnique({
+      where: { reference },
+      select: { status: true }
+    });
+
+    if (guestDonation?.status === 'COMPLETED') return { status: 'success' };
+
+    // If not found yet, return pending to trigger frontend retry
+    return { status: 'pending' };
+  }
 }

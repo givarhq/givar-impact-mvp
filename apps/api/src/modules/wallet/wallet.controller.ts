@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, HttpCode, Post, Query, Req, UseGuards, Res } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Post, Query, Req, UseGuards, Res, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
 import { FundWalletDto } from './dto/wallet.dto';
@@ -6,6 +6,7 @@ import { Currency } from '@givar/database';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { type Response } from 'express';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('wallet')
 export class WalletController {
@@ -62,5 +63,11 @@ export class WalletController {
     res.header('Content-Type', 'text/csv');
     res.attachment(`givar-transactions-${new Date().toISOString().split('T')[0]}.csv`);
     return res.send(csv);
+  }
+
+  @Public()
+  @Get('verify/:reference')
+  async verifyTransaction(@Param('reference') reference: string) {
+    return this.walletService.verifyAnyTransaction(reference);
   }
 }
