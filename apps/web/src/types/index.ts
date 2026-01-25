@@ -43,6 +43,11 @@ export interface Transaction {
     slug: string;
     imageUrl?: string;
   };
+  user?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 }
 export interface Subscription {
   id: string;
