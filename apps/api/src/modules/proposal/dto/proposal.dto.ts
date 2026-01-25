@@ -6,15 +6,15 @@ import { Currency } from '@givar/database';
 
 // 1. Budget Item Structure
 class BudgetItem {
-  @IsString() 
+  @IsString()
   id!: string;
 
   @IsString()
   item!: string;
 
   @IsNumber()
-  @Min(1)
-  cost!: number; 
+  @Min(0)
+  cost!: number;
 
   @IsString()
   vendor!: string;
