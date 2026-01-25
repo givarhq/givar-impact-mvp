@@ -126,7 +126,9 @@ export function HistoryTable({
                 <tr>
                     <th className="px-6 py-4 font-semibold text-muted-foreground text-left w-1/2 md:text-xs lg:text-sm">Transaction</th>
                     <th className="px-6 py-4 font-semibold text-muted-foreground text-left md:text-xs lg:text-sm w-[200px]">Date</th>
-                    <th className="px-6 py-4 font-semibold text-muted-foreground text-right md:text-xs lg:text-sm">Amount</th>
+                    <th className="px-6 py-4 font-semibold text-muted-foreground text-right md:text-xs lg:text-sm whitespace-nowrap">
+  Amount
+</th>
                     <th className="px-6 py-4 font-semibold text-muted-foreground text-center md:text-xs lg:text-sm">Status</th>
                     <th className="px-6 py-3"></th>
                 </tr>
@@ -149,7 +151,7 @@ export function HistoryTable({
                                             <p className="font-bold text-foreground truncate text-sm md:text-xs lg:text-sm">
                                                 {tx.description}
                                             </p>
-                                            <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm", typeStyle.text)}>
+                                            <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm whitespace-nowrap", typeStyle.text)}>
                                                 {typeStyle.sign}{formatCurrency(tx.amount, tx.currency)}
                                             </p>
                                         </div>
@@ -181,7 +183,12 @@ export function HistoryTable({
                             <td className="px-6 py-4 text-muted-foreground hidden md:table-cell font-medium md:text-xs lg:text-sm whitespace-nowrap">
                                 {formatDate(tx.createdAt)}
                             </td>
-                            <td className={cn("px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell md:text-xs lg:text-sm", typeStyle.text)}>
+                            <td
+  className={cn(
+    "px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell md:text-xs lg:text-sm whitespace-nowrap",
+    typeStyle.text
+  )}
+>
                                 {typeStyle.sign} {formatCurrency(tx.amount, tx.currency)}
                             </td>
                             <td className="px-6 py-4 hidden md:table-cell text-center">
