@@ -1,18 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Share2, MapPin, Calendar, CheckCircle2, Clock } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { Project, Wallet } from '../../../types';
+import Link from 'next/link'; 
+import { Project } from '../../../types';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
-import { DonationModal } from '../donation/donation-modal';
-import { ApiService } from '../../../services/api';
 import { formatDate } from '../../../lib/utils/format';
 import { TransparencyCard } from './transparency-card';
 import { ShareModal } from './share-modal';
-import { getCookie } from 'cookies-next/client';
 
 interface ProjectDetailsClientProps {
   project: Project & { 
@@ -22,23 +19,15 @@ interface ProjectDetailsClientProps {
     location?: string;
     tags?: string[];
   };
+  isPublic?: boolean;
 }
 
-export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
-  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
+export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetailsClientProps) {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [wallet, setWallet] = useState<Wallet | null>(null);
 
-  useEffect(() => {
-    const token = getCookie('givar_token');
-    if (token) {
-        ApiService.wallet.get()
-            .then(res => setWallet(res.data))
-            .catch((err) => {
-                console.error("Wallet fetch failed", err);
-            });
-    }
-  }, []);
+  const donateLink = isPublic 
+    ? `/explore/${project.slug}/donate` 
+    : `/dashboard/impact/${project.slug}/donate`;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -111,13 +100,14 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
             <TransparencyCard project={project} />
 
             <div className="space-y-3">
-                <Button 
-                    size="lg" 
-                    className="w-full h-14 text-base font-bold shadow-lg shadow-primary/20 rounded-xl bg-primary hover:bg-primary/90"
-                    onClick={() => setIsDonationModalOpen(true)}
-                >
-                    Donate Now
-                </Button>
+                <Link href={donateLink} className="block w-full">
+                  <Button 
+                      size="lg" 
+                      className="w-full h-14 text-base font-bold shadow-lg shadow-primary/20 rounded-xl bg-primary hover:bg-primary/90"
+                  >
+                      Donate Now
+                  </Button>
+                </Link>
                 
                 <Button 
                     variant="outline" 
@@ -137,13 +127,6 @@ export function ProjectDetailsClient({ project }: ProjectDetailsClientProps) {
 
         </div>
       </div>
-
-      <DonationModal 
-        isOpen={isDonationModalOpen} 
-        onClose={() => setIsDonationModalOpen(false)} 
-        project={project} 
-        wallet={wallet}
-      />
 
       <ShareModal 
         isOpen={isShareModalOpen} 
