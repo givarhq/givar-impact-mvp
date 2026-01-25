@@ -20,6 +20,14 @@ export interface TimelineItem {
   deliverables: string;
 }
 
+export interface MediaItem {
+  id: string;
+  url: string;
+  type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+  caption: string;
+  file?: File;
+}
+
 interface ProposalState {
   id: string | null;
   title: string;
@@ -31,7 +39,7 @@ interface ProposalState {
   currency: Currency;
 
   coverImage: string | null;
-  gallery: string[];
+  gallery: MediaItem[];
   videoUrl: string | null;
   
   budgetBreakdown: BudgetItem[];
@@ -44,15 +52,17 @@ interface ProposalState {
   beneficiaryContact: string | null;
 
   setProposal: (proposal: any) => void;
-  updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryImage' | 'removeGalleryImage' | 'addKycDocument' | 'removeKycDocument'>>(
+  updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem'>>(
     field: K, 
     value: ProposalState[K]
   ) => void;
   
   saveDraft: () => Promise<void>;
   
-  addGalleryImage: (url: string) => void;
-  removeGalleryImage: (url: string) => void;
+  addGalleryItem: (item: MediaItem) => void;
+  removeGalleryItem: (id: string) => void;
+  updateGalleryItem: (id: string, updates: Partial<MediaItem>) => void;
+
   addKycDocument: (key: string) => void;
   removeKycDocument: (key: string) => void;
 }
@@ -86,6 +96,7 @@ export const useProposalStore = create<ProposalState>()(
 
     setProposal: (proposal) => set(state => {
         // Safely parse JSON fields from DB
+        const gallery = Array.isArray(proposal.gallery) ? proposal.gallery : [];
         const budget = proposal.budgetBreakdown && typeof proposal.budgetBreakdown === 'object' ? proposal.budgetBreakdown : [];
         const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object' ? proposal.executionTimeline : [];
         
@@ -93,6 +104,7 @@ export const useProposalStore = create<ProposalState>()(
             ...state, 
             ...proposal,
             targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
+            gallery,
             budgetBreakdown: budget,
             executionTimeline: timeline,
         };
@@ -109,11 +121,14 @@ export const useProposalStore = create<ProposalState>()(
         const state = get();
         if (!state.id) return;
 
-        // Construct DTO
-        const { id, saveDraft, setProposal, updateField, ...dto } = state;
+        const { 
+            id, saveDraft, setProposal, updateField, 
+            addGalleryItem, removeGalleryItem, updateGalleryItem, 
+            addKycDocument, removeKycDocument,
+            ...dto 
+        } = state;
+        
         const payload = { ...dto };
-
-        // Convert targetAmount to minor units for backend
         if (payload.targetAmount) {
             (payload as any).targetAmount = payload.targetAmount * 100;
         }
@@ -121,13 +136,27 @@ export const useProposalStore = create<ProposalState>()(
         try {
           await ApiService.proposals.update(state.id, payload);
         } catch (error) {
-          toast.error('Failed to save draft.');
+          // Silent fail or toast
         }
       }, 1500);
     },
 
-    addGalleryImage: (url) => set(state => ({ gallery: [...state.gallery, url] })),
-    removeGalleryImage: (url) => set(state => ({ gallery: state.gallery.filter(item => item !== url) })),
+    // SOTA Media Reducers
+    addGalleryItem: (item) => {
+        set(state => ({ gallery: [...state.gallery, item] }));
+        get().saveDraft();
+    },
+    removeGalleryItem: (id) => {
+        set(state => ({ gallery: state.gallery.filter(item => item.id !== id) }));
+        get().saveDraft();
+    },
+    updateGalleryItem: (id, updates) => {
+        set(state => ({
+            gallery: state.gallery.map(item => item.id === id ? { ...item, ...updates } : item)
+        }));
+        get().saveDraft();
+    },
+
     addKycDocument: (key) => set(state => ({ kycDocuments: [...state.kycDocuments, key] })),
     removeKycDocument: (key) => set(state => ({ kycDocuments: state.kycDocuments.filter(item => item !== key) })),
   }))

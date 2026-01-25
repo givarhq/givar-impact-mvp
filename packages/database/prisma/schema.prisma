@@ -209,7 +209,7 @@ model Project {
   description String  
   shortDesc   String? 
   imageUrl      String?  // Main Hero Image
-  gallery       String[] // Array of additional image URLs
+  gallery       Json?    @default("[]")
 
   targetAmount BigInt
   raisedAmount BigInt   @default(0)
@@ -417,7 +417,7 @@ model ProjectProposal {
 
   // --- 2. The Evidence  ---
   coverImage    String?
-  gallery       String[]
+  gallery       Json?    @default("[]")
   videoUrl      String?
 
   // --- 3. The Execution Plan ---
