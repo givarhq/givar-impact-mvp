@@ -1,20 +1,23 @@
 import { Type } from 'class-transformer';
 import { 
-  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsUrl 
+  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min 
 } from 'class-validator';
 import { Currency } from '@givar/database';
 
 // 1. Budget Item Structure
 class BudgetItem {
+  @IsString() 
+  id!: string;
+
   @IsString()
   item!: string;
 
   @IsNumber()
   @Min(1)
-  cost!: number; // Major units (Frontend handles formatting)
+  cost!: number; 
 
   @IsString()
-  vendor!: string; // Critical for Procurement Model
+  vendor!: string;
 
   @IsOptional()
   @IsString()
@@ -24,19 +27,36 @@ class BudgetItem {
   type!: string;
 }
 
+class MediaItemDto {
+  @IsString()
+  id!: string;
+
+  @IsString()
+  url!: string;
+
+  @IsEnum(['IMAGE', 'VIDEO', 'DOCUMENT'])
+  type!: string;
+
+  @IsOptional()
+  @IsString()
+  caption?: string;
+}
+
 // 2. Timeline Item Structure
 class TimelineItem {
+  @IsString() 
+  id!: string;
+
   @IsString()
   phase!: string;
 
   @IsString()
-  estimatedDate!: string; // ISO Date String
+  estimatedDate!: string; 
 
   @IsString()
   deliverables!: string;
 }
 
-// 3. Create Draft DTO (Minimal requirements to start)
 export class CreateProposalDto {
   @IsString()
   title!: string;
@@ -45,21 +65,23 @@ export class CreateProposalDto {
   categoryId!: string;
 }
 
-// 4. Update Draft DTO (Everything is optional)
 export class UpdateProposalDto {
   @IsOptional() @IsString() title?: string;
   @IsOptional() @IsString() shortDesc?: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() location?: string;
-  @IsOptional() @IsNumber() targetAmount?: number; // Major units
+  @IsOptional() @IsNumber() targetAmount?: number; 
   @IsOptional() @IsEnum(Currency) currency?: Currency;
   
-  // Media
-  @IsOptional() @IsUrl() coverImage?: string;
-  @IsOptional() @IsArray() @IsUrl({}, { each: true }) gallery?: string[];
-  @IsOptional() @IsUrl() videoUrl?: string;
+  @IsOptional() @IsString() coverImage?: string; 
+  @IsOptional() @IsString() videoUrl?: string;
 
-  // Complex Structures
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MediaItemDto) 
+  gallery?: MediaItemDto[];
+
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -74,7 +96,6 @@ export class UpdateProposalDto {
 
   @IsOptional() @IsString() riskAnalysis?: string;
 
-  // KYC / Trust
   @IsOptional() @IsArray() @IsString({ each: true }) kycDocuments?: string[];
   @IsOptional() @IsString() organizationName?: string;
   @IsOptional() @IsString() contactPhone?: string;

@@ -1,6 +1,6 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 
@@ -58,6 +58,24 @@ export class StorageService {
     } catch (error: any) {
       this.logger.error(`Failed to generate presigned URL: ${error.message}`);
       throw new InternalServerErrorException('Could not generate upload permission');
+    }
+  }
+
+  // Generate temporary VIEW URLs for private files
+  async getPresignedViewUrl(key: string) {
+    try {
+      const command = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+      });
+
+      // Valid for 1 hour
+      const viewUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+      
+      return { viewUrl };
+    } catch (error: any) {
+      this.logger.error(`Failed to generate view URL for key ${key}: ${error.message}`);
+      throw new InternalServerErrorException('Could not grant view permission');
     }
   }
 }
