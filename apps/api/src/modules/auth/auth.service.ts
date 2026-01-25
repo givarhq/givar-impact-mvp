@@ -180,7 +180,8 @@ export class AuthService {
 
   async refreshToken(userId: string, rt: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.refreshTokenHash) {
+    
+    if (!user || !user.refreshTokenHash || (user.accountLockedUntil && user.accountLockedUntil > new Date())) {
       throw new ForbiddenException('Access Denied');
     }
 
@@ -190,7 +191,17 @@ export class AuthService {
     const { accessToken, refreshToken } = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshTokenHash(user.id, refreshToken);
 
-    return { accessToken, refreshToken };
+    return { 
+      accessToken, 
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role
+      }
+    };
   }
 
   async logout(userId: string) {
