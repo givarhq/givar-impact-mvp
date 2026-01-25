@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { Loader2, Repeat, Wallet, CreditCard, CheckCircle, Mail } from 'lucide-react';
+import { Loader2, Repeat, Wallet, CreditCard, CheckCircle, Mail, Lock } from 'lucide-react'; // Added Lock
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Project, Wallet as WalletType } from '../../../../../../types';
@@ -16,7 +16,7 @@ import { cn } from '../../../../../../lib/utils/cn';
 export interface DonationFormProps {
   project: Project | null;
   wallet: WalletType | null;
-  isAuthenticated: boolean; // SOTA: Explicit auth prop to fix recognition bug
+  isAuthenticated: boolean;
 }
 
 export function DonationForm({ project, wallet, isAuthenticated }: DonationFormProps) {
@@ -27,7 +27,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
   const [interval, setInterval] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
   const [selectedMethod, setSelectedMethod] = useState<'wallet' | 'direct' | null>(null);
   
-  // SOTA BUG FIX: User is guest only if they are not authenticated
   const isGuest = !isAuthenticated;
   const [guestEmail, setGuestEmail] = useState('');
 
@@ -38,26 +37,26 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
   useEffect(() => {
       setAmount('');
       setGuestEmail('');
-      setSelectedMethod(null);
       setIsLoading(false);
       setDonationType('one-time');
-  }, [project]);
+      // If guest, pre-select direct method
+      if (isGuest) {
+        setSelectedMethod('direct');
+      } else {
+        setSelectedMethod(null);
+      }
+  }, [project, isGuest]);
 
   if (!project) return null;
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(parseFormattedNumber(formatNumberInput(e.target.value)));
-    if (isGuest) {
-        setSelectedMethod('direct'); 
-    } else {
-        setSelectedMethod(null);
-    }
+    if (!isGuest) setSelectedMethod(null);
   };
   
   const setQuickAmount = (val: string) => {
     setAmount(val);
-    if (isGuest) setSelectedMethod('direct');
-    else setSelectedMethod(null);
+    if (!isGuest) setSelectedMethod(null);
   };
 
   const handleConfirm = async () => {
@@ -101,7 +100,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
             };
             
             if (isGuest) {
-                payload.guestEmail = guestEmail;
+                payload.guestEmail = guestEmail.toLowerCase().trim();
                 payload.guestName = 'Guest Donor';
             }
 
@@ -116,7 +115,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
   };
 
   return (
-    <div className="bg-card border border-border/50 rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+    <div className="bg-card border border-border/50 rounded-xl p-6 md:p-8 shadow-xl relative overflow-hidden">
         {isGuest ? (
             <div className="flex flex-col space-y-6">
                  <div className="space-y-3">
@@ -126,7 +125,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                         <Input
                             type="text"
                             placeholder="1,000"
-                            className="pl-10 h-14 text-xl font-bold rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
+                            className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
                             value={formatNumberInput(amount)}
                             onChange={handleAmountChange}
                             autoFocus
@@ -144,31 +143,35 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 <div className="space-y-2">
                     <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Receipt Email</label>
                     <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input 
                             type="email" 
                             placeholder="jane@example.com" 
-                            className="pl-12 h-14 rounded-2xl bg-muted/30 border-transparent"
+                            className="pl-10 h-14 rounded-xl bg-muted/30 border-transparent"
                             value={guestEmail}
                             onChange={(e) => setGuestEmail(e.target.value)}
                         />
                     </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-muted/50 border border-dashed border-border text-center text-xs text-muted-foreground leading-relaxed">
+                <div className="p-4 rounded-xl bg-muted/50 border border-dashed border-border text-center text-xs text-muted-foreground leading-relaxed">
                     <Link href="/login" className="text-primary hover:underline font-bold">Sign in</Link> to track your impact history and manage automated giving.
                 </div>
 
-                <Button onClick={handleConfirm} disabled={isLoading || !amount || !guestEmail} className="w-full h-16 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20">
-                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Continue to Pay'}
+                <Button onClick={handleConfirm} disabled={isLoading || !amount || !guestEmail} className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20">
+                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                      <span className="flex items-center gap-2">
+                        <Lock className="h-5 w-5" /> Proceed to Pay
+                      </span>
+                    )}
                 </Button>
             </div>
         ) : (
             <Tabs value={donationType} onValueChange={(v) => setDonationType(v as 'one-time' | 'recurring')} className="w-full flex flex-col h-full">
                 <div className="shrink-0 pb-6">
-                    <TabsList className="w-full h-12 rounded-2xl p-1 bg-muted/50">
-                        <TabsTrigger value="one-time" className="flex-1 rounded-xl">One-Time</TabsTrigger>
-                        <TabsTrigger value="recurring" className="flex-1 rounded-xl">Recurring</TabsTrigger>
+                    <TabsList className="w-full h-12 rounded-xl p-1 bg-muted/50">
+                        <TabsTrigger value="one-time" className="flex-1 rounded-lg">One-Time</TabsTrigger>
+                        <TabsTrigger value="recurring" className="flex-1 rounded-lg">Recurring</TabsTrigger>
                     </TabsList>
                 </div>
 
@@ -180,7 +183,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                             <Input
                                 type="text"
                                 placeholder="1,000"
-                                className="pl-10 h-14 text-xl font-bold rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
+                                className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
                                 value={formatNumberInput(amount)}
                                 onChange={handleAmountChange}
                                 autoFocus
@@ -199,10 +202,10 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                         <div className="space-y-3 animate-in fade-in-0 duration-300">
                             <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground text-center block">Frequency</label>
                             <div className="grid grid-cols-2 gap-3">
-                                <button onClick={() => setInterval('WEEKLY')} className={cn("flex items-center justify-center h-12 rounded-2xl border transition-all font-bold", interval === 'WEEKLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>
+                                <button onClick={() => setInterval('WEEKLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'WEEKLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>
                                     Weekly
                                 </button>
-                                <button onClick={() => setInterval('MONTHLY')} className={cn("flex items-center justify-center h-12 rounded-2xl border transition-all font-bold", interval === 'MONTHLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>
+                                <button onClick={() => setInterval('MONTHLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'MONTHLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>
                                     Monthly
                                 </button>
                             </div>
@@ -216,13 +219,13 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                 onClick={() => setSelectedMethod('wallet')}
                                 disabled={!hasSufficientFunds}
                                 className={cn(
-                                    "w-full h-auto flex items-center p-4 border rounded-2xl transition-all relative",
+                                    "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
                                     selectedMethod === 'wallet' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
                                     !hasSufficientFunds && "opacity-50 cursor-not-allowed grayscale"
                                 )}
                             >
                                 {selectedMethod === 'wallet' && <CheckCircle className="absolute top-4 right-4 h-5 w-5 text-primary" />}
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 mr-4 text-primary shrink-0"><Wallet className="h-5 w-5" /></div>
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary shrink-0"><Wallet className="h-5 w-5" /></div>
                                 <div className="text-left">
                                     <p className="font-bold text-foreground">Givar Wallet</p>
                                     <p className="text-xs text-muted-foreground">Balance: {formatCurrency(wallet?.balance || '0', project.currency)}</p>
@@ -233,7 +236,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                 onClick={() => setSelectedMethod('direct')}
                                 disabled={donationType === 'recurring'}
                                 className={cn(
-                                    "w-full h-auto flex items-center p-4 border rounded-2xl transition-all relative",
+                                    "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
                                     selectedMethod === 'direct' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
                                     donationType === 'recurring' && "opacity-50 cursor-not-allowed"
                                 )}
@@ -250,8 +253,12 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 </div>
 
                 <div className="pt-8">
-                    <Button onClick={handleConfirm} disabled={isLoading || !amount || !selectedMethod} className="w-full h-16 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20">
-                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm & Proceed'}
+                    <Button onClick={handleConfirm} disabled={isLoading || !amount || !selectedMethod} className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20">
+                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                           <span className="flex items-center gap-2">
+                             <Lock className="h-5 w-5" /> Confirm Donation
+                           </span>
+                        )}
                     </Button>
                 </div>
             </Tabs>
