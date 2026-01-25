@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { ThemeToggle } from './theme-toggle';
 import { usePathname } from 'next/navigation';
 
@@ -13,6 +14,11 @@ const PAGE_TITLES: Record<string, string> = {
 export function AdminHeader() {
   const pathname = usePathname();
   const currentTitle = PAGE_TITLES[pathname] || 'Admin Panel';
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center gap-4 bg-background/80 px-8 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">

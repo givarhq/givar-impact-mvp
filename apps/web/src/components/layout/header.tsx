@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { ApiService } from '../../services/api';
+import { useState, useEffect } from 'react';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -47,19 +48,21 @@ function safeParse<T>(value: string | undefined | null): T | null {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const userCookie = getCookie('givar_user') as string | undefined;
 const user = safeParse<{ firstName: string; lastName: string; email: string }>(userCookie);
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
   const displayEmail = user?.email || '';
 
-  // SOTA UPDATE: Secure logout logic
   const handleLogout = async () => {
     try {
-      // 1. Call the backend to invalidate the session first.
       await ApiService.auth.logout();
-      
-      // 2. On success, clear local state and redirect.
+
       deleteCookie('givar_token');
       deleteCookie('givar_user');
       router.push('/login');
