@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { StorageService } from '../storage/storage.service';
 import { GetUploadUrlDto } from './dto/upload.dto';
@@ -16,6 +16,25 @@ export class ProposalController {
   @Post('upload-url')
   async getUploadUrl(@Req() req: any, @Body() dto: GetUploadUrlDto) {
     return this.storage.getPresignedUploadUrl(req.user.id, dto.fileType, dto.useCase);
+  }
+
+  @Get('preview-url')
+  async getPreviewUrl(
+    @Req() req: any,
+    @Query('key') key: string,
+    @Query('proposalId') proposalId: string,
+  ) {
+    if (!key || !proposalId) {
+      throw new BadRequestException('File key and proposal context are required');
+    }
+
+    await this.service.verifyOwnership(proposalId, req.user.id);
+    
+    if (!key.startsWith(`proposals/${req.user.id}/`)) {
+        throw new ForbiddenException('Invalid file key path.');
+    }
+
+    return this.storage.getPresignedViewUrl(key);
   }
 
   @Post()

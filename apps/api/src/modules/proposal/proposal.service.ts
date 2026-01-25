@@ -99,6 +99,22 @@ export class ProposalService {
     };
   }
 
+  /**
+   * Verifies that a user owns a specific proposal. Throws if not found or not owned.
+   * @returns The proposal ID if successful.
+   */
+  async verifyOwnership(proposalId: string, userId: string): Promise<string> {
+    const proposal = await this.prisma.projectProposal.findUnique({
+      where: { id: proposalId },
+      select: { userId: true }, // Only fetch what's needed for the check
+    });
+    
+    if (!proposal) throw new NotFoundException('Proposal not found');
+    if (proposal.userId !== userId) throw new ForbiddenException('Access Denied');
+    
+    return proposalId;
+  }
+
   // Helper
   private async getProposalOrThrow(id: string, userId: string) {
     const proposal = await this.prisma.projectProposal.findUnique({
