@@ -27,7 +27,7 @@ export default async function PublicProjectPage({
   return (
     <PublicLayout>
         <div className="container mx-auto px-4 py-10">
-            <ProjectDetailsClient project={project} />
+            <ProjectDetailsClient project={project} isPublic={true} />
         </div>
     </PublicLayout>
   );
