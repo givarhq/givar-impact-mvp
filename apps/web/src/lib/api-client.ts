@@ -115,21 +115,29 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // 2. Handle 403 (Forbidden) - Hard Logout
-    if (status === 403) {
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      deleteCookie('givar_refresh_token');
-      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard')) {
-        window.location.href = '/login';
-      }
-      return Promise.reject(error);
-    }
+    // 2. Handle 403 (Forbidden)
+    if (
+  status === 403 &&
+  !originalRequest?.url?.includes('/auth/refresh')
+) {
+  deleteCookie('givar_token');
+  deleteCookie('givar_user');
+  deleteCookie('givar_refresh_token');
+
+  if (
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/dashboard')
+  ) {
+    window.location.href = '/login';
+  }
+
+  return Promise.reject(error);
+}
 
     // Non-auth errors → toast
-    if (status !== 401) {
-        toast.error(message);
-    }
+    if (status !== 401 && !originalRequest?.url?.includes('/auth/refresh')) {
+  toast.error(message);
+}
     
     return Promise.reject(error);
   }
