@@ -4,30 +4,27 @@ import * as React from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { MobileNav } from './mobile-nav';
-import { DashboardShellProps } from '../../types';
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
       
       {/* 
-        SOTA Grid Layout 
-        - Mobile: 1 Column
-        - Desktop: [280px Sidebar] [Rest Content]
+        SOTA Grid Layout FIX: 
+        Added min-w-0 to the content column to allow children to shrink/truncate.
       */}
       <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
         
-        {/* Desktop Sidebar Column */}
+        {/* Desktop Sidebar */}
         <div className="hidden md:block relative">
-           {/* Sidebar Component handles its own sticky positioning */}
            <Sidebar />
         </div>
         
-        {/* Main Content Column */}
-        <div className="flex flex-col min-w-0">
+        {/* Main Content Column - min-w-0 is CRITICAL here */}
+        <div className="flex flex-col min-w-0 relative">
           <Header />
           
-          <main className="flex-1 px-4 py-4 sm:px-6 md:px-8 pb-24 md:pb-8 overflow-x-hidden">
+          <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 pb-28 md:pb-8">
             <div className="mx-auto w-full max-w-7xl animate-in fade-in-0 duration-300">
                 {children}
             </div>
@@ -35,7 +32,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
         </div>
       </div>
 
-      {/* Mobile Bottom Dock (Fixed overlay) */}
       <MobileNav />
     </div>
   );
