@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeToggle } from './theme-toggle';
 import { usePathname } from 'next/navigation';
+import { getCookie } from 'cookies-next';
 
 const PAGE_TITLES: Record<string, string> = {
   '/admin': 'Platform Overview',
@@ -11,22 +12,28 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/audit': 'Audit Logs',
 };
 
+function safeParse<T>(value: string | undefined | null): T | null {
+  if (!value || value === 'undefined' || value === null) return null;
+  try { return JSON.parse(value) as T; } catch (err) { return null; }
+}
+
 export function AdminHeader() {
   const pathname = usePathname();
   const currentTitle = PAGE_TITLES[pathname] || 'Admin Panel';
-  const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setIsClient(true);
   }, []);
+
+  const userCookie = getCookie('givar_user') as string | undefined;
+  const user = isClient ? safeParse<{ firstName: string }>(userCookie) : null;
+  const initial = user?.firstName?.[0] || 'A';
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center gap-4 bg-background/80 px-8 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
-      
-      {/* Title - Visible on Desktop Header */}
       <div className="flex flex-col">
         <h1 className="text-xl font-semibold text-foreground hidden md:block">{currentTitle}</h1>
-        {/* Mobile Brand (Optional if sidebar covers it, but good fallback) */}
         <span className="md:hidden font-bold text-lg text-foreground">Givar Admin</span>
       </div>
 
@@ -36,11 +43,9 @@ export function AdminHeader() {
         <div className="hidden md:flex items-center text-xs font-mono text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg">
             SOTA-V2
         </div>
-        
         <ThemeToggle />
-        
         <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-destructive to-orange-500 shadow-lg shadow-orange-500/20 flex items-center justify-center text-white font-bold text-xs border-2 border-background">
-            AD
+            {isClient ? initial : 'A'}D
         </div>
       </div>
     </header>

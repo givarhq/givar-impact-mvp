@@ -48,14 +48,15 @@ function safeParse<T>(value: string | undefined | null): T | null {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setIsClient(true);
   }, []);
 
   const userCookie = getCookie('givar_user') as string | undefined;
-const user = safeParse<{ firstName: string; lastName: string; email: string }>(userCookie);
+  const user = isClient ? safeParse<{ firstName: string; lastName: string; email: string }>(userCookie) : null;
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
   const displayEmail = user?.email || '';
 
@@ -140,20 +141,18 @@ const user = safeParse<{ firstName: string; lastName: string; email: string }>(u
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
               <div className="relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm bg-primary/10 flex items-center justify-center text-primary">
-                {user?.firstName ? (
-                  <span className="font-bold text-sm">
+                {isClient && user?.firstName ? (
+                  <span className="font-bold text-sm animate-in fade-in duration-300">
                     {user.firstName[0]}
                   </span>
                 ) : (
                   <CircleUser className="h-6 w-6" />
                 )}
               </div>
-              <div className="hidden text-left md:block">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground leading-none max-w-[100px] truncate">
-                    {displayName}
+              <div className="hidden text-left md:block pr-2">
+                  <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[100px]">
+                    {isClient && user?.firstName ? user.firstName : 'Account'}
                   </span>
-                </div>
               </div>
               <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
             </button>
