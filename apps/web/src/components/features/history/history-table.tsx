@@ -11,7 +11,6 @@ import {
   Copy,
   ShieldCheck,
   FileText,
-  Share2,
   Calendar,
   ExternalLink,
   ArrowUp,
@@ -125,10 +124,10 @@ export function HistoryTable({
         <table className="w-full border-collapse table-fixed md:table-auto">
             <thead className="bg-muted/40 border-b border-border hidden md:table-header-group">
                 <tr>
-                    <th className="px-6 py-4 font-semibold text-muted-foreground text-left w-1/2">Transaction</th>
-                    <th className="px-6 py-4 font-semibold text-muted-foreground text-left">Date</th>
-                    <th className="px-6 py-4 font-semibold text-muted-foreground text-right">Amount</th>
-                    <th className="px-6 py-4 font-semibold text-muted-foreground text-center">Status</th>
+                    <th className="px-6 py-4 font-semibold text-muted-foreground text-left w-1/2 md:text-xs lg:text-sm">Transaction</th>
+                    <th className="px-6 py-4 font-semibold text-muted-foreground text-left md:text-xs lg:text-sm w-[200px]">Date</th>
+                    <th className="px-6 py-4 font-semibold text-muted-foreground text-right md:text-xs lg:text-sm">Amount</th>
+                    <th className="px-6 py-4 font-semibold text-muted-foreground text-center md:text-xs lg:text-sm">Status</th>
                     <th className="px-6 py-3"></th>
                 </tr>
             </thead>
@@ -147,7 +146,7 @@ export function HistoryTable({
                                     
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-center gap-2">
-                                            <p className="font-bold text-foreground truncate text-sm md:text-base">
+                                            <p className="font-bold text-foreground truncate text-sm md:text-xs lg:text-sm">
                                                 {tx.description}
                                             </p>
                                             <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm", typeStyle.text)}>
@@ -179,10 +178,10 @@ export function HistoryTable({
                                 </div>
                             </td>
 
-                            <td className="px-6 py-4 text-muted-foreground hidden md:table-cell font-medium">
+                            <td className="px-6 py-4 text-muted-foreground hidden md:table-cell font-medium md:text-xs lg:text-sm whitespace-nowrap">
                                 {formatDate(tx.createdAt)}
                             </td>
-                            <td className={cn("px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell", typeStyle.text)}>
+                            <td className={cn("px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell md:text-xs lg:text-sm", typeStyle.text)}>
                                 {typeStyle.sign} {formatCurrency(tx.amount, tx.currency)}
                             </td>
                             <td className="px-6 py-4 hidden md:table-cell text-center">
@@ -210,26 +209,27 @@ export function HistoryTable({
         <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
             <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md rounded-[32px] p-0 overflow-hidden border-none shadow-2xl bg-card">
                 {selectedTx && (
-                    <div className="p-5 md:p-8 space-y-6 overflow-hidden">
-                        <DialogHeader className="space-y-4">
+                    <div className="p-4 md:p-6 space-y-4 overflow-hidden"> {/* SOTA: Reduced padding and spacing */}
+                        <DialogHeader className="space-y-2">
                             <div className="flex items-center gap-2 text-primary bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/20">
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Verified Entry</span>
+                                <ShieldCheck className="h-3 w-3" />
+                                <span className="text-[9px] font-bold uppercase tracking-widest leading-none">Verified Entry</span>
                             </div>
-                            <DialogTitle className="text-xl md:text-2xl font-extrabold tracking-tight">Transaction Detail</DialogTitle>
+                            <DialogTitle className="text-lg md:text-xl font-extrabold tracking-tight leading-none">Transaction Detail</DialogTitle>
                         </DialogHeader>
 
-                        <div className="text-center p-6 md:p-8 rounded-[24px] bg-muted/30 border border-border/50 relative overflow-hidden">
+                        {/* SOTA: Compressed Amount Card */}
+                        <div className="text-center p-4 md:p-6 rounded-[24px] bg-muted/30 border border-border/50 relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <FileText className="h-12 w-12 md:h-16 md:w-16" />
+                                <FileText className="h-10 w-10 md:h-12 md:w-12" />
                             </div>
-                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mb-3">Total Amount</p>
-                            <div className="max-w-full overflow-hidden">
+                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mb-2">Total Amount</p>
+                            <div className="max-w-full overflow-hidden leading-none">
                                 <SmartCurrency amount={selectedTx.amount} currency={selectedTx.currency} visible={true} size="large" className="text-foreground" />
                             </div>
                         </div>
 
-                        {/* --- HIDDEN RECEIPT TEMPLATE FOR PDF GENERATOR --- */}
+                        {/* --- HIDDEN RECEIPT TEMPLATE --- */}
                         <div className="absolute left-[-9999px] top-[-9999px]">
                             <div id={`receipt-${selectedTx.id}`} className="w-[800px] p-16 bg-white text-slate-900 font-sans">
                                 <div className="flex justify-between items-start border-b-2 border-emerald-500 pb-10">
@@ -284,69 +284,80 @@ export function HistoryTable({
                             </div>
                         </div>
 
-                        <div className="space-y-3 min-w-0">
-                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1">Purpose</span>
-                             <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm flex items-center justify-between gap-3 min-w-0">
-                                <div className="min-w-0 flex-1">
-                                    <p className="font-bold text-sm text-foreground leading-tight line-clamp-2">
-                                        {selectedTx.description}
-                                    </p>
-                                    {selectedTx.project && (
-                                        <p className="text-[11px] text-muted-foreground truncate mt-1">
-                                            Cause: {selectedTx.project.title}
-                                        </p>
-                                    )}
-                                </div>
-                                {selectedTx.project && (
-                                    <Link href={`/dashboard/impact/${selectedTx.project.slug}`} className="shrink-0">
-                                        <div className="h-9 w-9 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary transition-colors border border-border/50">
-                                            <ExternalLink className="h-4 w-4" />
+                        {/* SOTA: Purpose & Reference Unified Card */}
+                        <div className="space-y-2 min-w-0">
+                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block px-1">Purpose & Reference</span>
+                             <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm space-y-3 min-w-0">
+                                {selectedTx.project ? (
+                                    /* SOTA FIX: The entire text area is now a clickable Link */
+                                    <Link 
+                                        href={`/dashboard/impact/${selectedTx.project.slug}`} 
+                                        className="block group/link min-w-0"
+                                    >
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-bold text-sm text-foreground leading-tight line-clamp-2 group-hover/link:text-primary transition-colors">
+                                                    {selectedTx.description}
+                                                </p>
+                                                <p className="text-[11px] text-muted-foreground truncate mt-0.5 group-hover/link:opacity-80">
+                                                    Cause: {selectedTx.project.title}
+                                                </p>
+                                            </div>
+                                            <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover/link:text-primary group-hover/link:bg-primary/10 transition-all border border-border/50 shrink-0">
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                            </div>
                                         </div>
                                     </Link>
+                                ) : (
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-sm text-foreground leading-tight">
+                                            {selectedTx.description}
+                                        </p>
+                                    </div>
                                 )}
+                                
+                                {/* SOTA: Merged Reference ID into this card */}
+                                <div className="pt-3 border-t border-border/50 flex justify-between items-center gap-4">
+                                    <div className="min-w-0 flex-1">
+                                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5">Ref ID</span>
+                                        <p className="font-mono text-[10px] truncate text-foreground/60">{selectedTx.reference}</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => copyReference(selectedTx.reference)} 
+                                        className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-secondary text-primary transition-colors border border-border/50 shrink-0"
+                                        title="Copy Reference"
+                                    >
+                                        <Copy className="h-3.5 w-3.5" />
+                                    </button>
+                                </div>
                              </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 md:gap-4">
-                            <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm min-w-0">
+                        {/* SOTA: Compressed Info Grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="p-3 md:p-4 rounded-2xl bg-card border border-border/50 shadow-sm min-w-0">
                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Status</span>
-                                <div className={cn("flex items-center gap-2 font-bold text-[11px] md:text-xs truncate", statusStyles[selectedTx.status].text)}>
+                                <div className={cn("flex items-center gap-2 font-bold text-[10px] md:text-xs truncate", statusStyles[selectedTx.status].text)}>
                                     {React.createElement(statusStyles[selectedTx.status].icon, { className: "h-3.5 w-3.5 shrink-0" })}
                                     <span className="truncate">{selectedTx.status}</span>
                                 </div>
                             </div>
-                            <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-sm min-w-0">
+                            <div className="p-3 md:p-4 rounded-2xl bg-card border border-border/50 shadow-sm min-w-0">
                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Channel</span>
-                                <p className="text-[11px] md:text-xs font-bold text-foreground truncate uppercase">
+                                <p className="text-[10px] md:text-xs font-bold text-foreground truncate uppercase">
                                     {selectedTx.metadata?.channel || 'Wallet'}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="p-5 rounded-[20px] bg-secondary/30 border border-border/50 space-y-3 min-w-0">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Reference</span>
-                                <button onClick={() => copyReference(selectedTx.reference)} className="flex items-center gap-1 text-primary hover:text-primary/80 font-bold transition-colors">
-                                    <Copy className="h-3 w-3" /> <span className="text-[10px] uppercase">Copy</span>
-                                </button>
-                            </div>
-                            <p className="font-mono text-[9px] md:text-[10px] break-all leading-relaxed text-foreground/70">
-                                {selectedTx.reference}
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 pt-1">
                           <Button 
                               onClick={() => handleDownloadReceipt(selectedTx)} 
                               disabled={isGenerating || selectedTx.status !== 'COMPLETED'}
-                              className="w-full h-12 rounded-2xl font-bold gap-2 bg-secondary text-foreground hover:bg-secondary/80 border border-border/50"
+                              className="w-full h-12 rounded-2xl font-bold gap-2 bg-secondary text-foreground hover:bg-secondary/80 border border-border/50 shadow-none"
                           >
                               {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                               Download Receipt
-                          </Button>
-
-                          <Button className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 flex gap-2 active:scale-[0.98] transition-transform">
-                              <Share2 className="h-4 w-4" /> Share Impact
                           </Button>
                         </div>
                     </div>

@@ -230,7 +230,6 @@ export class WalletService {
     }
   }
 
-  // ... (rest of methods: getBalance, getTransactions, exportTransactionsToCsv)
   async getBalance(userId: string, currency: Currency) {
     const wallet = await this.repository.getOrCreateWallet(userId, currency);
     return {
@@ -279,7 +278,7 @@ export class WalletService {
 
     const include = {
       donation: {
-        select: { project: { select: { title: true } } },
+        select: { project: { select: { title: true, slug: true } } },
       },
     };
 
@@ -298,6 +297,7 @@ export class WalletService {
       ...tx,
       isDonation: !!tx.donation,
       projectName: tx.donation?.project?.title ?? null,
+      project: tx.donation?.project ?? null,
     }));
 
     return {
