@@ -59,7 +59,6 @@ export default function FundWalletPage() {
       </Button>
 
       <Card className="border-border/50 shadow-xl overflow-hidden rounded-3xl">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-primary" />
         <CardHeader className="pt-8 px-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
