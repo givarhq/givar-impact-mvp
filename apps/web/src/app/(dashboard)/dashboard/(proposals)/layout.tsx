@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '../../../../lib/utils/cn';
 import { Check } from 'lucide-react';
+import { useProposalAutoSave } from '../../../../hooks/use-proposal-auto-save';
 
 const steps = [
   { href: '/hook', name: 'The Hook', number: 1 },
@@ -17,6 +18,7 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
   const currentStepPath = `/${pathname.split('/').pop()}`;
   const currentStepIndex = steps.findIndex((step) => step.href === currentStepPath);
   const activeIndex = currentStepIndex === -1 ? 0 : currentStepIndex;
+  useProposalAutoSave();
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { ApiService } from '../services/api';
-import toast from 'react-hot-toast';
 import { Currency } from '../types';
 
 // Define types for structured JSON fields for type safety
@@ -23,6 +21,7 @@ export interface TimelineItem {
 export interface MediaItem {
   id: string;
   url: string;
+  key: string;
   type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
   caption: string;
   file?: File;
@@ -39,6 +38,7 @@ interface ProposalState {
   currency: Currency;
 
   coverImage: string | null;
+  coverImageKey: string | null;
   gallery: MediaItem[];
   videoUrl: string | null;
   
@@ -67,8 +67,6 @@ interface ProposalState {
   removeKycDocument: (key: string) => void;
 }
 
-let debounceTimer: NodeJS.Timeout;
-
 export const useProposalStore = create<ProposalState>()(
   devtools((set, get) => ({
     // Initial State
@@ -82,6 +80,7 @@ export const useProposalStore = create<ProposalState>()(
     currency: Currency.NGN,
 
     coverImage: null,
+    coverImageKey: null,
     gallery: [],
     videoUrl: null,
 
@@ -95,8 +94,13 @@ export const useProposalStore = create<ProposalState>()(
     beneficiaryContact: null,
 
     setProposal: (proposal) => set(state => {
-        // Safely parse JSON fields from DB
-        const gallery = Array.isArray(proposal.gallery) ? proposal.gallery : [];
+        const gallery = Array.isArray(proposal.gallery) 
+            ? proposal.gallery.map((item: any) => ({
+                ...item,
+                key: item.url,
+                url: '',
+            })) 
+            : [];
         const budget = proposal.budgetBreakdown && typeof proposal.budgetBreakdown === 'object' ? proposal.budgetBreakdown : [];
         const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object' ? proposal.executionTimeline : [];
         
@@ -104,6 +108,7 @@ export const useProposalStore = create<ProposalState>()(
             ...state, 
             ...proposal,
             targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
+            coverImageKey: proposal.coverImage,
             gallery,
             budgetBreakdown: budget,
             executionTimeline: timeline,
@@ -116,32 +121,9 @@ export const useProposalStore = create<ProposalState>()(
     },
     
     saveDraft: async () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(async () => {
-        const state = get();
-        if (!state.id) return;
-
-        const { 
-            id, saveDraft, setProposal, updateField, 
-            addGalleryItem, removeGalleryItem, updateGalleryItem, 
-            addKycDocument, removeKycDocument,
-            ...dto 
-        } = state;
-        
-        const payload = { ...dto };
-        if (payload.targetAmount) {
-            (payload as any).targetAmount = payload.targetAmount * 100;
-        }
-        
-        try {
-          await ApiService.proposals.update(state.id, payload);
-        } catch (error) {
-          // Silent fail or toast
-        }
-      }, 1500);
+        // The useProposalAutoSave hook handles the actual network request.
     },
 
-    // SOTA Media Reducers
     addGalleryItem: (item) => {
         set(state => ({ gallery: [...state.gallery, item] }));
         get().saveDraft();
