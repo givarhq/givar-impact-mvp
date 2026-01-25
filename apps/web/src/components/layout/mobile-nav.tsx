@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { dashboardNav } from '../../config/dashboard';
 import { cn } from '../../lib/utils/cn';
 
@@ -76,7 +76,7 @@ export function MobileNav() {
             className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/40 ring-4 ring-background transition-transform active:scale-95"
             aria-label="Donate"
           >
-            <Plus className="h-6 w-6" />
+            <Heart className="h-6 w-6" />
           </button>
         </div>
 
