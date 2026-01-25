@@ -22,52 +22,60 @@ async function serverFetch<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  let res = await fetch(`${API_V1}${endpoint}`, {
-    headers,
-    cache: 'no-store',
-    ...options,
-  });
+  const fullUrl = `${API_V1}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-  // Server-Side Token Refresh Logic
-  if (res.status === 401) {
-    const refreshToken = cookieStore.get('givar_refresh_token')?.value;
+  try {
+    let res = await fetch(fullUrl, {
+      headers,
+      cache: 'no-store',
+      ...options,
+    });
 
-    if (refreshToken) {
-      try {
-        // Attempt to refresh the token on the server
-        const refreshRes = await fetch(`${API_V1}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${refreshToken}`, 'Content-Type': 'application/json' },
-        });
+    // Server-Side Token Refresh Logic
+    if (res.status === 401) {
+      const refreshToken = cookieStore.get('givar_refresh_token')?.value;
 
-        if (refreshRes.ok) {
-          const { accessToken, refreshToken: newRt, user } = await refreshRes.json();
-          
-          // Set new cookies (Next.js 15/16 allows setting cookies in Server Actions/Route Handlers/Middleware)
-          // Note: In standard Server Components, setting cookies requires a specific pattern or middleware.
-          // For maximum reliability, we redirect to a internal "refresh-sync" route if we are in a SC.
-          // However, for this MVP logic, we retry the fetch with the new token.
-          
-          const retryRes = await fetch(`${API_V1}${endpoint}`, {
-            headers: { ...headers, 'Authorization': `Bearer ${accessToken}` },
-            cache: 'no-store',
-            ...options,
+      if (refreshToken) {
+        try {
+          const refreshRes = await fetch(`${API_V1}/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${refreshToken}`, 'Content-Type': 'application/json' },
           });
 
-          if (retryRes.ok) return retryRes.json();
+          if (refreshRes.ok) {
+            const { accessToken } = await refreshRes.json();
+            
+            const retryRes = await fetch(fullUrl, {
+              headers: { ...headers, 'Authorization': `Bearer ${accessToken}` },
+              cache: 'no-store',
+              ...options,
+            });
+
+            if (retryRes.ok) return retryRes.json();
+          }
+        } catch (e) {
+          console.error("Server-side refresh failed");
         }
-      } catch (e) {
-        console.error("Server-side refresh failed");
       }
+
+      console.error(`Auth Session Expired at ${endpoint}`);
+      redirect('/api/auth/clear-session');
     }
 
-    // If refresh failed or no token, perform hard logout
-    console.error(`Auth Session Expired at ${endpoint}`);
-    redirect('/api/auth/clear-session');
+    if (!res.ok) {
+        console.error(`API Error ${fullUrl}: ${res.status}`);
+        return null;
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error(`NETWORK ERROR at ${fullUrl}:`, error);
+    
+    if (process.env.NODE_ENV === 'development') {
+        throw new Error(`Fetch failed to ${fullUrl}. Is the backend API running?`);
+    }
+    return null;
   }
-
-  if (!res.ok) return null;
-  return res.json();
 }
 
 export const ApiService = {
