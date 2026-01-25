@@ -85,7 +85,7 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
         {currencySymbol}
       </span>
       
-      <span className={cn(styles.main, "text-foreground tracking-tight")}>
+      <span className={cn(styles.main, "text-inherit tracking-tight")}>
         {mainPart}
       </span>
       
