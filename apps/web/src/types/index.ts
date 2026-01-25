@@ -27,13 +27,21 @@ export interface Transaction {
   currency: string;
   type: TxType;
   status: TxStatus;
+  reference: string;
   description: string;
+  metadata?: {
+    channel?: string;
+    card_type?: string;
+    bank?: string;
+    [key: string]: any;
+  };
   createdAt: string;
   isDonation: boolean;
   projectName?: string;
-  project: {
+  project?: {
     title: string;
     slug: string;
+    imageUrl?: string;
   };
 }
 export interface Subscription {
