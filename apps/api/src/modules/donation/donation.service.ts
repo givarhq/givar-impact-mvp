@@ -164,7 +164,7 @@ export class DonationService {
             guestName: dto.guestName?.trim() || 'Anonymous',
             projectId: dto.projectId,
           },
-          callback_url: `${this.config.get('FRONTEND_URL')}/dashboard/impact`,
+          callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
         },
         {
           headers: {

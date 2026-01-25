@@ -72,7 +72,7 @@ export class WalletService {
             action: 'wallet_funding',
             custom_fields: [{ display_name: 'Wallet Action', value: 'funding' }],
           },
-          callback_url: `${this.config.get('FRONTEND_URL')}/dashboard/wallet`,
+          callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
         },
         {
           headers: {
