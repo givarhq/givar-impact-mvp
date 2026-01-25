@@ -56,6 +56,9 @@ export const ApiService = {
     fund: (data: { amount: string; currency: string }) =>
       apiClient.post('/wallet/fund', data).then(r => r.data),
 
+    verifyTransaction: (reference: string) => 
+      apiClient.get(`/wallet/verify/${reference}`).then(r => r.data),
+
     getTransactions: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: any[]; meta: any }>(
         `/wallet/transactions?${params.toString()}`,
