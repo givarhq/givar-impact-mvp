@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { UploadCloud, Loader2, Link as LinkIcon, X, FileText, Image as ImageIcon, Video, Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
@@ -9,6 +9,7 @@ import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { MediaItem } from '../../../stores/proposal-store';
+import { useParams } from 'next/navigation';
 
 interface MediaManagerProps {
   items: MediaItem[];
@@ -19,42 +20,51 @@ interface MediaManagerProps {
 
 export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerProps) {
   const [activeTab, setActiveTab] = useState('upload');
+  const params = useParams();
+  const proposalId = params.id as string;
   const [isLoading, setIsLoading] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+
+  useEffect(() => {
+    items.forEach(async (item) => {
+      if (item.key && !item.url) {
+        try {
+          const { viewUrl } = await ApiService.proposals.getPreviewUrl(item.key, proposalId);
+          onUpdate(item.id, { url: viewUrl });
+        } catch (e) {
+          console.error("Failed to refresh preview for", item.key);
+        }
+      }
+    });
+  }, [items.length]);
 
   // --- Upload Handler ---
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size cannot exceed 5MB.');
-      return;
-    }
     
     setIsLoading(true);
     try {
       const type = file.type.startsWith('image/') ? 'IMAGE' : 'DOCUMENT';
       
-      // 1. Get Presigned URL
-      const { uploadUrl, publicUrl } = await ApiService.proposals.getUploadUrl({
+      const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
         fileType: file.type,
         useCase: 'public',
       });
 
-      // 2. Upload to S3
-      await fetch(uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type },
-      });
+      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
 
-      // 3. Add to Store
+      // Fetch the preview URL for immediate display
+      const params = new URLSearchParams(window.location.search);
+      const proposalId = window.location.pathname.split('/').slice(-2)[0]; // robust extract
+      const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+
       onAdd({
           id: crypto.randomUUID(),
-          url: publicUrl!,
+          url: viewUrl, // For display
+          key: key,     // For DB persistence
           type,
-          caption: file.name
+          caption: ''
       });
       
       toast.success('Uploaded successfully!');
@@ -63,20 +73,21 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
   // --- URL Handler ---
   const handleUrlAdd = () => {
       if (!urlInput) return;
-      // Simple heuristic for type
+      
       const isVideo = urlInput.includes('youtube') || urlInput.includes('vimeo') || urlInput.endsWith('.mp4');
-      const isImage = urlInput.match(/\.(jpeg|jpg|gif|png)$/) != null;
+      const isImage = urlInput.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
       
       onAdd({
           id: crypto.randomUUID(),
           url: urlInput,
+          key: urlInput, 
           type: isVideo ? 'VIDEO' : (isImage ? 'IMAGE' : 'DOCUMENT'),
-          caption: 'External Media'
+          caption: ''
       });
       setUrlInput('');
   };
@@ -114,9 +125,9 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
                         placeholder="https://..." 
                         value={urlInput}
                         onChange={(e) => setUrlInput(e.target.value)}
-                        className="flex-1"
+                        className="flex-1 rounded-xl"
                     />
-                    <Button onClick={handleUrlAdd} disabled={!urlInput}>Add</Button>
+                    <Button onClick={handleUrlAdd} disabled={!urlInput} className="rounded-xl">Add</Button>
                 </TabsContent>
             </Tabs>
         </div>
@@ -129,7 +140,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
                         {/* Thumbnail / Icon */}
                         <div className="h-20 w-20 shrink-0 rounded-lg overflow-hidden bg-muted flex items-center justify-center border border-border">
                             {item.type === 'IMAGE' ? (
-                                <img src={item.url} alt={item.caption} className="h-full w-full object-cover" />
+                                <img src={item.url} alt={item.caption || 'Preview'} className="h-full w-full object-cover" />
                             ) : item.type === 'VIDEO' ? (
                                 <Video className="h-8 w-8 text-muted-foreground" />
                             ) : (
@@ -138,26 +149,26 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
                         </div>
 
                         {/* Details Editor */}
-                        <div className="flex-1 min-w-0 flex flex-col gap-2">
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground uppercase">{item.type}</span>
-                                </div>
-                                <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-destructive" onClick={() => onRemove(item.id)}>
-                                    <X className="h-4 w-4" />
+                        <div className="flex-1 min-w-0 flex flex-col gap-2 justify-center">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground uppercase tracking-wide">{item.type}</span>
+                                
+                                <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md" 
+                                    onClick={() => onRemove(item.id)}
+                                >
+                                    <X className="h-3.5 w-3.5" />
                                 </Button>
                             </div>
                             
                             <Input 
                                 value={item.caption} 
                                 onChange={(e) => onUpdate(item.id, { caption: e.target.value })}
-                                className="h-8 text-xs"
-                                placeholder="Add a caption..."
+                                className="h-8 text-xs bg-muted/30 border-transparent focus:bg-background focus:border-input rounded-lg"
+                                placeholder="Add a caption (optional)..."
                             />
-                            
-                            <a href={item.url} target="_blank" rel="noreferrer" className="text-[10px] text-primary hover:underline truncate">
-                                {item.url}
-                            </a>
                         </div>
                     </div>
                 ))}
@@ -167,24 +178,44 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
   );
 }
 
-// Simple export for single image upload (Legacy support for coverImage)
-export function ImageUploader({ onUploadComplete, label }: { onUploadComplete: (url: string) => void, label: string, useCase?: string }) {
+// Simple export for single image upload
+export function ImageUploader({ 
+    onUploadComplete, 
+    label, 
+    useCase = 'public' 
+}: { 
+    onUploadComplete: (data: { key: string; previewUrl: string }) => void, 
+    label: string, 
+    useCase?: 'public' | 'kyc' | 'docs' 
+}) {
+    const params = useParams();
+    const proposalId = params.id as string;
     const [isLoading, setIsLoading] = useState(false);
+
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if(!file) return;
         setIsLoading(true);
         try {
-            const { uploadUrl, publicUrl } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase: 'public' });
+            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({ 
+                fileType: file.type, 
+                useCase 
+            });
+
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: {'Content-Type': file.type} });
-            onUploadComplete(publicUrl!);
+
+            const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+            
+            // Return the full data object
+            onUploadComplete({ key, previewUrl: viewUrl });
+            toast.success('Uploaded!');
         } catch(e) { toast.error('Failed'); } finally { setIsLoading(false); }
     };
 
     return (
-        <label className={cn("flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-xl cursor-pointer bg-muted/20 hover:bg-muted/40 transition-colors", isLoading && "opacity-50")}>
-            {isLoading ? <Loader2 className="animate-spin" /> : <UploadCloud />}
-            <span className="mt-2 text-sm text-muted-foreground">{label}</span>
+        <label className={cn("flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-xl cursor-pointer bg-muted/20 hover:bg-muted/40 transition-colors", isLoading && "opacity-50 cursor-wait")}>
+            {isLoading ? <Loader2 className="animate-spin text-muted-foreground h-8 w-8" /> : <UploadCloud className="text-muted-foreground h-8 w-8" />}
+            <span className="mt-2 text-sm text-muted-foreground font-medium">{label}</span>
             <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isLoading} />
         </label>
     )

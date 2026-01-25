@@ -94,6 +94,9 @@ export const ApiService = {
     // 6. Get a presigned URL for file uploads
     getUploadUrl: (data: { fileType: string; useCase: 'public' | 'kyc' | 'docs' }) =>
       apiClient.post('/proposals/upload-url', data).then(r => r.data),
+
+    getPreviewUrl: (key: string, proposalId: string) =>
+      apiClient.get(`/proposals/preview-url?key=${key}&proposalId=${proposalId}`).then(r => r.data),
   },
 
   // --- PROJECTS ---
