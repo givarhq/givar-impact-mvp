@@ -11,7 +11,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="sticky top-0 h-screen p-4">
+    <div className="sticky top-0 h-screen w-full p-4 hidden md:block">
       <div className="h-full flex flex-col gap-4 rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-xl overflow-hidden">
         
         {/* Brand Area */}
@@ -45,7 +45,7 @@ export function Sidebar() {
           <nav className="grid items-start gap-2 text-sm font-medium">
             {dashboardNav.map((item, index) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
               return (
                 <Link
