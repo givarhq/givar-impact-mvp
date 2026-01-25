@@ -23,6 +23,8 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
     ? `/explore/${project.slug}` 
     : `/dashboard/impact/${project.slug}`;
 
+  const donateLink = `${detailsLink}/donate`;
+
   return (
     <div className="group relative flex flex-col rounded-2xl p-[1px] bg-gradient-to-b from-border/50 to-transparent hover:from-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
       
@@ -50,7 +52,7 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
                 </div>
                 <div className="absolute top-2 right-2">
                     <div className="bg-emerald-500/90 text-white p-0.5 rounded-full shadow-sm backdrop-blur-sm" title="Verified">
-                        <ShieldCheck className="h-4 w-4" />
+                        <ShieldCheck className="h-3 w-3" />
                     </div>
                 </div>
             </div>
@@ -95,16 +97,13 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
         </Link>
 
         <div className="p-4 pt-0 mt-auto flex gap-2">
-            <Button 
-                onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onDonate(project);
-                }}
-                className="flex-1 h-9 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-semibold shadow-none transition-all"
-            >
-                Donate
-            </Button>
+            <Link href={donateLink} className="flex-1">
+                <Button 
+                    className="w-full h-9 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-semibold shadow-none transition-all"
+                >
+                    Donate
+                </Button>
+            </Link>
             
             <Button
                 variant="outline"
