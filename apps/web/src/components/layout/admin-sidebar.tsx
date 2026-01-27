@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, ShieldAlert, LogOut, Lock } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, ShieldAlert, LogOut, Lock, BadgeCheck, NotebookPen } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
 import { deleteCookie } from 'cookies-next';
@@ -12,6 +12,8 @@ const navItems = [
   { title: 'Overview', href: '/admin', icon: LayoutDashboard },
   { title: 'Users', href: '/admin/users', icon: Users },
   { title: 'Projects', href: '/admin/projects', icon: FileText },
+  { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
+  { title: 'Proposals', href: '/admin/proposals', icon: NotebookPen },
   { title: 'Audit Log', href: '/admin/audit', icon: ShieldAlert },
 ];
 
