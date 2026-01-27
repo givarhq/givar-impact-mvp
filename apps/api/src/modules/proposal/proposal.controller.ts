@@ -4,6 +4,7 @@ import { StorageService } from '../storage/storage.service';
 import { GetUploadUrlDto } from './dto/upload.dto';
 import { ProposalService } from './proposal.service';
 import { CreateProposalDto, UpdateProposalDto } from './dto/proposal.dto';
+import { UserRole } from '@givar/database';
 
 @Controller('proposals')
 @UseGuards(AuthGuard('jwt'))
@@ -28,12 +29,13 @@ export class ProposalController {
       throw new BadRequestException('File key and proposal context are required');
     }
 
-    await this.service.verifyOwnership(proposalId, req.user.id);
-    
-    if (!key.startsWith(`proposals/${req.user.id}/`)) {
-        throw new ForbiddenException('Invalid file key path.');
+    if (req.user.role !== UserRole.ADMIN) {
+        await this.service.verifyOwnership(proposalId, req.user.id);
+        
+        if (!key.startsWith(`proposals/${req.user.id}/`)) {
+            throw new ForbiddenException('Invalid file key path.');
+        }
     }
-
     return this.storage.getPresignedViewUrl(key);
   }
 
