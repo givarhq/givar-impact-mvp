@@ -290,4 +290,22 @@ export const ApiService = {
     requestChanges: (id: string, feedback: string) =>
       apiClient.patch(`/admin/proposals/${id}/request-changes`, { feedback }).then(r => r.data),
   },
+
+  // Organization Verification Domain
+  organizations: {
+    submitKyc: (data: { legalName: string, registrationNumber?: string, documentKeys: string[] }) =>
+      apiClient.post('/organizations/verify', data).then(r => r.data),
+
+    getMe: (token?: string) =>
+      token 
+        ? serverFetch<any>('/organizations/me', token)
+        : apiClient.get('/organizations/me').then(r => r.data),
+
+    // Admin Methods
+    getPending: (token: string) =>
+      serverFetch<any[]>('/organizations/admin/pending', token),
+
+    review: (id: string, data: { status: 'VERIFIED' | 'REJECTED', feedback?: string }) =>
+      apiClient.patch(`/organizations/admin/review/${id}`, data).then(r => r.data),
+  },
 };
