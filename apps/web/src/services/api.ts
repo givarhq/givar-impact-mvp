@@ -8,72 +8,96 @@ const API_V1 = `${BASE_URL}/v1`;
 
 async function serverFetch<T>(
   endpoint: string,
-  token: string,
+  token?: string, 
   options: RequestInit = {}
 ): Promise<T | null> {
   const cookieStore = await cookies();
-  
-  const headers: Record<string, string> = {
+
+  const sanitizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const fullUrl = `${API_V1}${sanitizedEndpoint}`;
+
+  const baseHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
 
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    baseHeaders.Authorization = `Bearer ${token}`;
   }
-
-  const fullUrl = `${API_V1}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   try {
     let res = await fetch(fullUrl, {
-      headers,
-      cache: 'no-store',
       ...options,
+      headers: baseHeaders,
+      cache: 'no-store',
     });
 
-    // Server-Side Token Refresh Logic
-    if (res.status === 401) {
+    // --------------------------------------------------
+    // 401 → Attempt server-side refresh (Rescue the render)
+    // --------------------------------------------------
+    if (res.status === 401 && !endpoint.includes('/auth/refresh')) {
       const refreshToken = cookieStore.get('givar_refresh_token')?.value;
 
       if (refreshToken) {
         try {
           const refreshRes = await fetch(`${API_V1}/auth/refresh`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${refreshToken}`, 'Content-Type': 'application/json' },
+            headers: {
+              'Authorization': `Bearer ${refreshToken}`,
+              'Content-Type': 'application/json',
+            },
+            cache: 'no-store',
           });
 
           if (refreshRes.ok) {
             const { accessToken } = await refreshRes.json();
-            
+
+            /* 
+               NOTE: We CANNOT call cookieStore.set() here because this 
+               function is called during Server Component rendering. 
+               
+               We simply use the new accessToken to retry the current request 
+               so the page loads correctly for the user.
+            */
+
             const retryRes = await fetch(fullUrl, {
-              headers: { ...headers, 'Authorization': `Bearer ${accessToken}` },
-              cache: 'no-store',
               ...options,
+              headers: {
+                ...(options.headers as Record<string, string>),
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+              },
+              cache: 'no-store',
             });
 
             if (retryRes.ok) return retryRes.json();
           }
-        } catch (e) {
-          console.error("Server-side refresh failed");
+        } catch (err) {
+          console.error(`[ServerFetch] Rescue failed for ${fullUrl}`, err);
         }
       }
 
-      console.error(`Auth Session Expired at ${endpoint}`);
+      // If rescue fails, redirect to clear session
       redirect('/api/auth/clear-session');
     }
 
     if (!res.ok) {
-        console.error(`API Error ${fullUrl}: ${res.status}`);
-        return null;
+      console.error(`[ServerFetch] API error ${res.status} at ${fullUrl}`);
+      return null;
     }
-    
+
     return res.json();
+
   } catch (error) {
-    console.error(`NETWORK ERROR at ${fullUrl}:`, error);
+    // If it's a redirect thrown by Next.js, re-throw it so Next.js can handle it
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error;
     
+    console.error(`[ServerFetch] NETWORK ERROR at ${fullUrl}`, error);
+
     if (process.env.NODE_ENV === 'development') {
-        throw new Error(`Fetch failed to ${fullUrl}. Is the backend API running?`);
+      throw new Error(`Fetch failed to ${fullUrl}. Is the backend running?`);
     }
+
     return null;
   }
 }
@@ -140,6 +164,9 @@ export const ApiService = {
 
     getPreviewUrl: (key: string, proposalId: string) =>
       apiClient.get(`/proposals/preview-url?key=${key}&proposalId=${proposalId}`).then(r => r.data),
+
+    delete: (id: string) => 
+      apiClient.delete(`/proposals/${id}`).then(r => r.data),
   },
 
   // --- PROJECTS ---
