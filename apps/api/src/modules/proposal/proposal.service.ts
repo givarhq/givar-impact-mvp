@@ -90,6 +90,24 @@ export class ProposalService {
     }));
   }
 
+  async deleteProposal(userId: string, proposalId: string) {
+    const proposal = await this.getProposalOrThrow(proposalId, userId);
+
+    // Guard: Can only delete Drafts or Rejected proposals.
+    // Submitted/Under Review proposals are locked to preserve audit trails during review.
+    if (
+      proposal.status !== ProposalStatus.DRAFT && 
+      proposal.status !== ProposalStatus.REJECTED &&
+      proposal.status !== ProposalStatus.CHANGES_REQUESTED
+    ) {
+      throw new ForbiddenException('Cannot delete a proposal currently under review or approved.');
+    }
+
+    return this.prisma.projectProposal.delete({
+      where: { id: proposalId },
+    });
+  }
+
   // 5. Get Single Proposal (for editing)
   async getOne(userId: string, proposalId: string) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);

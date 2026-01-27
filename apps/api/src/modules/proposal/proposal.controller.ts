@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, Param, Patch, Post, Query, Req, UseGuards, Delete } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { StorageService } from '../storage/storage.service';
 import { GetUploadUrlDto } from './dto/upload.dto';
@@ -62,5 +62,10 @@ export class ProposalController {
   @Patch(':id/submit')
   submit(@Req() req: any, @Param('id') id: string) {
     return this.service.submitProposal(req.user.id, id);
+  }
+
+  @Delete(':id')
+  delete(@Req() req: any, @Param('id') id: string) {
+    return this.service.deleteProposal(req.user.id, id);
   }
 }
