@@ -70,7 +70,10 @@ async function serverFetch<T>(
               cache: 'no-store',
             });
 
-            if (retryRes.ok) return retryRes.json();
+            if (retryRes.ok) {
+  const retryText = await retryRes.text();
+  return retryText ? JSON.parse(retryText) : null;
+}
           }
         } catch (err) {
           console.error(`[ServerFetch] Rescue failed for ${fullUrl}`, err);
@@ -86,7 +89,8 @@ async function serverFetch<T>(
       return null;
     }
 
-    return res.json();
+    const text = await res.text();
+return text ? JSON.parse(text) : null;
 
   } catch (error) {
     // If it's a redirect thrown by Next.js, re-throw it so Next.js can handle it
