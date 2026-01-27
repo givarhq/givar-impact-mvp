@@ -6,6 +6,8 @@ export enum Currency {
 
 export type TxType = 'DEBIT' | 'CREDIT';
 export type TxStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
+export type VerificationStatus = 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+
 export interface Project {
   id: string;
   slug: string;
@@ -127,6 +129,19 @@ export interface ProjectProposal {
   category: {
     name: string;
   };
+}
+
+export interface OrganizationProfile {
+  id: string;
+  userId: string;
+  legalName: string;
+  registrationNumber?: string;
+  documentKeys: string[];
+  status: VerificationStatus;
+  adminFeedback?: string;
+  verifiedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface OverviewCardsProps {
