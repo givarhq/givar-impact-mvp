@@ -247,5 +247,17 @@ export const ApiService = {
       
     getAuditSummary: (token: string) =>
       serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token),
+
+    getProposals: (token: string) =>
+      serverFetch<any[]>('/admin/proposals', token),
+
+    getProposalDetail: (token: string, id: string) =>
+      serverFetch<any>(`/admin/proposals/${id}`, token),
+
+    approveProposal: (id: string) =>
+      apiClient.patch(`/admin/proposals/${id}/approve`).then(r => r.data),
+
+    rejectProposal: (id: string, feedback: string) =>
+      apiClient.patch(`/admin/proposals/${id}/reject`, { feedback }).then(r => r.data),
   },
 };

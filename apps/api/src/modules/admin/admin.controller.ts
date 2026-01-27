@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -34,5 +34,26 @@ export class AdminController {
   @Patch('projects/:id/suspend')
   suspendProject(@Param('id') id: string) {
     return this.service.suspendProject(id);
+  }
+
+  @Get('proposals')
+  getProposals() {
+    return this.service.getSubmittedProposals();
+  }
+
+  // Single Proposal Detail (Admins see everything including KYC)
+  @Get('proposals/:id')
+  async getProposalDetail(@Param('id') id: string) {
+    return this.service.getProposalDetail(id);
+  }
+
+  @Patch('proposals/:id/approve')
+  approve(@Param('id') id: string, @Req() req: any) {
+    return this.service.approveAndPromote(id, req.user.id);
+  }
+
+  @Patch('proposals/:id/reject')
+  reject(@Param('id') id: string, @Req() req: any, @Body('feedback') feedback: string) {
+    return this.service.rejectProposal(id, req.user.id, feedback);
   }
 }
