@@ -4,7 +4,9 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ProposalStatus, UserRole } from '@givar/database';
 import { AdminService } from './admin.service';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Roles(UserRole.ADMIN)
