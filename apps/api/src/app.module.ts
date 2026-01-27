@@ -13,6 +13,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { ProposalModule } from './modules/proposal/proposal.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { OrganizationModule } from './modules/organization/organization.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { StorageModule } from './modules/storage/storage.module';
     AdminModule,
     StorageModule,
     ProposalModule,
+    OrganizationModule,
   ],
   controllers: [],
   providers: [
