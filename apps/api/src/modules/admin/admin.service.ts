@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { ProjectStatus, ProposalStatus, AuditAction } from '@givar/database';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(AdminService.name);
+  constructor(
+    private prisma: PrismaService,
+    private storage: StorageService,
+  ) {}
 
   // Dashboard Stats
   async getDashboardStats() {
@@ -48,6 +53,8 @@ export class AdminService {
     });
   }
 
+  // --- PROPOSAL MANAGEMENT ---
+
   async getSubmittedProposals() {
     return this.prisma.projectProposal.findMany({
       where: {
@@ -61,20 +68,71 @@ export class AdminService {
     });
   }
 
-  // Promotion Logic
+  async getProposalDetail(id: string) {
+    const proposal = await this.prisma.projectProposal.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            emailVerified: true,
+          }
+        },
+        category: true,
+      },
+    });
+
+    if (!proposal) {
+      throw new NotFoundException(`Proposal with ID ${id} not found`);
+    }
+
+    if (proposal.coverImage && !proposal.coverImage.startsWith('http')) {
+        try {
+            const { viewUrl } = await this.storage.getPresignedViewUrl(proposal.coverImage);
+            proposal.coverImage = viewUrl;
+        } catch (e: any) {
+            this.logger.warn(`Failed to sign cover image: ${e.message}`);
+        }
+    }
+
+    if (proposal.gallery && Array.isArray(proposal.gallery)) {
+        const signedGallery = await Promise.all(
+            (proposal.gallery as any[]).map(async (item) => {
+                if (typeof item === 'string' && !item.startsWith('http')) {
+                     try {
+                        const { viewUrl } = await this.storage.getPresignedViewUrl(item);
+                        return viewUrl;
+                     } catch { return item; }
+                }
+                if (typeof item === 'object' && item.url && !item.url.startsWith('http')) {
+                     try {
+                        const { viewUrl } = await this.storage.getPresignedViewUrl(item.url);
+                        return { ...item, url: viewUrl };
+                     } catch { return item; }
+                }
+                return item;
+            })
+        );
+        proposal.gallery = signedGallery;
+    }
+
+    return proposal;
+  }
+
   async approveAndPromote(proposalId: string, adminId: string) {
     const proposal = await this.prisma.projectProposal.findUnique({
       where: { id: proposalId },
       include: { category: true },
     });
 
-    if (!proposal || proposal.status !== ProposalStatus.SUBMITTED && proposal.status !== ProposalStatus.UNDER_REVIEW) {
+    if (!proposal || (proposal.status !== ProposalStatus.SUBMITTED && proposal.status !== ProposalStatus.UNDER_REVIEW)) {
       throw new BadRequestException('Proposal is not in a submittable state for approval');
     }
 
-    // Atomic Promotion Transaction
     return this.prisma.$transaction(async (tx) => {
-      // 1. Create the public Project
       const project = await tx.project.create({
         data: {
           title: proposal.title!,
@@ -93,7 +151,6 @@ export class AdminService {
         },
       });
 
-      // 2. Update Proposal Status
       await tx.projectProposal.update({
         where: { id: proposalId },
         data: {
@@ -103,8 +160,7 @@ export class AdminService {
         },
       });
 
-      // 3. Log the high-level Audit event
-      await this.prisma.auditLog.create({
+      await tx.auditLog.create({
         data: {
           userId: adminId,
           action: AuditAction.PROJECT_CREATED,
@@ -129,26 +185,25 @@ export class AdminService {
     });
   }
 
-  async getProposalDetail(id: string) {
-    const proposal = await this.prisma.projectProposal.findUnique({
+  async requestChanges(id: string, adminId: string, feedback: string) {
+    const proposal = await this.prisma.projectProposal.update({
       where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            emailVerified: true,
-          }
-        },
-        category: true,
+      data: {
+        status: ProposalStatus.CHANGES_REQUESTED,
+        adminFeedback: feedback,
+        reviewedBy: adminId,
       },
     });
 
-    if (!proposal) {
-      throw new NotFoundException(`Proposal with ID ${id} not found`);
-    }
+    await this.prisma.auditLog.create({
+        data: {
+            userId: adminId,
+            action: AuditAction.PROJECT_UPDATED,
+            entityId: id,
+            entityType: 'ProjectProposal',
+            metadata: { action: 'REQUEST_CHANGES', feedback }
+        }
+    });
 
     return proposal;
   }
