@@ -178,30 +178,99 @@ export class AuthService {
     }
   }
 
-  async refreshToken(userId: string, rt: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    
-    if (!user || !user.refreshTokenHash || (user.accountLockedUntil && user.accountLockedUntil > new Date())) {
+  // Secure manual verification of the Refresh Token
+  private async verifyRefreshToken(token: string) {
+    try {
+      return await this.jwtService.verifyAsync(token, {
+        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
+      });
+    } catch (e) {
+      throw new ForbiddenException('Access Denied');
+    }
+  }
+
+  async refreshToken(rt: string, req?: any) {
+    // 1. Securely extract userId from the token payload, NOT from client input
+    const payload = await this.verifyRefreshToken(rt);
+    const userId = payload.sub;
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    // 2. Security Guards: Account status and existence
+    if (
+      !user ||
+      !user.refreshTokenHash ||
+      (user.accountLockedUntil && user.accountLockedUntil > new Date())
+    ) {
       throw new ForbiddenException('Access Denied');
     }
 
-    const rtMatches = await bcrypt.compare(rt, user.refreshTokenHash);
-    if (!rtMatches) throw new ForbiddenException('Access Denied');
+    // 3. Expiration Guard
+    if (user.refreshTokenExpiresAt && user.refreshTokenExpiresAt < new Date()) {
+       throw new ForbiddenException('Refresh token expired');
+    }
 
+    const rtMatches = await bcrypt.compare(rt, user.refreshTokenHash);
+
+    // 4. Refresh Token Reuse / Theft Detection
+    if (!rtMatches) {
+      // THE NUCLEAR OPTION: If tokens don't match, someone is using an old/stolen token.
+      // We invalidate everything to protect the user.
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          refreshTokenHash: null,
+          refreshTokenExpiresAt: null,
+        },
+      });
+
+      await this.audit.log({
+        userId: user.id,
+        action: AuditAction.USER_LOGIN_FAILED,
+        entityType: 'Session',
+        metadata: { reason: 'Refresh Token Reuse Detected - Session Nuked' },
+        req,
+      });
+
+      throw new ForbiddenException('Access Denied');
+    }
+
+    // 5. Issue fresh token pair (ROTATION)
     const { accessToken, refreshToken } = await this.getTokens(user.id, user.email, user.role);
+
+    // 6. Update Hash and Expiry Date
     await this.updateRefreshTokenHash(user.id, refreshToken);
 
-    return { 
-      accessToken, 
+    return {
+      accessToken,
       refreshToken,
       user: {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role
-      }
+        role: user.role,
+      },
     };
+  }
+
+  // Updated helper to store expiration
+  private async updateRefreshTokenHash(userId: string, refreshToken: string) {
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(refreshToken, salt);
+    
+    // Set database expiry to match JWT expiry (7 days)
+    const expiresAt = add(new Date(), { days: 7 });
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { 
+        refreshTokenHash: hash,
+        refreshTokenExpiresAt: expiresAt 
+      },
+    });
   }
 
   async logout(userId: string) {
@@ -232,14 +301,5 @@ export class AuthService {
     });
 
     return { accessToken, refreshToken };
-  }
-
-  private async updateRefreshTokenHash(userId: string, refreshToken: string) {
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(refreshToken, salt);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { refreshTokenHash: hash },
-    });
   }
 }

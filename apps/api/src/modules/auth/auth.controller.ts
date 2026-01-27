@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } 
+import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Post, Req, UseGuards } 
 from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
@@ -33,13 +33,11 @@ export class AuthController {
     return this.authService.login(dto, req);
   }
 
-  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refreshToken(@Req() req: any) {
-    const userId = req.user.sub;
-    const refreshToken = req.user.refreshToken;
-    return this.authService.refreshToken(userId, refreshToken);
+  async refreshToken(@Body('refreshToken') rt: string, @Req() req: any) {
+    if (!rt) throw new ForbiddenException('Refresh token required');
+    return this.authService.refreshToken(rt, req);
   }
 
   @UseGuards(AuthGuard('jwt'))

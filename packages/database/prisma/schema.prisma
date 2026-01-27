@@ -124,6 +124,7 @@ model User {
   emailVerificationToken String?    @unique
   
   refreshTokenHash      String?     @unique
+  refreshTokenExpiresAt DateTime?
 
   failedLoginAttempts   Int         @default(0)
   accountLockedUntil    DateTime?
