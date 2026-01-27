@@ -65,8 +65,8 @@ export default async function AdminProposalsPage({
                                 <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded">ID: {p.id.split('-')[0]}</span>
                             </div>
                             <div>
-                                <h3 className="font-bold text-xl text-foreground group-hover:text-primary transition-colors line-clamp-1">{p.title || 'Untitled Proposal'}</h3>
-                                <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{p.shortDesc || 'No summary provided'}</p>
+                                <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">{p.title || 'Untitled Proposal'}</h3>
+                                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{p.shortDesc || 'No summary provided'}</p>
                             </div>
                             <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-[11px] font-medium text-muted-foreground uppercase tracking-tight">
                                 <span className="flex items-center gap-1.5"><AlertCircle className="h-3.5 w-3.5 text-primary" /> {p.category?.name}</span>
@@ -75,7 +75,7 @@ export default async function AdminProposalsPage({
                             </div>
                         </div>
                         <Link href={`/admin/proposals/${p.id}`} className="shrink-0 relative z-10 w-full md:w-auto">
-                            <Button variant="secondary" className="w-full md:w-auto rounded-xl gap-2 font-bold px-6 h-12 bg-primary/5 hover:bg-primary hover:text-white border-transparent transition-all group/btn shadow-none hover:shadow-lg hover:shadow-primary/20">
+                            <Button variant="secondary" className="w-full md:w-auto rounded-xl gap-2 font-bold px-6 bg-primary/5 hover:bg-primary hover:text-white border-transparent transition-all group/btn shadow-none hover:shadow-lg hover:shadow-primary/20">
                                 Review Details <Eye className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
                             </Button>
                         </Link>
