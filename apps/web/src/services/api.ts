@@ -259,5 +259,8 @@ export const ApiService = {
 
     rejectProposal: (id: string, feedback: string) =>
       apiClient.patch(`/admin/proposals/${id}/reject`, { feedback }).then(r => r.data),
+
+    requestChanges: (id: string, feedback: string) =>
+      apiClient.patch(`/admin/proposals/${id}/request-changes`, { feedback }).then(r => r.data),
   },
 };

@@ -82,6 +82,53 @@ export interface Wallet {
   balance: string;
 }
 
+export interface ProjectProposal {
+  id: string;
+  userId: string;
+  title: string;
+  shortDesc: string;
+  description: string;
+  location: string;
+  targetAmount: string; // Serialized BigInt
+  currency: 'NGN' | 'USD' | 'GBP';
+  
+  coverImage: string | null;
+  gallery: { url: string; type: 'IMAGE' | 'VIDEO' | 'DOCUMENT'; caption?: string }[];
+  
+  budgetBreakdown: { 
+    item: string; 
+    cost: number; 
+    vendor: string; 
+    type: string 
+  }[];
+  
+  executionTimeline: { 
+    phase: string; 
+    estimatedDate: string; 
+    deliverables: string 
+  }[];
+  
+  riskAnalysis: string | null;
+  
+  kycDocuments: string[];
+  organizationName: string | null;
+  contactPhone: string | null;
+  beneficiaryContact: string | null;
+
+  status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
+  submittedAt: string;
+  
+  // Relations
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  category: {
+    name: string;
+  };
+}
+
 export interface OverviewCardsProps {
   wallet: { balance: string; currency: string };
   totalImpact: string; 
