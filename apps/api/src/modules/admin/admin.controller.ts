@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nes
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole } from '@givar/database';
+import { ProposalStatus, UserRole } from '@givar/database';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
@@ -37,8 +37,20 @@ export class AdminController {
   }
 
   @Get('proposals')
-  getProposals() {
-    return this.service.getSubmittedProposals();
+  getProposals(
+    @Query('search') search?: string,
+    @Query('status') status?: ProposalStatus,
+    @Query('category') category?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.getSubmittedProposals({
+      search,
+      status,
+      category,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+    });
   }
 
   // Single Proposal Detail (Admins see everything including KYC)

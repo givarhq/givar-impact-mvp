@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { ProjectStatus, ProposalStatus, AuditAction } from '@givar/database';
+import { ProjectStatus, ProposalStatus, AuditAction, Prisma } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 
 @Injectable()
@@ -55,17 +55,58 @@ export class AdminService {
 
   // --- PROPOSAL MANAGEMENT ---
 
-  async getSubmittedProposals() {
-    return this.prisma.projectProposal.findMany({
-      where: {
-        status: { in: [ProposalStatus.SUBMITTED, ProposalStatus.UNDER_REVIEW, ProposalStatus.CHANGES_REQUESTED] },
-      },
-      include: {
-        user: { select: { email: true, firstName: true, lastName: true } },
-        category: { select: { name: true } },
-      },
-      orderBy: { submittedAt: 'desc' },
-    });
+  async getSubmittedProposals(query: {
+    search?: string;
+    status?: ProposalStatus;
+    category?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const { search, status, category, page = 1, limit = 20 } = query;
+    const skip = (page - 1) * limit;
+
+    // 1. Build Dynamic Filter
+    const where: Prisma.ProjectProposalWhereInput = {
+      status: status ? status : { not: ProposalStatus.DRAFT },
+      
+      ...(category && { category: { slug: category } }),
+      
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+          { user: { firstName: { contains: search, mode: 'insensitive' } } },
+        ],
+      }),
+    };
+
+    // 2. Parallel execution for performance
+    const [proposals, total] = await Promise.all([
+      this.prisma.projectProposal.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          user: { select: { email: true, firstName: true, lastName: true } },
+          category: { select: { name: true, slug: true } },
+        },
+        orderBy: { submittedAt: 'desc' },
+      }),
+      this.prisma.projectProposal.count({ where }),
+    ]);
+
+    // 3. Serialize
+    return {
+      data: proposals.map(p => ({
+        ...p,
+        targetAmount: p.targetAmount?.toString() || '0'
+      })),
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      }
+    };
   }
 
   async getProposalDetail(id: string) {
