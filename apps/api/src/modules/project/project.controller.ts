@@ -6,6 +6,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { ProjectService } from './project.service';
 import { CreateProjectDto, ProjectQueryDto, UpdateProjectDto } from './dto/project.dto';
 import { Public } from '../../common/decorators/public.decorator';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @Controller('projects')
 export class ProjectController {
@@ -53,6 +54,7 @@ export class ProjectController {
     return this.service.remove(id);
   }
 
+  @SkipThrottle()
   @Public()
   @Get('categories/list')
   getCategories() {
