@@ -11,6 +11,7 @@ import {
   LogOut,
   Settings,
   ChevronDown,
+  ShieldCheck,
 } from 'lucide-react';
 import { deleteCookie, getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
@@ -170,20 +171,17 @@ export function Header() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => router.push('/dashboard/settings')}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
+            <DropdownMenuItem className="rounded-lg cursor-pointer" onClick={() => router.push('/dashboard/verify')}>
+              <ShieldCheck className="mr-2 h-4 w-4" /> <span>Verification Status</span>
             </DropdownMenuItem>
+
+            <DropdownMenuItem className="rounded-lg cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
+              <Settings className="mr-2 h-4 w-4" /> <span>Settings</span>
+            </DropdownMenuItem>
+            
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleLogout}
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Logout</span>
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-lg cursor-pointer">
+              <LogOut className="mr-2 h-4 w-4" /> <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
