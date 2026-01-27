@@ -64,7 +64,7 @@ export default function TrustPage() {
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0">
-        <CardTitle className="text-2xl font-bold tracking-tight text-foreground">The Trust</CardTitle>
+        <CardTitle className="text-lg font-bold tracking-tight text-foreground">Verification</CardTitle>
         <CardDescription>
           Verify your identity. This information is confidential and used only for verification by the Givar team.
         </CardDescription>

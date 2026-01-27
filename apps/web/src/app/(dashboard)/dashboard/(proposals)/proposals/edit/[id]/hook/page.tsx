@@ -36,7 +36,7 @@ export default function HookPage() {
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold tracking-tight">The Hook</CardTitle>
+        <CardTitle className="text-lg font-bold tracking-tight">The Hook</CardTitle>
         <CardDescription>
           Craft a compelling story. This is the first thing donors will see.
         </CardDescription>

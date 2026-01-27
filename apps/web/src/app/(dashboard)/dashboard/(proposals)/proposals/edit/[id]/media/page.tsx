@@ -58,7 +58,7 @@ export default function MediaPage() {
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold tracking-tight">The Evidence</CardTitle>
+        <CardTitle className="text-lg font-bold tracking-tight">Media & Proof</CardTitle>
         <CardDescription>
           A great cover image is crucial. Use the gallery to add detailed photos, videos, or documents.
         </CardDescription>

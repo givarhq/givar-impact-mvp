@@ -42,7 +42,7 @@ export default function PlanPage() {
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0">
-        <CardTitle className="text-2xl font-bold tracking-tight">The Plan</CardTitle>
+        <CardTitle className="text-lg font-bold tracking-tight">Execution Plan</CardTitle>
         <CardDescription>
           Break down your budget and timeline. This is critical for transparency and admin approval.
         </CardDescription>
