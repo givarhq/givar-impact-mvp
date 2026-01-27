@@ -62,13 +62,13 @@ export default async function AdminProposalsPage({
                                 <Badge variant="outline" className={cn("text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-lg border", config)}>
                                     {p.status.replace('_', ' ')}
                                 </Badge>
-                                <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded">ID: {p.id.split('-')[0]}</span>
+                                <span className="text-[11px] text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded">ID: {p.id.split('-')[0]}</span>
                             </div>
                             <div>
                                 <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-1">{p.title || 'Untitled Proposal'}</h3>
                                 <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{p.shortDesc || 'No summary provided'}</p>
                             </div>
-                            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-[11px] font-medium text-muted-foreground uppercase tracking-tight">
+                            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-[12px] font-medium text-muted-foreground tracking-tight">
                                 <span className="flex items-center gap-1.5"><AlertCircle className="h-3.5 w-3.5 text-primary" /> {p.category?.name}</span>
                                 <span className="flex items-center gap-1.5"><Inbox className="h-3.5 w-3.5 text-primary" /> {p.user?.firstName} {p.user?.lastName}</span>
                                 <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-primary" /> {formatDate(p.submittedAt)}</span>
