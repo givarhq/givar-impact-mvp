@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Search,
   CornerDownLeft,
-  Plus,
+  Heart,
   CircleUser,
   LogOut,
   Settings,
@@ -129,7 +129,7 @@ export function Header() {
           className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hidden md:flex items-center gap-2 h-10 px-4"
           onClick={() => router.push('/dashboard/impact')}
         >
-          <Plus className="h-4 w-4" />
+          <Heart className="h-4 w-4" />
           <span>Donate</span>
         </Button>
 
