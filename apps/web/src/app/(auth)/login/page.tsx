@@ -38,12 +38,9 @@ export default function LoginPage() {
     setServerError(null);
     
     try {
-      // Destructure refreshToken
-      const { accessToken, refreshToken, user } = await ApiService.auth.login(data);
+      const { accessToken, user } = await ApiService.auth.login(data);
       
-      setCookie('givar_token', accessToken, { maxAge: 900 }); // 15 mins (Access)
-      // Store Refresh Token for 7 days
-      setCookie('givar_refresh_token', refreshToken, { maxAge: 604800 }); 
+      setCookie('givar_token', accessToken, { maxAge: 604800 }); 
       setCookie('givar_user', JSON.stringify(user), { maxAge: 604800 });
 
       toast.success('Successfully logged in');
