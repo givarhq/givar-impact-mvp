@@ -85,7 +85,10 @@ async function serverFetch<T>(
     }
 
     if (!res.ok) {
-      console.error(`[ServerFetch] API error ${res.status} at ${fullUrl}`);
+      const errorData = await res.json().catch(() => ({}));
+      console.error(
+        `[ServerFetch] ${res.status} at ${endpoint}: ${errorData.message || res.statusText}`
+      );
       return null;
     }
 

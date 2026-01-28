@@ -20,12 +20,7 @@ export class GoalController {
     @Query('interval') interval: GoalInterval,
   ) {
     const validInterval = interval || GoalInterval.MONTHLY;
-    const goal = await this.goalService.getActiveGoalProgress(req.user.id, validInterval);
+    return this.goalService.getActiveGoalProgress(req.user.id, validInterval);
     
-    if (!goal) {
-        throw new NotFoundException('No active goal found for the specified interval.');
-    }
-    
-    return goal;
   }
 }
