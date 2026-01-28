@@ -267,32 +267,34 @@ export class AdminService {
 
   async createProject(adminId: string, dto: CreateAdminProjectDto) {
     const slug = this.generateSlug(dto.title);
+    
+    const createData: Prisma.ProjectCreateInput = {
+      title: dto.title,
+      description: dto.description,
+      shortDesc: dto.shortDesc,
+      location: dto.location,
+      currency: dto.currency,
+      imageUrl: dto.coverImage,
+      slug: slug,
+      targetAmount: BigInt(dto.targetAmount * 100),
+      raisedAmount: 0n,
+      status: ProjectStatus.ACTIVE,
+      isActive: true,
+      tags: dto.tags || ['Admin Created', 'Verified'],
+      
+      user: { connect: { id: adminId } },
+      category: { connect: { id: dto.categoryId } },
 
-    // Transform Major -> Minor units for DB
-    const targetAmountMinor = BigInt(dto.targetAmount * 100);
+      gallery: dto.gallery as unknown as Prisma.InputJsonValue,
+      budgetBreakdown: dto.budgetBreakdown as unknown as Prisma.InputJsonValue,
+      executionTimeline: dto.executionTimeline as unknown as Prisma.InputJsonValue,
+    };
 
     return this.prisma.$transaction(async (tx) => {
       const project = await tx.project.create({
-        data: {
-          userId: adminId, // Admin is the "Owner" initially
-          title: dto.title,
-          slug,
-          description: dto.description,
-          shortDesc: dto.shortDesc,
-          categoryId: dto.categoryId,
-          location: dto.location,
-          targetAmount: targetAmountMinor,
-          raisedAmount: 0n,
-          currency: dto.currency,
-          imageUrl: dto.coverImage,
-          gallery: dto.gallery as any, // Cast JSON
-          status: ProjectStatus.ACTIVE,
-          isActive: true,
-          tags: dto.tags || ['Admin Created', 'Verified'],
-        },
+        data: createData,
       });
 
-      // Audit
       await tx.auditLog.create({
         data: {
           userId: adminId,
@@ -307,16 +309,40 @@ export class AdminService {
     });
   }
 
-  // Direct Project Update
   async updateProject(adminId: string, projectId: string, dto: UpdateAdminProjectDto) {
     const existing = await this.prisma.project.findUnique({ where: { id: projectId } });
     if (!existing) throw new NotFoundException('Project not found');
 
-    const updateData: any = { ...dto };
-    if (dto.targetAmount) updateData.targetAmount = BigInt(dto.targetAmount * 100);
-    
-    // Remove complex fields if they are undefined to avoid overwriting with null
-    if (!dto.gallery) delete updateData.gallery;
+    const updateData: Prisma.ProjectUpdateInput = {
+      title: dto.title,
+      description: dto.description,
+      shortDesc: dto.shortDesc,
+      location: dto.location,
+      currency: dto.currency,
+      imageUrl: dto.coverImage,
+      status: dto.status,
+      isActive: dto.isActive,
+      tags: dto.tags,
+      endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+    };
+
+    if (dto.targetAmount) {
+      updateData.targetAmount = BigInt(dto.targetAmount * 100);
+    }
+
+    if (dto.categoryId) {
+      updateData.category = { connect: { id: dto.categoryId } };
+    }
+
+    if (dto.gallery) {
+      updateData.gallery = dto.gallery as unknown as Prisma.InputJsonValue;
+    }
+    if (dto.budgetBreakdown) {
+      updateData.budgetBreakdown = dto.budgetBreakdown as unknown as Prisma.InputJsonValue;
+    }
+    if (dto.executionTimeline) {
+      updateData.executionTimeline = dto.executionTimeline as unknown as Prisma.InputJsonValue;
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const project = await tx.project.update({
@@ -366,13 +392,28 @@ export class AdminService {
   async getProjectById(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-      include: {
-        category: true,
-        _count: { select: { donations: true } }
-      }
+      include: { category: true }
     });
 
     if (!project) throw new NotFoundException('Project not found');
+
+    if (project.imageUrl && !project.imageUrl.startsWith('http')) {
+      const { viewUrl } = await this.storage.getPresignedViewUrl(project.imageUrl);
+      project.imageUrl = viewUrl;
+    }
+
+    if (project.gallery && Array.isArray(project.gallery)) {
+      const signedGallery = await Promise.all(
+        (project.gallery as any[]).map(async (item) => {
+          if (item.url && !item.url.startsWith('http')) {
+            const { viewUrl } = await this.storage.getPresignedViewUrl(item.url);
+            return { ...item, url: viewUrl };
+          }
+          return item;
+        })
+      );
+      project.gallery = signedGallery as unknown as Prisma.JsonValue;
+    }
 
     return {
       ...project,

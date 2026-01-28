@@ -5,8 +5,7 @@ import {
 import { PartialType } from '@nestjs/mapped-types';
 import { Currency, ProjectStatus } from '@givar/database';
 
-
-class AdminBudgetItem {
+export class AdminBudgetItem {
   @IsString() id!: string;
   @IsString() item!: string;
   @IsNumber() @Min(0) cost!: number;
@@ -15,14 +14,14 @@ class AdminBudgetItem {
   @IsString() type!: string;
 }
 
-class AdminTimelineItem {
+export class AdminTimelineItem {
   @IsString() id!: string;
   @IsString() phase!: string;
   @IsString() estimatedDate!: string;
   @IsString() deliverables!: string;
 }
 
-class AdminMediaItem {
+export class AdminMediaItem {
   @IsString() id!: string;
   @IsUrl() url!: string;
   @IsEnum(['IMAGE', 'VIDEO', 'DOCUMENT']) type!: string;
@@ -59,7 +58,6 @@ export class CreateAdminProjectDto {
   executionTimeline?: AdminTimelineItem[];
 
   @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
-  
   @IsOptional() @IsString() endDate?: string;
 }
 
