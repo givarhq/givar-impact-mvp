@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards, Delete, Post } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ProposalStatus, UserRole } from '@givar/database';
 import { AdminService } from './admin.service';
 import { SkipThrottle } from '@nestjs/throttler';
+import { CreateAdminProjectDto } from './dto/admin-project.dto';
 
 @SkipThrottle()
 @Controller('admin')
@@ -69,5 +70,20 @@ export class AdminController {
   @Patch('proposals/:id/reject')
   reject(@Param('id') id: string, @Req() req: any, @Body('feedback') feedback: string) {
     return this.service.rejectProposal(id, req.user.id, feedback);
+  }
+
+  @Post('projects')
+  createProject(@Req() req: any, @Body() dto: CreateAdminProjectDto) {
+    return this.service.createProject(req.user.id, dto);
+  }
+
+  @Patch('projects/:id') // Using Patch for partial updates
+  updateProject(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateAdminProjectDto) {
+    return this.service.updateProject(req.user.id, id, dto);
+  }
+
+  @Delete('projects/:id')
+  deleteProject(@Req() req: any, @Param('id') id: string) {
+    return this.service.deleteProject(req.user.id, id);
   }
 }

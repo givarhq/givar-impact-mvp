@@ -296,6 +296,19 @@ export const ApiService = {
 
     requestChanges: (id: string, feedback: string) =>
       apiClient.patch(`/admin/proposals/${id}/request-changes`, { feedback }).then(r => r.data),
+
+    createProject: (data: any) => 
+      apiClient.post('/admin/projects', data).then(r => r.data),
+      
+    updateProject: (id: string, data: any) => 
+      apiClient.patch(`/admin/projects/${id}`, data).then(r => r.data),
+      
+    deleteProject: (id: string) => 
+      apiClient.delete(`/admin/projects/${id}`).then(r => r.data),
+      
+    // Reuse the public getProject for editing details
+    getProjectDetail: (slug: string) => 
+       apiClient.get(`/projects/${slug}`).then(r => r.data)
   },
 
   // Organization Verification Domain

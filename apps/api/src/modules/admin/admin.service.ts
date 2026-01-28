@@ -1,7 +1,8 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { ProjectStatus, ProposalStatus, AuditAction, Prisma } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
+import { CreateAdminProjectDto } from './dto/admin-project.dto';
 
 @Injectable()
 export class AdminService {
@@ -261,6 +262,104 @@ export class AdminService {
       take: limit,
       select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true, emailVerified: true },
       orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async createProject(adminId: string, dto: CreateAdminProjectDto) {
+    const slug = this.generateSlug(dto.title);
+
+    // Transform Major -> Minor units for DB
+    const targetAmountMinor = BigInt(dto.targetAmount * 100);
+
+    return this.prisma.$transaction(async (tx) => {
+      const project = await tx.project.create({
+        data: {
+          userId: adminId, // Admin is the "Owner" initially
+          title: dto.title,
+          slug,
+          description: dto.description,
+          shortDesc: dto.shortDesc,
+          categoryId: dto.categoryId,
+          location: dto.location,
+          targetAmount: targetAmountMinor,
+          raisedAmount: 0n,
+          currency: dto.currency,
+          imageUrl: dto.coverImage,
+          gallery: dto.gallery as any, // Cast JSON
+          status: ProjectStatus.ACTIVE,
+          isActive: true,
+          tags: dto.tags || ['Admin Created', 'Verified'],
+        },
+      });
+
+      // Audit
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.PROJECT_CREATED,
+          entityId: project.id,
+          entityType: 'Project',
+          metadata: { title: project.title, method: 'ADMIN_DIRECT' },
+        },
+      });
+
+      return project;
+    });
+  }
+
+  // Direct Project Update
+  async updateProject(adminId: string, projectId: string, dto: UpdateAdminProjectDto) {
+    const existing = await this.prisma.project.findUnique({ where: { id: projectId } });
+    if (!existing) throw new NotFoundException('Project not found');
+
+    const updateData: any = { ...dto };
+    if (dto.targetAmount) updateData.targetAmount = BigInt(dto.targetAmount * 100);
+    
+    // Remove complex fields if they are undefined to avoid overwriting with null
+    if (!dto.gallery) delete updateData.gallery;
+
+    return this.prisma.$transaction(async (tx) => {
+      const project = await tx.project.update({
+        where: { id: projectId },
+        data: updateData,
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.PROJECT_UPDATED,
+          entityId: projectId,
+          entityType: 'Project',
+          metadata: { fieldsUpdated: Object.keys(dto) },
+        },
+      });
+
+      return project;
+    });
+  }
+
+  // Hard Delete (Nuclear Option)
+  async deleteProject(adminId: string, projectId: string) {
+    // Check for donations first
+    const donationCount = await this.prisma.donation.count({ where: { projectId } });
+    if (donationCount > 0) {
+        throw new ForbiddenException('Cannot delete a project that has received donations. Suspend it instead.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const deleted = await tx.project.delete({ where: { id: projectId } });
+      
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.PROJECT_DELETED,
+          entityId: projectId,
+          entityType: 'Project',
+          metadata: { title: deleted.title },
+        },
+      });
+      
+      return deleted;
     });
   }
 }
