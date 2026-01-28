@@ -1,10 +1,11 @@
 import { cookies } from 'next/headers';
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { ApiService } from '../../../../services/api';
 import { SmartCurrency } from '../../../../components/ui/smart-currency';
 import { Badge } from '../../../../components/ui/badge';
+import { Button } from '../../../../components/ui/button';
 import { AdminProjectActions } from '../../../../components/features/admin/project-actions';
-import { Button } from 'apps/web/src/components/ui/button';
-import { Link, Plus } from 'lucide-react';
 
 export default async function AdminProjectsPage() {
   const cookieStore = await cookies();
@@ -16,15 +17,22 @@ export default async function AdminProjectsPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between md:hidden">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Project Management</h1>
-      <Link href="/admin/projects/new">
-            <Button className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
+      {/* 
+        - Mobile: Title Left, Button Right
+        - Desktop: Title Hidden (in Sidebar/Header), Button Right
+      */}
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground md:hidden">
+            Project Management
+        </h1>
+        
+        <Link href="/admin/projects/new" className="ml-auto">
+            <Button className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 h-10 px-5">
                 <Plus className="mr-2 h-4 w-4" /> New Project
             </Button>
         </Link>
       </div>
-      
+
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">

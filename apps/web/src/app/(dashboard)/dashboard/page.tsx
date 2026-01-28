@@ -1,10 +1,11 @@
 import { cookies } from 'next/headers';
+import Link from 'next/link';
 import { OverviewCards } from '../../../components/features/dashboard/overview-cards';
 import { ImpactPortfolio } from '../../../components/features/dashboard/impact-portfolio';
 import { DashboardGoalClient } from '../../../components/features/goals/dashboard-goal-client';
 import { ApiService } from '../../../services/api';
 import { Button } from 'apps/web/src/components/ui/button';
-import { ShieldAlert, Link, ArrowRight } from 'lucide-react';
+import { ShieldAlert, ArrowRight } from 'lucide-react';
 
 async function getUser() {
     const cookieStore = await cookies();
