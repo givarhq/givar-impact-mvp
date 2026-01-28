@@ -6,7 +6,14 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
-import { Loader2, Save } from 'lucide-react';
+import { 
+  Loader2, Save, X, Layout, 
+  Image as ImageIcon, 
+  Briefcase, 
+  Clock, 
+  MapPin, 
+  CheckCircle2 
+} from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
@@ -19,7 +26,7 @@ import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/form
 const mediaItemSchema = z.object({
   id: z.string(),
   url: z.string().url(),
-  key: z.string(),
+  key: z.string().optional(),
   type: z.enum(['IMAGE', 'VIDEO', 'DOCUMENT']),
   caption: z.string().optional().or(z.literal('')),
 });
@@ -46,10 +53,9 @@ const projectSchema = z.object({
   shortDesc: z.string().optional(),
   categoryId: z.string().uuid("Category is required"),
   location: z.string().min(2, "Location is required"),
-  targetAmount: z.number().min(100, "Target amount must be at least 100"),
+  targetAmount: z.number().min(100, "Min 100"),
   currency: z.enum(['NGN', 'USD', 'GBP']),
-  coverImage: z.string().url("Cover image is required"),
-  
+  coverImage: z.string().url("Cover image required"),
   gallery: z.array(mediaItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
@@ -66,21 +72,11 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { 
-    register, 
-    control, 
-    handleSubmit, 
-    setValue, 
-    watch, 
-    formState: { errors } 
-  } = useForm<ProjectFormValues>({
+  const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: initialData ? {
       ...initialData,
-      gallery: (initialData.gallery || []).map((item: any) => ({
-          ...item,
-          key: item.key || item.url
-      })),
+      gallery: initialData.gallery || [],
       budgetBreakdown: initialData.budgetBreakdown || [],
       executionTimeline: initialData.executionTimeline || [],
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined
@@ -100,73 +96,89 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
     try {
+      const payload = {
+          ...data,
+          targetAmount: data.targetAmount * 100 
+      };
+      
       if (initialData) {
-        await ApiService.admin.updateProject(initialData.id, data);
-        toast.success('Project updated successfully');
+        await ApiService.admin.updateProject(initialData.id, payload);
+        toast.success('Project updated');
       } else {
-        await ApiService.admin.createProject(data);
-        toast.success('Project created successfully');
+        await ApiService.admin.createProject(payload);
+        toast.success('Project created');
       }
       router.push('/admin/projects');
       router.refresh();
     } catch (error) {
-      console.error(error);
-      toast.error('Operation failed. Check inputs.');
+      toast.error('Submission failed');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 pb-20">
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in duration-500">
       
-      {/* 1. Core Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-card rounded-2xl border border-border">
-          <h3 className="col-span-full font-bold text-lg">Core Details</h3>
-          
-          <div className="space-y-2">
-              <label className="text-sm font-medium">Title</label>
-              <Input 
-                {...register('title')} 
-                placeholder="Project Title" 
-                error={errors.title?.message as string} 
-              />
+      {/* --- Section 1: Project Identity --- */}
+      <section className="grid grid-cols-1 md:grid-cols-12 gap-6 bg-card p-6 rounded-[24px] border border-border shadow-sm">
+          <div className="md:col-span-12 flex items-center gap-2 mb-2">
+             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <Layout className="h-4 w-4" />
+             </div>
+             <h3 className="font-bold text-sm text-foreground/80">Project identity</h3>
           </div>
           
-          <div className="space-y-2">
-              <label className="text-sm font-medium">Category</label>
+          <div className="md:col-span-8 space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground ml-1">Headline title</label>
+              <Input {...register('title')} placeholder="e.g. Clean Water Initiative" className="h-11 text-sm rounded-xl" error={errors.title?.message} />
+          </div>
+          
+          <div className="md:col-span-4 space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground ml-1">Category</label>
               <Controller
                   control={control}
                   name="categoryId"
                   render={({ field }) => (
                       <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger className="rounded-xl h-11"><SelectValue placeholder="Select..." /></SelectTrigger>
-                          <SelectContent>
+                          <SelectTrigger className="rounded-xl h-11 text-sm bg-background/50"><SelectValue placeholder="Select category" /></SelectTrigger>
+                          <SelectContent className="rounded-xl">
                               {categories.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                           </SelectContent>
                       </Select>
                   )}
               />
-              {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
           </div>
 
-          <div className="col-span-full space-y-2">
-              <label className="text-sm font-medium">Description</label>
+          <div className="md:col-span-12 space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground ml-1">Short summary (visible on cards)</label>
               <textarea 
-                  className="flex w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary min-h-[120px]"
-                  {...register('description')}
-                  placeholder="Full project story..."
+                  className="flex w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[70px] resize-none"
+                  {...register('shortDesc')}
+                  placeholder="Summarize the impact in 140 characters..."
+                  maxLength={140}
               />
-              {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
+          </div>
+
+          <div className="md:col-span-12 space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground ml-1">Full narrative & solution</label>
+              <textarea 
+                  className="flex w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[180px]"
+                  {...register('description')}
+                  placeholder="Deep dive into the problem and your proposed solution..."
+              />
           </div>
           
-          <div className="space-y-2">
-              <label className="text-sm font-medium">Location</label>
-              <Input {...register('location')} placeholder="Lagos, Nigeria" error={errors.location?.message} />
+          <div className="md:col-span-6 space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground ml-1">Physical location</label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input {...register('location')} placeholder="City, Country" className="pl-9 h-11 text-sm rounded-xl bg-background/50" />
+              </div>
           </div>
           
-          <div className="space-y-2">
-              <label className="text-sm font-medium">Target Amount (NGN)</label>
+          <div className="md:col-span-6 space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground ml-1">Funding goal (NGN)</label>
               <Controller
                   control={control}
                   name="targetAmount"
@@ -174,83 +186,97 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
                       <Input 
                         value={formatNumberInput(String(field.value || ''))}
                         onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                        placeholder="5,000,000"
-                        error={errors.targetAmount?.message}
+                        placeholder="0.00"
+                        className="h-11 text-sm font-bold rounded-xl bg-background/50 tabular-nums"
                       />
                   )}
               />
           </div>
-      </div>
+      </section>
 
-      {/* 2. Media */}
-      <div className="p-6 bg-card rounded-2xl border border-border space-y-6">
-          <h3 className="font-bold text-lg">Media Assets</h3>
+      {/* --- Section 2: Visual Assets --- */}
+      <section className="bg-card p-6 rounded-[24px] border border-border shadow-sm space-y-6">
+          <div className="flex items-center gap-2">
+             <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <ImageIcon className="h-4 w-4" />
+             </div>
+             <h3 className="font-bold text-sm text-foreground/80">Media portfolio</h3>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                  <label className="text-sm font-medium">Cover Image</label>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-5 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Primary cover</p>
                   {coverImage ? (
-                      <div className="relative aspect-video rounded-xl overflow-hidden border">
+                      <div className="relative aspect-video rounded-2xl overflow-hidden border border-border shadow-inner group">
                           <img src={coverImage} className="object-cover w-full h-full" alt="Cover" />
-                          <Button 
-                            type="button" 
-                            variant="destructive" 
-                            size="sm" 
-                            className="absolute top-2 right-2"
-                            onClick={() => setValue('coverImage', '')}
-                          >Remove</Button>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button type="button" variant="destructive" size="sm" className="rounded-xl h-8 text-xs" onClick={() => setValue('coverImage', '')}>
+                                <X className="h-3 w-3 mr-1" /> Remove
+                            </Button>
+                          </div>
                       </div>
                   ) : (
-                      <ImageUploader 
-                          label="Upload Cover" 
-                          onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} 
-                      />
+                      <ImageUploader label="Upload hero image" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
                   )}
-                   {errors.coverImage && <p className="text-xs text-destructive">{errors.coverImage.message}</p>}
               </div>
               
-              <div className="space-y-2">
-                  <label className="text-sm font-medium">Gallery</label>
+              <div className="lg:col-span-7 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Supporting gallery ({gallery.length}/10)</p>
                   <MediaManager 
-                      items={gallery}
+                      items={gallery as any}
                       onAdd={(item) => setValue('gallery', [...gallery, item])}
                       onRemove={(id) => setValue('gallery', gallery.filter((i) => i.id !== id))}
                       onUpdate={(id, updates) => setValue('gallery', gallery.map((i) => i.id === id ? { ...i, ...updates } : i))}
                   />
               </div>
           </div>
-      </div>
+      </section>
 
-      {/* 3. Execution Plan */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="p-6 bg-card rounded-2xl border border-border space-y-4">
-              <h3 className="font-bold text-lg">Budget</h3>
-              <BudgetEditor 
-                  items={budget}
-                  onChange={(items) => setValue('budgetBreakdown', items)}
-              />
+      {/* --- Section 3: Strategic Plan --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="p-6 bg-card rounded-[24px] border border-border space-y-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                    <Briefcase className="h-4 w-4" />
+                </div>
+                <h3 className="font-bold text-sm text-foreground/80">Budget ledger</h3>
+              </div>
+              <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} />
           </div>
           
-          <div className="p-6 bg-card rounded-2xl border border-border space-y-4">
-              <h3 className="font-bold text-lg">Timeline</h3>
-              <TimelineEditor 
-                  items={timeline}
-                  onChange={(items) => setValue('executionTimeline', items)}
-              />
+          <div className="p-6 bg-card rounded-[24px] border border-border space-y-4 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+                    <Clock className="h-4 w-4" />
+                </div>
+                <h3 className="font-bold text-sm text-foreground/80">Execution map</h3>
+              </div>
+              <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} />
           </div>
       </div>
 
-      {/* Footer Actions */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-40 md:pl-[280px]">
-          <div className="max-w-7xl mx-auto flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={() => router.back()} className="rounded-xl h-12 px-6">
-                  Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="rounded-xl h-12 px-8 font-bold text-base shadow-xl shadow-primary/20">
-                  {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : <Save className="mr-2 h-5 w-5" />}
-                  {initialData ? 'Update Project' : 'Create Project'}
-              </Button>
-          </div>
+      {/* --- Footer Actions --- */}
+      <div className="flex items-center justify-end gap-4 pt-6 border-border">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            onClick={() => router.back()} 
+            className="rounded-xl h-12 px-6 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+              Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="rounded-xl h-12 px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all min-w-[180px]"
+          >
+              {isSubmitting ? (
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              )}
+              {initialData ? 'Update project' : 'Create project'}
+          </Button>
       </div>
 
     </form>
