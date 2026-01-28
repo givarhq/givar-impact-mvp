@@ -40,7 +40,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                     </Badge>
                 ))}
             </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
+            <h1 className="text-xl font-extrabold tracking-tight text-foreground leading-tight">
                 {project.title}
             </h1>
             <div className="flex items-center gap-5 text-sm text-muted-foreground font-medium">
