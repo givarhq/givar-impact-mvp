@@ -243,6 +243,10 @@ model Project {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  budgetBreakdown   Json?    @default("[]")
+  executionTimeline Json?    @default("[]")
+  riskAnalysis      String?  @db.Text
+
   donations    Donation[]
   subscriptions Subscription[]
   guestDonations GuestDonation[]
