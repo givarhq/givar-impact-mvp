@@ -71,8 +71,6 @@ export class AuthService {
   }
 
   async login(dto: LoginDto, req?: Request) {
-    let shouldLogFailure = true;
-    
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -86,26 +84,22 @@ export class AuthService {
           metadata: { attemptedEmail: dto.email, reason: 'Account Locked' },
           req,
       });
-      shouldLogFailure = false; // Prevent double logging in catch block
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Account temporarily locked. Try again later.');
     }
 
     try {
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
+      if (!user) throw new UnauthorizedException('Invalid credentials');
 
       const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
       if (!isMatch) {
-        // 2. Progressive Delay & Lockout Logic
+        // 2. Progressive Delay
         const newAttemptCount = user.failedLoginAttempts + 1;
-        
         if (newAttemptCount >= 5) {
           await this.prisma.user.update({
             where: { id: user.id },
             data: {
               failedLoginAttempts: newAttemptCount,
-              accountLockedUntil: add(new Date(), { minutes: 15 }), // Lock for 15 mins
+              accountLockedUntil: add(new Date(), { minutes: 15 }),
             },
           });
         } else {
@@ -114,11 +108,10 @@ export class AuthService {
             data: { failedLoginAttempts: newAttemptCount },
           });
         }
-        
         throw new UnauthorizedException('Invalid credentials');
       }
       
-      // 3. Reset attempts on successful login
+      // 3. Reset Lockout
       if (user.failedLoginAttempts > 0) {
         await this.prisma.user.update({
           where: { id: user.id },
@@ -129,8 +122,11 @@ export class AuthService {
         });
       }
 
-      const { accessToken, refreshToken } = await this.getTokens(user.id, user.email, user.role);
-      await this.updateRefreshTokenHash(user.id, refreshToken);
+      const payload = { sub: user.id, email: user.email, role: user.role };
+      const accessToken = this.jwtService.sign(payload, {
+        secret: this.config.get<string>('JWT_SECRET'),
+        expiresIn: '7d',
+      });
 
       await this.audit.log({
         userId: user.id,
@@ -140,166 +136,36 @@ export class AuthService {
         req,
       });
 
+      // No refresh token returned or stored
       return { 
         accessToken, 
-        refreshToken,
         user: {
             id: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            role: user.role, // Critical for RBAC
+            role: user.role,
         }
       };
 
     } catch (error) {
-      // 4. Conditional Failure Logging
-      if (shouldLogFailure) {
-          let reason = 'An unknown error occurred';
-          if (error instanceof UnauthorizedException) {
-            reason = 'Bad Credentials';
-          } else if (error instanceof Error) {
-            reason = error.message;
-          }
-          
-          await this.audit.log({
-            action: AuditAction.USER_LOGIN_FAILED,
-            userId: user?.id, // Capture ID if user existed
-            entityType: 'Session',
-            metadata: { 
-                attemptedEmail: dto.email, 
-                reason: reason
-            },
-            req,
-          });
-      }
+      let reason = 'An unknown error occurred';
+      if (error instanceof UnauthorizedException) reason = 'Bad Credentials';
+      else if (error instanceof Error) reason = error.message;
+      
+      await this.audit.log({
+        action: AuditAction.USER_LOGIN_FAILED,
+        userId: user?.id,
+        entityType: 'Session',
+        metadata: { attemptedEmail: dto.email, reason },
+        req,
+      });
 
       throw error;
     }
   }
 
-  // Secure manual verification of the Refresh Token
-  private async verifyRefreshToken(token: string) {
-    try {
-      return await this.jwtService.verifyAsync(token, {
-        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
-      });
-    } catch (e) {
-      throw new ForbiddenException('Access Denied');
-    }
-  }
-
-  async refreshToken(rt: string, req?: any) {
-    // 1. Securely extract userId from the token payload, NOT from client input
-    const payload = await this.verifyRefreshToken(rt);
-    const userId = payload.sub;
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    // 2. Security Guards: Account status and existence
-    if (
-      !user ||
-      !user.refreshTokenHash ||
-      (user.accountLockedUntil && user.accountLockedUntil > new Date())
-    ) {
-      throw new ForbiddenException('Access Denied');
-    }
-
-    // 3. Expiration Guard
-    if (user.refreshTokenExpiresAt && user.refreshTokenExpiresAt < new Date()) {
-       throw new ForbiddenException('Refresh token expired');
-    }
-
-    const rtMatches = await bcrypt.compare(rt, user.refreshTokenHash);
-
-    // 4. Refresh Token Reuse / Theft Detection
-    if (!rtMatches) {
-      // THE NUCLEAR OPTION: If tokens don't match, someone is using an old/stolen token.
-      // We invalidate everything to protect the user.
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: {
-          refreshTokenHash: null,
-          refreshTokenExpiresAt: null,
-        },
-      });
-
-      await this.audit.log({
-        userId: user.id,
-        action: AuditAction.USER_LOGIN_FAILED,
-        entityType: 'Session',
-        metadata: { reason: 'Refresh Token Reuse Detected - Session Nuked' },
-        req,
-      });
-
-      throw new ForbiddenException('Access Denied');
-    }
-
-    // 5. Issue fresh token pair (ROTATION)
-    const { accessToken, refreshToken } = await this.getTokens(user.id, user.email, user.role);
-
-    // 6. Update Hash and Expiry Date
-    await this.updateRefreshTokenHash(user.id, refreshToken);
-
-    return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-    };
-  }
-
-  // Updated helper to store expiration
-  private async updateRefreshTokenHash(userId: string, refreshToken: string) {
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(refreshToken, salt);
-    
-    // Set database expiry to match JWT expiry (7 days)
-    const expiresAt = add(new Date(), { days: 7 });
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { 
-        refreshTokenHash: hash,
-        refreshTokenExpiresAt: expiresAt 
-      },
-    });
-  }
-
   async logout(userId: string) {
-    await this.prisma.user.updateMany({
-      where: {
-        id: userId,
-        refreshTokenHash: { not: null },
-      },
-      data: {
-        refreshTokenHash: null,
-      },
-    });
-    
     return { message: 'Logged out successfully.' };
-  }
-
-  private async getTokens(userId: string, email: string, role: UserRole) {
-    const payload = { sub: userId, email, role };
-    
-    const accessToken = this.jwtService.sign(payload, {
-      secret: this.config.get<string>('JWT_SECRET'),
-      expiresIn: '15m', 
-    });
-
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: this.config.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: '7d',
-    });
-
-    return { accessToken, refreshToken };
   }
 }

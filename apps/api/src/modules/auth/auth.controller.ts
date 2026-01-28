@@ -33,13 +33,6 @@ export class AuthController {
     return this.authService.login(dto, req);
   }
 
-  @Post('refresh')
-  @HttpCode(HttpStatus.OK)
-  async refreshToken(@Body('refreshToken') rt: string, @Req() req: any) {
-    if (!rt) throw new ForbiddenException('Refresh token required');
-    return this.authService.refreshToken(rt, req);
-  }
-
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   @HttpCode(HttpStatus.OK)
