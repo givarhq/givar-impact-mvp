@@ -53,19 +53,33 @@ export class ProposalService {
   async submitProposal(userId: string, proposalId: string) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);
 
-    // Validation Gate: Ensure critical fields exist
-    if (!proposal.description || !proposal.coverImage) {
-        throw new BadRequestException('Description and Cover Image are required.');
-    }
-    const budget = proposal.budgetBreakdown as any[];
-    if (!budget || budget.length === 0) {
-        throw new BadRequestException('Budget breakdown is required.');
-    }
-    const kyc = proposal.kycDocuments as string[];
-    if (!kyc || kyc.length === 0) {
-        throw new BadRequestException('At least one KYC document is required.');
+    // --- GATEKEEPER: Organization Verification Check ---
+    const orgProfile = await this.prisma.organizationProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!orgProfile || orgProfile.status !== 'VERIFIED') {
+      throw new BadRequestException(
+        'Your organization must be VERIFIED before you can submit a proposal for review.'
+      );
     }
 
+    // --- Validation Gate: Content Requirements ---
+    if (!proposal.description || !proposal.coverImage) {
+      throw new BadRequestException('Description and Cover Image are required.');
+    }
+
+    const budget = proposal.budgetBreakdown as any[];
+    if (!budget || budget.length === 0) {
+      throw new BadRequestException('Budget breakdown is required.');
+    }
+
+    const kyc = proposal.kycDocuments as string[];
+    if (!kyc || kyc.length === 0) {
+      throw new BadRequestException('At least one KYC document is required.');
+    }
+
+    // --- Execution: State Transition ---
     return this.prisma.projectProposal.update({
       where: { id: proposalId },
       data: {
