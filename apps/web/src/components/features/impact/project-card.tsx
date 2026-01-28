@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, ShieldCheck, Share2 } from 'lucide-react';
+import { Heart, ShieldCheck, Share2, BadgeCheck } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { Project } from '../../../types';
@@ -50,18 +50,24 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
                         {project.categoryName || 'General'}
                     </Badge>
                 </div>
-                <div className="absolute top-2 right-2">
-                    <div className="bg-emerald-500/90 text-white p-0.5 rounded-full shadow-sm backdrop-blur-sm" title="Verified">
-                        <ShieldCheck className="h-3 w-3" />
-                    </div>
-                </div>
+                {project.isVerifiedOrganizer && (
+                  <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-background/90 backdrop-blur-md px-2 py-1 rounded-lg border border-primary/20 shadow-sm animate-in fade-in zoom-in duration-500">
+                    <BadgeCheck className="h-3 w-3 text-primary fill-primary/10" />
+                    <span className="text-[9px] font-bold text-primary uppercase tracking-tighter">Verified</span>
+                  </div>
+                )}
             </div>
+
+            
 
             <div className="p-4 flex flex-col gap-3">
                 <div className="space-y-1">
                     <h3 className="font-bold text-base leading-tight text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                         {project.title}
                     </h3>
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1 uppercase tracking-wider font-semibold">
+                      by <span className="text-foreground">{project.organizerName}</span>
+                    </p>
                     <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed h-10">
                         {project.description}
                     </p>

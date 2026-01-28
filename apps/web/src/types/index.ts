@@ -21,6 +21,10 @@ export interface Project {
   isActive: boolean;
   createdAt: string; 
   updatedAt: string;
+  isVerifiedOrganizer: boolean;
+  organizerName: string;
+  categoryName?: string;
+  donorCount?: number;
 }
 
 export interface Transaction {
