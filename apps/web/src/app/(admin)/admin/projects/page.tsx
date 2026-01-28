@@ -3,6 +3,8 @@ import { ApiService } from '../../../../services/api';
 import { SmartCurrency } from '../../../../components/ui/smart-currency';
 import { Badge } from '../../../../components/ui/badge';
 import { AdminProjectActions } from '../../../../components/features/admin/project-actions';
+import { Button } from 'apps/web/src/components/ui/button';
+import { Link, Plus } from 'lucide-react';
 
 export default async function AdminProjectsPage() {
   const cookieStore = await cookies();
@@ -16,6 +18,11 @@ export default async function AdminProjectsPage() {
     <div className="space-y-6">
         <div className="flex items-center justify-between md:hidden">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Project Management</h1>
+      <Link href="/admin/projects/new">
+            <Button className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
+                <Plus className="mr-2 h-4 w-4" /> New Project
+            </Button>
+        </Link>
       </div>
       
       <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
