@@ -76,6 +76,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
     resolver: zodResolver(projectSchema),
     defaultValues: initialData ? {
       ...initialData,
+      coverImage: initialData.imageUrl || '',
       gallery: initialData.gallery || [],
       budgetBreakdown: initialData.budgetBreakdown || [],
       executionTimeline: initialData.executionTimeline || [],
