@@ -4,25 +4,43 @@ import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { ProjectQueryDto, ProjectSort } from './dto/project-query.dto';
 import { Prisma, ProjectStatus } from '@givar/database';
 
+type ProjectMediaValue = {
+  url: string;
+  type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+  caption?: string;
+};
+
 @Injectable()
 export class ProjectService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateProjectDto) {
     const slug = this.generateSlug(dto.title);
+
+    const galleryData: ProjectMediaValue[] = dto.gallery 
+      ? dto.gallery.map(item => ({
+          url: item.url,
+          type: item.type as 'IMAGE' | 'VIDEO' | 'DOCUMENT',
+          caption: item.caption
+        }))
+      : [];
     
     return this.prisma.project.create({
       data: {
         title: dto.title,
+        slug,
+        userId: dto.userId,       
         description: dto.description,
+        shortDesc: dto.shortDesc,
+        imageUrl: dto.imageUrl,
+        gallery: galleryData as Prisma.InputJsonValue, 
         targetAmount: BigInt(dto.targetAmount),
         currency: dto.currency,
-        imageUrl: dto.imageUrl,
-        categoryId: (dto as any).categoryId, 
-        location: (dto as any).location,
-        tags: (dto as any).tags || [],
-        slug,
+        categoryId: dto.categoryId, 
+        location: dto.location,
+        tags: dto.tags || [],
         status: ProjectStatus.ACTIVE,
+        isActive: true,
       },
     });
   }
@@ -65,7 +83,12 @@ export class ProjectService {
         orderBy,
         include: {
             category: { select: { name: true, slug: true, icon: true } },
-            _count: { select: { donations: true } }
+            _count: { select: { donations: true } },
+            user: { 
+              select: { 
+                organization: { select: { status: true, legalName: true } } 
+              } 
+            }
         }
       }),
       this.prisma.project.count({ where }),
@@ -83,6 +106,8 @@ export class ProjectService {
         percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
         categoryName: p.category?.name,
         categorySlug: p.category?.slug,
+        isVerifiedOrganizer: p.user?.organization?.status === 'VERIFIED',
+        organizerName: p.user?.organization?.legalName || 'Individual'
       };
     });
 
@@ -103,6 +128,11 @@ export class ProjectService {
           include: {
               category: true,
               updates: { orderBy: { createdAt: 'desc' } },
+              user: { 
+                select: { 
+                  organization: { select: { status: true, legalName: true, verifiedAt: true } } 
+                } 
+              }
           }
       });
 
@@ -131,7 +161,9 @@ export class ProjectService {
           targetAmount: project.targetAmount.toString(),
           raisedAmount: project.raisedAmount.toString(),
           percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
-          donorCount: donorCount
+          donorCount: donorCount,
+          isVerifiedOrganizer: project.user?.organization?.status === 'VERIFIED',
+          organizerName: project.user?.organization?.legalName || 'Individual'
       };
   }
 

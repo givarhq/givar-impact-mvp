@@ -4,7 +4,8 @@ import { UserRole } from '@givar/database';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { ProjectService } from './project.service';
-import { CreateProjectDto, ProjectQueryDto, UpdateProjectDto } from './dto/project.dto';
+import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
+import { ProjectQueryDto } from './dto/project-query.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { SkipThrottle } from '@nestjs/throttler';
 

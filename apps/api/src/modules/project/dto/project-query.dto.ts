@@ -34,5 +34,5 @@ export class ProjectQueryDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
-  limit?: number = 9;
+  limit?: number = 10;
 }
