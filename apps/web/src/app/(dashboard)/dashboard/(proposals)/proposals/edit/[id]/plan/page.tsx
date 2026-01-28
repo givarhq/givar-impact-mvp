@@ -52,6 +52,7 @@ export default function PlanPage() {
         <div className="space-y-4">
             <h3 className="font-semibold">Budget Breakdown</h3>
             <p className="text-sm text-muted-foreground">List every item or service Givar will be paying for.</p>
+            {/* Defaults to store */}
             <BudgetEditor />
         </div>
         
@@ -59,6 +60,7 @@ export default function PlanPage() {
         <div className="space-y-4">
             <h3 className="font-semibold">Execution Timeline</h3>
             <p className="text-sm text-muted-foreground">Define the key phases and deliverables for your project.</p>
+            {/* Defaults to store */}
             <TimelineEditor />
         </div>
 

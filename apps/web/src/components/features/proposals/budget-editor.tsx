@@ -1,30 +1,40 @@
 'use client';
 
-import { useProposalStore, BudgetItem } from '../../../stores/proposal-store';
+import { BudgetItem } from '../../../stores/proposal-store';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 import { useEffect } from 'react';
+import { useProposalStore } from '../../../stores/proposal-store';
 
-export function BudgetEditor() {
-  const { budgetBreakdown, updateField } = useProposalStore();
+interface BudgetEditorProps {
+  items?: BudgetItem[];
+  onChange?: (items: BudgetItem[]) => void;
+  readOnly?: boolean;
+}
+
+export function BudgetEditor({ items, onChange, readOnly = false }: BudgetEditorProps) {
+  // Fallback to store if no props provided (User Wizard Mode)
+  const store = useProposalStore();
+  
+  const budgetBreakdown = items || store.budgetBreakdown;
+  const updateField = onChange ? (val: any) => onChange(val) : (val: any) => store.updateField('budgetBreakdown', val);
 
   const handleUpdate = (id: string, field: keyof BudgetItem, value: any) => {
     let processedValue = value;
 
     if (field === 'cost') {
-      const raw = parseFormattedNumber(value);
+      const raw = parseFormattedNumber(String(value));
       processedValue = raw === '' ? 0 : Number(raw);
-      
       if (isNaN(processedValue)) processedValue = 0;
     }
 
     const updatedBudget = budgetBreakdown.map(item =>
       item.id === id ? { ...item, [field]: processedValue } : item
     );
-    updateField('budgetBreakdown', updatedBudget);
+    updateField(updatedBudget);
   };
 
   const addItem = () => {
@@ -35,17 +45,20 @@ export function BudgetEditor() {
       vendor: '',
       type: 'GOODS',
     };
-    updateField('budgetBreakdown', [...budgetBreakdown, newItem]);
+    updateField([...budgetBreakdown, newItem]);
   };
   
   const removeItem = (id: string) => {
-    updateField('budgetBreakdown', budgetBreakdown.filter(item => item.id !== id));
+    updateField(budgetBreakdown.filter(item => item.id !== id));
   };
 
+  // Only sync to target amount in Wizard Mode
   useEffect(() => {
-    const total = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
-    updateField('targetAmount', total);
-  }, [budgetBreakdown, updateField]);
+    if (!onChange) {
+        const total = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
+        store.updateField('targetAmount', total);
+    }
+  }, [budgetBreakdown, onChange]); // eslint-disable-line
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
 
@@ -58,15 +71,17 @@ export function BudgetEditor() {
               placeholder="Item/Service"
               value={item.item}
               onChange={(e) => handleUpdate(item.id, 'item', e.target.value)}
+              disabled={readOnly}
             />
             
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">₦</span>
               <Input 
                 placeholder="Cost"
-                className="pl-7" // Extra padding for the symbol
+                className="pl-7"
                 value={item.cost === 0 ? '' : formatNumberInput(String(item.cost))}
                 onChange={(e) => handleUpdate(item.id, 'cost', e.target.value)}
+                disabled={readOnly}
               />
             </div>
 
@@ -74,10 +89,11 @@ export function BudgetEditor() {
               placeholder="Vendor"
               value={item.vendor}
               onChange={(e) => handleUpdate(item.id, 'vendor', e.target.value)}
+              disabled={readOnly}
             />
             
             <div className="flex gap-2">
-              <Select value={item.type} onValueChange={(v) => handleUpdate(item.id, 'type', v)}>
+              <Select value={item.type} onValueChange={(v) => handleUpdate(item.id, 'type', v)} disabled={readOnly}>
                 <SelectTrigger className="flex-1 rounded-xl h-11"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="GOODS">Goods</SelectItem>
@@ -86,22 +102,26 @@ export function BudgetEditor() {
                   <SelectItem value="OTHER">Other</SelectItem>
                 </SelectContent>
               </Select>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                onClick={() => removeItem(item.id)} 
-                className="text-destructive hover:bg-destructive/10 rounded-xl h-11 w-11 shrink-0"
-              >
-                <Trash2 className="h-4.5 w-4.5" />
-              </Button>
+              {!readOnly && (
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => removeItem(item.id)} 
+                    className="text-destructive hover:bg-destructive/10 rounded-xl h-11 w-11 shrink-0"
+                  >
+                    <Trash2 className="h-4.5 w-4.5" />
+                  </Button>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      <Button variant="outline" onClick={addItem} className="w-full border-dashed rounded-2xl h-12 text-muted-foreground hover:text-primary hover:border-primary/50 transition-all">
-        <PlusCircle className="mr-2 h-4 w-4" /> Add Line Item
-      </Button>
+      {!readOnly && (
+          <Button variant="outline" onClick={addItem} className="w-full border-dashed rounded-2xl h-12 text-muted-foreground hover:text-primary hover:border-primary/50 transition-all">
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Line Item
+          </Button>
+      )}
 
       <div className="flex justify-end items-center pt-6 border-t border-border/50 mt-6">
         <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Total Estimated Budget:</span>

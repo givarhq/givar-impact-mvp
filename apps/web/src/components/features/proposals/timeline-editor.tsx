@@ -1,18 +1,28 @@
 'use client';
 
-import { useProposalStore, TimelineItem } from '../../../stores/proposal-store';
+import { TimelineItem } from '../../../stores/proposal-store';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Trash2, PlusCircle } from 'lucide-react';
+import { useProposalStore } from '../../../stores/proposal-store';
 
-export function TimelineEditor() {
-  const { executionTimeline, updateField } = useProposalStore();
+interface TimelineEditorProps {
+  items?: TimelineItem[];
+  onChange?: (items: TimelineItem[]) => void;
+  readOnly?: boolean;
+}
+
+export function TimelineEditor({ items, onChange, readOnly = false }: TimelineEditorProps) {
+  // Fallback to store
+  const store = useProposalStore();
+  const executionTimeline = items || store.executionTimeline;
+  const updateField = onChange ? (val: any) => onChange(val) : (val: any) => store.updateField('executionTimeline', val);
 
   const handleUpdate = (id: string, field: keyof TimelineItem, value: any) => {
     const updatedTimeline = executionTimeline.map(item =>
       item.id === id ? { ...item, [field]: value } : item
     );
-    updateField('executionTimeline', updatedTimeline);
+    updateField(updatedTimeline);
   };
 
   const addItem = () => {
@@ -22,11 +32,11 @@ export function TimelineEditor() {
       estimatedDate: '',
       deliverables: '',
     };
-    updateField('executionTimeline', [...executionTimeline, newItem]);
+    updateField([...executionTimeline, newItem]);
   };
   
   const removeItem = (id: string) => {
-    updateField('executionTimeline', executionTimeline.filter(item => item.id !== id));
+    updateField(executionTimeline.filter(item => item.id !== id));
   };
 
   return (
@@ -38,12 +48,14 @@ export function TimelineEditor() {
                     placeholder="e.g., Site Preparation"
                     value={item.phase}
                     onChange={(e) => handleUpdate(item.id, 'phase', e.target.value)}
+                    disabled={readOnly}
                 />
                 <Input 
                     label="Estimated Date" 
                     type="date"
                     value={item.estimatedDate}
                     onChange={(e) => handleUpdate(item.id, 'estimatedDate', e.target.value)}
+                    disabled={readOnly}
                 />
                 <div className="flex gap-2 items-end">
                     <Input 
@@ -52,16 +64,21 @@ export function TimelineEditor() {
                         className="flex-1"
                         value={item.deliverables}
                         onChange={(e) => handleUpdate(item.id, 'deliverables', e.target.value)}
+                        disabled={readOnly}
                     />
-                    <Button size="icon" variant="ghost" onClick={() => removeItem(item.id)} className="text-destructive mb-2.5">
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {!readOnly && (
+                        <Button size="icon" variant="ghost" onClick={() => removeItem(item.id)} className="text-destructive mb-2.5">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    )}
                 </div>
             </div>
         ))}
-         <Button variant="outline" onClick={addItem} className="w-full border-dashed">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Phase
-        </Button>
+         {!readOnly && (
+             <Button variant="outline" onClick={addItem} className="w-full border-dashed">
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Phase
+            </Button>
+         )}
     </div>
   );
 }
