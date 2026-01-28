@@ -146,6 +146,7 @@ model User {
   givingGoals   GivingGoal[]
   auditLogs     AuditLog[]
   projectProposals ProjectProposal[]
+  projects      Project[]
 
   @@map("users")
 }
@@ -213,6 +214,8 @@ model WalletTransaction {
 model Project {
   id          String   @id @default(uuid())
   slug        String   @unique 
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
   title       String
   description String  
   shortDesc   String? 
