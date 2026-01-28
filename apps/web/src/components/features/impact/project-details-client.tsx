@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Share2, MapPin, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { Share2, MapPin, Calendar, CheckCircle2, Clock, BadgeCheck } from 'lucide-react';
 import Link from 'next/link'; 
 import { Project } from '../../../types';
 import { Button } from '../../ui/button';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { formatDate } from '../../../lib/utils/format';
 import { TransparencyCard } from './transparency-card';
 import { ShareModal } from './share-modal';
+import { cn } from '../../../lib/utils/cn';
 
 interface ProjectDetailsClientProps {
   project: Project & { 
@@ -116,6 +117,34 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                 >
                     <Share2 className="mr-2 h-4 w-4" /> Share Cause
                 </Button>
+            </div>
+
+            <div className={cn(
+              "rounded-2xl border p-5 flex items-center gap-4 transition-all",
+              project.isVerifiedOrganizer 
+                ? "bg-primary/5 border-primary/20" 
+                : "bg-card border-border/50"
+            )}>
+                <div className={cn(
+                  "h-12 w-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-inner",
+                  project.isVerifiedOrganizer ? "bg-primary" : "bg-muted text-muted-foreground"
+                )}>
+                    {project.organizerName?.[0] || 'O'}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">Organizer</p>
+                      {project.isVerifiedOrganizer && (
+                        <BadgeCheck className="h-3.5 w-3.5 text-primary" />
+                      )}
+                    </div>
+                    <p className="font-bold text-foreground truncate">{project.organizerName}</p>
+                    {project.isVerifiedOrganizer ? (
+                      <p className="text-[10px] text-primary font-medium">Identity & Legitimacy Verified</p>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground">Verification Pending</p>
+                    )}
+                </div>
             </div>
 
             <div className="mt-6 pt-6 border-t border-border flex items-start gap-3 opacity-80">
