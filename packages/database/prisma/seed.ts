@@ -1,14 +1,18 @@
 import 'dotenv/config';
-import { PrismaClient, Currency, ProjectStatus, UserRole, ProposalStatus, VerificationStatus } from '@prisma/client';
+import { Currency, ProjectStatus, UserRole, ProposalStatus, VerificationStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
-
-const prisma = new PrismaClient({
-  log: ['error', 'warn'],
-});
+import { prisma } from '../src/index'; 
 
 async function main() {
-  console.log('🚀 Initializing Iron-Clad SOTA Seed...');
+  console.log('🚀 Initializing Robust Seed...');
+
+  await prisma.auditLog.deleteMany({});
+  await prisma.donation.deleteMany({});
+  await prisma.guestDonation.deleteMany({});
+  await prisma.project.deleteMany({});
+  await prisma.projectProposal.deleteMany({});
+  await prisma.organizationProfile.deleteMany({});
 
   const salt = await bcrypt.genSalt(10);
   const password = await bcrypt.hash('Givartech1$', salt);
