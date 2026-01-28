@@ -11,7 +11,7 @@ export default async function NewProjectPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Create New Project</h1>
+      <h1 className="text-lg font-bold text-foreground">Create New Project</h1>
       <AdminProjectForm categories={categories || []} />
     </div>
   );
