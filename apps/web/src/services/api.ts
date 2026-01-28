@@ -253,7 +253,10 @@ export const ApiService = {
       
     // Reuse the public getProject for editing details
     getProjectDetail: (slug: string) => 
-       apiClient.get(`/projects/${slug}`).then(r => r.data)
+       apiClient.get(`/projects/${slug}`).then(r => r.data),
+
+    getProjectById: (token: string, id: string) => 
+  serverFetch<any>(`/admin/projects/${id}`, token),
   },
 
   // Organization Verification Domain

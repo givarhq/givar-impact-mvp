@@ -362,4 +362,22 @@ export class AdminService {
       return deleted;
     });
   }
+
+  async getProjectById(projectId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        category: true,
+        _count: { select: { donations: true } }
+      }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    return {
+      ...project,
+      targetAmount: project.targetAmount.toString(),
+      raisedAmount: project.raisedAmount.toString(),
+    };
+  }
 }

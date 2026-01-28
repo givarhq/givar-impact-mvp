@@ -86,4 +86,9 @@ export class AdminController {
   deleteProject(@Req() req: any, @Param('id') id: string) {
     return this.service.deleteProject(req.user.id, id);
   }
+
+  @Get('projects/:id')
+  getProjectById(@Param('id') id: string) {
+    return this.service.getProjectById(id);
+  }
 }
