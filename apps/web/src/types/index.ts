@@ -12,6 +12,7 @@ export interface Project {
   id: string;
   slug: string;
   title: string;
+  userId: string;
   description: string;
   targetAmount: string;
   raisedAmount: string;
@@ -19,8 +20,11 @@ export interface Project {
   percentFunded: number;
   imageUrl?: string;
   isActive: boolean;
+  gallery: any;
   createdAt: string; 
   updatedAt: string;
+  location?: string;
+  tags?: string[];
   isVerifiedOrganizer: boolean;
   organizerName: string;
   categoryName?: string;
@@ -135,6 +139,22 @@ export interface ProjectProposal {
   };
 }
 
+export interface ProjectWithDetails extends Project {
+  category?: { 
+    name: string; 
+    icon: string 
+  };
+  updates?: ProjectUpdate[];
+  donorCount?: number;
+  isVerifiedOrganizer: boolean;
+  organizerName: string;
+}
+
+export interface ProjectUpdate {
+  title: string;
+  content: string;
+  createdAt: string;
+}
 export interface OrganizationProfile {
   id: string;
   userId: string;
