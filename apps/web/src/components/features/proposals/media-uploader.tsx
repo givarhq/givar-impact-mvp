@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UploadCloud, Loader2, Link as LinkIcon, X, FileText, Image as ImageIcon, Video, Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
@@ -25,9 +25,11 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
   const [isLoading, setIsLoading] = useState(false);
   const [urlInput, setUrlInput] = useState('');
 
+  // Hydrate preview URLs for existing private keys on mount
   useEffect(() => {
     items.forEach(async (item) => {
-      if (item.key && !item.url) {
+      // Check if it's an S3 key (not a full URL) and we haven't fetched a preview yet
+      if (item.key && !item.key.includes('://') && (!item.url || item.url === item.key)) {
         try {
           const { viewUrl } = await ApiService.proposals.getPreviewUrl(item.key, proposalId);
           onUpdate(item.id, { url: viewUrl });
@@ -36,7 +38,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
         }
       }
     });
-  }, [items.length]);
+  }, []);
 
   // --- Upload Handler ---
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,9 +56,6 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
 
       await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
 
-      // Fetch the preview URL for immediate display
-      const params = new URLSearchParams(window.location.search);
-      const proposalId = window.location.pathname.split('/').slice(-2)[0]; // robust extract
       const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
 
       onAdd({
@@ -73,7 +72,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
     } finally {
       setIsLoading(false);
     }
-};
+  };
 
   // --- URL Handler ---
   const handleUrlAdd = () => {
@@ -85,7 +84,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
       onAdd({
           id: crypto.randomUUID(),
           url: urlInput,
-          key: urlInput, 
+          key: urlInput, // For external URLs, the key IS the URL
           type: isVideo ? 'VIDEO' : (isImage ? 'IMAGE' : 'DOCUMENT'),
           caption: ''
       });
@@ -178,7 +177,6 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate }: MediaManagerP
   );
 }
 
-// Simple export for single image upload
 export function ImageUploader({ 
     onUploadComplete, 
     label, 
@@ -206,7 +204,6 @@ export function ImageUploader({
 
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
             
-            // Return the full data object
             onUploadComplete({ key, previewUrl: viewUrl });
             toast.success('Uploaded!');
         } catch(e) { toast.error('Failed'); } finally { setIsLoading(false); }

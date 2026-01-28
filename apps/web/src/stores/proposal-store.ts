@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { Currency } from '../types';
 
-// Define types for structured JSON fields for type safety
 export interface BudgetItem {
   id: string;
   item: string;
@@ -23,7 +22,7 @@ export interface MediaItem {
   url: string;
   key: string;
   type: 'IMAGE' | 'VIDEO' | 'DOCUMENT';
-  caption: string;
+  caption?: string;
   file?: File;
 }
 
