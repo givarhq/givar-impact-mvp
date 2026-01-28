@@ -153,7 +153,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           <div className="md:col-span-12 space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground ml-1">Short summary (visible on cards)</label>
               <textarea 
-                  className="flex w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[70px] resize-none"
+                  className="flex w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[70px] resize-none"
                   {...register('shortDesc')}
                   placeholder="Summarize the impact in 140 characters..."
                   maxLength={140}
@@ -275,7 +275,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
               ) : (
                 <CheckCircle2 className="mr-2 h-4 w-4" />
               )}
-              {initialData ? 'Update project' : 'Create project'}
+              {initialData ? 'Update project' : 'Publish project'}
           </Button>
       </div>
 
