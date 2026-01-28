@@ -2,9 +2,8 @@ import axios, { AxiosError } from 'axios';
 import { getCookie, deleteCookie, setCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 
-const API_URL =
-  `${process.env.NEXT_PUBLIC_API_URL}/v1` ||
-  'http://localhost:3001/api/v1';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = BASE_URL.endsWith('/v1') ? BASE_URL : `${BASE_URL}/v1`;
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -29,9 +28,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// --------------------------------------------------
-// REQUEST INTERCEPTOR: Attach Token
-// --------------------------------------------------
+// REQUEST INTERCEPTOR
 apiClient.interceptors.request.use((config) => {
   const token = getCookie('givar_token');
   if (token) {
@@ -40,9 +37,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// --------------------------------------------------
-// RESPONSE INTERCEPTOR: 401 / 403 GLOBAL HANDLER
-// --------------------------------------------------
+// RESPONSE INTERCEPTOR
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<any>) => {
@@ -50,10 +45,9 @@ apiClient.interceptors.response.use(
     const status = error.response?.status;
     const message = error.response?.data?.message || 'Something went wrong';
 
-    // 1. Handle 401 (Unauthorized) - Token Expired
+    // 1. Handle 401 - Refresh Token Logic
     if (status === 401 && !originalRequest._retry) {
       
-      // If already refreshing, queue this request
       if (isRefreshing) {
         return new Promise(function(resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -76,6 +70,7 @@ apiClient.interceptors.response.use(
         }
 
         // Call backend refresh endpoint
+        // NOTE: This call must NOT use apiClient to avoid infinite loops
         const response = await axios.post(`${API_URL}/auth/refresh`, {}, {
             headers: { Authorization: `Bearer ${refreshToken}` }
         });
@@ -83,8 +78,8 @@ apiClient.interceptors.response.use(
         const { accessToken, refreshToken: newRefreshToken } = response.data;
 
         // Update Cookies
-        setCookie('givar_token', accessToken, { maxAge: 900 });
-        setCookie('givar_refresh_token', newRefreshToken, { maxAge: 604800 });
+        setCookie('givar_token', accessToken, { maxAge: 900 }); // 15 min
+        setCookie('givar_refresh_token', newRefreshToken, { maxAge: 604800 }); // 7 days
 
         // Update defaults & process queue
         apiClient.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken;
@@ -104,9 +99,8 @@ apiClient.interceptors.response.use(
 
         if (typeof window !== 'undefined') {
              const path = window.location.pathname;
-             // Only redirect if protecting dashboard/admin
              if (path.startsWith('/dashboard') || path.startsWith('/admin')) {
-                window.location.href = '/login';
+                window.location.href = '/login?reason=session_expired';
              }
         }
         return Promise.reject(refreshError);
@@ -116,28 +110,17 @@ apiClient.interceptors.response.use(
     }
 
     // 2. Handle 403 (Forbidden)
-    if (
-  status === 403 &&
-  !originalRequest?.url?.includes('/auth/refresh')
-) {
-  deleteCookie('givar_token');
-  deleteCookie('givar_user');
-  deleteCookie('givar_refresh_token');
+    if (status === 403 && !originalRequest?.url?.includes('/auth/refresh')) {
+      // Don't auto-logout on 403, just reject. 403 means "Logged in but not allowed" (e.g. User accessing Admin)
+      // Only logout if it's a critical auth failure
+      toast.error("Access Denied");
+    }
 
-  if (
-    typeof window !== 'undefined' &&
-    window.location.pathname.startsWith('/dashboard')
-  ) {
-    window.location.href = '/login';
-  }
-
-  return Promise.reject(error);
-}
-
-    // Non-auth errors → toast
+    // 3. General Errors
     if (status !== 401 && !originalRequest?.url?.includes('/auth/refresh')) {
-  toast.error(message);
-}
+      // Don't toast if we are just checking a token silently
+      toast.error(message);
+    }
     
     return Promise.reject(error);
   }

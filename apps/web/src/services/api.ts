@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { apiClient } from '../lib/api-client';
 import { GivingGoal, Project, Wallet } from '../types';
-import { cookies } from 'next/dist/server/request/cookies';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_V1 = `${BASE_URL}/v1`;
@@ -11,8 +10,6 @@ async function serverFetch<T>(
   token?: string, 
   options: RequestInit = {}
 ): Promise<T | null> {
-  const cookieStore = await cookies();
-
   const sanitizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const fullUrl = `${API_V1}${sanitizedEndpoint}`;
 
@@ -26,85 +23,33 @@ async function serverFetch<T>(
   }
 
   try {
-    let res = await fetch(fullUrl, {
+    const res = await fetch(fullUrl, {
       ...options,
       headers: baseHeaders,
       cache: 'no-store',
     });
 
-    // --------------------------------------------------
-    // 401 → Attempt server-side refresh (Rescue the render)
-    // --------------------------------------------------
-    if (res.status === 401 && !endpoint.includes('/auth/refresh')) {
-      const refreshToken = cookieStore.get('givar_refresh_token')?.value;
-
-      if (refreshToken) {
-        try {
-          const refreshRes = await fetch(`${API_V1}/auth/refresh`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${refreshToken}`,
-              'Content-Type': 'application/json',
-            },
-            cache: 'no-store',
-          });
-
-          if (refreshRes.ok) {
-            const { accessToken } = await refreshRes.json();
-
-            /* 
-               NOTE: We CANNOT call cookieStore.set() here because this 
-               function is called during Server Component rendering. 
-               
-               We simply use the new accessToken to retry the current request 
-               so the page loads correctly for the user.
-            */
-
-            const retryRes = await fetch(fullUrl, {
-              ...options,
-              headers: {
-                ...(options.headers as Record<string, string>),
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-              },
-              cache: 'no-store',
-            });
-
-            if (retryRes.ok) {
-  const retryText = await retryRes.text();
-  return retryText ? JSON.parse(retryText) : null;
-}
-          }
-        } catch (err) {
-          console.error(`[ServerFetch] Rescue failed for ${fullUrl}`, err);
-        }
-      }
-
-      // If rescue fails, redirect to clear session
+    // Simple Server-Side Auth Check
+    if (res.status === 401 || res.status === 403) {
+      console.error(`[ServerFetch] Auth Error at ${endpoint}. Redirecting.`);
       redirect('/api/auth/clear-session');
     }
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      console.error(
-        `[ServerFetch] ${res.status} at ${endpoint}: ${errorData.message || res.statusText}`
-      );
+      // Graceful error return for non-auth errors (e.g. 404, 500)
+      console.error(`[ServerFetch] Error ${res.status} at ${endpoint}`);
       return null;
     }
 
     const text = await res.text();
-return text ? JSON.parse(text) : null;
+    return text ? JSON.parse(text) : null;
 
   } catch (error) {
-    // If it's a redirect thrown by Next.js, re-throw it so Next.js can handle it
-    if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error;
-    
-    console.error(`[ServerFetch] NETWORK ERROR at ${fullUrl}`, error);
-
-    if (process.env.NODE_ENV === 'development') {
-      throw new Error(`Fetch failed to ${fullUrl}. Is the backend running?`);
+    if (error instanceof Error && (error as any).digest?.startsWith('NEXT_REDIRECT')) {
+        throw error; // Let Next.js handle the redirect
     }
-
+    
+    console.error(`[ServerFetch] Network/Parse Error at ${fullUrl}`, error);
     return null;
   }
 }
