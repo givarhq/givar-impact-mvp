@@ -5,7 +5,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { ProposalStatus, UserRole } from '@givar/database';
 import { AdminService } from './admin.service';
 import { SkipThrottle } from '@nestjs/throttler';
-import { CreateAdminProjectDto } from './dto/admin-project.dto';
+import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 
 @SkipThrottle()
 @Controller('admin')

@@ -2,7 +2,9 @@ import { Type } from 'class-transformer';
 import { 
   IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsUrl, IsBoolean 
 } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
 import { Currency, ProjectStatus } from '@givar/database';
+
 
 class AdminBudgetItem {
   @IsString() id!: string;
@@ -34,7 +36,7 @@ export class CreateAdminProjectDto {
   @IsUUID() categoryId!: string;
   @IsString() location!: string;
   
-  @IsNumber() @Min(100) targetAmount!: number; // Major units
+  @IsNumber() @Min(100) targetAmount!: number;
   @IsEnum(Currency) currency!: Currency;
 
   @IsUrl() coverImage!: string;
@@ -44,7 +46,6 @@ export class CreateAdminProjectDto {
   @Type(() => AdminMediaItem)
   gallery!: AdminMediaItem[];
 
-  // Complex Structures
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
@@ -59,11 +60,10 @@ export class CreateAdminProjectDto {
 
   @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
   
-  // Admins can backdate or set explicit end dates
   @IsOptional() @IsString() endDate?: string;
 }
 
-export class UpdateAdminProjectDto extends CreateAdminProjectDto {
+export class UpdateAdminProjectDto extends PartialType(CreateAdminProjectDto) {
   @IsOptional() @IsEnum(ProjectStatus) status?: ProjectStatus;
   @IsOptional() @IsBoolean() isActive?: boolean;
 }

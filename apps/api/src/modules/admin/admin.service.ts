@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundEx
 import { PrismaService } from '../../common/prisma.service';
 import { ProjectStatus, ProposalStatus, AuditAction, Prisma } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
-import { CreateAdminProjectDto } from './dto/admin-project.dto';
+import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 
 @Injectable()
 export class AdminService {
