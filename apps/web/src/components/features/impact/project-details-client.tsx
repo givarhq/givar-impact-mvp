@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { 
   Share2, MapPin, Calendar, CheckCircle2, Clock, 
   BadgeCheck, ShieldCheck, DollarSign, Briefcase, 
-  AlertTriangle, ChevronRight, Target, Image as ImageIcon
+  AlertTriangle, ChevronRight, Target, Image as ImageIcon,
+  Heart
 } from 'lucide-react';
 import Link from 'next/link'; 
 import { ProjectWithDetails } from '../../../types';
@@ -259,52 +260,54 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                       "h-12 w-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-inner",
                       project.isVerifiedOrganizer ? "bg-primary" : "bg-muted text-muted-foreground"
                     )}>
-                        {project.organizerName?.[0] || 'O'}
+                        {project.organizerName === 'Givar' ? (
+                            <Heart className="h-6 w-6 fill-current" />
+                        ) : (
+                            project.organizerName?.[0] || 'O'
+                        )}
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest leading-none">Organizer</p>
+                          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest leading-none">organizer</p>
                           {project.isVerifiedOrganizer && (
                             <BadgeCheck className="h-3.5 w-3.5 text-primary" />
                           )}
                         </div>
-                        <p className="font-bold text-foreground truncate text-base leading-tight">{project.organizerName}</p>
+                        <p className="font-bold text-foreground truncate text-base leading-tight">
+                            {project.organizerName}
+                        </p>
                     </div>
                 </div>
 
                 <div className="pt-4 border-t border-border/50 flex items-center justify-between">
-                    {project.isVerifiedOrganizer ? (
-                      <div className="flex items-center gap-1.5 text-primary">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          <p className="text-[10px] font-bold uppercase tracking-tight">Verified Entity</p>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                          <Clock className="h-3.5 w-3.5" />
-                          <p className="text-[10px] font-bold uppercase tracking-tight">Pending Review</p>
-                      </div>
+                    <div className="flex items-center gap-1.5 text-primary">
+                        {project.organizerName === 'Givar' ? (
+                            <ShieldCheck className="h-3.5 w-3.5" />
+                        ) : (
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                        )}
+                        <p className="text-[10px] font-bold uppercase tracking-tight">
+                            {project.organizerName === 'Givar' ? 'official platform project' : 'verified legal entity'}
+                        </p>
+                    </div>
+                    {project.organizerName !== 'Givar' && (
+                        <button className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                            profile <ChevronRight className="h-2.5 w-2.5" />
+                        </button>
                     )}
-                    <button className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-                        Profile <ChevronRight className="h-2.5 w-2.5" />
-                    </button>
                 </div>
             </div>
 
             <div className="p-5 bg-muted/20 rounded-2xl border border-border/50 flex items-start gap-3">
                 <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
                 <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                    <strong>Givar Protection:</strong> Funds are released in strictly audited tranches based on the execution roadmap.
+                    <strong>givar protection:</strong> funds are released in strictly audited tranches based on the execution roadmap.
                 </p>
             </div>
         </div>
       </div>
 
-      <ShareModal 
-        isOpen={isShareModalOpen} 
-        onClose={() => setIsShareModalOpen(false)} 
-        projectTitle={project.title}
-        projectSlug={project.slug}
-      />
+      <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} />
     </div>
   );
 }

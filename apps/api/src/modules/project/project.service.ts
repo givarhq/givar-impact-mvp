@@ -86,6 +86,7 @@ export class ProjectService {
             _count: { select: { donations: true } },
             user: { 
               select: { 
+                role: true,
                 organization: { select: { status: true, legalName: true } } 
               } 
             }
@@ -98,6 +99,8 @@ export class ProjectService {
     const data = projects.map((p) => {
       const raised = Number(p.raisedAmount || 0n);
       const target = Number(p.targetAmount || 0n);
+
+      const isSystemProject = p.user?.role === 'ADMIN';
       
       return {
         ...p,
@@ -106,8 +109,9 @@ export class ProjectService {
         percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
         categoryName: p.category?.name,
         categorySlug: p.category?.slug,
-        isVerifiedOrganizer: p.user?.organization?.status === 'VERIFIED',
-        organizerName: p.user?.organization?.legalName || 'Individual'
+        isVerifiedOrganizer: isSystemProject ? true : p.user?.organization?.status === 'VERIFIED',
+        organizerName: isSystemProject ? 'Givar' : (p.user?.organization?.legalName || 'Individual'),
+        isGivarOfficial: isSystemProject
       };
     });
 
@@ -130,6 +134,7 @@ export class ProjectService {
               updates: { orderBy: { createdAt: 'desc' } },
               user: { 
                 select: { 
+                  role: true,
                   organization: { select: { status: true, legalName: true, verifiedAt: true } } 
                 } 
               }
@@ -138,32 +143,24 @@ export class ProjectService {
 
       if (!project) throw new NotFoundException('Project not found');
 
-      // 1. Count Unique Registered Users
-      const userDonors = await this.prisma.donation.groupBy({
-          by: ['userId'],
-          where: { projectId: project.id },
-      });
-
-      // 2. Count Unique Guest Donors
-      const guestDonors = await this.prisma.guestDonation.groupBy({
-          by: ['guestDonorId'],
-          where: { projectId: project.id },
-      });
-
-      // Unified Count (Users + Guests)
+      // Count donors
+      const [userDonors, guestDonors] = await Promise.all([
+          this.prisma.donation.groupBy({ by: ['userId'], where: { projectId: project.id } }),
+          this.prisma.guestDonation.groupBy({ by: ['guestDonorId'], where: { projectId: project.id } })
+      ]);
       const donorCount = userDonors.length + guestDonors.length;
 
-      const raised = Number(project.raisedAmount);
-      const target = Number(project.targetAmount);
+      const isSystemProject = project.user?.role === 'ADMIN';
 
       return {
           ...project,
           targetAmount: project.targetAmount.toString(),
           raisedAmount: project.raisedAmount.toString(),
-          percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
-          donorCount: donorCount,
-          isVerifiedOrganizer: project.user?.organization?.status === 'VERIFIED',
-          organizerName: project.user?.organization?.legalName || 'Individual'
+          percentFunded: Number(project.targetAmount) > 0 ? Math.min(100, Math.round((Number(project.raisedAmount) / Number(project.targetAmount)) * 100)) : 0,
+          donorCount,
+          isVerifiedOrganizer: isSystemProject ? true : project.user?.organization?.status === 'VERIFIED',
+          organizerName: isSystemProject ? 'Givar' : (project.user?.organization?.legalName || 'Individual'),
+          isGivarOfficial: isSystemProject
       };
   }
 
