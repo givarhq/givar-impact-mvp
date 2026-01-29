@@ -1,3 +1,5 @@
+import { BudgetItem, MediaItem, TimelineItem } from "../stores/proposal-store";
+
 export enum Currency {
   NGN = 'NGN',
   USD = 'USD',
@@ -14,17 +16,21 @@ export interface Project {
   title: string;
   userId: string;
   description: string;
+  shortDesc?: string;
   targetAmount: string;
   raisedAmount: string;
   currency: string;
   percentFunded: number;
   imageUrl?: string;
   isActive: boolean;
-  gallery: any;
+  gallery: MediaItem[];
   createdAt: string; 
   updatedAt: string;
   location?: string;
   tags?: string[];
+  budgetBreakdown: BudgetItem[];
+  executionTimeline: TimelineItem[];
+  riskAnalysis?: string;
   isVerifiedOrganizer: boolean;
   organizerName: string;
   categoryName?: string;
