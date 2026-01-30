@@ -139,7 +139,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                             className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
                             value={formatNumberInput(amount)}
                             onChange={handleAmountChange}
-                            autoFocus
+                            
                         />
                     </div>
                     <div className="flex gap-2 text-xs flex-wrap">
@@ -207,7 +207,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                 className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
                                 value={formatNumberInput(amount)}
                                 onChange={handleAmountChange}
-                                autoFocus
+                                
                             />
                         </div>
                         <div className="flex gap-2 text-xs flex-wrap">
@@ -220,14 +220,21 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     </div>
 
                     {amount && isOverfunding && (
-                      <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 animate-in slide-in-from-top-2">
-                        <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-                        <div className="text-xs space-y-1">
-                          <p className="font-bold uppercase tracking-tight">Overfunding Prevented</p>
-                          <p>This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to reach its goal. Please adjust your amount.</p>
-                        </div>
-                      </div>
-                    )}
+  <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 animate-in slide-in-from-top-2">
+    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+    <div className="text-xs space-y-1">
+      <p className="font-bold uppercase tracking-tight">Almost There</p>
+      <p>
+        Thank you for your generosity! This project only needs{" "}
+        <strong>
+          {formatCurrency(remainingNeededMinor.toString(), project.currency)}
+        </strong>{" "}
+        to reach its goal. Please adjust your donation to match the remaining need.
+      </p>
+    </div>
+  </div>
+)}
+
 
                     {donationType === 'recurring' && (
                         <div className="grid grid-cols-2 gap-3 pt-2">
