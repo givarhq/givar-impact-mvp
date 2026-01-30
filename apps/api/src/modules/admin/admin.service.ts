@@ -374,28 +374,63 @@ export class AdminService {
     });
   }
 
-  // Hard Delete (Nuclear Option)
+  // Forensic Project Deletion with Asset Purge
   async deleteProject(adminId: string, projectId: string) {
-    // Check for donations first
-    const donationCount = await this.prisma.donation.count({ where: { projectId } });
-    if (donationCount > 0) {
-        throw new ForbiddenException('Cannot delete a project that has received donations. Suspend it instead.');
+    // 1. Fetch Project with relations and donation count
+    const project = await this.prisma.project.findUnique({ 
+        where: { id: projectId },
+        include: { _count: { select: { donations: true } } }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    // 2. Financial Integrity Guard
+    // Hard-deletion is FORBIDDEN if the project has ever received money.
+    if (project._count.donations > 0) {
+        throw new ForbiddenException(
+            'CRITICAL: This project has received donations. For financial audit integrity, it cannot be deleted. Use Suspend/Complete instead.'
+        );
+    }
+
+    // 3. Collect S3 Keys for Purging
+    const keysToPurge: string[] = [];
+    
+    // Check if coverImage is a key (not a full URL from previous hydration)
+    // Note: Since our DB stores keys, we check if it starts with 'proposals/'
+    if (project.imageUrl && !project.imageUrl.startsWith('http')) {
+        keysToPurge.push(project.imageUrl);
+    }
+
+    // Extract keys from Gallery JSON
+    if (project.gallery && Array.isArray(project.gallery)) {
+        const gallery = project.gallery as any[];
+        gallery.forEach(item => {
+            if (item.url && !item.url.startsWith('http')) {
+                keysToPurge.push(item.url);
+            }
+        });
     }
 
     return this.prisma.$transaction(async (tx) => {
+      // 4. Delete from Database
       const deleted = await tx.project.delete({ where: { id: projectId } });
       
-      await tx.auditLog.create({
-        data: {
-          userId: adminId,
-          action: AuditAction.PROJECT_DELETED,
-          entityId: projectId,
-          entityType: 'Project',
-          metadata: { title: deleted.title },
-        },
-      });
-      
+      // 5. Audit Log
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROJECT_DELETED,
+        entityId: projectId,
+        entityType: 'Project',
+        metadata: { title: deleted.title, purgedFileCount: keysToPurge.length },
+      }, tx);
+
+      // 6. Trigger S3 Purge (Best effort, non-blocking)
       return deleted;
+    }).then(async (result) => {
+        if (keysToPurge.length > 0) {
+            await this.storage.deleteFiles(keysToPurge);
+        }
+        return result;
     });
   }
 

@@ -119,10 +119,16 @@ export class AdminController {
 
   @Patch('projects/:id/milestones/:milestoneId')
   updateMilestone(
+    @Req() req: any,
     @Param('id') projectId: string,
     @Param('milestoneId') milestoneId: string,
     @Body('status') status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED',
   ) {
-    return this.service.updateProjectMilestone(projectId, milestoneId, status);
+    return this.service.updateProjectMilestone(
+        projectId, 
+        milestoneId, 
+        status, 
+        req.user.id
+    );
   }
 }

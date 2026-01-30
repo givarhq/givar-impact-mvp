@@ -132,4 +132,26 @@ export const EmailTemplates = {
     <p>For your security, we have logged you out of all other active sessions.</p>
     <p>If you did not make this change, please contact Givar Support immediately.</p>
   `,
+
+  milestoneCompleted: (data: { donorName: string; projectTitle: string; milestonePhase: string; date: string; projectUrl: string }) => `
+    <p>Hi ${data.donorName},</p>
+    <p>Great news! A key milestone has been reached for the project you supported: <strong>${data.projectTitle}</strong>.</p>
+    
+    <div class="stat-box">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Milestone Achieved</div>
+      <div style="font-size: 24px; font-weight: 800; color: #064e3b; line-height: 1.2;">${data.milestonePhase}</div>
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <div style="font-size: 13px; font-weight: 700; color: #059669; display: flex; align-items: center;">
+        <span style="margin-right: 6px;">✓</span> Verified Complete on ${data.date}
+      </div>
+    </div>
+
+    <p>Because of your contribution, this project is one step closer to its final goal. You can view the updated timeline and impact details on the project page.</p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.projectUrl}" class="button">View Project Progress</a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280;">Thank you for being a vital part of this journey.</p>
+  `,
 };

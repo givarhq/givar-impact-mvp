@@ -97,4 +97,11 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Password Changed');
     return this.send(email, 'Givar Impact Security Alert: Password Changed', html);
   }
+
+  // 8. Milestone Completion
+  async sendMilestoneAlert(email: string, data: { donorName: string; projectTitle: string; milestonePhase: string; date: string; projectUrl: string }) {
+    const content = EmailTemplates.milestoneCompleted(data);
+    const html = EmailTemplates.base(content, 'Milestone Achieved');
+    return this.send(email, `Givar Impact: Milestone Complete for ${data.projectTitle}`, html);
+  }
 }
