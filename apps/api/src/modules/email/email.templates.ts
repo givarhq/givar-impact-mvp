@@ -83,4 +83,17 @@ export const EmailTemplates = {
     </p>
     <p>You can manage all your subscriptions from your dashboard at any time.</p>
   `,
+
+  walletFunded: (data: { name: string; amount: string; currency: string; ref: string; newBalance: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>Your Givar wallet has been successfully topped up.</p>
+    <div class="stat-box">
+      <div style="font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">Amount Added</div>
+      <div style="font-size: 24px; font-weight: 800; color: #14532d;">${data.currency} ${data.amount}</div>
+      <div style="margin-top: 10px; font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">New Ledger Balance</div>
+      <div style="font-size: 18px; font-weight: 600;">${data.currency} ${data.newBalance}</div>
+    </div>
+    <p><strong>Reference:</strong> <span style="font-family: monospace;">${data.ref}</span></p>
+    <p>You can now use these funds to support any active cause on the platform.</p>
+  `,
 };

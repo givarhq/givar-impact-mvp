@@ -73,4 +73,10 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Subscription Updated');
     return this.send(email, `Givar: Your donation to ${project} is now ${status}`, html);
   }
+
+  async sendWalletFundingEmail(email: string, data: { name: string; amount: string; currency: string; ref: string; newBalance: string }) {
+    const content = EmailTemplates.walletFunded(data);
+    const html = EmailTemplates.base(content, 'Wallet Top-up Successful');
+    return this.send(email, `Confirmation: You added ${data.currency} ${data.amount} to your Givar wallet`, html);
+  }
 }

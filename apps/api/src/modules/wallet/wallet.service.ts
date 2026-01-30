@@ -17,6 +17,7 @@ import { AuditService } from '../audit/audit.service';
 import { json2csv } from 'json-2-csv';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
 import { DonationService } from '../donation/donation.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class WalletService {
@@ -32,6 +33,7 @@ export class WalletService {
     @Inject(forwardRef(() => DonationService))
     private donationService: DonationService,
     private audit: AuditService,
+    private emailService: EmailService,
   ) {}
 
   private toPaystackAmount(amountStr: string): number {
@@ -222,6 +224,11 @@ export class WalletService {
         description: 'Wallet funding via Paystack',
       });
 
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, firstName: true }
+      });
+
       await this.audit.log({
         userId,
         action: AuditAction.WALLET_FUND_SUCCESS,
@@ -235,6 +242,16 @@ export class WalletService {
           channel: data.channel,
         },
       });
+
+      if (user) {
+        this.emailService.sendWalletFundingEmail(user.email, {
+            name: user.firstName,
+            amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+            currency: currency,
+            ref: reference,
+            newBalance: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })
+        }).catch(err => this.logger.error(`Funding Email Failed: ${err.message}`));
+      }
 
       this.logger.log(`Wallet funded successfully: ${amount} ${currency} → User ${userId}`);
     } catch (error) {
