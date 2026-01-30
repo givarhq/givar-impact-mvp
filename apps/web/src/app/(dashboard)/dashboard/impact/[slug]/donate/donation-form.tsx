@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { Loader2, Repeat, Wallet, CreditCard, CheckCircle, Mail, Lock } from 'lucide-react'; // Added Lock
+import { Loader2, Repeat, Wallet, CreditCard, CheckCircle, Mail, Lock, AlertCircle } from 'lucide-react'; // Added AlertCircle
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Project, Wallet as WalletType } from '../../../../../../types';
@@ -34,12 +34,16 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
   const walletBalanceMinor = BigInt(wallet?.balance || '0');
   const hasSufficientFunds = !isGuest && walletBalanceMinor >= donationAmountMinor;
 
+  const targetAmountMinor = BigInt(project?.targetAmount || '0');
+  const raisedAmountMinor = BigInt(project?.raisedAmount || '0');
+  const remainingNeededMinor = targetAmountMinor - raisedAmountMinor;
+  const isOverfunding = donationAmountMinor > remainingNeededMinor;
+
   useEffect(() => {
       setAmount('');
       setGuestEmail('');
       setIsLoading(false);
       setDonationType('one-time');
-      // If guest, pre-select direct method
       if (isGuest) {
         setSelectedMethod('direct');
       } else {
@@ -60,6 +64,8 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
   };
 
   const handleConfirm = async () => {
+    if (isOverfunding) return; // Block submission if overfunding
+
     if (!selectedMethod || !amount) {
         toast.error("Please select a payment method.");
         return;
@@ -73,6 +79,10 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     setIsLoading(true);
     try {
         const minorAmount = donationAmountMinor.toString();
+        const projectSlug = project.slug;
+        const redirectPath = isAuthenticated 
+            ? `/dashboard/impact/${projectSlug}` 
+            : `/explore/${projectSlug}`;
 
         if (selectedMethod === 'wallet') {
             if (donationType === 'one-time') {
@@ -90,7 +100,8 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 });
             }
             toast.success(donationType === 'one-time' ? `Successfully donated!` : `Recurring donation started!`);
-            router.push('/dashboard/history');
+            
+            router.push(redirectPath);
             router.refresh();
         } else if (selectedMethod === 'direct') {
             const payload: any = {
@@ -117,9 +128,9 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
   return (
     <div className="bg-card border border-border/50 rounded-xl p-6 md:p-8 shadow-xl relative overflow-hidden">
         {isGuest ? (
-            <div className="flex flex-col space-y-6">
+            <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-500">
                  <div className="space-y-3">
-                    <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Amount ({project.currency})</label>
+                    <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Donation Amount ({project.currency})</label>
                     <div className="relative">
                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground">₦</span>
                         <Input
@@ -140,14 +151,24 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     </div>
                 </div>
 
+                {amount && isOverfunding && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 animate-in slide-in-from-top-2">
+                    <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                    <div className="text-xs space-y-1">
+                      <p className="font-bold uppercase tracking-tight">Overfunding Prevented</p>
+                      <p>This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to reach its goal. Please adjust your amount.</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                     <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Receipt Email</label>
                     <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input 
                             type="email" 
                             placeholder="jane@example.com" 
-                            className="pl-10 h-14 rounded-xl bg-muted/30 border-transparent"
+                            className="pl-12 h-14 rounded-xl bg-muted/30 border-transparent"
                             value={guestEmail}
                             onChange={(e) => setGuestEmail(e.target.value)}
                         />
@@ -158,7 +179,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     <Link href="/login" className="text-primary hover:underline font-bold">Sign in</Link> to track your impact history and manage automated giving.
                 </div>
 
-                <Button onClick={handleConfirm} disabled={isLoading || !amount || !guestEmail} className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20">
+                <Button onClick={handleConfirm} disabled={isLoading || !amount || !guestEmail || isOverfunding} className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20">
                     {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
                       <span className="flex items-center gap-2">
                         <Lock className="h-5 w-5" /> Proceed to Pay
@@ -167,7 +188,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 </Button>
             </div>
         ) : (
-            <Tabs value={donationType} onValueChange={(v) => setDonationType(v as 'one-time' | 'recurring')} className="w-full flex flex-col h-full">
+            <Tabs value={donationType} onValueChange={(v) => setDonationType(v as 'one-time' | 'recurring')} className="w-full flex flex-col h-full animate-in fade-in duration-500">
                 <div className="shrink-0 pb-6">
                     <TabsList className="w-full h-12 rounded-xl p-1 bg-muted/50">
                         <TabsTrigger value="one-time" className="flex-1 rounded-lg">One-Time</TabsTrigger>
@@ -198,17 +219,20 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                         </div>
                     </div>
 
+                    {amount && isOverfunding && (
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 animate-in slide-in-from-top-2">
+                        <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+                        <div className="text-xs space-y-1">
+                          <p className="font-bold uppercase tracking-tight">Overfunding Prevented</p>
+                          <p>This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to reach its goal. Please adjust your amount.</p>
+                        </div>
+                      </div>
+                    )}
+
                     {donationType === 'recurring' && (
-                        <div className="space-y-3 animate-in fade-in-0 duration-300">
-                            <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground text-center block">Frequency</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={() => setInterval('WEEKLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'WEEKLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>
-                                    Weekly
-                                </button>
-                                <button onClick={() => setInterval('MONTHLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'MONTHLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>
-                                    Monthly
-                                </button>
-                            </div>
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                            <button onClick={() => setInterval('WEEKLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'WEEKLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>Weekly</button>
+                            <button onClick={() => setInterval('MONTHLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'MONTHLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>Monthly</button>
                         </div>
                     )}
                     
@@ -217,43 +241,37 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                             <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Select Payment Method</p>
                             <button
                                 onClick={() => setSelectedMethod('wallet')}
-                                disabled={!hasSufficientFunds}
+                                disabled={!hasSufficientFunds || isOverfunding}
                                 className={cn(
                                     "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
                                     selectedMethod === 'wallet' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
-                                    !hasSufficientFunds && "opacity-50 cursor-not-allowed grayscale"
+                                    (!hasSufficientFunds || isOverfunding) && "opacity-50 cursor-not-allowed grayscale"
                                 )}
                             >
-                                {selectedMethod === 'wallet' && <CheckCircle className="absolute top-4 right-4 h-5 w-5 text-primary" />}
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary shrink-0"><Wallet className="h-5 w-5" /></div>
-                                <div className="text-left">
-                                    <p className="font-bold text-foreground">Givar Wallet</p>
-                                    <p className="text-xs text-muted-foreground">Balance: {formatCurrency(wallet?.balance || '0', project.currency)}</p>
-                                </div>
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary"><Wallet className="h-5 w-5" /></div>
+                                <div className="text-left"><p className="font-bold text-foreground">Givar Wallet</p><p className="text-xs text-muted-foreground">Bal: {formatCurrency(wallet?.balance || '0', project.currency)}</p></div>
+                                {selectedMethod === 'wallet' && <CheckCircle className="ml-auto h-5 w-5 text-primary" />}
                             </button>
 
                             <button
                                 onClick={() => setSelectedMethod('direct')}
-                                disabled={donationType === 'recurring'}
+                                disabled={isOverfunding}
                                 className={cn(
                                     "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
                                     selectedMethod === 'direct' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
-                                    donationType === 'recurring' && "opacity-50 cursor-not-allowed"
+                                    isOverfunding && "opacity-50 cursor-not-allowed grayscale"
                                 )}
                             >
-                                {selectedMethod === 'direct' && <CheckCircle className="absolute top-4 right-4 h-5 w-5 text-primary" />}
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted mr-4 text-muted-foreground shrink-0"><CreditCard className="h-5 w-5" /></div>
-                                <div className="text-left">
-                                    <p className="font-bold text-foreground">Direct Pay</p>
-                                    <p className="text-xs text-muted-foreground">Card, Bank, USSD</p>
-                                </div>
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted mr-4 text-muted-foreground"><CreditCard className="h-5 w-5" /></div>
+                                <div className="text-left"><p className="font-bold text-foreground">Direct Pay</p><p className="text-xs text-muted-foreground">Card, Bank, USSD</p></div>
+                                {selectedMethod === 'direct' && <CheckCircle className="ml-auto h-5 w-5 text-primary" />}
                             </button>
                         </div>
                     )}
                 </div>
 
                 <div className="pt-8">
-                    <Button onClick={handleConfirm} disabled={isLoading || !amount || !selectedMethod} className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20">
+                    <Button onClick={handleConfirm} disabled={isLoading || !amount || !selectedMethod || isOverfunding} className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20">
                         {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
                            <span className="flex items-center gap-2">
                              <Lock className="h-5 w-5" /> Confirm Donation
