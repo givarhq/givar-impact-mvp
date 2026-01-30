@@ -155,9 +155,15 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 animate-in slide-in-from-top-2">
                     <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                     <div className="text-xs space-y-1">
-                      <p className="font-bold uppercase tracking-tight">Overfunding Prevented</p>
-                      <p>This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to reach its goal. Please adjust your amount.</p>
-                    </div>
+      <p className="font-bold uppercase tracking-tight">Almost There</p>
+      <p>
+        Thank you for your generosity! This project only needs{" "}
+        <strong>
+          {formatCurrency(remainingNeededMinor.toString(), project.currency)}
+        </strong>{" "}
+        to reach its goal. Please adjust your donation to match the remaining need.
+      </p>
+    </div>
                   </div>
                 )}
 
