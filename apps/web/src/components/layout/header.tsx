@@ -68,7 +68,6 @@ export function Header() {
       deleteCookie('givar_token');
       deleteCookie('givar_user');
       router.push('/login');
-      toast.success("You've been securely logged out.");
 
     } catch (error) {
       // Fallback: Even if the API call fails, log the user out on the client.
