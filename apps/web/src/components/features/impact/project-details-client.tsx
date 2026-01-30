@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   Share2, MapPin, Calendar, CheckCircle2, Clock, 
   BadgeCheck, ShieldCheck, DollarSign, Briefcase, 
@@ -182,23 +182,49 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                         <h4 className="text-xs font-bold tracking-widest text-foreground uppercase">Implementation Roadmap</h4>
                     </div>
                     <div className="grid gap-3">
-                        {timeline.map((phase: any, i: number) => (
-                            <div key={i} className="flex gap-5 group">
-                                <div className="flex flex-col items-center shrink-0">
-                                    <div className="h-7 w-7 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-bold text-[10px]">
-                                        {i + 1}
+                        {timeline.map((phase: any, i: number) => {
+                            const isCompleted = phase.status === 'COMPLETED';
+                            const isInProgress = phase.status === 'IN_PROGRESS';
+
+                            return (
+                                <div key={i} className="flex gap-5 group">
+                                    <div className="flex flex-col items-center shrink-0">
+                                        <div className={cn(
+                                            "h-7 w-7 rounded-full border flex items-center justify-center transition-all duration-500 z-10 bg-background",
+                                            isCompleted ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20" : 
+                                            isInProgress ? "border-primary text-primary animate-pulse" : 
+                                            "border-border text-muted-foreground"
+                                        )}>
+                                            {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-[10px] font-bold">{i + 1}</span>}
+                                        </div>
+                                        <div className={cn("flex-1 w-px group-last:hidden mt-2", isCompleted ? "bg-primary" : "bg-border")} />
                                     </div>
-                                    <div className="flex-1 w-px bg-border group-last:hidden mt-2" />
-                                </div>
-                                <div className="flex-1 pb-6 space-y-1">
-                                    <div className="flex justify-between items-baseline">
-                                        <h5 className="font-bold text-foreground text-xs">{phase.phase}</h5>
-                                        <span className="text-[9px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded uppercase">{phase.estimatedDate}</span>
+                                    <div className="flex-1 pb-8 space-y-1.5 min-w-0">
+                                        <div className="flex justify-between items-baseline gap-4">
+                                            <h5 className={cn("font-bold text-sm truncate", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
+                                                {phase.phase}
+                                            </h5>
+                                            <div className="flex flex-col items-end shrink-0 gap-1">
+                                                <span className={cn(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter",
+                                                    isCompleted ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                                                )}>
+                                                    {isCompleted ? 'Finished' : phase.estimatedDate}
+                                                </span>
+                                                {isCompleted && phase.completedAt && (
+                                                    <span className="text-[10px] font-medium text-muted-foreground opacity-70 italic">
+                                                        {new Date(phase.completedAt).toLocaleDateString()}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <p className="text-[12px] text-muted-foreground leading-relaxed">
+                                            {phase.deliverables}
+                                        </p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground leading-relaxed">{phase.deliverables}</p>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </TabsContent>
