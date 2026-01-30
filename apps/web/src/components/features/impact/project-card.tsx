@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, ShieldCheck, Share2, BadgeCheck } from 'lucide-react';
+import { Heart, Share2, BadgeCheck, Check } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { Project } from '../../../types';
@@ -18,6 +18,8 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
   const raised = Number(project.raisedAmount || 0);
   const target = Number(project.targetAmount || 0);
   const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
+
+  const isFunded = (raised >= target && target > 0) || project.status === 'FUNDED' || project.status === 'COMPLETED';
 
   const detailsLink = isPublic 
     ? `/explore/${project.slug}` 
@@ -103,13 +105,22 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
         </Link>
 
         <div className="p-4 pt-0 mt-auto flex gap-2">
-            <Link href={donateLink} className="flex-1">
-                <Button 
-                    className="w-full h-9 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-semibold shadow-none transition-all"
-                >
-                    Donate
-                </Button>
-            </Link>
+            {isFunded ? (
+              <Button 
+                disabled 
+                className="flex-1 h-9 rounded-xl bg-emerald-600/10 text-emerald-600 border border-emerald-600/20 text-xs font-bold opacity-100 shadow-none cursor-default"
+              >
+                <Check className="mr-1.5 h-3.5 w-3.5" /> Goal Reached
+              </Button>
+            ) : (
+              <Link href={donateLink} className="flex-1">
+                  <Button 
+                      className="w-full h-9 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground text-xs font-semibold shadow-none transition-all"
+                  >
+                      Donate
+                  </Button>
+              </Link>
+            )}
             
             <Button
                 variant="outline"
