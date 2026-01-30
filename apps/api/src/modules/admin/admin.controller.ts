@@ -116,4 +116,13 @@ export class AdminController {
   ) {
     return this.service.resolveSuspenseTransaction(req.user.id, id, dto);
   }
+
+  @Patch('projects/:id/milestones/:milestoneId')
+  updateMilestone(
+    @Param('id') projectId: string,
+    @Param('milestoneId') milestoneId: string,
+    @Body('status') status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED',
+  ) {
+    return this.service.updateProjectMilestone(projectId, milestoneId, status);
+  }
 }

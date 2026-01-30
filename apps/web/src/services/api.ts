@@ -278,6 +278,9 @@ export const ApiService = {
 
     resolveSuspense: (id: string, data: { action: 'REFUND' | 'ALLOCATE'; targetProjectId?: string }) =>
       apiClient.patch(`/admin/suspense/${id}/resolve`, data).then(r => r.data),
+
+    updateMilestone: (projectId: string, milestoneId: string, status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED') =>
+      apiClient.patch(`/admin/projects/${projectId}/milestones/${milestoneId}`, { status }).then(r => r.data),
   },
 
   // Organization Verification Domain
