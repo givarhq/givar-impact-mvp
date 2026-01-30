@@ -103,9 +103,7 @@ export class DonationService {
     // 3. Over-donation Prevention
     const remainingNeeded = project.targetAmount - project.raisedAmount;
     if (amount > remainingNeeded) {
-        throw new BadRequestException(
-            `Over-donation prevented. This project only needs ${ (Number(remainingNeeded) / 100).toLocaleString() } to reach its goal.`
-        );
+        throw new BadRequestException('OVERFUNDING');
     }
 
     const result = await this.prisma.$transaction(async (tx) => {

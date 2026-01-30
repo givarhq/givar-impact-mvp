@@ -52,7 +52,6 @@ export default function SignupPage() {
       setCookie('givar_refresh_token', refreshToken, { maxAge: 604800 }); // 7 days
       setCookie('givar_user', JSON.stringify(user), { maxAge: 86400 });
 
-      toast.success('Account created successfully!');
       router.push('/dashboard');
     } catch (error: any) {
       const message = error.response?.data?.message;

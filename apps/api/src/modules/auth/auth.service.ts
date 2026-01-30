@@ -201,7 +201,7 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    return { message: 'Logged out successfully.' };
+    return { success: true };
   }
 
   async forgotPassword(dto: ForgotPasswordDto, req?: Request) {

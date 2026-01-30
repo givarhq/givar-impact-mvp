@@ -46,8 +46,6 @@ export default function LoginPage() {
       
       setCookie('givar_token', accessToken, { maxAge: 604800 }); 
       setCookie('givar_user', JSON.stringify(user), { maxAge: 604800 });
-
-      toast.success('Successfully logged in');
       
       if (user.role === 'ADMIN') {
           router.push('/admin');
