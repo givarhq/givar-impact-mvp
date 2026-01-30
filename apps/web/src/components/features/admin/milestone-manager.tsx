@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   CheckCircle2, Clock, PlayCircle, Loader2, 
-  Calendar, AlertCircle 
+  Calendar, 
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -12,6 +12,9 @@ import { Badge } from '../../ui/badge';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
+import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog';
+import { DialogHeader } from '../../ui/dialog';
+import { ImageUploader } from '../proposals/media-uploader';
 
 interface Milestone {
   id: string;
@@ -31,28 +34,31 @@ interface MilestoneManagerProps {
 export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps) {
   const router = useRouter();
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [activeMilestone, setActiveMilestone] = useState<Milestone | null>(null);
+  const [proofImageUrl, setProofImageUrl] = useState<string | null>(null);
 
   const handleStatusChange = async (milestoneId: string, newStatus: Milestone['status']) => {
+    if (newStatus === 'COMPLETED') {
+        const milestone = timeline.find(m => m.id === milestoneId);
+        setActiveMilestone(milestone || null);
+        return;
+    }
+    await updateMilestone(milestoneId, newStatus);
+  };
+  
+  const updateMilestone = async (milestoneId: string, status: Milestone['status'], imageUrl?: string) => {
     setProcessingId(milestoneId);
     try {
-      await ApiService.admin.updateMilestone(projectId, milestoneId, newStatus);
-      toast.success(`Milestone updated to ${newStatus.replace('_', ' ')}`);
+      await ApiService.admin.updateMilestone(projectId, milestoneId, status, imageUrl);
+      toast.success('Milestone updated!');
       router.refresh();
-    } catch (error) {
-      toast.error('Failed to update milestone');
-    } finally {
+    } catch (error) { toast.error('Update failed'); } 
+    finally {
       setProcessingId(null);
+      setActiveMilestone(null);
+      setProofImageUrl(null);
     }
   };
-
-  if (!timeline || timeline.length === 0) {
-    return (
-      <div className="py-12 text-center border-2 border-dashed border-border rounded-3xl bg-muted/10">
-        <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-3" />
-        <p className="text-muted-foreground font-medium">No execution map defined for this project.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -154,6 +160,35 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
             </Card>
           );
         })}
+        <Dialog open={!!activeMilestone} onOpenChange={(open) => !open && setActiveMilestone(null)}>
+        <DialogContent>
+            <DialogHeader><DialogTitle>Verify Milestone Completion</DialogTitle></DialogHeader>
+            <div className="space-y-6 pt-4">
+                <p className="text-sm text-muted-foreground">
+                    Upload a "Proof of Work" image (e.g., photo of the completed borehole) to include in the public update.
+                </p>
+                
+                {proofImageUrl ? (
+                    <div className="aspect-video rounded-xl overflow-hidden border">
+                        <img src={proofImageUrl} className="w-full h-full object-cover" />
+                    </div>
+                ) : (
+                    <ImageUploader 
+                        label="Upload Proof (Optional)" 
+                        onUploadComplete={(data) => setProofImageUrl(data.previewUrl)} 
+                    />
+                )}
+
+                <Button 
+                    className="w-full h-12 rounded-xl"
+                    onClick={() => updateMilestone(activeMilestone!.id, 'COMPLETED', proofImageUrl || undefined)}
+                    disabled={processingId === activeMilestone?.id}
+                >
+                    Confirm Completion
+                </Button>
+            </div>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   );

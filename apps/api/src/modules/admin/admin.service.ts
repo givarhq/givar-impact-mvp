@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { ResolveSuspenseDto, SuspenseAction } from './dto/admin-suspense.dto';
 import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
+import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 
 @Injectable()
 export class AdminService {
@@ -535,6 +536,7 @@ export class AdminService {
     projectId: string, 
     milestoneId: string, 
     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED',
+    dto: UpdateMilestoneDto,
     adminId: string
   ) {
     // 1. Fetch Project with context for the broadcast helper
@@ -558,6 +560,7 @@ export class AdminService {
     updatedTimeline[milestoneIndex] = {
         ...updatedTimeline[milestoneIndex],
         status,
+        imageUrl: dto.imageUrl || updatedTimeline[milestoneIndex].imageUrl,
         updatedAt: new Date().toISOString(),
         ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
     };
@@ -581,18 +584,30 @@ export class AdminService {
     });
 
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
+        // Automatically create a public narrative update
+        await this.prisma.projectUpdate.create({
+            data: {
+                projectId,
+                title: `Milestone Achieved: ${updatedTimeline[milestoneIndex].phase}`,
+                content: `We are pleased to announce that the "${updatedTimeline[milestoneIndex].phase}" phase has been successfully completed. Deliverables verified: ${updatedTimeline[milestoneIndex].deliverables}.`,
+                type: 'MILESTONE',
+                imageUrl: dto.imageUrl || updatedTimeline[milestoneIndex].imageUrl
+            }
+        });
+
         this.broadcastMilestoneUpdate(
             projectId, 
             project.title, 
             project.slug, 
-            updatedTimeline[milestoneIndex].phase
+            updatedTimeline[milestoneIndex].phase,
+            dto.imageUrl || updatedTimeline[milestoneIndex].imageUrl
         ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
     }
 
     return updatedProject;
   }
 
-  private async broadcastMilestoneUpdate(projectId: string, projectTitle: string, projectSlug: string, milestonePhase: string) {
+  private async broadcastMilestoneUpdate(projectId: string, projectTitle: string, projectSlug: string, milestonePhase: string, imageUrl?: string) {
     // 1. Fetch Unique Registered Donors
     const userDonors = await this.prisma.donation.findMany({
       where: { projectId },
@@ -640,6 +655,7 @@ export class AdminService {
           milestonePhase,
           date: formattedDate,
           projectUrl,
+          imageUrl,
         }),
       ),
     ).catch((err) => this.logger.error('Milestone Broadcast Failed', err));

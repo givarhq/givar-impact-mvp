@@ -133,9 +133,15 @@ export const EmailTemplates = {
     <p>If you did not make this change, please contact Givar Support immediately.</p>
   `,
 
-  milestoneCompleted: (data: { donorName: string; projectTitle: string; milestonePhase: string; date: string; projectUrl: string }) => `
+  milestoneCompleted: (data: { donorName: string; projectTitle: string; milestonePhase: string; date: string; projectUrl: string; imageUrl?: string; }) => `
     <p>Hi ${data.donorName},</p>
     <p>Great news! A key milestone has been reached for the project you supported: <strong>${data.projectTitle}</strong>.</p>
+
+    ${data.imageUrl ? `
+      <div style="margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
+        <img src="${data.imageUrl}" alt="Proof of Work" style="width: 100%; height: auto; display: block;">
+      </div>
+    ` : ''}
     
     <div class="stat-box">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Milestone Achieved</div>
