@@ -376,4 +376,25 @@ export class WalletService {
     // If not found yet, return pending to trigger frontend retry
     return { status: 'pending' };
   }
+
+  /**
+   * Admin Reconciliation Handler
+   * This is called ONLY by the AdminService after a manual ground-truth check.
+   * It re-uses the existing, audited fulfillment logic for consistency.
+   */
+  async handleReconciliationFulfillment(data: {
+    userId: string; // 'GUEST' or UUID from Paystack metadata
+    guestEmail?: string;
+    guestName?: string;
+    projectId: string;
+    amount: bigint;
+    currency: Currency;
+    reference: string;
+  }) {
+    
+    this.logger.log(`[RECONCILIATION] Manually fulfilling reference: ${data.reference}`);
+
+    // The 'donationService' will handle both Guest and User logic internally.
+    return this.donationService.fulfillDirectDonation(data);
+  }
 }

@@ -91,4 +91,14 @@ export class AdminController {
   getProjectById(@Param('id') id: string) {
     return this.service.getProjectById(id);
   }
+
+  @Get('reconcile/verify/:reference')
+  verifyExternal(@Param('reference') ref: string) {
+    return this.service.verifyExternalTransaction(ref);
+  }
+
+  @Post('reconcile')
+  executeReconciliation(@Req() req: any, @Body('reference') ref: string) {
+    return this.service.executeReconciliation(req.user.id, ref);
+  }
 }
