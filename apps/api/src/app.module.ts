@@ -14,6 +14,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { ProposalModule } from './modules/proposal/proposal.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { OrganizationModule } from './modules/organization/organization.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { OrganizationModule } from './modules/organization/organization.module';
       ttl: 60000, // Time to Live (1 minute)
       limit: 60,  // Max 60 requests per minute per IP globally
     }]),
+    EmailModule,
     PrismaModule,
     AuthModule,
     WalletModule,
