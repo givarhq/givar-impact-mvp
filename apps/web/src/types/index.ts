@@ -9,6 +9,7 @@ export enum Currency {
 export type TxType = 'DEBIT' | 'CREDIT';
 export type TxStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
 export type VerificationStatus = 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+export type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'FUNDED' | 'COMPLETED' | 'SUSPENDED';
 
 export interface Project {
   id: string;
@@ -22,6 +23,7 @@ export interface Project {
   currency: string;
   percentFunded: number;
   imageUrl?: string;
+  status: ProjectStatus;
   isActive: boolean;
   gallery: MediaItem[];
   createdAt: string; 
