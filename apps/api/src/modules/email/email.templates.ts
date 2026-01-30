@@ -1,36 +1,55 @@
 export const EmailTemplates = {
-  base: (content: string, title: string) => `
+  base: (content: string, title: string, logoUrl = 'https://givar.vercel.app/Givar1.png') => `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f5; }
-          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-          .header { background-color: #10b981; padding: 30px; text-align: center; }
-          .logo { font-size: 24px; font-weight: 800; color: white; letter-spacing: -0.025em; text-decoration: none; }
-          .content { padding: 40px 30px; }
-          .footer { background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
-          .button { display: inline-block; padding: 14px 28px; background-color: #10b981; color: white; text-decoration: none; border-radius: 12px; font-weight: 600; margin-top: 20px; }
-          h1 { margin-top: 0; color: #18181b; font-size: 24px; letter-spacing: -0.025em; }
-          p { margin-bottom: 16px; color: #52525b; }
-          .stat-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin: 20px 0; }
+          body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0fdf4; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+          .wrapper { width: 100%; table-layout: fixed; background-color: #f0fdf4; padding-bottom: 40px; }
+          .main { background-color: #ffffff; margin: 40px auto; width: 100%; max-width: 600px; border-radius: 24px; border: 1px solid #dcfce7; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+          .header { padding: 32px 40px; border-bottom: 1px solid #f0fdf4; }
+          .logo-text { font-size: 22px; font-weight: 800; color: #064e3b; text-decoration: none; letter-spacing: -0.02em; }
+          .content { padding: 40px; }
+          .footer { padding: 32px; background-color: #f9fafb; text-align: center; border-top: 1px solid #f3f4f6; }
+          .button { background-color: #10b981; color: #ffffff !important; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 700; display: inline-block; }
+          .stat-box { background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 24px; margin: 24px 0; }
+          h1 { color: #064e3b; font-size: 26px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; }
+          p { color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 18px; }
         </style>
       </head>
       <body>
-        <div class="container">
-          <div class="header">
-            <div class="logo">Givar.</div>
-          </div>
-          <div class="content">
-            <h1>${title}</h1>
-            ${content}
-          </div>
-          <div class="footer">
-            <p>&copy; ${new Date().getFullYear()} Givar Inc. Transparent Giving.<br>
-            Lagos, Nigeria.</p>
-          </div>
+        <div class="wrapper">
+          <table class="main" role="presentation" cellspacing="0" cellpadding="0">
+            <tr>
+              <td class="header">
+                <table role="presentation" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td style="vertical-align: middle;">
+                      <img src="${logoUrl}" width="40" height="40" alt="Givar" style="border-radius: 10px; display: block; margin-right: 12px;">
+                    </td>
+                    <td style="vertical-align: middle;">
+                      <span class="logo-text">Givar Impact</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td class="content">
+                <h1>${title}</h1>
+                ${content}
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                <p style="font-size: 12px; font-weight: 700; color: #111827; margin-bottom: 4px;">Givar Impact</p>
+                <p style="font-size: 12px; color: #6b7280; margin: 0;">Transparent Philanthropy Protocol</p>
+                <p style="font-size: 11px; color: #9ca3af; margin-top: 16px;">&copy; ${new Date().getFullYear()} Givar Impact. All rights reserved.</p>
+              </td>
+            </tr>
+          </table>
         </div>
       </body>
     </html>
@@ -38,41 +57,41 @@ export const EmailTemplates = {
 
   verification: (url: string, name: string) => `
     <p>Hi ${name},</p>
-    <p>Welcome to Givar. To ensure the security of your impact wallet, please verify your email address.</p>
-    <p>This link will expire in 24 hours.</p>
-    <div style="text-align: center;">
+    <p>Welcome to <strong>Givar Impact</strong>. To ensure the security of your impact wallet and verify your identity on the ledger, please verify your email address.</p>
+    <div style="text-align: center; margin: 32px 0;">
       <a href="${url}" class="button">Verify Email Address</a>
     </div>
-    <p style="margin-top: 30px; font-size: 12px; color: #999;">If you didn't create an account, you can safely ignore this email.</p>
+    <p style="font-size: 13px; color: #6b7280;">This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
   `,
 
   receipt: (data: { amount: string; currency: string; project: string; date: string; ref: string }) => `
-    <p>Your donation has been verified and recorded on the public ledger.</p>
+    <p>Your donation has been successfully verified and recorded on the <strong>Givar Impact</strong> public ledger.</p>
     <div class="stat-box">
-      <div style="font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">Amount</div>
-      <div style="font-size: 24px; font-weight: 800; color: #14532d;">${data.currency} ${data.amount}</div>
-      <div style="margin-top: 10px; font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">Beneficiary</div>
-      <div style="font-size: 16px; font-weight: 600;">${data.project}</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Amount</div>
+      <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Beneficiary</div>
+      <div style="font-size: 18px; font-weight: 700; color: #065f46;">${data.project}</div>
     </div>
-    <p><strong>Reference:</strong> <span style="font-family: monospace;">${data.ref}</span></p>
-    <p>Thank you for making a difference.</p>
+    <p><strong>Reference:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-family: monospace;">${data.ref}</code></p>
+    <p>Thank you for making a tangible difference today.</p>
   `,
 
   securityAlert: (data: { ip: string; time: string }) => `
-    <p>We detected a new login to your Givar account.</p>
-    <ul>
-      <li><strong>Time:</strong> ${data.time}</li>
-      <li><strong>IP Address:</strong> ${data.ip}</li>
-    </ul>
-    <p>If this was you, no action is needed. If not, please contact support immediately.</p>
+    <p>We detected a new login to your <strong>Givar Impact</strong> account.</p>
+    <div class="stat-box">
+      <p style="margin: 0; font-size: 14px;"><strong>Time:</strong> ${data.time}</p>
+      <p style="margin: 8px 0 0 0; font-size: 14px;"><strong>IP Address:</strong> ${data.ip}</p>
+    </div>
+    <p>If this was you, no action is needed. If not, please contact Givar Security immediately to lock your wallet.</p>
   `,
 
   subscriptionUpdate: (data: { name: string; project: string; status: string }) => `
     <p>Hi ${data.name},</p>
     <p>This is a notification regarding your recurring donation to <strong>${data.project}</strong>.</p>
     <div class="stat-box" style="text-align: center;">
-      <div style="font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">New Status</div>
-      <div style="font-size: 24px; font-weight: 800; color: ${data.status === 'ACTIVE' ? '#10b981' : '#f59e0b'};">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">New Status</div>
+      <div style="font-size: 28px; font-weight: 800; color: ${data.status === 'ACTIVE' ? '#10b981' : '#f59e0b'};">
         ${data.status}
       </div>
     </div>
@@ -86,14 +105,31 @@ export const EmailTemplates = {
 
   walletFunded: (data: { name: string; amount: string; currency: string; ref: string; newBalance: string }) => `
     <p>Hi ${data.name},</p>
-    <p>Your Givar wallet has been successfully topped up.</p>
+    <p>Your <strong>Givar Impact</strong> wallet has been successfully topped up.</p>
     <div class="stat-box">
-      <div style="font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">Amount Added</div>
-      <div style="font-size: 24px; font-weight: 800; color: #14532d;">${data.currency} ${data.amount}</div>
-      <div style="margin-top: 10px; font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">New Ledger Balance</div>
-      <div style="font-size: 18px; font-weight: 600;">${data.currency} ${data.newBalance}</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Amount Added</div>
+      <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">New Ledger Balance</div>
+      <div style="font-size: 20px; font-weight: 700; color: #065f46;">${data.currency} ${data.newBalance}</div>
     </div>
-    <p><strong>Reference:</strong> <span style="font-family: monospace;">${data.ref}</span></p>
+    <p><strong>Reference:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-family: monospace;">${data.ref}</code></p>
     <p>You can now use these funds to support any active cause on the platform.</p>
+  `,
+
+  passwordReset: (url: string, name: string) => `
+    <p>Hi ${name},</p>
+    <p>We received a request to reset your <strong>Givar Impact</strong> password. Click the button below to choose a new one.</p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${url}" class="button" style="background-color: #064e3b;">Reset Password</a>
+    </div>
+    <p style="font-size: 13px; color: #6b7280;">This link is valid for 1 hour. If you didn't request this, please secure your account immediately.</p>
+  `,
+
+  passwordChanged: (name: string, date: string) => `
+    <p>Hi ${name},</p>
+    <p>Your <strong>Givar Impact</strong> account password was successfully changed on <strong>${date}</strong>.</p>
+    <p>For your security, we have logged you out of all other active sessions.</p>
+    <p>If you did not make this change, please contact Givar Support immediately.</p>
   `,
 };

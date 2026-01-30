@@ -71,7 +71,7 @@ export class EmailService {
   async sendSubscriptionUpdate(email: string, name: string, project: string, status: string) {
     const content = EmailTemplates.subscriptionUpdate({ name, project, status });
     const html = EmailTemplates.base(content, 'Subscription Updated');
-    return this.send(email, `Givar: Your donation to ${project} is now ${status}`, html);
+    return this.send(email, `Givar Impact: Your donation to ${project} is now ${status}`, html);
   }
 
   async sendWalletFundingEmail(email: string, data: { name: string; amount: string; currency: string; ref: string; newBalance: string }) {
