@@ -282,7 +282,7 @@ export class AdminService {
       currency: dto.currency,
       imageUrl: dto.coverImage,
       slug: slug,
-      targetAmount: BigInt(dto.targetAmount * 100),
+      targetAmount: BigInt(dto.targetAmount),
       raisedAmount: 0n,
       status: ProjectStatus.ACTIVE,
       isActive: true,
@@ -333,7 +333,7 @@ export class AdminService {
     };
 
     if (dto.targetAmount) {
-      updateData.targetAmount = BigInt(dto.targetAmount * 100);
+      updateData.targetAmount = BigInt(dto.targetAmount);
     }
 
     if (dto.categoryId) {
