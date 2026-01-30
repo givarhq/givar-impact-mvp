@@ -5,7 +5,6 @@ import { SearchX } from 'lucide-react';
 import { getCookie } from 'cookies-next';
 import { Project, Wallet } from '../../../types';
 import { ProjectCard } from './project-card';
-import { DonationModal } from '../donation/donation-modal';
 import { ShareModal } from './share-modal';
 import { ApiService } from '../../../services/api';
 
@@ -76,12 +75,6 @@ export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
         ))}
       </div>
 
-      <DonationModal 
-        isOpen={isModalOpen} 
-        onClose={handleClose} 
-        project={selectedProject} 
-        wallet={wallet}
-      />
 
       <ShareModal 
         isOpen={isShareOpen}
