@@ -4,20 +4,36 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '../lib/utils/cn';
 import { ThemeProvider } from '../components/themeprovider';
+import { cookies } from 'next/headers';
 
-// Font Setup
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
-export const metadata: Metadata = {
-  title: {
-    template: '%s | Givar',
-    default: 'Givar - Transparent Giving',
-  },
-  description: 'Simple, transparent, and impact-driven giving for everyone.',
-  icons: {
-    icon: '/Givar1.png',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cookieStore = await cookies();
+  const userCookie = cookieStore.get('givar_user')?.value;
+  
+  let isAdmin = false;
+  
+  if (userCookie) {
+    try {
+      const user = JSON.parse(userCookie);
+      isAdmin = user.role === 'ADMIN';
+    } catch (e) {
+      isAdmin = false;
+    }
+  }
+
+  return {
+    title: {
+      template: isAdmin ? 'Admin Panel | Givar' : '%s | Givar',
+      default: isAdmin ? 'Givar - Admin Panel' : 'Givar - Transparent Giving',
+    },
+    description: 'Simple, transparent, and impact-driven giving for everyone.',
+    icons: {
+      icon: '/Givar1.png',
+    },
+  };
+}
 
 export default function RootLayout({
   children,
