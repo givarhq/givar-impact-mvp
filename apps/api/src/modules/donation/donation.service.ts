@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Currency, TxStatus, TxType, AuditAction } from '@givar/database';
+import { Currency, TxStatus, TxType, AuditAction, ProjectStatus } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
 import { WalletRepository } from '../wallet/wallet.repository';
 import {
@@ -81,17 +81,31 @@ export class DonationService {
       throw new BadRequestException('Amount exceeds maximum allowed per donation');
     }
 
+    // 1. Fetch Project with current financials
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
-      select: { id: true, title: true, isActive: true, currency: true },
+      select: { id: true, title: true, isActive: true, currency: true, targetAmount: true, raisedAmount: true, status: true },
     });
 
     if (!project || !project.isActive) {
       throw new BadRequestException('Project is not active or does not exist');
     }
 
+    // 2. Status Guard
+    if (project.status !== ProjectStatus.ACTIVE) {
+        throw new BadRequestException(`Project is currently ${project.status.toLowerCase()} and cannot accept donations.`);
+    }
+
     if (project.currency !== dto.currency) {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
+    }
+
+    // 3. Over-donation Prevention
+    const remainingNeeded = project.targetAmount - project.raisedAmount;
+    if (amount > remainingNeeded) {
+        throw new BadRequestException(
+            `Over-donation prevented. This project only needs ${ (Number(remainingNeeded) / 100).toLocaleString() } to reach its goal.`
+        );
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -121,10 +135,19 @@ export class DonationService {
         },
       });
 
+      // 4. Update Amount & Atomic Completion Trigger
+      const newRaisedAmount = project.raisedAmount + amount;
+      const isGoalMet = newRaisedAmount === project.targetAmount;
+
       await tx.project.update({
         where: { id: project.id },
         data: {
-          raisedAmount: { increment: amount },
+          raisedAmount: newRaisedAmount,
+          // If goal is met, move to FUNDED
+          ...(isGoalMet && {
+              status: ProjectStatus.FUNDED,
+              fundedAt: new Date(),
+          })
         },
       });
 
@@ -139,7 +162,7 @@ export class DonationService {
             amount: amount.toString(),
             currency: dto.currency,
             reference,
-            walletTxId: walletTx.id,
+            isGoalMet, // Log completion status
           },
         },
         tx,
@@ -239,6 +262,8 @@ export class DonationService {
   /**
    * Fulfill direct (Paystack-initiated) donation from webhook
    * Critical: must be extremely idempotent
+   * Fulfill direct donation with Funding Cap and Suspense Routing
+   * Strictly respects Guest/User branching and Security Hardening
    */
   async fulfillDirectDonation(data: {
     userId: string; // 'GUEST' or real UUID
@@ -248,7 +273,7 @@ export class DonationService {
     amount: bigint;
     currency: Currency;
     reference: string;
-    channel?: string; // Added for security check
+    channel?: string;
   }) {
     const { userId, guestEmail, guestName, projectId, amount, currency, reference, channel } = data;
 
@@ -258,7 +283,7 @@ export class DonationService {
       return { status: 'ignored_channel', reference };
     }
 
-    // 2. Robust Global Idempotency Check (Critical)
+    // 2. Robust Global Idempotency Check
     const [existingUserDonation, existingGuestDonation] = await Promise.all([
       this.prisma.donation.findFirst({
         where: { transaction: { reference } },
@@ -280,7 +305,28 @@ export class DonationService {
       };
     }
 
-    // 3. Branching Logic for Fulfillment
+    // 3. Project Lifecycle & Funding Cap Check
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { targetAmount: true, raisedAmount: true, status: true, title: true }
+    });
+
+    const remainingNeeded = project ? project.targetAmount - project.raisedAmount : 0n;
+    
+    // Determine if funds should be routed to Suspense
+    // Reasons: Project closed, Project not found, or Donation exceeds remaining goal
+    const shouldRouteToSuspense = 
+      !project || 
+      project.status === ProjectStatus.FUNDED || 
+      project.status === ProjectStatus.COMPLETED || 
+      amount > remainingNeeded;
+
+    if (shouldRouteToSuspense) {
+        this.logger.warn(`Routing ${amount} to SUSPENSE. Ref: ${reference}. Reason: ${!project ? 'Project Missing' : amount > remainingNeeded ? 'Goal Exceeded' : 'Project Closed'}`);
+        return this.handleSuspenseRouting(data, project?.title);
+    }
+
+    // 4. Branching Logic for Standard Fulfillment
     let result: any;
     if (userId === 'GUEST') {
         if (!guestEmail) throw new Error("Guest email missing for guest donation");
@@ -296,8 +342,7 @@ export class DonationService {
         result = await this.fulfillUserDirectDonation(data);
     }
 
-    // 4. Post-Fulfillment Email Receipt
-    // Only send if the result was a fresh processing ('processed')
+    // 5. Post-Fulfillment Email Receipt
     if (result && result.status === 'processed') {
       await this.triggerReceipt(
         userId === 'GUEST' ? null : userId, 
@@ -366,11 +411,24 @@ export class DonationService {
         },
       });
 
-      // 5. Update Project Stats
+      // 5. Update Project Stats (With Completion Trigger)
+      // We must fetch the current state inside the transaction to calculate totals accurately
+      const project = await tx.project.findUniqueOrThrow({
+        where: { id: projectId },
+        select: { raisedAmount: true, targetAmount: true }
+      });
+
+      const newRaisedAmount = project.raisedAmount + amount;
+      const isNowFunded = newRaisedAmount === project.targetAmount;
+
       await tx.project.update({
         where: { id: projectId },
         data: {
-            raisedAmount: { increment: amount },
+          raisedAmount: newRaisedAmount,
+          ...(isNowFunded && {
+            status: ProjectStatus.FUNDED,
+            fundedAt: new Date(),
+          })
         },
       });
 
@@ -385,7 +443,8 @@ export class DonationService {
               amount: amount.toString(), 
               currency, 
               reference,
-              method: 'DIRECT_WEBHOOK' 
+              method: 'DIRECT_WEBHOOK',
+              isGoalMet: isNowFunded
           }
       }, tx);
 
@@ -444,12 +503,25 @@ export class DonationService {
               }
           });
 
-          // 3. Update Project Stats (Unified)
+          // 3. Update Project Stats (Unified with Completion Trigger)
+          // Fetch current state inside transaction
+          const project = await tx.project.findUniqueOrThrow({
+            where: { id: projectId },
+            select: { raisedAmount: true, targetAmount: true }
+          });
+
+          const newRaisedAmount = project.raisedAmount + amount;
+          const isNowFunded = newRaisedAmount === project.targetAmount;
+
           await tx.project.update({
-              where: { id: projectId },
-              data: {
-                  raisedAmount: { increment: amount },
-              }
+            where: { id: projectId },
+            data: {
+              raisedAmount: newRaisedAmount,
+              ...(isNowFunded && {
+                status: ProjectStatus.FUNDED,
+                fundedAt: new Date(),
+              })
+            },
           });
 
           // 4. Audit
@@ -462,7 +534,8 @@ export class DonationService {
                   amount: amount.toString(), 
                   projectId,
                   reference,
-                  method: 'GUEST_WEBHOOK'
+                  method: 'GUEST_WEBHOOK',
+                  isGoalMet: isNowFunded
               }
           }, tx);
 
@@ -616,5 +689,94 @@ export class DonationService {
 
     this.logger.log(`Subscription ${subscriptionId} status changed to ${dto.status} by user ${userId}`);
     return updated;
+  }
+
+  /**
+   * Suspense Routing Handler
+   * Captures orphaned funds for manual Admin reconciliation
+   */
+  private async handleSuspenseRouting(data: any, projectTitle?: string) {
+    const { userId, guestEmail, guestName, amount, currency, reference, projectId } = data;
+
+    return this.prisma.$transaction(async (tx) => {
+      let resultId: string;
+      let resultType: string;
+
+      if (userId !== 'GUEST') {
+        // --- CASE A: Registered User ---
+        // We attach the suspense record to their actual wallet.
+        // Ideally, we might just credit them, but for "Suspense" tracking we flag it.
+        const wallet = await tx.wallet.upsert({
+          where: { userId_currency: { userId, currency } },
+          update: {},
+          create: { userId, currency, balance: 0n },
+        });
+
+        const suspenseTx = await tx.walletTransaction.create({
+          data: {
+            walletId: wallet.id,
+            amount,
+            currency,
+            type: TxType.CREDIT,
+            status: TxStatus.SUSPENSE, // Flagged for admin review
+            reference,
+            description: `SUSPENSE: Donation for closed project (${projectTitle || 'Unknown'})`,
+            metadata: { originalProjectId: projectId, reason: 'PROJECT_CLOSED' }
+          }
+        });
+        
+        resultId = suspenseTx.id;
+        resultType = 'WalletTransaction';
+
+      } else {
+        // --- CASE B: Guest ---
+        // We find/create the GuestDonor identity just like a normal donation,
+        // but mark the specific donation record as SUSPENSE.
+        
+        const normalizedEmail = guestEmail.toLowerCase().trim();
+        
+        // 1. Identity
+        const guestDonor = await tx.guestDonor.upsert({
+            where: { email: normalizedEmail },
+            update: { lastDonated: new Date() },
+            create: {
+                email: normalizedEmail,
+                name: guestName,
+            }
+        });
+
+        // 2. Ledger Record (Suspense)
+        const guestSuspense = await tx.guestDonation.create({
+            data: {
+                guestDonorId: guestDonor.id,
+                projectId,
+                amount,
+                currency,
+                reference,
+                status: TxStatus.SUSPENSE,
+                message: 'Funds received after project closure'
+            }
+        });
+
+        resultId = guestSuspense.id;
+        resultType = 'GuestDonation';
+      }
+
+      // --- Audit Log ---
+      await this.audit.log({
+        userId: userId !== 'GUEST' ? userId : undefined,
+        action: AuditAction.FUNDS_MOVED_TO_SUSPENSE,
+        entityId: resultId,
+        entityType: resultType,
+        metadata: { 
+            reference, 
+            amount: amount.toString(), 
+            projectId, 
+            guestEmail: userId === 'GUEST' ? guestEmail : undefined 
+        }
+      }, tx);
+
+      return { status: 'moved_to_suspense', reference };
+    });
   }
 }
