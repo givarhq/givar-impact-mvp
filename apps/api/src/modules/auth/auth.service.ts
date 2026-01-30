@@ -1,7 +1,7 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -11,16 +11,21 @@ import { PrismaService } from '../../common/prisma.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
-import { AuditAction, UserRole } from '@givar/database';
+import { AuditAction } from '@givar/database';
 import { add } from 'date-fns';
+import { randomUUID } from 'crypto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private audit: AuditService,
     private config: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto, req?: Request) {
@@ -31,6 +36,8 @@ export class AuthService {
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(dto.password, salt);
+    
+    const emailVerificationToken = randomUUID();
 
     const result = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -39,6 +46,8 @@ export class AuthService {
           passwordHash,
           firstName: dto.firstName,
           lastName: dto.lastName,
+          emailVerificationToken,
+          emailVerified: false,
         },
       });
 
@@ -62,11 +71,24 @@ export class AuthService {
       return user;
     });
 
+    this.emailService.sendVerification(result.email, result.firstName, emailVerificationToken)
+      .catch(err => this.logger.error(`Failed to send verification email: ${err}`));
+
+    const payload = { sub: result.id, email: result.email, role: result.role };
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.config.get<string>('JWT_SECRET'),
+      expiresIn: '7d',
+    });
+
     return {
-      id: result.id,
-      email: result.email,
-      firstName: result.firstName,
-      lastName: result.lastName,
+      user: {
+        id: result.id,
+        email: result.email,
+        firstName: result.firstName,
+        lastName: result.lastName,
+        role: result.role,
+      },
+      accessToken,
     };
   }
 
@@ -121,6 +143,11 @@ export class AuthService {
           },
         });
       }
+
+      this.emailService.sendLoginAlert(user.email, { 
+        ip: req?.ip || 'unknown', 
+        userAgent: req?.headers['user-agent'] 
+      }).catch(err => this.logger.error(`Alert failed: ${err}`));
 
       const payload = { sub: user.id, email: user.email, role: user.role };
       const accessToken = this.jwtService.sign(payload, {

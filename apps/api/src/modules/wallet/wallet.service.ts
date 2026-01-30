@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -58,6 +59,18 @@ export class WalletService {
     amount: string,
     currency: Currency,
   ) {
+    // Check the user's verification status before allowing the transaction to proceed.
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { emailVerified: true },
+    });
+
+    if (!user?.emailVerified) {
+      throw new ForbiddenException(
+        'Please verify your email address to add funds. Check your inbox for the verification link.',
+      );
+    }
+
     const amountInMinor = this.toPaystackAmount(amount);
 
     try {
@@ -97,7 +110,9 @@ export class WalletService {
         amount,
         currency,
       });
-      throw new InternalServerErrorException('Unable to initialize payment at this time');
+      throw new InternalServerErrorException(
+        'Unable to initialize payment at this time',
+      );
     }
   }
 
