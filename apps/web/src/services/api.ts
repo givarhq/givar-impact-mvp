@@ -257,6 +257,12 @@ export const ApiService = {
 
     getProjectById: (token: string, id: string) => 
   serverFetch<any>(`/admin/projects/${id}`, token),
+
+    verifyExternalRef: (token: string, ref: string) =>
+      serverFetch<any>(`/admin/reconcile/verify/${ref}`, token),
+
+    executeReconcile: (reference: string) =>
+      apiClient.post('/admin/reconcile', { reference }).then(r => r.data),
   },
 
   // Organization Verification Domain

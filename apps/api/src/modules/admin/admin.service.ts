@@ -1,8 +1,11 @@
-import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { ProjectStatus, ProposalStatus, AuditAction, Prisma } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
+import { WalletService } from '../wallet/wallet.service';
+import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AdminService {
@@ -10,6 +13,8 @@ export class AdminService {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
+    private config: ConfigService,
+    private walletService: WalletService,
   ) {}
 
   // Dashboard Stats
@@ -420,5 +425,68 @@ export class AdminService {
       targetAmount: project.targetAmount.toString(),
       raisedAmount: project.raisedAmount.toString(),
     };
+  }
+
+  // Verify a reference against Paystack directly (Ground Truth)
+  async verifyExternalTransaction(reference: string) {
+    try {
+      const response = await axios.get(
+        `https://api.paystack.co/transaction/verify/${reference}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
+          },
+          timeout: 10000,
+        },
+      );
+
+      const { status, amount, currency, metadata, channel } = response.data.data;
+      
+      // Check if it already exists in Givar
+      const internalRecord = await this.walletService.verifyAnyTransaction(reference);
+
+      return {
+        external: { status, amount, currency, metadata, channel },
+        internal: internalRecord,
+        canReconcile: status === 'success' && internalRecord.status === 'pending'
+      };
+    } catch (error) {
+      this.logger.error(`Paystack verification failed for ref ${reference}`, error);
+      throw new ServiceUnavailableException('Could not verify with Paystack');
+    }
+  }
+
+  // Atomic Reconciliation
+  async executeReconciliation(adminId: string, reference: string) {
+    const verification = await this.verifyExternalTransaction(reference);
+    
+    if (!verification.canReconcile) {
+      throw new BadRequestException('Transaction cannot be reconciled (Either failed on Paystack or already exists in Givar)');
+    }
+
+    const { amount, currency, metadata } = verification.external;
+
+    const result = await this.walletService.handleReconciliationFulfillment({
+      userId: metadata?.userId || 'GUEST',
+      guestEmail: metadata?.guestEmail,
+      guestName: metadata?.guestName,
+      projectId: metadata?.projectId,
+      amount: BigInt(amount),
+      currency: currency as any,
+      reference,
+    });
+
+    // High-priority Audit Log
+    await this.prisma.auditLog.create({
+      data: {
+        userId: adminId,
+        action: AuditAction.RECONCILIATION_PERFORMED,
+        entityId: reference,
+        entityType: 'LedgerCorrection',
+        metadata: { reference, adminId, result },
+      },
+    });
+
+    return result;
   }
 }

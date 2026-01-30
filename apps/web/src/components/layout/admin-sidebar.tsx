@@ -15,6 +15,7 @@ const navItems = [
   { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
   { title: 'Proposals', href: '/admin/proposals', icon: NotebookPen },
   { title: 'Audit Log', href: '/admin/audit', icon: ShieldAlert },
+  { title: 'Reconcile', href: '/admin/reconcile', icon: ShieldAlert },
 ];
 
 export function AdminSidebar() {
