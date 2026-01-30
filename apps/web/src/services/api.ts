@@ -60,6 +60,15 @@ export const ApiService = {
     login: (data: any) => apiClient.post('/auth/login', data).then(r => r.data),
     signup: (data: any) => apiClient.post('/auth/signup', data).then(r => r.data),
     logout: () => apiClient.post('/auth/logout'),
+    forgotPassword: (email: string) => 
+      apiClient.post('/auth/forgot-password', { email }).then(r => r.data),
+      
+    resetPassword: (data: any) => 
+      apiClient.post('/auth/reset-password', data).then(r => r.data),
+    verifyEmail: (token: string) =>
+      apiClient.get(`/auth/verify-email?token=${token}`).then(r => r.data),
+    resendVerification: (email: string) =>
+      apiClient.post('/auth/resend-verification', { email }).then(r => r.data),
   },
 
   // --- WALLET ---

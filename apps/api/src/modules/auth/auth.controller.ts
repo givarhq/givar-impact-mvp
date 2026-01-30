@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Post, Req, UseGuards } 
+import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuards } 
 from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
@@ -53,5 +53,18 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   resetPassword(@Body() dto: ResetPasswordDto, @Req() req: any) {
     return this.authService.resetPassword(dto, req);
+  }
+
+  @Public()
+  @Get('verify-email')
+  verifyEmail(@Query('token') token: string) {
+    return this.authService.verifyEmail(token);
+  }
+
+  @Public()
+  @Post('resend-verification')
+  @HttpCode(HttpStatus.OK)
+  resendVerification(@Body('email') email: string) {
+    return this.authService.resendVerification(email);
   }
 }

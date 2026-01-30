@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -134,6 +135,11 @@ export class AuthService {
         }
         throw new UnauthorizedException('Invalid credentials');
       }
+
+      // Blocks unverified users from generating a session
+      if (!user.emailVerified) {
+        throw new ForbiddenException('EMAIL_NOT_VERIFIED');
+      }
       
       // 3. Reset Lockout
       if (user.failedLoginAttempts > 0) {
@@ -165,7 +171,6 @@ export class AuthService {
         req,
       });
 
-      // No refresh token returned or stored
       return { 
         accessToken, 
         user: {
@@ -180,6 +185,7 @@ export class AuthService {
     } catch (error) {
       let reason = 'An unknown error occurred';
       if (error instanceof UnauthorizedException) reason = 'Bad Credentials';
+      else if (error instanceof ForbiddenException) reason = error.message; 
       else if (error instanceof Error) reason = error.message;
       
       await this.audit.log({
@@ -279,5 +285,46 @@ export class AuthService {
     await this.emailService.sendPasswordChanged(user.email, user.firstName, new Date().toLocaleString());
 
     return { message: 'Password has been reset successfully. You can now log in.' };
+  }
+
+  async verifyEmail(token: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { emailVerificationToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired verification token.');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null, // Single-use
+      },
+    });
+
+    return { message: 'Email verified successfully. You can now log in.' };
+  }
+
+  // Resend logic for users who lost their link
+  async resendVerification(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // Security: If user doesn't exist or is already verified, return generic success
+    // to prevent email enumeration.
+    if (!user || user.emailVerified) {
+      return { message: 'If this email is unverified, a new link has been sent.' };
+    }
+
+    const newToken = randomUUID();
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerificationToken: newToken },
+    });
+
+    await this.emailService.sendVerification(user.email, user.firstName, newToken);
+
+    return { message: 'If this email is unverified, a new link has been sent.' };
   }
 }
