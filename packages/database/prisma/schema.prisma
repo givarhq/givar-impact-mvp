@@ -27,6 +27,7 @@ enum TxStatus {
   COMPLETED
   FAILED
   REVERSED
+  SUSPENSE
 }
 
 enum UserRole {
@@ -92,6 +93,7 @@ enum AuditAction {
   WEBHOOK_SIGNATURE_FAILED
   WALLET_FUND_SUCCESS
   RECONCILIATION_PERFORMED
+  FUNDS_MOVED_TO_SUSPENSE
   
   // Project/Admin
   PROJECT_CREATED
@@ -248,6 +250,7 @@ model Project {
 
   budgetBreakdown   Json?    @default("[]")
   executionTimeline Json?    @default("[]")
+  fundedAt      DateTime?
   riskAnalysis      String?  @db.Text
 
   donations    Donation[]

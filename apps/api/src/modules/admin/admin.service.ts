@@ -489,4 +489,39 @@ export class AdminService {
 
     return result;
   }
+
+  // Update specific phase in the execution timeline
+  async updateProjectMilestone(
+    projectId: string, 
+    milestoneId: string, 
+    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
+  ) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { executionTimeline: true, title: true }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    const timeline = (project.executionTimeline as any[]) || [];
+    const milestoneIndex = timeline.findIndex(m => m.id === milestoneId);
+
+    if (milestoneIndex === -1) {
+        throw new BadRequestException('Milestone ID not found in project timeline');
+    }
+
+    // Update the item
+    const updatedTimeline = [...timeline];
+    updatedTimeline[milestoneIndex] = {
+        ...updatedTimeline[milestoneIndex],
+        status,
+        updatedAt: new Date().toISOString(),
+        ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
+    };
+
+    return this.prisma.project.update({
+      where: { id: projectId },
+      data: { executionTimeline: updatedTimeline as any },
+    });
+  }
 }
