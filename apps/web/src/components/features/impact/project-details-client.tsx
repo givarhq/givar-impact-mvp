@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Share2, MapPin, Calendar, CheckCircle2, Clock, 
   BadgeCheck, ShieldCheck, DollarSign, Briefcase, 
   AlertTriangle, ChevronRight, Target, Image as ImageIcon,
-  Heart
+  Heart, Check
 } from 'lucide-react';
 import Link from 'next/link'; 
 import { ProjectWithDetails } from '../../../types';
@@ -33,6 +33,10 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
   const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
   const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
   const gallery = Array.isArray(project.gallery) ? project.gallery : [];
+
+  const raised = Number(project.raisedAmount || 0);
+  const target = Number(project.targetAmount || 0);
+  const isFunded = (raised >= target && target > 0) || project.status === 'FUNDED' || project.status === 'COMPLETED';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
@@ -201,24 +205,24 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                     </div>
                                     <div className="flex-1 pb-8 space-y-1.5 min-w-0">
                                         <div className="flex justify-between items-baseline gap-4">
-                                            <h5 className={cn("font-bold text-sm truncate", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
+                                            <h5 className={cn("font-bold text-xs truncate", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
                                                 {phase.phase}
                                             </h5>
                                             <div className="flex flex-col items-end shrink-0 gap-1">
                                                 <span className={cn(
-                                                    "text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter",
+                                                    "text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter",
                                                     isCompleted ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                                                 )}>
                                                     {isCompleted ? 'Finished' : phase.estimatedDate}
                                                 </span>
                                                 {isCompleted && phase.completedAt && (
-                                                    <span className="text-[10px] font-medium text-muted-foreground opacity-70 italic">
+                                                    <span className="text-[7px] font-medium text-muted-foreground opacity-70 italic">
                                                         {new Date(phase.completedAt).toLocaleDateString()}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
-                                        <p className="text-[12px] text-muted-foreground leading-relaxed">
+                                        <p className="text-[11px] text-muted-foreground leading-relaxed">
                                             {phase.deliverables}
                                         </p>
                                     </div>
@@ -258,14 +262,25 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
             <TransparencyCard project={project} />
 
             <div className="space-y-3">
-                <Link href={donateLink} className="block w-full">
-                  <Button 
-                      size="lg" 
-                      className="w-full h-14 text-base font-bold shadow-lg shadow-primary/20 rounded-2xl bg-primary hover:bg-primary/90 transition-all active:scale-95"
-                  >
-                      Donate Now
-                  </Button>
-                </Link>
+                {/* Conditional Button Logic */}
+                {isFunded ? (
+                    <Button 
+                        size="lg" 
+                        disabled 
+                        className="w-full h-16 text-lg font-bold rounded-2xl bg-emerald-600/10 text-emerald-600 border border-emerald-600/20 opacity-100 shadow-none cursor-default"
+                    >
+                        <Check className="mr-2 h-5 w-5" /> Goal Reached
+                    </Button>
+                ) : (
+                    <Link href={donateLink} className="block w-full">
+                        <Button 
+                            size="lg" 
+                            className="w-full h-16 text-lg font-black shadow-xl shadow-primary/30 rounded-2xl bg-primary hover:bg-primary/90 hover:scale-[1.02] active:scale-95 transition-all"
+                        >
+                            Donate Now
+                        </Button>
+                    </Link>
+                )}
                 
                 <Button 
                     variant="outline" 
