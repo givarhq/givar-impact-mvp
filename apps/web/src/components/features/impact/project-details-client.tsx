@@ -342,7 +342,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
             <div className="p-5 bg-muted/20 rounded-2xl border border-border/50 flex items-start gap-3">
                 <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
                 <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                    <strong>givar protection:</strong> funds are released in strictly audited tranches based on the execution roadmap.
+                    <strong>Givar Protection:</strong> funds are released in strictly audited tranches based on the execution roadmap.
                 </p>
             </div>
         </div>
