@@ -7,6 +7,8 @@ import { WalletService } from '../wallet/wallet.service';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { ResolveSuspenseDto, SuspenseAction } from './dto/admin-suspense.dto';
+import { EmailService } from '../email/email.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class AdminService {
@@ -16,6 +18,8 @@ export class AdminService {
     private storage: StorageService,
     private config: ConfigService,
     private walletService: WalletService,
+    private emailService: EmailService,
+    private audit: AuditService,
   ) {}
 
   // Dashboard Stats
@@ -495,11 +499,13 @@ export class AdminService {
   async updateProjectMilestone(
     projectId: string, 
     milestoneId: string, 
-    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
+    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED',
+    adminId: string
   ) {
+    // 1. Fetch Project with context for the broadcast helper
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-      select: { executionTimeline: true, title: true }
+      select: { executionTimeline: true, title: true, slug: true }
     });
 
     if (!project) throw new NotFoundException('Project not found');
@@ -511,7 +517,8 @@ export class AdminService {
         throw new BadRequestException('Milestone ID not found in project timeline');
     }
 
-    // Update the item
+    const previousStatus = timeline[milestoneIndex].status;
+
     const updatedTimeline = [...timeline];
     updatedTimeline[milestoneIndex] = {
         ...updatedTimeline[milestoneIndex],
@@ -520,10 +527,87 @@ export class AdminService {
         ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
     };
 
-    return this.prisma.project.update({
+    const updatedProject = await this.prisma.project.update({
       where: { id: projectId },
       data: { executionTimeline: updatedTimeline as any },
     });
+
+    await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROJECT_UPDATED,
+        entityId: projectId,
+        entityType: 'Project',
+        metadata: { 
+            action: 'MILESTONE_UPDATE', 
+            milestone: updatedTimeline[milestoneIndex].phase, 
+            previousStatus,
+            newStatus: status 
+        }
+    });
+
+    if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
+        this.broadcastMilestoneUpdate(
+            projectId, 
+            project.title, 
+            project.slug, 
+            updatedTimeline[milestoneIndex].phase
+        ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
+    }
+
+    return updatedProject;
+  }
+
+  private async broadcastMilestoneUpdate(projectId: string, projectTitle: string, projectSlug: string, milestonePhase: string) {
+    // 1. Fetch Unique Registered Donors
+    const userDonors = await this.prisma.donation.findMany({
+      where: { projectId },
+      select: { user: { select: { email: true, firstName: true } } },
+      distinct: ['userId'],
+    });
+
+    // 2. Fetch Unique Guest Donors
+    const guestDonors = await this.prisma.guestDonation.findMany({
+      where: { projectId },
+      select: { guestDonor: { select: { email: true, name: true } } },
+      distinct: ['guestDonorId'],
+    });
+
+    // 3. Normalize into a single recipient list
+    const recipients = [
+      ...userDonors.map((d) => ({ 
+        email: d.user?.email, 
+        name: d.user?.firstName || 'Impact Maker' 
+      })),
+      ...guestDonors.map((d) => ({ 
+        email: d.guestDonor.email, 
+        name: d.guestDonor.name || 'Impact Maker' 
+      })),
+    ].filter((r) => r.email);
+
+    // 4. Construct payload
+    const frontendUrl = this.config.get('FRONTEND_URL');
+    const projectUrl = `${frontendUrl}/explore/${projectSlug}`;
+    const formattedDate = new Date().toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    this.logger.log(`📢 Broadcasting Milestone: "${milestonePhase}" to ${recipients.length} donors.`);
+
+    // 5. Batch Sending (Async)
+    // allSettled ensures one bad email address doesn't stop the whole broadcast
+    Promise.allSettled(
+      recipients.map((r) =>
+        this.emailService.sendMilestoneAlert(r.email!, {
+          donorName: r.name!,
+          projectTitle,
+          milestonePhase,
+          date: formattedDate,
+          projectUrl,
+        }),
+      ),
+    ).catch((err) => this.logger.error('Milestone Broadcast Failed', err));
   }
 
   // Fetch Suspense Queue
