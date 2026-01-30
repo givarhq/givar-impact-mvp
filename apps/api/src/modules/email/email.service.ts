@@ -67,4 +67,10 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'New Login Detected');
     return this.send(email, 'Security Alert: New Login', html);
   }
+
+  async sendSubscriptionUpdate(email: string, name: string, project: string, status: string) {
+    const content = EmailTemplates.subscriptionUpdate({ name, project, status });
+    const html = EmailTemplates.base(content, 'Subscription Updated');
+    return this.send(email, `Givar: Your donation to ${project} is now ${status}`, html);
+  }
 }

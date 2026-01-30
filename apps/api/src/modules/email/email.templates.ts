@@ -65,5 +65,22 @@ export const EmailTemplates = {
       <li><strong>IP Address:</strong> ${data.ip}</li>
     </ul>
     <p>If this was you, no action is needed. If not, please contact support immediately.</p>
-  `
+  `,
+
+  subscriptionUpdate: (data: { name: string; project: string; status: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>This is a notification regarding your recurring donation to <strong>${data.project}</strong>.</p>
+    <div class="stat-box" style="text-align: center;">
+      <div style="font-size: 12px; text-transform: uppercase; color: #15803d; font-weight: 700;">New Status</div>
+      <div style="font-size: 24px; font-weight: 800; color: ${data.status === 'ACTIVE' ? '#10b981' : '#f59e0b'};">
+        ${data.status}
+      </div>
+    </div>
+    <p>
+      ${data.status === 'ACTIVE' 
+        ? 'Your automated impact has been resumed. Thank you for your continued support.' 
+        : 'Your automated impact has been paused. No further charges will be made until you resume.'}
+    </p>
+    <p>You can manage all your subscriptions from your dashboard at any time.</p>
+  `,
 };

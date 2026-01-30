@@ -19,6 +19,7 @@ import { add } from 'date-fns';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { AuditService } from '../audit/audit.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class DonationService {
@@ -32,7 +33,42 @@ export class DonationService {
     private walletRepo: WalletRepository,
     private config: ConfigService,
     private audit: AuditService,
+    private emailService: EmailService,
   ) {}
+
+  // Centralized Receipt Logic
+  private async triggerReceipt(userId: string | null, guestEmail: string | null, projectId: string, amount: bigint, currency: Currency, reference: string) {
+    try {
+      const project = await this.prisma.project.findUnique({
+        where: { id: projectId },
+        select: { title: true }
+      });
+
+      let email: string | undefined | null = guestEmail;
+      
+      if (!email && userId) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+        email = user?.email;
+      }
+
+      if (email) {
+        // Fire and forget (don't await) to keep API responsive
+        this.emailService.sendDonationReceipt(email, {
+          amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+          currency: currency,
+          project: project?.title || 'Impact Project',
+          date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+          ref: reference
+        }).catch(err => {
+            const msg = err instanceof Error ? err.message : String(err);
+            this.logger.error(`Receipt Email Failed: ${msg}`);
+        });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Receipt triggering failed: ${msg}`);
+    }
+  }
 
   async donate(userId: string, dto: CreateDonationDto) {
     const amount = BigInt(dto.amount);
@@ -58,7 +94,7 @@ export class DonationService {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const reference = `DON-${crypto.randomUUID()}`;
 
       const { transaction: walletTx } = await this.walletRepo.processTransaction(
@@ -111,6 +147,10 @@ export class DonationService {
 
       return donation;
     });
+
+    await this.triggerReceipt(userId, null, dto.projectId, BigInt(dto.amount), dto.currency, `WAL-${result.id.slice(0,8)}`);
+
+    return result;
   }
 
   async initiateDirectDonation(user: any | undefined, dto: InitiateDirectDonationDto) {
@@ -213,14 +253,12 @@ export class DonationService {
     const { userId, guestEmail, guestName, projectId, amount, currency, reference, channel } = data;
 
     // 1. Channel Validation (Anti-Fraud)
-    // Ensure we only process known secure channels from Paystack
     if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money'].includes(channel)) {
       this.logger.warn(`Suspicious payment channel ignored`, { channel, reference });
       return { status: 'ignored_channel', reference };
     }
 
     // 2. Robust Global Idempotency Check (Critical)
-    // We must check BOTH tables because guests don't have wallet transactions
     const [existingUserDonation, existingGuestDonation] = await Promise.all([
       this.prisma.donation.findFirst({
         where: { transaction: { reference } },
@@ -242,10 +280,11 @@ export class DonationService {
       };
     }
 
-    // 3. Branching Logic
+    // 3. Branching Logic for Fulfillment
+    let result: any;
     if (userId === 'GUEST') {
         if (!guestEmail) throw new Error("Guest email missing for guest donation");
-        return this.fulfillGuestDonation({
+        result = await this.fulfillGuestDonation({
             email: guestEmail,
             name: guestName,
             projectId,
@@ -254,8 +293,23 @@ export class DonationService {
             reference
         });
     } else {
-        return this.fulfillUserDirectDonation(data);
+        result = await this.fulfillUserDirectDonation(data);
     }
+
+    // 4. Post-Fulfillment Email Receipt
+    // Only send if the result was a fresh processing ('processed')
+    if (result && result.status === 'processed') {
+      await this.triggerReceipt(
+        userId === 'GUEST' ? null : userId, 
+        guestEmail || null, 
+        projectId, 
+        amount, 
+        currency, 
+        reference
+      );
+    }
+
+    return result;
   }
 
   // --- Private Handler: Registered User ---
@@ -521,7 +575,6 @@ export class DonationService {
     }
 
     if (subscription.userId !== userId) {
-      // Log security event
       await this.audit.log({
           action: AuditAction.USER_LOGIN_FAILED,
           userId,
@@ -534,7 +587,10 @@ export class DonationService {
     const updated = await this.prisma.subscription.update({
       where: { id: subscriptionId },
       data: { status: dto.status },
-      include: { project: { select: { title: true } } }
+      include: { 
+        project: { select: { title: true } },
+        user: { select: { email: true, firstName: true } }
+      }
     });
 
     // 3. Audit Log
@@ -549,6 +605,14 @@ export class DonationService {
         project: updated.project.title
       }
     });
+
+    // 4. Trigger Email Notification
+    this.emailService.sendSubscriptionUpdate(
+        updated.user.email,
+        updated.user.firstName,
+        updated.project.title,
+        dto.status
+    ).catch(err => this.logger.error(`Subscription email failed: ${err.message}`));
 
     this.logger.log(`Subscription ${subscriptionId} status changed to ${dto.status} by user ${userId}`);
     return updated;
