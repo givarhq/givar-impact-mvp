@@ -12,7 +12,7 @@ import { Badge } from '../../ui/badge';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
-import { Dialog, DialogContent, DialogTitle } from '@radix-ui/react-dialog';
+import { Dialog, DialogContent, DialogTitle } from '../../ui/dialog';
 import { DialogHeader } from '../../ui/dialog';
 import { ImageUploader } from '../proposals/media-uploader';
 
