@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   Logger,
@@ -8,12 +9,13 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../common/prisma.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
 import { AuditAction } from '@givar/database';
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
+import * as crypto from 'crypto';
 import { EmailService } from '../email/email.service';
 
 @Injectable()
@@ -194,5 +196,88 @@ export class AuthService {
 
   async logout(userId: string) {
     return { message: 'Logged out successfully.' };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto, req?: Request) {
+    const { email } = dto;
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // Always return the same response to prevent email enumeration attacks
+    if (!user) {
+      this.logger.warn(`Password reset attempted for non-existent email: ${email}`);
+      return { message: 'If an account exists with this email, a reset link has been sent.' };
+    }
+
+    // 1. Generate high-entropy token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    
+    // 2. Hash it for DB storage (standard SOTA practice)
+    const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    // 3. Store in DB with 1-hour expiry
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordTokenHash: tokenHash,
+        resetPasswordExpiresAt: add(new Date(), { hours: 1 }),
+      },
+    });
+
+    // 4. Send Email
+    const resetUrl = `${this.config.get('FRONTEND_URL')}/reset-password?token=${resetToken}`;
+    await this.emailService.sendPasswordReset(user.email, user.firstName, resetUrl);
+
+    await this.audit.log({
+      userId: user.id,
+      action: AuditAction.RESET_REQUESTED,
+      metadata: { action: 'RESET_REQUESTED' },
+      req,
+    });
+
+    return { message: 'If an account exists with this email, a reset link has been sent.' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto, req?: Request) {
+    // 1. Hash the incoming token to find the match
+    const tokenHash = crypto.createHash('sha256').update(dto.token).digest('hex');
+
+    const user = await this.prisma.user.findUnique({
+      where: { resetPasswordTokenHash: tokenHash },
+    });
+
+    // 2. Validate token and expiry
+    if (!user || !user.resetPasswordExpiresAt || user.resetPasswordExpiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired reset token.');
+    }
+
+    // 3. Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(dto.password, salt);
+
+    // 4. ATOMIC Update: New password + Nuke tokens + Security cleanup
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          resetPasswordTokenHash: null,
+          resetPasswordExpiresAt: null,
+          failedLoginAttempts: 0,
+          accountLockedUntil: null,
+        },
+      });
+
+      await this.audit.log({
+        userId: user.id,
+        action: AuditAction.RESET_SUCCESSFUL,
+        metadata: { action: 'RESET_SUCCESSFUL' },
+        req,
+      }, tx);
+    });
+
+    // 5. Confirmation Email
+    await this.emailService.sendPasswordChanged(user.email, user.firstName, new Date().toLocaleString());
+
+    return { message: 'Password has been reset successfully. You can now log in.' };
   }
 }

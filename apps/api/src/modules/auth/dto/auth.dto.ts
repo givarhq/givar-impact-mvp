@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import { Currency } from '@givar/database';
 import { IsStrongPassword } from 'src/common/decorators/is-strong-password-decorator';
 
@@ -30,5 +30,19 @@ export class LoginDto {
   email!: string;
 
   @IsString()
+  password!: string;
+}
+
+export class ForgotPasswordDto {
+  @IsEmail({}, { message: 'Please provide a valid email address' })
+  email!: string;
+}
+
+export class ResetPasswordDto {
+  @IsString()
+  @IsNotEmpty()
+  token!: string;
+
+  @IsStrongPassword()
   password!: string;
 }

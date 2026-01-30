@@ -77,6 +77,8 @@ enum AuditAction {
   USER_LOGIN_FAILED
   USER_REGISTER
   PASSWORD_CHANGE
+  RESET_REQUESTED
+  RESET_SUCCESSFUL
   
   // Financial
   WALLET_FUND
@@ -132,8 +134,8 @@ model User {
   emailVerificationToken String?    @unique
   organization   OrganizationProfile?
   
-  refreshTokenHash      String?     @unique
-  refreshTokenExpiresAt DateTime?
+  resetPasswordTokenHash String?    @unique
+  resetPasswordExpiresAt DateTime?
 
   failedLoginAttempts   Int         @default(0)
   accountLockedUntil    DateTime?

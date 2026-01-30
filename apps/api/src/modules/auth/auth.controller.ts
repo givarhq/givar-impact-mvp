@@ -1,11 +1,11 @@
 import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Post, Req, UseGuards } 
 from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
 import { Throttle } from '@nestjs/throttler';
 import { type Request } from 'express';
-import { RefreshTokenGuard } from 'src/common/guards/refresh-token.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { Public } from '../../common/decorators/public.decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -39,5 +39,19 @@ export class AuthController {
   logout(@Req() req: any) {
     const userId = req.user.sub;
     return this.authService.logout(userId);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  forgotPassword(@Body() dto: ForgotPasswordDto, @Req() req: any) {
+    return this.authService.forgotPassword(dto, req);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  resetPassword(@Body() dto: ResetPasswordDto, @Req() req: any) {
+    return this.authService.resetPassword(dto, req);
   }
 }
