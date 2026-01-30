@@ -15,7 +15,7 @@ export function IsStrongPassword(validationOptions?: ValidationOptions) {
           return strongRegex.test(value);
         },
         defaultMessage(args: ValidationArguments) {
-          return 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number.';
+          return 'WEAK_PASSWORD';
         },
       },
     });
