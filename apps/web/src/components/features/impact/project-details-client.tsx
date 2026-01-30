@@ -5,7 +5,7 @@ import {
   Share2, MapPin, Calendar, CheckCircle2, Clock, 
   BadgeCheck, ShieldCheck, DollarSign, Briefcase, 
   AlertTriangle, ChevronRight, Target, Image as ImageIcon,
-  Heart, Check
+  Heart, Check, FileText, Megaphone
 } from 'lucide-react';
 import Link from 'next/link'; 
 import { ProjectWithDetails } from '../../../types';
@@ -87,7 +87,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                 )}
             </div>
 
-            {/* SOTA: Secondary Gallery Grid */}
+            {/* Secondary Gallery Grid */}
             {gallery.length > 0 && (
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                     {gallery.map((item: MediaItem, i: number) => (
@@ -112,7 +112,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
 
         {/* Navigation Tabs */}
         <Tabs defaultValue="story" className="w-full">
-            <TabsList className="w-full justify-start h-auto p-1 bg-card border border-border/50 rounded-2xl overflow-x-auto no-scrollbar">
+            <TabsList className="w-full justify-start h-auto p-1 bg-card border border-border/50 rounded-2xl overflow-x-auto no-scrollbar shadow-sm">
                 <TabsTrigger value="story" className="rounded-xl px-6 py-2.5 text-xs font-bold">Story</TabsTrigger>
                 <TabsTrigger value="plan" className="rounded-xl px-6 py-2.5 text-xs font-bold">Execution Plan</TabsTrigger>
                 <TabsTrigger value="updates" className="rounded-xl px-6 py-2.5 text-xs font-bold">
@@ -205,24 +205,24 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                     </div>
                                     <div className="flex-1 pb-8 space-y-1.5 min-w-0">
                                         <div className="flex justify-between items-baseline gap-4">
-                                            <h5 className={cn("font-bold text-xs truncate", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
+                                            <h5 className={cn("font-bold text-sm truncate", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
                                                 {phase.phase}
                                             </h5>
                                             <div className="flex flex-col items-end shrink-0 gap-1">
                                                 <span className={cn(
-                                                    "text-[8px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter",
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-tighter",
                                                     isCompleted ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                                                 )}>
                                                     {isCompleted ? 'Finished' : phase.estimatedDate}
                                                 </span>
                                                 {isCompleted && phase.completedAt && (
-                                                    <span className="text-[7px] font-medium text-muted-foreground opacity-70 italic">
+                                                    <span className="text-[10px] font-medium text-muted-foreground opacity-70 italic">
                                                         {new Date(phase.completedAt).toLocaleDateString()}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
-                                        <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                        <p className="text-[12px] text-muted-foreground leading-relaxed">
                                             {phase.deliverables}
                                         </p>
                                     </div>
@@ -235,19 +235,46 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
 
             {/* TAB: UPDATES */}
             <TabsContent value="updates" className="mt-8 animate-in fade-in slide-in-from-bottom-2 duration-500 focus-visible:outline-none">
-                <div className="space-y-5">
+                <div className="space-y-6">
                     {project.updates && project.updates.length > 0 ? (
                         project.updates.map((update, idx) => (
-                           <div key={idx} className="p-6 rounded-2xl border border-border bg-card shadow-sm">
-                               <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{formatDate(update.createdAt)}</span>
-                               <h4 className="text-lg font-bold mt-1 text-foreground">{update.title}</h4>
-                               <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{update.content}</p>
+                           <div key={idx} className="relative flex flex-col gap-4 p-6 rounded-[24px] border border-border bg-card shadow-sm hover:shadow-md transition-shadow group">
+                               {/* Visual Proof Support */}
+                               {update.imageUrl && (
+                                   <div className="w-full aspect-[21/9] rounded-xl overflow-hidden mb-2 bg-muted border border-border/50">
+                                       <img src={update.imageUrl} className="w-full h-full object-cover" alt={update.title} />
+                                   </div>
+                               )}
+                               
+                               <div className="flex items-start justify-between gap-4">
+                                   <div className="space-y-1">
+                                       <div className="flex items-center gap-2">
+                                           <Badge variant="secondary" className="h-5 px-1.5 rounded-md bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter border-0">
+                                               {update.type.replace('_', ' ')}
+                                           </Badge>
+                                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                                               <Clock className="h-3 w-3" /> {formatDate(update.createdAt)}
+                                           </span>
+                                       </div>
+                                       <h4 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">{update.title}</h4>
+                                   </div>
+                               </div>
+                               
+                               <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
+                                   {update.content}
+                               </p>
+
+                               {update.type === 'MILESTONE' && (
+                                   <div className="flex items-center gap-2 mt-2 pt-4 border-t border-border/50 text-emerald-500 font-bold text-[10px] uppercase tracking-widest">
+                                       <ShieldCheck className="h-4 w-4" /> Verified Impact Entry
+                                   </div>
+                               )}
                            </div>
                         ))
                     ) : (
-                        <div className="text-center py-20 border-2 border-dashed border-border rounded-3xl bg-muted/10">
-                            <Clock className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-3" />
-                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Awaiting first milestone update</p>
+                        <div className="text-center py-24 border-2 border-dashed border-border rounded-[32px] bg-muted/10">
+                            <Clock className="h-12 w-12 mx-auto text-muted-foreground opacity-10 mb-4" />
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No impact logs published yet</p>
                         </div>
                     )}
                 </div>
@@ -262,7 +289,6 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
             <TransparencyCard project={project} />
 
             <div className="space-y-3">
-                {/* Conditional Button Logic */}
                 {isFunded ? (
                     <Button 
                         size="lg" 

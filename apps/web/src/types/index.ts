@@ -39,6 +39,15 @@ export interface Project {
   donorCount?: number;
 }
 
+export interface ProjectUpdate {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl?: string | null;
+  type: 'MILESTONE' | 'ANNOUNCEMENT' | 'IMPACT_REPORT';
+  createdAt: string;
+}
+
 export interface Transaction {
   id: string;
   amount: string;
