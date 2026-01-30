@@ -11,9 +11,8 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
-// Validation Schema
 const signupSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
@@ -26,6 +25,7 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 export default function SignupPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -37,33 +37,30 @@ export default function SignupPage() {
 
   async function onSubmit(data: SignupFormValues) {
     setIsLoading(true);
+    setServerError(null);
+
     try {
-      // 1. Register User via Service
-      await ApiService.auth.signup({
+      // 1. Register User
+      const response = await ApiService.auth.signup({
         ...data,
-        defaultCurrency: 'NGN',
+        defaultCurrency: 'NGN', 
       });
 
-      toast.success('Account created! Logging you in...');
-
-      // 2. Auto-Login via Service
-      // Service returns data directly, so we destructure immediately
-      const { accessToken, user } = await ApiService.auth.login({
-        email: data.email,
-        password: data.password,
-      });
+      const { accessToken, refreshToken, user } = response;
       
       setCookie('givar_token', accessToken, { maxAge: 86400 });
+      setCookie('givar_refresh_token', refreshToken, { maxAge: 604800 }); // 7 days
       setCookie('givar_user', JSON.stringify(user), { maxAge: 86400 });
 
+      toast.success('Account created successfully!');
       router.push('/dashboard');
     } catch (error: any) {
-      // API error handling
-      const msg = error?.response?.data?.message;
-      if (msg && msg.includes('Email')) {
-         toast.error('This email is already registered.');
+      const message = error.response?.data?.message;
+      
+      if (Array.isArray(message)) {
+          setServerError(message[0]);
       } else {
-         console.error(error);
+          setServerError(message || 'Registration failed. Please check your details.');
       }
     } finally {
       setIsLoading(false);
@@ -78,6 +75,13 @@ export default function SignupPage() {
           Join Givar to start your impact journey
         </p>
       </div>
+
+      {serverError && (
+        <div className="flex items-start gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg animate-in fade-in slide-in-from-top-1">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <p>{serverError}</p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
