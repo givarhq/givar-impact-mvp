@@ -11,7 +11,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Mail, ArrowRight } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,11 +23,14 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -36,6 +39,7 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     setServerError(null);
+    setUnverifiedEmail(null);
     
     try {
       const { accessToken, user } = await ApiService.auth.login(data);
@@ -52,12 +56,33 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
-      setServerError(message);
+      
+      if (message === 'EMAIL_NOT_VERIFIED') {
+        setServerError('Your email address has not been verified.');
+        setUnverifiedEmail(data.email);
+      } else {
+        setServerError(message);
+      }
       
     } finally {
       setIsLoading(false);
     }
   }
+
+  const handleResend = async () => {
+    if (!unverifiedEmail) return;
+    setIsResending(true);
+    try {
+      await ApiService.auth.resendVerification(unverifiedEmail);
+      toast.success('New verification link sent to your inbox');
+      setServerError(null);
+      setUnverifiedEmail(null);
+    } catch (error) {
+      toast.error('Failed to resend link. Please try again later.');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -69,9 +94,30 @@ export default function LoginPage() {
       </div>
 
       {serverError && (
-        <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg animate-in fade-in slide-in-from-top-1">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <p>{serverError}</p>
+        <div className="space-y-3 animate-in fade-in slide-in-from-top-1">
+          <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <p>{serverError}</p>
+          </div>
+          
+          {unverifiedEmail && (
+            <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-3">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Verification is required for financial security. Didn&apos;t get the link?
+              </p>
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm" 
+                className="w-full h-9 rounded-lg text-xs font-bold gap-2 border-primary/20 text-primary hover:bg-primary/10"
+                onClick={handleResend}
+                disabled={isResending}
+              >
+                {isResending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
+                Resend Verification Link
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -104,7 +150,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <Button className="w-full h-11 text-base shadow-lg shadow-primary/20" type="submit" disabled={isLoading}>
+        <Button className="w-full h-11 text-base shadow-lg shadow-primary/20 rounded-xl" type="submit" disabled={isLoading}>
           {isLoading ? (
              <>
                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing In...
@@ -120,13 +166,13 @@ export default function LoginPage() {
           <span className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">Or</span>
+          <span className="bg-card px-2 text-muted-foreground font-medium">Or</span>
         </div>
       </div>
 
       <div className="text-center text-sm">
         <span className="text-muted-foreground">New to Givar? </span>
-        <Link href="/signup" className="font-semibold text-primary hover:underline">
+        <Link href="/signup" className="font-bold text-primary hover:underline">
           Create an account
         </Link>
       </div>
