@@ -272,6 +272,12 @@ export const ApiService = {
 
     executeReconcile: (reference: string) =>
       apiClient.post('/admin/reconcile', { reference }).then(r => r.data),
+
+    getSuspense: (token: string) =>
+      serverFetch<any[]>('/admin/suspense', token),
+
+    resolveSuspense: (id: string, data: { action: 'REFUND' | 'ALLOCATE'; targetProjectId?: string }) =>
+      apiClient.patch(`/admin/suspense/${id}/resolve`, data).then(r => r.data),
   },
 
   // Organization Verification Domain

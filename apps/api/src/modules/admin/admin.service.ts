@@ -1,11 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { ProjectStatus, ProposalStatus, AuditAction, Prisma } from '@givar/database';
+import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { WalletService } from '../wallet/wallet.service';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { ResolveSuspenseDto, SuspenseAction } from './dto/admin-suspense.dto';
 
 @Injectable()
 export class AdminService {
@@ -523,5 +524,147 @@ export class AdminService {
       where: { id: projectId },
       data: { executionTimeline: updatedTimeline as any },
     });
+  }
+
+  // Fetch Suspense Queue
+  async getSuspenseTransactions() {
+    return this.prisma.walletTransaction.findMany({
+      where: { status: TxStatus.SUSPENSE },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        wallet: { include: { user: { select: { email: true, firstName: true } } } }
+      }
+    });
+  }
+
+  // Helper to trigger Paystack Refund
+  private async triggerPaystackRefund(reference: string) {
+    try {
+      const response = await axios.post(
+        'https://api.paystack.co/refund',
+        { transaction: reference },
+        {
+          headers: { Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}` },
+          timeout: 10000,
+        }
+      );
+      return response.data;
+    } catch (error: any) {
+      // Extract Paystack specific error message if available
+      const message = error.response?.data?.message || error.message;
+      this.logger.error(`Paystack Refund Failed: ${message}`);
+      throw new BadRequestException(`Paystack Refund Failed: ${message}`);
+    }
+  }
+
+  async resolveSuspenseTransaction(adminId: string, transactionId: string, dto: ResolveSuspenseDto) {
+    const tx = await this.prisma.walletTransaction.findUnique({
+      where: { id: transactionId },
+      include: { wallet: true }, 
+    });
+
+    if (!tx || tx.status !== TxStatus.SUSPENSE) {
+      throw new BadRequestException('Transaction not found or not in suspense');
+    }
+
+    if (dto.action === SuspenseAction.REFUND) {
+      // 1. TRIGGER REAL REFUND
+      // We call this BEFORE the DB transaction. If it fails, we abort everything.
+      await this.triggerPaystackRefund(tx.reference);
+
+      // 2. Mark Ledger as Reversed
+      return this.prisma.$transaction(async (prisma) => {
+        const updated = await prisma.walletTransaction.update({
+          where: { id: transactionId },
+          data: { 
+            status: TxStatus.REVERSED, 
+            description: `${tx.description} [AUTO-REFUNDED]` 
+          },
+        });
+
+        await prisma.auditLog.create({
+          data: {
+            userId: adminId,
+            action: AuditAction.PROJECT_UPDATED, 
+            entityId: transactionId,
+            entityType: 'WalletTransaction',
+            metadata: { action: 'AUTO_REFUND', originalRef: tx.reference },
+          },
+        });
+        return updated;
+      });
+    } 
+    if (dto.action === SuspenseAction.ALLOCATE) {
+      // 2. RE-ALLOCATION LOGIC
+      if (!dto.targetProjectId) throw new BadRequestException('Target Project ID required for allocation');
+
+      return this.prisma.$transaction(async (prisma) => {
+        // A. Update Transaction to COMPLETED
+        const updatedTx = await prisma.walletTransaction.update({
+            where: { id: transactionId },
+            data: { 
+                status: TxStatus.COMPLETED,
+                description: `${tx.description} [RE-ALLOCATED]`
+            }
+        });
+
+        // B. Handle Guest vs User Donation Creation
+        // We check metadata to see who the original donor was
+        const guestEmail = (tx.metadata as any)?.guestEmail;
+        
+        if (guestEmail) {
+            // It was a guest
+            // Find/Create GuestDonor (Reuse logic or simplify)
+            const guestDonor = await prisma.guestDonor.upsert({
+                where: { email: guestEmail },
+                update: { totalDonated: { increment: tx.amount }, donationCount: { increment: 1 } },
+                create: { email: guestEmail, totalDonated: tx.amount, donationCount: 1 }
+            });
+            
+            await prisma.guestDonation.create({
+                data: {
+                    guestDonorId: guestDonor.id,
+                    projectId: dto.targetProjectId!,
+                    amount: tx.amount,
+                    currency: tx.currency,
+                    reference: tx.reference,
+                    status: 'COMPLETED',
+                    message: 'Re-allocated by Admin'
+                }
+            });
+        } else {
+            // It was a user
+            await prisma.donation.create({
+                data: {
+                    userId: tx.wallet.userId, // Link to wallet owner
+                    projectId: dto.targetProjectId!,
+                    transactionId: tx.id, // Link to the now-completed tx
+                    amount: tx.amount,
+                    currency: tx.currency,
+                    message: 'Re-allocated by Admin'
+                }
+            });
+        }
+
+        // C. Update Target Project
+        await prisma.project.update({
+            where: { id: dto.targetProjectId },
+            data: { raisedAmount: { increment: tx.amount } }
+        });
+
+        // D. Audit
+        await prisma.auditLog.create({
+          data: {
+            userId: adminId,
+            action: AuditAction.PROJECT_UPDATED, // Or FUNDS_REALLOCATED
+            entityId: transactionId,
+            entityType: 'WalletTransaction',
+            metadata: { action: 'RE_ALLOCATE', targetProject: dto.targetProjectId },
+          },
+        });
+
+        return updatedTx;
+      });
+    }
   }
 }

@@ -6,6 +6,7 @@ import { ProposalStatus, UserRole } from '@givar/database';
 import { AdminService } from './admin.service';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
+import { ResolveSuspenseDto } from './dto/admin-suspense.dto';
 
 @SkipThrottle()
 @Controller('admin')
@@ -100,5 +101,19 @@ export class AdminController {
   @Post('reconcile')
   executeReconciliation(@Req() req: any, @Body('reference') ref: string) {
     return this.service.executeReconciliation(req.user.id, ref);
+  }
+
+  @Get('suspense')
+  getSuspense() {
+    return this.service.getSuspenseTransactions();
+  }
+
+  @Patch('suspense/:id/resolve')
+  resolveSuspense(
+    @Req() req: any, 
+    @Param('id') id: string, 
+    @Body() dto: ResolveSuspenseDto
+  ) {
+    return this.service.resolveSuspenseTransaction(req.user.id, id, dto);
   }
 }
