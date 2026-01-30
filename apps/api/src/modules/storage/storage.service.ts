@@ -1,6 +1,6 @@
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 
@@ -76,6 +76,25 @@ export class StorageService {
     } catch (error: any) {
       this.logger.error(`Failed to generate view URL for key ${key}: ${error.message}`);
       throw new InternalServerErrorException('Could not grant view permission');
+    }
+  }
+
+  async deleteFiles(keys: string[]) {
+    if (!keys || keys.length === 0) return;
+
+    try {
+      const command = new DeleteObjectsCommand({
+        Bucket: this.bucket,
+        Delete: {
+          Objects: keys.map(key => ({ Key: key })),
+          Quiet: true,
+        },
+      });
+
+      await this.s3Client.send(command);
+      this.logger.log(`Successfully purged ${keys.length} files from S3`);
+    } catch (error: any) {
+      this.logger.error(`Failed to purge files from S3: ${error.message}`);
     }
   }
 }
