@@ -17,21 +17,20 @@ interface TransparencyCardProps {
 export function TransparencyCard({ project }: TransparencyCardProps) {
   const raised = BigInt(project.raisedAmount || '0');
   const target = BigInt(project.targetAmount || '0');
-  const remaining = target > raised ? target - raised : 0n;
+  
+  const remaining = raised >= target ? 0n : target - raised;
   
   const percent = target > 0n 
-    ? Math.min(100, Number((raised * 10000n / target) / 100n))
+    ? Number((raised * 100n) / target)
     : 0;
+
+  const barWidth = Math.min(100, percent);
 
   const [expandedCard, setExpandedCard] = useState<'goal' | 'remaining' | null>(null);
   const [copied, setCopied] = useState(false);
 
   const toggleExpand = (card: 'goal' | 'remaining') => {
-    if (expandedCard === card) {
-      setExpandedCard(null);
-    } else {
-      setExpandedCard(card);
-    }
+    setExpandedCard(prev => prev === card ? null : card);
   };
 
   const copyIdToClipboard = () => {
@@ -58,7 +57,7 @@ export function TransparencyCard({ project }: TransparencyCardProps) {
                 className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium cursor-pointer hover:text-foreground transition-colors group/copy"
                 title="Click to copy ID"
             >
-                <span>ID: {project.slug.slice(0, 15)}...</span>
+                <span>ID: {project.slug.slice(0, 10)}...</span>
                 {copied ? (
                     <Check className="h-3 w-3 text-emerald-500 animate-in zoom-in" />
                 ) : (
@@ -86,80 +85,77 @@ export function TransparencyCard({ project }: TransparencyCardProps) {
             <div className="h-4 w-full bg-secondary/50 rounded-full overflow-hidden p-0.5 border border-border/50">
                 <div 
                     className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
-                    style={{ width: `${percent}%` }}
+                    style={{ width: `${barWidth}%` }}
                 />
             </div>
         </div>
 
         {/* Interactive Grid */}
-<div className="grid grid-cols-2 gap-4 mb-6 transition-all duration-300 ease-spring">
+        <div className="grid grid-cols-2 gap-4 mb-6 transition-all duration-300 ease-spring">
 
-    {/* GOAL CARD */}
-    {expandedCard !== 'remaining' && (
-        <div
-            onMouseEnter={() => setExpandedCard('goal')}
-            onMouseLeave={() => setExpandedCard(null)}
-            className={cn(
-                "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all select-none",
-                expandedCard === 'goal' ? "col-span-2 border-primary/50 bg-primary/5" : "col-span-1"
-            )}
-        >
-            <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                    <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">Goal</span>
+            {/* GOAL CARD */}
+            {expandedCard !== 'remaining' && (
+                <div
+                    onClick={() => toggleExpand('goal')}
+                    className={cn(
+                        "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all select-none",
+                        expandedCard === 'goal' ? "col-span-2 border-primary/50 bg-primary/5" : "col-span-1"
+                    )}
+                >
+                    <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">Goal</span>
+                        </div>
+                        {expandedCard === 'goal' && <X className="h-3 w-3 text-muted-foreground" />}
+                    </div>
+                    <p className={cn("font-semibold text-sm", expandedCard !== 'goal' && "truncate")}>
+                        <SmartCurrency 
+                            amount={target.toString()} 
+                            currency={project.currency} 
+                            visible={true} 
+                            size="default" 
+                        />
+                    </p>
                 </div>
-                {expandedCard === 'goal' && <X className="h-3 w-3 text-muted-foreground" />}
-            </div>
-            <p className={cn("font-semibold text-sm", expandedCard !== 'goal' && "truncate")}>
-                <SmartCurrency 
-                    amount={target.toString()} 
-                    currency={project.currency} 
-                    visible={true} 
-                    size="default" 
-                />
-            </p>
-        </div>
-    )}
-
-    {/* REMAINING CARD */}
-    {expandedCard !== 'goal' && (
-        <div
-            onMouseEnter={() => setExpandedCard('remaining')}
-            onMouseLeave={() => setExpandedCard(null)}
-            className={cn(
-                "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all select-none",
-                expandedCard === 'remaining' ? "col-span-2 border-amber-500/50 bg-amber-500/5" : "col-span-1"
             )}
-        >
-            <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
-                    <span className="text-xs font-medium text-muted-foreground">Remaining</span>
+
+            {/* REMAINING CARD */}
+            {expandedCard !== 'goal' && (
+                <div
+                    onClick={() => toggleExpand('remaining')}
+                    className={cn(
+                        "p-3 rounded-xl bg-background/50 border border-border/50 cursor-pointer hover:bg-background/80 transition-all select-none",
+                        expandedCard === 'remaining' ? "col-span-2 border-amber-500/50 bg-amber-500/5" : "col-span-1"
+                    )}
+                >
+                    <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle className="h-3.5 w-3.5 text-amber-500" />
+                            <span className="text-xs font-medium text-muted-foreground">Remaining</span>
+                        </div>
+                        {expandedCard === 'remaining' && <X className="h-3 w-3 text-muted-foreground" />}
+                    </div>
+                    <p className={cn("font-semibold text-sm text-amber-600 dark:text-amber-400", expandedCard !== 'remaining' && "truncate")}>
+                        <SmartCurrency 
+                            amount={remaining.toString()} 
+                            currency={project.currency} 
+                            visible={true} 
+                            size="default" 
+                        />
+                    </p>
                 </div>
-                {expandedCard === 'remaining' && <X className="h-3 w-3 text-muted-foreground" />}
+            )}
+
+            {/* Donors */}
+            <div className="col-span-2 p-3 rounded-xl bg-background/50 border border-border/50 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-xs font-medium text-muted-foreground">Unique Donors</span>
+                </div>
+                <p className="font-semibold text-sm">{project.donorCount || 0}</p>
             </div>
-            <p className={cn("font-semibold text-sm text-amber-600 dark:text-amber-400", expandedCard !== 'remaining' && "truncate")}>
-                <SmartCurrency 
-                    amount={remaining.toString()} 
-                    currency={project.currency} 
-                    visible={true} 
-                    size="default" 
-                />
-            </p>
         </div>
-    )}
-
-    {/* Donors */}
-    <div className="col-span-2 p-3 rounded-xl bg-background/50 border border-border/50 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-            <Users className="h-3.5 w-3.5 text-blue-500" />
-            <span className="text-xs font-medium text-muted-foreground">Unique Donors</span>
-        </div>
-        <p className="font-semibold text-sm">{project.donorCount || 0}</p>
-    </div>
-</div>
-
 
         {/* Ledger Link */}
         <Link href={`/dashboard/history?search=${encodeURIComponent(project.title)}`}>
