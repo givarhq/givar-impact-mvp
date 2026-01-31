@@ -12,10 +12,10 @@ export class EmailService {
 
   constructor(private config: ConfigService) {
     this.resend = new Resend(this.config.get('RESEND_API_KEY'));
-    
+
     const envFrom = this.config.get('RESEND_FROM_EMAIL');
     this.fromEmail = envFrom ? envFrom.replace('Givar Impact', '"Givar Impact"') : 'Givar Impact <onboarding@resend.dev>';
-    
+
     this.isDev = this.config.get('NODE_ENV') === 'development';
   }
 
@@ -36,7 +36,7 @@ export class EmailService {
         this.logger.error(`Resend API Error: ${data.error.message}`);
         return false;
       }
-      
+
       this.logger.log(`Email sent id: ${data.data?.id}`);
       return true;
     } catch (error) {
@@ -63,8 +63,8 @@ export class EmailService {
   // 3. Security Alert
   async sendLoginAlert(email: string, data: { ip: string; userAgent?: string }) {
     const content = EmailTemplates.securityAlert({
-        ip: data.ip,
-        time: new Date().toLocaleString()
+      ip: data.ip,
+      time: new Date().toLocaleString()
     });
     const html = EmailTemplates.base(content, 'New Login Detected');
     return this.send(email, 'Givar Impact Security Alert: New Login', html);
@@ -104,5 +104,19 @@ export class EmailService {
     const content = EmailTemplates.milestoneCompleted(data);
     const html = EmailTemplates.base(content, 'Milestone Achieved');
     return this.send(email, `Givar Impact: Milestone Complete for ${data.projectTitle}`, html);
+  }
+
+  async sendEvidenceRequest(
+    email: string,
+    data: { name: string; project: string; milestone: string; vendor: string }
+  ) {
+    const uploadUrl = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`; // Or specific edit link
+    const content = EmailTemplates.evidenceRequest({
+      ...data,
+      uploadUrl
+    });
+
+    const html = EmailTemplates.base(content, 'Action Required: Proof of Work');
+    return this.send(email, `Givar Action Required: ${data.project}`, html);
   }
 }

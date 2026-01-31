@@ -96,9 +96,9 @@ export const EmailTemplates = {
       </div>
     </div>
     <p>
-      ${data.status === 'ACTIVE' 
-        ? 'Your automated impact has been resumed. Thank you for your continued support.' 
-        : 'Your automated impact has been paused. No further charges will be made until you resume.'}
+      ${data.status === 'ACTIVE'
+      ? 'Your automated impact has been resumed. Thank you for your continued support.'
+      : 'Your automated impact has been paused. No further charges will be made until you resume.'}
     </p>
     <p>You can manage all your subscriptions from your dashboard at any time.</p>
   `,
@@ -159,5 +159,27 @@ export const EmailTemplates = {
     </div>
 
     <p style="font-size: 14px; color: #6b7280;">Thank you for being a vital part of this journey.</p>
+  `,
+
+  evidenceRequest: (data: { name: string; project: string; milestone: string; vendor: string; uploadUrl: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>Givar Management has officially disbursed funds to <strong>${data.vendor}</strong> for the following project phase:</p>
+    
+    <div class="stat-box">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Active Milestone</div>
+      <div style="font-size: 22px; font-weight: 800; color: #064e3b; line-height: 1.2;">${data.milestone}</div>
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <div style="font-size: 13px; font-weight: 600; color: #065f46;">
+        Project: ${data.project}
+      </div>
+    </div>
+
+    <p>As the project owner, your verification is now required. Please capture and upload <strong>Proof of Progress</strong> (photos or documents) as soon as the work begins or materials arrive.</p>
+    
+    <p style="font-size: 14px; color: #6b7280; font-style: italic;">Note: Verification of this phase is a prerequisite for subsequent funding tranches.</p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.uploadUrl}" class="button" style="background-color: #064e3b;">Upload Proof of Work</a>
+    </div>
   `,
 };
