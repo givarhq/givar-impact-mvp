@@ -71,7 +71,15 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
 
       <div className="relative space-y-4">
         {/* The connecting vertical line */}
-        <div className="absolute left-[27px] top-6 bottom-6 w-0.5 bg-border hidden md:block" />
+        <div className="
+  absolute 
+  top-0 bottom-0 
+  w-0.5 bg-border 
+  hidden md:block
+  left-[calc(1.25rem+1.75rem)] 
+  md:left-[calc(1.5rem+1.75rem)]
+" />
+
 
         {timeline.map((milestone, index) => {
           const isProcessing = processingId === milestone.id;
