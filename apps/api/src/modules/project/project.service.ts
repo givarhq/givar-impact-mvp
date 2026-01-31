@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { ProjectQueryDto, ProjectSort } from './dto/project-query.dto';
-import { Prisma, ProjectStatus } from '@givar/database';
+import { AuditAction, Prisma, ProjectStatus } from '@givar/database';
+import { SubmitMilestoneProofDto } from './dto/evidence.dto';
+import { AuditService } from '../audit/audit.service';
 
 type ProjectMediaValue = {
   url: string;
@@ -12,31 +14,35 @@ type ProjectMediaValue = {
 
 @Injectable()
 export class ProjectService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(ProjectService.name);
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService,
+  ) { }
 
   async create(dto: CreateProjectDto) {
     const slug = this.generateSlug(dto.title);
 
-    const galleryData: ProjectMediaValue[] = dto.gallery 
+    const galleryData: ProjectMediaValue[] = dto.gallery
       ? dto.gallery.map(item => ({
-          url: item.url,
-          type: item.type as 'IMAGE' | 'VIDEO' | 'DOCUMENT',
-          caption: item.caption
-        }))
+        url: item.url,
+        type: item.type as 'IMAGE' | 'VIDEO' | 'DOCUMENT',
+        caption: item.caption
+      }))
       : [];
-    
+
     return this.prisma.project.create({
       data: {
         title: dto.title,
         slug,
-        userId: dto.userId,       
+        userId: dto.userId,
         description: dto.description,
         shortDesc: dto.shortDesc,
         imageUrl: dto.imageUrl,
-        gallery: galleryData as Prisma.InputJsonValue, 
+        gallery: galleryData as Prisma.InputJsonValue,
         targetAmount: BigInt(dto.targetAmount),
         currency: dto.currency,
-        categoryId: dto.categoryId, 
+        categoryId: dto.categoryId,
         location: dto.location,
         tags: dto.tags || [],
         status: ProjectStatus.ACTIVE,
@@ -53,7 +59,7 @@ export class ProjectService {
     // 1. Dynamic Filter Construction
     const where: Prisma.ProjectWhereInput = {
       status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] },
-      isActive: true, 
+      isActive: true,
       ...(status && { status }),
       ...(category && { category: { slug: category } }),
       ...(search && {
@@ -68,10 +74,10 @@ export class ProjectService {
     // 2. Dynamic Sorting
     let orderBy: Prisma.ProjectOrderByWithRelationInput = { createdAt: 'desc' };
     switch (sort) {
-        case ProjectSort.OLDEST: orderBy = { createdAt: 'asc' }; break;
-        case ProjectSort.MOST_FUNDED: orderBy = { raisedAmount: 'desc' }; break;
-        case ProjectSort.ENDING_SOON: orderBy = { endDate: 'asc' }; break;
-        default: orderBy = { createdAt: 'desc' };
+      case ProjectSort.OLDEST: orderBy = { createdAt: 'asc' }; break;
+      case ProjectSort.MOST_FUNDED: orderBy = { raisedAmount: 'desc' }; break;
+      case ProjectSort.ENDING_SOON: orderBy = { endDate: 'asc' }; break;
+      default: orderBy = { createdAt: 'desc' };
     }
 
     // 3. Execution
@@ -82,14 +88,14 @@ export class ProjectService {
         take: limit,
         orderBy,
         include: {
-            category: { select: { name: true, slug: true, icon: true } },
-            _count: { select: { donations: true } },
-            user: { 
-              select: { 
-                role: true,
-                organization: { select: { status: true, legalName: true } } 
-              } 
+          category: { select: { name: true, slug: true, icon: true } },
+          _count: { select: { donations: true } },
+          user: {
+            select: {
+              role: true,
+              organization: { select: { status: true, legalName: true } }
             }
+          }
         }
       }),
       this.prisma.project.count({ where }),
@@ -101,7 +107,7 @@ export class ProjectService {
       const target = Number(p.targetAmount || 0n);
 
       const isSystemProject = p.user?.role === 'ADMIN';
-      
+
       return {
         ...p,
         targetAmount: p.targetAmount.toString(),
@@ -127,41 +133,41 @@ export class ProjectService {
 
   // Single Project Detail Fetcher
   async findOneWithUpdates(slug: string) {
-      const project = await this.prisma.project.findUnique({
-          where: { slug },
-          include: {
-              category: true,
-              updates: { orderBy: { createdAt: 'desc' } },
-              user: { 
-                select: { 
-                  role: true,
-                  organization: { select: { status: true, legalName: true, verifiedAt: true } } 
-                } 
-              }
+    const project = await this.prisma.project.findUnique({
+      where: { slug },
+      include: {
+        category: true,
+        updates: { orderBy: { createdAt: 'desc' } },
+        user: {
+          select: {
+            role: true,
+            organization: { select: { status: true, legalName: true, verifiedAt: true } }
           }
-      });
+        }
+      }
+    });
 
-      if (!project) throw new NotFoundException('Project not found');
+    if (!project) throw new NotFoundException('Project not found');
 
-      // Count donors
-      const [userDonors, guestDonors] = await Promise.all([
-          this.prisma.donation.groupBy({ by: ['userId'], where: { projectId: project.id } }),
-          this.prisma.guestDonation.groupBy({ by: ['guestDonorId'], where: { projectId: project.id } })
-      ]);
-      const donorCount = userDonors.length + guestDonors.length;
+    // Count donors
+    const [userDonors, guestDonors] = await Promise.all([
+      this.prisma.donation.groupBy({ by: ['userId'], where: { projectId: project.id } }),
+      this.prisma.guestDonation.groupBy({ by: ['guestDonorId'], where: { projectId: project.id } })
+    ]);
+    const donorCount = userDonors.length + guestDonors.length;
 
-      const isSystemProject = project.user?.role === 'ADMIN';
+    const isSystemProject = project.user?.role === 'ADMIN';
 
-      return {
-          ...project,
-          targetAmount: project.targetAmount.toString(),
-          raisedAmount: project.raisedAmount.toString(),
-          percentFunded: Number(project.targetAmount) > 0 ? Math.min(100, Math.round((Number(project.raisedAmount) / Number(project.targetAmount)) * 100)) : 0,
-          donorCount,
-          isVerifiedOrganizer: isSystemProject ? true : project.user?.organization?.status === 'VERIFIED',
-          organizerName: isSystemProject ? 'Givar' : (project.user?.organization?.legalName || 'Individual'),
-          isGivarOfficial: isSystemProject
-      };
+    return {
+      ...project,
+      targetAmount: project.targetAmount.toString(),
+      raisedAmount: project.raisedAmount.toString(),
+      percentFunded: Number(project.targetAmount) > 0 ? Math.min(100, Math.round((Number(project.raisedAmount) / Number(project.targetAmount)) * 100)) : 0,
+      donorCount,
+      isVerifiedOrganizer: isSystemProject ? true : project.user?.organization?.status === 'VERIFIED',
+      organizerName: isSystemProject ? 'Givar' : (project.user?.organization?.legalName || 'Individual'),
+      isGivarOfficial: isSystemProject
+    };
   }
 
   async update(id: string, dto: UpdateProjectDto) {
@@ -187,18 +193,18 @@ export class ProjectService {
       _sum: { raisedAmount: true },
       where: { isActive: true },
     });
-    
+
     const latestDonation = await this.prisma.donation.findFirst({
-        orderBy: { createdAt: 'desc' },
-        include: { project: { select: { title: true } } }
+      orderBy: { createdAt: 'desc' },
+      include: { project: { select: { title: true } } }
     });
 
     return {
       totalVolume: aggregate._sum.raisedAmount || 0n,
       latestDonation: latestDonation ? {
-          projectTitle: latestDonation.project.title,
-          amount: latestDonation.amount,
-          createdAt: latestDonation.createdAt
+        projectTitle: latestDonation.project.title,
+        amount: latestDonation.amount,
+        createdAt: latestDonation.createdAt
       } : null
     };
   }
@@ -214,5 +220,51 @@ export class ProjectService {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)+/g, '') + '-' + Date.now().toString().slice(-4);
+  }
+
+  async submitMilestoneProof(userId: string, projectId: string, dto: SubmitMilestoneProofDto) {
+    // 1. Security: Verify Ownership
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      select: { userId: true, title: true, executionTimeline: true }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.userId !== userId) throw new ForbiddenException('Access denied');
+
+    // 2. Validate Milestone ID exists in this project
+    const timeline = (project.executionTimeline as any[]) || [];
+    const milestone = timeline.find(m => m.id === dto.milestoneId);
+    if (!milestone) throw new BadRequestException('Invalid milestone ID');
+
+    // 3. Create the Proof Record
+    return this.prisma.$transaction(async (tx) => {
+      const proof = await tx.milestoneProof.create({
+        data: {
+          projectId,
+          milestoneId: dto.milestoneId,
+          description: dto.description,
+          imageKeys: dto.imageKeys,
+        }
+      });
+
+      // 4. Audit: Log the submission
+      await this.audit.log({
+        userId,
+        action: AuditAction.MILESTONE_PROOF_SUBMITTED,
+        entityId: projectId,
+        entityType: 'MilestoneProof',
+        metadata: {
+          milestone: milestone.phase,
+          proofId: proof.id,
+          imageCount: dto.imageKeys.length
+        }
+      }, tx);
+
+      // 5. System Logic: Optional - Auto-notify Admins via internal logging
+      this.logger.log(`New Proof of Work submitted for ${project.title} - ${milestone.phase}`);
+
+      return proof;
+    });
   }
 }

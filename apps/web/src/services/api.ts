@@ -7,7 +7,7 @@ const API_V1 = `${BASE_URL}/v1`;
 
 async function serverFetch<T>(
   endpoint: string,
-  token?: string, 
+  token?: string,
   options: RequestInit = {}
 ): Promise<T | null> {
   const sanitizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
@@ -46,9 +46,9 @@ async function serverFetch<T>(
 
   } catch (error) {
     if (error instanceof Error && (error as any).digest?.startsWith('NEXT_REDIRECT')) {
-        throw error; // Let Next.js handle the redirect
+      throw error; // Let Next.js handle the redirect
     }
-    
+
     console.error(`[ServerFetch] Network/Parse Error at ${fullUrl}`, error);
     return null;
   }
@@ -60,10 +60,10 @@ export const ApiService = {
     login: (data: any) => apiClient.post('/auth/login', data).then(r => r.data),
     signup: (data: any) => apiClient.post('/auth/signup', data).then(r => r.data),
     logout: () => apiClient.post('/auth/logout'),
-    forgotPassword: (email: string) => 
+    forgotPassword: (email: string) =>
       apiClient.post('/auth/forgot-password', { email }).then(r => r.data),
-      
-    resetPassword: (data: any) => 
+
+    resetPassword: (data: any) =>
       apiClient.post('/auth/reset-password', data).then(r => r.data),
     verifyEmail: (token: string) =>
       apiClient.get(`/auth/verify-email?token=${token}`).then(r => r.data),
@@ -81,7 +81,7 @@ export const ApiService = {
     fund: (data: { amount: string; currency: string }) =>
       apiClient.post('/wallet/fund', data).then(r => r.data),
 
-    verifyTransaction: (reference: string) => 
+    verifyTransaction: (reference: string) =>
       apiClient.get(`/wallet/verify/${reference}`).then(r => r.data),
 
     getTransactions: (token: string, params: URLSearchParams) =>
@@ -98,9 +98,9 @@ export const ApiService = {
 
   // --- PROPOSALS ---
   proposals: {
-    create: (data: { title: string; categoryId: string }) => 
+    create: (data: { title: string; categoryId: string }) =>
       apiClient.post('/proposals', data).then(r => r.data),
-      
+
     // 2. Get a specific proposal for editing
     get: (id: string, token?: string) =>
       token
@@ -110,11 +110,11 @@ export const ApiService = {
     // 3. Update (Auto-save) a draft
     update: (id: string, data: any) =>
       apiClient.patch(`/proposals/${id}`, data).then(r => r.data),
-      
+
     // 4. Submit a draft for review
     submit: (id: string) =>
       apiClient.patch(`/proposals/${id}/submit`).then(r => r.data),
-      
+
     // 5. Get all proposals for the logged-in user
     getMyProposals: (token: string) =>
       serverFetch<any[]>(`/proposals`, token),
@@ -126,7 +126,7 @@ export const ApiService = {
     getPreviewUrl: (key: string, proposalId: string) =>
       apiClient.get(`/proposals/preview-url?key=${key}&proposalId=${proposalId}`).then(r => r.data),
 
-    delete: (id: string) => 
+    delete: (id: string) =>
       apiClient.delete(`/proposals/${id}`).then(r => r.data),
   },
 
@@ -147,10 +147,14 @@ export const ApiService = {
         }
       >(`/projects/${slug}`, token),
 
-      getCategories: (token?: string) =>
+    getCategories: (token?: string) =>
       token
         ? serverFetch<any[]>('/projects/categories/list', token)
         : apiClient.get('/projects/categories/list').then(r => r.data),
+
+    // Submit Proof of Work for a specific milestone
+    submitProof: (projectId: string, data: { milestoneId: string; description: string; imageKeys: string[] }) =>
+      apiClient.post(`/projects/${projectId}/proof`, data).then(r => r.data),
   },
 
   // --- DONATIONS ---
@@ -182,7 +186,7 @@ export const ApiService = {
 
     getSubscriptions: (token: string) =>
       serverFetch<any[]>('/donations/subscriptions', token),
-    
+
     updateSubscription: (id: string, status: 'ACTIVE' | 'PAUSED' | 'CANCELLED') =>
       apiClient.patch(`/donations/subscriptions/${id}`, { status }).then(r => r.data),
   },
@@ -230,9 +234,9 @@ export const ApiService = {
     suspendProject: (id: string) =>
       apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
 
-    getAuditLogs: (token: string, params: URLSearchParams) => 
+    getAuditLogs: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token),
-      
+
     getAuditSummary: (token: string) =>
       serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token),
 
@@ -251,21 +255,21 @@ export const ApiService = {
     requestChanges: (id: string, feedback: string) =>
       apiClient.patch(`/admin/proposals/${id}/request-changes`, { feedback }).then(r => r.data),
 
-    createProject: (data: any) => 
+    createProject: (data: any) =>
       apiClient.post('/admin/projects', data).then(r => r.data),
-      
-    updateProject: (id: string, data: any) => 
-      apiClient.patch(`/admin/projects/${id}`, data).then(r => r.data),
-      
-    deleteProject: (id: string) => 
-      apiClient.delete(`/admin/projects/${id}`).then(r => r.data),
-      
-    // Reuse the public getProject for editing details
-    getProjectDetail: (slug: string) => 
-       apiClient.get(`/projects/${slug}`).then(r => r.data),
 
-    getProjectById: (token: string, id: string) => 
-  serverFetch<any>(`/admin/projects/${id}`, token),
+    updateProject: (id: string, data: any) =>
+      apiClient.patch(`/admin/projects/${id}`, data).then(r => r.data),
+
+    deleteProject: (id: string) =>
+      apiClient.delete(`/admin/projects/${id}`).then(r => r.data),
+
+    // Reuse the public getProject for editing details
+    getProjectDetail: (slug: string) =>
+      apiClient.get(`/projects/${slug}`).then(r => r.data),
+
+    getProjectById: (token: string, id: string) =>
+      serverFetch<any>(`/admin/projects/${id}`, token),
 
     verifyExternalRef: (token: string, ref: string) =>
       serverFetch<any>(`/admin/reconcile/verify/${ref}`, token),
@@ -289,7 +293,7 @@ export const ApiService = {
       apiClient.post('/organizations/verify', data).then(r => r.data),
 
     getMe: (token?: string) =>
-      token 
+      token
         ? serverFetch<any>('/organizations/me', token)
         : apiClient.get('/organizations/me').then(r => r.data),
 
