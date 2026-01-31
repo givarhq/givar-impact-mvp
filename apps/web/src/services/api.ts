@@ -155,6 +155,9 @@ export const ApiService = {
     // Submit Proof of Work for a specific milestone
     submitProof: (projectId: string, data: { milestoneId: string; description: string; imageKeys: string[] }) =>
       apiClient.post(`/projects/${projectId}/proof`, data).then(r => r.data),
+
+    getOwnerView: (id: string, token: string) =>
+      serverFetch<any>(`/projects/${id}/manage`, token),
   },
 
   // --- DONATIONS ---

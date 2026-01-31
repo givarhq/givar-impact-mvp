@@ -26,7 +26,7 @@ export interface Project {
   status: ProjectStatus;
   isActive: boolean;
   gallery: MediaItem[];
-  createdAt: string; 
+  createdAt: string;
   updatedAt: string;
   location?: string;
   tags?: string[];
@@ -46,6 +46,32 @@ export interface ProjectUpdate {
   imageUrl?: string | null;
   type: 'MILESTONE' | 'ANNOUNCEMENT' | 'IMPACT_REPORT';
   createdAt: string;
+}
+
+export interface Disbursement {
+  id: string;
+  projectId: string;
+  milestoneId: string;
+  amount: string; // Serialized BigInt
+  currency: string;
+  vendorName: string;
+  reference: string;
+  createdAt: string;
+}
+
+export interface MilestoneProof {
+  id: string;
+  projectId: string;
+  milestoneId: string;
+  description: string;
+  imageKeys: string[];
+  submittedAt: string;
+}
+
+
+export interface ProjectManagementView extends Project {
+  disbursements: Disbursement[];
+  milestoneProofs: MilestoneProof[];
 }
 
 export interface Transaction {
@@ -118,25 +144,25 @@ export interface ProjectProposal {
   location: string;
   targetAmount: string; // Serialized BigInt
   currency: 'NGN' | 'USD' | 'GBP';
-  
+
   coverImage: string | null;
   gallery: { url: string; type: 'IMAGE' | 'VIDEO' | 'DOCUMENT'; caption?: string }[];
-  
-  budgetBreakdown: { 
-    item: string; 
-    cost: number; 
-    vendor: string; 
-    type: string 
+
+  budgetBreakdown: {
+    item: string;
+    cost: number;
+    vendor: string;
+    type: string
   }[];
-  
-  executionTimeline: { 
-    phase: string; 
-    estimatedDate: string; 
-    deliverables: string 
+
+  executionTimeline: {
+    phase: string;
+    estimatedDate: string;
+    deliverables: string
   }[];
-  
+
   riskAnalysis: string | null;
-  
+
   kycDocuments: string[];
   organizationName: string | null;
   contactPhone: string | null;
@@ -144,7 +170,7 @@ export interface ProjectProposal {
 
   status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
   submittedAt: string;
-  
+
   // Relations
   user: {
     firstName: string;
@@ -157,9 +183,9 @@ export interface ProjectProposal {
 }
 
 export interface ProjectWithDetails extends Project {
-  category?: { 
-    name: string; 
-    icon: string 
+  category?: {
+    name: string;
+    icon: string
   };
   updates?: ProjectUpdate[];
   donorCount?: number;
@@ -187,7 +213,7 @@ export interface OrganizationProfile {
 
 export interface OverviewCardsProps {
   wallet: { balance: string; currency: string };
-  totalImpact: string; 
+  totalImpact: string;
   donationCount: number;
 }
 

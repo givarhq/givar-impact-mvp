@@ -267,4 +267,47 @@ export class ProjectService {
       return proof;
     });
   }
+
+  /**
+   * Secure Project Management Data Fetcher
+   * Includes private execution data and enforces IDOR protection.
+   */
+  async getProjectForOwner(userId: string, projectId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        category: true,
+        disbursements: {
+          orderBy: { createdAt: 'desc' },
+        },
+        milestoneProofs: {
+          orderBy: { submittedAt: 'desc' },
+        },
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    // Security Guard: Prevent IDOR
+    if (project.userId !== userId) {
+      await this.audit.log({
+        userId,
+        action: AuditAction.USER_LOGIN_FAILED,
+        metadata: { reason: 'Unauthorized project management access', projectId }
+      });
+      throw new ForbiddenException('You do not have permission to manage this project');
+    }
+
+    return {
+      ...project,
+      targetAmount: project.targetAmount.toString(),
+      raisedAmount: project.raisedAmount.toString(),
+      disbursements: project.disbursements.map((d) => ({
+        ...d,
+        amount: d.amount.toString(),
+      })),
+    };
+  }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserRole } from '@givar/database';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -8,10 +8,11 @@ import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { SkipThrottle } from '@nestjs/throttler';
+import { SubmitMilestoneProofDto } from './dto/evidence.dto';
 
 @Controller('projects')
 export class ProjectController {
-  constructor(private service: ProjectService) {}
+  constructor(private service: ProjectService) { }
 
   // Public: Search & Pagination
   @Get()
@@ -60,5 +61,22 @@ export class ProjectController {
   @Get('categories/list')
   getCategories() {
     return this.service.getAllCategories();
+  }
+
+  // Dedicated view for Project Owners to manage their live project
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':id/manage')
+  async getOwnerView(@Req() req: any, @Param('id') id: string) {
+    return this.service.getProjectForOwner(req.user.id, id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/proof')
+  async submitProof(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: SubmitMilestoneProofDto
+  ) {
+    return this.service.submitMilestoneProof(req.user.id, id, dto);
   }
 }
