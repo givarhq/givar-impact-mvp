@@ -79,7 +79,7 @@ export class OrganizationService {
       // 3. Audit the decision 
       await this.audit.log({
         userId: adminId,
-        action: status === VerificationStatus.VERIFIED ? AuditAction.PROJECT_UPDATED : AuditAction.PROJECT_DELETED,
+        action: status === VerificationStatus.VERIFIED ? AuditAction.USER_VERIFIED : AuditAction.USER_REJECTED,
         entityId: profile.userId,
         entityType: 'UserOrganization',
         metadata: { status, feedback, legalName: profile.legalName }
