@@ -727,7 +727,7 @@ export class AdminService {
         await prisma.auditLog.create({
           data: {
             userId: adminId,
-            action: AuditAction.PROJECT_UPDATED,
+            action: AuditAction.TRANSACTION_RESOLVED,
             entityId: transactionId,
             entityType: 'WalletTransaction',
             metadata: { action: 'AUTO_REFUND', originalRef: tx.reference },
@@ -798,7 +798,7 @@ export class AdminService {
         await prisma.auditLog.create({
           data: {
             userId: adminId,
-            action: AuditAction.PROJECT_UPDATED, // Or FUNDS_REALLOCATED
+            action: AuditAction.FUNDS_REALLOCATED,
             entityId: transactionId,
             entityType: 'WalletTransaction',
             metadata: { action: 'RE_ALLOCATE', targetProject: dto.targetProjectId },
@@ -808,5 +808,56 @@ export class AdminService {
         return updatedTx;
       });
     }
+  }
+
+  async recordDisbursement(adminId: string, projectId: string, data: {
+    milestoneId: string;
+    amount: string;
+    vendorName: string;
+    reference: string;
+  }) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { user: { select: { email: true, firstName: true } } }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    const timeline = (project.executionTimeline as any[]) || [];
+    const milestone = timeline.find(m => m.id === data.milestoneId);
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Record the outgoing payment
+      const disbursement = await tx.disbursement.create({
+        data: {
+          projectId,
+          milestoneId: data.milestoneId,
+          amount: BigInt(data.amount),
+          currency: project.currency,
+          vendorName: data.vendorName,
+          reference: data.reference,
+        }
+      });
+
+      // 2. Audit
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.DISBURSEMENT_RECORDED,
+        entityId: disbursement.id,
+        entityType: 'Disbursement',
+        metadata: { vendor: data.vendorName, milestone: milestone?.phase }
+      }, tx);
+
+      // 3. Notify the Project Owner (Async after tx)
+      return { disbursement, owner: project.user, milestoneName: milestone?.phase };
+    }).then(async (res) => {
+      await this.emailService.sendEvidenceRequest(res.owner.email, {
+        name: res.owner.firstName,
+        project: project.title,
+        milestone: res.milestoneName || 'Current Phase',
+        vendor: data.vendorName
+      });
+      return res.disbursement;
+    });
   }
 }
