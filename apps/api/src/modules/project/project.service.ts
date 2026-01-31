@@ -282,6 +282,16 @@ export class ProjectService {
         },
         milestoneProofs: {
           orderBy: { submittedAt: 'desc' },
+          select: {
+            id: true,
+            milestoneId: true,
+            description: true,
+            imageKeys: true,
+            status: true,
+            adminFeedback: true,
+            submittedAt: true,
+            updatedAt: true,
+          }
         },
       },
     });
@@ -290,7 +300,7 @@ export class ProjectService {
       throw new NotFoundException('Project not found');
     }
 
-    // Security Guard: Prevent IDOR
+    // Security Guard: Prevent IDOR (Insecure Direct Object Reference)
     if (project.userId !== userId) {
       await this.audit.log({
         userId,
