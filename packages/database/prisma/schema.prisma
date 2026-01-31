@@ -256,6 +256,8 @@ model Project {
   donations    Donation[]
   subscriptions Subscription[]
   guestDonations GuestDonation[]
+  disbursements  Disbursement[]
+  milestoneProofs MilestoneProof[]
 
   @@map("projects")
   @@index([categoryId])
@@ -491,4 +493,36 @@ model OrganizationProfile {
   updatedAt          DateTime           @updatedAt
 
   @@map("organization_profiles")
+}
+
+model Disbursement {
+  id              String   @id @default(uuid())
+  projectId       String
+  milestoneId     String   // Linked to the phase in executionTimeline
+  
+  amount          BigInt
+  currency        Currency
+  vendorName      String
+  reference       String   @unique // Internal or Bank Ref
+  
+  createdAt       DateTime @default(now())
+  
+  project         Project  @relation(fields: [projectId], references: [id])
+
+  @@map("disbursements")
+}
+
+model MilestoneProof {
+  id            String   @id @default(uuid())
+  projectId     String
+  milestoneId   String
+  
+  description   String   @db.Text
+  imageKeys     String[] // S3 keys for the proof photos
+  
+  submittedAt   DateTime @default(now())
+  
+  project       Project  @relation(fields: [projectId], references: [id])
+
+  @@map("milestone_proofs")
 }

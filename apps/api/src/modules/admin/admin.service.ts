@@ -595,12 +595,19 @@ export class AdminService {
         }
       });
 
+      let signedProofUrl: string | undefined = undefined;
+
+      if (dto.imageUrl) {
+        const { viewUrl } = await this.storage.getPresignedViewUrl(dto.imageUrl);
+        signedProofUrl = viewUrl;
+      }
+
       this.broadcastMilestoneUpdate(
         projectId,
         project.title,
         project.slug,
         updatedTimeline[milestoneIndex].phase,
-        dto.imageUrl
+        signedProofUrl
       ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
     }
 
