@@ -203,6 +203,9 @@ export class AdminService {
           categoryId: proposal.categoryId,
           tags: ['Verified'],
           isActive: true,
+          budgetBreakdown: proposal.budgetBreakdown ?? [],
+          executionTimeline: proposal.executionTimeline ?? [],
+          riskAnalysis: proposal.riskAnalysis,
         },
       });
 
@@ -221,7 +224,12 @@ export class AdminService {
           action: AuditAction.PROJECT_CREATED,
           entityId: project.id,
           entityType: 'Project',
-          metadata: { proposalId: proposal.id, title: project.title },
+          metadata: {
+            proposalId: proposal.id,
+            title: project.title,
+            method: 'PROPOSAL_PROMOTION',
+            dataIntegrity: 'FULL_MIGRATION'
+          },
         },
       });
 
