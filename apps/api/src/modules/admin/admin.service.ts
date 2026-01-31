@@ -21,7 +21,7 @@ export class AdminService {
     private walletService: WalletService,
     private emailService: EmailService,
     private audit: AuditService,
-  ) {}
+  ) { }
 
   // Dashboard Stats
   async getDashboardStats() {
@@ -80,9 +80,9 @@ export class AdminService {
     // 1. Build Dynamic Filter
     const where: Prisma.ProjectProposalWhereInput = {
       status: status ? status : { not: ProposalStatus.DRAFT },
-      
+
       ...(category && { category: { slug: category } }),
-      
+
       ...(search && {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },
@@ -143,33 +143,33 @@ export class AdminService {
     }
 
     if (proposal.coverImage && !proposal.coverImage.startsWith('http')) {
-        try {
-            const { viewUrl } = await this.storage.getPresignedViewUrl(proposal.coverImage);
-            proposal.coverImage = viewUrl;
-        } catch (e: any) {
-            this.logger.warn(`Failed to sign cover image: ${e.message}`);
-        }
+      try {
+        const { viewUrl } = await this.storage.getPresignedViewUrl(proposal.coverImage);
+        proposal.coverImage = viewUrl;
+      } catch (e: any) {
+        this.logger.warn(`Failed to sign cover image: ${e.message}`);
+      }
     }
 
     if (proposal.gallery && Array.isArray(proposal.gallery)) {
-        const signedGallery = await Promise.all(
-            (proposal.gallery as any[]).map(async (item) => {
-                if (typeof item === 'string' && !item.startsWith('http')) {
-                     try {
-                        const { viewUrl } = await this.storage.getPresignedViewUrl(item);
-                        return viewUrl;
-                     } catch { return item; }
-                }
-                if (typeof item === 'object' && item.url && !item.url.startsWith('http')) {
-                     try {
-                        const { viewUrl } = await this.storage.getPresignedViewUrl(item.url);
-                        return { ...item, url: viewUrl };
-                     } catch { return item; }
-                }
-                return item;
-            })
-        );
-        proposal.gallery = signedGallery;
+      const signedGallery = await Promise.all(
+        (proposal.gallery as any[]).map(async (item) => {
+          if (typeof item === 'string' && !item.startsWith('http')) {
+            try {
+              const { viewUrl } = await this.storage.getPresignedViewUrl(item);
+              return viewUrl;
+            } catch { return item; }
+          }
+          if (typeof item === 'object' && item.url && !item.url.startsWith('http')) {
+            try {
+              const { viewUrl } = await this.storage.getPresignedViewUrl(item.url);
+              return { ...item, url: viewUrl };
+            } catch { return item; }
+          }
+          return item;
+        })
+      );
+      proposal.gallery = signedGallery;
     }
 
     return proposal;
@@ -250,13 +250,13 @@ export class AdminService {
     });
 
     await this.prisma.auditLog.create({
-        data: {
-            userId: adminId,
-            action: AuditAction.PROJECT_UPDATED,
-            entityId: id,
-            entityType: 'ProjectProposal',
-            metadata: { action: 'REQUEST_CHANGES', feedback }
-        }
+      data: {
+        userId: adminId,
+        action: AuditAction.PROJECT_UPDATED,
+        entityId: id,
+        entityType: 'ProjectProposal',
+        metadata: { action: 'REQUEST_CHANGES', feedback }
+      }
     });
 
     return proposal;
@@ -278,7 +278,7 @@ export class AdminService {
 
   async createProject(adminId: string, dto: CreateAdminProjectDto) {
     const slug = this.generateSlug(dto.title);
-    
+
     const createData: Prisma.ProjectCreateInput = {
       title: dto.title,
       description: dto.description,
@@ -292,7 +292,7 @@ export class AdminService {
       status: ProjectStatus.ACTIVE,
       isActive: true,
       tags: dto.tags || ['Admin Created', 'Verified'],
-      
+
       user: { connect: { id: adminId } },
       category: { connect: { id: dto.categoryId } },
 
@@ -378,9 +378,9 @@ export class AdminService {
   // Forensic Project Deletion with Asset Purge
   async deleteProject(adminId: string, projectId: string) {
     // 1. Fetch Project with relations and donation count
-    const project = await this.prisma.project.findUnique({ 
-        where: { id: projectId },
-        include: { _count: { select: { donations: true } } }
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { _count: { select: { donations: true } } }
     });
 
     if (!project) throw new NotFoundException('Project not found');
@@ -388,34 +388,34 @@ export class AdminService {
     // 2. Financial Integrity Guard
     // Hard-deletion is FORBIDDEN if the project has ever received money.
     if (project._count.donations > 0) {
-        throw new ForbiddenException(
-            'CRITICAL: This project has received donations. For financial audit integrity, it cannot be deleted. Use Suspend/Complete instead.'
-        );
+      throw new ForbiddenException(
+        'CRITICAL: This project has received donations. For financial audit integrity, it cannot be deleted. Use Suspend/Complete instead.'
+      );
     }
 
     // 3. Collect S3 Keys for Purging
     const keysToPurge: string[] = [];
-    
+
     // Check if coverImage is a key (not a full URL from previous hydration)
     // Note: Since our DB stores keys, we check if it starts with 'proposals/'
     if (project.imageUrl && !project.imageUrl.startsWith('http')) {
-        keysToPurge.push(project.imageUrl);
+      keysToPurge.push(project.imageUrl);
     }
 
     // Extract keys from Gallery JSON
     if (project.gallery && Array.isArray(project.gallery)) {
-        const gallery = project.gallery as any[];
-        gallery.forEach(item => {
-            if (item.url && !item.url.startsWith('http')) {
-                keysToPurge.push(item.url);
-            }
-        });
+      const gallery = project.gallery as any[];
+      gallery.forEach(item => {
+        if (item.url && !item.url.startsWith('http')) {
+          keysToPurge.push(item.url);
+        }
+      });
     }
 
     return this.prisma.$transaction(async (tx) => {
       // 4. Delete from Database
       const deleted = await tx.project.delete({ where: { id: projectId } });
-      
+
       // 5. Audit Log
       await this.audit.log({
         userId: adminId,
@@ -428,10 +428,10 @@ export class AdminService {
       // 6. Trigger S3 Purge (Best effort, non-blocking)
       return deleted;
     }).then(async (result) => {
-        if (keysToPurge.length > 0) {
-            await this.storage.deleteFiles(keysToPurge);
-        }
-        return result;
+      if (keysToPurge.length > 0) {
+        await this.storage.deleteFiles(keysToPurge);
+      }
+      return result;
     });
   }
 
@@ -482,7 +482,7 @@ export class AdminService {
       );
 
       const { status, amount, currency, metadata, channel } = response.data.data;
-      
+
       // Check if it already exists in Givar
       const internalRecord = await this.walletService.verifyAnyTransaction(reference);
 
@@ -500,7 +500,7 @@ export class AdminService {
   // Atomic Reconciliation
   async executeReconciliation(adminId: string, reference: string) {
     const verification = await this.verifyExternalTransaction(reference);
-    
+
     if (!verification.canReconcile) {
       throw new BadRequestException('Transaction cannot be reconciled (Either failed on Paystack or already exists in Givar)');
     }
@@ -533,8 +533,8 @@ export class AdminService {
 
   // Update specific phase in the execution timeline
   async updateProjectMilestone(
-    projectId: string, 
-    milestoneId: string, 
+    projectId: string,
+    milestoneId: string,
     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED',
     dto: UpdateMilestoneDto,
     adminId: string
@@ -551,18 +551,18 @@ export class AdminService {
     const milestoneIndex = timeline.findIndex(m => m.id === milestoneId);
 
     if (milestoneIndex === -1) {
-        throw new BadRequestException('Milestone ID not found in project timeline');
+      throw new BadRequestException('Milestone ID not found in project timeline');
     }
 
     const previousStatus = timeline[milestoneIndex].status;
 
     const updatedTimeline = [...timeline];
     updatedTimeline[milestoneIndex] = {
-        ...updatedTimeline[milestoneIndex],
-        status,
-        imageUrl: dto.imageUrl || updatedTimeline[milestoneIndex].imageUrl,
-        updatedAt: new Date().toISOString(),
-        ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
+      ...updatedTimeline[milestoneIndex],
+      status,
+      imageUrl: dto.imageUrl || updatedTimeline[milestoneIndex].imageUrl,
+      updatedAt: new Date().toISOString(),
+      ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
     };
 
     const updatedProject = await this.prisma.project.update({
@@ -571,37 +571,37 @@ export class AdminService {
     });
 
     await this.audit.log({
-        userId: adminId,
-        action: AuditAction.PROJECT_UPDATED,
-        entityId: projectId,
-        entityType: 'Project',
-        metadata: { 
-            action: 'MILESTONE_UPDATE', 
-            milestone: updatedTimeline[milestoneIndex].phase, 
-            previousStatus,
-            newStatus: status 
-        }
+      userId: adminId,
+      action: AuditAction.PROJECT_UPDATED,
+      entityId: projectId,
+      entityType: 'Project',
+      metadata: {
+        action: 'MILESTONE_UPDATE',
+        milestone: updatedTimeline[milestoneIndex].phase,
+        previousStatus,
+        newStatus: status
+      }
     });
 
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
-        // Automatically create a public narrative update
-        await this.prisma.projectUpdate.create({
-            data: {
-                projectId,
-                title: `Milestone Achieved: ${updatedTimeline[milestoneIndex].phase}`,
-                content: `We are pleased to announce that the "${updatedTimeline[milestoneIndex].phase}" phase has been successfully completed. Deliverables verified: ${updatedTimeline[milestoneIndex].deliverables}.`,
-                type: 'MILESTONE',
-                imageUrl: dto.imageUrl || updatedTimeline[milestoneIndex].imageUrl
-            }
-        });
+      // Automatically create a public narrative update
+      await this.prisma.projectUpdate.create({
+        data: {
+          projectId,
+          title: `Milestone Achieved: ${updatedTimeline[milestoneIndex].phase}`,
+          content: `We are pleased to announce that the "${updatedTimeline[milestoneIndex].phase}" phase has been successfully completed. Deliverables verified: ${updatedTimeline[milestoneIndex].deliverables}.`,
+          type: 'MILESTONE',
+          imageUrl: dto.imageUrl || null
+        }
+      });
 
-        this.broadcastMilestoneUpdate(
-            projectId, 
-            project.title, 
-            project.slug, 
-            updatedTimeline[milestoneIndex].phase,
-            dto.imageUrl || updatedTimeline[milestoneIndex].imageUrl
-        ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
+      this.broadcastMilestoneUpdate(
+        projectId,
+        project.title,
+        project.slug,
+        updatedTimeline[milestoneIndex].phase,
+        dto.imageUrl
+      ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
     }
 
     return updatedProject;
@@ -624,13 +624,13 @@ export class AdminService {
 
     // 3. Normalize into a single recipient list
     const recipients = [
-      ...userDonors.map((d) => ({ 
-        email: d.user?.email, 
-        name: d.user?.firstName || 'Impact Maker' 
+      ...userDonors.map((d) => ({
+        email: d.user?.email,
+        name: d.user?.firstName || 'Impact Maker'
       })),
-      ...guestDonors.map((d) => ({ 
-        email: d.guestDonor.email, 
-        name: d.guestDonor.name || 'Impact Maker' 
+      ...guestDonors.map((d) => ({
+        email: d.guestDonor.email,
+        name: d.guestDonor.name || 'Impact Maker'
       })),
     ].filter((r) => r.email);
 
@@ -695,7 +695,7 @@ export class AdminService {
   async resolveSuspenseTransaction(adminId: string, transactionId: string, dto: ResolveSuspenseDto) {
     const tx = await this.prisma.walletTransaction.findUnique({
       where: { id: transactionId },
-      include: { wallet: true }, 
+      include: { wallet: true },
     });
 
     if (!tx || tx.status !== TxStatus.SUSPENSE) {
@@ -711,16 +711,16 @@ export class AdminService {
       return this.prisma.$transaction(async (prisma) => {
         const updated = await prisma.walletTransaction.update({
           where: { id: transactionId },
-          data: { 
-            status: TxStatus.REVERSED, 
-            description: `${tx.description} [AUTO-REFUNDED]` 
+          data: {
+            status: TxStatus.REVERSED,
+            description: `${tx.description} [AUTO-REFUNDED]`
           },
         });
 
         await prisma.auditLog.create({
           data: {
             userId: adminId,
-            action: AuditAction.PROJECT_UPDATED, 
+            action: AuditAction.PROJECT_UPDATED,
             entityId: transactionId,
             entityType: 'WalletTransaction',
             metadata: { action: 'AUTO_REFUND', originalRef: tx.reference },
@@ -728,7 +728,7 @@ export class AdminService {
         });
         return updated;
       });
-    } 
+    }
     if (dto.action === SuspenseAction.ALLOCATE) {
       // 2. RE-ALLOCATION LOGIC
       if (!dto.targetProjectId) throw new BadRequestException('Target Project ID required for allocation');
@@ -736,55 +736,55 @@ export class AdminService {
       return this.prisma.$transaction(async (prisma) => {
         // A. Update Transaction to COMPLETED
         const updatedTx = await prisma.walletTransaction.update({
-            where: { id: transactionId },
-            data: { 
-                status: TxStatus.COMPLETED,
-                description: `${tx.description} [RE-ALLOCATED]`
-            }
+          where: { id: transactionId },
+          data: {
+            status: TxStatus.COMPLETED,
+            description: `${tx.description} [RE-ALLOCATED]`
+          }
         });
 
         // B. Handle Guest vs User Donation Creation
         // We check metadata to see who the original donor was
         const guestEmail = (tx.metadata as any)?.guestEmail;
-        
+
         if (guestEmail) {
-            // It was a guest
-            // Find/Create GuestDonor (Reuse logic or simplify)
-            const guestDonor = await prisma.guestDonor.upsert({
-                where: { email: guestEmail },
-                update: { totalDonated: { increment: tx.amount }, donationCount: { increment: 1 } },
-                create: { email: guestEmail, totalDonated: tx.amount, donationCount: 1 }
-            });
-            
-            await prisma.guestDonation.create({
-                data: {
-                    guestDonorId: guestDonor.id,
-                    projectId: dto.targetProjectId!,
-                    amount: tx.amount,
-                    currency: tx.currency,
-                    reference: tx.reference,
-                    status: 'COMPLETED',
-                    message: 'Re-allocated by Admin'
-                }
-            });
+          // It was a guest
+          // Find/Create GuestDonor (Reuse logic or simplify)
+          const guestDonor = await prisma.guestDonor.upsert({
+            where: { email: guestEmail },
+            update: { totalDonated: { increment: tx.amount }, donationCount: { increment: 1 } },
+            create: { email: guestEmail, totalDonated: tx.amount, donationCount: 1 }
+          });
+
+          await prisma.guestDonation.create({
+            data: {
+              guestDonorId: guestDonor.id,
+              projectId: dto.targetProjectId!,
+              amount: tx.amount,
+              currency: tx.currency,
+              reference: tx.reference,
+              status: 'COMPLETED',
+              message: 'Re-allocated by Admin'
+            }
+          });
         } else {
-            // It was a user
-            await prisma.donation.create({
-                data: {
-                    userId: tx.wallet.userId, // Link to wallet owner
-                    projectId: dto.targetProjectId!,
-                    transactionId: tx.id, // Link to the now-completed tx
-                    amount: tx.amount,
-                    currency: tx.currency,
-                    message: 'Re-allocated by Admin'
-                }
-            });
+          // It was a user
+          await prisma.donation.create({
+            data: {
+              userId: tx.wallet.userId, // Link to wallet owner
+              projectId: dto.targetProjectId!,
+              transactionId: tx.id, // Link to the now-completed tx
+              amount: tx.amount,
+              currency: tx.currency,
+              message: 'Re-allocated by Admin'
+            }
+          });
         }
 
         // C. Update Target Project
         await prisma.project.update({
-            where: { id: dto.targetProjectId },
-            data: { raisedAmount: { increment: tx.amount } }
+          where: { id: dto.targetProjectId },
+          data: { raisedAmount: { increment: tx.amount } }
         });
 
         // D. Audit

@@ -7,13 +7,14 @@ import { AdminService } from './admin.service';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { ResolveSuspenseDto } from './dto/admin-suspense.dto';
+import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 
 @SkipThrottle()
 @Controller('admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminController {
-  constructor(private service: AdminService) {}
+  constructor(private service: AdminService) { }
 
   @Get('dashboard')
   getStats() {
@@ -110,8 +111,8 @@ export class AdminController {
 
   @Patch('suspense/:id/resolve')
   resolveSuspense(
-    @Req() req: any, 
-    @Param('id') id: string, 
+    @Req() req: any,
+    @Param('id') id: string,
     @Body() dto: ResolveSuspenseDto
   ) {
     return this.service.resolveSuspenseTransaction(req.user.id, id, dto);
@@ -122,13 +123,14 @@ export class AdminController {
     @Req() req: any,
     @Param('id') projectId: string,
     @Param('milestoneId') milestoneId: string,
-    @Body('status') status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED',
+    @Body() dto: UpdateMilestoneDto,
   ) {
     return this.service.updateProjectMilestone(
-        projectId, 
-        milestoneId, 
-        status, 
-        req.user.id
+      projectId,
+      milestoneId,
+      dto.status,
+      dto,
+      req.user.id
     );
   }
 }
