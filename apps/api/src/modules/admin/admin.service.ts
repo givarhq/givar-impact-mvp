@@ -188,6 +188,7 @@ export class AdminService {
     return this.prisma.$transaction(async (tx) => {
       const project = await tx.project.create({
         data: {
+          proposalId: proposal.id,
           userId: proposal.userId,
           title: proposal.title!,
           slug: this.generateSlug(proposal.title!),

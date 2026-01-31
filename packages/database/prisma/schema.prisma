@@ -232,6 +232,7 @@ model WalletTransaction {
 
 model Project {
   id          String   @id @default(uuid())
+  proposalId    String?  @unique 
   slug        String   @unique 
   userId        String
   user          User     @relation(fields: [userId], references: [id])

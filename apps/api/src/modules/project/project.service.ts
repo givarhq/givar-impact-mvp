@@ -272,9 +272,15 @@ export class ProjectService {
    * Secure Project Management Data Fetcher
    * Includes private execution data and enforces IDOR protection.
    */
-  async getProjectForOwner(userId: string, projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
+  async getProjectForOwner(userId: string, identifier: string) {
+    const project = await this.prisma.project.findFirst({
+      where: {
+        OR: [
+          { id: identifier },
+          { proposalId: identifier }
+        ],
+        userId: userId
+      },
       include: {
         category: true,
         disbursements: {
@@ -305,7 +311,7 @@ export class ProjectService {
       await this.audit.log({
         userId,
         action: AuditAction.USER_LOGIN_FAILED,
-        metadata: { reason: 'Unauthorized project management access', projectId }
+        metadata: { reason: 'Unauthorized project management access', projectId: project.id }
       });
       throw new ForbiddenException('You do not have permission to manage this project');
     }
