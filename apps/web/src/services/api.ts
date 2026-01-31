@@ -128,6 +128,9 @@ export const ApiService = {
 
     delete: (id: string) =>
       apiClient.delete(`/proposals/${id}`).then(r => r.data),
+
+    defer: (id: string) =>
+      apiClient.patch(`/proposals/${id}/defer`).then(r => r.data),
   },
 
   // --- PROJECTS ---

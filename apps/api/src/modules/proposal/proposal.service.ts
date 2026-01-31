@@ -1,16 +1,20 @@
-import { 
-  Injectable, 
-  NotFoundException, 
-  ForbiddenException, 
-  BadRequestException 
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { CreateProposalDto, UpdateProposalDto } from './dto/proposal.dto';
-import { ProposalStatus, Prisma } from '@givar/database';
+import { ProposalStatus, Prisma, AuditAction } from '@givar/database';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class ProposalService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private audit: AuditService
+  ) { }
 
   // 1. Start a Draft
   async createDraft(userId: string, dto: CreateProposalDto) {
@@ -40,7 +44,7 @@ export class ProposalService {
     // Handle BigInt conversion for targetAmount if present
     const data: Prisma.ProjectProposalUpdateInput = { ...dto } as any;
     if (dto.targetAmount) {
-        data.targetAmount = BigInt(dto.targetAmount);
+      data.targetAmount = BigInt(dto.targetAmount);
     }
 
     return this.prisma.projectProposal.update({
@@ -96,11 +100,11 @@ export class ProposalService {
       orderBy: { updatedAt: 'desc' },
       include: { category: true } // Include category name
     });
-    
+
     // Serialize BigInts
     return proposals.map(p => ({
-        ...p,
-        targetAmount: p.targetAmount?.toString() || '0'
+      ...p,
+      targetAmount: p.targetAmount?.toString() || '0'
     }));
   }
 
@@ -110,7 +114,7 @@ export class ProposalService {
     // Guard: Can only delete Drafts or Rejected proposals.
     // Submitted/Under Review proposals are locked to preserve audit trails during review.
     if (
-      proposal.status !== ProposalStatus.DRAFT && 
+      proposal.status !== ProposalStatus.DRAFT &&
       proposal.status !== ProposalStatus.REJECTED &&
       proposal.status !== ProposalStatus.CHANGES_REQUESTED
     ) {
@@ -126,8 +130,8 @@ export class ProposalService {
   async getOne(userId: string, proposalId: string) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);
     return {
-        ...proposal,
-        targetAmount: proposal.targetAmount?.toString() || '0'
+      ...proposal,
+      targetAmount: proposal.targetAmount?.toString() || '0'
     };
   }
 
@@ -140,11 +144,42 @@ export class ProposalService {
       where: { id: proposalId },
       select: { userId: true }, // Only fetch what's needed for the check
     });
-    
+
     if (!proposal) throw new NotFoundException('Proposal not found');
     if (proposal.userId !== userId) throw new ForbiddenException('Access Denied');
-    
+
     return proposalId;
+  }
+
+  /**
+   * Defer Submission
+   * Moves a draft to a "waiting room" that auto-promotes once the user is verified.
+   */
+  async deferProposal(userId: string, proposalId: string) {
+    const proposal = await this.getProposalOrThrow(proposalId, userId);
+
+    // Guard: Only DRAFT proposals can be deferred
+    if (proposal.status !== ProposalStatus.DRAFT) {
+      throw new BadRequestException('Only draft proposals can be queued for verification.');
+    }
+
+    const updated = await this.prisma.projectProposal.update({
+      where: { id: proposalId },
+      data: {
+        status: ProposalStatus.AWAITING_VERIFICATION,
+        submittedAt: new Date(),
+      },
+    });
+
+    await this.audit.log({
+      userId,
+      action: AuditAction.PROJECT_UPDATED,
+      entityId: proposalId,
+      entityType: 'ProjectProposal',
+      metadata: { action: 'DEFERRED_SUBMISSION', status: 'AWAITING_VERIFICATION' }
+    });
+
+    return updated;
   }
 
   // Helper

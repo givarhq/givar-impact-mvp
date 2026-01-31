@@ -12,7 +12,7 @@ export class ProposalController {
   constructor(
     private readonly storage: StorageService,
     private readonly service: ProposalService,
-  ) {}
+  ) { }
 
   @Post('upload-url')
   async getUploadUrl(@Req() req: any, @Body() dto: GetUploadUrlDto) {
@@ -30,11 +30,11 @@ export class ProposalController {
     }
 
     if (req.user.role !== UserRole.ADMIN) {
-        await this.service.verifyOwnership(proposalId, req.user.id);
-        
-        if (!key.startsWith(`proposals/${req.user.id}/`)) {
-            throw new ForbiddenException('Invalid file key path.');
-        }
+      await this.service.verifyOwnership(proposalId, req.user.id);
+
+      if (!key.startsWith(`proposals/${req.user.id}/`)) {
+        throw new ForbiddenException('Invalid file key path.');
+      }
     }
     return this.storage.getPresignedViewUrl(key);
   }
@@ -67,5 +67,10 @@ export class ProposalController {
   @Delete(':id')
   delete(@Req() req: any, @Param('id') id: string) {
     return this.service.deleteProposal(req.user.id, id);
+  }
+
+  @Patch(':id/defer')
+  defer(@Req() req: any, @Param('id') id: string) {
+    return this.service.deferProposal(req.user.id, id);
   }
 }

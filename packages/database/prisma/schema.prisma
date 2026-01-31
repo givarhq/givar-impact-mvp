@@ -112,6 +112,7 @@ enum AuditAction {
 enum ProposalStatus {
   DRAFT             // User is still writing
   SUBMITTED         // Locked, waiting for admin
+  AWAITING_VERIFICATION // Waiting for verification
   UNDER_REVIEW      // Admin is actively investigating
   CHANGES_REQUESTED // Sent back to user for edits
   APPROVED          // Promoted to live Project

@@ -1,14 +1,15 @@
-import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { VerificationStatus, AuditAction } from '@givar/database';
+import { VerificationStatus, AuditAction, ProposalStatus } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class OrganizationService {
+  private readonly logger = new Logger(OrganizationService.name);
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
-  ) {}
+  ) { }
 
   // 1. User: Submit KYC
   async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[] }) {
@@ -45,25 +46,47 @@ export class OrganizationService {
 
     if (!profile) throw new NotFoundException('Profile not found');
 
-    const updated = await this.prisma.organizationProfile.update({
-      where: { id },
-      data: {
-        status,
-        adminFeedback: feedback,
-        verifiedAt: status === VerificationStatus.VERIFIED ? new Date() : null,
-      },
-    });
+    return this.prisma.$transaction(async (tx) => {
 
-    // Audit the decision
-    await this.audit.log({
-      userId: adminId,
-      action: status === VerificationStatus.VERIFIED ? AuditAction.PROJECT_UPDATED : AuditAction.PROJECT_DELETED, // Reusing actions or add USER_VERIFIED
-      entityId: profile.userId,
-      entityType: 'UserOrganization',
-      metadata: { status, feedback, legalName: profile.legalName }
-    });
+      // 1. Update the Organization Profile
+      const updated = await tx.organizationProfile.update({
+        where: { id },
+        data: {
+          status,
+          adminFeedback: feedback,
+          verifiedAt: status === VerificationStatus.VERIFIED ? new Date() : null,
+        },
+      });
 
-    return updated;
+      // 2. Logic: Auto-promote queued proposals
+      if (status === VerificationStatus.VERIFIED) {
+        const result = await tx.projectProposal.updateMany({
+          where: {
+            userId: updated.userId,
+            status: ProposalStatus.AWAITING_VERIFICATION
+          },
+          data: {
+            status: ProposalStatus.SUBMITTED,
+            submittedAt: new Date()
+          }
+        });
+
+        if (result.count > 0) {
+          this.logger.log(`Auto-submitted ${result.count} proposals for verified user ${updated.userId}`);
+        }
+      }
+
+      // 3. Audit the decision 
+      await this.audit.log({
+        userId: adminId,
+        action: status === VerificationStatus.VERIFIED ? AuditAction.PROJECT_UPDATED : AuditAction.PROJECT_DELETED,
+        entityId: profile.userId,
+        entityType: 'UserOrganization',
+        metadata: { status, feedback, legalName: profile.legalName }
+      }, tx);
+
+      return updated;
+    });
   }
 
   async getProfileByUserId(userId: string) {
