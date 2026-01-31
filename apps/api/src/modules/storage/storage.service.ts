@@ -13,7 +13,7 @@ export class StorageService {
   constructor(private config: ConfigService) {
     const region = this.config.get('IDRIVE_REGION') || 'us-east-1';
     const endpoint = this.config.get('IDRIVE_ENDPOINT');
-    
+
     this.bucket = this.config.getOrThrow('IDRIVE_BUCKET');
 
     this.s3Client = new S3Client({
@@ -35,7 +35,7 @@ export class StorageService {
     try {
       const extension = fileType.split('/')[1] || 'bin';
       const filename = `${randomUUID()}.${extension}`;
-      
+
       const visibilityFolder = useCase === 'public' ? 'public' : 'private';
       const key = `proposals/${userId}/${visibilityFolder}/${useCase}/${filename}`;
 
@@ -49,10 +49,10 @@ export class StorageService {
 
       return {
         uploadUrl,
-        key, 
-        publicUrl: useCase === 'public' 
-            ? `${this.config.get('IDRIVE_ENDPOINT')}/${this.bucket}/${key}`
-            : null
+        key,
+        publicUrl: useCase === 'public'
+          ? `${this.config.get('IDRIVE_ENDPOINT')}/${this.bucket}/${key}`
+          : null
       };
 
     } catch (error: any) {
@@ -62,23 +62,21 @@ export class StorageService {
   }
 
   // Generate temporary VIEW URLs for private files
-  async getPresignedViewUrl(key: string) {
+  async getPresignedViewUrl(key: string, expiresIn = 3600) {
     try {
       const command = new GetObjectCommand({
         Bucket: this.bucket,
         Key: key,
       });
 
-      // Valid for 1 hour
-      const viewUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
-      
+      const viewUrl = await getSignedUrl(this.s3Client, command, { expiresIn });
+
       return { viewUrl };
     } catch (error: any) {
       this.logger.error(`Failed to generate view URL for key ${key}: ${error.message}`);
       throw new InternalServerErrorException('Could not grant view permission');
     }
   }
-
   async deleteFiles(keys: string[]) {
     if (!keys || keys.length === 0) return;
 

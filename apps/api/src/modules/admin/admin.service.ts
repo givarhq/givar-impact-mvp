@@ -598,7 +598,7 @@ export class AdminService {
       let signedProofUrl: string | undefined = undefined;
 
       if (dto.imageUrl) {
-        const { viewUrl } = await this.storage.getPresignedViewUrl(dto.imageUrl);
+        const { viewUrl } = await this.storage.getPresignedViewUrl(dto.imageUrl, 604800);
         signedProofUrl = viewUrl;
       }
 

@@ -100,10 +100,14 @@ export class EmailService {
 
   // 8. Milestone Completion
   async sendMilestoneAlert(email: string, data: { donorName: string; projectTitle: string; milestonePhase: string; date: string; projectUrl: string; imageUrl?: string; }) {
-    const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     const content = EmailTemplates.milestoneCompleted(data);
     const html = EmailTemplates.base(content, 'Milestone Achieved');
-    return this.send(email, `Givar Impact: Milestone Complete for ${data.projectTitle}`, html);
+
+    return this.send(
+      email,
+      `Givar Impact: Milestone Complete for ${data.projectTitle}`,
+      html
+    );
   }
 
   async sendEvidenceRequest(
