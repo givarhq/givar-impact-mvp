@@ -133,4 +133,27 @@ export class AdminController {
       req.user.id
     );
   }
+
+  @Get('evidence/pending')
+  getPendingEvidence() {
+    return this.service.getPendingProofs();
+  }
+
+  /**
+   * Secure Evidence Audit Endpoint
+   * Only accessible by Admins
+   */
+  @Patch('evidence/:id/review')
+  async reviewEvidence(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() body: { status: 'APPROVED' | 'REJECTED'; feedback?: string }
+  ) {
+    return this.service.reviewMilestoneProof(
+      req.user.id,
+      id,
+      body.status,
+      body.feedback
+    );
+  }
 }

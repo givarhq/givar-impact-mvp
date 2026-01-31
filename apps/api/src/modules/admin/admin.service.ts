@@ -860,4 +860,86 @@ export class AdminService {
       return res.disbursement;
     });
   }
+
+  async getPendingProofs() {
+    const proofs = await this.prisma.milestoneProof.findMany({
+      include: {
+        project: { select: { title: true, slug: true, executionTimeline: true } },
+      },
+      orderBy: { submittedAt: 'asc' }, // Queue: Oldest first
+    });
+
+    // Hydrate S3 keys with temporary view URLs
+    return Promise.all(proofs.map(async (proof) => {
+      const signedImages = await Promise.all(
+        proof.imageKeys.map(key => this.storage.getPresignedViewUrl(key).then(r => r.viewUrl))
+      );
+
+      const timeline = (proof.project.executionTimeline as any[]) || [];
+      const milestone = timeline.find(m => m.id === proof.milestoneId);
+
+      return {
+        ...proof,
+        imageUrls: signedImages,
+        phaseName: milestone?.phase || 'Unknown Phase'
+      };
+    }));
+  }
+
+  /**
+   * Review and Process Proof
+   */
+  async reviewMilestoneProof(
+    adminId: string,
+    proofId: string,
+    status: 'APPROVED' | 'REJECTED',
+    feedback?: string
+  ) {
+    const proof = await this.prisma.milestoneProof.findUnique({
+      where: { id: proofId },
+      include: { project: true }
+    });
+
+    if (!proof) throw new NotFoundException('Proof record not found');
+
+    if (status === 'REJECTED') {
+      const rejected = await this.prisma.milestoneProof.update({
+        where: { id: proofId },
+        data: {
+          status: 'REJECTED',
+          adminFeedback: feedback || 'Evidence provided does not satisfy milestone requirements.',
+        }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROJECT_UPDATED,
+        entityId: proof.projectId,
+        entityType: 'MilestoneProof',
+        metadata: { action: 'PROOF_REJECTED', proofId, feedback }
+      });
+
+      return rejected;
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await this.updateProjectMilestone(
+        proof.projectId,
+        proof.milestoneId,
+        'COMPLETED',
+        { status: 'COMPLETED', imageUrl: proof.imageKeys[0] },
+        adminId
+      );
+
+      return tx.milestoneProof.update({
+        where: { id: proofId },
+        data: {
+          status: 'APPROVED',
+          adminFeedback: 'Verified and approved by Givar Admin.',
+        }
+      });
+    }, {
+      timeout: 15000
+    });
+  }
 }
