@@ -143,7 +143,7 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
                                 </Button>
                             )}
                             <Button 
-                                className="flex-1 rounded-xl h-10 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/20"
+                                className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 h-10 px-5"
                                 onClick={() => handleStatusChange(milestone.id, 'COMPLETED')}
                                 disabled={!!processingId}
                             >
