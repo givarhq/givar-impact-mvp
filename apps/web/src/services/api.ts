@@ -291,6 +291,12 @@ export const ApiService = {
 
     updateMilestone: (projectId: string, milestoneId: string, status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED', imageUrl?: string) =>
       apiClient.patch(`/admin/projects/${projectId}/milestones/${milestoneId}`, { status, imageUrl }).then(r => r.data),
+
+    getPendingEvidence: (token: string) =>
+      serverFetch<any[]>('/admin/evidence/pending', token),
+
+    reviewEvidence: (id: string, data: { status: 'APPROVED' | 'REJECTED'; feedback?: string }) =>
+      apiClient.patch(`/admin/evidence/${id}/review`, data).then(r => r.data),
   },
 
   // Organization Verification Domain
