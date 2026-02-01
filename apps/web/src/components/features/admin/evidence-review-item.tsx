@@ -7,15 +7,16 @@ import { Check, X, Loader2 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
 import { ApiService } from '../../../services/api';
-import { Card } from '../../../components/ui/card';
-import { CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { Inbox, Camera, Clock, ExternalLink, ShieldCheck, FileText } from 'lucide-react';
+import { Inbox, Camera, Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '../../../lib/utils/cn';
 
 export default function EvidenceReviewItem({ proof }: { proof: any }) {
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isProcessed, setIsProcessed] = useState(false);
     const [feedback, setFeedback] = useState('');
 
     const handleReview = async (status: 'APPROVED' | 'REJECTED') => {
@@ -27,6 +28,7 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
         try {
             await ApiService.admin.reviewEvidence(proof.id, { status, feedback });
             toast.success(status === 'APPROVED' ? 'Proof Verified!' : 'Proof Rejected');
+            setIsProcessed(true);
             router.refresh();
         } catch (e) {
             toast.error('Audit action failed');
@@ -36,14 +38,16 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
     };
 
     return (
-        <Card className="group relative rounded-[32px] border-border/50 bg-card overflow-hidden shadow-sm hover:shadow-md transition-all">
-            {/* Background Subtle Gradient */}
+        <Card className={cn(
+            "group relative rounded-[32px] border-border/50 bg-card overflow-hidden shadow-sm transition-all duration-500",
+            isProcessed ? "opacity-40 grayscale-[0.5]" : "hover:shadow-md"
+        )}>
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-10 -mt-10" />
 
             <CardHeader className="bg-muted/30 border-b border-border/40 py-5 px-6 md:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="h-11 w-11 rounded-2xl bg-background border border-border/50 shadow-sm flex items-center justify-center text-primary">
-                        <Camera className="h-5 w-5" />
+                        {isProcessed ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Camera className="h-5 w-5" />}
                     </div>
                     <div className="space-y-0.5">
                         <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
@@ -68,7 +72,6 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
 
             <CardContent className="p-6 md:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-                    {/* Narrative Detail */}
                     <div className="lg:col-span-3 space-y-6">
                         <div className="space-y-3">
                             <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
@@ -101,15 +104,21 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                         </div>
                     </div>
 
-                    {/* Audit Controls */}
                     <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-muted/30 border border-border/50 p-6 rounded-[28px] space-y-6">
+                        <div className="bg-muted/30 border border-border/50 p-6 rounded-[28px] space-y-6 relative overflow-hidden">
+                            {isProcessed && (
+                                <div className="absolute inset-0 bg-emerald-500/5 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center text-emerald-600 animate-in fade-in duration-500">
+                                    <CheckCircle2 className="h-12 w-12 mb-2" />
+                                    <span className="text-xs font-black uppercase tracking-widest">Audit Completed</span>
+                                </div>
+                            )}
+
                             <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] text-center">Audit Decision</h4>
 
                             <div className="space-y-3">
                                 <Button
                                     onClick={() => handleReview('APPROVED')}
-                                    disabled={isProcessing}
+                                    disabled={isProcessing || isProcessed}
                                     className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg shadow-emerald-500/20 gap-2 transition-all active:scale-95"
                                 >
                                     {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
@@ -120,7 +129,7 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                                     <DialogTrigger asChild>
                                         <Button
                                             variant="outline"
-                                            disabled={isProcessing}
+                                            disabled={isProcessing || isProcessed}
                                             className="w-full h-12 rounded-2xl border-destructive/20 text-destructive hover:bg-destructive/5 font-bold text-sm gap-2"
                                         >
                                             <X className="h-4 w-4" /> Reject Evidence
@@ -136,7 +145,7 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                                             </p>
                                             <textarea
                                                 className="w-full h-32 rounded-2xl border border-border bg-background p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
-                                                placeholder="e.g. Image quality is too low, please upload a clearer shot of the drilling equipment..."
+                                                placeholder="e.g. Image quality is too low..."
                                                 value={feedback}
                                                 onChange={(e) => setFeedback(e.target.value)}
                                             />
