@@ -23,6 +23,7 @@ interface EvidenceSubmissionProps {
         id: string;
         phase: string;
     };
+    onSuccess?: () => void;
 }
 
 interface UploadedMedia {
@@ -30,7 +31,7 @@ interface UploadedMedia {
     previewUrl: string;
 }
 
-export function EvidenceSubmission({ projectId, milestone }: EvidenceSubmissionProps) {
+export function EvidenceSubmission({ projectId, milestone, onSuccess }: EvidenceSubmissionProps) {
     const router = useRouter();
     const [description, setDescription] = useState('');
     const [media, setMedia] = useState<UploadedMedia[]>([]);
@@ -74,6 +75,8 @@ export function EvidenceSubmission({ projectId, milestone }: EvidenceSubmissionP
             // Reset form
             setDescription('');
             setMedia([]);
+
+            if (onSuccess) onSuccess();
 
             router.refresh();
 
