@@ -272,14 +272,14 @@ export class ProjectService {
    * Secure Project Management Data Fetcher
    * Includes private execution data and enforces IDOR protection.
    */
-  async getProjectForOwner(userId: string, identifier: string) {
+  async getProjectForOwner(userId: string, id: string) {
     const project = await this.prisma.project.findFirst({
       where: {
+        userId: userId,
         OR: [
-          { id: identifier },
-          { proposalId: identifier }
-        ],
-        userId: userId
+          { id: id },
+          { proposalId: id }
+        ]
       },
       include: {
         category: true,
