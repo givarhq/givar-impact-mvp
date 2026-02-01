@@ -10,7 +10,6 @@ import {
     ShieldCheck,
     Building2,
     CheckCircle2,
-    Database,
     Trash2
 } from 'lucide-react';
 import { Button } from '../../ui/button';
@@ -53,7 +52,6 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
 
         setIsLoading(true);
         try {
-            // Convert to minor units (e.g. 5000 -> 500000)
             const minorAmount = parseFormattedNumber(amount) + '00';
 
             await ApiService.admin.recordDisbursement(projectId, {
@@ -61,7 +59,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                 vendorName,
                 amount: minorAmount,
                 reference,
-                receiptKey: receipt?.key // Link the S3 proof
+                receiptKey: receipt?.key
             });
 
             toast.success('Disbursement recorded and proposer notified.');
@@ -96,7 +94,6 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
     return (
         <div className="space-y-12 animate-in fade-in duration-500">
 
-            {/* 1. DISBURSEMENT CREATION CARD */}
             <Card className="rounded-[32px] border-border/50 bg-card overflow-hidden shadow-xl">
                 <div className="bg-primary/5 p-6 border-b border-border/50 flex items-center gap-4">
                     <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
@@ -111,7 +108,6 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                 <CardContent className="p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
-                        {/* Left: Metadata */}
                         <div className="lg:col-span-7 space-y-6">
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
@@ -167,10 +163,12 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                             </div>
                         </div>
 
-                        {/* Right: Receipt Upload */}
                         <div className="lg:col-span-5 flex flex-col gap-6">
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Bank Receipt (Required)</label>
+                                <div className="flex justify-between items-center px-1">
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase">Bank Receipt</label>
+                                    <Badge variant="outline" className="text-[9px] h-4 rounded px-1.5 border-dashed">Optional</Badge>
+                                </div>
                                 {receipt ? (
                                     <div className="relative aspect-video rounded-2xl overflow-hidden border border-border group shadow-lg">
                                         <img src={receipt.previewUrl} className="object-cover w-full h-full" alt="Bank Receipt" />
@@ -187,7 +185,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                     </div>
                                 ) : (
                                     <ImageUploader
-                                        label="Drop Bank Receipt or Click to Upload"
+                                        label="Upload Receipt (Optional)"
                                         onUploadComplete={setReceipt}
                                         useCase="docs"
                                     />
@@ -196,7 +194,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
 
                             <Button
                                 onClick={handleSubmit}
-                                disabled={isLoading || !amount || !receipt}
+                                disabled={isLoading || !amount || !milestoneId || !vendorName || !reference}
                                 className="mt-auto w-full h-16 rounded-[20px] text-lg font-bold shadow-xl shadow-primary/20 transition-all active:scale-95"
                             >
                                 {isLoading ? <Loader2 className="animate-spin h-6 w-6" /> : <CheckCircle2 className="h-6 w-6 mr-2" />}
@@ -208,16 +206,15 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                 </CardContent>
             </Card>
 
-            {/* 2. DISBURSEMENT HISTORY LEDGER */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
-                    <h3 className="font-bold text-xl flex items-center gap-3">
+                    <h3 className="font-bold text-xl flex items-center gap-3 text-foreground">
                         <History className="h-6 w-6 text-primary" />
                         Historical Disbursements
                     </h3>
-                    <Badge variant="secondary" className="bg-muted text-muted-foreground border-border/50 px-3 py-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted px-3 py-1 rounded-lg border border-border/50">
                         {disbursements.length} Records
-                    </Badge>
+                    </span>
                 </div>
 
                 <div className="rounded-[32px] border border-border bg-card overflow-hidden shadow-sm">
@@ -234,8 +231,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                             <tbody className="divide-y divide-border">
                                 {disbursements.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-20 text-center text-muted-foreground italic">
-                                            <Database className="h-10 w-10 mx-auto mb-3 opacity-10" />
+                                        <td colSpan={4} className="px-6 py-20 text-center text-muted-foreground italic font-medium">
                                             No disbursements have been logged for this project.
                                         </td>
                                     </tr>
