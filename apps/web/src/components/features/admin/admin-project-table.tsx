@@ -9,7 +9,8 @@ import {
     ArrowDown,
     Calendar,
     Target,
-    TrendingUp
+    TrendingUp,
+    Flag
 } from 'lucide-react';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Badge } from '../../ui/badge';
@@ -159,8 +160,9 @@ export function AdminProjectTable({
                                                     className="text-sm"
                                                 />
                                             </div>
-                                            <div className="flex items-center gap-1 text-[9px] font-bold text-muted-foreground uppercase tracking-tighter bg-muted/30 px-1.5 py-0.5 rounded-md border border-border/50">
-                                                <Target className="h-2.5 w-2.5" />
+
+                                            <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground uppercase tracking-tighter">
+                                                <Flag className="h-4 w-4 opacity-70" />
                                                 {formatCurrency(project.targetAmount, project.currency)}
                                             </div>
                                         </div>
