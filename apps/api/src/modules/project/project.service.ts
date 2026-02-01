@@ -224,35 +224,36 @@ export class ProjectService {
 
   async submitMilestoneProof(userId: string, projectId: string, dto: SubmitMilestoneProofDto) {
     // 1. Security: Verify Ownership
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-      select: { userId: true, title: true, executionTimeline: true }
+    const project = await this.prisma.project.findFirst({
+      where: {
+        OR: [
+          { id: projectId },
+          { proposalId: projectId }
+        ]
+      },
+      select: { id: true, userId: true, title: true, executionTimeline: true }
     });
-
     if (!project) throw new NotFoundException('Project not found');
     if (project.userId !== userId) throw new ForbiddenException('Access denied');
-
     // 2. Validate Milestone ID exists in this project
     const timeline = (project.executionTimeline as any[]) || [];
     const milestone = timeline.find(m => m.id === dto.milestoneId);
     if (!milestone) throw new BadRequestException('Invalid milestone ID');
-
     // 3. Create the Proof Record
     return this.prisma.$transaction(async (tx) => {
       const proof = await tx.milestoneProof.create({
         data: {
-          projectId,
+          projectId: project.id,  // Use resolved project ID
           milestoneId: dto.milestoneId,
           description: dto.description,
           imageKeys: dto.imageKeys,
         }
       });
-
       // 4. Audit: Log the submission
       await this.audit.log({
         userId,
         action: AuditAction.MILESTONE_PROOF_SUBMITTED,
-        entityId: projectId,
+        entityId: project.id,  // Use resolved project ID
         entityType: 'MilestoneProof',
         metadata: {
           milestone: milestone.phase,
@@ -260,10 +261,8 @@ export class ProjectService {
           imageCount: dto.imageKeys.length
         }
       }, tx);
-
       // 5. System Logic: Optional - Auto-notify Admins via internal logging
       this.logger.log(`New Proof of Work submitted for ${project.title} - ${milestone.phase}`);
-
       return proof;
     });
   }
