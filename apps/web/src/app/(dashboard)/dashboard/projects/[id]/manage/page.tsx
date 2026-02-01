@@ -35,13 +35,11 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
         timeline.find((m: any) => m.status === 'PENDING');
 
     const isFullyCompleted = timeline.every((m: any) => m.status === 'COMPLETED');
-
     const latestProof = project.milestoneProofs?.find((p: any) => p.milestoneId === currentMilestone?.id);
     const isRejected = latestProof?.status === 'REJECTED';
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-24">
-            {/* --- HEADER --- */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <Link href="/dashboard/proposals">
@@ -65,11 +63,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-                {/* --- LEFT COLUMN: ACTION & ROADMAP --- */}
                 <div className="lg:col-span-8 space-y-8">
-
-                    {/* Rejection Feedback Alert */}
                     {isRejected && (
                         <div className="p-5 rounded-[24px] bg-destructive/5 border border-destructive/20 flex items-start gap-4 animate-in slide-in-from-top-2 duration-500">
                             <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
@@ -87,7 +81,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                         </div>
                     )}
 
-                    {/* Submission */}
                     {!isFullyCompleted && currentMilestone ? (
                         <div className={cn(
                             "group relative rounded-[32px] p-[1px] transition-all duration-300 shadow-2xl",
@@ -119,7 +112,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                                     <EvidenceSubmission
                                         projectId={id}
                                         milestone={currentMilestone}
-                                        onSuccess={() => { }}
                                     />
                                 </CardContent>
                             </Card>
@@ -136,7 +128,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                         </Card>
                     ) : null}
 
-                    {/* Execution Roadmap Table */}
                     <Card className="rounded-[32px] border-border/50 bg-card/30 shadow-sm overflow-hidden">
                         <CardHeader className="p-8 pb-4">
                             <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -147,11 +138,9 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                         <CardContent className="p-8 pt-4">
                             <div className="space-y-8 relative">
                                 <div className="absolute left-[13px] top-2 bottom-2 w-0.5 bg-border hidden sm:block" />
-
                                 {timeline.map((m: any, i: number) => {
                                     const isDone = m.status === 'COMPLETED';
                                     const isCurrent = m.id === currentMilestone?.id;
-
                                     return (
                                         <div key={i} className="flex gap-6 relative group">
                                             <div className="flex flex-col items-center shrink-0 relative z-10">
@@ -186,10 +175,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                     </Card>
                 </div>
 
-                {/* --- RIGHT COLUMN: FINANCIALS & TRUST --- */}
                 <div className="lg:col-span-4 space-y-6">
-
-                    {/* Verified Status Card */}
                     <Card className="rounded-[28px] border-border/50 bg-primary/5 p-6 border-2 border-dashed">
                         <div className="flex items-start gap-4">
                             <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -200,11 +186,13 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                                     Givar Management handles all vendor payments directly to ensure financial integrity. Your role is to verify deliveries.
                                 </p>
+                                <p >
+                                    <span className="text-[11px] italic font-bold text-muted-foreground leading-relaxed">Note:</span>
+                                    <span className="text-[11px] italic text-muted-foreground leading-relaxed"> Verification of this phase is a prerequisite for subsequent funding tranches</span>
+                                </p>
                             </div>
                         </div>
                     </Card>
-
-                    {/* Disbursement History */}
                     <Card className="rounded-[28px] border-border/50 shadow-sm bg-card overflow-hidden">
                         <CardHeader className="bg-muted/40 border-b border-border/50 py-4 px-6">
                             <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -236,8 +224,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                             )}
                         </CardContent>
                     </Card>
-
-                    {/* Support Nudge */}
                     <div className="p-6 rounded-[28px] bg-secondary/30 border border-border/50 flex items-start gap-4">
                         <AlertCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -245,7 +231,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                         </p>
                     </div>
                 </div>
-
             </div>
         </div>
     );
