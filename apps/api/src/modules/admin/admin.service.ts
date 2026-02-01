@@ -952,8 +952,11 @@ export class AdminService {
 
   async getPendingProofs() {
     const proofs = await this.prisma.milestoneProof.findMany({
+      where: {
+        status: 'PENDING',
+      },
       include: {
-        project: { select: { title: true, slug: true, executionTimeline: true } },
+        project: { select: { id: true, title: true, slug: true, executionTimeline: true } },
       },
       orderBy: { submittedAt: 'asc' }, // Queue: Oldest first
     });
@@ -970,7 +973,8 @@ export class AdminService {
       return {
         ...proof,
         imageUrls: signedImages,
-        phaseName: milestone?.phase || 'Unknown Phase'
+        phaseName: milestone?.phase || 'Unknown Phase',
+        projectId: proof.project.id,
       };
     }));
   }

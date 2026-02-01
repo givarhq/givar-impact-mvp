@@ -5,6 +5,8 @@ import { Badge } from '../../../../components/ui/badge';
 import { Inbox, ShieldCheck } from 'lucide-react';
 import EvidenceReviewItem from '../../../../components/features/admin/evidence-review-item';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminEvidencePage() {
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value;
