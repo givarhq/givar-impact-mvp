@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     Camera,
     Send,
@@ -22,7 +23,6 @@ interface EvidenceSubmissionProps {
         id: string;
         phase: string;
     };
-    onSuccess: () => void;
 }
 
 interface UploadedMedia {
@@ -30,12 +30,12 @@ interface UploadedMedia {
     previewUrl: string;
 }
 
-export function EvidenceSubmission({ projectId, milestone, onSuccess }: EvidenceSubmissionProps) {
+export function EvidenceSubmission({ projectId, milestone }: EvidenceSubmissionProps) {
+    const router = useRouter();
     const [description, setDescription] = useState('');
     const [media, setMedia] = useState<UploadedMedia[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Handle multiple image uploads with preview state
     const handleUploadComplete = (data: { key: string; previewUrl: string }) => {
         if (media.length >= 6) {
             toast.error('Maximum 6 images allowed per milestone proof.');
@@ -49,7 +49,6 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
     };
 
     const handleSubmit = async () => {
-        // Pre-submission validation
         if (description.trim().length < 20) {
             toast.error('Please provide a more detailed narrative (minimum 20 characters).');
             return;
@@ -71,11 +70,13 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
             });
 
             toast.success('Impact evidence submitted for verification!', { id: toastId });
-            onSuccess();
 
             // Reset form
             setDescription('');
             setMedia([]);
+
+            router.refresh();
+
         } catch (error: any) {
             const message = error.response?.data?.message || 'Failed to submit evidence.';
             toast.error(message, { id: toastId });
@@ -99,7 +100,6 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
             </div>
 
             <div className="space-y-8">
-                {/* 1. Narrative Input */}
                 <div className="space-y-3">
                     <div className="flex justify-between items-center">
                         <label className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -121,7 +121,6 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                     />
                 </div>
 
-                {/* 2. Visual Proof Grid */}
                 <div className="space-y-3">
                     <label className="text-sm font-bold text-foreground flex items-center gap-2">
                         <Camera className="h-4 w-4 text-primary" /> Visual Evidence
@@ -148,7 +147,6 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                             </div>
                         ))}
 
-                        {/* Uploader Slot */}
                         {media.length < 6 && (
                             <div className="h-full min-h-[120px]">
                                 <ImageUploader
@@ -164,7 +162,6 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                     </p>
                 </div>
 
-                {/* 3. Global Guard Notice */}
                 <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl flex items-start gap-3">
                     <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                     <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed font-medium">
@@ -172,7 +169,6 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                     </p>
                 </div>
 
-                {/* 4. Action Button */}
                 <div className="pt-2">
                     <Button
                         onClick={handleSubmit}
