@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsNumberString, IsNotEmpty, IsAlphanumeric, IsOptional } from 'class-validator';
+import { IsString, IsUUID, IsNumberString, IsNotEmpty, IsAlphanumeric, IsOptional, Matches } from 'class-validator';
 
 export class RecordDisbursementDto {
     @IsUUID()
@@ -15,7 +15,9 @@ export class RecordDisbursementDto {
 
     @IsString()
     @IsNotEmpty()
-    @IsAlphanumeric(undefined, { message: 'Reference must be alphanumeric' })
+    @Matches(/^[a-zA-Z0-9/\-_]+$/, {
+        message: 'Reference must be alphanumeric and can only include / - or _'
+    })
     reference!: string; // Bank/Payment reference for reconciliation
 
     @IsOptional()
