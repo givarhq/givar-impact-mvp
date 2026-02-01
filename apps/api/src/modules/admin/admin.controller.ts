@@ -8,6 +8,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { ResolveSuspenseDto } from './dto/admin-suspense.dto';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
+import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 
 @SkipThrottle()
 @Controller('admin')
@@ -155,5 +156,14 @@ export class AdminController {
       body.status,
       body.feedback
     );
+  }
+
+  @Post('projects/:id/disbursements')
+  recordDisbursement(
+    @Req() req: any,
+    @Param('id') projectId: string,
+    @Body() dto: RecordDisbursementDto
+  ) {
+    return this.service.recordDisbursement(req.user.id, projectId, dto);
   }
 }
