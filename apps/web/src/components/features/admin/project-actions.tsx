@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Ban, Loader2, Edit2, Trash2 } from 'lucide-react';
-import { Button } from '../../ui/button';
+import { Ban, Loader2, Trash2 } from 'lucide-react';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 
@@ -11,27 +10,21 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAction = async (action: 'approve' | 'suspend' | 'delete') => {
-    // Security confirmation for destructive actions
+  const handleAction = async (action: 'suspend' | 'delete') => {
     if (action === 'delete' && !confirm('Are you sure you want to permanently delete this project? This cannot be undone.')) {
       return;
     }
 
     setIsLoading(true);
     try {
-      // Map action to corresponding API method
       const actionMap = {
-        approve: () => ApiService.admin.approveProject(id),
         suspend: () => ApiService.admin.suspendProject(id),
         delete: () => ApiService.admin.deleteProject(id),
       };
 
-      // Call the correct API method
       await actionMap[action]();
 
-      // Map action to proper past tense for toast
       const pastTenseMap = {
-        approve: 'approved',
         suspend: 'suspended',
         delete: 'deleted',
       };
@@ -54,53 +47,26 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
 
   return (
     <div className="flex items-center justify-end gap-1">
-      {/* Edit Action */}
-      <Button 
-        size="icon" 
-        variant="ghost" 
-        onClick={() => router.push(`/admin/projects/${id}/edit`)} 
-        title="Edit Project" 
-        className="text-foreground h-8 w-8 rounded-xl"
-      >
-        <Edit2 className="h-4 w-4" />
-      </Button>
-
-      {/* Approval Action */}
-      {status !== 'ACTIVE' && (
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          onClick={() => handleAction('approve')} 
-          title="Approve" 
-          className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 h-8 w-8 rounded-xl"
-        >
-          <Check className="h-4 w-4" />
-        </Button>
-      )}
 
       {/* Suspension Action */}
       {status !== 'SUSPENDED' && (
-        <Button 
-          size="icon" 
-          variant="ghost" 
-          onClick={() => handleAction('suspend')} 
-          title="Suspend" 
-          className="text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 h-8 w-8 rounded-xl"
+        <button
+          onClick={() => handleAction('suspend')}
+          title="Suspend Project"
+          className="flex items-center justify-center text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 h-8 w-8 rounded-xl transition-colors"
         >
           <Ban className="h-4 w-4" />
-        </Button>
+        </button>
       )}
 
       {/* Delete Action (Nuclear Option) */}
-      <Button 
-        size="icon" 
-        variant="ghost" 
-        onClick={() => handleAction('delete')} 
-        title="Delete Project" 
-        className="text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 h-8 w-8 rounded-xl"
+      <button
+        onClick={() => handleAction('delete')}
+        title="Delete Project"
+        className="flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 h-8 w-8 rounded-xl transition-colors"
       >
         <Trash2 className="h-4 w-4" />
-      </Button>
+      </button>
     </div>
   );
 }
