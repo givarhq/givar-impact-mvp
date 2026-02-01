@@ -508,7 +508,15 @@ export class AdminService {
   async getProjectById(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-      include: { category: true }
+      include: {
+        category: true,
+        disbursements: {
+          orderBy: { createdAt: 'desc' },
+        },
+        _count: {
+          select: { donations: true }
+        }
+      }
     });
 
     if (!project) throw new NotFoundException('Project not found');
@@ -535,6 +543,10 @@ export class AdminService {
       ...project,
       targetAmount: project.targetAmount.toString(),
       raisedAmount: project.raisedAmount.toString(),
+      disbursements: project.disbursements.map((d) => ({
+        ...d,
+        amount: d.amount.toString(),
+      })),
     };
   }
 
