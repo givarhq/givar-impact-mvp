@@ -11,6 +11,7 @@ import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
+import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
 
 @Injectable()
 export class AdminService {
@@ -41,14 +42,47 @@ export class AdminService {
     };
   }
 
-  async getAllProjects(query: any) {
-    const { page = 1, limit = 20 } = query;
-    return this.prisma.project.findMany({
-      skip: (Number(page) - 1) * Number(limit),
-      take: Number(limit),
-      orderBy: { createdAt: 'desc' },
-      include: { _count: { select: { donations: true } } }
-    });
+  async getAllProjects(query: AdminProjectQueryDto) {
+    const {
+      search, status, categoryId,
+      page = 1, limit = 20,
+      sortBy = 'createdAt', sortOrder = 'desc'
+    } = query;
+
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ProjectWhereInput = {
+      ...(status && { status }),
+      ...(categoryId && { categoryId }),
+      ...(search && {
+        OR: [
+          { title: { contains: search, mode: 'insensitive' } },
+          { location: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const orderBy = { [sortBy]: sortOrder };
+
+    const [projects, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        skip,
+        take: limit,
+        include: { category: { select: { name: true } } },
+        orderBy,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+
+    return {
+      data: projects.map(p => ({
+        ...p,
+        targetAmount: p.targetAmount.toString(),
+        raisedAmount: p.raisedAmount.toString(),
+      })),
+      meta: { total, page, lastPage: Math.ceil(total / limit) }
+    };
   }
 
   // Project Moderation
