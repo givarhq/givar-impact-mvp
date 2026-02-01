@@ -300,9 +300,10 @@ export const ApiService = {
 
     recordDisbursement: (projectId: string, data: {
       milestoneId: string;
-      amount: string; // Minor units string (e.g., "100000")
+      amount: string; // Minor units string
       vendorName: string;
       reference: string;
+      receiptKey?: string;
     }) =>
       apiClient.post(`/admin/projects/${projectId}/disbursements`, data).then(r => r.data),
   },
