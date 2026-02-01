@@ -17,7 +17,7 @@ export const dashboardNav = [
     icon: Repeat,
   },
   {
-    title: 'My Causes',
+    title: 'Proposals',
     href: '/dashboard/proposals',
     icon: NotebookPen,
   },
