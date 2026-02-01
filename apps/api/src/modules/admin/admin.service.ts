@@ -893,11 +893,7 @@ export class AdminService {
     }
   }
 
-  async recordDisbursement(
-    adminId: string,
-    projectId: string,
-    dto: RecordDisbursementDto
-  ) {
+  async recordDisbursement(adminId: string, projectId: string, dto: RecordDisbursementDto) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: { user: { select: { email: true, firstName: true } } }
@@ -905,13 +901,10 @@ export class AdminService {
 
     if (!project) throw new NotFoundException('Project not found');
 
-    // Extract milestone name for auditing and email context
     const timeline = (project.executionTimeline as any[]) || [];
     const milestone = timeline.find(m => m.id === dto.milestoneId);
 
-    // Atomic Transaction to ensure Ledger and Audit match perfectly
     return this.prisma.$transaction(async (tx) => {
-      // 1. Create the Disbursement record
       const disbursement = await tx.disbursement.create({
         data: {
           projectId,
@@ -920,10 +913,10 @@ export class AdminService {
           currency: project.currency,
           vendorName: dto.vendorName,
           reference: dto.reference,
+          receiptKey: dto.receiptKey,
         }
       });
 
-      // 2. Iron-Clad Audit Log
       await this.audit.log({
         userId: adminId,
         action: AuditAction.DISBURSEMENT_RECORDED,
@@ -932,19 +925,18 @@ export class AdminService {
         metadata: {
           vendor: dto.vendorName,
           milestone: milestone?.phase || 'Unknown',
-          reference: dto.reference
+          hasReceipt: !!dto.receiptKey
         }
       }, tx);
 
       return { disbursement, owner: project.user, milestoneName: milestone?.phase };
     }).then(async (res) => {
-      // 3. Post-Transaction: Notify the Project Owner (Progressive evidence loop)
       await this.emailService.sendEvidenceRequest(res.owner.email, {
         name: res.owner.firstName,
         project: project.title,
         milestone: res.milestoneName || 'Current Phase',
         vendor: dto.vendorName
-      }).catch(err => this.logger.error(`Evidence request email failed: ${err.message}`));
+      }).catch(err => this.logger.error(`Evidence email failed: ${err.message}`));
 
       return res.disbursement;
     });

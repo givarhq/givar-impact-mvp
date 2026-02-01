@@ -519,6 +519,7 @@ model Disbursement {
   currency        Currency
   vendorName      String
   reference       String   @unique // Internal or Bank Ref
+  receiptKey      String?  
   
   createdAt       DateTime @default(now())
   
