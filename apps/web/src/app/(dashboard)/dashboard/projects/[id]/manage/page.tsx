@@ -13,7 +13,9 @@ import {
     ShieldCheck,
     AlertCircle,
     TrendingUp,
-    FileX
+    FileX,
+    FileSearch,
+    Check
 } from 'lucide-react';
 import Link from 'next/link';
 import { EvidenceSubmission } from '../../../../../../components/features/proposals/evidence-submission';
@@ -40,6 +42,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-24">
+            {/* --- HEADER --- */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <Link href="/dashboard/proposals">
@@ -63,6 +66,8 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+                {/* --- LEFT COLUMN: ACTION & ROADMAP --- */}
                 <div className="lg:col-span-8 space-y-8">
                     {isRejected && (
                         <div className="p-5 rounded-[24px] bg-destructive/5 border border-destructive/20 flex items-start gap-4 animate-in slide-in-from-top-2 duration-500">
@@ -112,6 +117,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                                     <EvidenceSubmission
                                         projectId={id}
                                         milestone={currentMilestone}
+                                        onSuccess={() => { }}
                                     />
                                 </CardContent>
                             </Card>
@@ -175,6 +181,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                     </Card>
                 </div>
 
+                {/* --- RIGHT COLUMN: FINANCIALS --- */}
                 <div className="lg:col-span-4 space-y-6">
                     <Card className="rounded-[28px] border-border/50 bg-primary/5 p-6 border-2 border-dashed">
                         <div className="flex items-start gap-4">
@@ -184,15 +191,16 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                             <div className="space-y-1">
                                 <p className="text-xs font-bold text-primary uppercase tracking-tighter">Direct Procurement Mode</p>
                                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                    Givar Management handles all vendor payments directly to ensure financial integrity. Your role is to verify deliveries.
+                                    Givar Management handles all vendor payments directly. Your role is to verify deliveries.
                                 </p>
-                                <p >
+                                <p>
                                     <span className="text-[11px] italic font-bold text-muted-foreground leading-relaxed">Note:</span>
-                                    <span className="text-[11px] italic text-muted-foreground leading-relaxed"> Verification of this phase is a prerequisite for subsequent funding tranches</span>
+                                    <span className="text-[11px] italic text-muted-foreground leading-relaxed"> Verification of each phase is a prerequisite for subsequent funding tranches.</span>
                                 </p>
                             </div>
                         </div>
                     </Card>
+
                     <Card className="rounded-[28px] border-border/50 shadow-sm bg-card overflow-hidden">
                         <CardHeader className="bg-muted/40 border-b border-border/50 py-4 px-6">
                             <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -201,21 +209,51 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                         </CardHeader>
                         <CardContent className="p-6 space-y-4">
                             {project.disbursements?.length > 0 ? (
-                                project.disbursements.map((d: any) => (
-                                    <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-2 hover:bg-muted/30 transition-colors">
-                                        <div className="flex justify-between items-start">
-                                            <p className="text-[10px] font-black text-primary uppercase tracking-tight">Payment Disbursed</p>
-                                            <span className="text-[10px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
+                                project.disbursements.map((d: any) => {
+                                    // SOTA: Cross-reference logic to check for satisfying proof
+                                    const matchingProof = project.milestoneProofs?.find((p: any) => p.milestoneId === d.milestoneId);
+                                    const isVerified = matchingProof?.status === 'APPROVED';
+                                    const isPendingAudit = matchingProof?.status === 'PENDING';
+
+                                    return (
+                                        <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 hover:bg-muted/30 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <div className="space-y-0.5">
+                                                    <p className="text-[9px] font-black text-primary uppercase tracking-tight">Payment Disbursed</p>
+                                                    <span className="text-[10px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
+                                                </div>
+
+                                                {/* SOTA Satisfaction Indicator */}
+                                                {isVerified ? (
+                                                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center">
+                                                        <Check className="h-2.5 w-2.5" /> Verified
+                                                    </Badge>
+                                                ) : isPendingAudit ? (
+                                                    <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center animate-pulse">
+                                                        <FileSearch className="h-2.5 w-2.5" /> Auditing
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center">
+                                                        <AlertCircle className="h-2.5 w-2.5" /> Action Required
+                                                    </Badge>
+                                                )}
+                                            </div>
+
+                                            <p className="text-lg font-bold text-foreground tabular-nums">
+                                                {formatCurrency(d.amount, project.currency)}
+                                            </p>
+
+                                            <div className="pt-2 border-t border-border/50">
+                                                <p className="text-[11px] font-medium text-foreground truncate">
+                                                    <span className="text-muted-foreground">Vendor:</span> {d.vendorName}
+                                                </p>
+                                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter truncate mt-1">
+                                                    Phase: {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p className="text-lg font-bold text-foreground tabular-nums">
-                                            {formatCurrency(d.amount, project.currency)}
-                                        </p>
-                                        <div className="pt-2 border-t border-border/50 space-y-1">
-                                            <p className="text-[11px] font-medium text-foreground"><span className="text-muted-foreground">Vendor:</span> {d.vendorName}</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono truncate">Ref: {d.reference}</p>
-                                        </div>
-                                    </div>
-                                ))
+                                    )
+                                })
                             ) : (
                                 <div className="text-center py-10">
                                     <Clock className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
@@ -224,10 +262,11 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                             )}
                         </CardContent>
                     </Card>
+
                     <div className="p-6 rounded-[28px] bg-secondary/30 border border-border/50 flex items-start gap-4">
                         <AlertCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-[11px] text-muted-foreground leading-relaxed">
-                            Need help with execution or vendor coordination? Contact your assigned Givar Portfolio Manager directly.
+                            Need help with vendor coordination? Contact Givar Support directly.
                         </p>
                     </div>
                 </div>
