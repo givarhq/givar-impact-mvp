@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Loader2,
@@ -10,7 +10,11 @@ import {
     ShieldCheck,
     Building2,
     CheckCircle2,
-    Trash2
+    Trash2,
+    ArrowUp,
+    ArrowDown,
+    Calendar,
+    Hash
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -34,6 +38,11 @@ interface DisbursementFormProps {
     disbursements?: any[];
 }
 
+type SortConfig = {
+    key: string;
+    direction: 'asc' | 'desc';
+};
+
 export function DisbursementForm({ projectId, timeline, disbursements = [] }: DisbursementFormProps) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +53,36 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
     const [amount, setAmount] = useState('');
     const [reference, setReference] = useState('');
     const [receipt, setReceipt] = useState<{ key: string; previewUrl: string } | null>(null);
+
+    // Sorting State
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'desc' });
+
+    const handleSort = (key: string) => {
+        setSortConfig((prev) => ({
+            key,
+            direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+        }));
+    };
+
+    // Memoized Sorted Data
+    const sortedDisbursements = useMemo(() => {
+        const items = [...disbursements];
+        items.sort((a, b) => {
+            let aVal = a[sortConfig.key];
+            let bVal = b[sortConfig.key];
+
+            if (sortConfig.key === 'amount') {
+                return sortConfig.direction === 'asc'
+                    ? Number(BigInt(a.amount) - BigInt(b.amount))
+                    : Number(BigInt(b.amount) - BigInt(a.amount));
+            }
+
+            if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+        return items;
+    }, [disbursements, sortConfig]);
 
     const handleSubmit = async () => {
         if (!milestoneId || !vendorName || !amount || !reference) {
@@ -62,19 +101,11 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                 receiptKey: receipt?.key
             });
 
-            toast.success('Disbursement recorded and proposer notified.');
-
-            // Reset Form
-            setAmount('');
-            setVendorName('');
-            setReference('');
-            setMilestoneId('');
-            setReceipt(null);
-
+            toast.success('Disbursement recorded successfully.');
+            setAmount(''); setVendorName(''); setReference(''); setMilestoneId(''); setReceipt(null);
             router.refresh();
         } catch (error: any) {
-            const message = error.response?.data?.message || 'Failed to record disbursement.';
-            toast.error(message);
+            toast.error(error.response?.data?.message || 'Failed to record disbursement.');
         } finally {
             setIsLoading(false);
         }
@@ -89,6 +120,11 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
         } catch (e) {
             toast.error('Access Denied', { id: toastId });
         }
+    };
+
+    const SortIcon = ({ column }: { column: string }) => {
+        if (sortConfig.key !== column) return null;
+        return sortConfig.direction === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />;
     };
 
     return (
@@ -107,7 +143,6 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
 
                 <CardContent className="p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-
                         <div className="lg:col-span-7 space-y-6">
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
@@ -125,20 +160,8 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input
-                                        label="Vendor/Payee Name"
-                                        placeholder="Legal Entity Name"
-                                        value={vendorName}
-                                        onChange={(e) => setVendorName(e.target.value)}
-                                        className="h-12"
-                                    />
-                                    <Input
-                                        label="Bank Transaction Ref"
-                                        placeholder="NIP/FT/..."
-                                        value={reference}
-                                        onChange={(e) => setReference(e.target.value)}
-                                        className="h-12"
-                                    />
+                                    <Input label="Vendor/Payee Name" placeholder="Legal Entity Name" value={vendorName} onChange={(e) => setVendorName(e.target.value)} className="h-12" />
+                                    <Input label="Bank Transaction Ref" placeholder="NIP/FT/..." value={reference} onChange={(e) => setReference(e.target.value)} className="h-12" />
                                 </div>
 
                                 <div className="space-y-1.5">
@@ -173,35 +196,21 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                     <div className="relative aspect-video rounded-2xl overflow-hidden border border-border group shadow-lg">
                                         <img src={receipt.previewUrl} className="object-cover w-full h-full" alt="Bank Receipt" />
                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                className="rounded-xl font-bold h-10 px-4"
-                                                onClick={() => setReceipt(null)}
-                                            >
+                                            <Button variant="destructive" size="sm" className="rounded-xl font-bold h-10 px-4" onClick={() => setReceipt(null)}>
                                                 <Trash2 className="h-4 w-4 mr-2" /> Remove Proof
                                             </Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <ImageUploader
-                                        label="Upload Receipt (Optional)"
-                                        onUploadComplete={setReceipt}
-                                        useCase="docs"
-                                    />
+                                    <ImageUploader label="Upload Receipt (Optional)" onUploadComplete={setReceipt} useCase="docs" />
                                 )}
                             </div>
 
-                            <Button
-                                onClick={handleSubmit}
-                                disabled={isLoading || !amount || !milestoneId || !vendorName || !reference}
-                                className="mt-auto w-full h-16 rounded-[20px] text-lg font-bold shadow-xl shadow-primary/20 transition-all active:scale-95"
-                            >
+                            <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="mt-auto w-full h-16 rounded-[20px] text-lg font-bold shadow-xl shadow-primary/20 transition-all active:scale-95">
                                 {isLoading ? <Loader2 className="animate-spin h-6 w-6" /> : <CheckCircle2 className="h-6 w-6 mr-2" />}
                                 Commit Disbursement
                             </Button>
                         </div>
-
                     </div>
                 </CardContent>
             </Card>
@@ -222,21 +231,42 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                         <table className="w-full text-sm text-left">
                             <thead className="bg-muted/40 text-muted-foreground border-b border-border">
                                 <tr>
-                                    <th className="px-8 py-5 font-bold uppercase tracking-widest text-[10px]">Vendor & Milestone</th>
-                                    <th className="px-6 py-5 font-bold uppercase tracking-widest text-[10px]">Bank Reference</th>
-                                    <th className="px-6 py-5 font-bold uppercase tracking-widest text-[10px] text-right">Amount</th>
-                                    <th className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] text-right">Evidence</th>
+                                    <th
+                                        className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors"
+                                        onClick={() => handleSort('vendorName')}
+                                    >
+                                        <div className="flex items-center">Vendor & Milestone <SortIcon column="vendorName" /></div>
+                                    </th>
+                                    <th
+                                        className="px-6 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors"
+                                        onClick={() => handleSort('createdAt')}
+                                    >
+                                        <div className="flex items-center">Date <SortIcon column="createdAt" /></div>
+                                    </th>
+                                    <th
+                                        className="px-6 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors"
+                                        onClick={() => handleSort('reference')}
+                                    >
+                                        <div className="flex items-center">Bank Reference <SortIcon column="reference" /></div>
+                                    </th>
+                                    <th
+                                        className="px-6 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors text-right"
+                                        onClick={() => handleSort('amount')}
+                                    >
+                                        <div className="flex items-center justify-end">Amount <SortIcon column="amount" /></div>
+                                    </th>
+                                    <th className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] text-right">Proof</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
-                                {disbursements.length === 0 ? (
+                                {sortedDisbursements.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-20 text-center text-muted-foreground italic font-medium">
+                                        <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground italic font-medium">
                                             No disbursements have been logged for this project.
                                         </td>
                                     </tr>
                                 ) : (
-                                    disbursements.map((d: any) => (
+                                    sortedDisbursements.map((d: any) => (
                                         <tr key={d.id} className="hover:bg-muted/20 transition-all group">
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-3">
@@ -245,24 +275,30 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-foreground leading-none">{d.vendorName}</p>
-                                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mt-1.5">
+                                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mt-1.5 flex items-center gap-1">
                                                             {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General Funds'}
                                                         </p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
-                                                <span className="font-mono text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md border border-border/50">
-                                                    {d.reference}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    <span className="font-medium text-foreground">{new Date(d.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-5">
+                                                <div className="flex items-center gap-2">
+                                                    <Hash className="h-3.5 w-3.5 text-muted-foreground" />
+                                                    <span className="font-mono text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md border border-border/50">
+                                                        {d.reference}
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5 text-right">
                                                 <div className="font-bold text-foreground tabular-nums text-base">
                                                     {formatCurrency(d.amount, 'NGN')}
                                                 </div>
-                                                <p className="text-[10px] text-muted-foreground mt-0.5">
-                                                    {new Date(d.createdAt).toLocaleDateString()}
-                                                </p>
                                             </td>
                                             <td className="px-8 py-5 text-right">
                                                 {d.receiptKey ? (
@@ -272,7 +308,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                                         className="rounded-xl h-9 text-xs font-bold text-primary hover:bg-primary/10 transition-colors"
                                                         onClick={() => viewSecureReceipt(d.receiptKey)}
                                                     >
-                                                        <ExternalLink className="h-4 w-4 mr-2" /> View Receipt
+                                                        <ExternalLink className="h-4 w-4 mr-2" /> View
                                                     </Button>
                                                 ) : (
                                                     <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-40">No Proof</span>
