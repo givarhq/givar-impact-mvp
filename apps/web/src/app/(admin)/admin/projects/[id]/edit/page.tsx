@@ -88,6 +88,7 @@ export default async function EditProjectPage({
               <DisbursementForm
                 projectId={id}
                 timeline={project.executionTimeline || []}
+                disbursements={project.disbursements || []}
               />
             </div>
           </TabsContent>
