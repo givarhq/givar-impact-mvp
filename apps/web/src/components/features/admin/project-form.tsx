@@ -1,18 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
-import { 
-  Loader2, Save, X, Layout, 
-  Image as ImageIcon, 
-  Briefcase, 
-  Clock, 
-  MapPin, 
-  CheckCircle2 
+import {
+  Loader2, Save, X, Layout,
+  Image as ImageIcon,
+  Briefcase,
+  Clock,
+  MapPin,
+  Edit2,
+  Unlock,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -22,6 +24,8 @@ import { BudgetEditor } from '../proposals/budget-editor';
 import { TimelineEditor } from '../proposals/timeline-editor';
 import { MediaManager, ImageUploader } from '../proposals/media-uploader';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
+import { cn } from '../../../lib/utils/cn';
+import { Textarea } from '../../ui/textarea';
 
 const mediaItemSchema = z.object({
   id: z.string(),
@@ -71,7 +75,12 @@ interface ProjectFormProps {
 export function AdminProjectForm({ initialData, categories }: ProjectFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
+  const [unlockedSections, setUnlockedSections] = useState<Record<string, boolean>>({});
+
+  const isSectionReadOnly = (section: string) => initialData ? !unlockedSections[section] : false;
+  const isAnySectionUnlocked = useMemo(() => Object.values(unlockedSections).some(v => v === true), [unlockedSections]);
+
   const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: initialData ? {
@@ -89,196 +98,277 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
     }
   });
 
-  const gallery = watch('gallery');
-  const budget = watch('budgetBreakdown');
-  const timeline = watch('executionTimeline');
-  const coverImage = watch('coverImage');
+  const [gallery, budget, timeline, coverImage] = watch(['gallery', 'budgetBreakdown', 'executionTimeline', 'coverImage']);
 
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
     try {
-      const payload = {
-          ...data,
-          targetAmount: data.targetAmount * 100 
-      };
-      
+      const payload = { ...data, targetAmount: data.targetAmount * 100 };
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
-        toast.success('Project updated');
+        toast.success('Ledger updated successfully');
+        setUnlockedSections({}); // Re-lock all
       } else {
         await ApiService.admin.createProject(payload);
-        toast.success('Project created');
+        toast.success('Project published to ledger');
       }
-      router.push('/admin/projects');
       router.refresh();
     } catch (error) {
-      toast.error('Submission failed');
+      toast.error('Failed to commit changes');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const toggleSection = (section: string) => {
+    setUnlockedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const getInputClass = (section: string) => cn(
+    "transition-all duration-300 rounded-xl h-11 text-sm pr-10",
+    isSectionReadOnly(section)
+      ? "bg-muted/10 border-transparent shadow-none cursor-default focus-visible:ring-0 text-foreground font-medium"
+      : "bg-background border-border shadow-sm focus-visible:ring-primary/20"
+  );
+
+  const getAreaClass = (
+    section: string,
+    minHeight: string = "min-h-[180px]"
+  ) => cn(
+    "flex w-full rounded-xl border px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-foreground",
+    minHeight,
+    isSectionReadOnly(section)
+      ? "bg-muted/10 border-transparent shadow-none cursor-default resize-none font-medium"
+      : "bg-background border-input focus-visible:border-primary"
+  );
+
+  const EditPencil = ({ section }: { section: string }) => (
+    isSectionReadOnly(section) && initialData && (
+      <div
+        onClick={() => toggleSection(section)}
+        className="absolute right-6 top-6 p-2 rounded-xl bg-primary shadow-lg text-primary-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer hover:scale-110 z-30"
+      >
+        <Edit2 className="h-4 w-4" />
+      </div>
+    )
+  );
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-6xl mx-auto space-y-8 pb-12 animate-in fade-in duration-500">
-      
-      {/* --- Section 1: Project Identity --- */}
-      <section className="grid grid-cols-1 md:grid-cols-12 gap-6 bg-card p-6 rounded-[24px] border border-border shadow-sm">
-          <div className="md:col-span-12 flex items-center gap-2 mb-2">
-             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Layout className="h-4 w-4" />
-             </div>
-             <h3 className="font-bold text-sm text-foreground/80">Project identity</h3>
-          </div>
-          
-          <div className="md:col-span-8 space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Headline title</label>
-              <Input {...register('title')} placeholder="e.g. Clean Water Initiative" className="h-11 text-sm rounded-xl" error={errors.title?.message} />
-          </div>
-          
-          <div className="md:col-span-4 space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Category</label>
-              <Controller
-                  control={control}
-                  name="categoryId"
-                  render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger className="rounded-xl h-11 text-sm bg-background/50"><SelectValue placeholder="Select category" /></SelectTrigger>
-                          <SelectContent className="rounded-xl">
-                              {categories.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                          </SelectContent>
-                      </Select>
-                  )}
-              />
-          </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-6xl mx-auto space-y-8 pb-20 animate-in fade-in duration-500">
 
-          <div className="md:col-span-12 space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Short summary (visible on cards)</label>
-              <textarea 
-                  className="flex w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[70px] resize-none"
-                  {...register('shortDesc')}
-                  placeholder="Summarize the impact in 140 characters..."
-                  maxLength={140}
-              />
+      {/* --- SECTION 1: IDENTITY --- */}
+      <section className={cn(
+        "grid grid-cols-1 md:grid-cols-12 gap-6 p-8 bg-card rounded-[32px] border transition-all duration-500 relative group",
+        isSectionReadOnly('identity') ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+      )}>
+        <EditPencil section="identity" />
+        <div className="md:col-span-12 flex items-center gap-3 mb-4">
+          <div className={cn(
+            "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner",
+            isSectionReadOnly('identity') ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
+          )}>
+            {isSectionReadOnly('identity') ? <ShieldCheck className="h-5 w-5" /> : <Unlock className="h-5 w-5" />}
           </div>
+          <div>
+            <h3 className="font-bold text-base text-foreground leading-none">Project Identity</h3>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Core forensic data</p>
+          </div>
+        </div>
 
-          <div className="md:col-span-12 space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Full narrative & solution</label>
-              <textarea 
-                  className="flex w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 min-h-[180px]"
-                  {...register('description')}
-                  placeholder="Deep dive into the problem and your proposed solution..."
-              />
+        <div className="md:col-span-8 space-y-1.5 relative">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Headline Title</label>
+          <Input
+            {...register('title')}
+            className={getInputClass('identity')}
+            readOnly={isSectionReadOnly('identity')}
+            error={errors.title?.message}
+          />
+        </div>
+
+        <div className="md:col-span-4 space-y-1.5 relative">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Classification</label>
+          <Controller
+            control={control}
+            name="categoryId"
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value} disabled={isSectionReadOnly('identity')}>
+                <SelectTrigger className={cn(getInputClass('identity'), "bg-background/50")}><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                  {categories.map((c: any) => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </div>
+
+        <div className="md:col-span-12 space-y-1.5 relative">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Short Narrative</label>
+          <Textarea
+            className={cn(getAreaClass('identity', "min-h-[10px]"), "resize-none")}
+            {...register('shortDesc')}
+            readOnly={isSectionReadOnly('identity')}
+            maxLength={140}
+          />
+        </div>
+
+        <div className="md:col-span-12 space-y-1.5 relative">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Description</label>
+          <Textarea
+            className={getAreaClass('identity', "min-h-[200px]")} // 
+            {...register('description')}
+            readOnly={isSectionReadOnly('identity')}
+          />
+        </div>
+
+        <div className="md:col-span-6 space-y-1.5 relative">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Geographic Location</label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50" />
+            <Input
+              {...register('location')}
+              className={cn(getInputClass('identity'), "pl-9")}
+              readOnly={isSectionReadOnly('identity')}
+            />
           </div>
-          
-          <div className="md:col-span-6 space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Physical location</label>
+        </div>
+
+        <div className="md:col-span-6 space-y-1.5 relative">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Capital Goal (NGN)</label>
+          <Controller
+            control={control}
+            name="targetAmount"
+            render={({ field }) => (
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input {...register('location')} placeholder="City, Country" className="pl-9 h-11 text-sm rounded-xl bg-background/50" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">₦</span>
+                <Input
+                  value={formatNumberInput(String(field.value || ''))}
+                  onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
+                  className={cn(getInputClass('identity'), "pl-10 font-bold tabular-nums")}
+                  readOnly={isSectionReadOnly('identity')}
+                />
               </div>
+            )}
+          />
+        </div>
+      </section>
+
+      {/* --- SECTION 2: MEDIA --- */}
+      <section className={cn(
+        "bg-card p-8 rounded-[32px] border shadow-sm space-y-8 transition-all duration-500 relative group",
+        isSectionReadOnly('media') ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+      )}>
+        <EditPencil section="media" />
+        <div className="flex items-center gap-3">
+          <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", isSectionReadOnly('media') ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary")}>
+            <ImageIcon className="h-5 w-5" />
           </div>
-          
-          <div className="md:col-span-6 space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground ml-1">Funding goal (NGN)</label>
-              <Controller
-                  control={control}
-                  name="targetAmount"
-                  render={({ field }) => (
-                      <Input 
-                        value={formatNumberInput(String(field.value || ''))}
-                        onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                        placeholder="0.00"
-                        className="h-11 text-sm font-bold rounded-xl bg-background/50 tabular-nums"
-                      />
-                  )}
+          <div>
+            <h3 className="font-bold text-base text-foreground leading-none">Visual Assets</h3>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Proof of impact media</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-5 space-y-3">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Primary Display Asset</p>
+            {coverImage ? (
+              <div className="relative aspect-video rounded-[24px] overflow-hidden border border-border shadow-2xl group/img">
+                <img src={coverImage} className="object-cover w-full h-full" alt="Cover" />
+                {!isSectionReadOnly('media') && (
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
+                    <Button type="button" variant="destructive" size="sm" className="rounded-xl h-10 px-6 font-bold shadow-lg" onClick={() => setValue('coverImage', '')}>
+                      <X className="h-4 w-4 mr-2" /> Remove Image
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <ImageUploader label="Upload Hero Asset" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
+            )}
+          </div>
+
+          <div className="lg:col-span-7 space-y-3">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Evidence Gallery ({gallery.length}/10)</p>
+            <div className={cn(isSectionReadOnly('media') && "pointer-events-none opacity-95")}>
+              <MediaManager
+                items={gallery as any}
+                onAdd={(item) => !isSectionReadOnly('media') && setValue('gallery', [...gallery, item])}
+                onRemove={(id) => !isSectionReadOnly('media') && setValue('gallery', gallery.filter((i) => i.id !== id))}
+                onUpdate={(id, updates) => !isSectionReadOnly('media') && setValue('gallery', gallery.map((i) => i.id === id ? { ...i, ...updates } : i))}
               />
+            </div>
           </div>
+        </div>
       </section>
 
-      {/* --- Section 2: Visual Assets --- */}
-      <section className="bg-card p-6 rounded-[24px] border border-border shadow-sm space-y-6">
-          <div className="flex items-center gap-2">
-             <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                <ImageIcon className="h-4 w-4" />
-             </div>
-             <h3 className="font-bold text-sm text-foreground/80">Media portfolio</h3>
+      {/* --- SECTION 3: PLAN --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className={cn(
+          "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
+          isSectionReadOnly('plan') ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+        )}>
+          <EditPencil section="plan" />
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", isSectionReadOnly('plan') ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary")}>
+              <Briefcase className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-foreground leading-none">Budget Ledger</h3>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Vendor procurement plan</p>
+            </div>
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-5 space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Primary cover</p>
-                  {coverImage ? (
-                      <div className="relative aspect-video rounded-2xl overflow-hidden border border-border shadow-inner group">
-                          <img src={coverImage} className="object-cover w-full h-full" alt="Cover" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Button type="button" variant="destructive" size="sm" className="rounded-xl h-8 text-xs" onClick={() => setValue('coverImage', '')}>
-                                <X className="h-3 w-3 mr-1" /> Remove
-                            </Button>
-                          </div>
-                      </div>
-                  ) : (
-                      <ImageUploader label="Upload hero image" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
-                  )}
-              </div>
-              
-              <div className="lg:col-span-7 space-y-2">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Supporting gallery ({gallery.length}/10)</p>
-                  <MediaManager 
-                      items={gallery as any}
-                      onAdd={(item) => setValue('gallery', [...gallery, item])}
-                      onRemove={(id) => setValue('gallery', gallery.filter((i) => i.id !== id))}
-                      onUpdate={(id, updates) => setValue('gallery', gallery.map((i) => i.id === id ? { ...i, ...updates } : i))}
-                  />
-              </div>
-          </div>
-      </section>
+          <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={isSectionReadOnly('plan')} />
+        </div>
 
-      {/* --- Section 3: Strategic Plan --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="p-6 bg-card rounded-[24px] border border-border space-y-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                    <Briefcase className="h-4 w-4" />
-                </div>
-                <h3 className="font-bold text-sm text-foreground/80">Budget ledger</h3>
-              </div>
-              <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} />
+        <div className={cn(
+          "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
+          isSectionReadOnly('plan') ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+        )}>
+          <EditPencil section="plan" />
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", isSectionReadOnly('plan') ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary")}>
+              <Clock className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Milestone tracking</p>
+            </div>
           </div>
-          
-          <div className="p-6 bg-card rounded-[24px] border border-border space-y-4 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                    <Clock className="h-4 w-4" />
-                </div>
-                <h3 className="font-bold text-sm text-foreground/80">Execution map</h3>
-              </div>
-              <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} />
-          </div>
+          <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={isSectionReadOnly('plan')} />
+        </div>
       </div>
 
-      {/* --- Footer Actions --- */}
-      <div className="flex items-center justify-end gap-4 pt-6 border-border">
-          <Button 
-            type="button" 
-            variant="ghost" 
-            onClick={() => router.back()} 
-            className="rounded-xl h-12 px-6 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-              Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={isSubmitting} 
-            className="rounded-xl h-12 px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-95 transition-all min-w-[180px]"
-          >
+      {/* --- STICKY FOOTER ACTIONS --- */}
+      {isAnySectionUnlocked && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-50 md:pl-[300px] animate-in slide-in-from-bottom-5">
+          <div className="max-w-6xl mx-auto flex items-center justify-end gap-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setUnlockedSections({})}
+              className="rounded-xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground"
+            >
+              Discard Changes
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-xl h-14 px-12 font-black text-base shadow-2xl shadow-primary/30 active:scale-95 transition-all min-w-[220px]"
+            >
               {isSubmitting ? (
-                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                <>
+                  <Loader2 className="animate-spin mr-3 h-5 w-5" /> Syncing...
+                </>
               ) : (
-                <CheckCircle2 className="mr-2 h-4 w-4" />
+                <>
+                  <Save className="mr-3 h-5 w-5" />
+                  {initialData ? 'Update Project' : 'Publish to Ledger'}
+                </>
               )}
-              {initialData ? 'Update project' : 'Publish project'}
-          </Button>
-      </div>
+            </Button>
+          </div>
+        </div>
+      )}
 
     </form>
   );
