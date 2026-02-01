@@ -23,7 +23,7 @@ export default async function MyProposalsPage() {
 
         <Link href="/dashboard/proposals/start" className="shrink-0">
           <Button className="h-12 rounded-xl px-8 shadow-xl shadow-primary/25 font-bold bg-primary hover:bg-primary/90 text-white transition-all active:scale-95 border-0">
-            <Plus className="mr-2 h-5 w-5" /> Start a New Cause
+            <Plus className="mr-2 h-5 w-5" /> New Cause
           </Button>
         </Link>
       </div>
