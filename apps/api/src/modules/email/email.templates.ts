@@ -182,4 +182,30 @@ export const EmailTemplates = {
       <a href="${data.uploadUrl}" class="button" style="background-color: #064e3b;">Upload Proof of Work</a>
     </div>
   `,
+
+  proposalStatusUpdate: (data: { name: string; project: string; status: string; feedback?: string; url: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>The status of your project proposal <strong>${data.project}</strong> has been updated.</p>
+    <div class="stat-box" style="text-align: center;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">New Status</div>
+      <div style="font-size: 24px; font-weight: 800; color: #064e3b;">${data.status}</div>
+    </div>
+    ${data.feedback ? `<p><strong>Admin Feedback:</strong> ${data.feedback}</p>` : ''}
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button">View Proposal</a>
+    </div>
+  `,
+
+  milestoneOwnerUpdate: (data: { name: string; project: string; milestone: string; status: string; url: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>The execution status for a phase in <strong>${data.project}</strong> has changed.</p>
+    <div class="stat-box">
+        <p style="margin:0; font-size: 14px;"><strong>Phase:</strong> ${data.milestone}</p>
+        <p style="margin:8px 0 0 0; font-size: 14px;"><strong>New Status:</strong> <span style="color: #10b981; font-weight: 700;">${data.status}</span></p>
+    </div>
+    <p>Please log in to your management console to view next steps or upload required evidence.</p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button">Manage Project</a>
+    </div>
+  `,
 };

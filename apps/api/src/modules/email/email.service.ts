@@ -123,4 +123,20 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Action Required: Proof of Work');
     return this.send(email, `Givar Action Required: ${data.project}`, html);
   }
+
+  // 10. Proposal Status (Approval/Rejection/Changes)
+  async sendProposalStatusUpdate(email: string, data: { name: string; project: string; status: string; feedback?: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
+    const content = EmailTemplates.proposalStatusUpdate({ ...data, url });
+    const html = EmailTemplates.base(content, 'Proposal Status Update');
+    return this.send(email, `Givar Impact: Update on "${data.project}"`, html);
+  }
+
+  // 11. Milestone Update for Owner
+  async sendOwnerMilestoneAlert(email: string, data: { name: string; project: string; milestone: string; status: string; projectId: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/projects/${data.projectId}/manage`;
+    const content = EmailTemplates.milestoneOwnerUpdate({ ...data, url });
+    const html = EmailTemplates.base(content, 'Milestone Status Updated');
+    return this.send(email, `Givar Alert: Phase "${data.milestone}" is now ${data.status}`, html);
+  }
 }

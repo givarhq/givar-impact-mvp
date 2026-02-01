@@ -178,7 +178,7 @@ export class AdminService {
   async approveAndPromote(proposalId: string, adminId: string) {
     const proposal = await this.prisma.projectProposal.findUnique({
       where: { id: proposalId },
-      include: { category: true },
+      include: { category: true, user: { select: { email: true, firstName: true } } },
     });
 
     if (!proposal || (proposal.status !== ProposalStatus.SUBMITTED && proposal.status !== ProposalStatus.UNDER_REVIEW)) {
@@ -234,41 +234,101 @@ export class AdminService {
       });
 
       return project;
+    }).then(async (project) => {
+      this.emailService.sendProposalStatusUpdate(proposal.user.email, {
+        name: proposal.user.firstName,
+        project: project.title,
+        status: 'APPROVED'
+      }).catch(e => this.logger.error(`Approval Email Failed: ${e.message}`));
+
+      return project;
     });
   }
 
   async rejectProposal(id: string, adminId: string, feedback: string) {
-    return this.prisma.projectProposal.update({
+    const proposal = await this.prisma.projectProposal.findUnique({
       where: { id },
-      data: {
-        status: ProposalStatus.REJECTED,
-        adminFeedback: feedback,
-        reviewedBy: adminId,
-      },
+      include: { user: { select: { email: true, firstName: true } } }
     });
+
+    if (!proposal) throw new NotFoundException('Proposal not found');
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.projectProposal.update({
+        where: { id },
+        data: {
+          status: ProposalStatus.REJECTED,
+          adminFeedback: feedback,
+          reviewedBy: adminId
+        },
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROPOSAL_REJECTED,
+        entityId: id,
+        entityType: 'ProjectProposal',
+        metadata: {
+          action: 'REJECTED',
+          proposerId: proposal.userId,
+          feedback
+        }
+      }, tx);
+
+      return updated;
+    });
+
+    this.emailService.sendProposalStatusUpdate(proposal.user.email, {
+      name: proposal.user.firstName,
+      project: proposal.title || 'Untitled',
+      status: 'REJECTED',
+      feedback
+    }).catch(e => this.logger.error(`Rejection Email Failed: ${e.message}`));
+
+    return result;
   }
 
   async requestChanges(id: string, adminId: string, feedback: string) {
-    const proposal = await this.prisma.projectProposal.update({
+    const proposal = await this.prisma.projectProposal.findUnique({
       where: { id },
-      data: {
-        status: ProposalStatus.CHANGES_REQUESTED,
-        adminFeedback: feedback,
-        reviewedBy: adminId,
-      },
+      include: { user: { select: { email: true, firstName: true } } }
     });
 
-    await this.prisma.auditLog.create({
-      data: {
+    if (!proposal) throw new NotFoundException('Proposal not found');
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.projectProposal.update({
+        where: { id },
+        data: {
+          status: ProposalStatus.CHANGES_REQUESTED,
+          adminFeedback: feedback,
+          reviewedBy: adminId,
+        },
+      });
+
+      await this.audit.log({
         userId: adminId,
         action: AuditAction.PROJECT_UPDATED,
         entityId: id,
         entityType: 'ProjectProposal',
-        metadata: { action: 'REQUEST_CHANGES', feedback }
-      }
+        metadata: {
+          action: 'REQUEST_CHANGES',
+          proposerId: proposal.userId,
+          feedback
+        }
+      }, tx);
+
+      return updated;
     });
 
-    return proposal;
+    this.emailService.sendProposalStatusUpdate(proposal.user.email, {
+      name: proposal.user.firstName,
+      project: proposal.title || 'Untitled',
+      status: 'CHANGES REQUESTED',
+      feedback
+    }).catch(e => this.logger.error(`Changes Email Failed: ${e.message}`));
+
+    return result;
   }
 
   private generateSlug(title: string) {
@@ -548,10 +608,14 @@ export class AdminService {
     dto: UpdateMilestoneDto,
     adminId: string
   ) {
-    // 1. Fetch Project with context for the broadcast helper
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-      select: { executionTimeline: true, title: true, slug: true }
+      select: {
+        executionTimeline: true,
+        title: true,
+        slug: true,
+        user: { select: { email: true, firstName: true } }
+      }
     });
 
     if (!project) throw new NotFoundException('Project not found');
@@ -592,8 +656,17 @@ export class AdminService {
       }
     });
 
+    if (project.user) {
+      this.emailService.sendOwnerMilestoneAlert(project.user.email, {
+        name: project.user.firstName,
+        project: project.title,
+        milestone: updatedTimeline[milestoneIndex].phase,
+        status: status.replace('_', ' '),
+        projectId
+      }).catch(err => this.logger.error(`Owner Milestone Email Failed: ${err.message}`));
+    }
+
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
-      // Automatically create a public narrative update
       await this.prisma.projectUpdate.create({
         data: {
           projectId,
