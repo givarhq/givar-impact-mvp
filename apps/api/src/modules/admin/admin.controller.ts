@@ -9,6 +9,7 @@ import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-projec
 import { ResolveSuspenseDto } from './dto/admin-suspense.dto';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
+import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
 
 @SkipThrottle()
 @Controller('admin')
@@ -28,7 +29,7 @@ export class AdminController {
   }
 
   @Get('projects')
-  async getProjects(@Query() query: any) {
+  async getProjects(@Query() query: AdminProjectQueryDto) {
     return this.service.getAllProjects(query);
   }
 
