@@ -952,9 +952,6 @@ export class AdminService {
 
   async getPendingProofs() {
     const proofs = await this.prisma.milestoneProof.findMany({
-      where: {
-        status: 'PENDING',
-      },
       include: {
         project: { select: { id: true, title: true, slug: true, executionTimeline: true } },
       },
@@ -1034,5 +1031,75 @@ export class AdminService {
     }, {
       timeout: 15000
     });
+  }
+
+  /**
+   * Scalable Evidence Queue Fetcher
+   * Supports pagination, project-based filtering, and status grouping.
+   */
+  async getEvidenceQueue(query: {
+    page?: number;
+    limit?: number;
+    projectId?: string;
+    status?: string;
+    search?: string;
+    sort?: 'asc' | 'desc';
+  }) {
+    const { page = 1, limit = 15, projectId, status, search, sort = 'asc' } = query;
+    const skip = (page - 1) * limit;
+
+    // 1. Initialize the base where clause
+    const where: Prisma.MilestoneProofWhereInput = {
+      ...(projectId && { projectId }),
+      ...(search && {
+        OR: [
+          { description: { contains: search, mode: 'insensitive' } },
+          { project: { title: { contains: search, mode: 'insensitive' } } },
+        ],
+      }),
+    };
+
+    if (status && status !== 'all') {
+      where.status = status as any;
+    } else if (!status) {
+      where.status = 'PENDING';
+    }
+
+    const [proofs, total] = await Promise.all([
+      this.prisma.milestoneProof.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          project: { select: { id: true, title: true, slug: true, executionTimeline: true } },
+        },
+        orderBy: { submittedAt: sort },
+      }),
+      this.prisma.milestoneProof.count({ where }),
+    ]);
+
+    const hydratedData = await Promise.all(
+      proofs.map(async (proof) => {
+        const signedImages = await Promise.all(
+          proof.imageKeys.map((key) =>
+            this.storage.getPresignedViewUrl(key).then((r) => r.viewUrl).catch(() => null)
+          ),
+        );
+
+        const timeline = (proof.project.executionTimeline as any[]) || [];
+        const milestone = timeline.find((m) => m.id === proof.milestoneId);
+
+        return {
+          ...proof,
+          imageUrls: signedImages.filter(url => url !== null),
+          phaseName: milestone?.phase || 'Unknown Phase',
+        };
+      }),
+    );
+
+    return {
+      data: hydratedData,
+      meta: { total, page, lastPage: Math.ceil(total / limit) },
+    };
   }
 }
