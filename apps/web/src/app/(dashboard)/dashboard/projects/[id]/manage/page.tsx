@@ -12,7 +12,8 @@ import {
     Database,
     ShieldCheck,
     AlertCircle,
-    TrendingUp
+    TrendingUp,
+    FileX
 } from 'lucide-react';
 import Link from 'next/link';
 import { EvidenceSubmission } from '../../../../../../components/features/proposals/evidence-submission';
@@ -30,11 +31,13 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
 
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
 
-    // Find the earliest phase that isn't completed to show as "Active"
     const currentMilestone = timeline.find((m: any) => m.status === 'IN_PROGRESS') ||
         timeline.find((m: any) => m.status === 'PENDING');
 
     const isFullyCompleted = timeline.every((m: any) => m.status === 'COMPLETED');
+
+    const latestProof = project.milestoneProofs?.find((p: any) => p.milestoneId === currentMilestone?.id);
+    const isRejected = latestProof?.status === 'REJECTED';
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-24">
@@ -66,17 +69,48 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                 {/* --- LEFT COLUMN: ACTION & ROADMAP --- */}
                 <div className="lg:col-span-8 space-y-8">
 
+                    {/* Rejection Feedback Alert */}
+                    {isRejected && (
+                        <div className="p-5 rounded-[24px] bg-destructive/5 border border-destructive/20 flex items-start gap-4 animate-in slide-in-from-top-2 duration-500">
+                            <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
+                                <FileX className="h-5 w-5" />
+                            </div>
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-bold text-destructive uppercase tracking-tight">Evidence Rejected</h4>
+                                <p className="text-sm text-foreground/80 leading-relaxed font-medium">
+                                    &quot;{latestProof.adminFeedback}&quot;
+                                </p>
+                                <p className="text-xs text-muted-foreground pt-1 italic font-medium">
+                                    Please review the feedback above and submit corrected evidence below.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Submission */}
                     {!isFullyCompleted && currentMilestone ? (
-                        <div className="group relative rounded-[32px] p-[1px] bg-gradient-to-br from-primary/30 via-border/50 to-transparent shadow-2xl shadow-primary/5">
-                            <Card className="border-none bg-card/50 backdrop-blur-xl rounded-[31px] overflow-hidden">
+                        <div className={cn(
+                            "group relative rounded-[32px] p-[1px] transition-all duration-300 shadow-2xl",
+                            isRejected
+                                ? "bg-gradient-to-br from-destructive/40 via-border/50 to-transparent shadow-destructive/5"
+                                : "bg-gradient-to-br from-primary/30 via-border/50 to-transparent shadow-primary/5"
+                        )}>
+                            <Card className={cn(
+                                "border-none backdrop-blur-xl rounded-[31px] overflow-hidden",
+                                isRejected ? "bg-destructive/[0.01]" : "bg-card/50"
+                            )}>
                                 <CardHeader className="border-b border-border/50 p-6 md:p-8">
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="text-xl font-bold flex items-center gap-3">
-                                            <Camera className="h-6 w-6 text-primary" />
-                                            <span className="text-foreground">Submit Progress Evidence</span>
+                                            <Camera className={cn("h-6 w-6", isRejected ? "text-destructive" : "text-primary")} />
+                                            <span className="text-foreground">
+                                                {isRejected ? 'Resubmit Milestone Evidence' : 'Submit Progress Evidence'}
+                                            </span>
                                         </CardTitle>
-                                        <Badge className="bg-primary/10 text-primary border-0 rounded-md py-1">
+                                        <Badge className={cn(
+                                            "border-0 rounded-md py-1 px-3",
+                                            isRejected ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+                                        )}>
                                             {currentMilestone.phase}
                                         </Badge>
                                     </div>
@@ -139,7 +173,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                                                         "text-[9px] uppercase font-black px-2 rounded-md",
                                                         isDone ? "text-emerald-500 border-emerald-500/20 bg-emerald-500/5" : "text-muted-foreground"
                                                     )}>
-                                                        {m.status.replace('_', ' ')}
+                                                        {m.status?.replace('_', ' ') || 'PENDING'}
                                                     </Badge>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{m.deliverables}</p>
