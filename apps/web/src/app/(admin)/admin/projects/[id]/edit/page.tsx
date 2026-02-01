@@ -53,16 +53,16 @@ export default async function EditProjectPage({
                 <Settings className="mr-2 h-4 w-4" /> Project Details
               </TabsTrigger>
               <TabsTrigger
-                value="disbursements"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
-              >
-                <Wallet className="mr-2 h-4 w-4" /> Disbursements
-              </TabsTrigger>
-              <TabsTrigger
                 value="execution"
                 className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 <Activity className="mr-2 h-4 w-4" /> Execution & Milestones
+              </TabsTrigger>
+              <TabsTrigger
+                value="disbursements"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+              >
+                <Wallet className="mr-2 h-4 w-4" /> Disbursements
               </TabsTrigger>
             </TabsList>
           </div>
@@ -74,18 +74,18 @@ export default async function EditProjectPage({
             />
           </TabsContent>
 
-          <TabsContent value="disbursements" className="mt-0 border-none p-0 outline-none">
+          <TabsContent value="execution" className="mt-0 border-none p-0 outline-none">
             <div className="max-w-4xl mx-auto">
-              <DisbursementForm
+              <MilestoneManager
                 projectId={id}
                 timeline={project.executionTimeline || []}
               />
             </div>
           </TabsContent>
 
-          <TabsContent value="execution" className="mt-0 border-none p-0 outline-none">
+          <TabsContent value="disbursements" className="mt-0 border-none p-0 outline-none">
             <div className="max-w-4xl mx-auto">
-              <MilestoneManager
+              <DisbursementForm
                 projectId={id}
                 timeline={project.executionTimeline || []}
               />
