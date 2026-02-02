@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { VerificationStatus, AuditAction, ProposalStatus } from '@givar/database';
+import { VerificationStatus, AuditAction, ProposalStatus, AccountType } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
@@ -58,8 +58,14 @@ export class OrganizationService {
         },
       });
 
-      // 2. Logic: Auto-promote queued proposals
+      // 2. State Convergence logic
       if (status === VerificationStatus.VERIFIED) {
+        // --- PATH: APPROVAL ---
+        await tx.user.update({
+          where: { id: updated.userId },
+          data: { accountType: AccountType.ORGANIZER },
+        });
+
         const result = await tx.projectProposal.updateMany({
           where: {
             userId: updated.userId,
@@ -74,6 +80,25 @@ export class OrganizationService {
         if (result.count > 0) {
           this.logger.log(`Auto-submitted ${result.count} proposals for verified user ${updated.userId}`);
         }
+      } else if (status === VerificationStatus.REJECTED) {
+        // --- PATH: REJECTION ---
+        // Downgrade account type to prevent further organizer actions until re-verified
+        await tx.user.update({
+          where: { id: updated.userId },
+          data: { accountType: AccountType.INDIVIDUAL },
+        });
+
+        // Move "waiting" proposals back to DRAFT so user can see feedback and edit
+        await tx.projectProposal.updateMany({
+          where: {
+            userId: updated.userId,
+            status: ProposalStatus.AWAITING_VERIFICATION
+          },
+          data: {
+            status: ProposalStatus.DRAFT,
+            adminFeedback: `KYC Rejected: ${feedback || 'Please review your verification documents.'}`
+          }
+        });
       }
 
       // 3. Audit the decision 
