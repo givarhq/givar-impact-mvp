@@ -13,10 +13,10 @@ import {
   ChevronDown,
   ShieldCheck,
 } from 'lucide-react';
-import { deleteCookie, getCookie } from 'cookies-next';
+import { deleteCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/button';
-import { ThemeToggle } from './theme-toggle'; 
+import { ThemeToggle } from './theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,43 +34,30 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/history': 'Transaction History',
   '/dashboard/subscriptions': 'Recurring Donations',
   '/dashboard/settings': 'Account Settings',
+  '/dashboard/verify': 'Identity Verification',
 };
 
-function safeParse<T>(value: string | undefined | null): T | null {
-  if (!value || value === 'undefined') return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch (err) {
-    console.warn('Failed to parse JSON cookie:', value, err);
-    return null;
-  }
-}
-
-export function Header() {
+export function Header({ user }: { user: any }) {
   const pathname = usePathname();
   const router = useRouter();
-  
+
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const userCookie = getCookie('givar_user') as string | undefined;
-  const user = isClient ? safeParse<{ firstName: string; lastName: string; email: string }>(userCookie) : null;
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
   const displayEmail = user?.email || '';
 
   const handleLogout = async () => {
     try {
       await ApiService.auth.logout();
-
       deleteCookie('givar_token');
       deleteCookie('givar_user');
       router.push('/login');
-
+      toast.success("Logged out successfully");
     } catch (error) {
-      // Fallback: Even if the API call fails, log the user out on the client.
       console.error("Server logout failed, performing client-side logout:", error);
       deleteCookie('givar_token');
       deleteCookie('givar_user');
@@ -82,7 +69,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
-      
+
       <div className="md:hidden flex items-center gap-3">
         <Link href="/dashboard" className="flex items-center gap-2 group">
           <div>
@@ -119,7 +106,7 @@ export function Header() {
             placeholder="Search..."
             className="bg-transparent text-sm outline-none placeholder:text-muted-foreground w-24 lg:w-36 text-foreground"
           />
-          <kbd className="ml-2 flex h-5 w-5 items-center justify-center rounded border border-border bg-background text-muted-foreground select-none">
+          <kbd className="ml-2 flex h-5 w-5 items-center justify-center rounded border border-border bg-background text-muted-foreground select-none text-[10px]">
             <CornerDownLeft className="h-3 w-3" />
           </kbd>
         </div>
@@ -150,36 +137,39 @@ export function Header() {
                 )}
               </div>
               <div className="hidden text-left md:block pr-2">
-                  <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[100px]">
-                    {isClient && user?.firstName ? user.firstName : 'Account'}
-                  </span>
+                <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[100px]">
+                  {isClient && user?.firstName ? user.firstName : 'Account'}
+                </span>
               </div>
               <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
             </button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl">
             <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">
+              <div className="flex flex-col space-y-1 p-2">
+                <p className="text-sm font-bold leading-none text-foreground">
                   {displayName}
                 </p>
-                <p className="text-xs leading-none text-muted-foreground">
+                <p className="text-xs leading-none text-muted-foreground truncate">
                   {displayEmail}
                 </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="rounded-lg cursor-pointer" onClick={() => router.push('/dashboard/verify')}>
-              <ShieldCheck className="mr-2 h-4 w-4" /> <span>Verification Status</span>
+
+            {user?.accountType === 'ORGANIZER' && (
+              <DropdownMenuItem className="rounded-xl cursor-pointer py-2.5" onClick={() => router.push('/dashboard/verify')}>
+                <ShieldCheck className="mr-2 h-4 w-4 text-primary" /> <span>Verification Status</span>
+              </DropdownMenuItem>
+            )}
+
+            <DropdownMenuItem className="rounded-xl cursor-pointer py-2.5" onClick={() => router.push('/dashboard/settings')}>
+              <Settings className="mr-2 h-4 w-4 text-muted-foreground" /> <span>Settings</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem className="rounded-lg cursor-pointer" onClick={() => router.push('/dashboard/settings')}>
-              <Settings className="mr-2 h-4 w-4" /> <span>Settings</span>
-            </DropdownMenuItem>
-            
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-lg cursor-pointer">
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-xl cursor-pointer py-2.5">
               <LogOut className="mr-2 h-4 w-4" /> <span>Logout</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
