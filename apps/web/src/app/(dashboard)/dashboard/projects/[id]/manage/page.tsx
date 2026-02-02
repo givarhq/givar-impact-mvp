@@ -15,31 +15,36 @@ import {
     TrendingUp,
     FileX,
     FileSearch,
-    Check
+    Check,
+    ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { EvidenceSubmission } from '../../../../../../components/features/proposals/evidence-submission';
 import { cn } from '../../../../../../lib/utils/cn';
 import { formatCurrency, formatDate } from '../../../../../../lib/utils/format';
-
-export default async function ProjectManagePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ProjectManagePage({
+    params,
+    searchParams
+}: {
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ milestoneId?: string }>
+}) {
     const { id } = await params;
+    const { milestoneId: focusedMilestoneId } = await searchParams;
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value;
     if (!token) redirect('/login');
-
     const project = await ApiService.projects.getOwnerView(id, token);
     if (!project) notFound();
-
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
-
-    const currentMilestone = timeline.find((m: any) => m.status === 'IN_PROGRESS') ||
+    const defaultMilestone = timeline.find((m: any) => m.status === 'IN_PROGRESS') ||
         timeline.find((m: any) => m.status === 'PENDING');
-
+    const currentMilestone = focusedMilestoneId
+        ? timeline.find((m: any) => m.id === focusedMilestoneId)
+        : defaultMilestone;
     const isFullyCompleted = timeline.every((m: any) => m.status === 'COMPLETED');
     const latestProof = project.milestoneProofs?.find((p: any) => p.milestoneId === currentMilestone?.id);
     const isRejected = latestProof?.status === 'REJECTED';
-
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-24">
             {/* --- HEADER --- */}
@@ -64,9 +69,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                     </div>
                 </div>
             </div>
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
                 {/* --- LEFT COLUMN: ACTION & ROADMAP --- */}
                 <div className="lg:col-span-8 space-y-8">
                     {isRejected && (
@@ -85,7 +88,7 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                             </div>
                         </div>
                     )}
-
+                    <div id="submit-evidence" />
                     {!isFullyCompleted && currentMilestone ? (
                         <div className={cn(
                             "group relative rounded-[32px] p-[1px] transition-all duration-300 shadow-2xl",
@@ -102,22 +105,29 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                                         <CardTitle className="text-xl font-bold flex items-center gap-3">
                                             <Camera className={cn("h-6 w-6", isRejected ? "text-destructive" : "text-primary")} />
                                             <span className="text-foreground">
-                                                {isRejected ? 'Resubmit Milestone Evidence' : 'Submit Progress Evidence'}
+                                                {isRejected ? 'Resubmit Evidence' : 'Post Impact Update'}
                                             </span>
                                         </CardTitle>
-                                        <Badge className={cn(
-                                            "border-0 rounded-md py-1 px-3",
-                                            isRejected ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
-                                        )}>
-                                            {currentMilestone.phase}
-                                        </Badge>
+                                        <div className="flex items-center gap-2">
+                                            {focusedMilestoneId && (
+                                                <Link href={`/dashboard/projects/${id}/manage`}>
+                                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-bold text-muted-foreground hover:text-foreground">Reset</Button>
+                                                </Link>
+                                            )}
+                                            <Badge className={cn(
+                                                "border-0 rounded-md py-1 px-3 font-bold",
+                                                isRejected ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+                                            )}>
+                                                {currentMilestone.phase}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-6 md:p-8">
                                     <EvidenceSubmission
+                                        key={currentMilestone.id}
                                         projectId={id}
                                         milestone={currentMilestone}
-                                        onSuccess={() => { }}
                                     />
                                 </CardContent>
                             </Card>
@@ -133,7 +143,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                             </p>
                         </Card>
                     ) : null}
-
                     <Card className="rounded-[32px] border-border/50 bg-card/30 shadow-sm overflow-hidden">
                         <CardHeader className="p-8 pb-4">
                             <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -180,7 +189,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                         </CardContent>
                     </Card>
                 </div>
-
                 {/* --- RIGHT COLUMN: FINANCIALS --- */}
                 <div className="lg:col-span-4 space-y-6">
                     <Card className="rounded-[28px] border-border/50 bg-primary/5 p-6 border-2 border-dashed">
@@ -200,7 +208,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                             </div>
                         </div>
                     </Card>
-
                     <Card className="rounded-[28px] border-border/50 shadow-sm bg-card overflow-hidden">
                         <CardHeader className="bg-muted/40 border-b border-border/50 py-4 px-6">
                             <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -210,40 +217,20 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                         <CardContent className="p-6 space-y-4">
                             {project.disbursements?.length > 0 ? (
                                 project.disbursements.map((d: any) => {
-                                    // SOTA: Cross-reference logic to check for satisfying proof
-                                    const matchingProof = project.milestoneProofs?.find((p: any) => p.milestoneId === d.milestoneId);
-                                    const isVerified = matchingProof?.status === 'APPROVED';
-                                    const isPendingAudit = matchingProof?.status === 'PENDING';
+                                    const satisfactionStatus = d.satisfactionStatus || 'ACTION_REQUIRED';
+                                    const isVerified = satisfactionStatus === 'VERIFIED';
+                                    const isPendingAudit = satisfactionStatus === 'AUDITING';
+                                    let bottomSection = (
+                                        <div
+                                            className={cn(
+                                                "mt-2 -mx-4 -mb-4 px-4 py-3 border-t border-border/50",
+                                                "flex justify-between items-center",
+                                                !isVerified && !isPendingAudit &&
+                                                "cursor-pointer hover:bg-primary/5 transition-colors"
+                                            )}
+                                        >
 
-                                    return (
-                                        <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 hover:bg-muted/30 transition-colors">
-                                            <div className="flex justify-between items-start">
-                                                <div className="space-y-0.5">
-                                                    <p className="text-[9px] font-black text-primary uppercase tracking-tight">Payment Disbursed</p>
-                                                    <span className="text-[10px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
-                                                </div>
-
-                                                {/* SOTA Satisfaction Indicator */}
-                                                {isVerified ? (
-                                                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center">
-                                                        <Check className="h-2.5 w-2.5" /> Verified
-                                                    </Badge>
-                                                ) : isPendingAudit ? (
-                                                    <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center animate-pulse">
-                                                        <FileSearch className="h-2.5 w-2.5" /> Auditing
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center">
-                                                        <AlertCircle className="h-2.5 w-2.5" /> Action Required
-                                                    </Badge>
-                                                )}
-                                            </div>
-
-                                            <p className="text-lg font-bold text-foreground tabular-nums">
-                                                {formatCurrency(d.amount, project.currency)}
-                                            </p>
-
-                                            <div className="pt-2 border-t border-border/50">
+                                            <div className="min-w-0 flex-1">
                                                 <p className="text-[11px] font-medium text-foreground truncate">
                                                     <span className="text-muted-foreground">Vendor:</span> {d.vendorName}
                                                 </p>
@@ -251,6 +238,45 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                                                     Phase: {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
                                                 </p>
                                             </div>
+                                            {!isVerified && !isPendingAudit && (
+                                                <ChevronRight className="h-4 w-4 text-primary" />
+                                            )}
+                                        </div>
+                                    );
+                                    if (!isVerified && !isPendingAudit) {
+                                        bottomSection = (
+                                            <Link href={`?milestoneId=${d.milestoneId}#submit-evidence`} className="block">
+                                                {bottomSection}
+                                            </Link>
+                                        );
+                                    }
+                                    return (
+                                        <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 hover:bg-muted/30 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <div className="space-y-0.5">
+                                                    <p className="text-[9px] font-black text-primary uppercase tracking-tight">Payment Disbursed</p>
+                                                    <span className="text-[10px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
+                                                </div>
+                                                {isVerified ? (
+                                                    <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center shadow-none">
+                                                        <Check className="h-2.5 w-2.5" /> Verified
+                                                    </Badge>
+                                                ) : isPendingAudit ? (
+                                                    <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center animate-pulse shadow-none">
+                                                        <FileSearch className="h-2.5 w-2.5" /> Auditing
+                                                    </Badge>
+                                                ) : (
+                                                    <Link href={`?milestoneId=${d.milestoneId}#submit-evidence`} className="block">
+                                                        <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center hover:bg-amber-500/20 transition-colors cursor-pointer shadow-none">
+                                                            <AlertCircle className="h-2.5 w-2.5" /> Action Required
+                                                        </Badge>
+                                                    </Link>
+                                                )}
+                                            </div>
+                                            <p className="text-lg font-bold text-foreground tabular-nums">
+                                                {formatCurrency(d.amount, project.currency)}
+                                            </p>
+                                            {bottomSection}
                                         </div>
                                     )
                                 })
@@ -262,7 +288,6 @@ export default async function ProjectManagePage({ params }: { params: Promise<{ 
                             )}
                         </CardContent>
                     </Card>
-
                     <div className="p-6 rounded-[28px] bg-secondary/30 border border-border/50 flex items-start gap-4">
                         <AlertCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-[11px] text-muted-foreground leading-relaxed">
