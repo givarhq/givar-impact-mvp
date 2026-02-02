@@ -52,17 +52,19 @@ export default async function EditProjectPage({
               >
                 <Settings className="mr-2 h-4 w-4" /> Project Details
               </TabsTrigger>
-              <TabsTrigger
-                value="execution"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
-              >
-                <Activity className="mr-2 h-4 w-4" /> Execution & Milestones
-              </TabsTrigger>
+
               <TabsTrigger
                 value="disbursements"
                 className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
               >
                 <Wallet className="mr-2 h-4 w-4" /> Disbursements
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="execution"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+              >
+                <Activity className="mr-2 h-4 w-4" /> Execution & Milestones
               </TabsTrigger>
             </TabsList>
           </div>
