@@ -16,12 +16,14 @@ import {
     FileX,
     FileSearch,
     Check,
-    ChevronRight
+    ChevronRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { EvidenceSubmission } from '../../../../../../components/features/proposals/evidence-submission';
 import { cn } from '../../../../../../lib/utils/cn';
 import { formatCurrency, formatDate } from '../../../../../../lib/utils/format';
+import { ReceiptButton } from '../../../../../../components/features/proposals/receipt-button';
+
 export default async function ProjectManagePage({
     params,
     searchParams
@@ -34,17 +36,24 @@ export default async function ProjectManagePage({
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value;
     if (!token) redirect('/login');
+
     const project = await ApiService.projects.getOwnerView(id, token);
     if (!project) notFound();
+
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
+
+    // Logic: If URL param exists, focus that milestone. Else find first pending/active.
     const defaultMilestone = timeline.find((m: any) => m.status === 'IN_PROGRESS') ||
         timeline.find((m: any) => m.status === 'PENDING');
+
     const currentMilestone = focusedMilestoneId
         ? timeline.find((m: any) => m.id === focusedMilestoneId)
         : defaultMilestone;
+
     const isFullyCompleted = timeline.every((m: any) => m.status === 'COMPLETED');
     const latestProof = project.milestoneProofs?.find((p: any) => p.milestoneId === currentMilestone?.id);
     const isRejected = latestProof?.status === 'REJECTED';
+
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-24">
             {/* --- HEADER --- */}
@@ -69,9 +78,13 @@ export default async function ProjectManagePage({
                     </div>
                 </div>
             </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* --- LEFT COLUMN: ACTION & ROADMAP --- */}
                 <div className="lg:col-span-8 space-y-8">
+                    {/* Anchor for deep linking */}
+                    <div id="submit-evidence" className="scroll-mt-32" />
+
                     {isRejected && (
                         <div className="p-5 rounded-[24px] bg-destructive/5 border border-destructive/20 flex items-start gap-4 animate-in slide-in-from-top-2 duration-500">
                             <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive shrink-0">
@@ -88,7 +101,7 @@ export default async function ProjectManagePage({
                             </div>
                         </div>
                     )}
-                    <div id="submit-evidence" />
+
                     {!isFullyCompleted && currentMilestone ? (
                         <div className={cn(
                             "group relative rounded-[32px] p-[1px] transition-all duration-300 shadow-2xl",
@@ -111,7 +124,7 @@ export default async function ProjectManagePage({
                                         <div className="flex items-center gap-2">
                                             {focusedMilestoneId && (
                                                 <Link href={`/dashboard/projects/${id}/manage`}>
-                                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-bold text-muted-foreground hover:text-foreground">Reset</Button>
+                                                    <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase font-bold text-muted-foreground hover:text-foreground">Reset View</Button>
                                                 </Link>
                                             )}
                                             <Badge className={cn(
@@ -125,7 +138,7 @@ export default async function ProjectManagePage({
                                 </CardHeader>
                                 <CardContent className="p-6 md:p-8">
                                     <EvidenceSubmission
-                                        key={currentMilestone.id}
+                                        key={currentMilestone.id} // Force re-render on milestone switch
                                         projectId={id}
                                         milestone={currentMilestone}
                                     />
@@ -143,6 +156,8 @@ export default async function ProjectManagePage({
                             </p>
                         </Card>
                     ) : null}
+
+                    {/* Timeline */}
                     <Card className="rounded-[32px] border-border/50 bg-card/30 shadow-sm overflow-hidden">
                         <CardHeader className="p-8 pb-4">
                             <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -189,6 +204,7 @@ export default async function ProjectManagePage({
                         </CardContent>
                     </Card>
                 </div>
+
                 {/* --- RIGHT COLUMN: FINANCIALS --- */}
                 <div className="lg:col-span-4 space-y-6">
                     <Card className="rounded-[28px] border-border/50 bg-primary/5 p-6 border-2 border-dashed">
@@ -201,13 +217,10 @@ export default async function ProjectManagePage({
                                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                                     Givar Management handles all vendor payments directly. Your role is to verify deliveries.
                                 </p>
-                                <p>
-                                    <span className="text-[11px] italic font-bold text-muted-foreground leading-relaxed">Note:</span>
-                                    <span className="text-[11px] italic text-muted-foreground leading-relaxed"> Verification of each phase is a prerequisite for subsequent funding tranches.</span>
-                                </p>
                             </div>
                         </div>
                     </Card>
+
                     <Card className="rounded-[28px] border-border/50 shadow-sm bg-card overflow-hidden">
                         <CardHeader className="bg-muted/40 border-b border-border/50 py-4 px-6">
                             <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -220,6 +233,8 @@ export default async function ProjectManagePage({
                                     const satisfactionStatus = d.satisfactionStatus || 'ACTION_REQUIRED';
                                     const isVerified = satisfactionStatus === 'VERIFIED';
                                     const isPendingAudit = satisfactionStatus === 'AUDITING';
+
+                                    // SOTA: Interactive Bottom Section
                                     let bottomSection = (
                                         <div
                                             className={cn(
@@ -243,6 +258,8 @@ export default async function ProjectManagePage({
                                             )}
                                         </div>
                                     );
+
+                                    // Wrap in link if action required
                                     if (!isVerified && !isPendingAudit) {
                                         bottomSection = (
                                             <Link href={`?milestoneId=${d.milestoneId}#submit-evidence`} className="block">
@@ -250,6 +267,7 @@ export default async function ProjectManagePage({
                                             </Link>
                                         );
                                     }
+
                                     return (
                                         <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 hover:bg-muted/30 transition-colors">
                                             <div className="flex justify-between items-start">
@@ -257,6 +275,7 @@ export default async function ProjectManagePage({
                                                     <p className="text-[9px] font-black text-primary uppercase tracking-tight">Payment Disbursed</p>
                                                     <span className="text-[10px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
                                                 </div>
+
                                                 {isVerified ? (
                                                     <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[8px] font-black uppercase h-5 px-2 rounded-md flex gap-1 items-center shadow-none">
                                                         <Check className="h-2.5 w-2.5" /> Verified
@@ -273,9 +292,17 @@ export default async function ProjectManagePage({
                                                     </Link>
                                                 )}
                                             </div>
+
                                             <p className="text-lg font-bold text-foreground tabular-nums">
                                                 {formatCurrency(d.amount, project.currency)}
                                             </p>
+
+                                            {d.receiptKey && (
+                                                <div className="flex justify-end -mt-2">
+                                                    <ReceiptButton receiptKey={d.receiptKey} projectId={project.id} />
+                                                </div>
+                                            )}
+
                                             {bottomSection}
                                         </div>
                                     )
@@ -288,6 +315,7 @@ export default async function ProjectManagePage({
                             )}
                         </CardContent>
                     </Card>
+
                     <div className="p-6 rounded-[28px] bg-secondary/30 border border-border/50 flex items-start gap-4">
                         <AlertCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-[11px] text-muted-foreground leading-relaxed">
