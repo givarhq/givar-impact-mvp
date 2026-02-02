@@ -5,6 +5,7 @@ import { ProjectQueryDto, ProjectSort } from './dto/project-query.dto';
 import { AuditAction, Prisma, ProjectStatus } from '@givar/database';
 import { SubmitMilestoneProofDto } from './dto/evidence.dto';
 import { AuditService } from '../audit/audit.service';
+import { StorageService } from '../storage/storage.service';
 
 type ProjectMediaValue = {
   url: string;
@@ -18,6 +19,7 @@ export class ProjectService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private storage: StorageService,
   ) { }
 
   async create(dto: CreateProjectDto) {
@@ -102,24 +104,25 @@ export class ProjectService {
     ]);
 
     // 4. Data Transformation
-    const data = projects.map((p) => {
-      const raised = Number(p.raisedAmount || 0n);
-      const target = Number(p.targetAmount || 0n);
+    const data = await Promise.all(projects.map(async (p) => {
+      const hydrated = await this.storage.hydrateEntityMedia(p);
+      const raised = Number(hydrated.raisedAmount || 0n);
+      const target = Number(hydrated.targetAmount || 0n);
 
       const isSystemProject = p.user?.role === 'ADMIN';
 
       return {
-        ...p,
-        targetAmount: p.targetAmount.toString(),
-        raisedAmount: p.raisedAmount.toString(),
+        ...hydrated,
+        targetAmount: hydrated.targetAmount.toString(),
+        raisedAmount: hydrated.raisedAmount.toString(),
         percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
-        categoryName: p.category?.name,
-        categorySlug: p.category?.slug,
+        categoryName: hydrated.category?.name,
+        categorySlug: hydrated.category?.slug,
         isVerifiedOrganizer: isSystemProject ? true : p.user?.organization?.status === 'VERIFIED',
         organizerName: isSystemProject ? 'Givar' : (p.user?.organization?.legalName || 'Individual'),
         isGivarOfficial: isSystemProject
       };
-    });
+    }));
 
     return {
       data,
@@ -149,6 +152,8 @@ export class ProjectService {
 
     if (!project) throw new NotFoundException('Project not found');
 
+    const hydrated = await this.storage.hydrateEntityMedia(project);
+
     // Count donors
     const [userDonors, guestDonors] = await Promise.all([
       this.prisma.donation.groupBy({ by: ['userId'], where: { projectId: project.id } }),
@@ -159,13 +164,13 @@ export class ProjectService {
     const isSystemProject = project.user?.role === 'ADMIN';
 
     return {
-      ...project,
-      targetAmount: project.targetAmount.toString(),
-      raisedAmount: project.raisedAmount.toString(),
-      percentFunded: Number(project.targetAmount) > 0 ? Math.min(100, Math.round((Number(project.raisedAmount) / Number(project.targetAmount)) * 100)) : 0,
+      ...hydrated,
+      targetAmount: hydrated.targetAmount.toString(),
+      raisedAmount: hydrated.raisedAmount.toString(),
+      percentFunded: Number(hydrated.targetAmount) > 0 ? Math.min(100, Math.round((Number(hydrated.raisedAmount) / Number(hydrated.targetAmount)) * 100)) : 0,
       donorCount,
-      isVerifiedOrganizer: isSystemProject ? true : project.user?.organization?.status === 'VERIFIED',
-      organizerName: isSystemProject ? 'Givar' : (project.user?.organization?.legalName || 'Individual'),
+      isVerifiedOrganizer: isSystemProject ? true : hydrated.user?.organization?.status === 'VERIFIED',
+      organizerName: isSystemProject ? 'Givar' : (hydrated.user?.organization?.legalName || 'Individual'),
       isGivarOfficial: isSystemProject
     };
   }

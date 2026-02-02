@@ -8,12 +8,14 @@ import { PrismaService } from '../../common/prisma.service';
 import { CreateProposalDto, UpdateProposalDto } from './dto/proposal.dto';
 import { ProposalStatus, Prisma, AuditAction } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class ProposalService {
   constructor(
     private prisma: PrismaService,
-    private audit: AuditService
+    private audit: AuditService,
+    private storage: StorageService
   ) { }
 
   // 1. Start a Draft
@@ -129,9 +131,12 @@ export class ProposalService {
   // 5. Get Single Proposal (for editing)
   async getOne(userId: string, proposalId: string) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);
+
+    const hydrated = await this.storage.hydrateEntityMedia(proposal);
+
     return {
-      ...proposal,
-      targetAmount: proposal.targetAmount?.toString() || '0'
+      ...hydrated,
+      targetAmount: hydrated.targetAmount?.toString() || '0'
     };
   }
 
@@ -281,6 +286,7 @@ export class ProposalService {
   private async getProposalOrThrow(id: string, userId: string) {
     const proposal = await this.prisma.projectProposal.findUnique({
       where: { id },
+      include: { category: true }
     });
     if (!proposal) throw new NotFoundException('Proposal not found');
     if (proposal.userId !== userId) throw new ForbiddenException('Access Denied');
