@@ -1,23 +1,19 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { AdminShell } from '../../components/layout/admin-shell';
+import { ApiService } from '../../services/api';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const userCookie = cookieStore.get('givar_user');
+  const token = cookieStore.get('givar_token')?.value;
 
-  if (!userCookie || !userCookie.value) {
+  if (!token) {
     redirect('/login');
   }
-  
-  let user;
-  try {
-    user = JSON.parse(userCookie.value);
-  } catch (error) {
-    redirect('/login');
-  }
-  
-  if (!user || user.role !== 'ADMIN') {
+
+  const dbUser = await ApiService.auth.getMe(token);
+
+  if (!dbUser || dbUser.role !== 'ADMIN') {
     redirect('/dashboard');
   }
 
