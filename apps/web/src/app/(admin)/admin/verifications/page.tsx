@@ -1,61 +1,58 @@
 import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
-import { VerificationReviewRow } from '../../../../components/features/admin/verification-review-row';
-import { Inbox, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
+import { VerificationTabs } from '../../../../components/features/admin/verification-tabs';
+import { Pagination } from '../../../../components/features/history/pagination';
 
-export default async function AdminVerificationQueuePage() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('givar_token')?.value;
+export const dynamic = 'force-dynamic';
 
-  if (!token) return null;
+export default async function AdminVerificationPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ page?: string; search?: string; status?: string; tab?: string }>;
+}) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('givar_token')?.value;
+    if (!token) return null;
 
-  const pending = (await ApiService.organizations.getPending(token)) || [];
+    const resolvedParams = await searchParams;
+    const params = new URLSearchParams();
+    params.set('page', resolvedParams.page || '1');
+    params.set('limit', '15');
+    if (resolvedParams.search) params.set('search', resolvedParams.search);
+    if (resolvedParams.status) params.set('status', resolvedParams.status);
 
-  return (
-    <div className="space-y-8 pb-10">
-      <div className="md:hidden flex flex-col gap-1 mb-2">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Verifications</h1>
-        <p className="text-sm text-muted-foreground">Review organization KYC submissions.</p>
-      </div>
+    // SOTA: Parallel Fetching
+    const [orgsResult, evidenceResult] = await Promise.all([
+        ApiService.organizations.getPending(token),
+        ApiService.admin.getPendingEvidence(token, params)
+    ]);
 
-      <div className="bg-primary/5 border border-primary/10 p-5 rounded-2xl flex items-start gap-4">
-          <ShieldCheck className="h-6 w-6 text-primary shrink-0" />
-          <div className="space-y-1">
-              <h4 className="text-sm font-bold text-primary uppercase tracking-wider">KYC Verification Protocol</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                  Review legal documents carefully. Verifying an organization grants them high-trust status on the platform, allowing for direct-to-vendor payments.
-              </p>
-          </div>
-      </div>
+    const emptyData = { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-                <thead className="bg-muted/40 text-muted-foreground border-b border-border">
-                    <tr>
-                        <th className="px-6 py-4 font-semibold uppercase tracking-tighter text-[11px]">Organization</th>
-                        <th className="px-6 py-4 font-semibold uppercase tracking-tighter text-[11px]">Proposer</th>
-                        <th className="px-6 py-4 font-semibold uppercase tracking-tighter text-[11px]">Documents</th>
-                        <th className="px-6 py-4"></th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                    {pending.length === 0 ? (
-                        <tr>
-                            <td colSpan={4} className="px-6 py-20 text-center text-muted-foreground font-medium">
-                                <Inbox className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                                No pending verifications.
-                            </td>
-                        </tr>
-                    ) : (
-                        pending.map((profile: any) => (
-                            <VerificationReviewRow key={profile.id} profile={profile} />
-                        ))
-                    )}
-                </tbody>
-            </table>
+    // Normalize organization data
+    const orgsData = orgsResult
+        ? (Array.isArray(orgsResult) ? { data: orgsResult, meta: { total: orgsResult.length, page: 1, lastPage: 1 } } : orgsResult)
+        : emptyData;
+
+    // Normalize evidence data
+    const evidenceData = evidenceResult ?? emptyData;
+
+    const activeTab = resolvedParams.tab || 'evidence';
+    const activeMeta = activeTab === 'evidence' ? evidenceData.meta : orgsData.meta;
+
+    return (
+        <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+            <div className="md:hidden flex flex-col gap-1 mb-2">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Trust & Safety</h1>
+                <p className="text-sm text-muted-foreground">Verification and Audit Command Center</p>
+            </div>
+
+            <VerificationTabs orgs={orgsData} evidence={evidenceData} />
+
+            <div className="pt-4 border-t border-border/50">
+                <Pagination currentPage={Number(activeMeta.page)} totalPages={Number(activeMeta.lastPage)} />
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

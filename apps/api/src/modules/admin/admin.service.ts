@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus } from '@givar/database';
+import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { WalletService } from '../wallet/wallet.service';
@@ -1138,6 +1138,49 @@ export class AdminService {
     return {
       data: hydratedData,
       meta: { total, page, lastPage: Math.ceil(total / limit) },
+    };
+  }
+
+  async getOrganizationQueue(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: VerificationStatus;
+  }) {
+    const { page = 1, limit = 15, search, status } = query;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.OrganizationProfileWhereInput = {
+      ...(status && { status }),
+      ...(search && {
+        OR: [
+          { legalName: { contains: search, mode: 'insensitive' } },
+          { registrationNumber: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+        ],
+      }),
+    };
+
+    const [profiles, total] = await Promise.all([
+      this.prisma.organizationProfile.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          user: { select: { email: true, firstName: true, lastName: true } },
+        },
+        orderBy: { updatedAt: 'asc' },
+      }),
+      this.prisma.organizationProfile.count({ where }),
+    ]);
+
+    return {
+      data: profiles,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
     };
   }
 }

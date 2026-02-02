@@ -184,4 +184,9 @@ export class AdminController {
   ) {
     return this.service.recordDisbursement(req.user.id, projectId, dto);
   }
+
+  @Patch('proposals/:id/request-changes')
+  requestChanges(@Param('id') id: string, @Req() req: any, @Body('feedback') feedback: string) {
+    return this.service.requestChanges(id, req.user.id, feedback);
+  }
 }
