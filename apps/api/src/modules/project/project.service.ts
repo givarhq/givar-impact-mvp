@@ -315,14 +315,29 @@ export class ProjectService {
       throw new ForbiddenException('You do not have permission to manage this project');
     }
 
+    const disbursementsWithStatus = project.disbursements.map((d) => {
+      const latestProof = project.milestoneProofs.find(p => p.milestoneId === d.milestoneId);
+
+      let satisfactionStatus: 'ACTION_REQUIRED' | 'AUDITING' | 'VERIFIED' = 'ACTION_REQUIRED';
+
+      if (latestProof) {
+        if (latestProof.status === 'APPROVED') satisfactionStatus = 'VERIFIED';
+        else if (latestProof.status === 'PENDING') satisfactionStatus = 'AUDITING';
+      }
+
+      return {
+        ...d,
+        amount: d.amount.toString(),
+        satisfactionStatus,
+        adminFeedback: latestProof?.status === 'REJECTED' ? latestProof.adminFeedback : null
+      };
+    });
+
     return {
       ...project,
       targetAmount: project.targetAmount.toString(),
       raisedAmount: project.raisedAmount.toString(),
-      disbursements: project.disbursements.map((d) => ({
-        ...d,
-        amount: d.amount.toString(),
-      })),
+      disbursements: disbursementsWithStatus,
     };
   }
 }
