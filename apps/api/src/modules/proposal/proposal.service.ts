@@ -136,19 +136,33 @@ export class ProposalService {
   }
 
   /**
-   * Verifies that a user owns a specific proposal. Throws if not found or not owned.
-   * @returns The proposal ID if successful.
+   * Verifies that a user owns a specific proposal/project. Throws if not found or not owned.
+   * @returns The proposal/project ID if successful.
    */
-  async verifyOwnership(proposalId: string, userId: string): Promise<string> {
+  async verifyOwnership(entityId: string, userId: string): Promise<string> {
+    // 1. Try to find as a Proposal (Draft/Submitted)
     const proposal = await this.prisma.projectProposal.findUnique({
-      where: { id: proposalId },
-      select: { userId: true }, // Only fetch what's needed for the check
+      where: { id: entityId },
+      select: { userId: true },
     });
 
-    if (!proposal) throw new NotFoundException('Proposal not found');
-    if (proposal.userId !== userId) throw new ForbiddenException('Access Denied');
+    if (proposal) {
+      if (proposal.userId !== userId) throw new ForbiddenException('Access Denied');
+      return entityId;
+    }
 
-    return proposalId;
+    // 2. Try to find as a Live Project
+    const project = await this.prisma.project.findUnique({
+      where: { id: entityId },
+      select: { userId: true },
+    });
+
+    if (project) {
+      if (project.userId !== userId) throw new ForbiddenException('Access Denied');
+      return entityId;
+    }
+
+    throw new NotFoundException('Project or Proposal not found');
   }
 
   /**
@@ -180,6 +194,87 @@ export class ProposalService {
     });
 
     return updated;
+  }
+
+  /**
+   * Forensic Asset Verification
+   * Checks if a file key is legitimately linked to the project's official records
+   * (Disbursements or Proofs), allowing access even if the path owner differs.
+   */
+  async isProjectAsset(projectId: string, key: string): Promise<boolean> {
+    // 1. Check Disbursements (Admin uploaded receipts)
+    const disbursement = await this.prisma.disbursement.findFirst({
+      where: {
+        projectId,
+        receiptKey: key
+      },
+      select: { id: true }
+    });
+
+    if (disbursement) return true;
+
+    // 2. Check Milestone Proofs (User uploaded evidence)
+    // Note: Array check logic
+    const proof = await this.prisma.milestoneProof.findFirst({
+      where: {
+        projectId,
+        imageKeys: { has: key }
+      },
+      select: { id: true }
+    });
+
+    if (proof) return true;
+
+    return false;
+  }
+
+  /**
+   * Forensic Asset Context Retriever
+   * Verifies if a file key is valid AND retrieves rich metadata for auditing.
+   */
+  async getAssetContext(projectId: string, key: string) {
+    // 1. Check Disbursements (Receipts uploaded by Admin)
+    const disbursement = await this.prisma.disbursement.findFirst({
+      where: { projectId, receiptKey: key },
+      select: {
+        milestoneId: true,
+        project: { select: { title: true, executionTimeline: true } }
+      }
+    });
+
+    if (disbursement) {
+      const timeline = (disbursement.project.executionTimeline as any[]) || [];
+      const phase = timeline.find(m => m.id === disbursement.milestoneId)?.phase || 'Unknown Phase';
+      return {
+        valid: true,
+        title: disbursement.project.title,
+        phase,
+        type: 'DISBURSEMENT_RECEIPT'
+      };
+    }
+
+    // 2. Check Milestone Proofs (Evidence uploaded by Owner)
+    // Note: Project Owners usually own these paths, but this handles edge cases (e.g. multi-user orgs)
+    const proof = await this.prisma.milestoneProof.findFirst({
+      where: { projectId, imageKeys: { has: key } },
+      select: {
+        milestoneId: true,
+        project: { select: { title: true, executionTimeline: true } }
+      }
+    });
+
+    if (proof) {
+      const timeline = (proof.project.executionTimeline as any[]) || [];
+      const phase = timeline.find(m => m.id === proof.milestoneId)?.phase || 'Unknown Phase';
+      return {
+        valid: true,
+        title: proof.project.title,
+        phase,
+        type: 'MILESTONE_PROOF'
+      };
+    }
+
+    return { valid: false };
   }
 
   // Helper
