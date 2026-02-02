@@ -7,32 +7,31 @@ import { AdminMobileNav } from './admin-mobile-nav';
 
 interface AdminShellProps {
   children: React.ReactNode;
+  user: any;
 }
 
-export function AdminShell({ children }: AdminShellProps) {
+export function AdminShell({ children, user }: AdminShellProps) {
   return (
-    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300 selection:bg-destructive/10">
       <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
-        
-        {/* Desktop Sidebar */}
+
         <div className="hidden md:block relative">
-           <AdminSidebar />
+          <AdminSidebar user={user} />
         </div>
-        
-        {/* Content Area */}
+
         <div className="flex flex-col min-w-0">
-          <AdminHeader />
-          
-          {/* Add bottom padding (pb-24) to clear mobile nav */}
+          <AdminHeader user={user} />
+
           <main className="flex-1 px-4 py-4 sm:px-6 md:px-8 pb-24 md:pb-10 overflow-x-hidden">
-            <div className="mx-auto w-full max-w-7xl animate-in fade-in-0 duration-300">
-                {children}
+            <div className="mx-auto w-full max-w-7xl animate-in fade-in-0 duration-500">
+              {children}
             </div>
           </main>
         </div>
       </div>
 
-      <AdminMobileNav />
+      {/* Mobile Nav */}
+      <AdminMobileNav user={user} />
     </div>
   );
 }
