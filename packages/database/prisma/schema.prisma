@@ -35,6 +35,11 @@ enum UserRole {
   ADMIN
 }
 
+enum AccountType {
+  INDIVIDUAL
+  ORGANIZER
+}
+
 enum SubscriptionStatus {
   ACTIVE
   PAUSED
@@ -80,6 +85,7 @@ enum AuditAction {
   PASSWORD_CHANGE
   RESET_REQUESTED
   RESET_SUCCESSFUL
+  ACCOUNT_TYPE_CHANGED
   
   // Financial
   WALLET_FUND
@@ -150,6 +156,7 @@ model User {
   emailVerified         Boolean     @default(false)
   emailVerificationToken String?    @unique
   organization   OrganizationProfile?
+  accountType   AccountType @default(INDIVIDUAL)
   
   resetPasswordTokenHash String?    @unique
   resetPasswordExpiresAt DateTime?

@@ -1,5 +1,5 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuards } 
-from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, UseGuards }
+  from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
 import { Throttle } from '@nestjs/throttler';
@@ -8,14 +8,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../../common/decorators/public.decorator';
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   /* 
     RATE LIMITING
     Strict: 5 requests per minute
     Prevents bot account creation spam
   */
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('signup')
   create(@Body() dto: RegisterDto, @Req() req: Request) {
     return this.authService.register(dto, req);
@@ -66,5 +66,21 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   resendVerification(@Body('email') email: string) {
     return this.authService.resendVerification(email);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('account-type/organizer')
+  switchToOrganizer(@Req() req: any) {
+    return this.authService.switchToOrganizer(req.user.id);
+  }
+
+  /**
+   * Identity Heartbeat
+   * Returns the latest database state for the authenticated user.
+   */
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  async getMe(@Req() req: any) {
+    return this.authService.getFreshProfile(req.user.id);
   }
 }

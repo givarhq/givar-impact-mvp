@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Injectable,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -22,14 +23,14 @@ import { EmailService } from '../email/email.service';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private audit: AuditService,
     private config: ConfigService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterDto, req?: Request) {
     const existing = await this.prisma.user.findUnique({
@@ -39,7 +40,7 @@ export class AuthService {
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(dto.password, salt);
-    
+
     const emailVerificationToken = randomUUID();
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -103,11 +104,11 @@ export class AuthService {
     // 1. Account Lockout Check
     if (user && user.accountLockedUntil && user.accountLockedUntil > new Date()) {
       await this.audit.log({
-          action: AuditAction.USER_LOGIN_FAILED,
-          userId: user.id,
-          entityType: 'Session',
-          metadata: { attemptedEmail: dto.email, reason: 'Account Locked' },
-          req,
+        action: AuditAction.USER_LOGIN_FAILED,
+        userId: user.id,
+        entityType: 'Session',
+        metadata: { attemptedEmail: dto.email, reason: 'Account Locked' },
+        req,
       });
       throw new UnauthorizedException('Account temporarily locked. Try again later.');
     }
@@ -140,7 +141,7 @@ export class AuthService {
       if (!user.emailVerified) {
         throw new ForbiddenException('EMAIL_NOT_VERIFIED');
       }
-      
+
       // 3. Reset Lockout
       if (user.failedLoginAttempts > 0) {
         await this.prisma.user.update({
@@ -152,9 +153,9 @@ export class AuthService {
         });
       }
 
-      this.emailService.sendLoginAlert(user.email, { 
-        ip: req?.ip || 'unknown', 
-        userAgent: req?.headers['user-agent'] 
+      this.emailService.sendLoginAlert(user.email, {
+        ip: req?.ip || 'unknown',
+        userAgent: req?.headers['user-agent']
       }).catch(err => this.logger.error(`Alert failed: ${err}`));
 
       const payload = { sub: user.id, email: user.email, role: user.role };
@@ -171,23 +172,23 @@ export class AuthService {
         req,
       });
 
-      return { 
-        accessToken, 
+      return {
+        accessToken,
         user: {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
         }
       };
 
     } catch (error) {
       let reason = 'An unknown error occurred';
       if (error instanceof UnauthorizedException) reason = 'Bad Credentials';
-      else if (error instanceof ForbiddenException) reason = error.message; 
+      else if (error instanceof ForbiddenException) reason = error.message;
       else if (error instanceof Error) reason = error.message;
-      
+
       await this.audit.log({
         action: AuditAction.USER_LOGIN_FAILED,
         userId: user?.id,
@@ -216,7 +217,7 @@ export class AuthService {
 
     // 1. Generate high-entropy token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    
+
     // 2. Hash it for DB storage (standard SOTA practice)
     const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
 
@@ -326,5 +327,48 @@ export class AuthService {
     await this.emailService.sendVerification(user.email, user.firstName, newToken);
 
     return { message: 'If this email is unverified, a new link has been sent.' };
+  }
+
+  async switchToOrganizer(userId: string) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { accountType: 'ORGANIZER' },
+    });
+
+    await this.audit.log({
+      userId,
+      action: AuditAction.ACCOUNT_TYPE_CHANGED,
+      metadata: { newType: 'ORGANIZER' }
+    });
+
+    return {
+      message: 'Account upgraded to Organizer mode',
+      user: {
+        id: user.id,
+        accountType: user.accountType
+      }
+    };
+  }
+
+  async getFreshProfile(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        accountType: true,
+        emailVerified: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User profile not found');
+    }
+
+    return user;
   }
 }

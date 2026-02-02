@@ -69,6 +69,9 @@ export const ApiService = {
       apiClient.get(`/auth/verify-email?token=${token}`).then(r => r.data),
     resendVerification: (email: string) =>
       apiClient.post('/auth/resend-verification', { email }).then(r => r.data),
+    upgradeToOrganizer: () =>
+      apiClient.patch('/auth/account-type/organizer').then(r => r.data),
+    getMe: (token: string) => serverFetch<any>('/auth/me', token),
   },
 
   // --- WALLET ---
