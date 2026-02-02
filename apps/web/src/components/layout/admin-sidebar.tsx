@@ -2,11 +2,16 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, ShieldAlert, LogOut, Lock, BadgeCheck, NotebookPen, Database } from 'lucide-react';
+import {
+  LayoutDashboard, Users, FileText, ShieldAlert,
+  LogOut, Lock, BadgeCheck, NotebookPen, Database
+} from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
 import { deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
+import { ApiService } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const navItems = [
   { title: 'Overview', href: '/admin', icon: LayoutDashboard },
@@ -18,14 +23,22 @@ const navItems = [
   { title: 'Ledger Oversight', href: '/admin/ledger', icon: Database }
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ user }: { user: any }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
-    deleteCookie('givar_token');
-    deleteCookie('givar_user');
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await ApiService.auth.logout();
+      deleteCookie('givar_token');
+      deleteCookie('givar_user');
+      router.push('/login');
+      toast.success("Admin session terminated");
+    } catch (error) {
+      deleteCookie('givar_token');
+      deleteCookie('givar_user');
+      router.push('/login');
+    }
   };
 
   return (
@@ -35,14 +48,14 @@ export function AdminSidebar() {
         {/* Brand Area */}
         <div className="flex h-[80px] shrink-0 items-center px-6">
           <div className="flex items-center gap-3 font-semibold">
-            <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-destructive/20 bg-destructive/10 flex items-center justify-center text-destructive font-bold shadow-lg shadow-destructive/5">
+            <div className="relative h-9 w-9 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center justify-center text-destructive font-bold shadow-lg shadow-destructive/5">
               <Lock className="h-4 w-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg tracking-wide font-bold transition-colors text-foreground">
+              <span className="text-lg tracking-wide font-bold transition-colors text-foreground leading-none">
                 Givar
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-destructive">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-destructive mt-1">
                 Admin Panel
               </span>
             </div>
@@ -54,7 +67,7 @@ export function AdminSidebar() {
           <nav className="grid items-start gap-2 text-sm font-medium">
             {navItems.map((item, index) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
 
               return (
                 <Link
@@ -79,7 +92,7 @@ export function AdminSidebar() {
         <div className="p-3 mt-auto shrink-0 border-t border-border/50">
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-11 rounded-xl"
+            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-11 rounded-xl transition-all"
             onClick={handleLogout}
           >
             <LogOut className="mr-3 h-4 w-4" /> Sign Out
