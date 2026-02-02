@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, ShieldAlert, LogOut, Lock, BadgeCheck, NotebookPen, Database, Camera } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, ShieldAlert, LogOut, Lock, BadgeCheck, NotebookPen, Database } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
 import { deleteCookie } from 'cookies-next';
@@ -12,9 +12,8 @@ const navItems = [
   { title: 'Overview', href: '/admin', icon: LayoutDashboard },
   { title: 'Users', href: '/admin/users', icon: Users },
   { title: 'Projects', href: '/admin/projects', icon: FileText },
-  { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
   { title: 'Proposals', href: '/admin/proposals', icon: NotebookPen },
-  { title: 'Evidence Audit', href: '/admin/evidence', icon: Camera },
+  { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
   { title: 'Audit Log', href: '/admin/audit', icon: ShieldAlert },
   { title: 'Ledger Oversight', href: '/admin/ledger', icon: Database }
 ];
