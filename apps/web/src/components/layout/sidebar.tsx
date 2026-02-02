@@ -7,13 +7,20 @@ import { Rocket, ArrowRight } from 'lucide-react';
 import { dashboardNav } from '../../config/dashboard';
 import { cn } from '../../lib/utils/cn';
 
-export function Sidebar() {
+export function Sidebar({ user }: { user: any }) {
   const pathname = usePathname();
+
+  const filteredNav = dashboardNav.filter(item => {
+    if (item.href === '/dashboard/verify' && user?.accountType !== 'ORGANIZER') {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="sticky top-0 h-screen w-full p-4 hidden md:block">
       <div className="h-full flex flex-col gap-4 rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-xl overflow-hidden">
-        
+
         {/* Brand Area */}
         <div className="flex h-[80px] shrink-0 items-center px-6">
           <Link
@@ -43,7 +50,7 @@ export function Sidebar() {
         {/* Navigation */}
         <div className="flex-1 px-3 py-2 overflow-y-auto no-scrollbar">
           <nav className="grid items-start gap-2 text-sm font-medium">
-            {dashboardNav.map((item, index) => {
+            {filteredNav.map((item, index) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
 
@@ -77,21 +84,21 @@ export function Sidebar() {
         <div className="p-3 mt-auto shrink-0">
           <Link href="/dashboard/proposals/start" className="block group">
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10 p-4 transition-all hover:shadow-lg hover:shadow-primary/5">
-                <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
-                            <Rocket className="h-3 w-3" />
-                        </div>
-                        <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                            Start a Cause
-                        </span>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
+                    <Rocket className="h-3 w-3" />
+                  </div>
+                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                    Start a Cause
+                  </span>
                 </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+              </div>
 
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
                 Raise funds for your community with transparent tracking.
-                </p>
+              </p>
             </div>
           </Link>
         </div>
