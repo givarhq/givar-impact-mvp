@@ -86,6 +86,11 @@ enum AuditAction {
   RESET_REQUESTED
   RESET_SUCCESSFUL
   ACCOUNT_TYPE_CHANGED
+
+  // Security Overrides
+  USER_LOCKED
+  USER_UNLOCKED
+  USER_ROLE_CHANGED
   
   // Financial
   WALLET_FUND

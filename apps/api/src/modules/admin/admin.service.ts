@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus } from '@givar/database';
+import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { WalletService } from '../wallet/wallet.service';
@@ -12,6 +12,8 @@ import { AuditService } from '../audit/audit.service';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
+import { add } from 'date-fns';
+import { json2csv } from 'json-2-csv';
 
 @Injectable()
 export class AdminService {
@@ -371,13 +373,126 @@ export class AdminService {
   }
 
   // User Management
-  async getAllUsers(page = 1, limit = 20) {
-    return this.prisma.user.findMany({
-      skip: (page - 1) * limit,
-      take: limit,
-      select: { id: true, email: true, firstName: true, lastName: true, role: true, createdAt: true, emailVerified: true },
-      orderBy: { createdAt: 'desc' }
+  async getAllUsers(query: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: UserRole;
+    accountType?: AccountType;
+    status?: 'LOCKED' | 'ACTIVE' | 'all';
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      role,
+      accountType,
+      status,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = query;
+
+    const skip = (page - 1) * limit;
+
+    // 1. Construct Dynamic Forensic Filter
+    const where: Prisma.UserWhereInput = {
+      ...(role && { role }),
+      ...(accountType && { accountType }),
+      ...(status === 'LOCKED' && { accountLockedUntil: { gte: new Date() } }),
+      ...(status === 'ACTIVE' && {
+        OR: [{ accountLockedUntil: null }, { accountLockedUntil: { lt: new Date() } }]
+      }),
+      ...(search && {
+        OR: [
+          { email: { contains: search, mode: 'insensitive' } },
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { id: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    // 2. Dynamic Sort Resolution
+    // LIV sorting is handled via donation count proxy for MVP; 
+    // Native fields sorted directly.
+    const orderBy: any = {};
+    if (sortBy === 'impactValue') {
+      orderBy.donations = { _count: sortOrder };
+    } else {
+      orderBy[sortBy] = sortOrder;
+    }
+
+    // 3. Parallel Execution
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          createdAt: true,
+          emailVerified: true,
+          accountType: true,
+          accountLockedUntil: true,
+          _count: { select: { donations: true, projects: true } },
+          donations: { select: { amount: true } }
+        },
+        orderBy
+      }),
+      this.prisma.user.count({ where })
+    ]);
+
+    // 4. Post-Process: Calculate LIV
+    const data = users.map(user => {
+      const liv = user.donations.reduce((acc, d) => acc + d.amount, 0n);
+      return {
+        ...user,
+        donations: undefined,
+        lifetimeImpact: liv.toString(),
+        isLocked: !!user.accountLockedUntil && user.accountLockedUntil > new Date()
+      };
     });
+
+    return {
+      data,
+      meta: { total, page, lastPage: Math.ceil(total / limit) }
+    };
+  }
+
+  async getUserDetail(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        wallets: true,
+        organization: true,
+        _count: { select: { donations: true, projects: true, subscriptions: true } },
+        auditLogs: {
+          take: 10,
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    // Calculate Lifetime Impact Value (LIV)
+    const livResult = await this.prisma.donation.aggregate({
+      where: { userId },
+      _sum: { amount: true }
+    });
+
+    return {
+      ...user,
+      passwordHash: undefined, // Security: never leak hash even to admins
+      lifetimeImpact: livResult._sum.amount?.toString() || '0',
+      wallets: user.wallets.map(w => ({ ...w, balance: w.balance.toString() }))
+    };
   }
 
   async createProject(adminId: string, dto: CreateAdminProjectDto) {
@@ -1182,5 +1297,182 @@ export class AdminService {
         lastPage: Math.ceil(total / limit),
       },
     };
+  }
+
+  async updateUserStatus(adminId: string, userId: string, action: 'LOCK' | 'UNLOCK') {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    // Safety Guard: Prevent accidental self-lockout or locking other admins
+    if (user.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Administrative accounts cannot be locked via this protocol.');
+    }
+
+    const lockUntil = action === 'LOCK' ? add(new Date(), { years: 100 }) : null;
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
+        where: { id: userId },
+        data: {
+          accountLockedUntil: lockUntil,
+          failedLoginAttempts: 0
+        }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: action === 'LOCK' ? AuditAction.USER_LOCKED : AuditAction.USER_UNLOCKED,
+        entityId: userId,
+        entityType: 'User',
+        metadata: {
+          action,
+          previousLockStatus: !!user.accountLockedUntil,
+          performedBy: adminId
+        }
+      }, tx);
+
+      return updated;
+    });
+  }
+
+  async updateUserRole(adminId: string, userId: string, newRole: UserRole) {
+    const target = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!target) throw new NotFoundException('User not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.user.update({
+        where: { id: userId },
+        data: { role: newRole }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.USER_ROLE_CHANGED,
+        entityId: userId,
+        entityType: 'User',
+        metadata: {
+          prevRole: target.role,
+          newRole,
+          performedBy: adminId
+        }
+      }, tx);
+
+      return updated;
+    });
+  }
+
+  /**
+   * Forensic Batch Processor
+   * Handles mass state transitions for accounts with dedicated audit trails per unit.
+   */
+  async bulkUpdateUsers(adminId: string, data: { userIds: string[], action: 'LOCK' | 'UNLOCK' | 'SET_USER' | 'SET_ADMIN' }) {
+    const targets = await this.prisma.user.findMany({
+      where: { id: { in: data.userIds } }
+    });
+
+    // Security Guard: Prevent mass-locking of administrative nodes
+    if (data.action === 'LOCK' && targets.some(u => u.role === UserRole.ADMIN)) {
+      throw new ForbiddenException('Safety Protocol: Batch contains administrative accounts that cannot be locked.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      for (const user of targets) {
+        let updateData: Prisma.UserUpdateInput = {};
+        let auditAction: AuditAction;
+
+        switch (data.action) {
+          case 'LOCK':
+            updateData = { accountLockedUntil: add(new Date(), { years: 100 }) };
+            auditAction = AuditAction.USER_LOCKED;
+            break;
+          case 'UNLOCK':
+            updateData = { accountLockedUntil: null, failedLoginAttempts: 0 };
+            auditAction = AuditAction.USER_UNLOCKED;
+            break;
+          case 'SET_ADMIN':
+            updateData = { role: UserRole.ADMIN };
+            auditAction = AuditAction.USER_ROLE_CHANGED;
+            break;
+          case 'SET_USER':
+            updateData = { role: UserRole.USER };
+            auditAction = AuditAction.USER_ROLE_CHANGED;
+            break;
+        }
+
+        await tx.user.update({
+          where: { id: user.id },
+          data: updateData,
+        });
+
+        await this.audit.log({
+          userId: adminId,
+          action: auditAction,
+          entityId: user.id,
+          entityType: 'User',
+          metadata: { action: data.action, forensicContext: 'BULK_OPERATION' }
+        }, tx);
+      }
+
+      return { count: targets.length };
+    }, { timeout: 15000 });
+  }
+
+  async exportUsersToCsv(query: {
+    search?: string;
+    role?: UserRole;
+    accountType?: AccountType;
+    status?: 'LOCKED' | 'ACTIVE' | 'all';
+  }) {
+    const { search, role, accountType, status } = query;
+
+    const where: Prisma.UserWhereInput = {
+      ...(role && { role }),
+      ...(accountType && { accountType }),
+      ...(status === 'LOCKED' && { accountLockedUntil: { gte: new Date() } }),
+      ...(status === 'ACTIVE' && {
+        OR: [{ accountLockedUntil: null }, { accountLockedUntil: { lt: new Date() } }]
+      }),
+      ...(search && {
+        OR: [
+          { email: { contains: search, mode: 'insensitive' } },
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    const users = await this.prisma.user.findMany({
+      where,
+      select: {
+        id: true, email: true, firstName: true, lastName: true,
+        role: true, accountType: true, createdAt: true,
+        accountLockedUntil: true, emailVerified: true,
+        donations: { select: { amount: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const flattened = users.map(u => {
+      // FIX: Ensure BigInt is converted to Number/String immediately
+      const livTotalMinor = u.donations.reduce((acc, d) => acc + d.amount, 0n);
+      const isLocked = !!u.accountLockedUntil && u.accountLockedUntil > new Date();
+
+      return {
+        Forensic_ID: u.id,
+        Name: `${u.firstName} ${u.lastName}`,
+        Email: u.email,
+        Role: String(u.role),
+        Account_Type: String(u.accountType),
+        LIV_NGN: (Number(livTotalMinor) / 100).toFixed(2),
+        Verified: u.emailVerified ? 'YES' : 'NO',
+        Status: isLocked ? 'LOCKED' : 'ACTIVE',
+        Joined_At: u.createdAt.toISOString()
+      };
+    });
+
+    if (flattened.length === 0) return 'Forensic_ID,Name,Email,Role,Account_Type,LIV_NGN,Verified,Status,Joined_At';
+
+    // json2csv handles the string conversion safely now
+    return json2csv(flattened);
   }
 }

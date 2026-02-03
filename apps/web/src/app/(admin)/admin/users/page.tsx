@@ -1,102 +1,80 @@
-import { cookies } from 'next/headers';
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ApiService } from '../../../../services/api';
-import { Badge } from '../../../../components/ui/badge';
-import { formatDate } from '../../../../lib/utils/format';
-import { CheckCircle2, XCircle, Shield, User } from 'lucide-react';
+import { UserFilters } from '../../../../components/features/admin/user-filters';
+import { UserTable } from '../../../../components/features/admin/user-table';
+import { BulkActionsToolbar } from '../../../../components/features/admin/bulk-actions-toolbar';
+import { Pagination } from '../../../../components/features/history/pagination';
+import { TrendingUp, Loader2 } from 'lucide-react';
+import { getCookie } from 'cookies-next';
 
-export default async function AdminUsersPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('givar_token')?.value;
-  if (!token) return null;
+export default function AdminUsersPage() {
+    const searchParams = useSearchParams();
+    const [isLoading, setIsLoading] = useState(true);
+    const [data, setData] = useState<any>({ data: [], meta: { total: 0, page: 1, lastPage: 1 } });
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const resolvedParams = await searchParams;
-  const page = resolvedParams?.page ? Number(resolvedParams.page) : 1;
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setIsLoading(true);
+            const token = getCookie('givar_token') as string;
+            const params = new URLSearchParams(searchParams.toString());
 
-  // Fetch users
-  const result = await ApiService.admin.getUsers(token, page);
-  // Robustly handle if result is array or object based on backend implementation
-  const users = Array.isArray(result) ? result : (result as any)?.data || [];
+            if (!params.get('sortBy')) params.set('sortBy', 'createdAt');
+            if (!params.get('sortOrder')) params.set('sortOrder', 'desc');
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between md:hidden">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">User Management</h1>
-      </div>
+            const result = await ApiService.admin.getUsers(token, params);
+            if (result) setData(result);
+            setIsLoading(false);
+            setSelectedIds([]);
+        };
+        fetchUsers();
+    }, [searchParams]);
 
-      <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-            <thead className="bg-muted/50 text-muted-foreground border-b border-border">
-                <tr>
-                <th className="px-6 py-4 font-medium">User Identity</th>
-                <th className="px-6 py-4 font-medium">Role</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Joined</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-                {users.length === 0 ? (
-                    <tr>
-                        <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
-                            No users found.
-                        </td>
-                    </tr>
-                ) : users.map((user: any) => (
-                <tr key={user.id} className="hover:bg-muted/30 transition-colors group">
-                    <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                {user.firstName?.[0]}{user.lastName?.[0]}
-                            </div>
-                            <div>
-                                <div className="font-semibold text-foreground">{user.firstName} {user.lastName}</div>
-                                <div className="text-xs text-muted-foreground mt-0.5">{user.email}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                            {user.role === 'ADMIN' ? (
-                                <Badge variant="destructive" className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20">
-                                    <Shield className="h-3 w-3 mr-1" /> Admin
-                                </Badge>
-                            ) : (
-                                <Badge variant="secondary" className="bg-muted text-muted-foreground">
-                                    <User className="h-3 w-3 mr-1" /> User
-                                </Badge>
-                            )}
-                        </div>
-                    </td>
-                    <td className="px-6 py-4">
-                        {user.emailVerified ? (
-                            <div className="flex items-center text-emerald-500 text-xs font-medium">
-                                <CheckCircle2 className="h-4 w-4 mr-1.5" /> Verified
-                            </div>
-                        ) : (
-                            <div className="flex items-center text-amber-500 text-xs font-medium">
-                                <XCircle className="h-4 w-4 mr-1.5" /> Pending
-                            </div>
-                        )}
-                    </td>
-                    <td className="px-6 py-4 text-right text-muted-foreground text-xs">
-                        {formatDate(user.createdAt)}
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-            </table>
+    const handleSelectRow = (id: string, checked: boolean) => {
+        setSelectedIds(prev => checked ? [...prev, id] : prev.filter(i => i !== id));
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        setSelectedIds(checked ? data.data.map((u: any) => u.id) : []);
+    };
+
+    return (
+        <div className="space-y-8 pb-20 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-black tracking-tight text-foreground md:hidden">User Management</h1>
+                    <p className="text-sm text-muted-foreground font-medium">Monitor account health, impact value, and forensic logs.</p>
+                </div>
+                <div className="flex items-center gap-2 bg-background/50 px-4 py-2 rounded-2xl border border-border/50 shadow-sm">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-bold text-foreground">{data.meta.total} Total Entities</span>
+                </div>
+            </div>
+
+            <UserFilters />
+
+            <div className="relative">
+                <UserTable
+                    users={data.data}
+                    currentSort={searchParams.get('sortBy') || 'createdAt'}
+                    currentOrder={(searchParams.get('sortOrder') as any) || 'desc'}
+                    selectedIds={selectedIds}
+                    onSelectRow={handleSelectRow}
+                    onSelectAll={handleSelectAll}
+                />
+            </div>
+
+            <div className="pt-4 border-t border-border/50">
+                <Pagination currentPage={data.meta.page} totalPages={data.meta.lastPage} />
+            </div>
+
+            <BulkActionsToolbar
+                selectedIds={selectedIds}
+                onClear={() => setSelectedIds([])}
+            />
         </div>
-        
-        {/* Simple Pagination Footer */}
-        <div className="bg-muted/30 border-t border-border p-4 flex justify-center text-xs text-muted-foreground">
-            {/* Future: Add full pagination controls reusing the Pagination component */}
-            Showing page {page}
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

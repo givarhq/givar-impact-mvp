@@ -228,8 +228,25 @@ export const ApiService = {
         volume: string;
       }>('/admin/dashboard', token),
 
-    getUsers: (token: string, page = 1) =>
-      serverFetch<any[]>(`/admin/users?page=${page}`, token),
+    getUsers: (token: string, params: URLSearchParams) =>
+      serverFetch<{ data: any[]; meta: any }>(`/admin/users?${params.toString()}`, token),
+
+    getUserDetail: (token: string, id: string) =>
+      serverFetch<any>(`/admin/users/${id}`, token),
+
+    updateUserStatus: (id: string, action: 'LOCK' | 'UNLOCK') =>
+      apiClient.patch(`/admin/users/${id}/status`, { action }).then(r => r.data),
+
+    updateUserRole: (id: string, role: string) =>
+      apiClient.patch(`/admin/users/${id}/role`, { role }).then(r => r.data),
+
+    bulkUpdateUsers: (data: { userIds: string[], action: 'LOCK' | 'UNLOCK' | 'SET_USER' | 'SET_ADMIN' }) =>
+      apiClient.post('/admin/users/bulk', data).then(r => r.data),
+
+    exportUsers: (params: URLSearchParams) =>
+      apiClient.get(`/admin/users/export?${params.toString()}`, {
+        responseType: 'blob',
+      }),
 
     getProjects: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: Project[]; meta: any }>(
