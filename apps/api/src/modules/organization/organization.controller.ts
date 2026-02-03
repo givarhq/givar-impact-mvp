@@ -47,4 +47,10 @@ export class OrganizationController {
   async getAll(@Query() query: OrganizationQueryDto) {
     return this.service.findAllAdvanced(query);
   }
+
+  @Roles(UserRole.ADMIN)
+  @Get('admin/:id')
+  async getOne(@Param('id') id: string) {
+    return this.service.findOne(id);
+  }
 }

@@ -176,4 +176,48 @@ export class OrganizationService {
       }
     };
   }
+
+  async findOne(id: string) {
+    const profile = await this.prisma.organizationProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            createdAt: true,
+            projects: {
+              select: {
+                id: true,
+                title: true,
+                status: true,
+                raisedAmount: true,
+                targetAmount: true,
+                currency: true
+              },
+              orderBy: { createdAt: 'desc' }
+            },
+            _count: { select: { projects: true } }
+          }
+        }
+      }
+    });
+
+    if (!profile) throw new NotFoundException('Organization not found');
+
+    // Recursive Serialization for all nested projects and the profile itself
+    return {
+      ...profile,
+      user: {
+        ...profile.user,
+        projects: profile.user.projects.map(p => ({
+          ...p,
+          raisedAmount: p.raisedAmount.toString(),
+          targetAmount: p.targetAmount.toString(),
+        }))
+      }
+    };
+  }
 }
