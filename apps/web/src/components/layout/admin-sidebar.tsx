@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, FileText, ShieldAlert,
-  LogOut, Lock, BadgeCheck, NotebookPen, Database
+  LogOut, Lock, BadgeCheck, NotebookPen, Database, Building
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
@@ -19,6 +19,7 @@ const navItems = [
   { title: 'Projects', href: '/admin/projects', icon: FileText },
   { title: 'Proposals', href: '/admin/proposals', icon: NotebookPen },
   { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
+  { title: 'Organizations', href: '/admin/organizations', icon: Building },
   { title: 'Audit Log', href: '/admin/audit', icon: ShieldAlert },
   { title: 'Ledger Oversight', href: '/admin/ledger', icon: Database }
 ];
