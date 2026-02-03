@@ -309,12 +309,6 @@ export const ApiService = {
       receiptKey?: string;
     }) =>
       apiClient.post(`/admin/projects/${projectId}/disbursements`, data).then(r => r.data),
-
-    getOrganizations: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: OrganizationProfile[]; meta: any }>(
-        `/organizations/admin/list?${params.toString()}`,
-        token
-      ),
   },
 
   // Organization Verification Domain
@@ -333,5 +327,15 @@ export const ApiService = {
 
     review: (id: string, data: { status: 'VERIFIED' | 'REJECTED', feedback?: string }) =>
       apiClient.patch(`/organizations/admin/review/${id}`, data).then(r => r.data),
+
+
+
+    getOrganizations: (token: string, params: URLSearchParams) =>
+      serverFetch<{ data: OrganizationProfile[]; meta: any }>(
+        `/organizations/admin/list?${params.toString()}`,
+        token
+      ),
+    getOrganizationById: (token: string, id: string) =>
+      serverFetch<any>(`/organizations/admin/${id}`, token),
   },
 };
