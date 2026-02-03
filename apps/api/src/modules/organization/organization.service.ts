@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { VerificationStatus, AuditAction, ProposalStatus, AccountType } from '@givar/database';
+import { Prisma, VerificationStatus, AuditAction, ProposalStatus, AccountType } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
+import { OrganizationQueryDto } from './dto/organization-query.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -118,5 +119,61 @@ export class OrganizationService {
     return this.prisma.organizationProfile.findUnique({
       where: { userId },
     });
+  }
+
+  // Advanced Discovery Engine for Admins
+  async findAllAdvanced(query: OrganizationQueryDto) {
+    const {
+      search, status, page = 1, limit = 20,
+      sortBy = 'createdAt', sortOrder = 'desc'
+    } = query;
+
+    const skip = (page - 1) * limit;
+
+    // 1. Construct Dynamic Filter
+    const where: Prisma.OrganizationProfileWhereInput = {
+      ...(status && { status }),
+      ...(search && {
+        OR: [
+          { legalName: { contains: search, mode: 'insensitive' } },
+          { registrationNumber: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+        ],
+      }),
+    };
+
+    // 2. Construct Dynamic Order
+    const orderBy = { [sortBy]: sortOrder };
+
+    // 3. Parallel Execution
+    const [profiles, total] = await Promise.all([
+      this.prisma.organizationProfile.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        include: {
+          user: {
+            select: {
+              email: true,
+              firstName: true,
+              lastName: true,
+              createdAt: true,
+              _count: { select: { projects: true } }
+            }
+          }
+        }
+      }),
+      this.prisma.organizationProfile.count({ where }),
+    ]);
+
+    return {
+      data: profiles,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      }
+    };
   }
 }
