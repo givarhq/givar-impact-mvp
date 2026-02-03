@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType } from '@givar/database';
+import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType, Currency } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { WalletService } from '../wallet/wallet.service';
@@ -12,7 +12,7 @@ import { AuditService } from '../audit/audit.service';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
-import { add } from 'date-fns';
+import { add, format, subDays } from 'date-fns';
 import { json2csv } from 'json-2-csv';
 
 @Injectable()
@@ -27,20 +27,182 @@ export class AdminService {
     private audit: AuditService,
   ) { }
 
-  // Dashboard Stats
-  async getDashboardStats() {
-    const [totalUsers, totalProjects, totalDonations, totalVolume] = await Promise.all([
+  /**
+   * Granular Analytics Engine
+   * Aggregates platform-wide data for high-level reporting and trend analysis.
+   */
+  async getDetailedAnalytics(): Promise<any> {
+    const now = new Date();
+    const thirtyDaysAgo = subDays(now, 30);
+
+    const [
+      totalUsers,
+      prevUsers,
+      wallets,
+      projects,
+      donations,
+      suspenseCount,
+      pendingKyc,
+      organizationStats,
+      proposalStats,
+      evidenceStats,
+      activeOrganizerCount,
+      categories
+    ] = await Promise.all([
       this.prisma.user.count(),
-      this.prisma.project.count(),
-      this.prisma.donation.count(),
-      this.prisma.project.aggregate({ _sum: { raisedAmount: true } })
+      this.prisma.user.count({ where: { createdAt: { lt: thirtyDaysAgo } } }),
+      this.prisma.wallet.findMany({ select: { balance: true, currency: true } }),
+      this.prisma.project.findMany({
+        include: { category: true, _count: { select: { donations: true } } },
+        where: { isActive: true }
+      }),
+      this.prisma.donation.findMany({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+        orderBy: { createdAt: 'asc' }
+      }),
+      this.prisma.walletTransaction.count({ where: { status: TxStatus.SUSPENSE } }),
+      this.prisma.organizationProfile.count({ where: { status: VerificationStatus.PENDING } }),
+      this.prisma.organizationProfile.groupBy({ by: ['status'], _count: true }),
+      this.prisma.projectProposal.groupBy({ by: ['status'], _count: true }),
+      this.prisma.milestoneProof.groupBy({ by: ['status'], _count: true }),
+      this.prisma.project.groupBy({ by: ['userId'], where: { status: 'ACTIVE' }, _count: true }).then(r => r.length),
+      this.prisma.category.findMany({ select: { id: true, name: true } })
     ]);
 
+    const catPerf = categories.map(cat => {
+      const relevant = projects.filter(p => p.categoryId === cat.id);
+      const vol = relevant.reduce((acc, p) => acc + p.raisedAmount, 0n);
+      return { category: cat.name, count: relevant.length, volume: vol.toString() };
+    });
+
+    // 2. Financial Logic - Trend Calculation (Last 30 Days)
+    const dailyMap = new Map<string, { volume: bigint; count: number }>();
+    donations.forEach(d => {
+      const day = format(d.createdAt, 'yyyy-MM-dd');
+      const current = dailyMap.get(day) || { volume: 0n, count: 0 };
+      dailyMap.set(day, { volume: current.volume + d.amount, count: current.count + 1 });
+    });
+
+    const recentTrends = Array.from({ length: 30 }).map((_, i) => {
+      const date = format(subDays(now, i), 'yyyy-MM-dd');
+      const stats = dailyMap.get(date) || { volume: 0n, count: 0 };
+      return { date, volume: stats.volume.toString(), donations: stats.count };
+    }).reverse();
+
+    // 3. User Distribution Analysis
+    const [roleDist, typeDist, verificationStates] = await Promise.all([
+      this.prisma.user.groupBy({ by: ['role'], _count: true }),
+      this.prisma.user.groupBy({ by: ['accountType'], _count: true }),
+      this.prisma.organizationProfile.groupBy({ by: ['status'], _count: true })
+    ]);
+
+    // 4. Project Performance Metrics
+    const sortedByFunding = [...projects].sort((a, b) => Number(b.raisedAmount - a.raisedAmount)).slice(0, 5);
+    const sortedByActivity = [...projects].sort((a, b) => b._count.donations - a._count.donations).slice(0, 5);
+
+    // 5. Proposal Funnel Logic
+    const proposalMap = new Map(proposalStats.map(p => [p.status, p._count]));
+    const totalSubmitted = (proposalMap.get('SUBMITTED') || 0) + (proposalMap.get('UNDER_REVIEW') || 0) + (proposalMap.get('APPROVED') || 0) + (proposalMap.get('REJECTED') || 0);
+    const totalApproved = proposalMap.get('APPROVED') || 0;
+
+    // 6. Organization Logic
+    const orgMap = new Map(organizationStats.map(o => [o.status, o._count]));
+
+    // 7. Calculate Summaries
+    const totalVolumeNGN = wallets
+      .filter(w => w.currency === 'NGN')
+      .reduce((acc, w) => acc + w.balance, 0n);
+
+    const growth = prevUsers === 0 ? 100 : ((totalUsers - prevUsers) / prevUsers) * 100;
+
     return {
-      users: totalUsers,
-      projects: totalProjects,
-      donations: totalDonations,
-      volume: totalVolume._sum.raisedAmount || 0n
+      summary: {
+        totalUsers,
+        userGrowthPercent: Math.round(growth),
+        totalVolume: { NGN: totalVolumeNGN.toString() },
+        activeProjects: projects.filter(p => p.status === 'ACTIVE').length,
+        pendingKycCount: pendingKyc,
+        unresolvedSuspenseCount: suspenseCount,
+      },
+      financials: {
+        recentTrends,
+        avgDonationAmount: donations.length > 0
+          ? (donations.reduce((acc, d) => acc + d.amount, 0n) / BigInt(donations.length)).toString()
+          : '0',
+        currencyDistribution: [],
+        successRate: 0
+      },
+      projectPerformance: {
+        topFunded: sortedByFunding.map(p => ({
+          id: p.id,
+          title: p.title,
+          raised: p.raisedAmount.toString(),
+          target: p.targetAmount.toString(),
+          percent: Number(p.targetAmount) > 0 ? Math.round(Number(p.raisedAmount) * 100 / Number(p.targetAmount)) : 0
+        })),
+        mostActive: sortedByActivity.map(p => ({
+          id: p.id,
+          title: p.title,
+          donationCount: p._count.donations,
+          uniqueDonors: 0
+        })),
+        statusDistribution: []
+      },
+      proposalMetrics: {
+        totalDrafts: proposalMap.get('DRAFT') || 0,
+        totalSubmitted,
+        totalApproved,
+        totalRejected: proposalMap.get('REJECTED') || 0,
+        approvalRate: totalSubmitted > 0 ? Math.round((totalApproved / totalSubmitted) * 100) : 0,
+        funnel: [
+          { stage: 'Drafts', count: proposalMap.get('DRAFT') || 0 },
+          { stage: 'Submitted', count: (proposalMap.get('SUBMITTED') || 0) + (proposalMap.get('UNDER_REVIEW') || 0) },
+          { stage: 'Needs Edits', count: proposalMap.get('CHANGES_REQUESTED') || 0 },
+          { stage: 'Approved', count: totalApproved }
+        ]
+      },
+      evidenceMetrics: {
+        totalSubmitted: evidenceStats.reduce((acc, e) => acc + e._count, 0),
+        pending: evidenceStats.find(e => e.status === 'PENDING')?._count || 0,
+        approved: evidenceStats.find(e => e.status === 'APPROVED')?._count || 0,
+        rejected: evidenceStats.find(e => e.status === 'REJECTED')?._count || 0,
+        verificationRate: 0,
+        statusDistribution: evidenceStats.map(e => ({ status: e.status, count: e._count }))
+      },
+      organizationMetrics: {
+        totalEntities: organizationStats.reduce((acc, o) => acc + o._count, 0),
+        verifiedCount: orgMap.get('VERIFIED') || 0,
+        pendingCount: orgMap.get('PENDING') || 0,
+        rejectedCount: orgMap.get('REJECTED') || 0,
+        activeOrganizers: activeOrganizerCount
+      },
+      userMetrics: {
+        roleDistribution: roleDist.map(r => ({ role: r.role, count: r._count })),
+        accountTypeDistribution: typeDist.map(t => ({ type: t.accountType, count: t._count })),
+        verificationFunnel: {
+          verified: verificationStates.find(s => s.status === 'VERIFIED')?._count || 0,
+          pending: verificationStates.find(s => s.status === 'PENDING')?._count || 0,
+          unverified: totalUsers - (verificationStates.reduce((acc, s) => acc + s._count, 0))
+        },
+        newUsersTrend: []
+      },
+      projectMetrics: {
+        categoryDistribution: catPerf,
+        statusBreakdown: await this.prisma.project.groupBy({ by: ['status'], _count: true }),
+        topFunded: sortedByFunding.map(p => ({
+          id: p.id,
+          title: p.title,
+          raised: p.raisedAmount.toString(),
+          target: p.targetAmount.toString(),
+          percent: Number(p.targetAmount) > 0 ? Math.round(Number(p.raisedAmount) * 100 / Number(p.targetAmount)) : 0
+        })),
+        mostActive: sortedByActivity.map(p => ({
+          id: p.id,
+          title: p.title,
+          donationCount: p._count.donations,
+          uniqueDonors: 0
+        }))
+      }
     };
   }
 

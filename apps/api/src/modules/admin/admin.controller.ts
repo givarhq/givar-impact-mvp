@@ -19,9 +19,13 @@ import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
 export class AdminController {
   constructor(private service: AdminService) { }
 
-  @Get('dashboard')
-  getStats() {
-    return this.service.getDashboardStats();
+  /**
+  * Detailed Platform Analytics
+  * Provides the full dataset for the Admin Overview Dashboard.
+  */
+  @Get('analytics/full-report')
+  async getFullAnalyticsReport() {
+    return this.service.getDetailedAnalytics();
   }
 
   @Get('users')

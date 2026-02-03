@@ -220,13 +220,8 @@ export const ApiService = {
 
   // --- ADMIN ---
   admin: {
-    getStats: (token: string) =>
-      serverFetch<{
-        users: number;
-        projects: number;
-        donations: number;
-        volume: string;
-      }>('/admin/dashboard', token),
+    getAnalytics: (token: string) =>
+      serverFetch<any>('/admin/analytics/full-report', token),
 
     getUsers: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: any[]; meta: any }>(`/admin/users?${params.toString()}`, token),
