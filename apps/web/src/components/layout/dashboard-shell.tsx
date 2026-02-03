@@ -5,7 +5,6 @@ import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { MobileNav } from './mobile-nav';
 
-// SOTA: Shell now accepts the verified server-side user object
 export function DashboardShell({
   children,
   user
