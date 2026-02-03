@@ -14,13 +14,12 @@ import { ApiService } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { title: 'Overview', href: '/admin', icon: LayoutDashboard },
-  { title: 'Users', href: '/admin/users', icon: Users },
-  { title: 'Projects', href: '/admin/projects', icon: FileText },
-  { title: 'Proposals', href: '/admin/proposals', icon: NotebookPen },
-  { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
+  { title: 'Platform Overview', href: '/admin', icon: LayoutDashboard },
+  { title: 'User Management', href: '/admin/users', icon: Users },
+  { title: 'Cause Management', href: '/admin/projects', icon: FileText },
+  { title: 'Evidence & Verification', href: '/admin/verifications', icon: BadgeCheck },
   { title: 'Organizations', href: '/admin/organizations', icon: Building },
-  { title: 'Audit Log', href: '/admin/audit', icon: ShieldAlert },
+  { title: 'Audit Logs', href: '/admin/audit', icon: ShieldAlert },
   { title: 'Ledger Oversight', href: '/admin/ledger', icon: Database }
 ];
 

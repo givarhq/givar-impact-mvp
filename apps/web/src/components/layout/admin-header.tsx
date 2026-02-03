@@ -8,11 +8,11 @@ import { cn } from '../../lib/utils/cn';
 const PAGE_TITLES: Record<string, string> = {
   '/admin': 'Platform Overview',
   '/admin/users': 'User Management',
-  '/admin/projects': 'Project Moderation',
-  '/admin/audit': 'System Audit Logs',
-  '/admin/verifications': 'Trust & Safety Queue',
-  '/admin/proposals': 'Proposal Pipeline',
+  '/admin/projects': 'Cause Management',
+  '/admin/audit': 'Audit Logs',
+  '/admin/verifications': 'Evidence & Verification',
   '/admin/ledger': 'Ledger Oversight',
+  '/admin/organizations': 'Organizations'
 };
 
 export function AdminHeader({ user }: { user: any }) {
