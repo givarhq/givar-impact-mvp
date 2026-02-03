@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { apiClient } from '../lib/api-client';
-import { GivingGoal, Project, Wallet } from '../types';
+import { GivingGoal, OrganizationProfile, Project, Wallet } from '../types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_V1 = `${BASE_URL}/v1`;
@@ -309,6 +309,12 @@ export const ApiService = {
       receiptKey?: string;
     }) =>
       apiClient.post(`/admin/projects/${projectId}/disbursements`, data).then(r => r.data),
+
+    getOrganizations: (token: string, params: URLSearchParams) =>
+      serverFetch<{ data: OrganizationProfile[]; meta: any }>(
+        `/organizations/admin/list?${params.toString()}`,
+        token
+      ),
   },
 
   // Organization Verification Domain

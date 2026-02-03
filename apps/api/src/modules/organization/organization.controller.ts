@@ -1,14 +1,15 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole, VerificationStatus } from '@givar/database';
 import { OrganizationService } from './organization.service';
+import { OrganizationQueryDto } from './dto/organization-query.dto';
 
 @Controller('organizations')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class OrganizationController {
-  constructor(private service: OrganizationService) {}
+  constructor(private service: OrganizationService) { }
 
   // USER: Submit for verification
   @Post('verify')
@@ -34,10 +35,16 @@ export class OrganizationController {
   @Roles(UserRole.ADMIN)
   @Patch('admin/review/:id')
   review(
-    @Param('id') id: string, 
-    @Req() req: any, 
+    @Param('id') id: string,
+    @Req() req: any,
     @Body() body: { status: VerificationStatus, feedback?: string }
   ) {
     return this.service.reviewVerification(id, req.user.id, body.status, body.feedback);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Get('admin/list')
+  async getAll(@Query() query: OrganizationQueryDto) {
+    return this.service.findAllAdvanced(query);
   }
 }
