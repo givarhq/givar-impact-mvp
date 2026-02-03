@@ -27,7 +27,15 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<any>) => {
     const status = error.response?.status;
-    const message = error.response?.data?.message || 'Something went wrong';
+
+    // FIX: Detect if the error response is a Blob (common in exports)
+    let data = error.response?.data;
+    if (data instanceof Blob && data.type === 'application/json') {
+      const text = await data.text();
+      data = JSON.parse(text);
+    }
+
+    const message = data?.message || 'Something went wrong';
 
     if (status === 401) {
       deleteCookie('givar_token');
@@ -36,26 +44,23 @@ apiClient.interceptors.response.use(
 
       if (typeof window !== 'undefined') {
         const path = window.location.pathname;
-        // Only force redirect if the user is inside the app
         if (path.startsWith('/dashboard') || path.startsWith('/admin')) {
           window.location.href = '/login?reason=session_expired';
         }
       }
     }
 
-    // 2. Handle 403 (Forbidden)
     if (status === 403) {
       toast.error("Access Denied");
     }
 
-    // 3. Global Error Toasting (Excluding login/auth pages to avoid double messages)
     if (status !== 401 && typeof window !== 'undefined') {
-        const path = window.location.pathname;
-        if (!path.includes('/login') && !path.includes('/signup')) {
-            toast.error(message);
-        }
+      const path = window.location.pathname;
+      if (!path.includes('/login') && !path.includes('/signup')) {
+        toast.error(message);
+      }
     }
-    
+
     return Promise.reject(error);
   }
 );
