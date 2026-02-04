@@ -208,4 +208,49 @@ export const EmailTemplates = {
       <a href="${data.url}" class="button">Manage Project</a>
     </div>
   `,
+
+  financialAdjustment: (data: {
+    name: string;
+    projectTitle: string;
+    oldGoal: string;
+    newGoal: string;
+    currency: string;
+    reason: string;
+    projectUrl: string;
+  }) => `
+    <p>Hi ${data.name},</p>
+    <p>This is an automated transparency notice regarding the project <strong>${data.projectTitle}</strong>.</p>
+    
+    <div class="stat-box" style="background-color: #fffbeb; border: 1px solid #fde68a;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Ledger Amendment Detail</div>
+      
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+        <tr>
+          <td style="padding-bottom: 12px;">
+            <span style="font-size: 12px; color: #92400e;">Previous Goal:</span><br>
+            <span style="font-size: 18px; font-weight: 700; color: #78350f; text-decoration: line-through;">${data.currency} ${data.oldGoal}</span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span style="font-size: 12px; color: #92400e;">Updated Goal:</span><br>
+            <span style="font-size: 24px; font-weight: 800; color: #b45309;">${data.currency} ${data.newGoal}</span>
+          </td>
+        </tr>
+      </table>
+
+      <div style="height: 1px; background-color: #fde68a; margin: 16px 0;"></div>
+      
+      <div style="font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Reason for Adjustment</div>
+      <p style="font-size: 14px; color: #92400e; margin: 0; font-style: italic; line-height: 1.5;">"${data.reason}"</p>
+    </div>
+
+    <p>Givar Impact requires all live financial changes to be verified by audit nodes and broadcasted to the community to maintain the integrity of our immutable ledger.</p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.projectUrl}" class="button" style="background-color: #b45309;">View Project Updates</a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">If you have any questions regarding this amendment, please contact the Givar Audit Team.</p>
+  `,
 };

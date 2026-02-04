@@ -139,4 +139,22 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Milestone Status Updated');
     return this.send(email, `Givar Alert: Phase "${data.milestone}" is now ${data.status}`, html);
   }
+
+  // 12. Financial Adjustment Alert
+  async sendFinancialAdjustmentAlert(
+    email: string,
+    data: {
+      name: string;
+      projectTitle: string;
+      oldGoal: string;
+      newGoal: string;
+      currency: string;
+      reason: string;
+      projectUrl: string;
+    }
+  ) {
+    const content = EmailTemplates.financialAdjustment(data);
+    const html = EmailTemplates.base(content, 'Ledger Amendment Notice');
+    return this.send(email, `Givar Alert: Financial update for ${data.projectTitle}`, html);
+  }
 }

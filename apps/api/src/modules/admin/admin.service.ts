@@ -709,7 +709,10 @@ export class AdminService {
   }
 
   async updateProject(adminId: string, projectId: string, dto: UpdateAdminProjectDto) {
-    const existing = await this.prisma.project.findUnique({ where: { id: projectId } });
+    const existing = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { user: { select: { email: true, firstName: true } } }
+    });
     if (!existing) throw new NotFoundException('Project not found');
 
     const isLive = ([
@@ -760,13 +763,12 @@ export class AdminService {
       updateData.executionTimeline = dto.executionTimeline as unknown as Prisma.InputJsonValue;
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const project = await tx.project.update({
         where: { id: projectId },
         data: updateData,
       });
 
-      // 2. Market Volatility Handling: Automated Transparency
       if (isLive && isGoalChanging) {
         await tx.projectUpdate.create({
           data: {
@@ -795,6 +797,74 @@ export class AdminService {
 
       return project;
     });
+
+    // Post-Transaction Broadcast
+    if (isLive && isGoalChanging) {
+      this.broadcastFinancialAdjustment(
+        projectId,
+        result.title,
+        result.slug,
+        existing.targetAmount,
+        result.targetAmount,
+        result.currency,
+        dto.reasonForGoalAdjustment!,
+        existing.user // Organizer
+      ).catch(err => this.logger.error(`Adjustment broadcast failed: ${err.message}`));
+    }
+
+    return result;
+  }
+
+  private async broadcastFinancialAdjustment(
+    projectId: string,
+    projectTitle: string,
+    projectSlug: string,
+    oldGoal: bigint,
+    newGoal: bigint,
+    currency: string,
+    reason: string,
+    organizer: { email: string; firstName: string }
+  ) {
+    // 1. Fetch all unique donors (Registered)
+    const userDonors = await this.prisma.donation.findMany({
+      where: { projectId },
+      select: { user: { select: { email: true, firstName: true } } },
+      distinct: ['userId'],
+    });
+
+    // 2. Fetch all unique guest donors
+    const guestDonors = await this.prisma.guestDonation.findMany({
+      where: { projectId },
+      select: { guestDonor: { select: { email: true, name: true } } },
+      distinct: ['guestDonorId'],
+    });
+
+    // 3. Combine into unique recipient list
+    const recipients = [
+      ...userDonors.map(d => ({ email: d.user?.email, name: d.user?.firstName || 'Giver' })),
+      ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
+      { email: organizer.email, name: organizer.firstName } // Include Organizer
+    ].filter((v, i, a) => v.email && a.findIndex(t => t.email === v.email) === i);
+
+    const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${projectSlug}`;
+    const fmtOld = (Number(oldGoal) / 100).toLocaleString();
+    const fmtNew = (Number(newGoal) / 100).toLocaleString();
+
+    this.logger.log(`📢 Broadcasting Financial Amendment for "${projectTitle}" to ${recipients.length} stakeholders.`);
+
+    Promise.allSettled(
+      recipients.map(r =>
+        this.emailService.sendFinancialAdjustmentAlert(r.email!, {
+          name: r.name!,
+          projectTitle,
+          oldGoal: fmtOld,
+          newGoal: fmtNew,
+          currency,
+          reason,
+          projectUrl
+        })
+      )
+    ).catch(err => this.logger.error('Broadcast Transmission Failed', err));
   }
 
   // Forensic Project Deletion with Asset Purge
