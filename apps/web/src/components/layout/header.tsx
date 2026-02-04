@@ -13,7 +13,7 @@ import {
   ChevronDown,
   ShieldCheck,
 } from 'lucide-react';
-import { deleteCookie } from 'cookies-next';
+import { deleteCookie, getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 import { Button } from '../ui/button';
 import { ThemeToggle } from './theme-toggle';
@@ -27,6 +27,7 @@ import {
 } from '../ui/dropdown-menu';
 import { ApiService } from '../../services/api';
 import { useState, useEffect } from 'react';
+import { ViewModeToggle } from './view-mode-toggle';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -40,12 +41,15 @@ const PAGE_TITLES: Record<string, string> = {
 export function Header({ user }: { user: any }) {
   const pathname = usePathname();
   const router = useRouter();
-
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Forensic Check: If a support impersonation session is active, 
+  // we suppress the standard View Mode toggle to prevent identity collisions.
+  const isImpersonating = getCookie('givar_is_impersonating') === 'true';
 
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
   const displayEmail = user?.email || '';
@@ -55,12 +59,15 @@ export function Header({ user }: { user: any }) {
       await ApiService.auth.logout();
       deleteCookie('givar_token');
       deleteCookie('givar_user');
+      deleteCookie('givar_view_mode');
+      deleteCookie('givar_is_impersonating');
       router.push('/login');
       toast.success("Logged out successfully");
     } catch (error) {
-      console.error("Server logout failed, performing client-side logout:", error);
       deleteCookie('givar_token');
       deleteCookie('givar_user');
+      deleteCookie('givar_view_mode');
+      deleteCookie('givar_is_impersonating');
       router.push('/login');
     }
   };
@@ -99,6 +106,15 @@ export function Header({ user }: { user: any }) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2 md:gap-3">
+        {/* 
+          CORRECTION: We pass the ACTUAL user.role (ADMIN). 
+          The ViewModeToggle component will detect the 'USER' cookie internally 
+          and show the "Return to Admin" button automatically.
+        */}
+        {isClient && user?.role === 'ADMIN' && !isImpersonating && (
+          <ViewModeToggle currentRole={user.role} />
+        )}
+
         <div className="hidden md:flex items-center rounded-full bg-secondary/50 px-4 py-2.5 transition-colors hover:bg-secondary border border-transparent hover:border-border/50">
           <Search className="mr-2 h-4 w-4 text-muted-foreground" />
           <input
@@ -113,7 +129,7 @@ export function Header({ user }: { user: any }) {
 
         <Button
           size="sm"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hidden md:flex items-center gap-2 h-10 px-4"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hidden md:flex items-center gap-2 h-10 px-4 border-0"
           onClick={() => router.push('/dashboard/impact')}
         >
           <Heart className="h-4 w-4" />
@@ -129,7 +145,7 @@ export function Header({ user }: { user: any }) {
             <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
               <div className="relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm bg-primary/10 flex items-center justify-center text-primary">
                 {isClient && user?.firstName ? (
-                  <span className="font-bold text-sm animate-in fade-in duration-300">
+                  <span className="font-bold text-sm">
                     {user.firstName[0]}
                   </span>
                 ) : (
