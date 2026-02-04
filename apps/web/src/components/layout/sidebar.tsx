@@ -31,8 +31,8 @@ export function Sidebar({ user }: { user: any }) {
               <Image
                 src="/Givar1.png"
                 alt="Givar Logo"
-                width={50}
-                height={50}
+                width={36}
+                height={36}
                 className="object-contain"
                 priority
               />

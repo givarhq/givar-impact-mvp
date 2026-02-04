@@ -27,16 +27,16 @@ async function serverFetch<T>(
       ...options,
       headers: baseHeaders,
       cache: 'no-store',
+      // Add a signal to prevent hanging requests from blocking the server thread
+      signal: AbortSignal.timeout(8000),
     });
 
-    // Simple Server-Side Auth Check
     if (res.status === 401 || res.status === 403) {
-      console.error(`[ServerFetch] Auth Error at ${endpoint}. Redirecting.`);
-      redirect('/api/auth/clear-session');
+      console.error(`[ServerFetch] Auth failure at ${endpoint}. Returning null for handler.`);
+      return null;
     }
 
     if (!res.ok) {
-      // Graceful error return for non-auth errors (e.g. 404, 500)
       console.error(`[ServerFetch] Error ${res.status} at ${endpoint}`);
       return null;
     }
@@ -45,11 +45,11 @@ async function serverFetch<T>(
     return text ? JSON.parse(text) : null;
 
   } catch (error) {
-    if (error instanceof Error && (error as any).digest?.startsWith('NEXT_REDIRECT')) {
-      throw error; // Let Next.js handle the redirect
+    if (error instanceof Error && (error as any).name === 'TimeoutError') {
+      console.error(`[ServerFetch] Request timed out: ${fullUrl}`);
+      return null;
     }
-
-    console.error(`[ServerFetch] Network/Parse Error at ${fullUrl}`, error);
+    console.error(`[ServerFetch] Execution Error at ${fullUrl}`, error);
     return null;
   }
 }
