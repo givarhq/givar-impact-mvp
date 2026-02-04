@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
@@ -14,7 +15,12 @@ import {
   MapPin,
   Edit2,
   Unlock,
-  ShieldCheck
+  ShieldCheck,
+  FileText,
+  Send,
+  ExternalLink,
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -75,11 +81,14 @@ interface ProjectFormProps {
 export function AdminProjectForm({ initialData, categories }: ProjectFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [unlockedSections, setUnlockedSections] = useState<Record<string, boolean>>({});
 
   const isSectionReadOnly = (section: string) => initialData ? !unlockedSections[section] : false;
-  const isAnySectionUnlocked = useMemo(() => Object.values(unlockedSections).some(v => v === true), [unlockedSections]);
+  const showFooter = !initialData || Object.values(unlockedSections).some(v => v === true);
+
+  // SOTA: Financial Guardrails
+  // If project is live/funded, lock financial fields to preserve ledger integrity.
+  const isFinancialLocked = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
 
   const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -100,17 +109,23 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
 
   const [gallery, budget, timeline, coverImage] = watch(['gallery', 'budgetBreakdown', 'executionTimeline', 'coverImage']);
 
-  const onSubmit = async (data: ProjectFormValues) => {
+  const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
     setIsSubmitting(true);
     try {
-      const payload = { ...data, targetAmount: data.targetAmount * 100 };
+      const payload = { ...data, targetAmount: data.targetAmount * 100, status };
+
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
-        toast.success('Ledger updated successfully');
-        setUnlockedSections({}); // Re-lock all
+        toast.success(status === 'DRAFT' ? 'Draft Saved' : 'Project Published');
+        setUnlockedSections({});
       } else {
         await ApiService.admin.createProject(payload);
-        toast.success('Project published to ledger');
+        toast.success(status === 'DRAFT' ? 'Project Saved as Draft' : 'Project Launched Successfully');
+        if (status === 'DRAFT') {
+          router.push('/admin/projects?tab=drafts');
+        } else {
+          router.push('/admin/projects?tab=live');
+        }
       }
       router.refresh();
     } catch (error) {
@@ -131,10 +146,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
       : "bg-background border-border shadow-sm focus-visible:ring-primary/20"
   );
 
-  const getAreaClass = (
-    section: string,
-    minHeight: string = "min-h-[180px]"
-  ) => cn(
+  const getAreaClass = (section: string, minHeight: string = "min-h-[180px]") => cn(
     "flex w-full rounded-xl border px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-foreground",
     minHeight,
     isSectionReadOnly(section)
@@ -154,7 +166,18 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-6xl mx-auto space-y-8 pb-20 animate-in fade-in duration-500">
+    <form className="max-w-6xl mx-auto space-y-8 pb-32 animate-in fade-in duration-500">
+
+      {/* SOTA: Audit Traceability Header */}
+      {initialData?.proposalId && (
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-400 w-fit">
+          <ShieldCheck className="h-4 w-4" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">Verified Origin:</span>
+          <Link href={`/admin/proposals/${initialData.proposalId}`} className="text-xs font-bold underline hover:text-blue-800 flex items-center gap-1">
+            Proposal #{initialData.proposalId.split('-')[0]} <ExternalLink className="h-3 w-3" />
+          </Link>
+        </div>
+      )}
 
       {/* --- SECTION 1: IDENTITY --- */}
       <section className={cn(
@@ -214,7 +237,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         <div className="md:col-span-12 space-y-1.5 relative">
           <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Description</label>
           <Textarea
-            className={getAreaClass('identity', "min-h-[200px]")} // 
+            className={getAreaClass('identity', "min-h-[200px]")}
             {...register('description')}
             readOnly={isSectionReadOnly('identity')}
           />
@@ -233,7 +256,14 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
 
         <div className="md:col-span-6 space-y-1.5 relative">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Capital Goal (NGN)</label>
+          <div className="flex justify-between">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Capital Goal (NGN)</label>
+            {isFinancialLocked && (
+              <span className="text-[9px] font-bold text-amber-600 flex items-center gap-1 uppercase tracking-tight">
+                <Lock className="h-3 w-3" /> Ledger Locked
+              </span>
+            )}
+          </div>
           <Controller
             control={control}
             name="targetAmount"
@@ -243,8 +273,13 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
                 <Input
                   value={formatNumberInput(String(field.value || ''))}
                   onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                  className={cn(getInputClass('identity'), "pl-10 font-bold tabular-nums")}
-                  readOnly={isSectionReadOnly('identity')}
+                  className={cn(
+                    getInputClass('identity'),
+                    "pl-10 font-bold tabular-nums",
+                    isFinancialLocked && "bg-muted/30 text-muted-foreground cursor-not-allowed"
+                  )}
+                  readOnly={isSectionReadOnly('identity') || isFinancialLocked}
+                  disabled={isFinancialLocked}
                 />
               </div>
             )}
@@ -295,6 +330,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
                 onAdd={(item) => !isSectionReadOnly('media') && setValue('gallery', [...gallery, item])}
                 onRemove={(id) => !isSectionReadOnly('media') && setValue('gallery', gallery.filter((i) => i.id !== id))}
                 onUpdate={(id, updates) => !isSectionReadOnly('media') && setValue('gallery', gallery.map((i) => i.id === id ? { ...i, ...updates } : i))}
+                readOnly={isSectionReadOnly('media')}
               />
             </div>
           </div>
@@ -325,7 +361,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           isSectionReadOnly('plan') ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
         )}>
           <EditPencil section="plan" />
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-4">
             <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", isSectionReadOnly('plan') ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary")}>
               <Clock className="h-5 w-5" />
             </div>
@@ -334,38 +370,65 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Milestone tracking</p>
             </div>
           </div>
+
+          {/* Helper Text */}
+          {!isSectionReadOnly('plan') && (
+            <div className="bg-primary/5 border border-primary/10 p-3 rounded-xl mb-4">
+              <p className="text-[11px] text-primary/80 font-medium leading-relaxed">
+                <strong>Pro Tip:</strong> Define clear, verifiable milestones. This timeline is donor-facing and serves as the source of truth for funds release.
+              </p>
+            </div>
+          )}
+
           <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={isSectionReadOnly('plan')} />
         </div>
       </div>
 
       {/* --- STICKY FOOTER ACTIONS --- */}
-      {isAnySectionUnlocked && (
+      {showFooter && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-50 md:pl-[300px] animate-in slide-in-from-bottom-5">
-          <div className="max-w-6xl mx-auto flex items-center justify-end gap-4">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setUnlockedSections({})}
-              className="rounded-xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground"
-            >
-              Discard Changes
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="rounded-xl h-14 px-12 font-black text-base shadow-2xl shadow-primary/30 active:scale-95 transition-all min-w-[220px]"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="animate-spin mr-3 h-5 w-5" /> Syncing...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-3 h-5 w-5" />
-                  {initialData ? 'Update Project' : 'Publish to Ledger'}
-                </>
-              )}
-            </Button>
+          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+            {initialData ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setUnlockedSections({})}
+                className="rounded-xl h-12 px-6 font-bold text-muted-foreground hover:text-foreground"
+              >
+                Cancel Edits
+              </Button>
+            ) : (
+              <div /> // Spacer
+            )}
+
+            <div className="flex items-center gap-3">
+              <Button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
+                variant="secondary"
+                className="rounded-xl h-12 px-8 font-bold text-sm border border-border/50 shadow-sm min-w-[140px]"
+              >
+                {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <FileText className="mr-2 h-4 w-4" />}
+                Save Draft
+              </Button>
+
+              <Button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
+                className="rounded-xl h-12 px-8 font-black text-sm shadow-xl shadow-primary/20 active:scale-95 transition-all min-w-[180px]"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="animate-spin h-4 w-4" />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {initialData ? <Save className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                    {initialData ? 'Publish Updates' : 'Launch Project'}
+                  </div>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       )}

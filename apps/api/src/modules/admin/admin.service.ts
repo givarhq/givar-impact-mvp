@@ -672,8 +672,8 @@ export class AdminService {
       slug: slug,
       targetAmount: BigInt(dto.targetAmount),
       raisedAmount: 0n,
-      status: ProjectStatus.ACTIVE,
-      isActive: true,
+      status: dto.status || ProjectStatus.ACTIVE,
+      isActive: true, // Drafts are active records but hidden from public lists by status filter
       tags: dto.tags || ['Admin Created', 'Verified'],
 
       user: { connect: { id: adminId } },
@@ -695,7 +695,11 @@ export class AdminService {
           action: AuditAction.PROJECT_CREATED,
           entityId: project.id,
           entityType: 'Project',
-          metadata: { title: project.title, method: 'ADMIN_DIRECT' },
+          metadata: {
+            title: project.title,
+            method: 'ADMIN_DIRECT',
+            status: project.status
+          },
         },
       });
 

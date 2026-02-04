@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
-import { 
-  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsUrl, IsBoolean 
+import {
+  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsUrl, IsBoolean
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { Currency, ProjectStatus } from '@givar/database';
@@ -34,12 +34,12 @@ export class CreateAdminProjectDto {
   @IsOptional() @IsString() shortDesc?: string;
   @IsUUID() categoryId!: string;
   @IsString() location!: string;
-  
+
   @IsNumber() @Min(100) targetAmount!: number;
   @IsEnum(Currency) currency!: Currency;
 
   @IsUrl() coverImage!: string;
-  
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AdminMediaItem)
@@ -59,6 +59,8 @@ export class CreateAdminProjectDto {
 
   @IsOptional() @IsArray() @IsString({ each: true }) tags?: string[];
   @IsOptional() @IsString() endDate?: string;
+
+  @IsOptional() @IsEnum(ProjectStatus) status?: ProjectStatus;
 }
 
 export class UpdateAdminProjectDto extends PartialType(CreateAdminProjectDto) {
