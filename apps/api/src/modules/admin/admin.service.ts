@@ -731,7 +731,7 @@ export class AdminService {
 
     // 1. Ledger Integrity Guard
     if (isLive && isPlanAmending) {
-      if (!dto.reasonForGoalAdjustment || dto.reasonForGoalAdjustment.length < 20) {
+      if (!dto.reasonForGoalAdjustment || dto.reasonForGoalAdjustment.length < 10) {
         throw new BadRequestException(
           'Live projects require an amendment narrative to modify the goal, budget, or timeline.'
         );
