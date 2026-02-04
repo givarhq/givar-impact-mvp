@@ -72,7 +72,7 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
         <Card
             onClick={onClick}
             className={cn(
-                "relative p-6 bg-card border-none overflow-hidden rounded-[28px] transition-all duration-300 group",
+                "relative p-6 bg-card overflow-hidden rounded-[28px] transition-all duration-300 group",
                 "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
                 onClick ? "cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1" : "cursor-default",
                 highlight && "ring-2 ring-amber-500/20 bg-amber-500/[0.02]"
