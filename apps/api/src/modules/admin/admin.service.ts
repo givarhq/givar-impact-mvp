@@ -723,11 +723,17 @@ export class AdminService {
 
     const isGoalChanging = dto.targetAmount !== undefined && BigInt(dto.targetAmount) !== existing.targetAmount;
 
+    // Deep comparison for plan changes (Budget and Timeline)
+    const isBudgetChanging = dto.budgetBreakdown !== undefined && JSON.stringify(dto.budgetBreakdown) !== JSON.stringify(existing.budgetBreakdown);
+    const isTimelineChanging = dto.executionTimeline !== undefined && JSON.stringify(dto.executionTimeline) !== JSON.stringify(existing.executionTimeline);
+
+    const isPlanAmending = isGoalChanging || isBudgetChanging || isTimelineChanging;
+
     // 1. Ledger Integrity Guard
-    if (isLive && isGoalChanging) {
+    if (isLive && isPlanAmending) {
       if (!dto.reasonForGoalAdjustment || dto.reasonForGoalAdjustment.length < 20) {
         throw new BadRequestException(
-          'Target goal is locked for live projects. To adjust for market volatility, you must provide a detailed reason (min 20 chars) which will be published to donors.'
+          'Live projects require an amendment narrative to modify the goal, budget, or timeline.'
         );
       }
     }
@@ -769,16 +775,20 @@ export class AdminService {
         data: updateData,
       });
 
-      if (isLive && isGoalChanging) {
+      if (isLive && isPlanAmending) {
+        // Create public announcement for the amendment
         await tx.projectUpdate.create({
           data: {
             projectId,
-            title: 'Financial Goal Adjusted',
-            content: `The project goal has been adjusted from ${(Number(existing.targetAmount) / 100).toLocaleString()} to ${(Number(project.targetAmount) / 100).toLocaleString()}. Reason: ${dto.reasonForGoalAdjustment}`,
+            title: isGoalChanging ? 'Financial Goal Adjusted' : 'Project Plan Amended',
+            content: isGoalChanging
+              ? `The project goal has been adjusted from ${(Number(existing.targetAmount) / 100).toLocaleString()} to ${(Number(project.targetAmount) / 100).toLocaleString()}. Reason: ${dto.reasonForGoalAdjustment}`
+              : `The project execution plan (budget or timeline) has been updated. Reason: ${dto.reasonForGoalAdjustment}`,
             type: 'ANNOUNCEMENT'
           }
         });
 
+        // Detailed audit log for forensics
         await tx.auditLog.create({
           data: {
             userId: adminId,
@@ -786,7 +796,10 @@ export class AdminService {
             entityId: projectId,
             entityType: 'Project',
             metadata: {
-              action: 'GOAL_AMENDMENT',
+              action: 'PLAN_AMENDMENT',
+              isGoalChanging,
+              isBudgetChanging,
+              isTimelineChanging,
               oldGoal: existing.targetAmount.toString(),
               newGoal: project.targetAmount.toString(),
               reason: dto.reasonForGoalAdjustment
@@ -798,8 +811,8 @@ export class AdminService {
       return project;
     });
 
-    // Post-Transaction Broadcast
-    if (isLive && isGoalChanging) {
+    // Post-Transaction Broadcast to Stakeholders
+    if (isLive && isPlanAmending) {
       this.broadcastFinancialAdjustment(
         projectId,
         result.title,
