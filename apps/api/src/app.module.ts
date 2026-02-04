@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './modules/auth/auth.module';
@@ -15,11 +15,20 @@ import { ProposalModule } from './modules/proposal/proposal.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { OrganizationModule } from './modules/organization/organization.module';
 import { EmailModule } from './modules/email/email.module';
+import { ReadOnlyGuard } from './common/guards/read-only.guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+      }),
+      inject: [ConfigService],
     }),
     // RATE LIMITING
     ThrottlerModule.forRoot([{
@@ -46,7 +55,13 @@ import { EmailModule } from './modules/email/email.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      // The ReadOnlyGuard is registered platform-wide.
+      // It only activates when it detects the 'isImpersonating' flag in the JWT.
+      provide: APP_GUARD,
+      useClass: ReadOnlyGuard,
+    },
   ],
   exports: [],
 })
-export class AppModule {}
+export class AppModule { }

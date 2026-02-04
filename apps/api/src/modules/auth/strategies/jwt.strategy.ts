@@ -11,7 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private prisma: PrismaService,
   ) {
     const secret = configService.get<string>('JWT_SECRET');
-    
+
     if (!secret) {
       throw new Error('JWT_SECRET environment variable is not defined.');
     }
@@ -32,6 +32,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User no longer exists');
     }
 
-    return { id: user.id, email: user.email, role: user.role };
+    return {
+      id: user.id, email: user.email, role: user.role,
+      isImpersonating: payload.isImpersonating || false,
+      adminId: payload.adminId || null
+    };
   }
 }
