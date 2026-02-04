@@ -212,13 +212,14 @@ export class AdminService {
     const {
       search, status, categoryId,
       page = 1, limit = 20,
-      sortBy = 'createdAt', sortOrder = 'desc'
+      sortBy = 'createdAt', sortOrder = 'desc',
+      excludeDrafts
     } = query;
 
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProjectWhereInput = {
-      ...(status && { status }),
+      ...(status ? { status } : (excludeDrafts ? { status: { not: ProjectStatus.DRAFT } } : {})),
       ...(categoryId && { categoryId }),
       ...(search && {
         OR: [

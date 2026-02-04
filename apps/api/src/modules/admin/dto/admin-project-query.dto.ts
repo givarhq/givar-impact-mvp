@@ -1,5 +1,5 @@
-import { IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { ProjectStatus } from '@givar/database';
 
 export class AdminProjectQueryDto {
@@ -32,4 +32,9 @@ export class AdminProjectQueryDto {
     @IsOptional()
     @IsEnum(['asc', 'desc'])
     sortOrder?: 'asc' | 'desc' = 'desc';
+
+    @IsOptional()
+    @Transform(({ value }) => value === 'true')
+    @IsBoolean()
+    excludeDrafts?: boolean;
 }

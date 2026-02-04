@@ -21,14 +21,29 @@ export default async function AdminProjectsPage({
     const resolvedParams = await searchParams;
     const activeTab = (resolvedParams.tab as string) || 'live';
 
-    // Clone params to avoid mutating the object for other calls
-    const projectParams = new URLSearchParams(resolvedParams as any);
-    const proposalParams = new URLSearchParams(resolvedParams as any);
+    // Construct params for Project Service
+    const projectParams = new URLSearchParams();
 
-    // Context-Aware Fetching
+    // Copy existing search/sort/category params
+    Object.entries(resolvedParams).forEach(([key, value]) => {
+        if (value && key !== 'tab') projectParams.set(key, String(value));
+    });
+
+    // Context-Aware Logic
     if (activeTab === 'drafts') {
         projectParams.set('status', 'DRAFT');
+    } else if (activeTab === 'live') {
+        // If user hasn't explicitly filtered by a status, exclude drafts by default
+        if (!projectParams.has('status')) {
+            projectParams.set('excludeDrafts', 'true');
+        }
     }
+
+    // Construct params for Proposal Service (mostly search/page)
+    const proposalParams = new URLSearchParams();
+    Object.entries(resolvedParams).forEach(([key, value]) => {
+        if (value && key !== 'tab') proposalParams.set(key, String(value));
+    });
 
     const [projectResult, proposalResult, categories] = await Promise.all([
         ApiService.admin.getProjects(token, projectParams),
@@ -39,7 +54,6 @@ export default async function AdminProjectsPage({
     const projects = projectResult?.data || [];
     const proposals = proposalResult?.data || [];
 
-    // Determine which meta to use for pagination
     const activeMeta = activeTab === 'proposals'
         ? (proposalResult?.meta || { page: 1, lastPage: 1 })
         : (projectResult?.meta || { page: 1, lastPage: 1 });
@@ -106,7 +120,7 @@ export default async function AdminProjectsPage({
                     />
                 </TabsContent>
 
-                {/* DRAFTS TAB (Reuses Project Table) */}
+                {/* DRAFTS TAB */}
                 <TabsContent value="drafts" className="mt-0 outline-none">
                     {projects.length === 0 ? (
                         <div className="py-24 text-center border-2 border-dashed border-border rounded-[32px] bg-muted/10">
