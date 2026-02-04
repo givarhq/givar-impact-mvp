@@ -91,6 +91,7 @@ export class AuthService {
         firstName: result.firstName,
         lastName: result.lastName,
         role: result.role,
+        emailVerified: result.emailVerified,
       },
       accessToken,
     };
@@ -137,11 +138,6 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // Blocks unverified users from generating a session
-      if (!user.emailVerified) {
-        throw new ForbiddenException('EMAIL_NOT_VERIFIED');
-      }
-
       // 3. Reset Lockout
       if (user.failedLoginAttempts > 0) {
         await this.prisma.user.update({
@@ -180,6 +176,7 @@ export class AuthService {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          emailVerified: user.emailVerified,
         }
       };
 

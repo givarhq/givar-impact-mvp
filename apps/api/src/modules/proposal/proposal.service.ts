@@ -20,6 +20,14 @@ export class ProposalService {
 
   // 1. Start a Draft
   async createDraft(userId: string, dto: CreateProposalDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { emailVerified: true }
+    });
+
+    if (!user?.emailVerified) {
+      throw new ForbiddenException('EMAIL_NOT_VERIFIED');
+    }
     return this.prisma.projectProposal.create({
       data: {
         userId,

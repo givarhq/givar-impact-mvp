@@ -34,7 +34,7 @@ export class DonationService {
     private config: ConfigService,
     private audit: AuditService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   // Centralized Receipt Logic
   private async triggerReceipt(userId: string | null, guestEmail: string | null, projectId: string, amount: bigint, currency: Currency, reference: string) {
@@ -45,7 +45,7 @@ export class DonationService {
       });
 
       let email: string | undefined | null = guestEmail;
-      
+
       if (!email && userId) {
         const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
         email = user?.email;
@@ -60,8 +60,8 @@ export class DonationService {
           date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
           ref: reference
         }).catch(err => {
-            const msg = err instanceof Error ? err.message : String(err);
-            this.logger.error(`Receipt Email Failed: ${msg}`);
+          const msg = err instanceof Error ? err.message : String(err);
+          this.logger.error(`Receipt Email Failed: ${msg}`);
         });
       }
     } catch (err) {
@@ -71,6 +71,15 @@ export class DonationService {
   }
 
   async donate(userId: string, dto: CreateDonationDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { emailVerified: true },
+    });
+
+    if (!user?.emailVerified) {
+      throw new ForbiddenException('EMAIL_NOT_VERIFIED');
+    }
+
     const amount = BigInt(dto.amount);
 
     if (amount < this.MIN_DONATION_MINOR) {
@@ -93,7 +102,7 @@ export class DonationService {
 
     // 2. Status Guard
     if (project.status !== ProjectStatus.ACTIVE) {
-        throw new BadRequestException(`Project is currently ${project.status.toLowerCase()} and cannot accept donations.`);
+      throw new BadRequestException(`Project is currently ${project.status.toLowerCase()} and cannot accept donations.`);
     }
 
     if (project.currency !== dto.currency) {
@@ -103,7 +112,7 @@ export class DonationService {
     // 3. Over-donation Prevention
     const remainingNeeded = project.targetAmount - project.raisedAmount;
     if (amount > remainingNeeded) {
-        throw new BadRequestException('OVERFUNDING');
+      throw new BadRequestException('OVERFUNDING');
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -143,8 +152,8 @@ export class DonationService {
           raisedAmount: newRaisedAmount,
           // If goal is met, move to FUNDED
           ...(isGoalMet && {
-              status: ProjectStatus.FUNDED,
-              fundedAt: new Date(),
+            status: ProjectStatus.FUNDED,
+            fundedAt: new Date(),
           })
         },
       });
@@ -169,12 +178,16 @@ export class DonationService {
       return donation;
     });
 
-    await this.triggerReceipt(userId, null, dto.projectId, BigInt(dto.amount), dto.currency, `WAL-${result.id.slice(0,8)}`);
+    await this.triggerReceipt(userId, null, dto.projectId, BigInt(dto.amount), dto.currency, `WAL-${result.id.slice(0, 8)}`);
 
     return result;
   }
 
   async initiateDirectDonation(user: any | undefined, dto: InitiateDirectDonationDto) {
+    if (user && !user.emailVerified) {
+      throw new ForbiddenException('EMAIL_NOT_VERIFIED');
+    }
+
     const amountBig = BigInt(dto.amount);
 
     if (amountBig < this.MIN_DONATION_MINOR) {
@@ -310,44 +323,44 @@ export class DonationService {
     });
 
     const remainingNeeded = project ? project.targetAmount - project.raisedAmount : 0n;
-    
+
     // Determine if funds should be routed to Suspense
     // Reasons: Project closed, Project not found, or Donation exceeds remaining goal
-    const shouldRouteToSuspense = 
-      !project || 
-      project.status === ProjectStatus.FUNDED || 
-      project.status === ProjectStatus.COMPLETED || 
+    const shouldRouteToSuspense =
+      !project ||
+      project.status === ProjectStatus.FUNDED ||
+      project.status === ProjectStatus.COMPLETED ||
       amount > remainingNeeded;
 
     if (shouldRouteToSuspense) {
-        this.logger.warn(`Routing ${amount} to SUSPENSE. Ref: ${reference}. Reason: ${!project ? 'Project Missing' : amount > remainingNeeded ? 'Goal Exceeded' : 'Project Closed'}`);
-        return this.handleSuspenseRouting(data, project?.title);
+      this.logger.warn(`Routing ${amount} to SUSPENSE. Ref: ${reference}. Reason: ${!project ? 'Project Missing' : amount > remainingNeeded ? 'Goal Exceeded' : 'Project Closed'}`);
+      return this.handleSuspenseRouting(data, project?.title);
     }
 
     // 4. Branching Logic for Standard Fulfillment
     let result: any;
     if (userId === 'GUEST') {
-        if (!guestEmail) throw new Error("Guest email missing for guest donation");
-        result = await this.fulfillGuestDonation({
-            email: guestEmail,
-            name: guestName,
-            projectId,
-            amount,
-            currency,
-            reference
-        });
+      if (!guestEmail) throw new Error("Guest email missing for guest donation");
+      result = await this.fulfillGuestDonation({
+        email: guestEmail,
+        name: guestName,
+        projectId,
+        amount,
+        currency,
+        reference
+      });
     } else {
-        result = await this.fulfillUserDirectDonation(data);
+      result = await this.fulfillUserDirectDonation(data);
     }
 
     // 5. Post-Fulfillment Email Receipt
     if (result && result.status === 'processed') {
       await this.triggerReceipt(
-        userId === 'GUEST' ? null : userId, 
-        guestEmail || null, 
-        projectId, 
-        amount, 
-        currency, 
+        userId === 'GUEST' ? null : userId,
+        guestEmail || null,
+        projectId,
+        amount,
+        currency,
         reference
       );
     }
@@ -368,7 +381,7 @@ export class DonationService {
     return this.prisma.$transaction(async (tx) => {
       // 1. Find User Wallet (Must exist for logged in user)
       const wallet = await tx.wallet.findUniqueOrThrow({
-          where: { userId_currency: { userId, currency } }
+        where: { userId_currency: { userId, currency } }
       });
 
       // 2. Virtual Ledger Credit (In)
@@ -432,22 +445,22 @@ export class DonationService {
 
       // 6. Audit
       await this.audit.log({
-          userId,
-          action: AuditAction.DIRECT_PAYMENT_FULFILLED,
-          entityId: donation.id,
-          entityType: 'Donation',
-          metadata: { 
-              projectId, 
-              amount: amount.toString(), 
-              currency, 
-              reference,
-              method: 'DIRECT_WEBHOOK',
-              isGoalMet: isNowFunded
-          }
+        userId,
+        action: AuditAction.DIRECT_PAYMENT_FULFILLED,
+        entityId: donation.id,
+        entityType: 'Donation',
+        metadata: {
+          projectId,
+          amount: amount.toString(),
+          currency,
+          reference,
+          method: 'DIRECT_WEBHOOK',
+          isGoalMet: isNowFunded
+        }
       }, tx);
 
       this.logger.log(`User direct donation fulfilled: ${donation.id}`);
-      
+
       return {
         type: 'user',
         donationId: donation.id,
@@ -462,99 +475,99 @@ export class DonationService {
 
   // --- Private Handler: Guest ---
   private async fulfillGuestDonation(data: {
-      email: string;
-      name?: string;
-      projectId: string;
-      amount: bigint;
-      currency: Currency;
-      reference: string;
+    email: string;
+    name?: string;
+    projectId: string;
+    amount: bigint;
+    currency: Currency;
+    reference: string;
   }) {
-      const { email, name, projectId, amount, currency, reference } = data;
-      const normalizedEmail = email.toLowerCase().trim();
+    const { email, name, projectId, amount, currency, reference } = data;
+    const normalizedEmail = email.toLowerCase().trim();
 
-      return this.prisma.$transaction(async (tx) => {
-          // 1. Find or Create Guest Identity
-          const guestDonor = await tx.guestDonor.upsert({
-              where: { email: normalizedEmail },
-              update: {
-                  totalDonated: { increment: amount },
-                  donationCount: { increment: 1 },
-                  lastDonated: new Date(),
-              },
-              create: {
-                  email: normalizedEmail,
-                  name,
-                  totalDonated: amount,
-                  donationCount: 1,
-              }
-          });
-
-          // 2. Create Guest Ledger Record
-          const guestDonation = await tx.guestDonation.create({
-              data: {
-                  guestDonorId: guestDonor.id,
-                  projectId,
-                  amount,
-                  currency,
-                  reference, // Unique reference
-                  status: TxStatus.COMPLETED
-              }
-          });
-
-          // 3. Update Project Stats (Unified with Completion Trigger)
-          // Fetch current state inside transaction
-          const project = await tx.project.findUniqueOrThrow({
-            where: { id: projectId },
-            select: { raisedAmount: true, targetAmount: true }
-          });
-
-          const newRaisedAmount = project.raisedAmount + amount;
-          const isNowFunded = newRaisedAmount === project.targetAmount;
-
-          await tx.project.update({
-            where: { id: projectId },
-            data: {
-              raisedAmount: newRaisedAmount,
-              ...(isNowFunded && {
-                status: ProjectStatus.FUNDED,
-                fundedAt: new Date(),
-              })
-            },
-          });
-
-          // 4. Audit
-          await this.audit.log({
-              action: AuditAction.DIRECT_PAYMENT_FULFILLED,
-              entityId: guestDonation.id,
-              entityType: 'GuestDonation',
-              metadata: { 
-                  guestEmail: normalizedEmail, 
-                  amount: amount.toString(), 
-                  projectId,
-                  reference,
-                  method: 'GUEST_WEBHOOK',
-                  isGoalMet: isNowFunded
-              }
-          }, tx);
-
-          this.logger.log(`Guest donation fulfilled: ${reference}`);
-          
-          return {
-            type: 'guest',
-            donationId: guestDonation.id,
-            status: 'processed',
-            reference
-          };
-      }, {
-        timeout: 15000, // 15s timeout
-        maxWait: 5000
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Find or Create Guest Identity
+      const guestDonor = await tx.guestDonor.upsert({
+        where: { email: normalizedEmail },
+        update: {
+          totalDonated: { increment: amount },
+          donationCount: { increment: 1 },
+          lastDonated: new Date(),
+        },
+        create: {
+          email: normalizedEmail,
+          name,
+          totalDonated: amount,
+          donationCount: 1,
+        }
       });
+
+      // 2. Create Guest Ledger Record
+      const guestDonation = await tx.guestDonation.create({
+        data: {
+          guestDonorId: guestDonor.id,
+          projectId,
+          amount,
+          currency,
+          reference, // Unique reference
+          status: TxStatus.COMPLETED
+        }
+      });
+
+      // 3. Update Project Stats (Unified with Completion Trigger)
+      // Fetch current state inside transaction
+      const project = await tx.project.findUniqueOrThrow({
+        where: { id: projectId },
+        select: { raisedAmount: true, targetAmount: true }
+      });
+
+      const newRaisedAmount = project.raisedAmount + amount;
+      const isNowFunded = newRaisedAmount === project.targetAmount;
+
+      await tx.project.update({
+        where: { id: projectId },
+        data: {
+          raisedAmount: newRaisedAmount,
+          ...(isNowFunded && {
+            status: ProjectStatus.FUNDED,
+            fundedAt: new Date(),
+          })
+        },
+      });
+
+      // 4. Audit
+      await this.audit.log({
+        action: AuditAction.DIRECT_PAYMENT_FULFILLED,
+        entityId: guestDonation.id,
+        entityType: 'GuestDonation',
+        metadata: {
+          guestEmail: normalizedEmail,
+          amount: amount.toString(),
+          projectId,
+          reference,
+          method: 'GUEST_WEBHOOK',
+          isGoalMet: isNowFunded
+        }
+      }, tx);
+
+      this.logger.log(`Guest donation fulfilled: ${reference}`);
+
+      return {
+        type: 'guest',
+        donationId: guestDonation.id,
+        status: 'processed',
+        reference
+      };
+    }, {
+      timeout: 15000, // 15s timeout
+      maxWait: 5000
+    });
   }
 
   // Create Recurring Donation
   async createSubscription(userId: string, dto: CreateSubscriptionDto) {
     const amount = BigInt(dto.amount);
-    
+
     // 1. Validate Project and Wallet (First charge is immediate)
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
@@ -562,23 +575,23 @@ export class DonationService {
     if (!project || !project.isActive) {
       throw new BadRequestException('Project is not active or does not exist');
     }
-    
+
     // 2. Perform the FIRST donation immediately as part of creation
     // This confirms the user has funds and validates the flow.
     await this.donate(userId, {
-        projectId: dto.projectId,
-        amount: dto.amount,
-        currency: dto.currency,
-        message: `Initial donation for recurring plan.`
+      projectId: dto.projectId,
+      amount: dto.amount,
+      currency: dto.currency,
+      message: `Initial donation for recurring plan.`
     });
-    
+
     // 3. Calculate next charge date
     const now = new Date();
     let nextChargeDate: Date;
     if (dto.interval === 'WEEKLY') {
-        nextChargeDate = add(now, { weeks: 1 });
+      nextChargeDate = add(now, { weeks: 1 });
     } else { // MONTHLY
-        nextChargeDate = add(now, { months: 1 });
+      nextChargeDate = add(now, { months: 1 });
     }
 
     // 4. Create the Subscription record
@@ -647,9 +660,9 @@ export class DonationService {
 
     if (subscription.userId !== userId) {
       await this.audit.log({
-          action: AuditAction.USER_LOGIN_FAILED,
-          userId,
-          metadata: { reason: 'IDOR Attempt on Subscription', targetId: subscriptionId }
+        action: AuditAction.USER_LOGIN_FAILED,
+        userId,
+        metadata: { reason: 'IDOR Attempt on Subscription', targetId: subscriptionId }
       });
       throw new ForbiddenException('You do not own this subscription');
     }
@@ -658,7 +671,7 @@ export class DonationService {
     const updated = await this.prisma.subscription.update({
       where: { id: subscriptionId },
       data: { status: dto.status },
-      include: { 
+      include: {
         project: { select: { title: true } },
         user: { select: { email: true, firstName: true } }
       }
@@ -670,7 +683,7 @@ export class DonationService {
       action: AuditAction.SUBSCRIPTION_UPDATED,
       entityId: subscriptionId,
       entityType: 'Subscription',
-      metadata: { 
+      metadata: {
         previousStatus: subscription.status,
         newStatus: dto.status,
         project: updated.project.title
@@ -679,10 +692,10 @@ export class DonationService {
 
     // 4. Trigger Email Notification
     this.emailService.sendSubscriptionUpdate(
-        updated.user.email,
-        updated.user.firstName,
-        updated.project.title,
-        dto.status
+      updated.user.email,
+      updated.user.firstName,
+      updated.project.title,
+      dto.status
     ).catch(err => this.logger.error(`Subscription email failed: ${err.message}`));
 
     this.logger.log(`Subscription ${subscriptionId} status changed to ${dto.status} by user ${userId}`);
@@ -722,7 +735,7 @@ export class DonationService {
             metadata: { originalProjectId: projectId, reason: 'PROJECT_CLOSED' }
           }
         });
-        
+
         resultId = suspenseTx.id;
         resultType = 'WalletTransaction';
 
@@ -730,30 +743,30 @@ export class DonationService {
         // --- CASE B: Guest ---
         // We find/create the GuestDonor identity just like a normal donation,
         // but mark the specific donation record as SUSPENSE.
-        
+
         const normalizedEmail = guestEmail.toLowerCase().trim();
-        
+
         // 1. Identity
         const guestDonor = await tx.guestDonor.upsert({
-            where: { email: normalizedEmail },
-            update: { lastDonated: new Date() },
-            create: {
-                email: normalizedEmail,
-                name: guestName,
-            }
+          where: { email: normalizedEmail },
+          update: { lastDonated: new Date() },
+          create: {
+            email: normalizedEmail,
+            name: guestName,
+          }
         });
 
         // 2. Ledger Record (Suspense)
         const guestSuspense = await tx.guestDonation.create({
-            data: {
-                guestDonorId: guestDonor.id,
-                projectId,
-                amount,
-                currency,
-                reference,
-                status: TxStatus.SUSPENSE,
-                message: 'Funds received after project closure'
-            }
+          data: {
+            guestDonorId: guestDonor.id,
+            projectId,
+            amount,
+            currency,
+            reference,
+            status: TxStatus.SUSPENSE,
+            message: 'Funds received after project closure'
+          }
         });
 
         resultId = guestSuspense.id;
@@ -766,11 +779,11 @@ export class DonationService {
         action: AuditAction.FUNDS_MOVED_TO_SUSPENSE,
         entityId: resultId,
         entityType: resultType,
-        metadata: { 
-            reference, 
-            amount: amount.toString(), 
-            projectId, 
-            guestEmail: userId === 'GUEST' ? guestEmail : undefined 
+        metadata: {
+          reference,
+          amount: amount.toString(),
+          projectId,
+          guestEmail: userId === 'GUEST' ? guestEmail : undefined
         }
       }, tx);
 
