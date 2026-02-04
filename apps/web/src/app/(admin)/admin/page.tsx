@@ -10,13 +10,13 @@ export default async function AdminDashboard() {
     const token = cookieStore.get('givar_token')?.value;
 
     if (!token) return (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground animate-in fade-in">
+        <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground">
             <Lock className="h-10 w-10 mb-4 opacity-20" />
             <p className="font-bold text-sm uppercase tracking-widest">Secure Session Required</p>
         </div>
     );
 
-    // Fetch granular analytics payload
+    // Fetch granular analytics payload from API
     const analyticsReport = await ApiService.admin.getAnalytics(token);
 
     if (!analyticsReport) {
@@ -29,10 +29,9 @@ export default async function AdminDashboard() {
 
     return (
         <div className="space-y-8">
-            {/* Clean Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-3">
+                    <h1 className="text-lg md:hidden font-black text-foreground flex items-center gap-3">
                         <LayoutDashboard className="h-6 w-6 text-primary hidden md:block" />
                         Platform Overview
                     </h1>
@@ -42,7 +41,6 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Main Dashboard Engine */}
             <AnalyticsOverviewClient report={analyticsReport} />
         </div>
     );
