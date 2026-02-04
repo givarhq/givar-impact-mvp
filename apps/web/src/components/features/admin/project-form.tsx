@@ -20,7 +20,8 @@ import {
   Send,
   ExternalLink,
   Lock,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCcw
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -69,6 +70,7 @@ const projectSchema = z.object({
   gallery: z.array(mediaItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
+  reasonForGoalAdjustment: z.string().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -82,13 +84,14 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [unlockedSections, setUnlockedSections] = useState<Record<string, boolean>>({});
+  const [isAdjustmentMode, setIsAdjustmentMode] = useState(false);
 
   const isSectionReadOnly = (section: string) => initialData ? !unlockedSections[section] : false;
   const showFooter = !initialData || Object.values(unlockedSections).some(v => v === true);
 
-  // SOTA: Financial Guardrails
-  // If project is live/funded, lock financial fields to preserve ledger integrity.
-  const isFinancialLocked = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
+  // Financial integrity check
+  const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
+  const isFinancialLocked = isLive && !isAdjustmentMode;
 
   const { register, control, handleSubmit, setValue, watch, formState: { errors } } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -107,7 +110,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
     }
   });
 
-  const [gallery, budget, timeline, coverImage] = watch(['gallery', 'budgetBreakdown', 'executionTimeline', 'coverImage']);
+  const [gallery, budget, timeline, coverImage, reason] = watch(['gallery', 'budgetBreakdown', 'executionTimeline', 'coverImage', 'reasonForGoalAdjustment']);
 
   const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
     setIsSubmitting(true);
@@ -118,6 +121,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         await ApiService.admin.updateProject(initialData.id, payload);
         toast.success(status === 'DRAFT' ? 'Draft Saved' : 'Project Published');
         setUnlockedSections({});
+        setIsAdjustmentMode(false);
       } else {
         await ApiService.admin.createProject(payload);
         toast.success(status === 'DRAFT' ? 'Project Saved as Draft' : 'Project Launched Successfully');
@@ -137,6 +141,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
 
   const toggleSection = (section: string) => {
     setUnlockedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    if (section === 'identity') setIsAdjustmentMode(false);
   };
 
   const getInputClass = (section: string) => cn(
@@ -168,7 +173,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   return (
     <form className="max-w-6xl mx-auto space-y-8 pb-32 animate-in fade-in duration-500">
 
-      {/* SOTA: Audit Traceability Header */}
+      {/* Audit Traceability Header */}
       {initialData?.proposalId && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-400 w-fit">
           <ShieldCheck className="h-4 w-4" />
@@ -244,7 +249,12 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
 
         <div className="md:col-span-6 space-y-1.5 relative">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Geographic Location</label>
+          <div className="flex justify-between items-end mb-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">
+              Geographic Location
+            </label>
+          </div>
+
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50" />
             <Input
@@ -256,13 +266,15 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
 
         <div className="md:col-span-6 space-y-1.5 relative">
-          <div className="flex justify-between">
+          <div className="flex justify-between items-end mb-1">
             <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Capital Goal (NGN)</label>
             {isFinancialLocked && (
               <span className="text-[9px] font-bold text-amber-600 flex items-center gap-1 uppercase tracking-tight">
                 <Lock className="h-3 w-3" /> Ledger Locked
               </span>
             )}
+            {/* Adjustment trigger only visible when section is explicitly unlocked */}
+
           </div>
           <Controller
             control={control}
@@ -278,13 +290,57 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
                     "pl-10 font-bold tabular-nums",
                     isFinancialLocked && "bg-muted/30 text-muted-foreground cursor-not-allowed"
                   )}
-                  readOnly={isSectionReadOnly('identity') || isFinancialLocked}
+                  readOnly={isFinancialLocked}
                   disabled={isFinancialLocked}
                 />
               </div>
             )}
           />
         </div>
+
+        {/* Adjustment Narrative Block */}
+        {!isSectionReadOnly('identity') && isLive && (
+          <div className="md:col-span-12 mt-2">
+            <div className="bg-amber-500/[0.03] border border-amber-500/10 p-5 rounded-2xl space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-amber-700 uppercase tracking-tight">
+                      Live Project Protection
+                    </p>
+                    <p className="text-xs text-amber-600/80 leading-relaxed font-medium">
+                      Financial goals are locked on live campaigns to preserve donor trust. If you must adjust for market volatility (inflation, vendor shifts), provide a public explanation below.
+                    </p>
+                  </div>
+                </div>
+
+                {!isAdjustmentMode && !isSectionReadOnly('identity') && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsAdjustmentMode(true)}
+                    className="rounded-xl h-10 px-5 font-bold border-amber-500/30 text-amber-700 gap-2 shrink-0"
+                  >
+                    <RefreshCcw className="h-4 w-4" />
+                    Adjust Goal
+                  </Button>
+                )}
+              </div>
+
+              {isAdjustmentMode && (
+                <div className="space-y-2 pt-4 border-t border-amber-500/10 animate-in slide-in-from-top-1">
+                  <label className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Public Amendment Narrative (Required)</label>
+                  <Textarea
+                    {...register('reasonForGoalAdjustment')}
+                    placeholder="e.g. Due to recent inflation spikes, the cost per solar unit has increased by 15%..."
+                    className="min-h-[100px] bg-white border-amber-200 focus-visible:ring-amber-500/20 text-sm"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* --- SECTION 2: MEDIA --- */}
@@ -371,7 +427,6 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
             </div>
           </div>
 
-          {/* Helper Text */}
           {!isSectionReadOnly('plan') && (
             <div className="bg-primary/5 border border-primary/10 p-3 rounded-xl mb-4">
               <p className="text-[11px] text-primary/80 font-medium leading-relaxed">
@@ -392,13 +447,13 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => setUnlockedSections({})}
+                onClick={() => { setUnlockedSections({}); setIsAdjustmentMode(false); }}
                 className="rounded-xl h-12 px-6 font-bold text-muted-foreground hover:text-foreground"
               >
                 Cancel Edits
               </Button>
             ) : (
-              <div /> // Spacer
+              <div />
             )}
 
             <div className="flex items-center gap-3">
@@ -415,7 +470,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
 
               <Button
                 type="button"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (isAdjustmentMode && !reason)}
                 onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
                 className="rounded-xl h-12 px-8 font-black text-sm shadow-xl shadow-primary/20 active:scale-95 transition-all min-w-[180px]"
               >

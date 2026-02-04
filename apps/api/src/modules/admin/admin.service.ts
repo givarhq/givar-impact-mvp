@@ -712,6 +712,23 @@ export class AdminService {
     const existing = await this.prisma.project.findUnique({ where: { id: projectId } });
     if (!existing) throw new NotFoundException('Project not found');
 
+    const isLive = ([
+      ProjectStatus.ACTIVE,
+      ProjectStatus.FUNDED,
+      ProjectStatus.COMPLETED
+    ] as ProjectStatus[]).includes(existing.status);
+
+    const isGoalChanging = dto.targetAmount !== undefined && BigInt(dto.targetAmount) !== existing.targetAmount;
+
+    // 1. Ledger Integrity Guard
+    if (isLive && isGoalChanging) {
+      if (!dto.reasonForGoalAdjustment || dto.reasonForGoalAdjustment.length < 20) {
+        throw new BadRequestException(
+          'Target goal is locked for live projects. To adjust for market volatility, you must provide a detailed reason (min 20 chars) which will be published to donors.'
+        );
+      }
+    }
+
     const updateData: Prisma.ProjectUpdateInput = {
       title: dto.title,
       description: dto.description,
@@ -749,15 +766,32 @@ export class AdminService {
         data: updateData,
       });
 
-      await tx.auditLog.create({
-        data: {
-          userId: adminId,
-          action: AuditAction.PROJECT_UPDATED,
-          entityId: projectId,
-          entityType: 'Project',
-          metadata: { fieldsUpdated: Object.keys(dto) },
-        },
-      });
+      // 2. Market Volatility Handling: Automated Transparency
+      if (isLive && isGoalChanging) {
+        await tx.projectUpdate.create({
+          data: {
+            projectId,
+            title: 'Financial Goal Adjusted',
+            content: `The project goal has been adjusted from ${(Number(existing.targetAmount) / 100).toLocaleString()} to ${(Number(project.targetAmount) / 100).toLocaleString()}. Reason: ${dto.reasonForGoalAdjustment}`,
+            type: 'ANNOUNCEMENT'
+          }
+        });
+
+        await tx.auditLog.create({
+          data: {
+            userId: adminId,
+            action: AuditAction.PROJECT_UPDATED,
+            entityId: projectId,
+            entityType: 'Project',
+            metadata: {
+              action: 'GOAL_AMENDMENT',
+              oldGoal: existing.targetAmount.toString(),
+              newGoal: project.targetAmount.toString(),
+              reason: dto.reasonForGoalAdjustment
+            },
+          },
+        });
+      }
 
       return project;
     });
