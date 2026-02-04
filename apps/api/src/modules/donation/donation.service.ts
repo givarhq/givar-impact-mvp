@@ -90,17 +90,24 @@ export class DonationService {
       throw new BadRequestException('Amount exceeds maximum allowed per donation');
     }
 
-    // 1. Fetch Project with current financials
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
-      select: { id: true, title: true, isActive: true, currency: true, targetAmount: true, raisedAmount: true, status: true },
+      select: {
+        id: true,
+        title: true,
+        isActive: true,
+        currency: true,
+        targetAmount: true,
+        raisedAmount: true,
+        status: true,
+        userId: true // Needed for notification
+      },
     });
 
     if (!project || !project.isActive) {
       throw new BadRequestException('Project is not active or does not exist');
     }
 
-    // 2. Status Guard
     if (project.status !== ProjectStatus.ACTIVE) {
       throw new BadRequestException(`Project is currently ${project.status.toLowerCase()} and cannot accept donations.`);
     }
@@ -109,7 +116,6 @@ export class DonationService {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
 
-    // 3. Over-donation Prevention
     const remainingNeeded = project.targetAmount - project.raisedAmount;
     if (amount > remainingNeeded) {
       throw new BadRequestException('OVERFUNDING');
@@ -142,7 +148,6 @@ export class DonationService {
         },
       });
 
-      // 4. Update Amount & Atomic Completion Trigger
       const newRaisedAmount = project.raisedAmount + amount;
       const isGoalMet = newRaisedAmount === project.targetAmount;
 
@@ -150,7 +155,6 @@ export class DonationService {
         where: { id: project.id },
         data: {
           raisedAmount: newRaisedAmount,
-          // If goal is met, move to FUNDED
           ...(isGoalMet && {
             status: ProjectStatus.FUNDED,
             fundedAt: new Date(),
@@ -169,18 +173,37 @@ export class DonationService {
             amount: amount.toString(),
             currency: dto.currency,
             reference,
-            isGoalMet, // Log completion status
+            isGoalMet,
           },
         },
         tx,
       );
 
-      return donation;
+      return { donation, isGoalMet };
     });
 
-    await this.triggerReceipt(userId, null, dto.projectId, BigInt(dto.amount), dto.currency, `WAL-${result.id.slice(0, 8)}`);
+    // 1. Trigger Individual Receipt
+    await this.triggerReceipt(userId, null, dto.projectId, amount, dto.currency, `WAL-${result.donation.id.slice(0, 8)}`);
 
-    return result;
+    // 2. Trigger "Project Funded" Alert to Organizer
+    if (result.isGoalMet) {
+      this.prisma.user.findUnique({
+        where: { id: project.userId },
+        select: { email: true, firstName: true }
+      }).then(organizer => {
+        if (organizer) {
+          this.emailService.sendProjectFundedAlert(organizer.email, {
+            name: organizer.firstName,
+            projectTitle: project.title,
+            amount: (Number(project.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+            currency: project.currency,
+            projectId: project.id
+          });
+        }
+      }).catch(err => this.logger.error(`Funded Alert Dispatch Failed: ${err.message}`));
+    }
+
+    return result.donation;
   }
 
   async initiateDirectDonation(user: any | undefined, dto: InitiateDirectDonationDto) {
@@ -378,13 +401,11 @@ export class DonationService {
   }) {
     const { userId, projectId, amount, currency, reference } = data;
 
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Find User Wallet (Must exist for logged in user)
+    const result = await this.prisma.$transaction(async (tx) => {
       const wallet = await tx.wallet.findUniqueOrThrow({
         where: { userId_currency: { userId, currency } }
       });
 
-      // 2. Virtual Ledger Credit (In)
       await tx.walletTransaction.create({
         data: {
           walletId: wallet.id,
@@ -397,7 +418,6 @@ export class DonationService {
         },
       });
 
-      // 3. Ledger Debit (Out)
       const donationTx = await tx.walletTransaction.create({
         data: {
           walletId: wallet.id,
@@ -405,12 +425,11 @@ export class DonationService {
           currency,
           type: TxType.DEBIT,
           status: TxStatus.COMPLETED,
-          reference, // Unique reference linkage
+          reference,
           description: `Direct donation to project ${projectId}`,
         },
       });
 
-      // 4. Create User Donation Record
       const donation = await tx.donation.create({
         data: {
           userId,
@@ -422,11 +441,9 @@ export class DonationService {
         },
       });
 
-      // 5. Update Project Stats (With Completion Trigger)
-      // We must fetch the current state inside the transaction to calculate totals accurately
       const project = await tx.project.findUniqueOrThrow({
         where: { id: projectId },
-        select: { raisedAmount: true, targetAmount: true }
+        select: { raisedAmount: true, targetAmount: true, userId: true, title: true, currency: true }
       });
 
       const newRaisedAmount = project.raisedAmount + amount;
@@ -443,7 +460,6 @@ export class DonationService {
         },
       });
 
-      // 6. Audit
       await this.audit.log({
         userId,
         action: AuditAction.DIRECT_PAYMENT_FULFILLED,
@@ -459,18 +475,45 @@ export class DonationService {
         }
       }, tx);
 
-      this.logger.log(`User direct donation fulfilled: ${donation.id}`);
-
       return {
-        type: 'user',
         donationId: donation.id,
-        status: 'processed',
-        reference
+        isGoalMet: isNowFunded,
+        projectContext: {
+          organizerId: project.userId,
+          title: project.title,
+          targetAmount: project.targetAmount,
+          currency: project.currency,
+          id: projectId
+        }
       };
     }, {
-      timeout: 15000, // 15s timeout to prevent hanging locks
+      timeout: 15000,
       maxWait: 5000
     });
+
+    if (result.isGoalMet) {
+      this.prisma.user.findUnique({
+        where: { id: result.projectContext.organizerId },
+        select: { email: true, firstName: true }
+      }).then(organizer => {
+        if (organizer) {
+          this.emailService.sendProjectFundedAlert(organizer.email, {
+            name: organizer.firstName,
+            projectTitle: result.projectContext.title,
+            amount: (Number(result.projectContext.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+            currency: result.projectContext.currency,
+            projectId: result.projectContext.id
+          });
+        }
+      }).catch(err => this.logger.error(`Direct User Funded Alert Failed: ${err.message}`));
+    }
+
+    return {
+      type: 'user',
+      donationId: result.donationId,
+      status: 'processed',
+      reference
+    };
   }
 
   // --- Private Handler: Guest ---
@@ -485,8 +528,7 @@ export class DonationService {
     const { email, name, projectId, amount, currency, reference } = data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    return this.prisma.$transaction(async (tx) => {
-      // 1. Find or Create Guest Identity
+    const result = await this.prisma.$transaction(async (tx) => {
       const guestDonor = await tx.guestDonor.upsert({
         where: { email: normalizedEmail },
         update: {
@@ -502,23 +544,20 @@ export class DonationService {
         }
       });
 
-      // 2. Create Guest Ledger Record
       const guestDonation = await tx.guestDonation.create({
         data: {
           guestDonorId: guestDonor.id,
           projectId,
           amount,
           currency,
-          reference, // Unique reference
+          reference,
           status: TxStatus.COMPLETED
         }
       });
 
-      // 3. Update Project Stats (Unified with Completion Trigger)
-      // Fetch current state inside transaction
       const project = await tx.project.findUniqueOrThrow({
         where: { id: projectId },
-        select: { raisedAmount: true, targetAmount: true }
+        select: { raisedAmount: true, targetAmount: true, userId: true, title: true, currency: true }
       });
 
       const newRaisedAmount = project.raisedAmount + amount;
@@ -535,7 +574,6 @@ export class DonationService {
         },
       });
 
-      // 4. Audit
       await this.audit.log({
         action: AuditAction.DIRECT_PAYMENT_FULFILLED,
         entityId: guestDonation.id,
@@ -550,18 +588,45 @@ export class DonationService {
         }
       }, tx);
 
-      this.logger.log(`Guest donation fulfilled: ${reference}`);
-
       return {
-        type: 'guest',
         donationId: guestDonation.id,
-        status: 'processed',
-        reference
+        isGoalMet: isNowFunded,
+        projectContext: {
+          organizerId: project.userId,
+          title: project.title,
+          targetAmount: project.targetAmount,
+          currency: project.currency,
+          id: projectId
+        }
       };
     }, {
-      timeout: 15000, // 15s timeout
+      timeout: 15000,
       maxWait: 5000
     });
+
+    if (result.isGoalMet) {
+      this.prisma.user.findUnique({
+        where: { id: result.projectContext.organizerId },
+        select: { email: true, firstName: true }
+      }).then(organizer => {
+        if (organizer) {
+          this.emailService.sendProjectFundedAlert(organizer.email, {
+            name: organizer.firstName,
+            projectTitle: result.projectContext.title,
+            amount: (Number(result.projectContext.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+            currency: result.projectContext.currency,
+            projectId: result.projectContext.id
+          });
+        }
+      }).catch(err => this.logger.error(`Direct Guest Funded Alert Failed: ${err.message}`));
+    }
+
+    return {
+      type: 'guest',
+      donationId: result.donationId,
+      status: 'processed',
+      reference
+    };
   }
 
   // Create Recurring Donation
