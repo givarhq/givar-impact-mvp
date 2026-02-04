@@ -14,6 +14,7 @@ import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
 import { add, format, subDays } from 'date-fns';
 import { json2csv } from 'json-2-csv';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AdminService {
@@ -25,6 +26,7 @@ export class AdminService {
     private walletService: WalletService,
     private emailService: EmailService,
     private audit: AuditService,
+    private jwtService: JwtService,
   ) { }
 
   /**
@@ -1634,7 +1636,60 @@ export class AdminService {
 
     if (flattened.length === 0) return 'Forensic_ID,Name,Email,Role,Account_Type,LIV_NGN,Verified,Status,Joined_At';
 
-    // json2csv handles the string conversion safely now
     return json2csv(flattened);
+  }
+
+  async impersonateUser(adminId: string, targetUserId: string) {
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, email: true, role: true, firstName: true, lastName: true }
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException('Target user for impersonation not found');
+    }
+
+    // Security Guard: Admins cannot impersonate other Admins
+    if (targetUser.role === UserRole.ADMIN) {
+      throw new ForbiddenException('Safety Protocol: Administrative impersonation is strictly prohibited.');
+    }
+
+    // Generate Forensic JWT with short TTL (15 minutes)
+    const payload = {
+      sub: targetUser.id,
+      email: targetUser.email,
+      role: targetUser.role,
+      isImpersonating: true,
+      adminId: adminId
+    };
+
+    const supportToken = this.jwtService.sign(payload, {
+      secret: this.config.get('JWT_SECRET'),
+      expiresIn: '15m',
+    });
+
+    // Forensic Audit Entry
+    await this.audit.log({
+      userId: adminId,
+      action: AuditAction.IMPERSONATION_STARTED,
+      entityId: targetUserId,
+      entityType: 'User',
+      metadata: {
+        action: 'IMPERSONATION_STARTED',
+        targetEmail: targetUser.email,
+        sessionDuration: '15m'
+      }
+    });
+
+    return {
+      accessToken: supportToken,
+      user: {
+        id: targetUser.id,
+        email: targetUser.email,
+        firstName: targetUser.firstName,
+        lastName: targetUser.lastName,
+        role: targetUser.role
+      }
+    };
   }
 }

@@ -254,4 +254,13 @@ export class AdminController {
   requestChanges(@Param('id') id: string, @Req() req: any, @Body('feedback') feedback: string) {
     return this.service.requestChanges(id, req.user.id, feedback);
   }
+
+  /**
+   * Targeted User Impersonation
+   * Generates a restricted forensic session for a specific user ID.
+   */
+  @Post('users/:id/impersonate')
+  async impersonate(@Req() req: any, @Param('id') id: string) {
+    return this.service.impersonateUser(req.user.id, id);
+  }
 }

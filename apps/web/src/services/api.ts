@@ -321,6 +321,9 @@ export const ApiService = {
       receiptKey?: string;
     }) =>
       apiClient.post(`/admin/projects/${projectId}/disbursements`, data).then(r => r.data),
+
+    impersonate: (userId: string) =>
+      apiClient.post(`/admin/users/${userId}/impersonate`).then(r => r.data),
   },
 
   // Organization Verification Domain
