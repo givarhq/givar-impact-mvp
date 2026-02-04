@@ -11,7 +11,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
-import { Loader2, AlertCircle, Mail, Eye, EyeOff } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -23,9 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -39,13 +37,12 @@ export default function LoginPage() {
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     setServerError(null);
-    setUnverifiedEmail(null);
 
     try {
       const { accessToken, user } = await ApiService.auth.login(data);
 
-      setCookie('givar_token', accessToken, { maxAge: 604800 });
-      setCookie('givar_user', JSON.stringify(user), { maxAge: 604800 });
+      setCookie('givar_token', accessToken, { maxAge: 604800, path: '/' });
+      setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
 
       if (user.role === 'ADMIN') {
         router.push('/admin');
@@ -54,33 +51,11 @@ export default function LoginPage() {
       }
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
-
-      if (message === 'EMAIL_NOT_VERIFIED') {
-        setServerError('Your email address has not been verified.');
-        setUnverifiedEmail(data.email);
-      } else {
-        setServerError(message);
-      }
-
+      setServerError(message);
     } finally {
       setIsLoading(false);
     }
   }
-
-  const handleResend = async () => {
-    if (!unverifiedEmail) return;
-    setIsResending(true);
-    try {
-      await ApiService.auth.resendVerification(unverifiedEmail);
-      toast.success('New verification link sent to your inbox');
-      setServerError(null);
-      setUnverifiedEmail(null);
-    } catch (error) {
-      toast.error('Failed to resend link. Please try again later.');
-    } finally {
-      setIsResending(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -97,25 +72,6 @@ export default function LoginPage() {
             <AlertCircle className="h-4 w-4 shrink-0" />
             <p>{serverError}</p>
           </div>
-
-          {unverifiedEmail && (
-            <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-3">
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Verification is required for financial security. Didn&apos;t get the link?
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full h-9 rounded-lg text-xs font-bold gap-2 border-primary/20 text-primary hover:bg-primary/10"
-                onClick={handleResend}
-                disabled={isResending}
-              >
-                {isResending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-                Resend Verification Link
-              </Button>
-            </div>
-          )}
         </div>
       )}
 
