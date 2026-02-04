@@ -6,7 +6,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import {
     Loader2, Wallet, CreditCard, CheckCircle, Mail,
-    Lock, AlertCircle, Eye, Repeat, MailCheck
+    Lock, AlertCircle, Eye, Repeat, MailCheck, Plus
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -31,16 +31,13 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const [interval, setInterval] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
     const [selectedMethod, setSelectedMethod] = useState<'wallet' | 'direct' | null>(null);
 
-    // Security & Access Guards
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isUnverified, setIsUnverified] = useState(false);
 
     useEffect(() => {
-        // 1. Detection: Support/Impersonation Mode
         const impersonating = getCookie('givar_is_impersonating') === 'true';
         setIsReadOnly(impersonating);
 
-        // 2. Detection: Email Verification Status
         const userCookie = getCookie('givar_user');
         if (userCookie) {
             try {
@@ -51,7 +48,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
             }
         }
 
-        // 3. Form Reset
         setAmount('');
         setIsLoading(false);
         if (!isAuthenticated) {
@@ -66,7 +62,11 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
     const donationAmountMinor = BigInt(parseFormattedNumber(amount) || '0') * 100n;
     const walletBalanceMinor = BigInt(wallet?.balance || '0');
+
+    // SOTA: CTA context logic
+    const isWalletMethod = selectedMethod === 'wallet';
     const hasSufficientFunds = !isGuest && walletBalanceMinor >= donationAmountMinor;
+    const needsFunding = isWalletMethod && !hasSufficientFunds && donationAmountMinor > 0n;
 
     const targetAmountMinor = BigInt(project?.targetAmount || '0');
     const raisedAmountMinor = BigInt(project?.raisedAmount || '0');
@@ -85,6 +85,12 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
     const handleConfirm = async () => {
         if (isReadOnly || isUnverified || isOverfunding) return;
+
+        // SOTA: Redirect to fund wallet if balance is low
+        if (needsFunding) {
+            router.push('/dashboard/wallet/fund');
+            return;
+        }
 
         if (!selectedMethod || !amount) {
             toast.error("Please select a payment method.");
@@ -139,8 +145,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
     return (
         <div className="bg-card border border-border/50 rounded-xl p-6 md:p-8 shadow-xl relative overflow-hidden">
-
-            {/* OVERLAY 1: READ-ONLY (Support Session) - Lowered z-index to stay below header */}
             {isReadOnly && (
                 <div className="absolute inset-0 z-20 bg-background/70 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
                     <div className="h-16 w-16 rounded-3xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-6 shadow-xl shadow-amber-500/5">
@@ -153,7 +157,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 </div>
             )}
 
-            {/* OVERLAY 2: UNVERIFIED (Identity Pending) - Lowered z-index to stay below header */}
             {!isReadOnly && isUnverified && (
                 <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-lg flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
                     <div className="h-16 w-16 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl shadow-rose-500/5">
@@ -257,15 +260,20 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                     <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</p>
                                     <button
                                         onClick={() => setSelectedMethod('wallet')}
-                                        disabled={!hasSufficientFunds || isOverfunding}
+                                        disabled={isOverfunding}
                                         className={cn(
                                             "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
                                             selectedMethod === 'wallet' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
-                                            (!hasSufficientFunds || isOverfunding) && "opacity-50 cursor-not-allowed grayscale"
+                                            isOverfunding && "opacity-50 cursor-not-allowed grayscale"
                                         )}
                                     >
                                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary"><Wallet className="h-5 w-5" /></div>
-                                        <div className="text-left"><p className="font-bold text-foreground">Givar Wallet</p><p className="text-xs text-muted-foreground">Bal: {formatCurrency(wallet?.balance || '0', project.currency)}</p></div>
+                                        <div className="text-left">
+                                            <p className="font-bold text-foreground">Givar Wallet</p>
+                                            <p className={cn("text-xs font-medium", !hasSufficientFunds && donationAmountMinor > 0n ? "text-destructive" : "text-muted-foreground")}>
+                                                Bal: {formatCurrency(wallet?.balance || '0', project.currency)}
+                                            </p>
+                                        </div>
                                         {selectedMethod === 'wallet' && <CheckCircle className="ml-auto h-5 w-5 text-primary" />}
                                     </button>
 
@@ -301,12 +309,24 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 <Button
                     onClick={handleConfirm}
                     disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod) || isOverfunding}
-                    className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20"
+                    className={cn(
+                        "w-full h-16 text-lg font-bold rounded-xl shadow-lg transition-all",
+                        needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 shadow-none border border-border" : "shadow-primary/20"
+                    )}
                 >
                     {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
                         <span className="flex items-center gap-2">
-                            <Lock className="h-5 w-5" />
-                            {isGuest ? 'Proceed to Pay' : 'Confirm Donation'}
+                            {needsFunding ? (
+                                <>
+                                    <Plus className="h-5 w-5" />
+                                    Fund Wallet
+                                </>
+                            ) : (
+                                <>
+                                    <Lock className="h-5 w-5" />
+                                    {isGuest ? 'Proceed to Pay' : 'Confirm Donation'}
+                                </>
+                            )}
                         </span>
                     )}
                 </Button>

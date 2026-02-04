@@ -253,4 +253,18 @@ export const EmailTemplates = {
 
     <p style="font-size: 13px; color: #6b7280;">If you have any questions regarding this amendment, please contact the Givar Audit Team.</p>
   `,
+
+  projectFunded: (data: { name: string; projectTitle: string; amount: string; currency: string; projectUrl: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>Congratulations! Your project <strong>${data.projectTitle}</strong> has reached its full funding goal.</p>
+    <div class="stat-box" style="text-align: center;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total Capital Raised</div>
+      <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
+    </div>
+    <p>This is a major milestone. Our treasury is now preparing the disbursement tranches based on your execution plan.</p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.projectUrl}" class="button">Go to Management Console</a>
+    </div>
+    <p style="font-size: 14px; color: #6b7280;">Thank you for your commitment to impact. We look forward to seeing the execution results.</p>
+  `,
 };

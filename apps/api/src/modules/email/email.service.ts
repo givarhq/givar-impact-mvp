@@ -157,4 +157,12 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Ledger Amendment Notice');
     return this.send(email, `Givar Alert: Financial update for ${data.projectTitle}`, html);
   }
+
+  // 13. Project Fully Funded Alert (To Organizer)
+  async sendProjectFundedAlert(email: string, data: { name: string; projectTitle: string; amount: string; currency: string; projectId: string }) {
+    const projectUrl = `${this.config.get('FRONTEND_URL')}/dashboard/projects/${data.projectId}/manage`;
+    const content = EmailTemplates.projectFunded({ ...data, projectUrl });
+    const html = EmailTemplates.base(content, 'Project Fully Funded');
+    return this.send(email, `Givar Impact: Success! ${data.projectTitle} is fully funded`, html);
+  }
 }
