@@ -6,7 +6,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import {
     Loader2, Wallet, CreditCard, CheckCircle, Mail,
-    Lock, AlertCircle, Eye, Repeat
+    Lock, AlertCircle, Eye, Repeat, MailCheck
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -31,18 +31,29 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const [interval, setInterval] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
     const [selectedMethod, setSelectedMethod] = useState<'wallet' | 'direct' | null>(null);
 
-    // Impersonation / Support Mode Guard
+    // Security & Access Guards
     const [isReadOnly, setIsReadOnly] = useState(false);
+    const [isUnverified, setIsUnverified] = useState(false);
 
     useEffect(() => {
+        // 1. Detection: Support/Impersonation Mode
         const impersonating = getCookie('givar_is_impersonating') === 'true';
         setIsReadOnly(impersonating);
 
-        setAmount('');
-        setGuestEmail('');
-        setIsLoading(false);
-        setDonationType('one-time');
+        // 2. Detection: Email Verification Status
+        const userCookie = getCookie('givar_user');
+        if (userCookie) {
+            try {
+                const user = JSON.parse(userCookie as string);
+                setIsUnverified(user.emailVerified === false);
+            } catch (e) {
+                setIsUnverified(false);
+            }
+        }
 
+        // 3. Form Reset
+        setAmount('');
+        setIsLoading(false);
         if (!isAuthenticated) {
             setSelectedMethod('direct');
         } else {
@@ -65,27 +76,18 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     if (!project) return null;
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (isReadOnly) return;
         setAmount(parseFormattedNumber(formatNumberInput(e.target.value)));
-        if (!isGuest) setSelectedMethod(null);
     };
 
     const setQuickAmount = (val: string) => {
-        if (isReadOnly) return;
         setAmount(val);
-        if (!isGuest) setSelectedMethod(null);
     };
 
     const handleConfirm = async () => {
-        if (isReadOnly || isOverfunding) return;
+        if (isReadOnly || isUnverified || isOverfunding) return;
 
         if (!selectedMethod || !amount) {
             toast.error("Please select a payment method.");
-            return;
-        }
-
-        if (selectedMethod === 'direct' && isGuest && !guestEmail) {
-            toast.error("Email is required for guest donations.");
             return;
         }
 
@@ -112,7 +114,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                         interval,
                     });
                 }
-                toast.success(donationType === 'one-time' ? `Successfully donated!` : `Recurring donation started!`);
+                toast.success(donationType === 'one-time' ? `Successfully donated!` : `Subscription active!`);
                 router.push(redirectPath);
                 router.refresh();
             } else if (selectedMethod === 'direct') {
@@ -121,12 +123,10 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     amount: minorAmount,
                     currency: project.currency,
                 };
-
                 if (isGuest) {
                     payload.guestEmail = guestEmail.toLowerCase().trim();
                     payload.guestName = 'Guest Donor';
                 }
-
                 const data = await ApiService.donations.direct(payload);
                 if (data.authorizationUrl) {
                     window.location.href = data.authorizationUrl;
@@ -139,20 +139,44 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
     return (
         <div className="bg-card border border-border/50 rounded-xl p-6 md:p-8 shadow-xl relative overflow-hidden">
-            {/* SOTA: Read-Only Overlay for Forensic Sessions */}
+
+            {/* OVERLAY 1: READ-ONLY (Support Session) - Lowered z-index to stay below header */}
             {isReadOnly && (
-                <div className="absolute inset-0 z-50 bg-background/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-                    <div className="h-14 w-14 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center mb-4 ring-8 ring-amber-500/5">
-                        <Eye className="h-7 w-7" />
+                <div className="absolute inset-0 z-20 bg-background/70 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+                    <div className="h-16 w-16 rounded-3xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-6 shadow-xl shadow-amber-500/5">
+                        <Eye className="h-8 w-8" />
                     </div>
-                    <h4 className="text-base font-bold text-foreground uppercase tracking-tight">Audit Session Active</h4>
-                    <p className="text-xs text-muted-foreground mt-2 max-w-[240px] leading-relaxed">
-                        Mutations and financial transactions are strictly prohibited while viewing from a support perspective.
+                    <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Audit Mode</h4>
+                    <p className="text-sm text-muted-foreground mt-3 max-w-[280px] leading-relaxed font-medium">
+                        You are viewing from a support perspective. Transactions are disabled to preserve ledger integrity.
                     </p>
                 </div>
             )}
 
-            <div className={cn("flex flex-col h-full space-y-6", isReadOnly && "opacity-30 grayscale pointer-events-none")}>
+            {/* OVERLAY 2: UNVERIFIED (Identity Pending) - Lowered z-index to stay below header */}
+            {!isReadOnly && isUnverified && (
+                <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-lg flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+                    <div className="h-16 w-16 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl shadow-rose-500/5">
+                        <MailCheck className="h-8 w-8" />
+                    </div>
+                    <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Identity Pending</h4>
+                    <p className="text-sm text-muted-foreground mt-3 max-w-[280px] leading-relaxed font-medium">
+                        To maintain a secure financial environment, donations are restricted until you verify your email address.
+                    </p>
+                    <Button
+                        variant="outline"
+                        className="mt-8 rounded-xl h-12 px-8 border-rose-500/20 text-rose-600 hover:bg-rose-500/5 font-bold"
+                        onClick={() => window.location.reload()}
+                    >
+                        Check Verification Status
+                    </Button>
+                </div>
+            )}
+
+            <div className={cn(
+                "flex flex-col h-full space-y-6 transition-all duration-500",
+                (isReadOnly || isUnverified) && "opacity-20 grayscale pointer-events-none blur-[1px]"
+            )}>
                 {isGuest ? (
                     <>
                         <div className="space-y-3">
@@ -165,7 +189,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                     className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
                                     value={formatNumberInput(amount)}
                                     onChange={handleAmountChange}
-                                    disabled={isReadOnly}
                                 />
                             </div>
                             <div className="flex gap-2 text-xs flex-wrap">
@@ -187,7 +210,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                     className="pl-12 h-14 rounded-xl bg-muted/30 border-transparent"
                                     value={guestEmail}
                                     onChange={(e) => setGuestEmail(e.target.value)}
-                                    disabled={isReadOnly}
                                 />
                             </div>
                         </div>
@@ -212,7 +234,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                         className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
                                         value={formatNumberInput(amount)}
                                         onChange={handleAmountChange}
-                                        disabled={isReadOnly}
                                     />
                                 </div>
                                 <div className="flex gap-2 text-xs flex-wrap">
@@ -233,14 +254,14 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
                             {amount && (
                                 <div className="space-y-3 pt-4 border-t border-border/50 animate-in fade-in-0 duration-300">
-                                    <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Select Payment Method</p>
+                                    <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</p>
                                     <button
                                         onClick={() => setSelectedMethod('wallet')}
-                                        disabled={!hasSufficientFunds || isOverfunding || isReadOnly}
+                                        disabled={!hasSufficientFunds || isOverfunding}
                                         className={cn(
                                             "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
                                             selectedMethod === 'wallet' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
-                                            (!hasSufficientFunds || isOverfunding || isReadOnly) && "opacity-50 cursor-not-allowed grayscale"
+                                            (!hasSufficientFunds || isOverfunding) && "opacity-50 cursor-not-allowed grayscale"
                                         )}
                                     >
                                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary"><Wallet className="h-5 w-5" /></div>
@@ -250,11 +271,11 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
                                     <button
                                         onClick={() => setSelectedMethod('direct')}
-                                        disabled={isOverfunding || isReadOnly}
+                                        disabled={isOverfunding}
                                         className={cn(
                                             "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
                                             selectedMethod === 'direct' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
-                                            (isOverfunding || isReadOnly) && "opacity-50 cursor-not-allowed grayscale"
+                                            isOverfunding && "opacity-50 cursor-not-allowed grayscale"
                                         )}
                                     >
                                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted mr-4 text-muted-foreground"><CreditCard className="h-5 w-5" /></div>
@@ -268,33 +289,24 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 )}
 
                 {amount && isOverfunding && (
-                    <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 animate-in slide-in-from-top-2">
+                    <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700">
                         <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                         <div className="text-xs space-y-1">
-                            <p className="font-bold uppercase tracking-tight">Almost There</p>
-                            <p>
-                                Thank you! This project only needs{" "}
-                                <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong>{" "}
-                                to reach its goal. Please adjust your donation.
-                            </p>
+                            <p className="font-bold uppercase tracking-tight">Goal Threshold Reached</p>
+                            <p>This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to complete. Please adjust.</p>
                         </div>
-                    </div>
-                )}
-
-                {isGuest && (
-                    <div className="p-4 rounded-xl bg-muted/50 border border-dashed border-border text-center text-xs text-muted-foreground leading-relaxed">
-                        <Link href="/login" className="text-primary hover:underline font-bold">Sign in</Link> to track impact and manage automated giving.
                     </div>
                 )}
 
                 <Button
                     onClick={handleConfirm}
-                    disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod) || isOverfunding || isReadOnly}
+                    disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod) || isOverfunding}
                     className="w-full h-16 text-lg font-bold rounded-xl shadow-lg shadow-primary/20"
                 >
                     {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
                         <span className="flex items-center gap-2">
-                            <Lock className="h-5 w-5" /> {isReadOnly ? 'Read-Only Mode' : isGuest ? 'Proceed to Pay' : 'Confirm Donation'}
+                            <Lock className="h-5 w-5" />
+                            {isGuest ? 'Proceed to Pay' : 'Confirm Donation'}
                         </span>
                     )}
                 </Button>

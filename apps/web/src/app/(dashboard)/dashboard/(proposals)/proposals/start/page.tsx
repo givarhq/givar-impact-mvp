@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ApiService } from '../../../../../../services/api';
 import { getCookie, setCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Loader2, ArrowRight, Rocket, ShieldCheck, Sparkles } from 'lucide-react';
+import { Loader2, ArrowRight, Rocket, ShieldCheck, Sparkles, MailCheck } from 'lucide-react';
+import { cn } from '../../../../../../lib/utils/cn';
 
 const startSchema = z.object({
     title: z.string().min(10, 'Title must be at least 10 characters'),
@@ -31,12 +32,17 @@ export default function StartProposalPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isUpgrading, setIsUpgrading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [isUnverified, setIsUnverified] = useState(false);
 
     const userCookie = getCookie('givar_user');
     const user = userCookie ? JSON.parse(userCookie as string) : null;
     const isOrganizer = user?.accountType === 'ORGANIZER';
 
     useEffect(() => {
+        if (user) {
+            setIsUnverified(user.emailVerified === false);
+        }
+
         if (isOrganizer) {
             ApiService.projects.getCategories()
                 .then(setCategories)
@@ -54,6 +60,7 @@ export default function StartProposalPage() {
     });
 
     const onUpgrade = async () => {
+        if (isUnverified) return;
         setIsUpgrading(true);
         try {
             await ApiService.auth.upgradeToOrganizer();
@@ -69,6 +76,7 @@ export default function StartProposalPage() {
     };
 
     const onSubmit = async (data: StartFormValues) => {
+        if (isUnverified) return;
         setIsLoading(true);
         try {
             const newProposal = await ApiService.proposals.create(data);
@@ -80,104 +88,131 @@ export default function StartProposalPage() {
         }
     };
 
+    const VerificationOverlay = () => (
+        <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300 rounded-[24px]">
+            <div className="h-16 w-16 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl shadow-rose-500/5">
+                <MailCheck className="h-8 w-8" />
+            </div>
+            <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Identity Pending</h4>
+            <p className="text-sm text-muted-foreground mt-3 max-w-[320px] leading-relaxed font-medium">
+                Starting a new cause is restricted until you verify your email address. Please check your inbox.
+            </p>
+            <Button
+                variant="outline"
+                className="mt-8 rounded-xl h-12 px-8 border-rose-500/20 text-rose-600 font-bold hover:bg-rose-500/5"
+                onClick={() => window.location.reload()}
+            >
+                Check Verification Status
+            </Button>
+        </div>
+    );
+
     if (!isOrganizer) {
         return (
-            <div className="max-w-2xl mx-auto py-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-center space-y-2">
-                    <div className="h-16 w-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <Rocket className="h-8 w-8" />
-                    </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-foreground">Launch your cause</h1>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                        Switch your account to Organizer mode to start proposing projects and raising funds.
-                    </p>
-                </div>
+            <div className="max-w-2xl mx-auto py-8 relative">
+                {isUnverified && <VerificationOverlay />}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-2">
-                        <ShieldCheck className="h-5 w-5 text-primary" />
-                        <h4 className="font-bold text-sm text-foreground">Verified Trust</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                            Complete a one-time KYC process to ensure transparency and donor confidence.
+                <div className={cn("space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500", isUnverified && "opacity-20 grayscale pointer-events-none")}>
+                    <div className="text-center space-y-2">
+                        <div className="h-16 w-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <Rocket className="h-8 w-8" />
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Launch your cause</h1>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                            Switch your account to Organizer mode to start proposing projects and raising funds.
                         </p>
                     </div>
-                    <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        <h4 className="font-bold text-sm text-foreground">Direct Funding</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                            Access the Givar treasury for automated vendor payments and tracking.
-                        </p>
-                    </div>
-                </div>
 
-                <Button
-                    onClick={onUpgrade}
-                    disabled={isUpgrading}
-                    size="lg"
-                    className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
-                >
-                    {isUpgrading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate Organizer Mode'}
-                </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-2">
+                            <ShieldCheck className="h-5 w-5 text-primary" />
+                            <h4 className="font-bold text-sm text-foreground">Verified Trust</h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                Complete a one-time KYC process to ensure transparency and donor confidence.
+                            </p>
+                        </div>
+                        <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-2">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            <h4 className="font-bold text-sm text-foreground">Direct Funding</h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                Access the Givar treasury for automated vendor payments and tracking.
+                            </p>
+                        </div>
+                    </div>
+
+                    <Button
+                        onClick={onUpgrade}
+                        disabled={isUpgrading || isUnverified}
+                        size="lg"
+                        className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
+                    >
+                        {isUpgrading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate Organizer Mode'}
+                    </Button>
+                </div>
             </div>
         );
     }
 
     return (
-        <Card className="border-none shadow-none bg-transparent">
-            <CardHeader>
-                <CardTitle className="text-2xl font-bold tracking-tight">Start a New Cause</CardTitle>
-                <CardDescription>
-                    Let&apos;s begin with a compelling title and the right category. This helps donors find your cause.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                    <Input
-                        label="Project Title"
-                        placeholder="e.g., Provide Clean Drinking Water for 100 Families in Rural Lagos"
-                        {...register('title')}
-                        error={errors.title?.message}
-                        disabled={isLoading}
-                    />
+        <Card className="border-none shadow-none bg-transparent relative">
+            {isUnverified && <VerificationOverlay />}
 
-                    <Controller
-                        control={control}
-                        name="categoryId"
-                        render={({ field }) => (
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Category</label>
-                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
-                                    <SelectTrigger className="h-11 rounded-xl">
-                                        <SelectValue placeholder="Select a primary category..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.length === 0 ? (
-                                            <div className="p-2 text-sm text-muted-foreground">Loading categories...</div>
-                                        ) : (
-                                            categories.map(cat => (
-                                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                                {errors.categoryId && <p className="text-xs text-destructive mt-1">{errors.categoryId.message}</p>}
-                            </div>
-                        )}
-                    />
+            <div className={cn("transition-all duration-500", isUnverified && "opacity-20 grayscale blur-[1px] pointer-events-none")}>
+                <CardHeader>
+                    <CardTitle className="text-2xl font-bold tracking-tight">Start a New Cause</CardTitle>
+                    <CardDescription>
+                        Let&apos;s begin with a compelling title and the right category. This helps donors find your cause.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                        <Input
+                            label="Project Title"
+                            placeholder="e.g., Provide Clean Drinking Water for 100 Families in Rural Lagos"
+                            {...register('title')}
+                            error={errors.title?.message}
+                            disabled={isLoading || isUnverified}
+                        />
 
-                    <div className="flex justify-end pt-4">
-                        <Button type="submit" size="lg" className="h-12 rounded-xl" disabled={isLoading || categories.length === 0}>
-                            {isLoading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <>
-                                    Save & Continue <ArrowRight className="ml-2 h-4 w-4" />
-                                </>
+                        <Controller
+                            control={control}
+                            name="categoryId"
+                            render={({ field }) => (
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Category</label>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading || isUnverified}>
+                                        <SelectTrigger className="h-11 rounded-xl">
+                                            <SelectValue placeholder="Select a primary category..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.length === 0 ? (
+                                                <div className="p-2 text-sm text-muted-foreground">Loading categories...</div>
+                                            ) : (
+                                                categories.map(cat => (
+                                                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.categoryId && <p className="text-xs text-destructive mt-1">{errors.categoryId.message}</p>}
+                                </div>
                             )}
-                        </Button>
-                    </div>
-                </form>
-            </CardContent>
+                        />
+
+                        <div className="flex justify-end pt-4">
+                            <Button type="submit" size="lg" className="h-12 rounded-xl" disabled={isLoading || categories.length === 0 || isUnverified}>
+                                {isLoading ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <>
+                                        Save & Continue <ArrowRight className="ml-2 h-4 w-4" />
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </div>
         </Card>
     );
 }
