@@ -3,13 +3,15 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { StorageModule } from '../storage/storage.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     StorageModule,
-    WalletModule
+    WalletModule,
+    AuthModule,
   ],
   controllers: [AdminController],
   providers: [AdminService],
 })
-export class AdminModule {}
+export class AdminModule { }
