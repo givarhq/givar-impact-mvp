@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { FileSearch } from 'lucide-react';
 
 interface EvidenceStatusProps {
@@ -13,9 +13,9 @@ interface EvidenceStatusProps {
 }
 
 const COLORS = {
-    APPROVED: '#10b981', // Emerald
-    PENDING: '#f59e0b',  // Amber
-    REJECTED: '#ef4444', // Red
+    APPROVED: '#10b981',
+    PENDING: '#f59e0b',
+    REJECTED: '#ef4444',
 };
 
 export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
@@ -24,18 +24,17 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
         value: item.count
     }));
 
-    // Filter out zero values for cleaner chart
     const activeData = data.filter(d => d.value > 0);
 
     return (
-        <Card className="col-span-1 lg:col-span-4 rounded-[32px] border-border/50 bg-card shadow-xl shadow-primary/5 overflow-hidden h-[380px] flex flex-col">
+        <Card className="col-span-1 lg:col-span-4 rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
             <CardHeader className="p-6 pb-2">
                 <CardTitle className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                     <FileSearch className="h-4 w-4 text-purple-500" /> Evidence Audit
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 relative">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
                     <p className="text-3xl font-black text-foreground">{metrics.totalSubmitted}</p>
                     <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Total Proofs</p>
                 </div>
@@ -47,11 +46,11 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
                             cx="50%"
                             cy="50%"
                             innerRadius={80}
-                            outerRadius={110}
-                            paddingAngle={5}
+                            outerRadius={105}
+                            paddingAngle={4}
                             dataKey="value"
                             stroke="none"
-                            cornerRadius={8}
+                            cornerRadius={6}
                         >
                             {activeData.map((entry, index) => (
                                 <Cell
@@ -61,10 +60,12 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
                             ))}
                         </Pie>
                         <Tooltip
+                            isAnimationActive={false}
                             contentStyle={{
                                 borderRadius: '12px',
-                                border: 'none',
+                                border: '1px solid hsl(var(--border))',
                                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                background: 'hsl(var(--card))',
                                 padding: '8px 12px',
                                 fontSize: '12px',
                                 fontWeight: 'bold'
