@@ -5,15 +5,16 @@ import { Toaster } from 'react-hot-toast';
 import { cn } from '../lib/utils/cn';
 import { ThemeProvider } from '../components/themeprovider';
 import { cookies } from 'next/headers';
+import { ImpersonationBanner } from '../components/layout/impersonation-banner';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies();
   const userCookie = cookieStore.get('givar_user')?.value;
-  
+
   let isAdmin = false;
-  
+
   if (userCookie) {
     try {
       const user = JSON.parse(userCookie);
@@ -44,13 +45,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.className, 'bg-background min-h-screen antialiased')}>
         <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            {children}
-            <Toaster position="top-center" />
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+
+          <ImpersonationBanner />
+
+          {children}
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>
