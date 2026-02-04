@@ -10,7 +10,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen w-full bg-background">
-      
+
       {/* Global Header */}
       <LandingHeader hideAuthButtons={true} variant="auth" />
 
@@ -19,7 +19,7 @@ export default function AuthLayout({
         The grid now starts at the very top of the viewport (y=0).
       */}
       <div className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
-        
+
         {/* 
           LEFT COLUMN 
           FIX: Added 'pt-24' here. 
@@ -43,40 +43,41 @@ export default function AuthLayout({
           </div>
 
           {/* Content */}
-          <div className="relative z-10 flex flex-col h-full justify-between">
+          <div className="relative z-10 flex flex-col h-full">
             {/* Logo Section */}
             <div className="flex items-center gap-3">
-              {/* Logo Section */}
-<div className="flex justify-center w-full">
-  <Image
-    src="/Givar1.png"
-    alt="Givar Logo"
-    width={150}
-    height={150}
-    className="object-contain"
-    priority
-  />
-</div>
+              <div className="flex justify-center w-full">
+                <Image
+                  src="/Givar1.png"
+                  alt="Givar Logo"
+                  width={150}
+                  height={150}
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </div>
 
-            {/* Marketing Copy */}
-            <div className="max-w-md">
-              <h2 className="text-3xl font-bold leading-tight mb-4 tracking-tight text-foreground">
-                Making generosity simple, transparent, and impactful.
-              </h2>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                Join thousands of givers changing the world one transaction at a time.
-                Real-time tracking, zero-friction donations, and verified causes.
-              </p>
-            </div>
+            {/* Centered Marketing Copy & Tags */}
+            <div className="flex-1 flex flex-col justify-center items-center">
+              <div className="max-w-md w-full">
+                <h2 className="text-3xl font-bold leading-tight mb-4 tracking-tight text-foreground text-justify">
+                  Making generosity simple, transparent, and impactful.
+                </h2>
+                <p className="text-muted-foreground text-lg leading-relaxed text-justify">
+                  Join thousands of givers changing the world one transaction at a time.
+                  Real-time tracking, zero-friction donations, and verified causes.
+                </p>
 
-            {/* Footer Tags */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground font-mono">
-              <span>SECURE LEDGER</span>
-              <span>•</span>
-              <span>VERIFIED IMPACT</span>
-              <span>•</span>
-              <span>ISO 27001</span>
+                {/* Footer Tags */}
+                <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground font-mono mt-12">
+                  <span>SECURE LEDGER</span>
+                  <span>•</span>
+                  <span>VERIFIED IMPACT</span>
+                  <span>•</span>
+                  <span>ISO 27001</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
