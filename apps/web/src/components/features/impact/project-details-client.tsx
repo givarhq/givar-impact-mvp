@@ -5,7 +5,7 @@ import {
     Share2, MapPin, Calendar, CheckCircle2, Clock,
     BadgeCheck, ShieldCheck, DollarSign, Briefcase,
     AlertTriangle, ChevronRight, Target, Image as ImageIcon,
-    Heart, Check, FileText, Megaphone
+    Heart, Check, FileText, Megaphone, RefreshCcw
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -186,7 +186,6 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                 <h4 className="text-xs font-bold tracking-widest text-foreground uppercase">Implementation Roadmap</h4>
                             </div>
                             <div className="grid gap-3">
-                                {/* SOTA STRICT UPDATE: Milestone Visualization */}
                                 {timeline.map((phase: any, i: number) => {
                                     const isCompleted = phase.status === 'COMPLETED';
                                     const isInProgress = phase.status === 'IN_PROGRESS';
@@ -241,40 +240,83 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                     <TabsContent value="updates" className="mt-8 animate-in fade-in slide-in-from-bottom-2 duration-500 focus-visible:outline-none">
                         <div className="space-y-6">
                             {project.updates && project.updates.length > 0 ? (
-                                project.updates.map((update, idx) => (
-                                    <div key={idx} className="relative flex flex-col gap-4 p-6 rounded-[24px] border border-border bg-card shadow-sm hover:shadow-md transition-shadow group">
-                                        {/* Visual Proof Support */}
-                                        {update.imageUrl && (
-                                            <div className="w-full aspect-[21/9] rounded-xl overflow-hidden mb-2 bg-muted border border-border/50">
-                                                <img src={update.imageUrl} className="w-full h-full object-cover" alt={update.title} />
-                                            </div>
-                                        )}
+                                project.updates.map((update, idx) => {
+                                    const isFinancialAdjustment = update.title === 'Financial Goal Adjusted';
 
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <Badge variant="secondary" className="h-5 px-1.5 rounded-md bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter border-0">
-                                                        {update.type.replace('_', ' ')}
-                                                    </Badge>
-                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                                                        <Clock className="h-3 w-3" /> {formatDate(update.createdAt)}
-                                                    </span>
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={cn(
+                                                "relative flex flex-col gap-4 p-6 rounded-[24px] border shadow-sm hover:shadow-md transition-shadow group",
+                                                isFinancialAdjustment
+                                                    ? "bg-amber-500/[0.03] border-amber-500/20 shadow-amber-500/5"
+                                                    : "bg-card border-border border-border/60"
+                                            )}
+                                        >
+                                            {/* Visual Proof Support */}
+                                            {update.imageUrl && (
+                                                <div className="w-full aspect-[21/9] rounded-xl overflow-hidden mb-2 bg-muted border border-border/50">
+                                                    <img src={update.imageUrl} className="w-full h-full object-cover" alt={update.title} />
                                                 </div>
-                                                <h4 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">{update.title}</h4>
+                                            )}
+
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge
+                                                            variant="secondary"
+                                                            className={cn(
+                                                                "h-5 px-1.5 rounded-md text-[9px] font-black uppercase tracking-tighter border-0",
+                                                                isFinancialAdjustment
+                                                                    ? "bg-amber-500/10 text-amber-600"
+                                                                    : "bg-primary/10 text-primary"
+                                                            )}
+                                                        >
+                                                            {isFinancialAdjustment ? 'LEGER AMENDMENT' : update.type.replace('_', ' ')}
+                                                        </Badge>
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                                                            <Clock className="h-3 w-3" /> {formatDate(update.createdAt)}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className={cn(
+                                                        "text-lg font-bold transition-colors",
+                                                        isFinancialAdjustment ? "text-amber-700" : "text-foreground group-hover:text-primary"
+                                                    )}>
+                                                        {update.title}
+                                                    </h4>
+                                                </div>
+                                                {isFinancialAdjustment && (
+                                                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
+                                                        <RefreshCcw className="h-5 w-5" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <p className={cn(
+                                                "text-sm leading-relaxed whitespace-pre-line",
+                                                isFinancialAdjustment ? "text-amber-900/80 font-medium" : "text-muted-foreground"
+                                            )}>
+                                                {update.content}
+                                            </p>
+
+                                            <div className="flex items-center gap-2 mt-2 pt-4 border-t border-border/50 text-[10px] font-bold uppercase tracking-widest">
+                                                {isFinancialAdjustment ? (
+                                                    <span className="text-amber-600 flex items-center gap-1">
+                                                        <ShieldCheck className="h-4 w-4" /> Audit Verified Amendment
+                                                    </span>
+                                                ) : update.type === 'MILESTONE' ? (
+                                                    <span className="text-emerald-500 flex items-center gap-1">
+                                                        <ShieldCheck className="h-4 w-4" /> Verified Impact Entry
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-muted-foreground flex items-center gap-1">
+                                                        <Megaphone className="h-4 w-4" /> Community Notice
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
-
-                                        <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
-                                            {update.content}
-                                        </p>
-
-                                        {update.type === 'MILESTONE' && (
-                                            <div className="flex items-center gap-2 mt-2 pt-4 border-t border-border/50 text-emerald-500 font-bold text-[10px] uppercase tracking-widest">
-                                                <ShieldCheck className="h-4 w-4" /> Verified Impact Entry
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
+                                    );
+                                })
                             ) : (
                                 <div className="text-center py-24 border-2 border-dashed border-border rounded-[32px] bg-muted/10">
                                     <Clock className="h-12 w-12 mx-auto text-muted-foreground opacity-10 mb-4" />
