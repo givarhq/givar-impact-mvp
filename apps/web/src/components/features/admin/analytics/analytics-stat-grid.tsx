@@ -36,7 +36,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
 
             <StatCard
                 title="System Liquidity"
-                value={<SmartCurrency amount={summary.totalVolume.NGN} currency="NGN" visible={true} size="small" />}
+                value={<SmartCurrency amount={summary.totalVolume.NGN} currency="NGN" visible={true} size="default" />}
                 subValue="Cumulative volume processed"
                 icon={Wallet}
                 color="text-emerald-500"
@@ -46,7 +46,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
 
             <StatCard
                 title="Avg. Contribution"
-                value={<SmartCurrency amount={avgDonation} currency="NGN" visible={true} size="small" />}
+                value={<SmartCurrency amount={avgDonation} currency="NGN" visible={true} size="default" />}
                 subValue="Per successful transaction"
                 icon={BarChart3}
                 color="text-purple-500"
