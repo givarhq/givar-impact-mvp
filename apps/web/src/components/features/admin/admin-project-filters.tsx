@@ -18,7 +18,9 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
         params.set('page', '1');
-        params.set('tab', activeTab);
+
+        // Preserve tab if it exists
+        if (activeTab) params.set('tab', activeTab);
 
         if (search) params.set('search', search); else params.delete('search');
         if (status !== 'all') params.set('status', status); else params.delete('status');
@@ -40,12 +42,19 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
         router.replace(`?tab=${activeTab}&page=1`);
     };
 
+    // If in Drafts tab, Status filter is redundant (they are all DRAFT).
+    const showStatusFilter = activeTab !== 'drafts';
+
     return (
         <div className="flex flex-col lg:flex-row gap-4 p-1">
             <div className="relative flex-1 group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
-                    placeholder={activeTab === 'live' ? "Search ledger by title, location..." : "Search pipeline by proposer, title..."}
+                    placeholder={
+                        activeTab === 'proposals' ? "Search proposals..." :
+                            activeTab === 'drafts' ? "Search drafts..." :
+                                "Search live projects..."
+                    }
                     className="pl-11 h-12 bg-card border-border rounded-2xl shadow-sm focus-visible:ring-primary/20"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -53,32 +62,34 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
             </div>
 
             <div className="flex items-center gap-3">
-                <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="w-full lg:w-[200px] h-12 bg-card border-border rounded-2xl shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <Filter className="h-4 w-4 text-muted-foreground" />
-                            <SelectValue placeholder="Status" />
-                        </div>
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border shadow-xl">
-                        <SelectItem value="all" className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">All Phases</SelectItem>
-                        {activeTab === 'live' ? (
-                            <>
-                                <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="FUNDED">Funded</SelectItem>
-                                <SelectItem value="COMPLETED">Completed</SelectItem>
-                                <SelectItem value="SUSPENDED">Suspended</SelectItem>
-                            </>
-                        ) : (
-                            <>
-                                <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                                <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-                                <SelectItem value="CHANGES_REQUESTED">Needs Edits</SelectItem>
-                                <SelectItem value="REJECTED">Rejected</SelectItem>
-                            </>
-                        )}
-                    </SelectContent>
-                </Select>
+                {showStatusFilter && (
+                    <Select value={status} onValueChange={setStatus}>
+                        <SelectTrigger className="w-full lg:w-[200px] h-12 bg-card border-border rounded-2xl shadow-sm">
+                            <div className="flex items-center gap-2">
+                                <Filter className="h-4 w-4 text-muted-foreground" />
+                                <SelectValue placeholder="Status" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-border shadow-xl">
+                            <SelectItem value="all" className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">All Phases</SelectItem>
+                            {activeTab === 'live' ? (
+                                <>
+                                    <SelectItem value="ACTIVE">Active</SelectItem>
+                                    <SelectItem value="FUNDED">Funded</SelectItem>
+                                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                                    <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                                </>
+                            ) : (
+                                <>
+                                    <SelectItem value="SUBMITTED">Submitted</SelectItem>
+                                    <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
+                                    <SelectItem value="CHANGES_REQUESTED">Needs Edits</SelectItem>
+                                    <SelectItem value="REJECTED">Rejected</SelectItem>
+                                </>
+                            )}
+                        </SelectContent>
+                    </Select>
+                )}
 
                 <Select value={categoryId} onValueChange={setCategoryId}>
                     <SelectTrigger className="w-full lg:w-[200px] h-12 bg-card border-border rounded-2xl shadow-sm">
@@ -95,7 +106,7 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
                     </SelectContent>
                 </Select>
 
-                {(search || status !== 'all' || categoryId !== 'all') && (
+                {(search || (showStatusFilter && status !== 'all') || categoryId !== 'all') && (
                     <Button variant="ghost" onClick={clearFilters} className="h-12 px-4 rounded-xl text-muted-foreground hover:text-foreground">
                         <X className="h-4 w-4 mr-2" /> Reset
                     </Button>

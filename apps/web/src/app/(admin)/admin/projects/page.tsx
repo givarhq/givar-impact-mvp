@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
-import { Plus, ClipboardList, TrendingUp, Inbox } from 'lucide-react';
+import { Plus, ClipboardList, TrendingUp, Inbox, FileBox } from 'lucide-react';
 import { ApiService } from '../../../../services/api';
 import { Button } from '../../../../components/ui/button';
 import { AdminProjectFilters } from '../../../../components/features/admin/admin-project-filters';
@@ -20,17 +20,29 @@ export default async function AdminProjectsPage({
 
     const resolvedParams = await searchParams;
     const activeTab = (resolvedParams.tab as string) || 'live';
-    const params = new URLSearchParams(resolvedParams as any);
+
+    // Clone params to avoid mutating the object for other calls
+    const projectParams = new URLSearchParams(resolvedParams as any);
+    const proposalParams = new URLSearchParams(resolvedParams as any);
+
+    // Context-Aware Fetching
+    if (activeTab === 'drafts') {
+        projectParams.set('status', 'DRAFT');
+    }
 
     const [projectResult, proposalResult, categories] = await Promise.all([
-        ApiService.admin.getProjects(token, params),
-        ApiService.admin.getProposals(token, params),
+        ApiService.admin.getProjects(token, projectParams),
+        ApiService.admin.getProposals(token, proposalParams),
         ApiService.projects.getCategories(token)
     ]);
 
     const projects = projectResult?.data || [];
     const proposals = proposalResult?.data || [];
-    const activeMeta = activeTab === 'live' ? (projectResult?.meta || { page: 1, lastPage: 1 }) : (proposalResult?.meta || { page: 1, lastPage: 1 });
+
+    // Determine which meta to use for pagination
+    const activeMeta = activeTab === 'proposals'
+        ? (proposalResult?.meta || { page: 1, lastPage: 1 })
+        : (projectResult?.meta || { page: 1, lastPage: 1 });
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20">
@@ -48,21 +60,29 @@ export default async function AdminProjectsPage({
 
             <Tabs value={activeTab} className="w-full space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <TabsList className="bg-muted/50 p-1.5 rounded-[22px] h-14 w-full md:w-[400px] border border-border/40">
-                        <Link href="?tab=live" className="flex-1">
+                    <TabsList className="bg-muted/50 p-1.5 rounded-[22px] h-14 w-full md:w-auto border border-border/40">
+                        <Link href="?tab=live" className="flex-1 md:flex-none">
                             <TabsTrigger
                                 value="live"
-                                className="w-full h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
+                                className="w-full md:w-[140px] h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
                             >
-                                <TrendingUp className="h-4 w-4" /> Live Projects
+                                <TrendingUp className="h-4 w-4" /> Live
                             </TabsTrigger>
                         </Link>
-                        <Link href="?tab=proposals" className="flex-1">
+                        <Link href="?tab=drafts" className="flex-1 md:flex-none">
+                            <TabsTrigger
+                                value="drafts"
+                                className="w-full md:w-[140px] h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
+                            >
+                                <FileBox className="h-4 w-4" /> Drafts
+                            </TabsTrigger>
+                        </Link>
+                        <Link href="?tab=proposals" className="flex-1 md:flex-none">
                             <TabsTrigger
                                 value="proposals"
-                                className="w-full h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
+                                className="w-full md:w-[140px] h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
                             >
-                                <ClipboardList className="h-4 w-4" /> Proposal Pipeline
+                                <ClipboardList className="h-4 w-4" /> Proposals
                             </TabsTrigger>
                         </Link>
                     </TabsList>
@@ -70,13 +90,14 @@ export default async function AdminProjectsPage({
                     <div className="hidden lg:flex items-center gap-2 bg-card px-4 py-2 rounded-2xl border border-border/50 shadow-sm">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                            {activeTab === 'live' ? `${projects.length} Entries Loaded` : `${proposals.length} In Pipeline`}
+                            {activeTab === 'proposals' ? `${proposals.length} In Pipeline` : `${projects.length} Records`}
                         </span>
                     </div>
                 </div>
 
                 <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
 
+                {/* LIVE PROJECTS TAB */}
                 <TabsContent value="live" className="mt-0 outline-none">
                     <AdminProjectTable
                         projects={projects}
@@ -85,6 +106,24 @@ export default async function AdminProjectsPage({
                     />
                 </TabsContent>
 
+                {/* DRAFTS TAB (Reuses Project Table) */}
+                <TabsContent value="drafts" className="mt-0 outline-none">
+                    {projects.length === 0 ? (
+                        <div className="py-24 text-center border-2 border-dashed border-border rounded-[32px] bg-muted/10">
+                            <Inbox className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-20" />
+                            <h3 className="text-lg font-bold text-foreground opacity-60 uppercase tracking-widest">No Drafts Found</h3>
+                            <p className="text-sm text-muted-foreground mt-1">Start a new project to see it here.</p>
+                        </div>
+                    ) : (
+                        <AdminProjectTable
+                            projects={projects}
+                            currentSort={String(resolvedParams.sortBy || 'createdAt')}
+                            currentOrder={String(resolvedParams.sortOrder || 'desc')}
+                        />
+                    )}
+                </TabsContent>
+
+                {/* PROPOSALS TAB */}
                 <TabsContent value="proposals" className="mt-0 outline-none">
                     <AdminProposalTable proposals={proposals} />
                 </TabsContent>
