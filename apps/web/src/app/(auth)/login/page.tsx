@@ -11,7 +11,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
-import { Loader2, AlertCircle, Mail, ArrowRight } from 'lucide-react';
+import { Loader2, AlertCircle, Mail, Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -26,11 +26,11 @@ export default function LoginPage() {
   const [isResending, setIsResending] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
-    getValues,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -40,28 +40,28 @@ export default function LoginPage() {
     setIsLoading(true);
     setServerError(null);
     setUnverifiedEmail(null);
-    
+
     try {
       const { accessToken, user } = await ApiService.auth.login(data);
-      
-      setCookie('givar_token', accessToken, { maxAge: 604800 }); 
+
+      setCookie('givar_token', accessToken, { maxAge: 604800 });
       setCookie('givar_user', JSON.stringify(user), { maxAge: 604800 });
-      
+
       if (user.role === 'ADMIN') {
-          router.push('/admin');
+        router.push('/admin');
       } else {
-          router.push('/dashboard');
+        router.push('/dashboard');
       }
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
-      
+
       if (message === 'EMAIL_NOT_VERIFIED') {
         setServerError('Your email address has not been verified.');
         setUnverifiedEmail(data.email);
       } else {
         setServerError(message);
       }
-      
+
     } finally {
       setIsLoading(false);
     }
@@ -94,19 +94,19 @@ export default function LoginPage() {
       {serverError && (
         <div className="space-y-3 animate-in fade-in slide-in-from-top-1">
           <div className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <p>{serverError}</p>
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <p>{serverError}</p>
           </div>
-          
+
           {unverifiedEmail && (
             <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl space-y-3">
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Verification is required for financial security. Didn&apos;t get the link?
               </p>
-              <Button 
+              <Button
                 type="button"
-                variant="outline" 
-                size="sm" 
+                variant="outline"
+                size="sm"
                 className="w-full h-9 rounded-lg text-xs font-bold gap-2 border-primary/20 text-primary hover:bg-primary/10"
                 onClick={handleResend}
                 disabled={isResending}
@@ -128,33 +128,42 @@ export default function LoginPage() {
           error={errors.email?.message}
           disabled={isLoading}
         />
-        
+
         <div className="space-y-1">
-           <Input
+          <Input
             label="Password"
             placeholder="••••••••"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             {...register('password')}
             error={errors.password?.message}
             disabled={isLoading}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="hover:text-foreground transition-colors focus:outline-none"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            }
           />
           <div className="flex justify-end">
-            <Link 
-                href="/forgot-password" 
-                className="text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
             >
-                Forgot password?
+              Forgot password?
             </Link>
           </div>
         </div>
 
         <Button className="w-full h-11 text-base shadow-lg shadow-primary/20 rounded-xl" type="submit" disabled={isLoading}>
           {isLoading ? (
-             <>
-               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing In...
-             </>
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing In...
+            </>
           ) : (
-             'Sign In'
+            'Sign In'
           )}
         </Button>
       </form>
