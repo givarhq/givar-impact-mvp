@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -85,16 +85,10 @@ interface ProjectFormProps {
 export function AdminProjectForm({ initialData, categories }: ProjectFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Single Master Edit State for all sections
   const [isEditing, setIsEditing] = useState(false);
 
   const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
-
-  // Read-only state driven by the single master toggle
   const readOnly = initialData ? !isEditing : false;
-
-  // Adjustment mode (narrative requirement) activates automatically when editing a live project
   const isAdjustmentMode = isLive && isEditing;
 
   const { register, control, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm<ProjectFormValues>({
@@ -175,7 +169,6 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-32 animate-in fade-in duration-500">
-      {/* HEADER ACTION AREA */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           {initialData?.proposalId && (
@@ -205,7 +198,6 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         )}
       </div>
 
-      {/* CENTRAL AMENDMENT BOX */}
       {isAdjustmentMode && (
         <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-[32px] space-y-4 shadow-xl shadow-amber-500/5 animate-in slide-in-from-top-4 duration-500">
           <div className="flex items-start gap-4">
@@ -241,7 +233,6 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
       )}
 
-      {/* SECTION 1: IDENTITY */}
       <section className={cn(
         "grid grid-cols-1 md:grid-cols-12 gap-6 p-8 bg-card rounded-[32px] border transition-all duration-500 relative group",
         readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
@@ -336,7 +327,6 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
       </section>
 
-      {/* SECTION 2: MEDIA */}
       <section className={cn(
         "bg-card p-8 rounded-[32px] border shadow-sm space-y-8 transition-all duration-500 relative group",
         readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
@@ -385,49 +375,49 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
       </section>
 
-      {/* SECTION 3: PLAN */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className={cn(
-          "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
-          readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
-        )}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
-              <Briefcase className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-base text-foreground leading-none">Budget Ledger</h3>
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Vendor procurement plan</p>
-            </div>
-          </div>
-          <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
-        </div>
+      <section className="space-y-4">
+        <p className="text-xs font-semibold text-muted-foreground px-2 uppercase tracking-widest">
+          Planning & Accountability
+        </p>
+        <p className="text-sm text-muted-foreground px-2 leading-relaxed max-w-4xl">
+          Define the project's financial requirements and implementation schedule. The <strong>Budget Ledger</strong> identifies procurement needs, while the <strong>Execution Roadmap</strong> establishes the verifiable milestones required for donor transparency and treasury release.
+        </p>
 
-        <div className={cn(
-          "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
-          readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
-        )}>
-          <div className="flex items-center gap-3 mb-4">
-            <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
-              <Clock className="h-5 w-5" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className={cn(
+            "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
+            readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+          )}>
+            <div className="flex items-center gap-3 mb-2">
+              <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
+                <Briefcase className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-foreground leading-none">Budget Ledger</h3>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Vendor procurement plan</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
-              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Milestone tracking</p>
-            </div>
+            <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
           </div>
-          {!readOnly && (
-            <div className="bg-primary/5 border border-primary/10 p-3 rounded-xl mb-4">
-              <p className="text-[11px] text-primary/80 font-medium leading-relaxed">
-                <strong>Pro Tip:</strong> Define clear, verifiable milestones. This timeline is donor-facing and serves as the source of truth for funds release.
-              </p>
-            </div>
-          )}
-          <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
-        </div>
-      </div>
 
-      {/* STICKY FOOTER */}
+          <div className={cn(
+            "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
+            readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+          )}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
+                <Clock className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Milestone tracking</p>
+              </div>
+            </div>
+            <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
+          </div>
+        </div>
+      </section>
+
       {(!initialData || isEditing) && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-50 md:pl-[300px] animate-in slide-in-from-bottom-5">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
