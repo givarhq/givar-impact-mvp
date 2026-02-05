@@ -1,15 +1,15 @@
-import { LayoutDashboard, NotebookPen, History, Settings, Repeat, Compass } from 'lucide-react';
+import { LayoutDashboard, NotebookPen, History, Repeat, Compass, HeartPulse } from 'lucide-react';
 
 export const dashboardNav = [
   {
-    title: 'Overview',
+    title: 'Home',
     href: '/dashboard',
-    icon: LayoutDashboard,
+    icon: Compass,
   },
   {
     title: 'Explore',
     href: '/dashboard/impact',
-    icon: Compass,
+    icon: LayoutDashboard,
   },
   {
     title: 'History',

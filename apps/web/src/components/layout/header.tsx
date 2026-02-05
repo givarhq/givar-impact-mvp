@@ -28,9 +28,11 @@ import {
 import { ApiService } from '../../services/api';
 import { useState, useEffect } from 'react';
 import { ViewModeToggle } from './view-mode-toggle';
+import { WalletWidget } from './wallet-widget';
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Dashboard',
+  '/dashboard': 'Home',
+  '/dashboard/portfolio': 'My Impact',
   '/dashboard/impact': 'Discover Impact',
   '/dashboard/history': 'Transaction History',
   '/dashboard/subscriptions': 'Recurring Donations',
@@ -47,8 +49,6 @@ export function Header({ user }: { user: any }) {
     setIsClient(true);
   }, []);
 
-  // Forensic Check: If a support impersonation session is active, 
-  // we suppress the standard View Mode toggle to prevent identity collisions.
   const isImpersonating = getCookie('givar_is_impersonating') === 'true';
 
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
@@ -106,14 +106,13 @@ export function Header({ user }: { user: any }) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2 md:gap-3">
-        {/* 
-          CORRECTION: We pass the ACTUAL user.role (ADMIN). 
-          The ViewModeToggle component will detect the 'USER' cookie internally 
-          and show the "Return to Admin" button automatically.
-        */}
         {isClient && user?.role === 'ADMIN' && !isImpersonating && (
           <ViewModeToggle currentRole={user.role} />
         )}
+
+        <div className="hidden lg:flex">
+          <WalletWidget />
+        </div>
 
         <div className="hidden md:flex items-center rounded-full bg-secondary/50 px-4 py-2.5 transition-colors hover:bg-secondary border border-transparent hover:border-border/50">
           <Search className="mr-2 h-4 w-4 text-muted-foreground" />
@@ -122,19 +121,7 @@ export function Header({ user }: { user: any }) {
             placeholder="Search..."
             className="bg-transparent text-sm outline-none placeholder:text-muted-foreground w-24 lg:w-36 text-foreground"
           />
-          <kbd className="ml-2 flex h-5 w-5 items-center justify-center rounded border border-border bg-background text-muted-foreground select-none text-[10px]">
-            <CornerDownLeft className="h-3 w-3" />
-          </kbd>
         </div>
-
-        <Button
-          size="sm"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20 hidden md:flex items-center gap-2 h-10 px-4 border-0"
-          onClick={() => router.push('/dashboard/impact')}
-        >
-          <Heart className="h-4 w-4" />
-          <span>Donate</span>
-        </Button>
 
         <ThemeToggle />
 
