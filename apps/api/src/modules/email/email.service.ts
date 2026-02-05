@@ -165,4 +165,12 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Project Fully Funded');
     return this.send(email, `Givar Impact: Success! ${data.projectTitle} is fully funded`, html);
   }
+
+  // 14. Project Funded Alert (To Donors)
+  async sendProjectFundedDonorAlert(email: string, data: { name: string; projectTitle: string; amount: string; currency: string; projectId: string; projectSlug: string }) {
+    const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${data.projectSlug}`;
+    const content = EmailTemplates.projectFundedDonor({ ...data, projectUrl });
+    const html = EmailTemplates.base(content, 'Project Successfully Funded');
+    return this.send(email, `Givar Impact: The project you supported is fully funded!`, html);
+  }
 }

@@ -100,7 +100,8 @@ export class DonationService {
         targetAmount: true,
         raisedAmount: true,
         status: true,
-        userId: true // Needed for notification
+        userId: true, // Needed for notification
+        slug: true
       },
     });
 
@@ -187,8 +188,9 @@ export class DonationService {
 
     // 2. Trigger "Project Funded" Alert to Organizer
     if (result.isGoalMet) {
+      // Notify Organizer
       this.prisma.user.findUnique({
-        where: { id: project.userId },
+        where: { id: project.userId }, // Variable from top of scope
         select: { email: true, firstName: true }
       }).then(organizer => {
         if (organizer) {
@@ -200,7 +202,9 @@ export class DonationService {
             projectId: project.id
           });
         }
-      }).catch(err => this.logger.error(`Funded Alert Dispatch Failed: ${err.message}`));
+      });
+
+      this.broadcastProjectFunded(project.id, project.title, project.slug, project.targetAmount, project.currency);
     }
 
     return result.donation;
@@ -443,7 +447,7 @@ export class DonationService {
 
       const project = await tx.project.findUniqueOrThrow({
         where: { id: projectId },
-        select: { raisedAmount: true, targetAmount: true, userId: true, title: true, currency: true }
+        select: { raisedAmount: true, targetAmount: true, userId: true, title: true, currency: true, slug: true }
       });
 
       const newRaisedAmount = project.raisedAmount + amount;
@@ -483,7 +487,8 @@ export class DonationService {
           title: project.title,
           targetAmount: project.targetAmount,
           currency: project.currency,
-          id: projectId
+          id: projectId,
+          slug: project.slug
         }
       };
     }, {
@@ -492,6 +497,7 @@ export class DonationService {
     });
 
     if (result.isGoalMet) {
+      // Notify Organizer
       this.prisma.user.findUnique({
         where: { id: result.projectContext.organizerId },
         select: { email: true, firstName: true }
@@ -505,7 +511,15 @@ export class DonationService {
             projectId: result.projectContext.id
           });
         }
-      }).catch(err => this.logger.error(`Direct User Funded Alert Failed: ${err.message}`));
+      });
+
+      this.broadcastProjectFunded(
+        result.projectContext.id,
+        result.projectContext.title,
+        result.projectContext.slug,
+        result.projectContext.targetAmount,
+        result.projectContext.currency
+      );
     }
 
     return {
@@ -557,7 +571,7 @@ export class DonationService {
 
       const project = await tx.project.findUniqueOrThrow({
         where: { id: projectId },
-        select: { raisedAmount: true, targetAmount: true, userId: true, title: true, currency: true }
+        select: { raisedAmount: true, targetAmount: true, userId: true, title: true, currency: true, slug: true }
       });
 
       const newRaisedAmount = project.raisedAmount + amount;
@@ -596,7 +610,8 @@ export class DonationService {
           title: project.title,
           targetAmount: project.targetAmount,
           currency: project.currency,
-          id: projectId
+          id: projectId,
+          slug: project.slug
         }
       };
     }, {
@@ -605,6 +620,7 @@ export class DonationService {
     });
 
     if (result.isGoalMet) {
+      // Notify Organizer
       this.prisma.user.findUnique({
         where: { id: result.projectContext.organizerId },
         select: { email: true, firstName: true }
@@ -618,7 +634,15 @@ export class DonationService {
             projectId: result.projectContext.id
           });
         }
-      }).catch(err => this.logger.error(`Direct Guest Funded Alert Failed: ${err.message}`));
+      });
+
+      this.broadcastProjectFunded(
+        result.projectContext.id,
+        result.projectContext.title,
+        result.projectContext.slug,
+        result.projectContext.targetAmount,
+        result.projectContext.currency
+      );
     }
 
     return {
@@ -854,5 +878,45 @@ export class DonationService {
 
       return { status: 'moved_to_suspense', reference };
     });
+  }
+
+  private async broadcastProjectFunded(projectId: string, projectTitle: string, projectSlug: string, totalAmount: bigint, currency: string) {
+    // 1. Fetch all unique donors (Registered)
+    const userDonors = await this.prisma.donation.findMany({
+      where: { projectId },
+      select: { user: { select: { email: true, firstName: true } } },
+      distinct: ['userId'],
+    });
+
+    // 2. Fetch all unique guest donors
+    const guestDonors = await this.prisma.guestDonation.findMany({
+      where: { projectId },
+      select: { guestDonor: { select: { email: true, name: true } } },
+      distinct: ['guestDonorId'],
+    });
+
+    // 3. Combine into unique recipient list
+    const recipients = [
+      ...userDonors.map(d => ({ email: d.user?.email, name: d.user?.firstName || 'Giver' })),
+      ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
+    ].filter((v, i, a) => v.email && a.findIndex(t => t.email === v.email) === i);
+
+    const fmtAmount = (Number(totalAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+    this.logger.log(`📢 Broadcasting Goal Completion for "${projectTitle}" to ${recipients.length} donors.`);
+
+    // 4. Batch Dispatch
+    Promise.allSettled(
+      recipients.map(r =>
+        this.emailService.sendProjectFundedDonorAlert(r.email!, {
+          name: r.name!,
+          projectTitle,
+          amount: fmtAmount,
+          currency,
+          projectId,
+          projectSlug
+        })
+      )
+    ).catch(err => this.logger.error('Donor Broadcast Transmission Failed', err));
   }
 }

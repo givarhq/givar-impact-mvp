@@ -267,4 +267,18 @@ export const EmailTemplates = {
     </div>
     <p style="font-size: 14px; color: #6b7280;">Thank you for your commitment to impact. We look forward to seeing the execution results.</p>
   `,
+
+  projectFundedDonor: (data: { name: string; projectTitle: string; amount: string; currency: string; projectUrl: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>Wonderful news! The project you supported, <strong>${data.projectTitle}</strong>, has just reached its full funding goal.</p>
+    <div class="stat-box" style="text-align: center;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Project Goal Reached</div>
+      <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
+    </div>
+    <p>Your contribution was essential in making this happen. We will keep you updated as the execution phases begin and milestones are achieved.</p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.projectUrl}" class="button">View Project Timeline</a>
+    </div>
+    <p style="font-size: 14px; color: #6b7280;">Thank you for your generosity and for being part of this impact journey.</p>
+  `,
 };
