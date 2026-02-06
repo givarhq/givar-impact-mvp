@@ -29,8 +29,8 @@ export function LandingHeader({
         isAuth
           ? 'bg-background border-border py-4'
           : scrolled
-          ? 'bg-background/80 backdrop-blur-xl border-border/40 py-3 shadow-sm'
-          : 'bg-transparent py-6'
+            ? 'bg-background/80 backdrop-blur-xl border-border/40 py-3 shadow-sm'
+            : 'bg-transparent py-6'
       )}
     >
       <div className="container mx-auto px-4 md:px-6 relative flex items-center justify-between">
@@ -46,8 +46,8 @@ export function LandingHeader({
             />
           </div>
           <span className={cn(
-              "text-xl font-bold tracking-tight transition-colors",
-              isDarkHeroState ? "text-white" : "text-foreground"
+            "text-xl font-bold tracking-tight transition-colors",
+            isDarkHeroState ? "text-white" : "text-foreground"
           )}>
             Givar<span className="text-primary">.</span>
           </span>
@@ -55,14 +55,14 @@ export function LandingHeader({
 
         {/* Centered Nav with Dynamic Colors */}
         <nav className={cn(
-            "hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-medium transition-colors",
-            isDarkHeroState ? "text-zinc-200" : "text-muted-foreground"
+          "hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-medium transition-colors",
+          isDarkHeroState ? "text-zinc-200" : "text-muted-foreground"
         )}>
+          <Link href="/about" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
+            Our Mission
+          </Link>
           <Link href="/#features" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
             How it Works
-          </Link>
-          <Link href="/#impact" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
-            Transparency
           </Link>
           <Link href="/explore" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
             Explore Projects
@@ -76,10 +76,10 @@ export function LandingHeader({
                 <Button
                   variant="ghost"
                   className={cn(
-                      "hidden md:flex transition-colors",
-                      isDarkHeroState 
-                        ? "text-zinc-200 hover:text-white hover:bg-white/10" 
-                        : "text-muted-foreground hover:text-foreground"
+                    "hidden md:flex transition-colors",
+                    isDarkHeroState
+                      ? "text-zinc-200 hover:text-white hover:bg-white/10"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   Sign In
@@ -87,9 +87,8 @@ export function LandingHeader({
               </Link>
               <Link href="/signup">
                 <Button className={cn(
-                    "rounded-full px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all",
-                    // Add extra glow/contrast when on dark hero
-                    isDarkHeroState && "shadow-primary/40 border border-white/10"
+                  "rounded-full px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all",
+                  isDarkHeroState && "shadow-primary/40 border border-white/10"
                 )}>
                   Get Started <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
