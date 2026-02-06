@@ -170,6 +170,8 @@ export interface ProjectProposal {
 
   status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
   submittedAt: string;
+  updatedAt: string;
+  approvedAt: string | null;
 
   // Relations
   user: {

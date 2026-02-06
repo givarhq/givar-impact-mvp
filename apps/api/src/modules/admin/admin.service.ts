@@ -281,7 +281,14 @@ export class AdminService {
 
     // 1. Build Dynamic Filter
     const where: Prisma.ProjectProposalWhereInput = {
-      status: status ? status : { not: ProposalStatus.DRAFT },
+      status: status ? status : {
+        in: [
+          ProposalStatus.SUBMITTED,
+          ProposalStatus.UNDER_REVIEW,
+          ProposalStatus.CHANGES_REQUESTED,
+          ProposalStatus.AWAITING_VERIFICATION
+        ]
+      },
 
       ...(category && { category: { slug: category } }),
 

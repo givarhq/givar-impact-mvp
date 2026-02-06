@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import {
     Check, X, FileText, Calendar, DollarSign, User, Phone,
     Building, AlertTriangle, MessageSquare, Clock, MapPin,
-    ExternalLink, ShieldAlert
+    ExternalLink, ShieldAlert, CheckCircle2
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -17,6 +17,7 @@ import { formatDate } from '../../../lib/utils/format';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { Input } from '../../ui/input';
 import { ProjectProposal } from '../../../types';
+import { cn } from '../../../lib/utils/cn';
 
 interface ProposalReviewProps {
     proposal: ProjectProposal;
@@ -29,6 +30,9 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
     const [actionType, setActionType] = useState<'reject' | 'changes' | null>(null);
 
     const budgetTotal = (proposal.budgetBreakdown as any[])?.reduce((sum, item) => sum + item.cost, 0) || 0;
+
+    // Determine if the proposal has reached a finalized state
+    const isTerminalState = proposal.status === 'APPROVED' || proposal.status === 'REJECTED';
 
     const handleDecision = async () => {
         if (!actionType) return;
@@ -43,7 +47,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                 await ApiService.admin.requestChanges(proposal.id, feedback);
                 toast.success('Changes Requested');
             }
-            router.push('/admin/proposals');
+            router.push('/admin/projects?tab=proposals');
         } catch (e) {
             toast.error('Action failed');
         } finally {
@@ -86,7 +90,12 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                         <Badge variant="outline" className="font-mono text-[10px] uppercase">
                             {proposal.id.split('-')[0]}
                         </Badge>
-                        <Badge variant="secondary" className="text-[10px] bg-blue-500/10 text-blue-500 border-blue-500/20">
+                        <Badge variant="secondary" className={cn(
+                            "text-[10px] border",
+                            proposal.status === 'APPROVED'
+                                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                                : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                        )}>
                             {proposal.status}
                         </Badge>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -185,65 +194,90 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                 <div className="space-y-6">
 
                     {/* ACTIONS */}
-                    <Card className="border-border/60 shadow-lg bg-card ring-1 ring-primary/5">
+                    <Card className={cn(
+                        "border-border/60 shadow-lg bg-card ring-1 ring-primary/5",
+                        isTerminalState && "bg-muted/5 shadow-none ring-0 border-dashed"
+                    )}>
                         <CardContent className="p-5 space-y-3">
-                            <Button
-                                onClick={handleApprove}
-                                disabled={isProcessing}
-                                className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20 rounded-xl"
-                            >
-                                <Check className="mr-2 h-4 w-4" /> Approve & Launch
-                            </Button>
-
-                            <Dialog>
-                                <DialogTrigger asChild>
+                            {!isTerminalState ? (
+                                <>
                                     <Button
-                                        variant="outline"
-                                        className="w-full h-10 border-amber-500/30 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700 font-medium rounded-xl"
-                                        onClick={() => setActionType('changes')}
+                                        onClick={handleApprove}
+                                        disabled={isProcessing}
+                                        className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/20 rounded-xl"
                                     >
-                                        <MessageSquare className="mr-2 h-4 w-4" /> Request Changes
+                                        <Check className="mr-2 h-4 w-4" /> Approve & Launch
                                     </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader><DialogTitle>Request Changes</DialogTitle></DialogHeader>
-                                    <div className="space-y-4 pt-2">
-                                        <p className="text-sm text-muted-foreground">What needs to be fixed before this can be approved?</p>
-                                        <textarea
-                                            className="flex w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-primary min-h-[100px]"
-                                            placeholder="e.g., Upload a clearer ID, fix budget typos..."
-                                            value={feedback}
-                                            onChange={(e) => setFeedback(e.target.value)}
-                                        />
-                                        <Button onClick={handleDecision} disabled={isProcessing} className="w-full rounded-xl">Send Feedback</Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
 
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        className="w-full h-9 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl"
-                                        onClick={() => setActionType('reject')}
-                                    >
-                                        <X className="mr-2 h-4 w-4" /> Reject Proposal
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader><DialogTitle className="text-destructive">Reject Proposal</DialogTitle></DialogHeader>
-                                    <div className="space-y-4 pt-2">
-                                        <p className="text-sm text-muted-foreground">This action is final. The user will have to start over.</p>
-                                        <Input
-                                            placeholder="Reason for rejection..."
-                                            value={feedback}
-                                            onChange={(e) => setFeedback(e.target.value)}
-                                            className="rounded-xl"
-                                        />
-                                        <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full rounded-xl">Confirm Rejection</Button>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full h-10 border-amber-500/30 text-amber-600 hover:bg-amber-500/10 hover:text-amber-700 font-medium rounded-xl"
+                                                onClick={() => setActionType('changes')}
+                                            >
+                                                <MessageSquare className="mr-2 h-4 w-4" /> Request Changes
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader><DialogTitle>Request Changes</DialogTitle></DialogHeader>
+                                            <div className="space-y-4 pt-2">
+                                                <p className="text-sm text-muted-foreground">What needs to be fixed before this can be approved?</p>
+                                                <textarea
+                                                    className="flex w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all min-h-[100px]"
+                                                    placeholder="e.g., Upload a clearer ID, fix budget typos..."
+                                                    value={feedback}
+                                                    onChange={(e) => setFeedback(e.target.value)}
+                                                />
+                                                <Button onClick={handleDecision} disabled={isProcessing} className="w-full rounded-xl">Send Feedback</Button>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                className="w-full h-9 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl"
+                                                onClick={() => setActionType('reject')}
+                                            >
+                                                <X className="mr-2 h-4 w-4" /> Reject Proposal
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader><DialogTitle className="text-destructive">Reject Proposal</DialogTitle></DialogHeader>
+                                            <div className="space-y-4 pt-2">
+                                                <p className="text-sm text-muted-foreground">This action is final. The user will have to start over.</p>
+                                                <Input
+                                                    placeholder="Reason for rejection..."
+                                                    value={feedback}
+                                                    onChange={(e) => setFeedback(e.target.value)}
+                                                    className="rounded-xl"
+                                                />
+                                                <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full rounded-xl">Confirm Rejection</Button>
+                                            </div>
+                                        </DialogContent>
+                                    </Dialog>
+                                </>
+                            ) : (
+                                <div className="text-center py-4 space-y-3">
+                                    <div className={cn(
+                                        "h-12 w-12 rounded-full flex items-center justify-center mx-auto",
+                                        proposal.status === 'APPROVED' ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive"
+                                    )}>
+                                        {proposal.status === 'APPROVED' ? <CheckCircle2 className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}
                                     </div>
-                                </DialogContent>
-                            </Dialog>
+                                    <div>
+                                        <p className="font-bold text-foreground">Audit Decision Finalized</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            This proposal was {proposal.status.toLowerCase()} on {formatDate(proposal.approvedAt || proposal.updatedAt)}
+                                        </p>
+                                    </div>
+                                    <Button variant="outline" className="w-full rounded-xl h-9 text-xs" onClick={() => router.push('/admin/projects?tab=proposals')}>
+                                        Return to Pipeline
+                                    </Button>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -304,7 +338,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     </Card>
 
                     {/* Risk Analysis */}
-                    <Card className="border-border/60d to Right) shadow-sm bg-card">
+                    <Card className="border-border/60 shadow-sm bg-card">
                         <CardHeader className="py-4 px-5 border-b border-border/50">
                             <CardTitle className="text-sm font-bold flex items-center gap-2">
                                 <ShieldAlert className="h-4 w-4 text-amber-500" /> Risk Analysis
