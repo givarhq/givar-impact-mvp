@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,21 +13,18 @@ import {
   Briefcase,
   Clock,
   MapPin,
-  Edit2,
-  Unlock,
   ShieldCheck,
-  FileText,
-  Send,
   ExternalLink,
-  Lock,
-  AlertTriangle,
-  RefreshCcw,
+  Unlock,
+  Send,
+  LockOpen,
   Fingerprint,
-  LockOpen
+  FileText
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { RichTextEditor } from '../../ui/rich-text-editor';
 import { ApiService } from '../../../services/api';
 import { BudgetEditor } from '../proposals/budget-editor';
 import { TimelineEditor } from '../proposals/timeline-editor';
@@ -109,7 +106,14 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
     }
   });
 
-  const [gallery, budget, timeline, coverImage, reason] = watch(['gallery', 'budgetBreakdown', 'executionTimeline', 'coverImage', 'reasonForGoalAdjustment']);
+  const [gallery, budget, timeline, coverImage, reason, description] = watch([
+    'gallery',
+    'budgetBreakdown',
+    'executionTimeline',
+    'coverImage',
+    'reasonForGoalAdjustment',
+    'description'
+  ]);
 
   const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
     setIsSubmitting(true);
@@ -152,14 +156,14 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
     });
   };
 
-  const getInputClass = (section: string) => cn(
+  const getInputClass = () => cn(
     "transition-all duration-300 rounded-xl h-11 text-sm pr-10",
     readOnly
       ? "bg-muted/10 border-transparent shadow-none cursor-default focus-visible:ring-0 text-foreground font-medium"
       : "bg-background border-border shadow-sm focus-visible:ring-primary/20"
   );
 
-  const getAreaClass = (section: string, minHeight: string = "min-h-[180px]") => cn(
+  const getAreaClass = (minHeight: string = "min-h-[180px]") => cn(
     "flex w-full rounded-xl border px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-foreground",
     minHeight,
     readOnly
@@ -254,7 +258,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Headline Title</label>
           <Input
             {...register('title')}
-            className={getInputClass('identity')}
+            className={getInputClass()}
             readOnly={readOnly}
             error={errors.title?.message}
           />
@@ -267,7 +271,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
             name="categoryId"
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
-                <SelectTrigger className={cn(getInputClass('identity'), "bg-background/50")}><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectTrigger className={cn(getInputClass(), "bg-background/50")}><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent className="rounded-xl shadow-2xl border-border/50">
                   {categories.map((c: any) => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}
                 </SelectContent>
@@ -279,7 +283,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         <div className="md:col-span-12 space-y-1.5 relative">
           <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Short Narrative</label>
           <Textarea
-            className={cn(getAreaClass('identity', "min-h-[10px]"), "resize-none")}
+            className={cn(getAreaClass("min-h-[10px]"), "resize-none")}
             {...register('shortDesc')}
             readOnly={readOnly}
             maxLength={140}
@@ -287,12 +291,13 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
 
         <div className="md:col-span-12 space-y-1.5 relative">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Description</label>
-          <Textarea
-            className={getAreaClass('identity', "min-h-[200px]")}
-            {...register('description')}
+          <RichTextEditor
+            label="Detailed Project Description"
+            content={description || ''}
+            onChange={(val) => setValue('description', val, { shouldDirty: true })}
             readOnly={readOnly}
           />
+          {errors.description && <p className="text-xs text-destructive mt-1">{errors.description.message}</p>}
         </div>
 
         <div className="md:col-span-6 space-y-1.5 relative">
@@ -301,7 +306,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50" />
             <Input
               {...register('location')}
-              className={cn(getInputClass('identity'), "pl-9")}
+              className={cn(getInputClass(), "pl-9")}
               readOnly={readOnly}
             />
           </div>
@@ -318,7 +323,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
                 <Input
                   value={formatNumberInput(String(field.value || ''))}
                   onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                  className={cn(getInputClass('identity'), "pl-10 font-bold tabular-nums")}
+                  className={cn(getInputClass(), "pl-10 font-bold tabular-nums")}
                   readOnly={readOnly}
                 />
               </div>
@@ -380,7 +385,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           Planning & Accountability
         </p>
         <p className="text-sm text-muted-foreground px-2 leading-relaxed max-w-4xl">
-          Define the project's financial requirements and implementation schedule. The <strong>Budget Ledger</strong> identifies procurement needs, while the <strong>Execution Roadmap</strong> establishes the verifiable milestones required for donor transparency and treasury release.
+          Define the project&apos;s financial requirements and implementation schedule. The <strong>Budget Ledger</strong> identifies procurement needs, while the <strong>Execution Roadmap</strong> establishes the verifiable milestones required for donor transparency and treasury release.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
