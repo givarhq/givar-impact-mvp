@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Compass, Droplets, Book, Zap, Heart, Shield } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Compass, Droplets, Book, Zap, Heart, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
 
 const iconMap = {
@@ -20,10 +20,38 @@ interface CategoryBrowserProps {
 }
 
 export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrowserProps) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [showLeftArrow, setShowLeftArrow] = useState(false);
+    const [showRightArrow, setShowRightArrow] = useState(false);
+
     const allCategories = [
         { id: 'all', name: 'All', slug: 'all' },
         ...categories
     ];
+
+    const checkScroll = () => {
+        if (scrollRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+            setShowLeftArrow(scrollLeft > 10);
+            setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+        }
+    };
+
+    useEffect(() => {
+        checkScroll();
+        window.addEventListener('resize', checkScroll);
+        return () => window.removeEventListener('resize', checkScroll);
+    }, [categories]);
+
+    const handleScroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const scrollAmount = 240;
+            scrollRef.current.scrollBy({
+                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
 
     const resolveIcon = (name: string, slug: string) => {
         const str = `${name} ${slug}`.toLowerCase();
@@ -36,12 +64,25 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
     };
 
     return (
-        <div className="relative">
-            {/* Fade edge indicators for mobile scroll context */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none md:hidden" />
-            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none md:hidden" />
+        <div className="relative group/browser flex items-center">
+            {/* Left Arrow Button */}
+            {showLeftArrow && (
+                <div className="absolute left-0 top-0 bottom-0 z-20 flex items-center pr-10 bg-gradient-to-r from-background via-background/80 to-transparent pointer-events-none">
+                    <button
+                        onClick={() => handleScroll('left')}
+                        className="h-8 w-8 rounded-full border border-border bg-card shadow-lg flex items-center justify-center text-foreground pointer-events-auto hover:bg-muted transition-all active:scale-90"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </button>
+                </div>
+            )}
 
-            <div className="flex gap-6 sm:gap-10 overflow-x-auto pb-4 px-2 no-scrollbar scroll-smooth">
+            {/* Scroll Container */}
+            <div
+                ref={scrollRef}
+                onScroll={checkScroll}
+                className="flex gap-6 sm:gap-10 overflow-x-auto pb-4 px-2 no-scrollbar scroll-smooth w-full"
+            >
                 {allCategories.map((cat) => {
                     const Icon = resolveIcon(cat.name, cat.slug);
                     const isActive = selected === cat.slug;
@@ -70,7 +111,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                                 )} />
                             </div>
 
-                            {/* Label */}
                             <span className={cn(
                                 "tracking-tight text-center transition-all duration-300 whitespace-nowrap",
                                 "text-[11.5px] sm:text-[12.5px]",
@@ -79,7 +119,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                                 {cat.name}
                             </span>
 
-                            {/* Active Indicator Bar */}
                             {isActive && (
                                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-primary rounded-full animate-in fade-in zoom-in duration-300" />
                             )}
@@ -87,6 +126,18 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                     );
                 })}
             </div>
+
+            {/* Right Arrow Button */}
+            {showRightArrow && (
+                <div className="absolute right-0 top-0 bottom-0 z-20 flex items-center pl-10 bg-gradient-to-l from-background via-background/80 to-transparent pointer-events-none">
+                    <button
+                        onClick={() => handleScroll('right')}
+                        className="h-8 w-8 rounded-full border border-border bg-card shadow-lg flex items-center justify-center text-foreground pointer-events-auto hover:bg-muted transition-all active:scale-90"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
