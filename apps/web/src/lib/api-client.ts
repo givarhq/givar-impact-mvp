@@ -28,7 +28,7 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<any>) => {
     const status = error.response?.status;
 
-    // FIX: Detect if the error response is a Blob (common in exports)
+    // Detect if the error response is a Blob (common in forensic exports)
     let data = error.response?.data;
     if (data instanceof Blob && data.type === 'application/json') {
       const text = await data.text();
@@ -37,23 +37,27 @@ apiClient.interceptors.response.use(
 
     const message = data?.message || 'Something went wrong';
 
+    // 401 Unauthorized: The trigger for session clearing
     if (status === 401) {
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      deleteCookie('givar_refresh_token');
-
+      // We use the API route to ensure server-side and client-side cookies are synced
       if (typeof window !== 'undefined') {
-        const path = window.location.pathname;
-        if (path.startsWith('/dashboard') || path.startsWith('/admin')) {
-          window.location.href = '/login?reason=session_expired';
-        }
+        window.location.href = '/api/auth/clear-session';
       }
     }
 
     if (status === 403) {
-      toast.error("Access Denied");
+      // Check for custom read-only error from ReadOnlyGuard
+      if (data?.error === 'READ_ONLY_MODE_ACTIVE') {
+        toast.error("Forensic Mode: Mutations are prohibited.", {
+          icon: '🛡️',
+          style: { borderRadius: '12px', fontWeight: 'bold' }
+        });
+      } else {
+        toast.error("Access Denied");
+      }
     }
 
+    // Prevent toast spamming on auth pages
     if (status !== 401 && typeof window !== 'undefined') {
       const path = window.location.pathname;
       if (!path.includes('/login') && !path.includes('/signup')) {
