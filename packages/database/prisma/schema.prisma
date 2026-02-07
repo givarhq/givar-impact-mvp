@@ -86,6 +86,15 @@ enum AuditAction {
   RESET_REQUESTED
   RESET_SUCCESSFUL
   ACCOUNT_TYPE_CHANGED
+  PROFILE_UPDATED
+  AVATAR_UPDATED
+  ACCOUNT_DELETED
+
+  // 2FA Actions
+  TWO_FACTOR_GEN_SECRET
+  TWO_FACTOR_ENABLED
+  TWO_FACTOR_DISABLED
+  TWO_FACTOR_VERIFY_FAILED
 
   // Security Overrides
   USER_LOCKED
@@ -159,6 +168,13 @@ model User {
   firstName     String
   lastName      String
   role          UserRole  @default(USER)
+  avatarKey     String?
+
+  twoFactorSecret  String?   // Encrypted TOTP secret
+  twoFactorEnabled Boolean   @default(false)
+
+  preferences      Json?     @default("{}")
+  
   emailVerified         Boolean     @default(false)
   emailVerificationToken String?    @unique
   organization   OrganizationProfile?
