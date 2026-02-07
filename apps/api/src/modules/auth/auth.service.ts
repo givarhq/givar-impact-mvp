@@ -10,15 +10,18 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { generateSecret, verify, generateURI } from 'otplib';
+import * as qrcode from 'qrcode';
 import { PrismaService } from '../../common/prisma.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
-import { AuditAction } from '@givar/database';
+import { AccountType, AuditAction } from '@givar/database';
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import * as crypto from 'crypto';
 import { EmailService } from '../email/email.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +33,7 @@ export class AuthService {
     private audit: AuditService,
     private config: ConfigService,
     private emailService: EmailService,
+    private storage: StorageService,
   ) { }
 
   async register(dto: RegisterDto, req?: Request) {
@@ -138,7 +142,30 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // 3. Reset Lockout
+      // 3. 2FA Check
+      if (user.twoFactorEnabled) {
+        if (!dto.twoFactorCode) {
+          // Password is correct, but 2FA is required.
+          // Do not issue JWT yet.
+          return { mfaRequired: true };
+        }
+        const result = await verify({
+          token: dto.twoFactorCode,
+          secret: user.twoFactorSecret!,
+        });
+        const is2FAValid = result.valid;
+        if (!is2FAValid) {
+          await this.audit.log({
+            userId: user.id,
+            action: AuditAction.TWO_FACTOR_VERIFY_FAILED,
+            entityType: 'Session',
+            req
+          });
+          throw new UnauthorizedException('Invalid 2FA code');
+        }
+      }
+
+      // 4. Reset Lockout
       if (user.failedLoginAttempts > 0) {
         await this.prisma.user.update({
           where: { id: user.id },
@@ -309,21 +336,41 @@ export class AuthService {
   async resendVerification(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
-    // Security: If user doesn't exist or is already verified, return generic success
-    // to prevent email enumeration.
+    // Security: Generic response to prevent enumeration
     if (!user || user.emailVerified) {
-      return { message: 'If this email is unverified, a new link has been sent.' };
+      return { message: 'If this email is unverified, a verification code has been sent.' };
     }
 
-    const newToken = randomUUID();
+    // Generate 6-digit numeric code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { emailVerificationToken: newToken },
+      data: { emailVerificationToken: code },
     });
 
-    await this.emailService.sendVerification(user.email, user.firstName, newToken);
+    // Send the code via email
+    await this.emailService.sendVerification(user.email, user.firstName, code);
 
-    return { message: 'If this email is unverified, a new link has been sent.' };
+    return { message: 'Verification code sent to your email.' };
+  }
+
+  async verifyEmailCode(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user || user.emailVerificationToken !== code) {
+      throw new BadRequestException('Invalid or expired verification code.');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        emailVerified: true,
+        emailVerificationToken: null, // Consume token (Single use)
+      },
+    });
   }
 
   async switchToOrganizer(userId: string) {
@@ -358,7 +405,10 @@ export class AuthService {
         role: true,
         accountType: true,
         emailVerified: true,
+        avatarKey: true,
         createdAt: true,
+        twoFactorEnabled: true,
+        preferences: true,
       },
     });
 
@@ -366,6 +416,272 @@ export class AuthService {
       throw new NotFoundException('User profile not found');
     }
 
+    let avatarUrl = null;
+    if (user.avatarKey) {
+      const { viewUrl } = await this.storage.getPresignedViewUrl(user.avatarKey);
+      avatarUrl = viewUrl;
+    }
+
+    return {
+      ...user,
+      avatarUrl,
+      twoFactorEnabled: user.twoFactorEnabled
+    };
+  }
+
+  async updateProfile(userId: string, dto: { firstName: string; lastName: string }) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: dto,
+    });
+    await this.audit.log({
+      userId,
+      action: AuditAction.PROFILE_UPDATED,
+      entityId: userId,
+      entityType: 'User',
+      metadata: { updates: dto }
+    });
     return user;
+  }
+
+  async updatePassword(userId: string, dto: { currentPassword: string; newPassword: string }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!isMatch) throw new BadRequestException('Invalid current password');
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(dto.newPassword, salt);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash }
+    });
+
+    await this.audit.log({
+      userId,
+      action: AuditAction.PASSWORD_CHANGE,
+      entityId: userId,
+      entityType: 'User'
+    });
+  }
+
+  async updateAvatar(userId: string, avatarKey: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: { avatarKey },
+        select: { id: true, firstName: true, lastName: true, avatarKey: true }
+      });
+
+      await this.audit.log({
+        userId,
+        action: AuditAction.AVATAR_UPDATED,
+        entityId: userId,
+        entityType: 'User',
+        metadata: { key: avatarKey }
+      }, tx);
+
+      return user;
+    });
+  }
+
+  async deleteAccount(userId: string, currentPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { _count: { select: { donations: true, projects: true } } }
+    });
+
+    if (!user) throw new NotFoundException('Account node not found');
+
+    // 1. Password Verification
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) throw new BadRequestException('Verification failed: Credentials do not match');
+
+    // 2. Ledger Integrity Check
+    if (user._count.projects > 0) {
+      throw new BadRequestException('Node cannot be deleted: You have active or historical project records on the ledger.');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 3. Log the deletion before removal for forensic trace
+      await this.audit.log({
+        userId,
+        action: AuditAction.ACCOUNT_DELETED,
+        entityId: userId,
+        entityType: 'User',
+        metadata: { email: user.email, totalDonations: user._count.donations }
+      }, tx);
+
+      // 4. Cascade Cleanup (Prisma handles relations defined with ON DELETE CASCADE)
+      await tx.wallet.deleteMany({ where: { userId } });
+      await tx.user.delete({ where: { id: userId } });
+
+      return { success: true };
+    });
+  }
+
+  async generateTwoFactorSecret(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    // 1. Generate high-entropy secret
+    const secret = generateSecret();
+    // 2. Create standard OTP Auth URI
+    const otpAuthUrl = generateURI({
+      label: user.email,
+      issuer: 'Givar Impact',
+      secret,
+    });
+    // 3. Save secret to user node (Pre-enable state)
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorSecret: secret },
+    });
+    // 4. Generate QR Code for frontend display
+    const qrCodeDataUrl = await qrcode.toDataURL(otpAuthUrl);
+    await this.audit.log({
+      userId,
+      action: AuditAction.TWO_FACTOR_GEN_SECRET,
+      entityId: userId,
+      entityType: 'UserSecurity',
+    });
+    return {
+      qrCodeDataUrl,
+      secret, // Provided for manual entry fallback
+    };
+  }
+
+  async enableTwoFactor(userId: string, code: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.twoFactorSecret) {
+      throw new BadRequestException('2FA initialization not found');
+    }
+    // 1. Verify the provided code against the stored secret
+    const result = await verify({
+      token: code,
+      secret: user.twoFactorSecret,
+    });
+    const isValid = result.valid;
+    if (!isValid) {
+      await this.audit.log({
+        userId,
+        action: AuditAction.TWO_FACTOR_VERIFY_FAILED,
+        metadata: { reason: 'Initial activation failed' }
+      });
+      throw new BadRequestException('Invalid verification code');
+    }
+    // 2. Flip the activation flag
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorEnabled: true },
+    });
+    await this.audit.log({
+      userId,
+      action: AuditAction.TWO_FACTOR_ENABLED,
+      entityId: userId,
+      entityType: 'UserSecurity',
+    });
+    return { success: true };
+  }
+
+  async disableTwoFactor(userId: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException();
+
+    // 1. Critical Verification: Re-auth password before disabling security
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) throw new BadRequestException('Invalid credentials');
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+      },
+    });
+
+    await this.audit.log({
+      userId,
+      action: AuditAction.TWO_FACTOR_DISABLED,
+      entityId: userId,
+      entityType: 'UserSecurity',
+    });
+
+    return { success: true };
+  }
+
+  async updatePreferences(userId: string, preferences: any) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { preferences },
+      select: { preferences: true }
+    });
+  }
+
+  async switchAccountType(userId: string, targetType: AccountType) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { _count: { select: { projects: true } } }
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    if (user.accountType === targetType) {
+      return user; // No change
+    }
+
+    // Logic Guard: Cannot downgrade if you have active projects
+    if (targetType === 'INDIVIDUAL' && user._count.projects > 0) {
+      throw new BadRequestException('Cannot downgrade to Individual account while you have existing projects. Please suspend them first.');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { accountType: targetType },
+    });
+
+    await this.audit.log({
+      userId,
+      action: AuditAction.ACCOUNT_TYPE_CHANGED,
+      entityId: userId,
+      entityType: 'User',
+      metadata: {
+        previous: user.accountType,
+        new: targetType,
+        reason: 'USER_INITIATED_SWITCH'
+      }
+    });
+
+    return updated;
+  }
+
+  async getMyAuditLogs(userId: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await this.prisma.$transaction([
+      this.prisma.auditLog.findMany({
+        where: { userId },
+        take: limit,
+        skip,
+        select: {
+          id: true,
+          action: true,
+          ipAddress: true,
+          createdAt: true,
+          metadata: true,
+          userAgent: true
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      this.prisma.auditLog.count({ where: { userId } })
+    ]);
+
+    return {
+      data: logs,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
+      }
+    };
   }
 }
