@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
-    Loader2, ShieldCheck, Lock, Eye, EyeOff,
-    ShieldAlert, Fingerprint, KeyRound, Check,
+    Loader2, ShieldCheck, KeyRound, Check, X,
+    ChevronRight, ShieldAlert, Lock, Eye, EyeOff,
     AlertCircle
 } from 'lucide-react';
 import { Input } from '../../ui/input';
@@ -18,15 +18,15 @@ import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 
 const securitySchema = z.object({
-    currentPassword: z.string().min(1, "Your current password is required to verify identity"),
+    currentPassword: z.string().min(1, "Required"),
     newPassword: z.string()
-        .min(8, "Password must be at least 8 characters")
-        .regex(/[A-Z]/, "Requires at least one uppercase letter")
-        .regex(/[0-9]/, "Requires at least one numerical digit")
-        .regex(/[^A-Za-z0-9]/, "Requires at least one special symbol"),
+        .min(8, "Min 8 characters")
+        .regex(/[A-Z]/, "Requires uppercase")
+        .regex(/[0-9]/, "Requires a digit")
+        .regex(/[^A-Za-z0-9]/, "Requires a symbol"),
     confirmPassword: z.string()
 }).refine((data) => data.newPassword === data.confirmPassword, {
-    message: "New passwords do not match",
+    message: "Mismatch",
     path: ["confirmPassword"],
 });
 
@@ -34,13 +34,14 @@ type SecurityFormValues = z.infer<typeof securitySchema>;
 
 export function SecurityForm({ user }: { user: any }) {
     const [isLoading, setIsLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [showPasswords, setShowPasswords] = useState(false);
 
     const {
         register,
         handleSubmit,
         watch,
-        formState: { errors, isDirty },
+        formState: { errors },
         reset
     } = useForm<SecurityFormValues>({
         resolver: zodResolver(securitySchema),
@@ -48,31 +49,25 @@ export function SecurityForm({ user }: { user: any }) {
     });
 
     const newPassword = watch('newPassword', '');
-
-    const strengthCriteria = [
-        { label: "8+ characters", met: newPassword.length >= 8 },
-        { label: "Uppercase letter", met: /[A-Z]/.test(newPassword) },
-        { label: "Number", met: /[0-9]/.test(newPassword) },
-        { label: "Special symbol", met: /[^A-Za-z0-9]/.test(newPassword) },
-    ];
-
-    const strengthScore = strengthCriteria.filter(c => c.met).length;
+    const strengthScore = [
+        newPassword.length >= 8,
+        /[A-Z]/.test(newPassword),
+        /[0-9]/.test(newPassword),
+        /[^A-Za-z0-9]/.test(newPassword)
+    ].filter(Boolean).length;
 
     const onSubmit = async (data: SecurityFormValues) => {
         setIsLoading(true);
-        const toastId = toast.loading("Updating your password...");
-
         try {
             await ApiService.auth.updatePassword({
                 currentPassword: data.currentPassword,
                 newPassword: data.newPassword
             });
-
-            toast.success("Password successfully updated", { id: toastId });
+            toast.success("Security credentials updated");
+            setIsEditing(false);
             reset();
         } catch (error: any) {
-            const message = error.response?.data?.message || "Update failed. Check your current password.";
-            toast.error(message, { id: toastId });
+            toast.error(error.response?.data?.message || "Verification failed");
         } finally {
             setIsLoading(false);
         }
@@ -82,140 +77,84 @@ export function SecurityForm({ user }: { user: any }) {
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <TwoFactorSetup isEnabled={user.twoFactorEnabled} />
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
-                    <CardContent className="p-8 md:p-10 space-y-8">
-
-                        <div className="flex items-center justify-between border-b border-border/40 pb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 border border-amber-500/20">
-                                    <KeyRound className="h-5 w-5" />
+            <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
+                <CardContent className="p-0">
+                    <div
+                        onClick={() => !isEditing && setIsEditing(true)}
+                        className={cn(
+                            "p-8 transition-all group",
+                            isEditing ? "bg-primary/[0.01]" : "hover:bg-muted/30 cursor-pointer"
+                        )}
+                    >
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div className="flex items-center gap-5 flex-1">
+                                <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 border border-amber-500/20">
+                                    <KeyRound className="h-6 w-6" />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-lg text-foreground">Change Password</h3>
-                                    <p className="text-xs text-muted-foreground font-medium">Protect your Givar account with a strong password</p>
+                                <div className="space-y-1">
+                                    <h3 className="font-bold text-lg text-foreground">Password Management</h3>
+                                    {!isEditing && <p className="text-sm text-muted-foreground font-medium">Click to update your security password ••••••••••••</p>}
                                 </div>
                             </div>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setShowPasswords(!showPasswords)}
-                                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted/50 rounded-xl h-9"
-                            >
-                                {showPasswords ? 'Hide characters' : 'Show characters'}
-                            </Button>
+                            {!isEditing && <ChevronRight className="h-5 w-5 text-muted-foreground opacity-30 group-hover:opacity-100 transition-all" />}
                         </div>
 
-                        <div className="space-y-8">
-                            <div className="space-y-2">
-                                <Input
-                                    label="Current Password"
-                                    type={showPasswords ? "text" : "password"}
-                                    {...register('currentPassword')}
-                                    error={errors.currentPassword?.message}
-                                    placeholder="Enter your current password"
-                                    className="h-12"
-                                />
-                            </div>
-
-                            <div className="h-px bg-border/40 w-1/3 mx-auto" />
-
-                            <div className="space-y-6">
-                                <Input
-                                    label="New Password"
-                                    type={showPasswords ? "text" : "password"}
-                                    {...register('newPassword')}
-                                    error={errors.newPassword?.message}
-                                    placeholder="Create a strong new password"
-                                    className="h-12"
-                                />
-
-                                <div className="space-y-4 p-5 rounded-[24px] bg-muted/20 border border-border/50">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Password Requirements</span>
-                                        <span className={cn(
-                                            "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
-                                            strengthScore <= 2 ? "text-destructive bg-destructive/10" :
-                                                strengthScore === 3 ? "text-amber-600 bg-amber-500/10" :
-                                                    "text-emerald-600 bg-emerald-500/10"
-                                        )}>
-                                            {strengthScore === 0 ? "Empty" : strengthScore <= 2 ? "Weak" : strengthScore === 3 ? "Acceptable" : "Strong"}
-                                        </span>
+                        {isEditing && (
+                            <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-8 animate-in slide-in-from-top-4" onClick={(e) => e.stopPropagation()}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-6">
+                                        <Input
+                                            label="Current Password"
+                                            type={showPasswords ? "text" : "password"}
+                                            {...register('currentPassword')}
+                                            error={errors.currentPassword?.message}
+                                            placeholder="Verify current password"
+                                            className="h-12"
+                                            rightElement={
+                                                <button type="button" onClick={() => setShowPasswords(!showPasswords)} className="text-muted-foreground hover:text-foreground">
+                                                    {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                </button>
+                                            }
+                                        />
+                                        <Input label="New Password" type={showPasswords ? "text" : "password"} {...register('newPassword')} error={errors.newPassword?.message} placeholder="Min. 8 characters" className="h-12" />
+                                        <Input label="Confirm New Password" type={showPasswords ? "text" : "password"} {...register('confirmPassword')} error={errors.confirmPassword?.message} placeholder="Repeat new password" className="h-12" />
                                     </div>
 
-                                    <div className="flex gap-2 h-1.5">
-                                        {[1, 2, 3, 4].map((step) => (
-                                            <div
-                                                key={step}
-                                                className={cn(
-                                                    "flex-1 rounded-full transition-all duration-700",
-                                                    step <= strengthScore
-                                                        ? (strengthScore <= 2 ? "bg-destructive shadow-[0_0_8px_rgba(239,68,68,0.3)]" :
-                                                            strengthScore === 3 ? "bg-amber-500" :
-                                                                "bg-primary shadow-[0_0_10px_rgba(16,185,129,0.3)]")
-                                                        : "bg-border/60"
-                                                )}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-x-6 gap-y-2.5 pt-1">
-                                        {strengthCriteria.map((c, i) => (
-                                            <div key={i} className="flex items-center gap-2">
-                                                <div className={cn(
-                                                    "h-4 w-4 rounded-full flex items-center justify-center border transition-all duration-300",
-                                                    c.met ? "bg-primary border-primary text-white scale-110" : "bg-transparent border-border/60 text-transparent"
-                                                )}>
-                                                    <Check className="h-2.5 w-2.5" />
-                                                </div>
-                                                <span className={cn(
-                                                    "text-[10px] font-bold tracking-tight uppercase",
-                                                    c.met ? "text-foreground" : "text-muted-foreground/40"
-                                                )}>
-                                                    {c.label}
+                                    <div className="space-y-6">
+                                        <div className="p-6 rounded-[24px] bg-muted/20 border border-border/50 space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Entropy Strength</span>
+                                                <span className={cn("text-[10px] font-bold uppercase", strengthScore < 3 ? "text-destructive" : "text-emerald-500")}>
+                                                    {strengthScore < 3 ? 'Weak' : 'Secure'}
                                                 </span>
                                             </div>
-                                        ))}
+                                            <div className="flex gap-1.5 h-1.5">
+                                                {[1, 2, 3, 4].map(s => (
+                                                    <div key={s} className={cn("flex-1 rounded-full transition-all duration-500", s <= strengthScore ? (strengthScore < 3 ? "bg-destructive" : "bg-primary") : "bg-muted-foreground/10")} />
+                                                ))}
+                                            </div>
+                                            <div className="space-y-2 pt-2">
+                                                <p className="text-[10px] text-muted-foreground leading-relaxed flex items-start gap-2">
+                                                    <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+                                                    Updating your password will log you out of all other active sessions for security.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3">
+                                            <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs gap-2">
+                                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                                                Update Password
+                                            </Button>
+                                            <Button type="button" variant="outline" className="h-14 w-14 rounded-2xl border-border/60" onClick={() => { setIsEditing(false); reset(); }}><X className="h-5 w-5" /></Button>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <Input
-                                    label="Confirm New Password"
-                                    type={showPasswords ? "text" : "password"}
-                                    {...register('confirmPassword')}
-                                    error={errors.confirmPassword?.message}
-                                    placeholder="Repeat your new password"
-                                    className="h-12"
-                                />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <div className="flex items-start gap-4 p-6 rounded-3xl bg-amber-500/[0.03] border border-amber-500/10">
-                    <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
-                        <ShieldAlert className="h-5 w-5" />
+                            </form>
+                        )}
                     </div>
-                    <div className="space-y-1">
-                        <p className="text-xs font-bold text-amber-800 uppercase tracking-tight">Security Note</p>
-                        <p className="text-[11px] text-amber-700/80 leading-relaxed font-medium">
-                            Changing your password will log you out of all other active sessions to keep your account secure.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex justify-end pt-2">
-                    <Button
-                        type="submit"
-                        disabled={isLoading || !isDirty || strengthScore < 4}
-                        className="h-16 rounded-[24px] px-10 font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-primary/20 active:scale-95 transition-all gap-3"
-                    >
-                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
-                        Update Password
-                    </Button>
-                </div>
-            </form>
+                </CardContent>
+            </Card>
         </div>
     );
 }
