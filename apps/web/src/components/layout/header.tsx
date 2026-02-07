@@ -60,7 +60,6 @@ export function Header({ user }: { user: any }) {
       deleteCookie('givar_view_mode');
       deleteCookie('givar_is_impersonating');
       router.push('/login');
-      toast.success("Logged out successfully");
     } catch (error) {
       deleteCookie('givar_token');
       deleteCookie('givar_user');
