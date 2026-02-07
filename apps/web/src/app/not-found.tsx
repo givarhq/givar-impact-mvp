@@ -1,22 +1,16 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Compass, ArrowRight, Home, Search } from 'lucide-react';
-import { getCookie } from 'cookies-next';
+import { cookies } from 'next/headers';
 import { Button } from '../components/ui/button';
 
-export default function NotFound() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+export default async function NotFound() {
+    // Use server-side cookie detection to prevent hydration loops
+    const cookieStore = await cookies();
+    const isAuthenticated = !!cookieStore.get('givar_token')?.value;
 
-    useEffect(() => {
-        // Determine context based on the presence of the Givar session token
-        const token = getCookie('givar_token');
-        setIsAuthenticated(!!token);
-    }, []);
-
-    // Context-aware routing
+    // Context-aware routing determined on the server
     const browsePath = isAuthenticated ? '/dashboard/impact' : '/explore';
     const homePath = isAuthenticated ? '/dashboard' : '/';
 
@@ -26,7 +20,7 @@ export default function NotFound() {
             {/* Background Decorative Element */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl aspect-square bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="relative z-10 w-full max-w-md text-center space-y-10 animate-in fade-in zoom-in-95 duration-700">
+            <div className="relative z-10 w-full max-w-md text-center space-y-10">
 
                 {/* Brand/Logo */}
                 <div className="flex justify-center">
@@ -37,6 +31,7 @@ export default function NotFound() {
                             width={40}
                             height={40}
                             className="object-contain transition-transform group-hover:rotate-12"
+                            priority
                         />
                         <span className="text-2xl font-black tracking-tighter text-foreground">
                             Givar<span className="text-primary">.</span>
@@ -67,14 +62,14 @@ export default function NotFound() {
 
                 {/* Smart Actions */}
                 <div className="flex flex-col gap-3 pt-4">
-                    <Link href={homePath}>
+                    <Link href={homePath} className="w-full">
                         <Button size="lg" className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform gap-2">
                             <Home className="h-4 w-4" />
                             {isAuthenticated ? 'Back to Dashboard' : 'Return to Home'}
                         </Button>
                     </Link>
 
-                    <Link href={browsePath}>
+                    <Link href={browsePath} className="w-full">
                         <Button variant="ghost" className="w-full h-12 rounded-xl text-muted-foreground hover:text-foreground font-semibold gap-2">
                             Browse Verified Causes <ArrowRight className="h-4 w-4" />
                         </Button>
