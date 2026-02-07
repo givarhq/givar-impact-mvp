@@ -301,7 +301,10 @@ export const ApiService = {
     getSuspense: (token: string) =>
       serverFetch<any[]>('/admin/suspense', token),
 
-    resolveSuspense: (id: string, data: { action: 'REFUND' | 'ALLOCATE'; targetProjectId?: string }) =>
+    resolveSuspense: (id: string, data: {
+      action: 'REFUND' | 'ALLOCATE';
+      allocations?: Array<{ projectId: string; amount: string }>
+    }) =>
       apiClient.patch(`/admin/suspense/${id}/resolve`, data).then(r => r.data),
 
     updateMilestone: (projectId: string, milestoneId: string, status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED', imageUrl?: string) =>

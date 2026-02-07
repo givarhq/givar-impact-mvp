@@ -200,7 +200,7 @@ export class AdminController {
   }
 
   @Patch('suspense/:id/resolve')
-  resolveSuspense(
+  async resolveSuspense(
     @Req() req: any,
     @Param('id') id: string,
     @Body() dto: ResolveSuspenseDto
