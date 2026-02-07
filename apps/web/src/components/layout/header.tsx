@@ -34,7 +34,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/history': 'Transaction History',
   '/dashboard/subscriptions': 'Recurring Donations',
   '/dashboard/settings': 'Account Settings',
-  '/dashboard/verify': 'Identity Verification',
 };
 
 export function Header({ user }: { user: any }) {
@@ -161,7 +160,6 @@ export function Header({ user }: { user: any }) {
 
             <DropdownMenuSeparator />
 
-            {/* CONSOLIDATED ENTRY */}
             <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/settings')}>
               <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-muted-foreground">
                 <Settings className="h-4.5 w-4.5" />
@@ -172,7 +170,7 @@ export function Header({ user }: { user: any }) {
             </DropdownMenuItem>
 
             {user?.accountType === 'ORGANIZER' && (
-              <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/verify')}>
+              <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/settings?tab=org')}>
                 <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-muted-foreground">
                   <ShieldCheck className="h-4.5 w-4.5" />
                 </div>

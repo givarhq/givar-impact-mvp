@@ -97,7 +97,6 @@ export default function TrustPage() {
 
       <CardContent className="space-y-8 px-0">
         {isVerified ? (
-          /* --- VERIFIED STATE: Allow project-specific details and submission --- */
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center gap-4 p-5 bg-primary/5 border border-primary/20 rounded-2xl shadow-sm">
               <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center">
@@ -133,7 +132,7 @@ export default function TrustPage() {
                   disabled={isSubmitting}
                 />
                 <p className="text-[10px] text-muted-foreground mt-2 px-1 leading-relaxed">
-                  <strong>Compliance Note:</strong> Givar audit teams may contact this individual to verify the on-ground impact before releasing tranches of the goal.
+                  <strong>Compliance Note:</strong> Our audit team may contact this individual to verify the on-ground impact before releasing project funds.
                 </p>
               </div>
             </div>
@@ -171,7 +170,6 @@ export default function TrustPage() {
             </div>
           </div>
         ) : isKycPending ? (
-          /* --- PENDING STATE: Deferred Submission --- */
           <div className="bg-primary/[0.03] border border-primary/20 rounded-[32px] p-10 text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
             <div className="h-20 w-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto ring-8 ring-primary/5">
               <Clock className="h-10 w-10 animate-pulse" />
@@ -179,7 +177,7 @@ export default function TrustPage() {
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-foreground">Verification in Progress</h3>
               <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-                Your organization documents are being reviewed. You can queue this proposal now, and we will automatically submit it to the admin queue the moment you are verified.
+                Your organization documents are being reviewed. You can queue this proposal now, and we will automatically submit it to our team the moment you are verified.
               </p>
             </div>
             <div className="pt-4 flex flex-col items-center gap-4">
@@ -191,13 +189,12 @@ export default function TrustPage() {
                 {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <Send className="h-4 w-4" />}
                 Queue for Auto-Submission
               </Button>
-              <Link href="/dashboard/verify" className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">
+              <Link href="/dashboard/settings?tab=org" className="text-xs font-bold text-primary hover:underline uppercase tracking-wider">
                 Check Verification Status
               </Link>
             </div>
           </div>
         ) : (
-          /* --- LOCKED STATE: Nudge to verify --- */
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-[32px] p-10 text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
             <div className="h-20 w-20 bg-amber-500/10 text-amber-600 rounded-full flex items-center justify-center mx-auto ring-8 ring-amber-500/5">
               <Lock className="h-10 w-10" />
@@ -205,10 +202,10 @@ export default function TrustPage() {
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-foreground">Verification Required</h3>
               <p className="text-muted-foreground max-w-sm mx-auto text-sm leading-relaxed">
-                To maintain the integrity of the Givar ledger, only verified organizations can launch public causes.
+                To maintain platform integrity, only verified organizations can launch public causes.
               </p>
             </div>
-            <Link href="/dashboard/verify" className="inline-block">
+            <Link href="/dashboard/settings?tab=org" className="inline-block">
               <Button className="rounded-xl h-12 px-8 shadow-lg shadow-primary/20 font-bold gap-2 active:scale-95 transition-all">
                 Complete Organization Verification <ArrowRight className="h-4 w-4" />
               </Button>
