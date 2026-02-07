@@ -55,13 +55,23 @@ export const EmailTemplates = {
     </html>
   `,
 
-  verification: (url: string, name: string) => `
+  verification: (url: string, name: string, code?: string) => `
     <p>Hi ${name},</p>
     <p>Welcome to <strong>Givar Impact</strong>. To ensure the security of your impact wallet and verify your identity on the ledger, please verify your email address.</p>
+    
+    ${code ? `
     <div style="text-align: center; margin: 32px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #6b7280; margin-bottom: 8px; font-weight: 700;">Verification Code</p>
+      <div style="font-size: 32px; font-family: monospace; font-weight: 700; letter-spacing: 8px; color: #111827; background: #f3f4f6; padding: 16px; border-radius: 12px; display: inline-block;">
+        ${code}
+      </div>
+    </div>
+    ` : ''}
+
+    <div style="text-align: center; margin-bottom: 32px;">
       <a href="${url}" class="button">Verify Email Address</a>
     </div>
-    <p style="font-size: 13px; color: #6b7280;">This link will expire in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
+    <p style="font-size: 13px; color: #6b7280;">This link/code will expire in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
   `,
 
   receipt: (data: { amount: string; currency: string; project: string; date: string; ref: string }) => `

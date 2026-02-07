@@ -22,10 +22,19 @@
     "noFallthroughCasesInSwitch": false,
     "noEmit": false,
     "paths": {
-      "@givar/database": ["../../packages/database/dist"],
-      "@givar/types": ["../../packages/types/dist"]
+      "@givar/database": [
+        "../../packages/database/dist"
+      ],
+      "@givar/types": [
+        "../../packages/types/dist"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
