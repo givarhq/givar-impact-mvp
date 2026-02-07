@@ -19,7 +19,7 @@ export function DangerZone() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleDelete = async () => {
-        if (!password) return toast.error("Password required for authorisation");
+        if (!password) return toast.error("Password required to authorize deletion");
 
         setIsLoading(true);
         try {
@@ -29,10 +29,10 @@ export function DangerZone() {
             deleteCookie('givar_token');
             deleteCookie('givar_user');
 
-            toast.success("Account successfully purged from ledger");
+            toast.success("Account successfully deleted");
             window.location.href = '/';
         } catch (error: any) {
-            const message = error.response?.data?.message || "Purge rejected by ledger nodes";
+            const message = error.response?.data?.message || "Deletion failed. Please check your password.";
             toast.error(message);
         } finally {
             setIsLoading(false);
@@ -47,7 +47,7 @@ export function DangerZone() {
                         <ShieldAlert className="h-5 w-5" /> Danger Zone
                     </h3>
                     <p className="text-sm text-muted-foreground font-medium max-w-xl leading-relaxed">
-                        Permanently delete your identity and wallet from the Givar platform. This action is forensic and irreversible. Historical project data cannot be removed.
+                        Permanently delete your account and funds from the Givar platform. This action cannot be undone. Historical donation records will be preserved for transparency.
                     </p>
                 </div>
                 <Button
@@ -55,7 +55,7 @@ export function DangerZone() {
                     onClick={() => setIsDialogOpen(true)}
                     className="h-12 px-8 rounded-xl font-bold gap-2 shadow-lg shadow-destructive/10"
                 >
-                    <Trash2 className="h-4 w-4" /> Purge Account
+                    <Trash2 className="h-4 w-4" /> Delete Account
                 </Button>
             </div>
 
@@ -67,17 +67,17 @@ export function DangerZone() {
                                 <XCircle className="h-8 w-8" />
                             </div>
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-black tracking-tight text-center">Identity Purge Protocol</DialogTitle>
+                                <DialogTitle className="text-lg font-black tracking-tight text-center">Delete Account</DialogTitle>
                             </DialogHeader>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                Enter your account password to authorize the permanent removal of your node from the Givar Impact network.
+                                Enter your password to confirm you want to permanently remove your account from Givar.
                             </p>
                         </div>
 
                         <div className="space-y-4">
                             <Input
                                 type="password"
-                                label="Security Password"
+                                label="Confirm Password"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -87,7 +87,7 @@ export function DangerZone() {
 
                             <div className="p-4 rounded-xl bg-muted/50 border border-border text-[11px] text-muted-foreground leading-relaxed flex gap-3">
                                 <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-                                <span>Note: If you have active project launches, this action will be rejected to maintain financial audit integrity.</span>
+                                <span>If you have active projects, this action will be restricted to maintain transparency for your donors.</span>
                             </div>
                         </div>
 
@@ -99,12 +99,12 @@ export function DangerZone() {
                                 disabled={isLoading || !password}
                                 className="rounded-2xl h-12 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-destructive/20"
                             >
-                                {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm Purge'}
+                                {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm Deletion'}
                             </Button>
                         </div>
                     </div>
                     <div className="bg-muted/30 py-3 text-center border-t border-border/50">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Final Verification Gate</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Security Verification Required</span>
                     </div>
                 </DialogContent>
             </Dialog>
