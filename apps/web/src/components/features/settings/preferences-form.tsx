@@ -1,33 +1,43 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Bell, Mail, ShieldCheck, Heart,
-    Zap, Save, Loader2, Info
+    Zap, Loader2, Info
 } from 'lucide-react';
-import { Button } from '../../ui/button';
 import { Card, CardContent } from '../../ui/card';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 import { ApiService } from '../../../services/api';
 import { useRouter } from 'next/navigation';
 
-interface ToggleProps {
+interface UserPreferences {
+    donationReceipts: boolean;
+    milestoneUpdates: boolean;
+    securityAlerts: boolean;
+    marketing: boolean;
+}
+
+interface PreferenceToggleProps {
     title: string;
     description: string;
     enabled: boolean;
     onToggle: () => void;
     icon: React.ElementType;
+    isUpdating?: boolean;
 }
 
-const PreferenceToggle = ({ title, description, enabled, onToggle, icon: Icon }: ToggleProps) => (
-    <div className="flex items-start justify-between gap-6 p-6 rounded-2xl bg-muted/20 border border-border/40 hover:bg-muted/30 transition-all group">
+const PreferenceToggle = ({ title, description, enabled, onToggle, icon: Icon, isUpdating }: PreferenceToggleProps) => (
+    <div className={cn(
+        "flex items-start justify-between gap-6 p-6 rounded-2xl border transition-all group",
+        isUpdating ? "bg-muted/10 opacity-70 cursor-wait" : "bg-muted/20 border-border/40 hover:bg-muted/30"
+    )}>
         <div className="flex gap-4">
             <div className={cn(
                 "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors shadow-sm",
                 enabled ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted text-muted-foreground/40 border border-transparent"
             )}>
-                <Icon className="h-5 w-5" />
+                {isUpdating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}
             </div>
             <div className="space-y-1">
                 <h4 className="text-sm font-bold text-foreground">{title}</h4>
@@ -37,9 +47,11 @@ const PreferenceToggle = ({ title, description, enabled, onToggle, icon: Icon }:
         <button
             type="button"
             onClick={onToggle}
+            disabled={isUpdating}
             className={cn(
                 "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2",
-                enabled ? "bg-primary" : "bg-muted-foreground/20"
+                enabled ? "bg-primary" : "bg-muted-foreground/20",
+                isUpdating && "opacity-50 cursor-wait"
             )}
         >
             <span
@@ -54,11 +66,9 @@ const PreferenceToggle = ({ title, description, enabled, onToggle, icon: Icon }:
 
 export function PreferencesForm({ user }: { user: any }) {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
-    const [isDirty, setIsDirty] = useState(false);
+    const [updatingKey, setUpdatingKey] = useState<string | null>(null);
 
-    // Default state merged with existing preferences from prop
-    const [prefs, setPrefs] = useState({
+    const [prefs, setPrefs] = useState<UserPreferences>({
         donationReceipts: true,
         milestoneUpdates: true,
         securityAlerts: true,
@@ -66,24 +76,28 @@ export function PreferencesForm({ user }: { user: any }) {
         ...user?.preferences
     });
 
-    const togglePref = (key: keyof typeof prefs) => {
-        setPrefs(prev => ({ ...prev, [key]: !prev[key] }));
-        setIsDirty(true);
-    };
+    const togglePref = async (key: keyof UserPreferences) => {
+        const newValue = !prefs[key];
+        const updatedPrefs = { ...prefs, [key]: newValue };
 
-    const handleSave = async () => {
-        setIsLoading(true);
-        const toastId = toast.loading("Syncing preferences to your node...");
+        // 1. Optimistic UI Update
+        setPrefs(updatedPrefs);
+        setUpdatingKey(key);
 
         try {
-            await ApiService.auth.updatePreferences(prefs);
-            toast.success("Notification protocols updated", { id: toastId });
-            setIsDirty(false);
+            // 2. Immediate Remote Sync
+            await ApiService.auth.updatePreferences(updatedPrefs);
+            toast.success("Protocol updated", {
+                icon: '⚡',
+                style: { borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }
+            });
             router.refresh();
         } catch (error) {
-            toast.error("Failed to update preferences", { id: toastId });
+            // 3. Revert on failure
+            setPrefs(prefs);
+            toast.error("Cloud sync failed");
         } finally {
-            setIsLoading(false);
+            setUpdatingKey(null);
         }
     };
 
@@ -91,13 +105,13 @@ export function PreferencesForm({ user }: { user: any }) {
         <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
                 <CardContent className="p-8 md:p-10 space-y-8">
-                    <div className="flex items-center gap-3 border-border/40 ">
+                    <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
                             <Bell className="h-5 w-5" />
                         </div>
                         <div>
                             <h3 className="font-bold text-lg text-foreground">Notification Protocols</h3>
-                            <p className="text-xs text-muted-foreground font-medium">Manage how the Givar ledger communicates with your identity.</p>
+                            <p className="text-xs text-muted-foreground font-medium">Changes are saved automatically to your identity node.</p>
                         </div>
                     </div>
 
@@ -107,13 +121,15 @@ export function PreferencesForm({ user }: { user: any }) {
                             description="Receive an immutable impact receipt via email immediately after every successful ledger transaction."
                             enabled={prefs.donationReceipts}
                             onToggle={() => togglePref('donationReceipts')}
+                            isUpdating={updatingKey === 'donationReceipts'}
                             icon={Mail}
                         />
                         <PreferenceToggle
                             title="Forensic Milestone Updates"
-                            description="Get real-time intelligence when projects you support post verified proof of progress or complete execution phases."
+                            description="Includes goal achievement alerts, financial ledger amendments, and verified proof-of-work updates for projects you support."
                             enabled={prefs.milestoneUpdates}
                             onToggle={() => togglePref('milestoneUpdates')}
+                            isUpdating={updatingKey === 'milestoneUpdates'}
                             icon={Zap}
                         />
                         <PreferenceToggle
@@ -121,6 +137,7 @@ export function PreferencesForm({ user }: { user: any }) {
                             description="Critical alerts for login events from new devices, credential modifications, or restricted administrative actions."
                             enabled={prefs.securityAlerts}
                             onToggle={() => togglePref('securityAlerts')}
+                            isUpdating={updatingKey === 'securityAlerts'}
                             icon={ShieldCheck}
                         />
                         <PreferenceToggle
@@ -128,6 +145,7 @@ export function PreferencesForm({ user }: { user: any }) {
                             description="Curated summaries of high-priority causes and global impact trends within your preferred sectors."
                             enabled={prefs.marketing}
                             onToggle={() => togglePref('marketing')}
+                            isUpdating={updatingKey === 'marketing'}
                             icon={Heart}
                         />
                     </div>
@@ -138,37 +156,9 @@ export function PreferencesForm({ user }: { user: any }) {
                 <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div className="space-y-1">
                     <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                        These settings only control outbound communications. Ledger-level system notifications and critical billing alerts cannot be disabled to ensure account integrity.
+                        Live Sync Active: Toggling these switches updates your communication matrix in real-time. System-critical security logs and tranches remain enforced.
                     </p>
                 </div>
-            </div>
-
-            <div className="flex justify-end items-center gap-4 pt-2">
-                {isDirty && (
-                    <button
-                        onClick={() => {
-                            setPrefs({
-                                donationReceipts: true,
-                                milestoneUpdates: true,
-                                securityAlerts: true,
-                                marketing: false,
-                                ...user?.preferences
-                            });
-                            setIsDirty(false);
-                        }}
-                        className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest"
-                    >
-                        Reset Changes
-                    </button>
-                )}
-                <Button
-                    onClick={handleSave}
-                    disabled={isLoading || !isDirty}
-                    className="h-14 rounded-2xl px-10 font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-primary/20 active:scale-95 transition-all gap-2"
-                >
-                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                    Save Protocols
-                </Button>
             </div>
         </div>
     );
