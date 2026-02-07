@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { User, Shield, Bell } from 'lucide-react';
+import { User, Shield, Bell, Activity } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { ProfileForm } from './profile-form';
 import { SecurityForm } from './security-form';
 import { PreferencesForm } from './preferences-form';
+import { UserAuditView } from './user-audit-view';
 
 interface SettingsClientProps {
     user: any;
@@ -36,7 +37,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 <TabsList className="bg-muted/50 p-1 rounded-[22px] h-14 w-full md:w-fit border border-border/40 min-w-max">
                     <TabsTrigger
                         value="profile"
-                        className="rounded-xl px-8 gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
+                        className="rounded-xl px-8 gap-2.5 h-11 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
                     >
                         <User className="h-4 w-4" />
                         Profile
@@ -44,15 +45,23 @@ export function SettingsClient({ user }: SettingsClientProps) {
 
                     <TabsTrigger
                         value="security"
-                        className="rounded-xl px-8 gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
+                        className="rounded-xl px-8 gap-2.5 h-11 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
                     >
                         <Shield className="h-4 w-4" />
                         Security
                     </TabsTrigger>
 
                     <TabsTrigger
+                        value="activity"
+                        className="rounded-xl px-8 gap-2.5 h-11 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
+                    >
+                        <Activity className="h-4 w-4" />
+                        Activity
+                    </TabsTrigger>
+
+                    <TabsTrigger
                         value="preferences"
-                        className="rounded-xl px-8 gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
+                        className="rounded-xl px-8 gap-2.5 h-11 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
                     >
                         <Bell className="h-4 w-4" />
                         Preferences
@@ -75,10 +84,18 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     value="security"
                     className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
                 >
-                    <SecurityForm />
+                    <SecurityForm user={user} />
                 </TabsContent>
 
-                {/* 3. Platform Preferences */}
+                {/* 3. Forensic Activity Log */}
+                <TabsContent
+                    value="activity"
+                    className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
+                >
+                    <UserAuditView />
+                </TabsContent>
+
+                {/* 4. Platform Preferences */}
                 <TabsContent
                     value="preferences"
                     className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
