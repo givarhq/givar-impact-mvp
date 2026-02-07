@@ -1,8 +1,17 @@
-import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID, IsArray, ValidateNested, IsNumberString } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export enum SuspenseAction {
   REFUND = 'REFUND',
   ALLOCATE = 'ALLOCATE',
+}
+
+export class AllocationSplitDto {
+  @IsUUID()
+  projectId!: string;
+
+  @IsNumberString()
+  amount!: string; // Minor units string
 }
 
 export class ResolveSuspenseDto {
@@ -10,6 +19,8 @@ export class ResolveSuspenseDto {
   action!: SuspenseAction;
 
   @IsOptional()
-  @IsUUID()
-  targetProjectId?: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AllocationSplitDto)
+  allocations?: AllocationSplitDto[];
 }
