@@ -1,9 +1,9 @@
 'use client';
 
-import Link from 'next/link';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Compass } from 'lucide-react';
-import { Button } from '../../ui/button';
+import { BarChart3, Compass, TrendingUp, Zap } from 'lucide-react';
+import { TabsList, TabsTrigger } from '../../ui/tabs';
 import { SmartCurrency } from '../../ui/smart-currency';
 
 interface DashboardHeroProps {
@@ -22,7 +22,7 @@ export function DashboardHero({ firstName, totalImpact, donationCount }: Dashboa
         >
             {/* Identity & Stats */}
             <div className="space-y-1 w-full md:w-auto">
-                <h1 className="text-lg font-bold tracking-tight text-foreground">
+                <h1 className="text-xl font-bold tracking-tight text-foreground">
                     Welcome back, {firstName}
                 </h1>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-muted-foreground justify-start">
@@ -38,23 +38,24 @@ export function DashboardHero({ firstName, totalImpact, donationCount }: Dashboa
                 </div>
             </div>
 
-            {/* Quick Actions - Row on mobile, Row on desktop */}
-            <div className="flex items-center gap-2 w-full md:w-auto pt-2 md:pt-0">
-                <Link href="/dashboard/portfolio" className="flex-1 md:flex-none">
-                    <Button
-                        variant="outline"
-                        className="w-full h-10 rounded-xl px-4 text-xs font-bold border-border/60 hover:bg-muted/50 transition-all"
+            {/* Tab Switcher - Replaces My Impact / Explore Buttons */}
+            <div className="w-full md:w-auto pt-2 md:pt-0">
+                <TabsList className="h-12 bg-muted/50 p-1 rounded-[18px] w-full md:w-[320px] border border-border/40">
+                    <TabsTrigger
+                        value="discovery"
+                        className="flex-1 h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md"
                     >
+                        <Zap className="h-3.5 w-3.5" />
+                        Discovery
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="portfolio"
+                        className="flex-1 h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md"
+                    >
+                        <TrendingUp className="h-3.5 w-3.5" />
                         My Impact
-                    </Button>
-                </Link>
-                <Link href="/dashboard/impact" className="flex-1 md:flex-none">
-                    <Button
-                        className="w-full h-10 rounded-xl px-5 text-xs font-bold shadow-md shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 border-0"
-                    >
-                        <Compass className="mr-2 h-3.5 w-3.5" /> Explore
-                    </Button>
-                </Link>
+                    </TabsTrigger>
+                </TabsList>
             </div>
         </motion.div>
     );

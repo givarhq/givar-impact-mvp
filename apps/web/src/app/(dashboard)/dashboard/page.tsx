@@ -4,23 +4,36 @@ import { redirect } from 'next/navigation';
 import { DashboardHero } from '../../../components/features/dashboard/dashboard-hero';
 import { FeaturedCarousel } from '../../../components/features/dashboard/featured-carousel';
 import { DiscoveryFeed } from '../../../components/features/dashboard/discovery-feed';
+import { PortfolioView } from '../../../components/features/dashboard/portfolio-view';
+import { Tabs, TabsContent } from '../../../components/ui/tabs';
 
-export default async function DiscoveryHomePage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value || '';
+  const resolvedParams = await searchParams;
+  const activeTab = resolvedParams.tab || 'discovery';
 
+  // Comprehensive parallel fetch for Discovery and Portfolio states
   const [
     dbUser,
     history,
     activeResponse,
     completedResponse,
-    categories
+    categories,
+    wallet,
+    activeGoal
   ] = await Promise.all([
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
     ApiService.projects.list(token, new URLSearchParams({ limit: '6', status: 'ACTIVE' })),
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
-    ApiService.projects.getCategories(token)
+    ApiService.projects.getCategories(token),
+    ApiService.wallet.get(token),
+    ApiService.goals.getActive(token, 'MONTHLY'),
   ]);
 
   if (!dbUser) {
@@ -37,26 +50,39 @@ export default async function DiscoveryHomePage() {
   const trending = activeProjects.slice(3, 6);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="animate-in fade-in duration-500 pb-10">
+      <Tabs defaultValue={activeTab} className="space-y-6">
 
-      {/* 1. Impact Intelligence Bar */}
-      <DashboardHero
-        firstName={dbUser.firstName}
-        totalImpact={totalImpactBigInt.toString()}
-        donationCount={history?.length || 0}
-      />
+        {/* Intelligence Header & Tab Switcher */}
+        <DashboardHero
+          firstName={dbUser.firstName}
+          totalImpact={totalImpactBigInt.toString()}
+          donationCount={history?.length || 0}
+        />
 
-      {/* 2. Featured Content */}
-      <section className="pt-2">
-        <FeaturedCarousel projects={featured} />
-      </section>
+        {/* --- DISCOVERY TAB --- */}
+        <TabsContent value="discovery" className="space-y-8 outline-none mt-0">
+          <section className="pt-2">
+            <FeaturedCarousel projects={featured} />
+          </section>
 
-      {/* 3. Discovery Engine */}
-      <DiscoveryFeed
-        trending={trending}
-        completed={completedProjects}
-        categories={categories || []}
-      />
+          <DiscoveryFeed
+            trending={trending}
+            completed={completedProjects}
+            categories={categories || []}
+          />
+        </TabsContent>
+
+        {/* --- PORTFOLIO TAB --- */}
+        <TabsContent value="portfolio" className="outline-none mt-0">
+          <PortfolioView
+            wallet={wallet || { balance: '0', currency: 'NGN' }}
+            history={history || []}
+            activeGoal={activeGoal}
+          />
+        </TabsContent>
+
+      </Tabs>
     </div>
   );
 }
