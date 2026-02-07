@@ -2,20 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-    History, ShieldCheck, Globe, Clock,
-    Smartphone, Monitor, ChevronRight, Fingerprint,
-    Loader2, ShieldAlert, KeyRound, User, Mail, Zap,
-    ChevronDown, FileJson2
+    History, ShieldCheck, Clock,
+    Smartphone, Monitor, Fingerprint,
+    Loader2, ShieldAlert, KeyRound, User, Zap,
+    ChevronDown, FileJson2, ChevronRight
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
-import { Badge } from '../../ui/badge';
 import { ApiService } from '../../../services/api';
 import { formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Button } from '../../ui/button';
 
-// Enhanced visual mapping for audit actions
-const auditActionConfig: Record<string, { icon: React.ElementType; color: string }> = {
+const actionConfig: Record<string, { icon: React.ElementType; color: string }> = {
     USER_LOGIN: { icon: User, color: "text-blue-500" },
     PASSWORD_CHANGE: { icon: KeyRound, color: "text-amber-500" },
     WALLET_FUND_SUCCESS: { icon: Zap, color: "text-emerald-500" },
@@ -52,7 +50,7 @@ export function UserAuditView() {
                 setHasMore(false);
             }
         } catch (error) {
-            console.error("Forensic retrieval failed", error);
+            console.error("Failed to load activity", error);
             setHasMore(false);
         } finally {
             setIsLoading(false);
@@ -79,15 +77,15 @@ export function UserAuditView() {
                                 <History className="h-6 w-6" />
                             </div>
                             <div>
-                                <CardTitle className="text-xl font-bold tracking-tight">Security Audit Log</CardTitle>
+                                <CardTitle className="text-xl font-bold tracking-tight">Account Activity</CardTitle>
                                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">
-                                    Forensic history of your account nodes and credential access.
+                                    History of login events and security updates.
                                 </p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
                             <span className="h-1.5 w-1.5 rounded-full bg-primary/40" />
-                            Ledger Connection: Secure
+                            Security Status: Protected
                         </div>
                     </div>
                 </CardHeader>
@@ -97,9 +95,9 @@ export function UserAuditView() {
                         <thead className="bg-muted/30 text-[10px] font-black uppercase tracking-widest text-muted-foreground border-b border-border/40">
                             <tr>
                                 <th className="px-6 py-4 w-12"></th>
-                                <th className="px-6 py-4 w-[40%]">Event Details</th>
-                                <th className="px-6 py-4 hidden md:table-cell">Device & Network</th>
-                                <th className="px-8 py-4 text-right">Timestamp</th>
+                                <th className="px-6 py-4 w-[40%]">Event</th>
+                                <th className="px-6 py-4 hidden md:table-cell">Device & Location</th>
+                                <th className="px-8 py-4 text-right">Date & Time</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40 text-sm">
@@ -108,7 +106,7 @@ export function UserAuditView() {
                                     <td colSpan={4}>
                                         <div className="p-20 flex flex-col items-center justify-center text-muted-foreground animate-pulse">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                                            <p className="text-sm font-bold uppercase tracking-widest">Decrypting Activity Logs...</p>
+                                            <p className="text-sm font-bold uppercase tracking-widest">Loading activity history...</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -117,14 +115,14 @@ export function UserAuditView() {
                                     <td colSpan={4}>
                                         <div className="p-20 text-center text-muted-foreground">
                                             <ShieldAlert className="h-10 w-10 mx-auto mb-4 opacity-10" />
-                                            <p className="text-sm font-medium">No forensic activity found in recent sessions.</p>
+                                            <p className="text-sm font-medium">No recent account activity found.</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
                                 logs.map((log) => {
                                     const isExpanded = expandedId === log.id;
-                                    const config = auditActionConfig[log.action] || auditActionConfig.default;
+                                    const config = actionConfig[log.action] || actionConfig.default;
                                     const Icon = config.icon;
                                     const isMobile = log.userAgent?.toLowerCase().includes('iphone') || log.userAgent?.toLowerCase().includes('android');
 
@@ -170,19 +168,19 @@ export function UserAuditView() {
                                                         <div className="py-8 px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-border/60">
                                                             <div className="space-y-3">
                                                                 <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-                                                                    <FileJson2 className="h-4 w-4" /> Forensic Metadata
+                                                                    <FileJson2 className="h-4 w-4" /> Event Details
                                                                 </h4>
                                                                 <div className="bg-zinc-950 text-zinc-300 p-4 rounded-xl text-xs font-mono overflow-x-auto border border-zinc-800 shadow-inner h-48">
-                                                                    <pre>{JSON.stringify(log.metadata || { info: "No additional metadata recorded for this event." }, null, 2)}</pre>
+                                                                    <pre>{JSON.stringify(log.metadata || { info: "No additional data available." }, null, 2)}</pre>
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-6 text-xs bg-card border border-border/50 p-6 rounded-2xl">
                                                                 <div>
-                                                                    <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-widest">Log ID</span>
+                                                                    <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-widest">Activity ID</span>
                                                                     <p className="font-mono select-all break-all text-foreground/80 mt-1">{log.id}</p>
                                                                 </div>
                                                                 <div>
-                                                                    <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-widest">Origin IP</span>
+                                                                    <span className="font-bold text-muted-foreground uppercase text-[9px] tracking-widest">IP Address</span>
                                                                     <p className="font-mono select-all text-foreground/80 mt-1">{log.ipAddress}</p>
                                                                 </div>
                                                             </div>
@@ -201,7 +199,7 @@ export function UserAuditView() {
                 {hasMore && !isLoading && logs.length > 0 && (
                     <div className="p-4 border-t border-border/40">
                         <Button variant="ghost" className="w-full h-11 text-xs font-bold uppercase tracking-widest text-muted-foreground" onClick={handleLoadMore}>
-                            Load More Entries
+                            View more activity
                         </Button>
                     </div>
                 )}
