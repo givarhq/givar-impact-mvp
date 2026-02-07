@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType, Currency } from '@givar/database';
+import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType, Currency, TxType } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { WalletService } from '../wallet/wallet.service';
@@ -1276,7 +1276,6 @@ export class AdminService {
         throw new BadRequestException('At least one target allocation is required');
       }
 
-      // 1. Ledger Balance Verification
       const totalAllocated = dto.allocations.reduce((acc, curr) => acc + BigInt(curr.amount), 0n);
       if (totalAllocated !== tx.amount) {
         throw new BadRequestException(
@@ -1285,7 +1284,7 @@ export class AdminService {
       }
 
       return this.prisma.$transaction(async (prisma) => {
-        // 2. Mark parent transaction as resolved
+        // 1. Mark parent transaction as resolved (The "Container" transaction)
         const updatedTx = await prisma.walletTransaction.update({
           where: { id: transactionId },
           data: {
@@ -1296,12 +1295,14 @@ export class AdminService {
 
         const guestEmail = (tx.metadata as any)?.guestEmail;
 
-        // 3. Sequential Ledger Entries for each split
-        for (const split of dto.allocations) {
+        // 2. Sequential Ledger Entries for each split
+        for (let i = 0; i < dto.allocations.length; i++) {
+          const split = dto.allocations[i];
           const splitAmount = BigInt(split.amount);
+          const splitRef = `${tx.reference}-S${i + 1}`; // e.g., REF-123-S1
 
           if (guestEmail) {
-            // Path A: Guest Identity Re-allocation
+            // GUEST PATH
             const guestDonor = await prisma.guestDonor.upsert({
               where: { email: guestEmail },
               update: { totalDonated: { increment: splitAmount }, donationCount: { increment: 1 } },
@@ -1319,18 +1320,33 @@ export class AdminService {
                 projectId: split.projectId,
                 amount: splitAmount,
                 currency: tx.currency,
-                reference: `${tx.reference}-S${split.projectId.slice(0, 4)}`, // Unique split ref
+                reference: splitRef,
                 status: 'COMPLETED',
                 message: 'Split Re-allocation by Admin'
               }
             });
           } else {
-            // Path B: Registered User Re-allocation
+            // REGISTERED USER PATH
+            // To satisfy the Unique constraint on Donation.transactionId, 
+            // we create a "Shadow" WalletTransaction for this specific split.
+            const splitTx = await prisma.walletTransaction.create({
+              data: {
+                walletId: tx.walletId,
+                amount: splitAmount,
+                currency: tx.currency,
+                type: TxType.DEBIT, // Debiting the wallet for this specific cause
+                status: TxStatus.COMPLETED,
+                reference: splitRef,
+                description: `Re-allocated Split for Project: ${split.projectId}`,
+                metadata: { parentTransactionId: tx.id }
+              }
+            });
+
             await prisma.donation.create({
               data: {
                 userId: tx.wallet.userId,
                 projectId: split.projectId,
-                transactionId: tx.id,
+                transactionId: splitTx.id, // Linked to the NEW unique split transaction
                 amount: splitAmount,
                 currency: tx.currency,
                 message: 'Re-allocated by Admin'
@@ -1338,14 +1354,14 @@ export class AdminService {
             });
           }
 
-          // 4. Update Project Accounting
+          // 3. Update Project Accounting
           await prisma.project.update({
             where: { id: split.projectId },
             data: { raisedAmount: { increment: splitAmount } }
           });
         }
 
-        // 5. Audit the entire reallocation event
+        // 4. Audit Log
         await prisma.auditLog.create({
           data: {
             userId: adminId,
@@ -1361,7 +1377,7 @@ export class AdminService {
         });
 
         return updatedTx;
-      }, { timeout: 15000 }); // Extra time for multiple write operations
+      }, { timeout: 20000 });
     }
   }
 
