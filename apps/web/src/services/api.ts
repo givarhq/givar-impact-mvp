@@ -67,11 +67,46 @@ export const ApiService = {
       apiClient.post('/auth/reset-password', data).then(r => r.data),
     verifyEmail: (token: string) =>
       apiClient.get(`/auth/verify-email?token=${token}`).then(r => r.data),
+    verifyEmailCode: (code: string) =>
+      apiClient.post('/auth/verify-email/code', { code }).then(r => r.data),
+
     resendVerification: (email: string) =>
       apiClient.post('/auth/resend-verification', { email }).then(r => r.data),
+
     upgradeToOrganizer: () =>
       apiClient.patch('/auth/account-type/organizer').then(r => r.data),
+
     getMe: (token: string) => serverFetch<any>('/auth/me', token),
+
+    updateProfile: (data: { firstName: string; lastName: string }) =>
+      apiClient.patch('/auth/profile', data).then(r => r.data),
+
+    getMyAuditLogs: (page?: number) =>
+      apiClient.get(`/auth/my-audit-logs?page=${page || 1}`).then(r => r.data),
+
+    updatePassword: (data: any) =>
+      apiClient.patch('/auth/security/password', data).then(r => r.data),
+
+    updateAvatar: (key: string) =>
+      apiClient.patch('/auth/profile/avatar', { key }).then(r => r.data),
+
+    deleteAccount: (password: string) =>
+      apiClient.post('/auth/profile/delete', { password }).then(r => r.data),
+
+    generate2FA: () =>
+      apiClient.post('/auth/2fa/generate').then(r => r.data),
+
+    enable2FA: (code: string) =>
+      apiClient.post('/auth/2fa/enable', { code }).then(r => r.data),
+
+    disable2FA: (password: string) =>
+      apiClient.post('/auth/2fa/disable', { password }).then(r => r.data),
+
+    updatePreferences: (prefs: any) =>
+      apiClient.patch('/auth/preferences', prefs).then(r => r.data),
+
+    switchAccountType: (type: 'INDIVIDUAL' | 'ORGANIZER') =>
+      apiClient.post('/auth/account-type/switch', { type }).then(r => r.data),
   },
 
   // --- WALLET ---
