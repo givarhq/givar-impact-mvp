@@ -176,10 +176,13 @@ export class AuthService {
         });
       }
 
-      this.emailService.sendLoginAlert(user.email, {
-        ip: req?.ip || 'unknown',
-        userAgent: req?.headers['user-agent']
-      }).catch(err => this.logger.error(`Alert failed: ${err}`));
+      const prefs = user.preferences as any;
+      if (prefs?.securityAlerts !== false) {
+        this.emailService.sendLoginAlert(user.email, {
+          ip: req?.ip || 'unknown',
+          userAgent: req?.headers['user-agent']
+        }).catch(err => this.logger.error(`Alert failed: ${err}`));
+      }
 
       const payload = { sub: user.id, email: user.email, role: user.role };
       const accessToken = this.jwtService.sign(payload, {

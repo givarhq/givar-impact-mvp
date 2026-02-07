@@ -52,27 +52,19 @@ const PreferenceToggle = ({ title, description, enabled, onToggle, icon: Icon }:
     </div>
 );
 
-export function PreferencesForm() {
+export function PreferencesForm({ user }: { user: any }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
 
-    // Default state
+    // Default state merged with existing preferences from prop
     const [prefs, setPrefs] = useState({
         donationReceipts: true,
         milestoneUpdates: true,
         securityAlerts: true,
-        marketing: false
+        marketing: false,
+        ...user?.preferences
     });
-
-    useEffect(() => {
-        // Fetch fresh preferences on mount to ensure sync with server
-        ApiService.auth.getMe('').then((user) => {
-            if (user?.preferences) {
-                setPrefs(prev => ({ ...prev, ...user.preferences }));
-            }
-        });
-    }, []);
 
     const togglePref = (key: keyof typeof prefs) => {
         setPrefs(prev => ({ ...prev, [key]: !prev[key] }));
@@ -155,18 +147,18 @@ export function PreferencesForm() {
                 {isDirty && (
                     <button
                         onClick={() => {
-                            // Reset to defaults or re-fetch from server could happen here
                             setPrefs({
                                 donationReceipts: true,
                                 milestoneUpdates: true,
                                 securityAlerts: true,
-                                marketing: false
+                                marketing: false,
+                                ...user?.preferences
                             });
-                            setIsDirty(true); // Still dirty until saved
+                            setIsDirty(false);
                         }}
                         className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest"
                     >
-                        Reset Defaults
+                        Reset Changes
                     </button>
                 )}
                 <Button

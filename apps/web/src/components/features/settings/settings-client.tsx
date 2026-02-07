@@ -110,7 +110,7 @@ export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
                     value="preferences"
                     className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
                 >
-                    <PreferencesForm />
+                    <PreferencesForm user={user} />
                 </TabsContent>
             </div>
         </Tabs>
