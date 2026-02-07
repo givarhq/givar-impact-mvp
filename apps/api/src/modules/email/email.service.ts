@@ -48,7 +48,10 @@ export class EmailService {
   // 1. Verification Email
   async sendVerification(email: string, name: string, token: string) {
     const url = `${this.config.get('FRONTEND_URL')}/verify-email?token=${token}`;
-    const content = EmailTemplates.verification(url, name);
+
+    const isCode = /^\d{6}$/.test(token);
+
+    const content = EmailTemplates.verification(url, name, isCode ? token : undefined);
     const html = EmailTemplates.base(content, 'Verify your email');
     return this.send(email, 'Verify your Givar Impact account', html);
   }
