@@ -843,39 +843,53 @@ export class AdminService {
     newGoal: bigint,
     currency: string,
     reason: string,
-    organizer: { email: string; firstName: string }
+    organizer: { email: string; firstName: string; preferences?: any }
   ) {
-    // 1. Fetch all unique donors (Registered)
+    // 1. Fetch unique donors with their preference profiles
     const userDonors = await this.prisma.donation.findMany({
       where: { projectId },
-      select: { user: { select: { email: true, firstName: true } } },
+      select: { user: { select: { email: true, firstName: true, preferences: true } } },
       distinct: ['userId'],
     });
 
-    // 2. Fetch all unique guest donors
     const guestDonors = await this.prisma.guestDonation.findMany({
       where: { projectId },
       select: { guestDonor: { select: { email: true, name: true } } },
       distinct: ['guestDonorId'],
     });
 
-    // 3. Combine into unique recipient list
-    const recipients = [
-      ...userDonors.map(d => ({ email: d.user?.email, name: d.user?.firstName || 'Giver' })),
+    // 2. Build the recipient list
+    const recipients: { email: string; name: string }[] = [
+      // Filtered Registered Users
+      ...userDonors
+        .filter(d => (d.user?.preferences as any)?.milestoneUpdates !== false)
+        .map(d => ({ email: d.user!.email, name: d.user!.firstName })),
+
+      // Guest Donors (Always notified as they have no preference profile)
       ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
-      { email: organizer.email, name: organizer.firstName } // Include Organizer
-    ].filter((v, i, a) => v.email && a.findIndex(t => t.email === v.email) === i);
+    ];
+
+    // 3. Add Organizer ONLY if they haven't opted out
+    const organizerPrefs = organizer.preferences as any;
+    if (organizerPrefs?.milestoneUpdates !== false) {
+      recipients.push({ email: organizer.email, name: organizer.firstName });
+    }
+
+    // 4. Deduplicate by email (in case the organizer is also a donor)
+    const uniqueRecipients = recipients.filter((v, i, a) =>
+      a.findIndex(t => t.email === v.email) === i
+    );
 
     const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${projectSlug}`;
     const fmtOld = (Number(oldGoal) / 100).toLocaleString();
     const fmtNew = (Number(newGoal) / 100).toLocaleString();
 
-    this.logger.log(`📢 Broadcasting Financial Amendment for "${projectTitle}" to ${recipients.length} stakeholders.`);
+    this.logger.log(`📢 Broadcasting Ledger Amendment for "${projectTitle}" to ${uniqueRecipients.length} stakeholders.`);
 
     Promise.allSettled(
-      recipients.map(r =>
-        this.emailService.sendFinancialAdjustmentAlert(r.email!, {
-          name: r.name!,
+      uniqueRecipients.map(r =>
+        this.emailService.sendFinancialAdjustmentAlert(r.email, {
+          name: r.name,
           projectTitle,
           oldGoal: fmtOld,
           newGoal: fmtNew,
