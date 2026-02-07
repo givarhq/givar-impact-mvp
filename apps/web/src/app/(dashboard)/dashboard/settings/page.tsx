@@ -16,7 +16,11 @@ export default async function SettingsPage() {
         redirect('/login');
     }
 
-    const user = await ApiService.auth.getMe(token);
+    // Parallel fetch of user identity and organization profile for consolidation
+    const [user, orgProfile] = await Promise.all([
+        ApiService.auth.getMe(token),
+        ApiService.organizations.getMe(token)
+    ]);
 
     if (!user) {
         redirect('/api/auth/clear-session');
@@ -27,11 +31,11 @@ export default async function SettingsPage() {
             <div className="flex flex-col gap-1 px-1">
                 <h1 className="text-lg md:hidden font-black tracking-tight text-foreground">Settings</h1>
                 <p className="text-sm text-muted-foreground font-medium">
-                    Manage your account identity, security protocols, and platform preferences.
+                    Manage your account identity, security protocols, and organization trust.
                 </p>
             </div>
 
-            <SettingsClient user={user} />
+            <SettingsClient user={user} orgProfile={orgProfile} />
         </div>
     );
 }

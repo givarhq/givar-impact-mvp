@@ -1,10 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  ShieldCheck, ShieldAlert, Clock, Building2, 
-  FileText, UploadCloud, Loader2, Trash2, CheckCircle2, AlertCircle 
+import {
+  ShieldCheck,
+  Clock,
+  Building2,
+  FileText,
+  UploadCloud,
+  Loader2,
+  Trash2,
+  CheckCircle2,
+  AlertCircle,
+  Fingerprint,
+  Info,
+  Save
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -13,13 +23,17 @@ import { ApiService } from '../../../services/api';
 import { OrganizationProfile } from '../../../types';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
+import { Badge } from '../../ui/badge';
 
-export function VerificationWizard({ initialProfile }: { initialProfile: OrganizationProfile | null }) {
+interface VerificationWizardProps {
+  initialProfile: OrganizationProfile | null;
+}
+
+export function VerificationWizard({ initialProfile }: VerificationWizardProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  
-  // Form State
+
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
   const [regNumber, setRegNumber] = useState(initialProfile?.registrationNumber || '');
   const [docKeys, setDocKeys] = useState<string[]>(initialProfile?.documentKeys || []);
@@ -29,169 +43,255 @@ export function VerificationWizard({ initialProfile }: { initialProfile: Organiz
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) return toast.error('Max file size is 10MB');
+
+    if (file.size > 10 * 1024 * 1024) {
+      return toast.error('File size exceeds 10MB limit.');
+    }
 
     setIsUploading(true);
+    const toastId = toast.loading("Securing document...");
     try {
       const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
         fileType: file.type,
         useCase: 'kyc',
       });
-      await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      });
+
       setDocKeys(prev => [...prev, key]);
-      toast.success('Document uploaded');
+      toast.success('Document uploaded successfully', { id: toastId });
     } catch (error) {
-      toast.error('Upload failed');
+      toast.error('File upload failed', { id: toastId });
     } finally {
       setIsUploading(false);
     }
   };
 
+  const handleRemoveDoc = (keyToRemove: string) => {
+    setDocKeys(prev => prev.filter(k => k !== keyToRemove));
+  };
+
   const handleSubmit = async () => {
-    if (!legalName || docKeys.length === 0) return toast.error('Please complete all required fields.');
+    if (!legalName.trim() || docKeys.length === 0) {
+      return toast.error('Entity name and at least one document are required.');
+    }
+
     setIsLoading(true);
+    const toastId = toast.loading("Updating ledger identity...");
     try {
       await ApiService.organizations.submitKyc({
-        legalName,
-        registrationNumber: regNumber,
+        legalName: legalName.trim(),
+        registrationNumber: regNumber.trim(),
         documentKeys: docKeys,
       });
-      toast.success('Verification submitted!');
+
+      toast.success('Identity updated', { id: toastId });
       router.refresh();
     } catch (error) {
-      toast.error('Submission failed');
+      toast.error('Update failed', { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- STATE 1: VERIFIED ---
+  // --- STATE: VERIFIED ---
   if (status === 'VERIFIED') {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
-        <div className="h-24 w-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto ring-8 ring-primary/5">
-          <ShieldCheck className="h-12 w-12" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-3xl font-extrabold tracking-tight">Organization Verified</h2>
-          <p className="text-muted-foreground leading-relaxed max-w-md mx-auto">
-            Your account is now a high-trust entity. All your projects will carry the <span className="text-primary font-bold">Verified Giver</span> badge.
-          </p>
-        </div>
-        <Card className="bg-card/50 border-primary/20 p-6 rounded-3xl max-w-sm mx-auto">
-           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Linked Entity</p>
-           <p className="text-lg font-bold text-foreground">{initialProfile?.legalName}</p>
-           <p className="text-xs text-muted-foreground font-mono mt-1">{initialProfile?.registrationNumber}</p>
+      <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <Card className="rounded-[32px] border-primary/20 bg-primary/[0.02] shadow-sm overflow-hidden">
+          <CardContent className="p-10 md:p-16 text-center space-y-8">
+            <div className="h-20 w-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto ring-8 ring-primary/5">
+              <ShieldCheck className="h-10 w-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black tracking-tight text-foreground">Organization Verified</h2>
+              <p className="text-muted-foreground leading-relaxed max-w-md mx-auto font-medium">
+                Your account is a recognized high-trust entity. All your causes carry the verified badge to build donor confidence.
+              </p>
+            </div>
+            <div className="inline-flex flex-col items-center p-8 rounded-[28px] bg-card border border-primary/20 shadow-sm min-w-[320px]">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-4">Certified Node Identity</p>
+              <p className="text-xl font-black text-foreground uppercase tracking-tight">{initialProfile?.legalName}</p>
+              {initialProfile?.registrationNumber && (
+                <p className="text-xs text-primary font-mono mt-2 font-bold bg-primary/5 px-3 py-1 rounded-lg">
+                  REG: {initialProfile.registrationNumber}
+                </p>
+              )}
+            </div>
+          </CardContent>
         </Card>
       </div>
     );
   }
 
-  // --- STATE 2: PENDING ---
+  // --- STATE: PENDING ---
   if (status === 'PENDING') {
     return (
-      <div className="max-w-2xl mx-auto py-12 text-center space-y-6">
-        <div className="h-20 w-20 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto animate-pulse">
-          <Clock className="h-10 w-10" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight">Review in Progress</h2>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-            Our compliance team is verifying your documents. This usually takes 24-48 hours. We'll notify you once a decision is made.
-          </p>
-        </div>
-        <Button variant="outline" className="rounded-xl px-8" onClick={() => router.push('/dashboard')}>
-            Return to Dashboard
-        </Button>
+      <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <Card className="rounded-[32px] border-amber-500/20 bg-amber-500/[0.02] shadow-sm overflow-hidden">
+          <CardContent className="p-10 md:p-16 text-center space-y-6">
+            <div className="h-16 w-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto animate-pulse">
+              <Clock className="h-8 w-8" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black tracking-tight text-foreground">Audit in Progress</h2>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed font-medium">
+                Our compliance nodes are currently reviewing your organizational documents. This typically resolves within 24-48 business hours.
+              </p>
+            </div>
+            <div className="pt-4">
+              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em]">
+                Status: Under Forensic Review
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  // --- STATE 3: SUBMISSION / REJECTED ---
+  // --- STATE: SUBMISSION FORM ---
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Organization Trust</h1>
-        <p className="text-muted-foreground">Complete your profile to unlock higher credibility and donor confidence.</p>
-      </div>
-
+    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {status === 'REJECTED' && (
-          <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                  <p className="text-sm font-bold text-destructive uppercase tracking-wide">Verification Rejected</p>
-                  <p className="text-sm text-destructive/80 leading-relaxed">
-                      {initialProfile?.adminFeedback || "Your documents could not be verified. Please review the requirements and re-submit."}
-                  </p>
-              </div>
+        <div className="p-6 rounded-[28px] bg-destructive/5 border border-destructive/20 flex items-start gap-4 shadow-sm">
+          <AlertCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="text-sm font-black text-destructive uppercase tracking-widest">Verification Rejected</p>
+            <p className="text-sm text-foreground/80 leading-relaxed font-medium italic">
+              &quot;{initialProfile?.adminFeedback || "Your documents could not be verified. Please review the platform requirements and re-submit."}&quot;
+            </p>
           </div>
+        </div>
       )}
 
       <div className="space-y-6">
-          <Card className="rounded-3xl p-8 border-border/50 shadow-sm bg-card/50 backdrop-blur-sm">
-            <div className="space-y-6">
-                <div className="space-y-4">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <Building2 className="h-4 w-4" /> Entity Details
-                    </h3>
-                    <Input 
-                        label="Legal Organization Name" 
-                        placeholder="e.g. Save the Children Ltd" 
-                        value={legalName}
-                        onChange={(e) => setLegalName(e.target.value)}
-                        disabled={isLoading}
-                    />
-                    <Input 
-                        label="Registration Number (RC / TIN)" 
-                        placeholder="e.g. RC-1234567" 
-                        value={regNumber}
-                        onChange={(e) => setRegNumber(e.target.value)}
-                        disabled={isLoading}
-                    />
+        <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
+          <CardContent className="p-8 md:p-10 space-y-10">
+            {/* 1. Identity Section */}
+            <div className="space-y-8">
+              <div className="flex items-center gap-3 border-b border-border/40 pb-6">
+                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
+                  <Building2 className="h-5 w-5" />
                 </div>
-
-                <div className="space-y-4 pt-6 border-t border-border/50">
-                    <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <FileText className="h-4 w-4" /> Legal Documents
-                    </h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                        Upload Certificate of Incorporation, Form CO7, or any valid government-issued organizational identity document.
-                    </p>
-                    
-                    <div className="grid grid-cols-1 gap-4">
-                        {docKeys.map((key, i) => (
-                            <div key={key} className="flex items-center justify-between p-3 bg-muted/30 border border-border/50 rounded-xl">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 rounded-lg bg-background flex items-center justify-center border border-border/50">
-                                        <FileText className="h-4 w-4 text-primary" />
-                                    </div>
-                                    <span className="text-xs font-mono opacity-60">doc_{i+1}_{key.slice(-8)}</span>
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDocKeys(docKeys.filter(k => k !== key))}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ))}
-
-                        <label className={cn(
-                            "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-2xl cursor-pointer hover:bg-muted/30 transition-all",
-                            isUploading && "opacity-50 cursor-wait"
-                        )}>
-                            {isUploading ? <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" /> : <UploadCloud className="h-6 w-6 text-muted-foreground" />}
-                            <span className="mt-2 text-xs font-medium text-muted-foreground">Click to upload doc</span>
-                            <input type="file" className="hidden" accept="application/pdf,image/*" onChange={handleFileUpload} disabled={isUploading || isLoading} />
-                        </label>
-                    </div>
+                <div>
+                  <h3 className="font-bold text-lg text-foreground">Entity Identification</h3>
+                  <p className="text-xs text-muted-foreground font-medium">Core registration data for your organization.</p>
                 </div>
+              </div>
 
-                <div className="pt-6">
-                    <Button onClick={handleSubmit} disabled={isLoading || !legalName || docKeys.length === 0} className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20">
-                        {isLoading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : <CheckCircle2 className="h-5 w-5 mr-2" />}
-                        Submit for Verification
-                    </Button>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input
+                  label="Legal Organization Name"
+                  placeholder="e.g. Global Relief Foundation"
+                  value={legalName}
+                  onChange={(e) => setLegalName(e.target.value)}
+                  disabled={isLoading}
+                  className="h-12"
+                />
+                <Input
+                  label="Registration Number (RC / TIN)"
+                  placeholder="e.g. RC-1234567"
+                  value={regNumber}
+                  onChange={(e) => setRegNumber(e.target.value)}
+                  disabled={isLoading}
+                  className="h-12"
+                />
+              </div>
             </div>
-          </Card>
+
+            {/* 2. Documentation Section */}
+            <div className="space-y-8">
+              <div className="flex items-center gap-3 border-b border-border/40 pb-6">
+                <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-foreground">Proof of Incorporation</h3>
+                  <p className="text-xs text-muted-foreground font-medium">Upload government-issued identity documents.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                    Upload official documents like Certificate of Incorporation or Form CO7. These are used strictly for compliance vetting and are stored on encrypted forensic paths.
+                  </p>
+                  <label className={cn(
+                    "flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-border rounded-[24px] cursor-pointer bg-muted/20 hover:bg-muted/30 hover:border-primary/40 transition-all group",
+                    (isUploading || isLoading) && "opacity-50 cursor-wait pointer-events-none"
+                  )}>
+                    <div className="flex flex-col items-center justify-center">
+                      {isUploading ? (
+                        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+                      ) : (
+                        <UploadCloud className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                      )}
+                      <p className="mt-3 text-xs font-bold text-muted-foreground group-hover:text-foreground">
+                        {isUploading ? 'Securing Document...' : 'Click to upload proof'}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest mt-1">PDF, PNG, JPG (Max 10MB)</p>
+                    </div>
+                    <input type="file" className="hidden" accept="application/pdf,image/*" onChange={handleFileUpload} disabled={isUploading || isLoading} />
+                  </label>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Asset Ledger</p>
+                  {docKeys.length === 0 ? (
+                    <div className="h-44 rounded-[24px] border border-dashed border-border flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/5">
+                      <Fingerprint className="h-8 w-8 mb-2" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">No documents attached</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-44 overflow-y-auto no-scrollbar">
+                      {docKeys.map((key, i) => (
+                        <div key={key} className="flex items-center justify-between p-4 bg-muted/30 border border-border/40 rounded-2xl animate-in slide-in-from-right-2 duration-300">
+                          <div className="flex items-center gap-4">
+                            <div className="h-9 w-9 rounded-xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50">
+                              <FileText className="h-4.5 w-4.5" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-black text-foreground uppercase tracking-tight">Identity Proof {i + 1}</span>
+                              <span className="text-[9px] font-mono text-muted-foreground opacity-60">REF: {key.slice(-12)}</span>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all" onClick={() => handleRemoveDoc(key)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="p-6 rounded-3xl bg-muted/20 border border-dashed border-border/60 flex items-start gap-4">
+        <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+        <div className="space-y-1">
+          <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+            By submitting for verification, you affirm that the provided entity details are accurate. Misrepresentation of identity is a violation of the Givar protocol and will lead to permanent node exclusion.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex justify-end pt-2">
+        <Button
+          onClick={handleSubmit}
+          disabled={isLoading || !legalName.trim() || docKeys.length === 0}
+          className="h-16 rounded-[24px] px-10 font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-primary/20 active:scale-95 transition-all gap-3"
+        >
+          {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
+          Commit Verification
+        </Button>
       </div>
     </div>
   );

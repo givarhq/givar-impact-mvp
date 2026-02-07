@@ -2,22 +2,23 @@
 
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { User, Shield, Bell, Activity } from 'lucide-react';
+import { User, Shield, Bell, Activity, Building2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { ProfileForm } from './profile-form';
 import { SecurityForm } from './security-form';
 import { PreferencesForm } from './preferences-form';
 import { UserAuditView } from './user-audit-view';
+import { VerificationWizard } from '../organization/verification-wizard';
 
 interface SettingsClientProps {
     user: any;
+    orgProfile: any;
 }
 
-export function SettingsClient({ user }: SettingsClientProps) {
+export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // 1. Sync State with URL parameter
     const activeTab = searchParams.get('tab') || 'profile';
 
     const handleTabChange = (value: string) => {
@@ -32,7 +33,6 @@ export function SettingsClient({ user }: SettingsClientProps) {
             onValueChange={handleTabChange}
             className="w-full space-y-8"
         >
-            {/* --- TAB NAVIGATION HUB --- */}
             <div className="overflow-x-auto pb-2 no-scrollbar">
                 <TabsList className="bg-muted/50 p-1 rounded-[22px] h-14 w-full md:w-fit border border-border/40 min-w-max">
                     <TabsTrigger
@@ -41,6 +41,14 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     >
                         <User className="h-4 w-4" />
                         Profile
+                    </TabsTrigger>
+
+                    <TabsTrigger
+                        value="org"
+                        className="rounded-xl px-8 gap-2.5 h-11 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
+                    >
+                        <Building2 className="h-4 w-4" />
+                        Organization
                     </TabsTrigger>
 
                     <TabsTrigger
@@ -69,9 +77,7 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 </TabsList>
             </div>
 
-            {/* --- TAB CONTENT SECTIONS --- */}
             <div className="relative">
-                {/* 1. Identity Management */}
                 <TabsContent
                     value="profile"
                     className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
@@ -79,7 +85,13 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <ProfileForm user={user} />
                 </TabsContent>
 
-                {/* 2. Security Protocols */}
+                <TabsContent
+                    value="org"
+                    className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
+                >
+                    <VerificationWizard initialProfile={orgProfile} />
+                </TabsContent>
+
                 <TabsContent
                     value="security"
                     className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
@@ -87,7 +99,6 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <SecurityForm user={user} />
                 </TabsContent>
 
-                {/* 3. Forensic Activity Log */}
                 <TabsContent
                     value="activity"
                     className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
@@ -95,7 +106,6 @@ export function SettingsClient({ user }: SettingsClientProps) {
                     <UserAuditView />
                 </TabsContent>
 
-                {/* 4. Platform Preferences */}
                 <TabsContent
                     value="preferences"
                     className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-3 duration-500"
@@ -104,7 +114,6 @@ export function SettingsClient({ user }: SettingsClientProps) {
                 </TabsContent>
             </div>
 
-            {/* --- FORENSIC STATUS FOOTER --- */}
             <div className="pt-10 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary/40" />
