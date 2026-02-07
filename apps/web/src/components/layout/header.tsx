@@ -163,7 +163,7 @@ export function Header({ user }: { user: any }) {
 
             {/* CONSOLIDATED ENTRY */}
             <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/settings')}>
-              <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-muted-foreground">
                 <Settings className="h-4.5 w-4.5" />
               </div>
               <div className="flex flex-col">
@@ -173,11 +173,11 @@ export function Header({ user }: { user: any }) {
 
             {user?.accountType === 'ORGANIZER' && (
               <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/verify')}>
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-muted-foreground">
                   <ShieldCheck className="h-4.5 w-4.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-sm">Verification Status</span>
+                  <span className="font-semibold text-sm">Verification Status</span>
                 </div>
               </DropdownMenuItem>
             )}
