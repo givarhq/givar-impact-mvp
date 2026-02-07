@@ -5,17 +5,15 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Search,
-  CornerDownLeft,
-  Heart,
   CircleUser,
   LogOut,
   Settings,
   ChevronDown,
   ShieldCheck,
+  User as UserIcon,
 } from 'lucide-react';
 import { deleteCookie, getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Button } from '../ui/button';
 import { ThemeToggle } from './theme-toggle';
 import {
   DropdownMenu,
@@ -32,7 +30,6 @@ import { WalletWidget } from './wallet-widget';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
-  '/dashboard/portfolio': 'My Impact',
   '/dashboard/impact': 'Discover Impact',
   '/dashboard/history': 'Transaction History',
   '/dashboard/subscriptions': 'Recurring Donations',
@@ -53,6 +50,7 @@ export function Header({ user }: { user: any }) {
 
   const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
   const displayEmail = user?.email || '';
+  const avatarUrl = user?.avatarUrl;
 
   const handleLogout = async () => {
     try {
@@ -131,8 +129,10 @@ export function Header({ user }: { user: any }) {
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
               <div className="relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm bg-primary/10 flex items-center justify-center text-primary">
-                {isClient && user?.firstName ? (
-                  <span className="font-bold text-sm">
+                {isClient && avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : isClient && user?.firstName ? (
+                  <span className="font-bold text-sm uppercase">
                     {user.firstName[0]}
                   </span>
                 ) : (
@@ -148,7 +148,7 @@ export function Header({ user }: { user: any }) {
             </button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl">
+          <DropdownMenuContent align="end" className="w-64 rounded-2xl p-1 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1 p-2">
                 <p className="text-sm font-bold leading-none text-foreground">
@@ -159,21 +159,35 @@ export function Header({ user }: { user: any }) {
                 </p>
               </div>
             </DropdownMenuLabel>
+
             <DropdownMenuSeparator />
 
+            {/* CONSOLIDATED ENTRY */}
+            <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/settings')}>
+              <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                <Settings className="h-4.5 w-4.5" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm">Profile & Settings</span>
+              </div>
+            </DropdownMenuItem>
+
             {user?.accountType === 'ORGANIZER' && (
-              <DropdownMenuItem className="rounded-xl cursor-pointer py-2.5" onClick={() => router.push('/dashboard/verify')}>
-                <ShieldCheck className="mr-2 h-4 w-4 text-primary" /> <span>Verification Status</span>
+              <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/verify')}>
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <ShieldCheck className="h-4.5 w-4.5" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm">Verification Status</span>
+                </div>
               </DropdownMenuItem>
             )}
 
-            <DropdownMenuItem className="rounded-xl cursor-pointer py-2.5" onClick={() => router.push('/dashboard/settings')}>
-              <Settings className="mr-2 h-4 w-4 text-muted-foreground" /> <span>Settings</span>
-            </DropdownMenuItem>
-
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-xl cursor-pointer py-2.5">
-              <LogOut className="mr-2 h-4 w-4" /> <span>Logout</span>
+
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-xl cursor-pointer py-3 gap-3">
+              <LogOut className="h-4 w-4 ml-2.5" />
+              <span className="font-bold text-xs uppercase tracking-widest">Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
