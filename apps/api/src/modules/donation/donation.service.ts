@@ -47,7 +47,14 @@ export class DonationService {
       let email: string | undefined | null = guestEmail;
 
       if (!email && userId) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+        const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, preferences: true } });
+
+        const prefs = user?.preferences as any;
+        if (prefs?.donationReceipts === false) {
+          this.logger.log(`Skipping receipt for user ${userId} per preference settings.`);
+          return;
+        }
+
         email = user?.email;
       }
 
@@ -762,7 +769,7 @@ export class DonationService {
       data: { status: dto.status },
       include: {
         project: { select: { title: true } },
-        user: { select: { email: true, firstName: true } }
+        user: { select: { email: true, firstName: true, preferences: true } }
       }
     });
 
@@ -780,12 +787,15 @@ export class DonationService {
     });
 
     // 4. Trigger Email Notification
-    this.emailService.sendSubscriptionUpdate(
-      updated.user.email,
-      updated.user.firstName,
-      updated.project.title,
-      dto.status
-    ).catch(err => this.logger.error(`Subscription email failed: ${err.message}`));
+    const prefs = updated.user.preferences as any;
+    if (prefs?.milestoneUpdates !== false) {
+      this.emailService.sendSubscriptionUpdate(
+        updated.user.email,
+        updated.user.firstName,
+        updated.project.title,
+        dto.status
+      ).catch(err => this.logger.error(`Subscription email failed: ${err.message}`));
+    }
 
     this.logger.log(`Subscription ${subscriptionId} status changed to ${dto.status} by user ${userId}`);
     return updated;

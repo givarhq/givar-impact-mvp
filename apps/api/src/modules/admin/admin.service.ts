@@ -1155,7 +1155,7 @@ export class AdminService {
     // 1. Fetch Unique Registered Donors
     const userDonors = await this.prisma.donation.findMany({
       where: { projectId },
-      select: { user: { select: { email: true, firstName: true } } },
+      select: { user: { select: { email: true, firstName: true, preferences: true } } },
       distinct: ['userId'],
     });
 
@@ -1168,10 +1168,15 @@ export class AdminService {
 
     // 3. Normalize into a single recipient list
     const recipients = [
-      ...userDonors.map((d) => ({
-        email: d.user?.email,
-        name: d.user?.firstName || 'Impact Maker'
-      })),
+      ...userDonors
+        .filter(d => {
+          const prefs = d.user?.preferences as any;
+          return prefs?.milestoneUpdates !== false; // Default to true if null/missing
+        })
+        .map((d) => ({
+          email: d.user?.email,
+          name: d.user?.firstName || 'Impact Maker'
+        })),
       ...guestDonors.map((d) => ({
         email: d.guestDonor.email,
         name: d.guestDonor.name || 'Impact Maker'
