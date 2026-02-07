@@ -71,13 +71,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
         if (file.size > 2 * 1024 * 1024) return toast.error("Maximum image size is 2MB");
 
         setIsUploading(true);
-        const toastId = toast.loading("Uploading avatar to node...");
+        const toastId = toast.loading("Updating profile picture...");
 
         try {
             const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase: 'public' });
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
             await ApiService.auth.updateAvatar(key);
-            toast.success("Avatar synchronised", { id: toastId });
+            toast.success("Profile picture updated", { id: toastId });
             window.location.reload();
         } catch (error) {
             toast.error("Upload failed", { id: toastId });
@@ -88,12 +88,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
     const onSubmit = async (data: ProfileFormValues) => {
         setIsLoading(true);
-        const toastId = toast.loading("Updating ledger identity...");
+        const toastId = toast.loading("Saving changes...");
         try {
             await ApiService.auth.updateProfile(data);
             const fullUser = { ...user, ...data };
             setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 604800, path: '/' });
-            toast.success("Identity updated", { id: toastId });
+            toast.success("Profile information updated", { id: toastId });
             reset(data);
         } catch (error) {
             toast.error("Update failed", { id: toastId });
@@ -137,7 +137,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
             await ApiService.auth.switchAccountType(switchModal.type);
             const fullUser = { ...user, accountType: switchModal.type };
             setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 604800, path: '/' });
-            toast.success(`Switched to ${switchModal.type} profile`);
+            toast.success(`Switched to ${switchModal.type.toLowerCase()} account`);
             setSwitchModal({ isOpen: false, type: null });
             window.location.reload();
         } catch (e: any) {
@@ -153,7 +153,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                {/* --- IDENTITY CARD (LEFT) --- */}
                 <div className="lg:col-span-4 space-y-6">
                     <Card className="rounded-[32px] border-border/50 bg-card overflow-hidden shadow-xl relative group">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary/20 to-transparent opacity-40" />
@@ -195,7 +194,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
                         </div>
                     </Card>
 
-                    {/* Account Type Switcher */}
                     <Card className="rounded-[28px] border-border/50 bg-card overflow-hidden shadow-sm">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between mb-4">
@@ -216,7 +214,6 @@ export function ProfileForm({ user }: ProfileFormProps) {
                     </Card>
                 </div>
 
-                {/* --- FORM COLUMN (RIGHT) --- */}
                 <div className="lg:col-span-8 space-y-6">
 
                     {!user.emailVerified && (
@@ -226,9 +223,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
                                     <MailCheck className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1 space-y-1">
-                                    <h4 className="font-bold text-amber-800 text-sm uppercase tracking-tight">Identity Verification Required</h4>
+                                    <h4 className="font-bold text-amber-800 text-sm uppercase tracking-tight">Email Verification Required</h4>
                                     <p className="text-[11px] text-amber-700/80 leading-relaxed font-medium">
-                                        Verify your email to unlock 2FA and wallet withdrawals.
+                                        Verify your email to unlock all platform features and secure your account.
                                     </p>
                                 </div>
                                 {!showCodeInput && (
@@ -271,7 +268,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                         <div className="flex justify-end pt-4">
                             <Button type="submit" disabled={isLoading || !isDirty} className="h-14 rounded-2xl px-10 font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-primary/20">
                                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />}
-                                Commit Changes
+                                Save Changes
                             </Button>
                         </div>
                     </form>
@@ -287,8 +284,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 isLoading={isLoading}
                 title={`Switch to ${switchModal.type === 'ORGANIZER' ? 'Organizer' : 'Individual'} Account`}
                 description={switchModal.type === 'ORGANIZER'
-                    ? "Upgrading allows you to create projects and access fundraising tools. You may be required to complete KYC verification."
-                    : "Downgrading will restrict your ability to create new projects. Active projects will remain accessible but restricted."
+                    ? "Upgrading allows you to create projects and access fundraising tools. You may be required to complete verification."
+                    : "Downgrading will restrict your ability to create new projects. Existing projects will remain active."
                 }
                 confirmText="Confirm Switch"
             />

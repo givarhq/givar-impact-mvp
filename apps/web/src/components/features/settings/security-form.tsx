@@ -60,7 +60,7 @@ export function SecurityForm({ user }: { user: any }) {
 
     const onSubmit = async (data: SecurityFormValues) => {
         setIsLoading(true);
-        const toastId = toast.loading("Verifying and updating credentials...");
+        const toastId = toast.loading("Updating your password...");
 
         try {
             await ApiService.auth.updatePassword({
@@ -68,10 +68,10 @@ export function SecurityForm({ user }: { user: any }) {
                 newPassword: data.newPassword
             });
 
-            toast.success("Security credentials updated", { id: toastId });
-            reset(); // Clear all fields after success
+            toast.success("Password successfully updated", { id: toastId });
+            reset();
         } catch (error: any) {
-            const message = error.response?.data?.message || "Verification failed. Check your current password.";
+            const message = error.response?.data?.message || "Update failed. Check your current password.";
             toast.error(message, { id: toastId });
         } finally {
             setIsLoading(false);
@@ -80,23 +80,20 @@ export function SecurityForm({ user }: { user: any }) {
 
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* 1. Two-Factor Authentication Management */}
             <TwoFactorSetup isEnabled={user.twoFactorEnabled} />
 
-            {/* 2. Credential Rotation Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
                     <CardContent className="p-8 md:p-10 space-y-8">
 
-                        {/* Header Header */}
                         <div className="flex items-center justify-between border-b border-border/40 pb-6">
                             <div className="flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 border border-amber-500/20">
                                     <KeyRound className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg text-foreground">Credential Rotation</h3>
-                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">Protect your impact wallet nodes</p>
+                                    <h3 className="font-bold text-lg text-foreground">Change Password</h3>
+                                    <p className="text-xs text-muted-foreground font-medium">Protect your Givar account with a strong password</p>
                                 </div>
                             </div>
                             <Button
@@ -106,48 +103,44 @@ export function SecurityForm({ user }: { user: any }) {
                                 onClick={() => setShowPasswords(!showPasswords)}
                                 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-muted/50 rounded-xl h-9"
                             >
-                                {showPasswords ? <EyeOff className="h-3.5 w-3.5 mr-2" /> : <Eye className="h-3.5 w-3.5 mr-2" />}
-                                {showPasswords ? 'Hide sensitive data' : 'Reveal data'}
+                                {showPasswords ? 'Hide characters' : 'Show characters'}
                             </Button>
                         </div>
 
                         <div className="space-y-8">
-                            {/* Current Pass Verification */}
                             <div className="space-y-2">
                                 <Input
-                                    label="Current Ledger Password"
+                                    label="Current Password"
                                     type={showPasswords ? "text" : "password"}
                                     {...register('currentPassword')}
                                     error={errors.currentPassword?.message}
-                                    placeholder="Required to verify ownership"
+                                    placeholder="Enter your current password"
                                     className="h-12"
                                 />
                             </div>
 
                             <div className="h-px bg-border/40 w-1/3 mx-auto" />
 
-                            {/* New Password Logic */}
                             <div className="space-y-6">
                                 <Input
-                                    label="New Secure Password"
+                                    label="New Password"
                                     type={showPasswords ? "text" : "password"}
                                     {...register('newPassword')}
                                     error={errors.newPassword?.message}
-                                    placeholder="Minimum 8 complex characters"
+                                    placeholder="Create a strong new password"
                                     className="h-12"
                                 />
 
-                                {/* Strength Meter Module */}
-                                <div className="space-y-4 p-5 rounded-[24px] bg-muted/20 border border-border/50 shadow-inner">
+                                <div className="space-y-4 p-5 rounded-[24px] bg-muted/20 border border-border/50">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Complexity Protocol</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Password Requirements</span>
                                         <span className={cn(
                                             "text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md",
                                             strengthScore <= 2 ? "text-destructive bg-destructive/10" :
                                                 strengthScore === 3 ? "text-amber-600 bg-amber-500/10" :
                                                     "text-emerald-600 bg-emerald-500/10"
                                         )}>
-                                            {strengthScore === 0 ? "Empty" : strengthScore <= 2 ? "Vulnerable" : strengthScore === 3 ? "Acceptable" : "Immutable Strength"}
+                                            {strengthScore === 0 ? "Empty" : strengthScore <= 2 ? "Weak" : strengthScore === 3 ? "Acceptable" : "Strong"}
                                         </span>
                                     </div>
 
@@ -177,7 +170,7 @@ export function SecurityForm({ user }: { user: any }) {
                                                     <Check className="h-2.5 w-2.5" />
                                                 </div>
                                                 <span className={cn(
-                                                    "text-[10px] font-bold tracking-tight uppercase transition-colors duration-300",
+                                                    "text-[10px] font-bold tracking-tight uppercase",
                                                     c.met ? "text-foreground" : "text-muted-foreground/40"
                                                 )}>
                                                     {c.label}
@@ -192,7 +185,7 @@ export function SecurityForm({ user }: { user: any }) {
                                     type={showPasswords ? "text" : "password"}
                                     {...register('confirmPassword')}
                                     error={errors.confirmPassword?.message}
-                                    placeholder="Re-enter to match"
+                                    placeholder="Repeat your new password"
                                     className="h-12"
                                 />
                             </div>
@@ -205,9 +198,9 @@ export function SecurityForm({ user }: { user: any }) {
                         <ShieldAlert className="h-5 w-5" />
                     </div>
                     <div className="space-y-1">
-                        <p className="text-xs font-bold text-amber-800 uppercase tracking-tight">Security Notice</p>
+                        <p className="text-xs font-bold text-amber-800 uppercase tracking-tight">Security Note</p>
                         <p className="text-[11px] text-amber-700/80 leading-relaxed font-medium">
-                            Credential rotation requires a fresh ledger entry. This action will terminate all other active sessions to ensure global account synchronisation.
+                            Changing your password will log you out of all other active sessions to keep your account secure.
                         </p>
                     </div>
                 </div>
@@ -219,7 +212,7 @@ export function SecurityForm({ user }: { user: any }) {
                         className="h-16 rounded-[24px] px-10 font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-primary/20 active:scale-95 transition-all gap-3"
                     >
                         {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
-                        Confirm Credential Update
+                        Update Password
                     </Button>
                 </div>
             </form>
