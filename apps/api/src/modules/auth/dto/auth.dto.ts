@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { Currency } from '@givar/database';
 import { IsStrongPassword } from 'src/common/decorators/is-strong-password-decorator';
 
@@ -31,6 +31,21 @@ export class LoginDto {
 
   @IsString()
   password!: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6, { message: '2FA code must be exactly 6 digits' })
+  @MaxLength(6, { message: '2FA code must be exactly 6 digits' })
+  twoFactorCode?: string;
+}
+
+export class Verify2FADto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6, { message: '2FA code must be exactly 6 digits' })
+  @MaxLength(6, { message: '2FA code must be exactly 6 digits' })
+  code!: string;
 }
 
 export class ForgotPasswordDto {
