@@ -1249,7 +1249,6 @@ export class AdminService {
 
     // --- CASE A: REFUND PROTOCOL ---
     if (dto.action === SuspenseAction.REFUND) {
-      // Trigger external gateway refund before committing to internal ledger
       await this.triggerPaystackRefund(tx.reference);
 
       return this.prisma.$transaction(async (prisma) => {
@@ -1267,20 +1266,24 @@ export class AdminService {
             action: AuditAction.TRANSACTION_RESOLVED,
             entityId: transactionId,
             entityType: 'WalletTransaction',
-            metadata: { action: 'AUTO_REFUND', originalRef: tx.reference, performedBy: adminId },
+            metadata: {
+              action: 'AUTO_REFUND',
+              originalRef: tx.reference,
+              amountRaw: tx.amount.toString(),
+              amountFormatted: (Number(tx.amount) / 100).toFixed(2)
+            },
           },
         });
         return updated;
       });
     }
 
-    // --- CASE B: RE-ALLOCATION PROTOCOL (Splitting across causes) ---
+    // --- CASE B: RE-ALLOCATION PROTOCOL ---
     if (dto.action === SuspenseAction.ALLOCATE) {
       if (!dto.allocations || dto.allocations.length === 0) {
         throw new BadRequestException('Re-allocation requires at least one target project.');
       }
 
-      // 2. Zero-Sum Ledger Validation
       const totalAllocated = dto.allocations.reduce((acc, curr) => acc + BigInt(curr.amount), 0n);
       if (totalAllocated !== tx.amount) {
         throw new BadRequestException(
@@ -1289,7 +1292,6 @@ export class AdminService {
       }
 
       return this.prisma.$transaction(async (txPrisma) => {
-        // 3. Close the Parent Container Transaction
         const updatedParentTx = await txPrisma.walletTransaction.update({
           where: { id: transactionId },
           data: {
@@ -1299,15 +1301,14 @@ export class AdminService {
         });
 
         const guestEmail = (tx.metadata as any)?.guestEmail;
+        const forensicAllocationLog = [];
 
-        // 4. Loop through splits and generate unique ledger entries
         for (let i = 0; i < dto.allocations.length; i++) {
           const split = dto.allocations[i];
           const splitAmount = BigInt(split.amount);
-          const splitRef = `${tx.reference}-S${i + 1}`; // Ensure unique reference for each split
+          const splitRef = `${tx.reference}-S${i + 1}`;
 
           if (guestEmail) {
-            // Path: Guest Identity
             const guestDonor = await txPrisma.guestDonor.upsert({
               where: { email: guestEmail },
               update: { totalDonated: { increment: splitAmount }, donationCount: { increment: 1 } },
@@ -1331,13 +1332,12 @@ export class AdminService {
               }
             });
           } else {
-            // Path: Registered User Identity
             const splitTx = await txPrisma.walletTransaction.create({
               data: {
                 walletId: tx.walletId,
                 amount: splitAmount,
                 currency: tx.currency,
-                type: TxType.DEBIT, // Debit the user's wallet for this specific cause
+                type: TxType.DEBIT,
                 status: TxStatus.COMPLETED,
                 reference: splitRef,
                 description: `Impact Split for Project: ${split.projectId}`,
@@ -1353,7 +1353,7 @@ export class AdminService {
               data: {
                 userId: tx.wallet.userId,
                 projectId: split.projectId,
-                transactionId: splitTx.id, // Linked to unique split ID
+                transactionId: splitTx.id,
                 amount: splitAmount,
                 currency: tx.currency,
                 message: 'System-mediated impact reallocation'
@@ -1361,14 +1361,22 @@ export class AdminService {
             });
           }
 
-          // 5. Update Target Impact Node
-          await txPrisma.project.update({
+          const updatedProject = await txPrisma.project.update({
             where: { id: split.projectId },
-            data: { raisedAmount: { increment: splitAmount } }
+            data: { raisedAmount: { increment: splitAmount } },
+            select: { title: true, id: true }
+          });
+
+          // Forensic update: Log both raw and human-readable amounts
+          forensicAllocationLog.push({
+            projectId: updatedProject.id,
+            projectTitle: updatedProject.title,
+            amountMinorUnits: splitAmount.toString(),
+            amountFormatted: `${tx.currency} ${(Number(splitAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+            splitReference: splitRef
           });
         }
 
-        // 6. Final Forensic Audit Log
         await txPrisma.auditLog.create({
           data: {
             userId: adminId,
@@ -1377,15 +1385,18 @@ export class AdminService {
             entityType: 'WalletTransaction',
             metadata: {
               action: 'MULTI_REALLOCATE',
+              totalCapitalRaw: tx.amount.toString(),
+              totalCapitalFormatted: (Number(tx.amount) / 100).toFixed(2),
+              currency: tx.currency,
+              parentReference: tx.reference,
               splitCount: dto.allocations.length,
-              totalCapital: tx.amount.toString(),
-              reference: tx.reference
+              detailedAllocations: forensicAllocationLog
             },
           },
         });
 
         return updatedParentTx;
-      }, { timeout: 20000 }); // High timeout for complex multi-split transactions
+      }, { timeout: 25000 });
     }
   }
 
