@@ -113,16 +113,6 @@ export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
                     <PreferencesForm />
                 </TabsContent>
             </div>
-
-            <div className="pt-10 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary/40" />
-                    Ledger Connection: Secure
-                </div>
-                <div className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">
-                    Last Session Sync: {new Date().toLocaleTimeString()}
-                </div>
-            </div>
         </Tabs>
     );
 }
