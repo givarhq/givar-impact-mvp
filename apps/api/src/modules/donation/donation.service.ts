@@ -891,10 +891,10 @@ export class DonationService {
   }
 
   private async broadcastProjectFunded(projectId: string, projectTitle: string, projectSlug: string, totalAmount: bigint, currency: string) {
-    // 1. Fetch all unique donors (Registered)
+    // 1. Fetch all unique donors (Registered) including their notification preferences
     const userDonors = await this.prisma.donation.findMany({
       where: { projectId },
-      select: { user: { select: { email: true, firstName: true } } },
+      select: { user: { select: { email: true, firstName: true, preferences: true } } },
       distinct: ['userId'],
     });
 
@@ -905,15 +905,17 @@ export class DonationService {
       distinct: ['guestDonorId'],
     });
 
-    // 3. Combine into unique recipient list
+    // 3. Combine into unique recipient list, filtering out registered users who disabled milestone/impact updates
     const recipients = [
-      ...userDonors.map(d => ({ email: d.user?.email, name: d.user?.firstName || 'Giver' })),
+      ...userDonors
+        .filter(d => (d.user?.preferences as any)?.milestoneUpdates !== false)
+        .map(d => ({ email: d.user?.email, name: d.user?.firstName || 'Giver' })),
       ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
     ].filter((v, i, a) => v.email && a.findIndex(t => t.email === v.email) === i);
 
     const fmtAmount = (Number(totalAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 });
 
-    this.logger.log(`📢 Broadcasting Goal Completion for "${projectTitle}" to ${recipients.length} donors.`);
+    this.logger.log(`📢 Broadcasting Goal Completion for "${projectTitle}" to ${recipients.length} eligible recipients.`);
 
     // 4. Batch Dispatch
     Promise.allSettled(
