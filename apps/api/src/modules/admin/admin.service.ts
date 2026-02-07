@@ -1237,16 +1237,19 @@ export class AdminService {
   }
 
   async resolveSuspenseTransaction(adminId: string, transactionId: string, dto: ResolveSuspenseDto) {
+    // 1. Fetch orphaned transaction with forensic context
     const tx = await this.prisma.walletTransaction.findUnique({
       where: { id: transactionId },
       include: { wallet: true },
     });
 
     if (!tx || tx.status !== TxStatus.SUSPENSE) {
-      throw new BadRequestException('Transaction not found or not in suspense');
+      throw new BadRequestException('Transaction not found or already resolved.');
     }
 
+    // --- CASE A: REFUND PROTOCOL ---
     if (dto.action === SuspenseAction.REFUND) {
+      // Trigger external gateway refund before committing to internal ledger
       await this.triggerPaystackRefund(tx.reference);
 
       return this.prisma.$transaction(async (prisma) => {
@@ -1254,7 +1257,7 @@ export class AdminService {
           where: { id: transactionId },
           data: {
             status: TxStatus.REVERSED,
-            description: `${tx.description} [AUTO-REFUNDED]`
+            description: `${tx.description} [GATEWAY-REFUNDED]`
           },
         });
 
@@ -1264,46 +1267,48 @@ export class AdminService {
             action: AuditAction.TRANSACTION_RESOLVED,
             entityId: transactionId,
             entityType: 'WalletTransaction',
-            metadata: { action: 'AUTO_REFUND', originalRef: tx.reference },
+            metadata: { action: 'AUTO_REFUND', originalRef: tx.reference, performedBy: adminId },
           },
         });
         return updated;
       });
     }
 
+    // --- CASE B: RE-ALLOCATION PROTOCOL (Splitting across causes) ---
     if (dto.action === SuspenseAction.ALLOCATE) {
       if (!dto.allocations || dto.allocations.length === 0) {
-        throw new BadRequestException('At least one target allocation is required');
+        throw new BadRequestException('Re-allocation requires at least one target project.');
       }
 
+      // 2. Zero-Sum Ledger Validation
       const totalAllocated = dto.allocations.reduce((acc, curr) => acc + BigInt(curr.amount), 0n);
       if (totalAllocated !== tx.amount) {
         throw new BadRequestException(
-          `Ledger Mismatch: Total allocations (${totalAllocated}) must exactly equal orphaned capital (${tx.amount})`
+          `Accounting Error: Total split sum (${totalAllocated.toString()}) must match orphaned capital (${tx.amount.toString()})`
         );
       }
 
-      return this.prisma.$transaction(async (prisma) => {
-        // 1. Mark parent transaction as resolved (The "Container" transaction)
-        const updatedTx = await prisma.walletTransaction.update({
+      return this.prisma.$transaction(async (txPrisma) => {
+        // 3. Close the Parent Container Transaction
+        const updatedParentTx = await txPrisma.walletTransaction.update({
           where: { id: transactionId },
           data: {
             status: TxStatus.COMPLETED,
-            description: `${tx.description} [RE-ALLOCATED TO ${dto.allocations.length} CAUSES]`
+            description: `${tx.description} [RESOLVED VIA MULTI-SPLIT REALLOCATION]`
           }
         });
 
         const guestEmail = (tx.metadata as any)?.guestEmail;
 
-        // 2. Sequential Ledger Entries for each split
+        // 4. Loop through splits and generate unique ledger entries
         for (let i = 0; i < dto.allocations.length; i++) {
           const split = dto.allocations[i];
           const splitAmount = BigInt(split.amount);
-          const splitRef = `${tx.reference}-S${i + 1}`; // e.g., REF-123-S1
+          const splitRef = `${tx.reference}-S${i + 1}`; // Ensure unique reference for each split
 
           if (guestEmail) {
-            // GUEST PATH
-            const guestDonor = await prisma.guestDonor.upsert({
+            // Path: Guest Identity
+            const guestDonor = await txPrisma.guestDonor.upsert({
               where: { email: guestEmail },
               update: { totalDonated: { increment: splitAmount }, donationCount: { increment: 1 } },
               create: {
@@ -1314,7 +1319,7 @@ export class AdminService {
               }
             });
 
-            await prisma.guestDonation.create({
+            await txPrisma.guestDonation.create({
               data: {
                 guestDonorId: guestDonor.id,
                 projectId: split.projectId,
@@ -1322,47 +1327,49 @@ export class AdminService {
                 currency: tx.currency,
                 reference: splitRef,
                 status: 'COMPLETED',
-                message: 'Split Re-allocation by Admin'
+                message: 'Admin Split Re-allocation'
               }
             });
           } else {
-            // REGISTERED USER PATH
-            // To satisfy the Unique constraint on Donation.transactionId, 
-            // we create a "Shadow" WalletTransaction for this specific split.
-            const splitTx = await prisma.walletTransaction.create({
+            // Path: Registered User Identity
+            const splitTx = await txPrisma.walletTransaction.create({
               data: {
                 walletId: tx.walletId,
                 amount: splitAmount,
                 currency: tx.currency,
-                type: TxType.DEBIT, // Debiting the wallet for this specific cause
+                type: TxType.DEBIT, // Debit the user's wallet for this specific cause
                 status: TxStatus.COMPLETED,
                 reference: splitRef,
-                description: `Re-allocated Split for Project: ${split.projectId}`,
-                metadata: { parentTransactionId: tx.id }
+                description: `Impact Split for Project: ${split.projectId}`,
+                metadata: {
+                  parentTransactionId: tx.id,
+                  originalReference: tx.reference,
+                  reallocationAudit: true
+                }
               }
             });
 
-            await prisma.donation.create({
+            await txPrisma.donation.create({
               data: {
                 userId: tx.wallet.userId,
                 projectId: split.projectId,
-                transactionId: splitTx.id, // Linked to the NEW unique split transaction
+                transactionId: splitTx.id, // Linked to unique split ID
                 amount: splitAmount,
                 currency: tx.currency,
-                message: 'Re-allocated by Admin'
+                message: 'System-mediated impact reallocation'
               }
             });
           }
 
-          // 3. Update Project Accounting
-          await prisma.project.update({
+          // 5. Update Target Impact Node
+          await txPrisma.project.update({
             where: { id: split.projectId },
             data: { raisedAmount: { increment: splitAmount } }
           });
         }
 
-        // 4. Audit Log
-        await prisma.auditLog.create({
+        // 6. Final Forensic Audit Log
+        await txPrisma.auditLog.create({
           data: {
             userId: adminId,
             action: AuditAction.FUNDS_REALLOCATED,
@@ -1370,14 +1377,15 @@ export class AdminService {
             entityType: 'WalletTransaction',
             metadata: {
               action: 'MULTI_REALLOCATE',
-              splits: dto.allocations.length,
-              totalAmount: tx.amount.toString()
+              splitCount: dto.allocations.length,
+              totalCapital: tx.amount.toString(),
+              reference: tx.reference
             },
           },
         });
 
-        return updatedTx;
-      }, { timeout: 20000 });
+        return updatedParentTx;
+      }, { timeout: 20000 }); // High timeout for complex multi-split transactions
     }
   }
 
