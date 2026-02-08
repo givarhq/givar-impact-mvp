@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Bell, Loader2, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, Loader2, Info, Moon, Sun, Monitor } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
+import { useTheme } from 'next-themes';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 import { ApiService } from '../../../services/api';
@@ -21,17 +22,21 @@ interface PreferenceToggleProps {
     enabled: boolean;
     onToggle: () => void;
     isUpdating?: boolean;
+    icon?: React.ElementType;
 }
 
-const PreferenceToggle = ({ title, description, enabled, onToggle, isUpdating }: PreferenceToggleProps) => (
+const PreferenceToggle = ({ title, description, enabled, onToggle, isUpdating, icon: Icon }: PreferenceToggleProps) => (
     <div className={cn(
         "flex flex-col gap-2 p-5 sm:p-6 rounded-2xl border transition-all group",
         isUpdating ? "bg-muted/10 opacity-70 cursor-wait" : "bg-muted/20 border-border/40 hover:bg-muted/30"
     )}>
         <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-                <h4 className="text-sm font-bold text-foreground leading-none">{title}</h4>
-                {isUpdating && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
+            <div className="flex items-center gap-3">
+                {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+                <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-foreground leading-none">{title}</h4>
+                    {isUpdating && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
+                </div>
             </div>
 
             <button
@@ -60,7 +65,13 @@ const PreferenceToggle = ({ title, description, enabled, onToggle, isUpdating }:
 
 export function PreferencesForm({ user }: { user: any }) {
     const router = useRouter();
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
     const [updatingKey, setUpdatingKey] = useState<string | null>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const [prefs, setPrefs] = useState<UserPreferences>({
         donationReceipts: true,
@@ -92,11 +103,38 @@ export function PreferencesForm({ user }: { user: any }) {
         }
     };
 
+    if (!mounted) return null;
+
     return (
-        /* Changed: Removed px-4 to match SecurityForm width on mobile */
-        <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+            {/* 1. Appearance Section */}
             <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
-                {/* Changed: Adjusted p-5 on mobile to provide more text room, matching SecurityForm p-8 desktop style */}
+                <CardContent className="p-5 sm:p-10 space-y-8">
+                    <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-amber-500/10 text-amber-600 border border-amber-500/20 flex items-center justify-center shrink-0">
+                            <Monitor className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="font-bold text-lg text-foreground">Display Identity</h3>
+                            <p className="text-sm text-muted-foreground font-medium">Personalize your platform interface.</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <PreferenceToggle
+                            title="Dark Mode Interface"
+                            description="Switch to a dark color palette for a focused, low-light viewing experience across the platform."
+                            enabled={theme === 'dark'}
+                            onToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                            icon={theme === 'dark' ? Moon : Sun}
+                        />
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* 2. Communication Protocols Section */}
+            <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
                 <CardContent className="p-5 sm:p-10 space-y-8">
                     <div className="flex items-center gap-4">
                         <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
@@ -141,11 +179,10 @@ export function PreferencesForm({ user }: { user: any }) {
                 </CardContent>
             </Card>
 
-            {/* Bottom Info Box matches the card width exactly */}
             <div className="p-6 rounded-3xl bg-muted/20 border border-dashed border-border/60 flex items-start gap-4">
                 <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                 <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                    Live Sync Active: Toggling these switches updates your communication matrix in real-time. System-critical security logs remain enforced.
+                    Changes to display and communication preferences are applied instantly to your local node. System-critical security logs remain enforced.
                 </p>
             </div>
         </div>

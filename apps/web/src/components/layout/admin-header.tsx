@@ -12,7 +12,6 @@ import {
   CircleUser,
   Zap
 } from 'lucide-react';
-import { ThemeToggle } from './theme-toggle';
 import { ViewModeToggle } from './view-mode-toggle';
 import { getCookie, deleteCookie } from 'cookies-next';
 import { ApiService } from '../../services/api';
@@ -78,7 +77,7 @@ export function AdminHeader({ user }: { user: any }) {
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-8 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
 
       <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex items-center gap-6 w-full">
+        <div className="flex items-center justify-center w-full">
 
           <div className="md:hidden flex items-center gap-3 shrink-0">
             <Link href="/admin" className="flex items-center gap-2 group">
@@ -111,7 +110,7 @@ export function AdminHeader({ user }: { user: any }) {
             </div>
           </div>
 
-          <div className="hidden md:flex items-center flex-1 max-w-xl">
+          <div className="hidden md:flex items-center justify-center flex-1">
             <GlobalSearch />
           </div>
         </div>
@@ -121,10 +120,6 @@ export function AdminHeader({ user }: { user: any }) {
         {isClient && (
           <ViewModeToggle currentRole={user.role} />
         )}
-
-        <ThemeToggle />
-
-        <div className="h-8 w-px bg-border/50 hidden md:block mx-1" />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

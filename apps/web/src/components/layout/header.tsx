@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { deleteCookie, getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { ThemeToggle } from './theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -113,8 +112,6 @@ export function Header({ user }: { user: any }) {
         <div className="hidden lg:flex">
           <WalletWidget />
         </div>
-
-        <ThemeToggle />
 
         <div className="h-8 w-px bg-border/50 mx-1 hidden md:block" />
 
