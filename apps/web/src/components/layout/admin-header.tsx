@@ -75,38 +75,38 @@ export function AdminHeader({ user }: { user: any }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-8 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
+      <div className="flex items-center justify-between w-full gap-4">
 
-      <div className="flex items-center w-full">
         {/* Left Section: Title (Desktop) and Brand (Mobile) */}
-        <div className="flex items-center shrink-0 min-w-[200px]">
-          <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight hidden md:block">
+        <div className="flex items-center min-w-0">
+          <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight hidden md:block truncate">
             {currentTitle}
           </h1>
 
-          <div className="md:hidden flex items-center gap-3 shrink-0">
+          <div className="md:hidden flex items-center gap-2 shrink-0">
             <Link href="/admin" className="flex items-center gap-2 group">
-              <div>
+              <div className="shrink-0">
                 <Image
                   src="/Givar1.png"
                   alt="Givar Logo"
-                  width={32}
-                  height={32}
+                  width={28}
+                  height={28}
                   className="object-contain"
                   priority
                 />
               </div>
-              <span className="text-xl font-bold tracking-tight text-foreground">
+              <span className="text-lg font-bold tracking-tight text-foreground">
                 Givar<span className="text-primary">.</span>
               </span>
             </Link>
 
             <div className={cn(
-              "flex items-center gap-1 border px-1.5 py-0.5 rounded-md",
+              "flex items-center gap-1 border px-1.5 py-0.5 rounded-md shrink-0",
               isSuperAdmin ? "bg-purple-500/10 border-purple-500/20" : "bg-destructive/10 border-destructive/20"
             )}>
-              {isSuperAdmin ? <Zap className="h-3 w-3 text-purple-500" /> : <ShieldCheck className="h-3 w-3 text-destructive" />}
+              {isSuperAdmin ? <Zap className="h-2.5 w-2.5 text-purple-500" /> : <ShieldCheck className="h-2.5 w-2.5 text-destructive" />}
               <span className={cn(
-                "text-[8px] uppercase font-black tracking-wider",
+                "text-[7px] uppercase font-black tracking-wider",
                 isSuperAdmin ? "text-purple-600" : "text-destructive"
               )}>
                 {isSuperAdmin ? 'Super' : 'Root'}
@@ -115,22 +115,22 @@ export function AdminHeader({ user }: { user: any }) {
           </div>
         </div>
 
-        {/* Center Section: Search Bar */}
-        <div className="hidden md:flex items-center justify-center flex-1 px-4">
+        {/* Center Section: Search Bar (Desktop Only) */}
+        <div className="hidden lg:flex items-center justify-center flex-1 max-w-lg">
           <GlobalSearch />
         </div>
 
         {/* Right Section: Actions and Profile */}
-        <div className="flex items-center gap-2 md:gap-3 shrink-0 min-w-[200px] justify-end">
+        <div className="flex items-center gap-2 shrink-0">
           {isClient && (
             <ViewModeToggle currentRole={user.role} />
           )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
+              <button className="group flex items-center gap-2 rounded-full p-1 hover:bg-secondary/50 transition-all outline-none">
                 <div className={cn(
-                  "relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm flex items-center justify-center",
+                  "relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm flex items-center justify-center shrink-0",
                   isSuperAdmin ? "bg-purple-500/10 text-purple-600" : "bg-destructive/10 text-destructive"
                 )}>
                   {isClient && avatarUrl ? (
@@ -143,12 +143,12 @@ export function AdminHeader({ user }: { user: any }) {
                     <CircleUser className="h-6 w-6" />
                   )}
                 </div>
-                <div className="hidden text-left md:block pr-2">
-                  <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[100px]">
+                <div className="hidden text-left sm:block">
+                  <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[80px]">
                     {isClient && user?.firstName ? user.firstName : 'Admin'}
                   </span>
                 </div>
-                <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                <ChevronDown className="hidden sm:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
               </button>
             </DropdownMenuTrigger>
 
