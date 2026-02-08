@@ -86,17 +86,17 @@ export function SecurityForm({ user }: { user: any }) {
                             isEditing ? "bg-primary/[0.01]" : "hover:bg-muted/30 cursor-pointer"
                         )}
                     >
-                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                            <div className="flex items-center gap-5 flex-1">
+                        <div className="flex items-center justify-between gap-6">
+                            <div className="flex items-center gap-5 flex-1 min-w-0">
                                 <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 border border-amber-500/20">
                                     <KeyRound className="h-6 w-6" />
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="font-bold text-lg text-foreground">Password Management</h3>
-                                    {!isEditing && <p className="text-sm text-muted-foreground font-medium">Click to update your security password ••••••••••••</p>}
+                                    {!isEditing && <p className="text-sm text-muted-foreground font-medium">Update your password</p>}
                                 </div>
                             </div>
-                            {!isEditing && <ChevronRight className="h-5 w-5 text-muted-foreground opacity-30 group-hover:opacity-100 transition-all" />}
+                            {!isEditing && <ChevronRight className="h-5 w-5 shrink-0 ml-4 text-muted-foreground opacity-30 group-hover:opacity-100 transition-all" />}
                         </div>
 
                         {isEditing && (
