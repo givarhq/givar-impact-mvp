@@ -52,7 +52,7 @@ export function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
       {/* Top Header Row */}
       <div className="flex items-center justify-between gap-4 relative min-h-[40px]">
         <div className="flex items-center gap-6 flex-1">
-          <h1 className="md:hidden text-2xl font-black tracking-tight text-foreground whitespace-nowrap">
+          <h1 className="md:hidden text-xl font-semibold tracking-tight text-foreground whitespace-nowrap">
             Explore Causes
           </h1>
 
