@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const dbUser = await ApiService.auth.getMe(token);
 
-  if (!dbUser || dbUser.role !== 'ADMIN') {
+  if (!dbUser || !['ADMIN', 'SUPERADMIN'].includes(dbUser.role)) {
     redirect('/dashboard');
   }
 

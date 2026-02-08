@@ -9,8 +9,8 @@ import {
   Settings,
   ChevronDown,
   ShieldCheck,
-  Lock,
-  CircleUser
+  CircleUser,
+  Zap
 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { ViewModeToggle } from './view-mode-toggle';
@@ -48,21 +48,27 @@ export function AdminHeader({ user }: { user: any }) {
   }, []);
 
   const isImpersonating = getCookie('givar_is_impersonating') === 'true';
+  const isSuperAdmin = user?.role === 'SUPERADMIN';
+
   const currentTitle = PAGE_TITLES[pathname] || 'Admin Console';
-  const initial = user?.firstName?.[0] || 'A';
   const displayName = isClient ? `${user?.firstName} ${user?.lastName}` : 'Admin';
   const avatarUrl = user?.avatarUrl;
 
   const handleLogout = async () => {
     try {
       await ApiService.auth.logout();
+      // Atomic cleanup of all session artifacts
       deleteCookie('givar_token');
       deleteCookie('givar_user');
       deleteCookie('givar_view_mode');
       deleteCookie('givar_is_impersonating');
+      deleteCookie('givar_admin_backup_token');
+      deleteCookie('givar_admin_backup_user');
+
       router.push('/login');
-      toast.success("Admin session terminated");
+      toast.success("Session terminated securely");
     } catch (error) {
+      // Force cleanup even if API fails
       deleteCookie('givar_token');
       deleteCookie('givar_user');
       router.push('/login');
@@ -94,9 +100,19 @@ export function AdminHeader({ user }: { user: any }) {
             </span>
           </Link>
 
-          <div className="flex items-center gap-1 bg-destructive/10 border border-destructive/20 px-1.5 py-0.5 rounded-md">
-            <ShieldCheck className="h-3 w-3 text-destructive" />
-            <span className="text-[8px] uppercase text-destructive font-black tracking-wider">Root</span>
+          <div className={cn(
+            "flex items-center gap-1 border px-1.5 py-0.5 rounded-md",
+            isSuperAdmin
+              ? "bg-purple-500/10 border-purple-500/20"
+              : "bg-destructive/10 border-destructive/20"
+          )}>
+            {isSuperAdmin ? <Zap className="h-3 w-3 text-purple-500" /> : <ShieldCheck className="h-3 w-3 text-destructive" />}
+            <span className={cn(
+              "text-[8px] uppercase font-black tracking-wider",
+              isSuperAdmin ? "text-purple-600" : "text-destructive"
+            )}>
+              {isSuperAdmin ? 'Super' : 'Root'}
+            </span>
           </div>
         </div>
       </div>
@@ -104,11 +120,22 @@ export function AdminHeader({ user }: { user: any }) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-2 md:gap-3">
-        {isClient && !isImpersonating && <ViewModeToggle currentRole="ADMIN" />}
+        {/* Only show toggle for standard Admins, SuperAdmins are locked to Admin view for security unless impersonating */}
+        {isClient && user?.role === 'ADMIN' && !isImpersonating && (
+          <ViewModeToggle currentRole={user.role} />
+        )}
 
-        <div className="hidden lg:flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg border border-border/50">
-          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse mr-2" />
-          System Node: Active
+        <div className={cn(
+          "hidden lg:flex items-center text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg border",
+          isSuperAdmin
+            ? "bg-purple-500/5 text-purple-600 border-purple-500/20"
+            : "bg-muted/50 text-muted-foreground border-border/50"
+        )}>
+          <div className={cn(
+            "h-1.5 w-1.5 rounded-full animate-pulse mr-2",
+            isSuperAdmin ? "bg-purple-500" : "bg-emerald-500"
+          )} />
+          {isSuperAdmin ? 'Superuser Mode' : 'System Node: Active'}
         </div>
 
         <ThemeToggle />
@@ -118,7 +145,10 @@ export function AdminHeader({ user }: { user: any }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
-              <div className="relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm bg-destructive/10 flex items-center justify-center text-destructive">
+              <div className={cn(
+                "relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm flex items-center justify-center",
+                isSuperAdmin ? "bg-purple-500/10 text-purple-600" : "bg-destructive/10 text-destructive"
+              )}>
                 {isClient && avatarUrl ? (
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : isClient && user?.firstName ? (
@@ -147,6 +177,11 @@ export function AdminHeader({ user }: { user: any }) {
                 <p className="text-xs leading-none text-muted-foreground truncate opacity-70">
                   {user?.email}
                 </p>
+                {isSuperAdmin && (
+                  <span className="mt-2 inline-flex items-center text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded w-fit">
+                    Full Permissions
+                  </span>
+                )}
               </div>
             </DropdownMenuLabel>
 

@@ -17,11 +17,12 @@ export function middleware(request: NextRequest) {
     let userRole = 'USER';
     try {
       if (userCookie) {
+        // Decode to handle potentially URI encoded cookies
         const user = JSON.parse(decodeURIComponent(userCookie));
         userRole = user.role;
       }
     } catch (e) {
-      // Fallback if cookie is malformed, default role is safe
+      // Fallback if cookie is malformed
     }
 
     // Determine if the user belongs in the admin environment.
