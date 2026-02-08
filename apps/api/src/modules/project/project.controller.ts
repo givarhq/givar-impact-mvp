@@ -79,4 +79,10 @@ export class ProjectController {
   ) {
     return this.service.submitMilestoneProof(req.user.id, id, dto);
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('search/global')
+  userSearch(@Req() req: any, @Query('q') query: string) {
+    return this.service.userGlobalSearch(req.user.id, query);
+  }
 }

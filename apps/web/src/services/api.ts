@@ -199,6 +199,9 @@ export const ApiService = {
 
     getOwnerView: (id: string, token: string) =>
       serverFetch<any>(`/projects/${id}/manage`, token),
+
+    globalSearch: (query: string) =>
+      apiClient.get(`/projects/search/global?q=${encodeURIComponent(query)}`).then(r => r.data),
   },
 
   // --- DONATIONS ---

@@ -345,4 +345,107 @@ export class ProjectService {
       disbursements: disbursementsWithStatus,
     };
   }
+
+  /**
+   * User-Scoped Global Search
+   * Searches public projects + user-specific private data (proposals, transactions, etc.)
+   * Scoped to the specific userId to prevent data leakage.
+   */
+  async userGlobalSearch(userId: string, query: string) {
+    if (!query || query.trim().length < 2) return null;
+
+    const searchTerm = query.trim();
+    const textFilter = { contains: searchTerm, mode: 'insensitive' as const };
+
+    // Find valid Enum values for AuditAction that match the search string 
+    // to avoid the PrismaClientValidationError on Enum fields.
+    const matchedActions = Object.values(AuditAction).filter((a) =>
+      a.toLowerCase().includes(searchTerm.toLowerCase()),
+    ) as AuditAction[];
+
+    const [projects, proposals, transactions, subscriptions, auditLogs] = await Promise.all([
+      // 1. All Active Projects (Public Discovery)
+      this.prisma.project.findMany({
+        where: {
+          status: ProjectStatus.ACTIVE,
+          isActive: true,
+          OR: [
+            { title: textFilter },
+            { description: textFilter },
+            { location: textFilter },
+          ],
+        },
+        take: 5,
+        select: { id: true, title: true, slug: true, currency: true, raisedAmount: true, targetAmount: true },
+      }),
+
+      // 2. User's Own Proposals (Private Scope)
+      this.prisma.projectProposal.findMany({
+        where: {
+          userId,
+          OR: [
+            { title: textFilter },
+            { shortDesc: textFilter }
+          ],
+        },
+        take: 5,
+        select: { id: true, title: true, status: true },
+      }),
+
+      // 3. User's Own Wallet Transactions (Private Scope)
+      this.prisma.walletTransaction.findMany({
+        where: {
+          wallet: { userId },
+          OR: [
+            { reference: textFilter },
+            { description: textFilter }
+          ],
+        },
+        take: 5,
+        select: { id: true, reference: true, amount: true, currency: true, createdAt: true, description: true },
+      }),
+
+      // 4. User's Own Subscriptions (Private Scope)
+      this.prisma.subscription.findMany({
+        where: {
+          userId,
+          project: { title: textFilter },
+        },
+        take: 3,
+        include: { project: { select: { title: true, slug: true } } },
+      }),
+
+      // 5. User's Own Audit Logs (Excludes simple logins, filtered by Enum match)
+      this.prisma.auditLog.findMany({
+        where: {
+          userId,
+          action: { not: AuditAction.USER_LOGIN },
+          OR: [
+            ...(matchedActions.length > 0 ? [{ action: { in: matchedActions } }] : []),
+            { entityType: textFilter },
+          ],
+        },
+        take: 5,
+        select: { id: true, action: true, createdAt: true },
+      }),
+    ]);
+
+    // 6. Navigation Shortcuts (Client-side virtual results)
+    const nav: any[] = [];
+    const q = searchTerm.toLowerCase();
+    if ('profile'.includes(q)) nav.push({ label: 'Edit Profile', path: '/dashboard/settings?tab=profile' });
+    if ('security password 2fa'.includes(q)) nav.push({ label: 'Security & Password', path: '/dashboard/settings?tab=security' });
+    if ('wallet fund deposit'.includes(q)) nav.push({ label: 'Fund Wallet', path: '/dashboard/wallet/fund' });
+    if ('subscription recurring'.includes(q)) nav.push({ label: 'Manage Subscriptions', path: '/dashboard/subscriptions' });
+    if ('history ledger'.includes(q)) nav.push({ label: 'Transaction History', path: '/dashboard/history' });
+
+    return {
+      projects,
+      proposals,
+      transactions,
+      subscriptions,
+      auditLogs,
+      navigation: nav,
+    };
+  }
 }
