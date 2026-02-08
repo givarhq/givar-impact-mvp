@@ -6,6 +6,7 @@ import { Search, Filter, X, Building2, LayoutGrid } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { cn } from '../../../lib/utils/cn';
 
 export function OrganizationFilters() {
     const router = useRouter();
@@ -14,6 +15,7 @@ export function OrganizationFilters() {
     const [search, setSearch] = useState(searchParams.get('search') || '');
     const [status, setStatus] = useState(searchParams.get('status') || 'all');
     const [sortBy, setSortBy] = useState(searchParams.get('sortBy') || 'createdAt');
+    const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
@@ -36,51 +38,108 @@ export function OrganizationFilters() {
         setSearch('');
         setStatus('all');
         setSortBy('createdAt');
-        router.replace('?page=1');
     };
 
     return (
-        <div className="flex flex-col md:flex-row gap-4 p-1">
-            <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Search by legal name, RC number, or email..."
-                    className="pl-9 h-11 bg-card border-border rounded-xl shadow-sm focus-visible:ring-primary/20"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
+        <div className="space-y-8">
+            <div className="flex items-center justify-between gap-4 w-full relative min-h-[40px]">
+                <div className="flex items-center gap-6 flex-1 min-w-0">
+                    <h1 className="md:hidden text-xl font-semibold tracking-tight text-foreground whitespace-nowrap">
+                        Organizations
+                    </h1>
+
+                    <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-transparent focus-within:border-primary/30 transition-all">
+                        <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input
+                            placeholder="Search entities..."
+                            className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
+                        className={cn(
+                            "md:hidden h-10 w-10 rounded-xl transition-all",
+                            isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
+                        )}
+                    >
+                        {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                    </Button>
+
+                    <div className="hidden md:flex items-center gap-3">
+                        <Select value={status} onValueChange={setStatus}>
+                            <SelectTrigger className="w-[180px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
+                                <div className="flex items-center gap-2">
+                                    <Filter className="h-3 w-3 text-muted-foreground" />
+                                    <SelectValue placeholder="Verification" />
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-border shadow-xl">
+                                <SelectItem value="all">All Entities</SelectItem>
+                                <SelectItem value="PENDING">Pending Review</SelectItem>
+                                <SelectItem value="VERIFIED">Verified</SelectItem>
+                                <SelectItem value="REJECTED">Rejected</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                            <SelectTrigger className="w-[150px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
+                                <SelectValue placeholder="Sort by" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-border shadow-xl">
+                                <SelectItem value="createdAt">Date Joined</SelectItem>
+                                <SelectItem value="legalName">Alphabetical</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {(search || status !== 'all' || sortBy !== 'createdAt') && (
+                            <Button variant="ghost" onClick={clear} className="h-10 px-4 rounded-xl text-muted-foreground text-xs font-semibold">
+                                Reset
+                            </Button>
+                        )}
+                    </div>
+                </div>
             </div>
 
-            <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="w-full md:w-[200px] h-11 bg-card border-border rounded-xl">
-                    <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4 text-muted-foreground" />
-                        <SelectValue placeholder="Verification Status" />
+            {isMobileSearchVisible && (
+                <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300">
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search entities..."
+                            className="pl-11 h-12 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/20"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
                     </div>
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border shadow-xl">
-                    <SelectItem value="all">All Entities</SelectItem>
-                    <SelectItem value="PENDING">Pending Review</SelectItem>
-                    <SelectItem value="VERIFIED">Verified</SelectItem>
-                    <SelectItem value="REJECTED">Rejected</SelectItem>
-                    <SelectItem value="NOT_SUBMITTED">Incomplete</SelectItem>
-                </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-[180px] h-11 bg-card border-border rounded-xl">
-                    <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl border-border shadow-xl">
-                    <SelectItem value="createdAt">Date Joined</SelectItem>
-                    <SelectItem value="legalName">Alphabetical</SelectItem>
-                </SelectContent>
-            </Select>
-
-            {(search || status !== 'all' || sortBy !== 'createdAt') && (
-                <Button variant="ghost" onClick={clear} className="h-11 px-4 rounded-xl text-muted-foreground hover:text-foreground">
-                    <X className="h-4 w-4 mr-2" /> Reset
-                </Button>
+                    <div className="flex flex-col gap-2">
+                        <Select value={status} onValueChange={setStatus}>
+                            <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
+                                <div className="flex items-center gap-2">
+                                    <Filter className="h-3 w-3" />
+                                    <SelectValue placeholder="Verification Status" />
+                                </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Entities</SelectItem>
+                                <SelectItem value="PENDING">Pending Review</SelectItem>
+                                <SelectItem value="VERIFIED">Verified</SelectItem>
+                                <SelectItem value="REJECTED">Rejected</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {(search || status !== 'all' || sortBy !== 'createdAt') && (
+                            <Button variant="outline" onClick={clear} className="h-12 rounded-2xl border-dashed border-border text-xs font-semibold">
+                                Reset Filters
+                            </Button>
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );
