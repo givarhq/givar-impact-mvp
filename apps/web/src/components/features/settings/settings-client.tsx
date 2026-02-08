@@ -145,7 +145,7 @@ export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
                             >
                                 <div className="flex items-center gap-4">
                                     <div className={cn(
-                                        "h-12 w-12 rounded-2xl flex items-center justify-center border shadow-sm",
+                                        "h-12 w-12 rounded-2xl flex items-center justify-center border shadow-sm shrink-0", // Added shrink-0
                                         opt.bg,
                                         opt.color,
                                         "border-current/10"
