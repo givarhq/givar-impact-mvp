@@ -25,11 +25,12 @@ export function middleware(request: NextRequest) {
       // Fallback if cookie is malformed
     }
 
-    // Determine if the user belongs in the admin environment.
-    // SUPERADMIN is always true. ADMIN depends on view mode and impersonation status.
+    // Fixed logic: Respect viewMode for both ADMIN and SUPERADMIN roles.
+    // This allows elevated accounts to use the "Giver Mode" perspective.
     const shouldBeInAdminEnv =
-      userRole === 'SUPERADMIN' ||
-      (userRole === 'ADMIN' && viewMode !== 'USER' && !isImpersonating);
+      (userRole === 'ADMIN' || userRole === 'SUPERADMIN') &&
+      viewMode !== 'USER' &&
+      !isImpersonating;
 
     // If an admin-level user is on a public page, redirect them to their home panel.
     if (isPublicPath) {
@@ -37,12 +38,12 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(target, request.url));
     }
 
-    // If an admin-level user tries to access the user dashboard, force them back to the admin panel.
+    // If an admin-level user tries to access the user dashboard while in Admin Mode, force them to Admin.
     if (pathname.startsWith('/dashboard') && shouldBeInAdminEnv) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
 
-    // If a non-admin user tries to access any admin route, send them to their dashboard.
+    // If any user tries to access an admin route while in User Mode or without permissions, redirect to dashboard.
     if (pathname.startsWith('/admin') && !shouldBeInAdminEnv) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
@@ -63,7 +64,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Apply middleware to all routes except for API calls, static files, and image optimization.
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
