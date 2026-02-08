@@ -8,7 +8,8 @@ import {
   Settings,
   ChevronDown,
   ShieldCheck,
-  Lock
+  Lock,
+  CircleUser
 } from 'lucide-react';
 import { ThemeToggle } from './theme-toggle';
 import { ViewModeToggle } from './view-mode-toggle';
@@ -49,12 +50,15 @@ export function AdminHeader({ user }: { user: any }) {
   const currentTitle = PAGE_TITLES[pathname] || 'Admin Console';
   const initial = user?.firstName?.[0] || 'A';
   const displayName = isClient ? `${user?.firstName} ${user?.lastName}` : 'Admin';
+  const avatarUrl = user?.avatarUrl;
 
   const handleLogout = async () => {
     try {
       await ApiService.auth.logout();
       deleteCookie('givar_token');
       deleteCookie('givar_user');
+      deleteCookie('givar_view_mode');
+      deleteCookie('givar_is_impersonating');
       router.push('/login');
       toast.success("Admin session terminated");
     } catch (error) {
@@ -83,8 +87,7 @@ export function AdminHeader({ user }: { user: any }) {
 
       <div className="flex-1" />
 
-      <div className="flex items-center gap-3 md:gap-4">
-        {/* View Toggle: Hidden during impersonation to prevent identity locks */}
+      <div className="flex items-center gap-2 md:gap-3">
         {isClient && !isImpersonating && <ViewModeToggle currentRole="ADMIN" />}
 
         <div className="hidden lg:flex items-center text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-lg border border-border/50">
@@ -94,64 +97,58 @@ export function AdminHeader({ user }: { user: any }) {
 
         <ThemeToggle />
 
-        <div className="h-8 w-px bg-border/50 hidden md:block" />
+        <div className="h-8 w-px bg-border/50 hidden md:block mx-1" />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 pl-2 outline-none group">
-              <div className="hidden sm:block text-right">
-                <p className="text-xs font-bold text-foreground leading-none group-hover:text-primary transition-colors">
-                  {displayName}
-                </p>
-                <p className="text-[10px] text-muted-foreground font-medium mt-1 uppercase tracking-wider">Superuser</p>
+            <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
+              <div className="relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm bg-destructive/10 flex items-center justify-center text-destructive">
+                {isClient && avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : isClient && user?.firstName ? (
+                  <span className="font-bold text-sm uppercase">
+                    {user.firstName[0]}
+                  </span>
+                ) : (
+                  <CircleUser className="h-6 w-6" />
+                )}
               </div>
-              <div className="relative">
-                <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-gradient-to-tr from-destructive to-orange-500 shadow-lg shadow-destructive/20 flex items-center justify-center text-white font-black text-sm border-2 border-background group-hover:scale-105 transition-transform">
-                  {isClient ? initial : 'A'}
-                </div>
-                <div className="absolute -bottom-1 -right-1 bg-background rounded-full border border-border p-0.5">
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                </div>
+              <div className="hidden text-left md:block pr-2">
+                <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[100px]">
+                  {isClient && user?.firstName ? user.firstName : 'Admin'}
+                </span>
               </div>
+              <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
             </button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-56 rounded-[20px] p-2 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl">
-            <DropdownMenuLabel className="font-normal p-2">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-bold leading-none text-foreground">{displayName}</p>
-                <p className="text-xs leading-none text-muted-foreground truncate opacity-70">{user?.email}</p>
+          <DropdownMenuContent align="end" className="w-64 rounded-2xl p-1 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl">
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1 p-2">
+                <p className="text-sm font-bold leading-none text-foreground">
+                  {displayName}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground truncate opacity-70">
+                  {user?.email}
+                </p>
               </div>
             </DropdownMenuLabel>
 
-            <div className="px-2 pb-2">
-              <div className="flex items-center gap-2 text-[10px] font-bold text-destructive bg-destructive/10 px-2 py-1.5 rounded-lg">
-                <Lock className="h-3 w-3" />
-                ROOT PRIVILEGES ACTIVE
-              </div>
-            </div>
+            <DropdownMenuSeparator />
 
-            <DropdownMenuSeparator className="bg-border/50" />
-
-            <DropdownMenuItem
-              onClick={() => router.push('/admin/settings')}
-              className="rounded-xl cursor-pointer py-2.5 gap-3 hover:bg-primary/5 focus:bg-primary/5"
-            >
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Settings className="h-4 w-4" />
+            <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/admin/settings')}>
+              <div className="h-9 w-9 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive">
+                <Settings className="h-4.5 w-4.5" />
               </div>
-              <span className="font-bold text-xs text-foreground">System Settings</span>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm">System Settings</span>
+              </div>
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator className="bg-border/50" />
+            <DropdownMenuSeparator />
 
-            <DropdownMenuItem
-              onClick={handleLogout}
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-xl cursor-pointer py-2.5 gap-3"
-            >
-              <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center">
-                <LogOut className="h-4 w-4" />
-              </div>
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-xl cursor-pointer py-3 gap-3">
+              <LogOut className="h-4 w-4 ml-2.5" />
               <span className="font-bold text-xs uppercase tracking-widest">Terminate Session</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
