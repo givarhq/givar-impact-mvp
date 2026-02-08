@@ -587,8 +587,6 @@ export class AdminService {
     };
 
     // 2. Dynamic Sort Resolution
-    // LIV sorting is handled via donation count proxy for MVP; 
-    // Native fields sorted directly.
     const orderBy: any = {};
     if (sortBy === 'impactValue') {
       orderBy.donations = { _count: sortOrder };
@@ -1665,12 +1663,18 @@ export class AdminService {
   }
 
   async updateUserStatus(adminId: string, userId: string, action: 'LOCK' | 'UNLOCK') {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
+    const target = await this.prisma.user.findUnique({ where: { id: userId } });
 
-    // Safety Guard: Prevent accidental self-lockout or locking other admins
-    if (user.role === UserRole.ADMIN) {
-      throw new ForbiddenException('Administrative accounts cannot be locked via this protocol.');
+    if (!target) throw new NotFoundException('User not found');
+
+    // Hierarchy Check
+    if (target.role === UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Superadmin accounts are immutable.');
+    }
+
+    if (target.role === UserRole.ADMIN && admin?.role !== UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Only Superadmins can modify Admin status.');
     }
 
     const lockUntil = action === 'LOCK' ? add(new Date(), { years: 100 }) : null;
@@ -1691,7 +1695,7 @@ export class AdminService {
         entityType: 'User',
         metadata: {
           action,
-          previousLockStatus: !!user.accountLockedUntil,
+          previousLockStatus: !!target.accountLockedUntil,
           performedBy: adminId
         }
       }, tx);
@@ -1701,8 +1705,19 @@ export class AdminService {
   }
 
   async updateUserRole(adminId: string, userId: string, newRole: UserRole) {
+    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
     const target = await this.prisma.user.findUnique({ where: { id: userId } });
+
     if (!target) throw new NotFoundException('User not found');
+
+    // Security Guards
+    if (admin?.role !== UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Only Superadmins can promote or demote roles.');
+    }
+
+    if (target.role === UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Cannot modify the Superadmin role directly.');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.user.update({
@@ -1731,17 +1746,26 @@ export class AdminService {
    * Handles mass state transitions for accounts with dedicated audit trails per unit.
    */
   async bulkUpdateUsers(adminId: string, data: { userIds: string[], action: 'LOCK' | 'UNLOCK' | 'SET_USER' | 'SET_ADMIN' }) {
+    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
     const targets = await this.prisma.user.findMany({
       where: { id: { in: data.userIds } }
     });
 
-    // Security Guard: Prevent mass-locking of administrative nodes
-    if (data.action === 'LOCK' && targets.some(u => u.role === UserRole.ADMIN)) {
-      throw new ForbiddenException('Safety Protocol: Batch contains administrative accounts that cannot be locked.');
+    const isSuperAdmin = admin?.role === UserRole.SUPERADMIN;
+
+    // Filter valid targets based on hierarchy
+    const validTargets = targets.filter(t => {
+      if (t.role === UserRole.SUPERADMIN) return false;
+      if (t.role === UserRole.ADMIN && !isSuperAdmin) return false;
+      return true;
+    });
+
+    if (validTargets.length === 0) {
+      throw new ForbiddenException('No actionable users selected based on your permission level.');
     }
 
     return this.prisma.$transaction(async (tx) => {
-      for (const user of targets) {
+      for (const user of validTargets) {
         let updateData: Prisma.UserUpdateInput = {};
         let auditAction: AuditAction;
 
@@ -1755,10 +1779,12 @@ export class AdminService {
             auditAction = AuditAction.USER_UNLOCKED;
             break;
           case 'SET_ADMIN':
+            if (!isSuperAdmin) throw new ForbiddenException('Only Superadmins can promote to Admin.');
             updateData = { role: UserRole.ADMIN };
             auditAction = AuditAction.USER_ROLE_CHANGED;
             break;
           case 'SET_USER':
+            if (!isSuperAdmin) throw new ForbiddenException('Only Superadmins can demote Admins.');
             updateData = { role: UserRole.USER };
             auditAction = AuditAction.USER_ROLE_CHANGED;
             break;
@@ -1771,16 +1797,17 @@ export class AdminService {
 
         await this.audit.log({
           userId: adminId,
-          action: auditAction,
+          action: auditAction!,
           entityId: user.id,
           entityType: 'User',
           metadata: { action: data.action, forensicContext: 'BULK_OPERATION' }
         }, tx);
       }
 
-      return { count: targets.length };
+      return { count: validTargets.length, skipped: targets.length - validTargets.length };
     }, { timeout: 15000 });
   }
+
 
   async exportUsersToCsv(query: {
     search?: string;
@@ -1841,18 +1868,21 @@ export class AdminService {
   }
 
   async impersonateUser(adminId: string, targetUserId: string) {
+    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
     const targetUser = await this.prisma.user.findUnique({
       where: { id: targetUserId },
       select: { id: true, email: true, role: true, firstName: true, lastName: true }
     });
 
-    if (!targetUser) {
-      throw new NotFoundException('Target user for impersonation not found');
+    if (!targetUser) throw new NotFoundException('Target user not found');
+
+    // Hierarchy Check
+    if (targetUser.role === UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Cannot impersonate Superadmin.');
     }
 
-    // Security Guard: Admins cannot impersonate other Admins
-    if (targetUser.role === UserRole.ADMIN) {
-      throw new ForbiddenException('Safety Protocol: Administrative impersonation is strictly prohibited.');
+    if (targetUser.role === UserRole.ADMIN && admin?.role !== UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Admins cannot impersonate other Admins.');
     }
 
     // Generate Forensic JWT with short TTL (15 minutes)

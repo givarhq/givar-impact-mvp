@@ -33,6 +33,7 @@ enum TxStatus {
 enum UserRole {
   USER
   ADMIN
+  SUPERADMIN
 }
 
 enum AccountType {
