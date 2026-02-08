@@ -10,24 +10,17 @@ export default async function DashboardLayout({
 }) {
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
-  const viewMode = cookieStore.get('givar_view_mode')?.value; // 'ADMIN' | 'USER'
-  const isImpersonating = cookieStore.get('givar_is_impersonating')?.value === 'true';
 
   if (!token) {
+    // This redirect is fine, as it's for unauthenticated users.
     redirect('/login');
   }
 
   const dbUser = await ApiService.auth.getMe(token);
 
   if (!dbUser) {
+    // This clears the invalid session and redirects correctly.
     redirect('/api/auth/clear-session');
-  }
-
-  // IDENTITY ENFORCEMENT: 
-  // If user is an Admin but hasn't explicitly switched to 'USER' mode
-  // and isn't currently in a Forensic support session, force them back to Admin.
-  if (dbUser.role === 'ADMIN' && viewMode !== 'USER' && !isImpersonating) {
-    redirect('/admin');
   }
 
   return (
