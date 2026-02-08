@@ -29,10 +29,7 @@ export default async function SettingsPage() {
     return (
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
             <div className="flex flex-col gap-1 px-1">
-                <h1 className="text-lg md:hidden font-black tracking-tight text-foreground">Settings</h1>
-                <p className="text-sm text-muted-foreground font-medium">
-                    Manage your account identity, security protocols, and organization trust.
-                </p>
+                <h1 className="text-xl md:hidden font-black tracking-tight text-foreground">Settings</h1>
             </div>
 
             <SettingsClient user={user} orgProfile={orgProfile} />
