@@ -30,7 +30,7 @@ import { WalletWidget } from './wallet-widget';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
-  '/dashboard/impact': 'Discover Impact',
+  '/dashboard/impact': 'Explore Causes',
   '/dashboard/history': 'Transaction History',
   '/dashboard/subscriptions': 'Recurring Donations',
   '/dashboard/settings': 'Account Settings',
