@@ -27,6 +27,7 @@ import { ApiService } from '../../services/api';
 import { useState, useEffect } from 'react';
 import { ViewModeToggle } from './view-mode-toggle';
 import { WalletWidget } from './wallet-widget';
+import { UserGlobalSearch } from '../features/dashboard/user-global-search';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
@@ -73,50 +74,44 @@ export function Header({ user }: { user: any }) {
   return (
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
 
-      <div className="md:hidden flex items-center gap-3">
-        <Link href="/dashboard" className="flex items-center gap-2 group">
-          <div>
-            <Image
-              src="/Givar1.png"
-              alt="Givar Logo"
-              width={32}
-              height={32}
-              className="object-contain"
-              priority
-            />
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex items-center gap-6 w-full">
+          {/* Mobile Brand */}
+          <div className="md:hidden flex items-center gap-3 shrink-0">
+            <Link href="/dashboard" className="flex items-center gap-2 group">
+              <div>
+                <Image
+                  src="/Givar1.png"
+                  alt="Givar Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                Givar<span className="text-primary">.</span>
+              </span>
+            </Link>
           </div>
-          <span className="text-xl font-bold tracking-tight">
-            Givar<span className="text-primary">.</span>
-          </span>
-        </Link>
-      </div>
 
-      <div className="hidden md:flex flex-col">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-foreground">
-            {currentTitle}
-          </h1>
+          {/* Desktop: Title and Global Search */}
+          <div className="hidden md:flex items-center gap-10 flex-1">
+            <h1 className="text-xl font-semibold text-foreground shrink-0 hidden lg:block">
+              {currentTitle}
+            </h1>
+            <UserGlobalSearch />
+          </div>
         </div>
       </div>
 
-      <div className="flex-1" />
-
-      <div className="flex items-center gap-2 md:gap-3">
-        {isClient && user?.role === 'ADMIN' && !isImpersonating && (
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        {isClient && ['ADMIN', 'SUPERADMIN'].includes(user?.role) && !isImpersonating && (
           <ViewModeToggle currentRole={user.role} />
         )}
 
         <div className="hidden lg:flex">
           <WalletWidget />
-        </div>
-
-        <div className="hidden md:flex items-center rounded-full bg-secondary/50 px-4 py-2.5 transition-colors hover:bg-secondary border border-transparent hover:border-border/50">
-          <Search className="mr-2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-transparent text-sm outline-none placeholder:text-muted-foreground w-24 lg:w-36 text-foreground"
-          />
         </div>
 
         <ThemeToggle />
