@@ -25,14 +25,14 @@ export class OrganizationController {
 
 
   // ADMIN: List queue
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Get('admin/pending')
   getPending() {
     return this.service.getPendingVerifications();
   }
 
   // ADMIN: Approve/Reject
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Patch('admin/review/:id')
   review(
     @Param('id') id: string,
@@ -42,13 +42,13 @@ export class OrganizationController {
     return this.service.reviewVerification(id, req.user.id, body.status, body.feedback);
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Get('admin/list')
   async getAll(@Query() query: OrganizationQueryDto) {
     return this.service.findAllAdvanced(query);
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Get('admin/:id')
   async getOne(@Param('id') id: string) {
     return this.service.findOne(id);

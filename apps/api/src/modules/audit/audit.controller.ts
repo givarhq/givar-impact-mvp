@@ -7,18 +7,18 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { SkipThrottle } from '@nestjs/throttler';
 
 @SkipThrottle()
-@Controller('admin/audit') 
+@Controller('admin/audit')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 export class AuditController {
-  constructor(private readonly auditService: AuditService) {}
+  constructor(private readonly auditService: AuditService) { }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Get('summary')
   async getSummary() {
     return this.auditService.getAuditSummary();
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Get()
   async getLogs(
     @Query('page') page?: number,
@@ -29,9 +29,9 @@ export class AuditController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    return this.auditService.getLogs({ 
-      page: page ? Number(page) : 1, 
-      limit: limit ? Number(limit) : 20, 
+    return this.auditService.getLogs({
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
       userId,
       search,
       action,

@@ -34,7 +34,7 @@ export class ProjectController {
 
   // Protected: Admin Only
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Post()
   create(@Body() dto: CreateProjectDto) {
     return this.service.create(dto);
@@ -42,7 +42,7 @@ export class ProjectController {
 
   // Protected: Admin Only
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateProjectDto) {
     return this.service.update(id, dto);
@@ -50,7 +50,7 @@ export class ProjectController {
 
   // Protected: Admin Only (Soft Delete)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(id);

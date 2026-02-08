@@ -32,7 +32,7 @@ export class ProposalController {
     }
 
     // 1. Admin Bypass (No audit needed for admin viewing their own/users docs usually, or audit separately)
-    if (req.user.role === UserRole.ADMIN) {
+    if (req.user.role === UserRole.ADMIN || req.user.role === UserRole.SUPERADMIN) {
       return this.storage.getPresignedViewUrl(key);
     }
 

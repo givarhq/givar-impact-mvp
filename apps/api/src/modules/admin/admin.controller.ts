@@ -15,7 +15,7 @@ import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
 @SkipThrottle()
 @Controller('admin')
 @UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
 export class AdminController {
   constructor(private service: AdminService) { }
 
