@@ -109,7 +109,7 @@ export class ProjectService {
       const raised = Number(hydrated.raisedAmount || 0n);
       const target = Number(hydrated.targetAmount || 0n);
 
-      const isSystemProject = p.user?.role === 'ADMIN';
+      const isSystemProject = p.user?.role === 'ADMIN' || p.user?.role === 'SUPERADMIN';
 
       return {
         ...hydrated,
@@ -161,7 +161,7 @@ export class ProjectService {
     ]);
     const donorCount = userDonors.length + guestDonors.length;
 
-    const isSystemProject = project.user?.role === 'ADMIN';
+    const isSystemProject = project.user?.role === 'ADMIN' || project.user?.role === 'SUPERADMIN';
 
     return {
       ...hydrated,
