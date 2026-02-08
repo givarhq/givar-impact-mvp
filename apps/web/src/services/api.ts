@@ -362,6 +362,16 @@ export const ApiService = {
 
     impersonate: (userId: string) =>
       apiClient.post(`/admin/users/${userId}/impersonate`).then(r => r.data),
+
+    globalSearch: (query: string, token: string) =>
+      serverFetch<{
+        users: any[];
+        projects: any[];
+        proposals: any[];
+        organizations: any[];
+        transactions: any[];
+        auditLogs: any[];
+      }>(`/admin/search?q=${encodeURIComponent(query)}`, token),
   },
 
   // Organization Verification Domain

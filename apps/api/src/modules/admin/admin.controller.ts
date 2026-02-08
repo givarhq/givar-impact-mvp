@@ -263,4 +263,9 @@ export class AdminController {
   async impersonate(@Req() req: any, @Param('id') id: string) {
     return this.service.impersonateUser(req.user.id, id);
   }
+
+  @Get('search')
+  globalSearch(@Query('q') query: string) {
+    return this.service.globalSearch(query);
+  }
 }

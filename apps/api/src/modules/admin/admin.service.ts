@@ -1923,4 +1923,120 @@ export class AdminService {
       }
     };
   }
+
+  /**
+   * Omni-Search Engine
+   * Scans critical tables for matches against the query string.
+   */
+  async globalSearch(query: string) {
+    if (!query || query.trim().length < 2) {
+      return {
+        users: [],
+        projects: [],
+        proposals: [],
+        organizations: [],
+        transactions: [],
+        auditLogs: []
+      };
+    }
+
+    const searchTerm = query.trim();
+    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(searchTerm);
+
+    // If it looks like a UUID, prioritized exact ID lookups
+    const idFilter = isUuid ? { id: searchTerm } : {};
+
+    // General text filter
+    const textFilter = { contains: searchTerm, mode: 'insensitive' as const };
+
+    const [users, projects, proposals, organizations, transactions, auditLogs] = await Promise.all([
+      // 1. Users
+      this.prisma.user.findMany({
+        where: {
+          OR: [
+            { id: isUuid ? searchTerm : undefined },
+            { email: textFilter },
+            { firstName: textFilter },
+            { lastName: textFilter },
+          ]
+        },
+        take: 5,
+        select: { id: true, email: true, firstName: true, lastName: true, role: true, accountType: true }
+      }),
+
+      // 2. Projects
+      this.prisma.project.findMany({
+        where: {
+          OR: [
+            { id: isUuid ? searchTerm : undefined },
+            { title: textFilter },
+            { slug: textFilter },
+            { location: textFilter }
+          ]
+        },
+        take: 5,
+        select: { id: true, title: true, slug: true, status: true, raisedAmount: true, targetAmount: true, currency: true }
+      }),
+
+      // 3. Proposals
+      this.prisma.projectProposal.findMany({
+        where: {
+          OR: [
+            { id: isUuid ? searchTerm : undefined },
+            { title: textFilter }
+          ]
+        },
+        take: 5,
+        select: { id: true, title: true, status: true, category: { select: { name: true } } }
+      }),
+
+      // 4. Organizations
+      this.prisma.organizationProfile.findMany({
+        where: {
+          OR: [
+            { id: isUuid ? searchTerm : undefined },
+            { legalName: textFilter },
+            { registrationNumber: textFilter }
+          ]
+        },
+        take: 5,
+        select: { id: true, legalName: true, registrationNumber: true, status: true }
+      }),
+
+      // 5. Transactions (Wallet & Guest)
+      this.prisma.walletTransaction.findMany({
+        where: {
+          OR: [
+            { id: isUuid ? searchTerm : undefined },
+            { reference: textFilter },
+            { description: textFilter }
+          ]
+        },
+        take: 5,
+        select: { id: true, reference: true, amount: true, currency: true, type: true, status: true, description: true }
+      }),
+
+      // 6. Audit Logs (Forensic search)
+      this.prisma.auditLog.findMany({
+        where: {
+          OR: [
+            { id: isUuid ? searchTerm : undefined },
+            { entityId: searchTerm }, // Exact match usually for Entity IDs
+            { ipAddress: textFilter }
+          ]
+        },
+        take: 5,
+        select: { id: true, action: true, entityType: true, entityId: true, createdAt: true, ipAddress: true }
+      })
+    ]);
+
+    return {
+      users,
+      projects,
+      proposals,
+      organizations,
+      transactions,
+      auditLogs
+    };
+  }
 }
