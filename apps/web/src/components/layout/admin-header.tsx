@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   LogOut,
@@ -76,8 +77,23 @@ export function AdminHeader({ user }: { user: any }) {
           {currentTitle}
         </h1>
 
-        <div className="md:hidden flex items-center gap-2">
-          <span className="font-black text-lg tracking-tighter text-foreground">GIVAR<span className="text-primary">.</span></span>
+        <div className="md:hidden flex items-center gap-3">
+          <Link href="/admin" className="flex items-center gap-2 group">
+            <div>
+              <Image
+                src="/Givar1.png"
+                alt="Givar Logo"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-foreground">
+              Givar<span className="text-primary">.</span>
+            </span>
+          </Link>
+
           <div className="flex items-center gap-1 bg-destructive/10 border border-destructive/20 px-1.5 py-0.5 rounded-md">
             <ShieldCheck className="h-3 w-3 text-destructive" />
             <span className="text-[8px] uppercase text-destructive font-black tracking-wider">Root</span>
