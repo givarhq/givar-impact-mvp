@@ -26,6 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { GlobalSearch } from '../features/admin/global-search';
 
 const PAGE_TITLES: Record<string, string> = {
   '/admin': 'Platform Overview',
@@ -57,7 +58,6 @@ export function AdminHeader({ user }: { user: any }) {
   const handleLogout = async () => {
     try {
       await ApiService.auth.logout();
-      // Atomic cleanup of all session artifacts
       deleteCookie('givar_token');
       deleteCookie('givar_user');
       deleteCookie('givar_view_mode');
@@ -68,7 +68,6 @@ export function AdminHeader({ user }: { user: any }) {
       router.push('/login');
       toast.success("Session terminated securely");
     } catch (error) {
-      // Force cleanup even if API fails
       deleteCookie('givar_token');
       deleteCookie('givar_user');
       router.push('/login');
@@ -78,65 +77,50 @@ export function AdminHeader({ user }: { user: any }) {
   return (
     <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-8 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
 
-      <div className="flex flex-col">
-        <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight hidden md:block">
-          {currentTitle}
-        </h1>
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="flex items-center gap-6 w-full">
 
-        <div className="md:hidden flex items-center gap-3">
-          <Link href="/admin" className="flex items-center gap-2 group">
-            <div>
-              <Image
-                src="/Givar1.png"
-                alt="Givar Logo"
-                width={32}
-                height={32}
-                className="object-contain"
-                priority
-              />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
-              Givar<span className="text-primary">.</span>
-            </span>
-          </Link>
+          <div className="md:hidden flex items-center gap-3 shrink-0">
+            <Link href="/admin" className="flex items-center gap-2 group">
+              <div>
+                <Image
+                  src="/Givar1.png"
+                  alt="Givar Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                Givar<span className="text-primary">.</span>
+              </span>
+            </Link>
 
-          <div className={cn(
-            "flex items-center gap-1 border px-1.5 py-0.5 rounded-md",
-            isSuperAdmin
-              ? "bg-purple-500/10 border-purple-500/20"
-              : "bg-destructive/10 border-destructive/20"
-          )}>
-            {isSuperAdmin ? <Zap className="h-3 w-3 text-purple-500" /> : <ShieldCheck className="h-3 w-3 text-destructive" />}
-            <span className={cn(
-              "text-[8px] uppercase font-black tracking-wider",
-              isSuperAdmin ? "text-purple-600" : "text-destructive"
+            <div className={cn(
+              "flex items-center gap-1 border px-1.5 py-0.5 rounded-md",
+              isSuperAdmin ? "bg-purple-500/10 border-purple-500/20" : "bg-destructive/10 border-destructive/20"
             )}>
-              {isSuperAdmin ? 'Super' : 'Root'}
-            </span>
+              {isSuperAdmin ? <Zap className="h-3 w-3 text-purple-500" /> : <ShieldCheck className="h-3 w-3 text-destructive" />}
+              <span className={cn(
+                "text-[8px] uppercase font-black tracking-wider",
+                isSuperAdmin ? "text-purple-600" : "text-destructive"
+              )}>
+                {isSuperAdmin ? 'Super' : 'Root'}
+              </span>
+            </div>
+          </div>
+
+          <div className="hidden md:flex items-center flex-1 max-w-xl">
+            <GlobalSearch />
           </div>
         </div>
       </div>
 
-      <div className="flex-1" />
-
-      <div className="flex items-center gap-2 md:gap-3">
-        {/* Only show toggle for standard Admins, SuperAdmins are locked to Admin view for security unless impersonating */}
-        {isClient && user?.role === 'ADMIN' && !isImpersonating && (
+      <div className="flex items-center gap-2 md:gap-3 shrink-0">
+        {isClient && (
           <ViewModeToggle currentRole={user.role} />
         )}
-
-        <div className={cn(
-          "hidden lg:flex items-center text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg border",
-          isSuperAdmin
-            ? "bg-purple-500/5 text-purple-600 border-purple-500/20"
-            : "bg-muted/50 text-muted-foreground border-border/50"
-        )}>
-          <div className={cn(
-            "h-1.5 w-1.5 rounded-full animate-pulse mr-2",
-            isSuperAdmin ? "bg-purple-500" : "bg-emerald-500"
-          )} />
-          {isSuperAdmin ? 'Superuser Mode' : 'System Node: Active'}
-        </div>
 
         <ThemeToggle />
 
