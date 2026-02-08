@@ -18,7 +18,7 @@ export default async function AdminSettingsPage() {
 
     const user = await ApiService.auth.getMe(token);
 
-    if (!user || user.role !== 'ADMIN') {
+    if (!user || !['ADMIN', 'SUPERADMIN'].includes(user.role)) {
         redirect('/dashboard');
     }
 
