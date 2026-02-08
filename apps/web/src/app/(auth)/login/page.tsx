@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -22,6 +22,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -71,11 +72,15 @@ export default function LoginPage() {
       setCookie('givar_token', accessToken, { maxAge: 604800, path: '/' });
       setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
 
-      if (user.role === 'ADMIN') {
-        router.push('/admin');
+      // Handle intelligent redirection after login
+      const redirectPath = searchParams.get('redirect');
+
+      if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
+        router.push(redirectPath || '/admin');
       } else {
-        router.push('/dashboard');
+        router.push(redirectPath || '/dashboard');
       }
+
     } catch (error: any) {
       // Enhanced Error Parsing
       let message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
