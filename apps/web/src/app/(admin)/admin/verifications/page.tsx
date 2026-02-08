@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
-import { ShieldCheck } from 'lucide-react';
 import { VerificationTabs } from '../../../../components/features/admin/verification-tabs';
 import { Pagination } from '../../../../components/features/history/pagination';
+import { EvidenceFilters } from '../../../../components/features/admin/evidence-filters';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +22,6 @@ export default async function AdminVerificationPage({
     if (resolvedParams.search) params.set('search', resolvedParams.search);
     if (resolvedParams.status) params.set('status', resolvedParams.status);
 
-    // SOTA: Parallel Fetching
     const [orgsResult, evidenceResult] = await Promise.all([
         ApiService.organizations.getPending(token),
         ApiService.admin.getPendingEvidence(token, params)
@@ -30,12 +29,10 @@ export default async function AdminVerificationPage({
 
     const emptyData = { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-    // Normalize organization data
     const orgsData = orgsResult
         ? (Array.isArray(orgsResult) ? { data: orgsResult, meta: { total: orgsResult.length, page: 1, lastPage: 1 } } : orgsResult)
         : emptyData;
 
-    // Normalize evidence data
     const evidenceData = evidenceResult ?? emptyData;
 
     const activeTab = resolvedParams.tab || 'evidence';
@@ -43,11 +40,10 @@ export default async function AdminVerificationPage({
 
     return (
         <div className="space-y-8 pb-20 animate-in fade-in duration-500">
-            <div className="md:hidden flex flex-col gap-1 mb-2">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">Trust & Safety</h1>
-                <p className="text-sm text-muted-foreground">Verification and Audit Command Center</p>
-            </div>
+            {/* Header row with search and title */}
+            <EvidenceFilters />
 
+            {/* Content Tabs */}
             <VerificationTabs orgs={orgsData} evidence={evidenceData} />
 
             <div className="pt-4 border-t border-border/50">
