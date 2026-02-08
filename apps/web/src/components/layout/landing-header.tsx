@@ -58,14 +58,14 @@ export function LandingHeader({
           "hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-medium transition-colors",
           isDarkHeroState ? "text-zinc-200" : "text-muted-foreground"
         )}>
-          <Link href="/about" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
-            Our Mission
+          <Link href="/explore" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
+            Explore Projects
           </Link>
           <Link href="/#features" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
             How it Works
           </Link>
-          <Link href="/explore" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
-            Explore Projects
+          <Link href="/about" className={cn("transition-colors", isDarkHeroState ? "hover:text-white" : "hover:text-primary")}>
+            Our Mission
           </Link>
         </nav>
 
