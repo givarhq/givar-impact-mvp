@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -20,7 +20,7 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+function LoginComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +46,6 @@ export default function LoginPage() {
     setServerError(null);
 
     try {
-      // Client-side guard for 2FA step
       if (isMfaStep) {
         if (!data.twoFactorCode || data.twoFactorCode.length !== 6) {
           setServerError("Please enter a valid 6-digit code");
@@ -57,7 +56,6 @@ export default function LoginPage() {
 
       const response = await ApiService.auth.login(data);
 
-      // 1. Handle MFA Challenge
       if (response.mfaRequired) {
         setIsMfaStep(true);
         setIsLoading(false);
@@ -66,13 +64,11 @@ export default function LoginPage() {
         return;
       }
 
-      // 2. Handle Success
       const { accessToken, user } = response;
 
       setCookie('givar_token', accessToken, { maxAge: 604800, path: '/' });
       setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
 
-      // Handle intelligent redirection after login
       const redirectPath = searchParams.get('redirect');
 
       if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
@@ -82,16 +78,11 @@ export default function LoginPage() {
       }
 
     } catch (error: any) {
-      // Enhanced Error Parsing
       let message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
-
-      // If validation returns array, take the first readable message or join them cleanly
       if (Array.isArray(message)) {
         message = message[0];
       }
-
       setServerError(message);
-
       if (isMfaStep) {
         setValue('twoFactorCode', '');
       }
@@ -121,11 +112,9 @@ export default function LoginPage() {
       </div>
 
       {serverError && (
-        <div className="space-y-3 animate-in fade-in slide-in-from-top-1">
-          <div className="flex items-start gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <p className="leading-tight">{serverError}</p>
-          </div>
+        <div className="flex items-start gap-2 p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl animate-in fade-in slide-in-from-top-1">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <p className="leading-tight">{serverError}</p>
         </div>
       )}
 
@@ -246,4 +235,13 @@ export default function LoginPage() {
       )}
     </div>
   );
+}
+
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="h-96 flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <LoginComponent />
+    </Suspense>
+  )
 }
