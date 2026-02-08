@@ -21,25 +21,19 @@ export default async function AdminProjectsPage({
     const resolvedParams = await searchParams;
     const activeTab = (resolvedParams.tab as string) || 'live';
 
-    // Construct params for Project Service
     const projectParams = new URLSearchParams();
-
-    // Copy existing search/sort/category params
     Object.entries(resolvedParams).forEach(([key, value]) => {
         if (value && key !== 'tab') projectParams.set(key, String(value));
     });
 
-    // Context-Aware Logic
     if (activeTab === 'drafts') {
         projectParams.set('status', 'DRAFT');
     } else if (activeTab === 'live') {
-        // If user hasn't explicitly filtered by a status, exclude drafts by default
         if (!projectParams.has('status')) {
             projectParams.set('excludeDrafts', 'true');
         }
     }
 
-    // Construct params for Proposal Service (mostly search/page)
     const proposalParams = new URLSearchParams();
     Object.entries(resolvedParams).forEach(([key, value]) => {
         if (value && key !== 'tab') proposalParams.set(key, String(value));
@@ -60,18 +54,11 @@ export default async function AdminProjectsPage({
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-lg md:hidden font-black tracking-tight text-foreground">Cause Management</h1>
-                    <p className="text-sm text-muted-foreground font-medium">Oversee the lifecycle of every impact project on the platform.</p>
-                </div>
-                <Link href="/admin/projects/new" className="shrink-0">
-                    <Button className="rounded-2xl font-bold bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 h-12 px-6 border-0">
-                        <Plus className="mr-2 h-5 w-5" /> New Project
-                    </Button>
-                </Link>
-            </div>
 
+            {/* 1. Header & Filters (Standardized Title/Search Row) */}
+            <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
+
+            {/* 2. Global Actions & Tab Switcher */}
             <Tabs value={activeTab} className="w-full space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <TabsList className="bg-muted/50 p-1.5 rounded-[22px] h-14 w-full md:w-auto border border-border/40">
@@ -101,17 +88,14 @@ export default async function AdminProjectsPage({
                         </Link>
                     </TabsList>
 
-                    <div className="hidden lg:flex items-center gap-2 bg-card px-4 py-2 rounded-2xl border border-border/50 shadow-sm">
-                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                            {activeTab === 'proposals' ? `${proposals.length} In Pipeline` : `${projects.length} Records`}
-                        </span>
-                    </div>
+                    <Link href="/admin/projects/new" className="shrink-0 w-full md:w-auto">
+                        <Button className="w-full md:w-auto rounded-2xl font-bold bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 h-14 px-6 border-0">
+                            <Plus className="mr-2 h-5 w-5" /> New Project
+                        </Button>
+                    </Link>
                 </div>
 
-                <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
-
-                {/* LIVE PROJECTS TAB */}
+                {/* 3. Table Content */}
                 <TabsContent value="live" className="mt-0 outline-none">
                     <AdminProjectTable
                         projects={projects}
@@ -120,13 +104,11 @@ export default async function AdminProjectsPage({
                     />
                 </TabsContent>
 
-                {/* DRAFTS TAB */}
                 <TabsContent value="drafts" className="mt-0 outline-none">
                     {projects.length === 0 ? (
                         <div className="py-24 text-center border-2 border-dashed border-border rounded-[32px] bg-muted/10">
                             <Inbox className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-20" />
                             <h3 className="text-lg font-bold text-foreground opacity-60 uppercase tracking-widest">No Drafts Found</h3>
-                            <p className="text-sm text-muted-foreground mt-1">Start a new project to see it here.</p>
                         </div>
                     ) : (
                         <AdminProjectTable
@@ -137,7 +119,6 @@ export default async function AdminProjectsPage({
                     )}
                 </TabsContent>
 
-                {/* PROPOSALS TAB */}
                 <TabsContent value="proposals" className="mt-0 outline-none">
                     <AdminProposalTable proposals={proposals} />
                 </TabsContent>
