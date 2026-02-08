@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Lock, Unlock, Shield, X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Lock, Unlock, Shield, X, Loader2, ShieldOff } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { ConfirmModal } from '../../ui/confirm-modal';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { getCookie } from 'cookies-next';
 
 interface BulkActionsToolbarProps {
     selectedIds: string[];
@@ -18,6 +19,7 @@ type BulkActionType = 'LOCK' | 'UNLOCK' | 'SET_USER' | 'SET_ADMIN';
 export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarProps) {
     const router = useRouter();
     const [isBusy, setIsBusy] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
     const [confirmConfig, setConfirmConfig] = useState<{
         isOpen: boolean;
         action: BulkActionType | null
@@ -25,6 +27,20 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
         isOpen: false,
         action: null,
     });
+
+    useEffect(() => {
+        const cookie = getCookie('givar_user');
+        if (cookie) {
+            try {
+                const user = JSON.parse(cookie as string);
+                setUserRole(user.role);
+            } catch (e) {
+                // Ignore parse error
+            }
+        }
+    }, []);
+
+    const isSuperAdmin = userRole === 'SUPERADMIN';
 
     if (selectedIds.length === 0) return null;
 
@@ -53,14 +69,27 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
     const getActionMeta = (action: BulkActionType | null) => {
         if (!action) return { title: '', desc: '', variant: 'default' as const };
 
-        const label = action.replace('_', ' ');
+        const label = action.replace('SET_', '').replace('_', ' ');
         const count = selectedIds.length;
 
-        return {
-            title: `Confirm Batch ${label}`,
-            desc: `You are about to apply the ${label} status to ${count} selected user accounts. This procedure is forensic, audit-logged, and affects system-wide access permissions.`,
-            variant: (action === 'LOCK' ? 'destructive' : action === 'UNLOCK' ? 'warning' : 'default') as 'destructive' | 'warning' | 'default'
-        };
+        let title = `Confirm Batch ${label}`;
+        let desc = `You are about to apply the ${label} status to ${count} selected accounts.`;
+        let variant: 'default' | 'destructive' | 'warning' = 'default';
+
+        if (action === 'LOCK') {
+            variant = 'destructive';
+            desc += " This will restrict access immediately.";
+        } else if (action === 'SET_ADMIN') {
+            variant = 'warning';
+            title = "Promote to Admin";
+            desc += " These users will gain elevated system privileges. This is a high-risk action.";
+        } else if (action === 'SET_USER') {
+            variant = 'destructive';
+            title = "Demote to User";
+            desc += " These accounts will lose all administrative privileges.";
+        }
+
+        return { title, desc, variant };
     };
 
     const meta = getActionMeta(confirmConfig.action);
@@ -105,16 +134,34 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
                             <span className="hidden sm:inline">Unlock</span>
                         </Button>
 
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-10 rounded-full hover:bg-blue-500/10 text-white hover:text-white font-bold text-[9px] uppercase tracking-widest px-3 border-none"
-                            onClick={() => handleActionClick('SET_ADMIN')}
-                            disabled={isBusy}
-                        >
-                            <Shield className="h-3.5 w-3.5 text-blue-400 mr-1.5" />
-                            <span className="hidden sm:inline">Admin</span>
-                        </Button>
+                        {/* SUPERADMIN ONLY CONTROLS */}
+                        {isSuperAdmin && (
+                            <>
+                                <div className="w-px h-6 bg-white/10 mx-1" />
+
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-10 rounded-full hover:bg-blue-500/10 text-white hover:text-white font-bold text-[9px] uppercase tracking-widest px-3 border-none"
+                                    onClick={() => handleActionClick('SET_ADMIN')}
+                                    disabled={isBusy}
+                                >
+                                    <Shield className="h-3.5 w-3.5 text-blue-400 mr-1.5" />
+                                    <span className="hidden sm:inline">Promote</span>
+                                </Button>
+
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-10 rounded-full hover:bg-amber-500/10 text-white hover:text-white font-bold text-[9px] uppercase tracking-widest px-3 border-none"
+                                    onClick={() => handleActionClick('SET_USER')}
+                                    disabled={isBusy}
+                                >
+                                    <ShieldOff className="h-3.5 w-3.5 text-amber-500 mr-1.5" />
+                                    <span className="hidden sm:inline">Demote</span>
+                                </Button>
+                            </>
+                        )}
                     </div>
 
                     {/* 3. Termination Control */}

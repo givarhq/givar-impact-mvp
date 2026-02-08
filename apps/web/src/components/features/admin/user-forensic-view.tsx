@@ -6,7 +6,7 @@ import {
     ShieldCheck, Mail, Calendar, Wallet, Heart,
     Lock, Unlock, ShieldAlert, History, Activity,
     TrendingUp, ExternalLink, Loader2, Fingerprint,
-    UserCheck, AlertTriangle, UserSearch
+    UserCheck, AlertTriangle, UserSearch, Shield, ShieldOff
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -62,8 +62,14 @@ export function UserForensicView({ user }: UserForensicViewProps) {
         isOpen: false,
         action: null
     });
+    const [roleConfirm, setRoleConfirm] = useState<{ isOpen: boolean; action: 'PROMOTE' | 'DEMOTE' | null }>({
+        isOpen: false,
+        action: null
+    });
 
     const isLocked = !!user.accountLockedUntil && new Date(user.accountLockedUntil) > new Date();
+    const isAdmin = user.role === 'ADMIN';
+    const isSuperAdmin = user.role === 'SUPERADMIN';
 
     const onConfirmImpersonate = async () => {
         setIsProcessing(true);
@@ -108,6 +114,24 @@ export function UserForensicView({ user }: UserForensicViewProps) {
         }
     };
 
+    const onConfirmRoleChange = async () => {
+        const action = roleConfirm.action;
+        if (!action) return;
+
+        setIsProcessing(true);
+        try {
+            const newRole = action === 'PROMOTE' ? 'ADMIN' : 'USER';
+            await ApiService.admin.updateUserRole(user.id, newRole);
+            toast.success(`Role updated to ${newRole}`);
+            setRoleConfirm({ isOpen: false, action: null });
+            router.refresh();
+        } catch (e: any) {
+            toast.error(e.response?.data?.message || "Role update failed");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     return (
         <>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -136,7 +160,10 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                             </div>
 
                             <div className="flex flex-wrap justify-center gap-2">
-                                <Badge variant="outline" className="rounded-lg bg-secondary/50 px-2 py-1 text-[9px] font-black uppercase tracking-widest border-border/50">
+                                <Badge variant="outline" className={cn(
+                                    "rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-widest border-border/50",
+                                    isAdmin ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-secondary/50"
+                                )}>
                                     {user.role}
                                 </Badge>
                                 <Badge variant="outline" className="rounded-lg bg-secondary/50 px-2 py-1 text-[9px] font-black uppercase tracking-widest border-border/50">
@@ -153,30 +180,52 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                         <CardContent className="p-8 pt-0 space-y-3">
                             <div className="h-px bg-border/50 w-full mb-3" />
 
-                            <Button
-                                className="w-full h-12 rounded-2xl font-bold text-xs uppercase tracking-widest gap-2 bg-secondary text-foreground hover:bg-primary hover:text-white transition-all shadow-none border-0"
-                                onClick={() => setShowImpersonateConfirm(true)}
-                                disabled={isProcessing}
-                            >
-                                {isProcessing ? <Loader2 className="animate-spin h-4 w-4" /> : <UserSearch className="h-4 w-4" />}
-                                View Perspective
-                            </Button>
+                            <div className="space-y-3">
+                                {!isSuperAdmin && (
+                                    <Button
+                                        className="w-full h-12 rounded-2xl font-bold text-xs uppercase tracking-widest gap-2 bg-secondary text-foreground hover:bg-primary hover:text-white transition-all shadow-none border-0"
+                                        onClick={() => setShowImpersonateConfirm(true)}
+                                        disabled={isProcessing}
+                                    >
+                                        {isProcessing ? <Loader2 className="animate-spin h-4 w-4" /> : <UserSearch className="h-4 w-4" />}
+                                        View Perspective
+                                    </Button>
+                                )}
 
-                            <Button
-                                variant={isLocked ? "default" : "destructive"}
-                                className={cn(
-                                    "w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest gap-2 shadow-sm transition-all border-0",
-                                    !isLocked && "bg-destructive/10 text-destructive hover:bg-destructive hover:text-white"
-                                )}
-                                onClick={() => setStatusConfirm({ isOpen: true, action: isLocked ? 'UNLOCK' : 'LOCK' })}
-                                disabled={isProcessing}
-                            >
-                                {isLocked ? (
-                                    <><Unlock className="h-4 w-4" /> Restore Access</>
-                                ) : (
-                                    <><ShieldAlert className="h-4 w-4" /> Restrict Access</>
-                                )}
-                            </Button>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {!isSuperAdmin && (
+                                        <Button
+                                            variant="outline"
+                                            className="h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest gap-2 border-border/60 hover:bg-muted"
+                                            onClick={() => setRoleConfirm({ isOpen: true, action: isAdmin ? 'DEMOTE' : 'PROMOTE' })}
+                                            disabled={isProcessing}
+                                        >
+                                            {isAdmin ? (
+                                                <><ShieldOff className="h-3.5 w-3.5" /> Demote</>
+                                            ) : (
+                                                <><Shield className="h-3.5 w-3.5" /> Promote</>
+                                            )}
+                                        </Button>
+                                    )}
+
+                                    <Button
+                                        variant={isLocked ? "default" : "destructive"}
+                                        className={cn(
+                                            "h-12 rounded-2xl font-black text-[10px] uppercase tracking-widest gap-2 shadow-sm transition-all border-0",
+                                            !isLocked && "bg-destructive/10 text-destructive hover:bg-destructive hover:text-white",
+                                            isSuperAdmin && "col-span-2"
+                                        )}
+                                        onClick={() => setStatusConfirm({ isOpen: true, action: isLocked ? 'UNLOCK' : 'LOCK' })}
+                                        disabled={isProcessing || isSuperAdmin}
+                                    >
+                                        {isLocked ? (
+                                            <><Unlock className="h-3.5 w-3.5" /> Restore</>
+                                        ) : (
+                                            <><ShieldAlert className="h-3.5 w-3.5" /> Restrict</>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -205,7 +254,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                     </Card>
                 </div>
 
-                {/* --- RIGHT: FINANCIALS & AUDIT LOGS --- */}
+                {/* --- RIGHT: FINANCIALS & AUDIT LOGS (Unchanged) --- */}
                 <div className="lg:col-span-8 space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className="p-6 bg-emerald-500/[0.03] border-emerald-500/10 rounded-[28px] relative overflow-hidden group hover:shadow-md transition-all">
@@ -227,6 +276,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                         </Card>
                     </div>
 
+                    {/* Wallets & Audit Logs sections remain same */}
                     <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
                         <CardHeader className="p-6 border-b border-border/50 bg-muted/10">
                             <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
@@ -319,6 +369,20 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                     : `Restore global platform access for ${user.email}?`
                 }
                 confirmText={statusConfirm.action === 'LOCK' ? 'Lock Account' : 'Unlock Account'}
+            />
+
+            <ConfirmModal
+                isOpen={roleConfirm.isOpen}
+                onClose={() => setRoleConfirm({ isOpen: false, action: null })}
+                onConfirm={onConfirmRoleChange}
+                isLoading={isProcessing}
+                variant={roleConfirm.action === 'DEMOTE' ? 'destructive' : 'warning'}
+                title={roleConfirm.action === 'PROMOTE' ? 'Grant Admin Privileges' : 'Revoke Admin Privileges'}
+                description={roleConfirm.action === 'PROMOTE'
+                    ? "This user will gain administrative access to the platform, including forensic tools and user management. This is a high-trust action."
+                    : "This user will be demoted to a standard account and will lose all administrative capabilities."
+                }
+                confirmText={roleConfirm.action === 'PROMOTE' ? 'Promote to Admin' : 'Demote to User'}
             />
         </>
     );
