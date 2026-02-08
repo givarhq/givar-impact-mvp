@@ -206,6 +206,7 @@ export class AuthService {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          accountType: user.accountType, // <-- THIS IS THE UPDATE
           emailVerified: user.emailVerified,
         }
       };
