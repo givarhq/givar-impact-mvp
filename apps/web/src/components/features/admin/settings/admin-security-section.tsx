@@ -2,18 +2,11 @@
 
 import React, { useState } from 'react';
 import {
-    ShieldCheck,
-    Smartphone,
-    Loader2,
-    Lock,
-    Copy,
-    KeyRound,
-    ShieldAlert,
-    CheckCircle2
+    ShieldCheck, Smartphone, Loader2, Lock, Copy
 } from 'lucide-react';
-import { Card, CardContent } from '../../../ui/card';
 import { Button } from '../../../ui/button';
 import { Input } from '../../../ui/input';
+import { Card, CardContent } from '../../../ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../ui/dialog';
 import { ApiService } from '../../../../services/api';
 import toast from 'react-hot-toast';
@@ -33,7 +26,7 @@ export function AdminSecuritySection({ user }: { user: any }) {
             setSetupData(data);
             setShowSetup(true);
         } catch (e) {
-            toast.error("Forensic setup failed");
+            toast.error("Failed to initialize security protocol");
         } finally {
             setIsLoading(false);
         }
@@ -46,9 +39,9 @@ export function AdminSecuritySection({ user }: { user: any }) {
             await ApiService.auth.enable2FA(code);
             setIsEnabled(true);
             setShowSetup(false);
-            toast.success("MFA Active: Security tier upgraded");
+            toast.success("2FA Enforcement Active");
         } catch (e) {
-            toast.error("Verification mismatch. Code rejected.");
+            toast.error("Invalid code. Verification failed.");
         } finally {
             setIsLoading(false);
         }
@@ -58,42 +51,39 @@ export function AdminSecuritySection({ user }: { user: any }) {
         <div className="max-w-4xl space-y-6">
             <Card className={cn(
                 "rounded-[32px] border transition-all duration-500",
-                isEnabled ? "border-primary/20 bg-primary/[0.02]" : "border-border/50 bg-card"
+                isEnabled ? "border-emerald-500/20 bg-emerald-500/[0.02]" : "border-border/50 bg-card"
             )}>
-                <CardContent className="p-8">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div className="flex items-center gap-6 text-center md:text-left flex-col md:flex-row">
-                            <div className={cn(
-                                "h-16 w-16 rounded-[22px] flex items-center justify-center shadow-inner shrink-0 transition-all",
-                                isEnabled ? "bg-primary text-white scale-110" : "bg-muted text-muted-foreground"
-                            )}>
-                                {isEnabled ? <ShieldCheck className="h-8 w-8" /> : <Smartphone className="h-8 w-8" />}
-                            </div>
-                            <div className="space-y-1">
-                                <h3 className="text-xl font-black text-foreground">Multi-Factor Authentication</h3>
-                                <p className="text-sm text-muted-foreground font-medium max-w-sm leading-relaxed">
-                                    {isEnabled
-                                        ? "Your administrative node is protected by Google Authenticator."
-                                        : "Protect your root access by linking a hardware-based TOTP device."}
-                                </p>
-                            </div>
+                <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-6 text-center md:text-left flex-col md:flex-row">
+                        <div className={cn(
+                            "h-16 w-16 rounded-[24px] flex items-center justify-center shadow-inner shrink-0 transition-all",
+                            isEnabled ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                        )}>
+                            {isEnabled ? <ShieldCheck className="h-8 w-8" /> : <Smartphone className="h-8 w-8" />}
                         </div>
-
-                        {!isEnabled && (
-                            <Button
-                                onClick={startSetup}
-                                disabled={isLoading}
-                                className="rounded-2xl h-14 px-10 font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20"
-                            >
-                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Link Authenticator"}
-                            </Button>
-                        )}
-                        {isEnabled && (
-                            <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-2 rounded-xl font-bold uppercase text-[10px] tracking-widest">
-                                Status: Active Protection
-                            </Badge>
-                        )}
+                        <div className="space-y-1">
+                            <h3 className="text-xl font-black text-foreground">Google Authenticator</h3>
+                            <p className="text-sm text-muted-foreground font-medium max-w-sm leading-relaxed">
+                                {isEnabled
+                                    ? "Administrative node is secured with time-based OTP."
+                                    : "Enforce hardware-level security for root access."}
+                            </p>
+                        </div>
                     </div>
+
+                    {!isEnabled ? (
+                        <Button
+                            onClick={startSetup}
+                            disabled={isLoading}
+                            className="rounded-2xl h-14 px-10 font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20"
+                        >
+                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Setup 2FA"}
+                        </Button>
+                    ) : (
+                        <div className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2">
+                            <ShieldCheck className="h-4 w-4" /> Active
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -101,40 +91,52 @@ export function AdminSecuritySection({ user }: { user: any }) {
                 <DialogContent className="rounded-[40px] p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md">
                     <div className="p-10 space-y-8">
                         <div className="text-center space-y-2">
-                            <div className="h-12 w-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <Lock className="h-6 w-6" />
+                            <div className="h-14 w-14 bg-primary/10 text-primary rounded-[20px] flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                                <Lock className="h-7 w-7" />
                             </div>
-                            <DialogTitle className="text-2xl font-black tracking-tighter">Secure Your Node</DialogTitle>
-                            <p className="text-sm text-muted-foreground">Scan this QR code with Google Authenticator.</p>
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-black tracking-tighter text-center">Scan QR Code</DialogTitle>
+                            </DialogHeader>
+                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                Open Google Authenticator and scan the code below to link your admin device.
+                            </p>
                         </div>
 
                         {setupData && (
                             <div className="space-y-8">
-                                <div className="flex justify-center p-6 bg-white rounded-[32px] border-4 border-muted shadow-inner">
-                                    <img src={setupData.qrCodeDataUrl} alt="MFA QR" className="w-44 h-44" />
+                                <div className="flex justify-center p-6 bg-white rounded-[32px] border-4 border-muted/50 shadow-inner">
+                                    <img src={setupData.qrCodeDataUrl} alt="2FA QR Code" className="w-48 h-48 mix-blend-multiply" />
                                 </div>
 
                                 <div className="space-y-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Manual Entry Secret</label>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground ml-2">Manual Secret</label>
                                         <div className="flex gap-2">
-                                            <code className="flex-1 bg-muted p-3.5 rounded-xl text-xs font-mono break-all border border-border/50">{setupData.secret}</code>
-                                            <Button variant="outline" size="icon" className="h-12 w-12 shrink-0 rounded-xl" onClick={() => {
-                                                navigator.clipboard.writeText(setupData.secret);
-                                                toast.success("Secret copied to vault");
-                                            }}>
-                                                <Copy className="h-4 w-4" />
+                                            <code className="flex-1 bg-muted/50 p-4 rounded-2xl text-xs font-mono break-all border border-border/50 flex items-center text-foreground font-bold">
+                                                {setupData.secret}
+                                            </code>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-auto w-14 shrink-0 rounded-2xl border-border/50 hover:bg-muted"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(setupData.secret);
+                                                    toast.success("Secret key copied");
+                                                }}
+                                            >
+                                                <Copy className="h-5 w-5 text-muted-foreground" />
                                             </Button>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-1">Verification Code</label>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-2">Enter 6-Digit Code</label>
                                         <Input
                                             placeholder="000 000"
                                             value={code}
                                             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                            className="h-16 text-center text-3xl font-black tracking-[0.4em] rounded-2xl bg-muted/20 border-none ring-1 ring-border focus-visible:ring-primary"
+                                            className="h-16 text-center text-3xl font-black tracking-[0.5em] rounded-2xl bg-primary/5 border-primary/20 focus-visible:ring-primary/30"
+                                            autoFocus
                                         />
                                     </div>
                                 </div>
@@ -144,21 +146,13 @@ export function AdminSecuritySection({ user }: { user: any }) {
                         <Button
                             onClick={verifyAndEnable}
                             disabled={isLoading || code.length !== 6}
-                            className="w-full h-16 rounded-[24px] font-black uppercase tracking-widest text-xs shadow-2xl shadow-primary/30"
+                            className="w-full h-16 rounded-[24px] font-black uppercase tracking-widest text-xs shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
                         >
-                            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Confirm Identity Sync'}
+                            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Activate Protection'}
                         </Button>
                     </div>
                 </DialogContent>
             </Dialog>
         </div>
-    );
-}
-
-function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
-    return (
-        <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", className)}>
-            {children}
-        </span>
     );
 }

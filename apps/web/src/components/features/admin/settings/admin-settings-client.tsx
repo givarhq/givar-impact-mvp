@@ -3,18 +3,16 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-    ShieldCheck,
-    Fingerprint,
-    Bell,
     UserCircle,
+    Shield,
+    Bell,
     ChevronRight,
-    ChevronLeft,
-    Lock
+    ChevronLeft
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../ui/tabs';
-import { AdminSecuritySection } from './admin-security-section';
 import { ProfileForm } from '../../settings/profile-form';
 import { PreferencesForm } from '../../settings/preferences-form';
+import { AdminSecuritySection } from './admin-security-section';
 import { cn } from '../../../../lib/utils/cn';
 
 interface AdminSettingsClientProps {
@@ -26,17 +24,17 @@ const ADMIN_SETTINGS_OPTIONS = [
         id: 'identity',
         label: 'Admin Identity',
         icon: UserCircle,
-        color: 'text-destructive',
-        bg: 'bg-destructive/10',
-        description: 'Update your root profile and system avatar.'
+        color: 'text-blue-500',
+        bg: 'bg-blue-500/10',
+        description: 'Update root profile details and avatar.'
     },
     {
         id: 'security',
         label: 'Access Control',
-        icon: Lock,
-        color: 'text-primary',
-        bg: 'bg-primary/10',
-        description: 'Manage MFA and administrative credentials.'
+        icon: Shield,
+        color: 'text-emerald-500',
+        bg: 'bg-emerald-500/10',
+        description: 'Multi-factor authentication and password protocols.'
     },
     {
         id: 'notifications',
@@ -69,15 +67,19 @@ export function AdminSettingsClient({ user }: AdminSettingsClientProps) {
 
     return (
         <div className="w-full">
-            {/* === DESKTOP NAVIGATION === */}
+            {/* === DESKTOP NAVIGATION (Horizontal Tabs) === */}
             <div className="hidden md:block">
-                <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full space-y-8">
-                    <TabsList className="bg-muted/50 p-1.5 rounded-[22px] h-14 w-fit border border-border/40">
+                <Tabs
+                    value={effectiveTab}
+                    onValueChange={handleTabChange}
+                    className="w-full space-y-8"
+                >
+                    <TabsList className="bg-muted/50 p-1 rounded-[22px] h-14 w-fit border border-border/40">
                         {ADMIN_SETTINGS_OPTIONS.map((opt) => (
                             <TabsTrigger
                                 key={opt.id}
                                 value={opt.id}
-                                className="rounded-xl px-8 gap-2.5 h-11 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-lg active:scale-95"
+                                className="rounded-xl px-8 gap-2.5 h-11 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg active:scale-95"
                             >
                                 <opt.icon className="h-4 w-4" />
                                 {opt.label}
@@ -99,9 +101,10 @@ export function AdminSettingsClient({ user }: AdminSettingsClientProps) {
                 </Tabs>
             </div>
 
-            {/* === MOBILE NAVIGATION === */}
+            {/* === MOBILE NAVIGATION (Vertical Settings List) === */}
             <div className="md:hidden space-y-3">
                 {!activeTab ? (
+                    /* MOBILE MENU VIEW */
                     <div className="grid gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {ADMIN_SETTINGS_OPTIONS.map((opt) => (
                             <button
@@ -128,13 +131,14 @@ export function AdminSettingsClient({ user }: AdminSettingsClientProps) {
                         ))}
                     </div>
                 ) : (
+                    /* MOBILE CONTENT VIEW */
                     <div className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-500">
                         <button
                             onClick={clearTab}
                             className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary transition-colors py-2"
                         >
                             <ChevronLeft className="h-4 w-4" />
-                            Back to Settings
+                            Back to Menu
                         </button>
 
                         <div className="pt-2">
