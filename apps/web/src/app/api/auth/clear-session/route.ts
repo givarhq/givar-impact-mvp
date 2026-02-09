@@ -5,7 +5,6 @@ export async function GET(request: Request) {
   const cookieStore = await cookies();
   const url = new URL(request.url);
 
-  // 1. Define all Givar-related keys to prevent "Ghost Sessions"
   const cookiesToClear = [
     'givar_token',
     'givar_refresh_token',
@@ -16,15 +15,17 @@ export async function GET(request: Request) {
     'givar_admin_backup_user'
   ];
 
-  // 2. Atomic Purge
-  cookiesToClear.forEach(cookieName => {
-    cookieStore.delete(cookieName);
-  });
+  // Hard clear all potential session keys
+  for (const cookieName of cookiesToClear) {
+    cookieStore.set(cookieName, '', {
+      path: '/',
+      expires: new Date(0),
+      maxAge: 0
+    });
+  }
 
-  // 3. Construct absolute redirect URL
   const loginUrl = new URL('/login', url.origin);
   loginUrl.searchParams.set('reason', 'session_expired');
 
-  // 4. Return explicit redirect response (Prevents blank page in Route Handlers)
   return NextResponse.redirect(loginUrl.toString());
 }

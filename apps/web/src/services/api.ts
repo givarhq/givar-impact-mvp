@@ -27,17 +27,14 @@ async function serverFetch<T>(
       ...options,
       headers: baseHeaders,
       cache: 'no-store',
-      // Add a signal to prevent hanging requests from blocking the server thread
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (res.status === 401 || res.status === 403) {
-      console.error(`[ServerFetch] Auth failure at ${endpoint}. Returning null for handler.`);
       return null;
     }
 
     if (!res.ok) {
-      console.error(`[ServerFetch] Error ${res.status} at ${endpoint}`);
       return null;
     }
 
@@ -46,10 +43,9 @@ async function serverFetch<T>(
 
   } catch (error) {
     if (error instanceof Error && (error as any).name === 'TimeoutError') {
-      console.error(`[ServerFetch] Request timed out: ${fullUrl}`);
+      console.error(`[ServerFetch] Timeout at ${fullUrl}. Check if API is running at :3001`);
       return null;
     }
-    console.error(`[ServerFetch] Execution Error at ${fullUrl}`, error);
     return null;
   }
 }
