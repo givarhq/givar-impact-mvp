@@ -56,7 +56,7 @@ export function VerificationReviewRow({ profile }: { profile: any }) {
       <td className="px-6 py-5 align-top">
         <div className="flex flex-col gap-1">
           <span className="font-bold text-sm text-foreground leading-tight">{profile.legalName}</span>
-          <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-1.5 py-0.5 rounded-3xl w-fit border border-border/40">
+          <span className="text-[11px] text-muted-foreground font-mono bg-muted/50 px-1.5 py-0.5 rounded-3xl w-fit border border-border/40">
             {profile.registrationNumber || 'N/A'}
           </span>
         </div>
@@ -67,7 +67,7 @@ export function VerificationReviewRow({ profile }: { profile: any }) {
           <span className="text-xs font-medium text-foreground">
             {profile.user?.firstName} {profile.user?.lastName}
           </span>
-          <span className="text-[10px] text-muted-foreground">{profile.user?.email}</span>
+          <span className="text-[11px] text-muted-foreground">{profile.user?.email}</span>
         </div>
       </td>
 
@@ -81,7 +81,7 @@ export function VerificationReviewRow({ profile }: { profile: any }) {
               title="View Document"
             >
               <FileText className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-bold">Doc {i + 1}</span>
+              <span className="text-[11px] font-bold">Doc {i + 1}</span>
               <Eye className="h-3 w-3 opacity-0 group-hover/doc:opacity-100 transition-opacity" />
             </button>
           ))}
@@ -124,7 +124,7 @@ export function VerificationReviewRow({ profile }: { profile: any }) {
           ) : (
             <div className="flex items-center gap-2 animate-in slide-in-from-right-2 duration-500">
               <Badge className={cn(
-                "h-7 px-3 rounded-3xl font-bold text-[10px] uppercase tracking-wider border",
+                "h-7 px-3 rounded-3xl font-bold text-[11px] uppercase tracking-wider border",
                 profile.status === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
               )}>
                 {profile.status === 'VERIFIED' ? <CheckCircle2 className="h-3 w-3 mr-1.5" /> : <ShieldAlert className="h-3 w-3 mr-1.5" />}

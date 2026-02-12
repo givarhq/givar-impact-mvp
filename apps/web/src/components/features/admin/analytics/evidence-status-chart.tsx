@@ -36,7 +36,7 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
             <CardContent className="p-0 flex-1 relative">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-10">
                     <p className="text-2xl font-bold text-foreground leading-none">{metrics.totalSubmitted}</p>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Total proofs</p>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Total proofs</p>
                 </div>
 
                 <ResponsiveContainer width="100%" height="100%">
@@ -74,7 +74,7 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
                     </PieChart>
                 </ResponsiveContainer>
 
-                <div className="absolute bottom-6 w-full px-6 flex justify-center gap-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="absolute bottom-6 w-full px-6 flex justify-center gap-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Verified
                     </div>

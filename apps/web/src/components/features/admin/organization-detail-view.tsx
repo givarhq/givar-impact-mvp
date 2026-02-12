@@ -68,7 +68,7 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                         <div className="space-y-1 min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-3">
                                 <h1 className="text-xl font-bold tracking-tight text-foreground truncate max-w-full">{profile.legalName}</h1>
-                                <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[10px] uppercase tracking-widest border shrink-0", statusColor)}>
+                                <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px] uppercase tracking-widest border shrink-0", statusColor)}>
                                     {profile.status}
                                 </Badge>
                             </div>
@@ -99,7 +99,7 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                                 <DialogHeader><DialogTitle className="text-lg font-bold">Review Decision</DialogTitle></DialogHeader>
                                 <div className="space-y-6 pt-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Feedback</label>
+                                        <label className="text-[11px] font-black uppercase text-muted-foreground ml-1 tracking-widest">Feedback</label>
                                         <textarea
                                             className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                                             placeholder="Reason for rejection or changes..."
@@ -123,7 +123,7 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                     <div className="lg:col-span-4 space-y-6">
                         <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                     <User className="h-3.5 w-3.5 text-primary" /> Proposer
                                 </CardTitle>
                             </CardHeader>
@@ -134,7 +134,7 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm font-bold text-foreground truncate">{profile.user.firstName} {profile.user.lastName}</p>
-                                        <p className="text-[10px] text-muted-foreground truncate">{profile.user.email}</p>
+                                        <p className="text-[11px] text-muted-foreground truncate">{profile.user.email}</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
@@ -152,7 +152,7 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
 
                         <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                                <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                     <FileText className="h-3.5 w-3.5 text-primary" /> Documents
                                 </CardTitle>
                             </CardHeader>

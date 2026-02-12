@@ -54,7 +54,7 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-sm font-bold text-foreground truncate">{profile.legalName}</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono mt-0.5 truncate">
+                                            <p className="text-[11px] text-muted-foreground font-mono mt-0.5 truncate">
                                                 {profile.registrationNumber || 'No RC Number'}
                                             </p>
                                         </div>
@@ -70,7 +70,7 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
                                             {profile.user?.firstName?.[0]}{profile.user?.lastName?.[0]}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-[11px] font-bold text-foreground truncate">
+                                            <p className="text-xs font-bold text-foreground truncate">
                                                 {profile.user.firstName} {profile.user.lastName}
                                             </p>
                                         </div>
@@ -92,10 +92,10 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                             <tr>
-                                <th className="px-6 py-4 font-bold text-[11px]">Legal entity</th>
-                                <th className="px-6 py-4 font-bold text-[11px]">Proposer / Owner</th>
-                                <th className="px-6 py-4 font-bold text-[11px] text-center">Projects</th>
-                                <th className="px-6 py-4 font-bold text-[11px]">Verification</th>
+                                <th className="px-6 py-4 font-bold text-xs">Legal entity</th>
+                                <th className="px-6 py-4 font-bold text-xs">Proposer / Owner</th>
+                                <th className="px-6 py-4 font-bold text-xs text-center">Projects</th>
+                                <th className="px-6 py-4 font-bold text-xs">Verification</th>
                                 <th className="px-6 py-4 text-right"></th>
                             </tr>
                         </thead>
@@ -119,7 +119,7 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
                                                     <p className="font-bold text-foreground group-hover:text-primary transition-colors truncate text-sm">
                                                         {profile.legalName}
                                                     </p>
-                                                    <p className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                                                    <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
                                                         {profile.registrationNumber || 'No RC Number'}
                                                     </p>
                                                 </div>
@@ -127,14 +127,14 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[10px] font-bold text-muted-foreground border border-border/40">
+                                                <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-bold text-muted-foreground border border-border/40">
                                                     {profile.user?.firstName?.[0]}{profile.user?.lastName?.[0]}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-bold text-foreground text-xs">
                                                         {profile.user.firstName} {profile.user.lastName}
                                                     </p>
-                                                    <p className="text-[10px] text-muted-foreground truncate opacity-80">
+                                                    <p className="text-[11px] text-muted-foreground truncate opacity-80">
                                                         {profile.user.email}
                                                     </p>
                                                 </div>
@@ -146,7 +146,7 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge className={cn("gap-1.5 pl-1.5 pr-2.5 py-0.5 rounded-3xl border font-bold text-[10px] shadow-none", config.color)}>
+                                            <Badge className={cn("gap-1.5 pl-1.5 pr-2.5 py-0.5 rounded-3xl border font-bold text-[11px] shadow-none", config.color)}>
                                                 <StatusIcon className="h-3 w-3" />
                                                 {config.label}
                                             </Badge>

@@ -82,7 +82,7 @@ export function ImpersonationBanner() {
                             <p className="text-xs font-medium">
                                 User: <span className="text-amber-500 font-bold">{sessionData.user.firstName} {sessionData.user.lastName}</span>
                             </p>
-                            <span className="hidden sm:inline text-zinc-500 font-mono text-[11px]">({sessionData.user.email})</span>
+                            <span className="hidden sm:inline text-zinc-500 font-mono text-xs">({sessionData.user.email})</span>
                         </div>
                     </div>
                 </div>

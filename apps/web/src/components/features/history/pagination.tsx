@@ -34,7 +34,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
         <Button
           size="sm"
           variant="outline"
-          className="rounded-3xl h-8 px-4 text-[11px] font-bold border-border/60 bg-transparent hover:bg-muted"
+          className="rounded-3xl h-8 px-4 text-xs font-bold border-border/60 bg-transparent hover:bg-muted"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage <= 1}
         >
@@ -44,7 +44,7 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
         <Button
           size="sm"
           variant="outline"
-          className="rounded-3xl h-8 px-4 text-[11px] font-bold border-border/60 bg-transparent hover:bg-muted"
+          className="rounded-3xl h-8 px-4 text-xs font-bold border-border/60 bg-transparent hover:bg-muted"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
         >

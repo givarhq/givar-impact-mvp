@@ -101,11 +101,11 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                 {/* Narrative Input Section */}
                 <div className="space-y-2 min-w-0">
                     <div className="flex justify-between items-center px-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                             <FileText className="h-3.5 w-3.5" /> Narrative update
                         </label>
                         <span className={cn(
-                            "text-[10px] font-bold px-2 py-0.5 rounded-3xl transition-colors",
+                            "text-[11px] font-bold px-2 py-0.5 rounded-3xl transition-colors",
                             description.length < 20 ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
                         )}>
                             {description.length} chars
@@ -122,7 +122,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
 
                 {/* Visual Media Section */}
                 <div className="space-y-3 min-w-0">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 px-1">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 px-1">
                         <Camera className="h-3.5 w-3.5" /> Visual evidence
                     </label>
 
@@ -162,7 +162,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                 {/* Accountability Notice */}
                 <div className="bg-amber-50 border border-amber-100 p-4 rounded-3xl flex items-start gap-3 shadow-sm animate-in fade-in duration-500">
                     <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-amber-700 leading-relaxed font-medium">
+                    <p className="text-xs text-amber-700 leading-relaxed font-medium">
                         Submissions are immutable once verified by audit nodes and will be broadcasted to all project stakeholders.
                     </p>
                 </div>

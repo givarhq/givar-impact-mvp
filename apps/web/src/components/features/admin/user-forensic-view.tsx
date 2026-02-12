@@ -275,12 +275,12 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                                             {w.currency}
                                         </div>
                                         <div className="space-y-0.5">
-                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Balance</p>
+                                            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Balance</p>
                                             <SmartCurrency amount={w.balance} currency={w.currency} visible={true} size="small" className="text-foreground" />
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Version</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase">Version</p>
                                         <p className="text-xs font-mono font-bold text-foreground">v{w.version}</p>
                                     </div>
                                 </div>
@@ -296,7 +296,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                         </CardHeader>
                         <div className="p-0 overflow-x-auto">
                             <table className="w-full text-left">
-                                <thead className="bg-muted/40 text-[10px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                                <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border/40">
                                     <tr>
                                         <th className="px-6 py-3">Event</th>
                                         <th className="px-6 py-3">Source node</th>

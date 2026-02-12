@@ -60,7 +60,7 @@ export function AdminMobileNav({ user }: { user: any }) {
               )}
             >
               <Icon className={cn("h-5 w-5 mb-0.5", isActive && "fill-current/10")} />
-              <span className="text-[11px] font-bold text-center leading-none">{item.title}</span>
+              <span className="text-xs font-bold text-center leading-none">{item.title}</span>
             </Link>
           );
         })}
@@ -74,7 +74,7 @@ export function AdminMobileNav({ user }: { user: any }) {
               )}
             >
               <MoreHorizontal className={cn("h-5 w-5 mb-0.5", isSecondaryActive && "fill-current/10")} />
-              <span className="text-[11px] font-bold text-center leading-none">More</span>
+              <span className="text-xs font-bold text-center leading-none">More</span>
             </button>
           </DropdownMenuTrigger>
 

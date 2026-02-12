@@ -117,7 +117,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                         <TabsTrigger value="plan" className="rounded-3xl px-6 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Execution</TabsTrigger>
                         <TabsTrigger value="updates" className="rounded-3xl px-6 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
                             Updates
-                            <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[10px] font-bold">
+                            <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
                                 {project.updates?.length || 0}
                             </span>
                         </TabsTrigger>
@@ -168,7 +168,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                             </div>
                             <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
                                 <table className="w-full text-left border-collapse">
-                                    <thead className="bg-muted/40 border-b border-border/40 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                    <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                                         <tr>
                                             <th className="px-6 py-4">Item</th>
                                             <th className="px-6 py-4 hidden md:table-cell">Type</th>
@@ -180,9 +180,9 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                             <tr key={i} className="hover:bg-muted/10 transition-colors">
                                                 <td className="px-6 py-4 font-bold text-foreground">
                                                     {item.item}
-                                                    <div className="md:hidden text-[10px] text-muted-foreground font-medium uppercase mt-0.5">{item.type}</div>
+                                                    <div className="md:hidden text-[11px] text-muted-foreground font-medium uppercase mt-0.5">{item.type}</div>
                                                 </td>
-                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium uppercase text-[10px]">{item.type}</td>
+                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium uppercase text-[11px]">{item.type}</td>
                                                 <td className="px-6 py-4 text-right font-bold tabular-nums text-foreground">
                                                     {new Intl.NumberFormat('en-NG', { style: 'currency', currency: project.currency }).format(item.cost)}
                                                 </td>
@@ -228,7 +228,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                                     </h5>
                                                     <div className="flex flex-col items-end shrink-0">
                                                         <span className={cn(
-                                                            "text-[10px] font-bold px-2 py-0.5 rounded-3xl uppercase border",
+                                                            "text-[11px] font-bold px-2 py-0.5 rounded-3xl uppercase border",
                                                             isCompleted ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
                                                         )}>
                                                             {isCompleted ? 'Complete' : phase.estimatedDate}
@@ -272,7 +272,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                                         <Badge className={cn("h-5 px-2 rounded-3xl text-[9px] font-bold uppercase tracking-wider border-none", isAdjustment ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary")}>
                                                             {isAdjustment ? 'Amendment' : update.type.replace('_', ' ')}
                                                         </Badge>
-                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
+                                                        <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1">
                                                             <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
                                                         </span>
                                                     </div>
@@ -337,7 +337,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1 mb-0.5">
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Entity</p>
+                                    <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Entity</p>
                                     {project.isVerifiedOrganizer && <BadgeCheck className="h-3 w-3 text-primary" />}
                                 </div>
                                 <p className="font-bold text-foreground truncate text-sm uppercase">
@@ -347,12 +347,12 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                         </div>
 
                         <div className="pt-4 border-t border-border/40 flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-primary font-bold text-[10px] uppercase tracking-wider">
+                            <div className="flex items-center gap-1.5 text-primary font-bold text-[11px] uppercase tracking-wider">
                                 <ShieldCheck className="h-3.5 w-3.5" />
                                 {project.organizerName === 'Givar' ? 'Platform node' : 'Verified node'}
                             </div>
                             {project.organizerName !== 'Givar' && (
-                                <button className="text-[10px] font-bold uppercase text-muted-foreground hover:text-primary transition-colors">
+                                <button className="text-[11px] font-bold uppercase text-muted-foreground hover:text-primary transition-colors">
                                     Profile
                                 </button>
                             )}

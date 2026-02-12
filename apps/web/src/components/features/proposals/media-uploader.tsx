@@ -93,10 +93,10 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                 <div className="p-1.5 border border-border/40 rounded-3xl bg-muted/20 w-full min-w-0">
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0">
                         <TabsList className="h-10 bg-muted/40 p-1 rounded-2xl w-full border border-border/40 mb-2 shadow-inner">
-                            <TabsTrigger value="upload" className="rounded-xl text-[10px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                            <TabsTrigger value="upload" className="rounded-xl text-[11px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
                                 <UploadCloud className="h-3.5 w-3.5" /> Upload
                             </TabsTrigger>
-                            <TabsTrigger value="url" className="rounded-xl text-[10px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                            <TabsTrigger value="url" className="rounded-xl text-[11px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
                                 <LinkIcon className="h-3.5 w-3.5" /> Remote link
                             </TabsTrigger>
                         </TabsList>
@@ -187,7 +187,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                                     value={item.caption}
                                     onChange={(e) => onUpdate(item.id, { caption: e.target.value })}
                                     className={cn(
-                                        "h-8 text-[11px] rounded-xl bg-muted/30 border-transparent focus:bg-background shadow-none px-2.5",
+                                        "h-8 text-xs rounded-xl bg-muted/30 border-transparent focus:bg-background shadow-none px-2.5",
                                         readOnly && "font-medium opacity-80"
                                     )}
                                     placeholder="Add caption..."
@@ -245,7 +245,7 @@ export function ImageUploader({
                         <UploadCloud className="text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors" />
                     </div>
                 )}
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
             </div>
             <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isLoading} />
         </label>

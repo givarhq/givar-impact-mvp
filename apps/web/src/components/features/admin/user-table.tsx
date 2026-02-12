@@ -50,7 +50,7 @@ export function UserTable({
         return (
             <th
                 className={cn(
-                    "px-4 py-3 font-bold uppercase tracking-wider text-[11px] cursor-pointer hover:text-primary transition-colors select-none group",
+                    "px-4 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer hover:text-primary transition-colors select-none group",
                     align === "right" && "text-right",
                     align === "center" && "text-center"
                 )}
@@ -94,10 +94,10 @@ export function UserTable({
                             checked={isAllSelected}
                             onChange={(e) => onSelectAll(e.target.checked)}
                         />
-                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Select all</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Select all</span>
                     </div>
                     {isAnySelected && (
-                        <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-3xl">{selectedIds.length} selected</span>
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-3xl">{selectedIds.length} selected</span>
                     )}
                 </div>
 
@@ -143,7 +143,7 @@ export function UserTable({
                                         <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="small" />
                                     </div>
                                     <Badge variant="outline" className={cn(
-                                        "text-[10px] px-1.5 py-0 rounded-3xl mt-1 font-bold",
+                                        "text-[11px] px-1.5 py-0 rounded-3xl mt-1 font-bold",
                                         user.emailVerified ? "text-emerald-600 border-emerald-100" : "text-amber-600 border-amber-100"
                                     )}>
                                         {user.accountType}
@@ -216,21 +216,21 @@ export function UserTable({
                                             </div>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <Badge variant="outline" className="text-[10px] font-bold rounded-3xl bg-muted/30 border-border/40">
+                                            <Badge variant="outline" className="text-[11px] font-bold rounded-3xl bg-muted/30 border-border/40">
                                                 {user.accountType}
                                             </Badge>
                                         </td>
                                         <td className="px-5 py-4">
                                             {isLocked ? (
-                                                <div className="flex items-center text-destructive text-[11px] font-bold uppercase gap-1.5">
+                                                <div className="flex items-center text-destructive text-xs font-bold uppercase gap-1.5">
                                                     <ShieldAlert className="h-3.5 w-3.5" /> Locked
                                                 </div>
                                             ) : user.emailVerified ? (
-                                                <div className="flex items-center text-emerald-600 text-[11px] font-bold uppercase gap-1.5">
+                                                <div className="flex items-center text-emerald-600 text-xs font-bold uppercase gap-1.5">
                                                     <CheckCircle2 className="h-3.5 w-3.5" /> Verified
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center text-amber-600 text-[11px] font-bold uppercase gap-1.5">
+                                                <div className="flex items-center text-amber-600 text-xs font-bold uppercase gap-1.5">
                                                     <Clock className="h-3.5 w-3.5" /> Pending
                                                 </div>
                                             )}
@@ -238,12 +238,12 @@ export function UserTable({
                                         <td className="px-5 py-4 text-right">
                                             <div className="flex flex-col items-end">
                                                 <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="small" />
-                                                <span className="text-[10px] font-bold text-muted-foreground uppercase mt-0.5">{user._count.donations} gifts</span>
+                                                <span className="text-[11px] font-bold text-muted-foreground uppercase mt-0.5">{user._count.donations} gifts</span>
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 text-right">
                                             <p className="text-xs font-bold text-foreground tabular-nums">{formatDate(user.createdAt).split(',')[0]}</p>
-                                            <div className="flex items-center justify-end gap-1 text-primary text-[10px] font-bold uppercase opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
+                                            <div className="flex items-center justify-end gap-1 text-primary text-[11px] font-bold uppercase opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
                                                 Audit <ArrowUpRight className="h-3 w-3" />
                                             </div>
                                         </td>

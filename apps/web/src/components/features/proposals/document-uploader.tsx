@@ -64,7 +64,7 @@ export function DocumentUploader() {
           )}
           <div className="space-y-1">
             <p className="text-sm font-bold text-foreground">Click to upload documents</p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] font-medium">PDF, DOCX, PNG up to 10MB</p>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-[0.15em] font-medium">PDF, DOCX, PNG up to 10MB</p>
           </div>
           <input
             id="doc-upload"
@@ -86,7 +86,7 @@ export function DocumentUploader() {
               animate={{ opacity: 1 }}
               className="px-1"
             >
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Identity asset vault</p>
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Identity asset vault</p>
             </motion.div>
           )}
           {kycDocuments.map((key, index) => (
@@ -104,7 +104,7 @@ export function DocumentUploader() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="text-xs font-bold text-foreground truncate block">{key.split('/').pop()}</span>
-                  <div className="flex items-center gap-1.5 text-emerald-600 text-[10px] font-bold uppercase tracking-tight mt-0.5">
+                  <div className="flex items-center gap-1.5 text-emerald-600 text-[11px] font-bold uppercase tracking-tight mt-0.5">
                     <CheckCircle2 className="h-3 w-3" /> Encrypted path
                   </div>
                 </div>

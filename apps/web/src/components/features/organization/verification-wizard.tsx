@@ -117,7 +117,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </p>
             </div>
             <div className="inline-flex flex-col items-center p-6 rounded-3xl bg-card border border-primary/10 shadow-sm min-w-[280px]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Certified node identity</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Certified node identity</p>
               <p className="text-lg font-bold text-foreground tracking-tight">{initialProfile?.legalName}</p>
               {initialProfile?.registrationNumber && (
                 <p className="text-xs text-primary font-mono mt-1.5 font-bold">
@@ -150,7 +150,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </p>
             </div>
             <div className="pt-2">
-              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[10px] uppercase tracking-wider">
+              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[11px] uppercase tracking-wider">
                 Under forensic review
               </Badge>
             </div>
@@ -246,11 +246,11 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </div>
 
               <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Asset ledger</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Asset ledger</p>
                 {docKeys.length === 0 ? (
                   <div className="h-32 rounded-3xl border border-dashed border-border/60 flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/5">
                     <Fingerprint className="h-6 w-6 mb-1.5" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">No documents</span>
+                    <span className="text-[11px] font-bold uppercase tracking-widest">No documents</span>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-32 overflow-y-auto no-scrollbar">
@@ -262,7 +262,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
                           </div>
                           <div className="min-w-0">
                             <span className="text-xs font-bold text-foreground truncate block">Proof {i + 1}</span>
-                            <span className="text-[10px] font-mono text-muted-foreground opacity-60">ref: {key.slice(-12)}</span>
+                            <span className="text-[11px] font-mono text-muted-foreground opacity-60">ref: {key.slice(-12)}</span>
                           </div>
                         </div>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-3xl transition-all" onClick={() => handleRemoveDoc(key)}>
@@ -280,7 +280,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
 
       <div className="p-4 rounded-3xl bg-muted/20 border border-dashed border-border/60 flex items-start gap-3">
         <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-        <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+        <p className="text-xs text-muted-foreground leading-relaxed font-medium">
           By submitting, you affirm that the provided details are accurate. Misrepresentation of identity is a violation of the Givar protocol and will lead to permanent node exclusion.
         </p>
       </div>

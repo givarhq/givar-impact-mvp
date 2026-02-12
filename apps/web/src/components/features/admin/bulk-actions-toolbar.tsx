@@ -101,7 +101,7 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
                             {selectedIds.length}
                         </div>
                         <div className="flex flex-col leading-tight">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300">Batch</span>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-300">Batch</span>
                             <span className="text-xs font-medium text-zinc-500">selected</span>
                         </div>
                     </div>
@@ -110,7 +110,7 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-9 rounded-3xl text-white hover:bg-destructive/20 font-bold text-[11px] uppercase tracking-wider px-3"
+                            className="h-9 rounded-3xl text-white hover:bg-destructive/20 font-bold text-xs uppercase tracking-wider px-3"
                             onClick={() => handleActionClick('LOCK')}
                             disabled={isBusy}
                         >
@@ -121,7 +121,7 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-9 rounded-3xl text-white hover:bg-emerald-500/10 font-bold text-[11px] uppercase tracking-wider px-3"
+                            className="h-9 rounded-3xl text-white hover:bg-emerald-500/10 font-bold text-xs uppercase tracking-wider px-3"
                             onClick={() => handleActionClick('UNLOCK')}
                             disabled={isBusy}
                         >
@@ -135,7 +135,7 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-9 rounded-3xl text-white hover:bg-blue-500/10 font-bold text-[11px] uppercase tracking-wider px-3"
+                                    className="h-9 rounded-3xl text-white hover:bg-blue-500/10 font-bold text-xs uppercase tracking-wider px-3"
                                     onClick={() => handleActionClick('SET_ADMIN')}
                                     disabled={isBusy}
                                 >
@@ -145,7 +145,7 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-9 rounded-3xl text-white hover:bg-amber-500/10 font-bold text-[11px] uppercase tracking-wider px-3"
+                                    className="h-9 rounded-3xl text-white hover:bg-amber-500/10 font-bold text-xs uppercase tracking-wider px-3"
                                     onClick={() => handleActionClick('SET_USER')}
                                     disabled={isBusy}
                                 >

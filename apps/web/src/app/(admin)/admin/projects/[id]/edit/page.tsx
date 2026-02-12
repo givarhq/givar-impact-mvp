@@ -49,7 +49,7 @@ export default async function EditProjectPage({
             <div className="min-w-0 flex-1">
               <h1 className="text-xl font-bold tracking-tight text-foreground md:hidden truncate">{project.title}</h1>
               <div className="flex items-center gap-2 mt-0.5">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-3xl bg-muted border border-border/40 text-[10px] font-mono text-muted-foreground shrink-0">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-3xl bg-muted border border-border/40 text-[11px] font-mono text-muted-foreground shrink-0">
                   <Fingerprint className="h-3 w-3" />
                   {id}
                 </div>

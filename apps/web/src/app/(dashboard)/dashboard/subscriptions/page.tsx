@@ -62,7 +62,7 @@ export default async function SubscriptionsPage() {
                                     <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                                     Active subscriptions
                                 </h2>
-                                <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-3xl border border-border/40 uppercase tracking-tight">
+                                <span className="text-[11px] font-bold text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-3xl border border-border/40 uppercase tracking-tight">
                                     {activeSubs.length} running
                                 </span>
                             </div>

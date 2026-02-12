@@ -15,11 +15,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-card border border-border/60 shadow-xl p-3 rounded-2xl min-w-[140px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[10px] font-bold text-muted-foreground mb-1.5 uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-muted-foreground mb-1.5 uppercase tracking-wider">
                     {label}
                 </p>
                 <div className="flex items-center justify-between gap-4">
-                    <span className="text-[11px] font-medium text-blue-500 flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-blue-500 flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Count
                     </span>
                     <span className="text-sm font-bold text-foreground tabular-nums">
@@ -42,7 +42,7 @@ export function ProposalFunnelChart({ funnel, totalDrafts, approvalRate }: Propo
                     </CardTitle>
                     <div className="text-right">
                         <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{approvalRate}%</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Approval rate</p>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Approval rate</p>
                     </div>
                 </div>
             </CardHeader>
@@ -84,11 +84,11 @@ export function ProposalFunnelChart({ funnel, totalDrafts, approvalRate }: Propo
 
                 <div className="absolute top-6 left-8 flex gap-8">
                     <div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total inflow</p>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Total inflow</p>
                         <p className="text-lg font-bold text-foreground tabular-nums">{totalDrafts}</p>
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Conversion</p>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Conversion</p>
                         <p className="text-lg font-bold text-foreground tabular-nums">{funnel[funnel.length - 1]?.count || 0}</p>
                     </div>
                 </div>

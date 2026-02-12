@@ -52,7 +52,7 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                                         {p.title || 'Untitled Proposal'}
                                     </p>
                                     <div className="flex items-center gap-2 mt-1.5">
-                                        <span className="text-[10px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                        <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                             id: {p.id.split('-')[0]}
                                         </span>
                                         <Badge
@@ -70,12 +70,12 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
 
                             <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[10px] font-black text-muted-foreground shrink-0 border border-border/40">
+                                    <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground shrink-0 border border-border/40">
                                         {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-[11px] font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
-                                        <p className="text-[10px] text-muted-foreground truncate">{p.user?.email}</p>
+                                        <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
+                                        <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
                                     </div>
                                 </div>
                                 <div className="text-right shrink-0">
@@ -98,11 +98,11 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                             <tr>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-[11px]">Proposal details</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-[11px]">Proposer</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-[11px]">Requested</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-[11px]">Status</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-[11px] text-right">Submitted</th>
+                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Proposal details</th>
+                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Proposer</th>
+                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Requested</th>
+                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Status</th>
+                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs text-right">Submitted</th>
                                 <th className="px-5 py-3"></th>
                             </tr>
                         </thead>
@@ -119,10 +119,10 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                                                 {p.title || 'Untitled Proposal'}
                                             </p>
                                             <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-[10px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                                <span className="text-[11px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                     id: {p.id.split('-')[0]}
                                                 </span>
-                                                <span className="text-[10px] font-bold text-primary/70 uppercase tracking-tight">
+                                                <span className="text-[11px] font-bold text-primary/70 uppercase tracking-tight">
                                                     {p.category?.name}
                                                 </span>
                                             </div>
@@ -130,12 +130,12 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                                     </td>
                                     <td className="px-5 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-3xl bg-secondary flex items-center justify-center text-[10px] font-black text-muted-foreground border border-border/40 shrink-0">
+                                            <div className="h-8 w-8 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground border border-border/40 shrink-0">
                                                 {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
-                                                <p className="text-[10px] text-muted-foreground truncate">{p.user?.email}</p>
+                                                <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -147,7 +147,7 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                                     <td className="px-5 py-4">
                                         <Badge
                                             variant="outline"
-                                            className={cn("text-[10px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border", statusStyles[p.status] || 'bg-muted')}
+                                            className={cn("text-[11px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border", statusStyles[p.status] || 'bg-muted')}
                                         >
                                             {p.status.replace('_', ' ')}
                                         </Badge>

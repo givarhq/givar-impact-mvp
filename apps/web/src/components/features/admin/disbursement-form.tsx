@@ -133,7 +133,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                     </div>
                     <div>
                         <h3 className="text-base font-bold text-foreground">Record Disbursement</h3>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Treasury Outflow</p>
+                        <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Treasury Outflow</p>
                     </div>
                 </div>
 
@@ -142,7 +142,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                         <div className="lg:col-span-7 space-y-5">
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Target Phase</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase ml-1">Target Phase</label>
                                     <Select onValueChange={setMilestoneId} value={milestoneId}>
                                         <SelectTrigger className="h-10 rounded-3xl bg-muted/20 border-border/40">
                                             <SelectValue placeholder="Select phase..." />
@@ -161,7 +161,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Amount (NGN)</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase ml-1">Amount (NGN)</label>
                                     <div className="relative">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">₦</span>
                                         <Input
@@ -176,7 +176,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
 
                             <div className="p-4 rounded-3xl bg-blue-50/50 border border-blue-100 flex items-start gap-3">
                                 <ShieldCheck className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                                <p className="text-[11px] text-blue-700 font-medium leading-relaxed">
+                                <p className="text-xs text-blue-700 font-medium leading-relaxed">
                                     Disbursement logs notify project owners and donors. Ensure data precision for audit compliance.
                                 </p>
                             </div>
@@ -184,12 +184,12 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
 
                         <div className="lg:col-span-5 flex flex-col gap-5">
                             <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Bank Receipt</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase ml-1">Bank Receipt</label>
                                 {receipt ? (
                                     <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-sm">
                                         <img src={receipt.previewUrl} className="object-cover w-full h-full" alt="Receipt" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                            <Button variant="destructive" size="sm" className="rounded-3xl font-bold h-8 text-[10px] px-4" onClick={() => setReceipt(null)}>
+                                            <Button variant="destructive" size="sm" className="rounded-3xl font-bold h-8 text-[11px] px-4" onClick={() => setReceipt(null)}>
                                                 <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
                                             </Button>
                                         </div>
@@ -226,16 +226,16 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                 <div className="flex justify-between items-start">
                                     <div className="min-w-0">
                                         <p className="text-xs font-bold text-foreground truncate">{d.vendorName}</p>
-                                        <p className="text-[10px] font-bold text-primary uppercase tracking-tighter mt-0.5">
+                                        <p className="text-[11px] font-bold text-primary uppercase tracking-tighter mt-0.5">
                                             {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General Funds'}
                                         </p>
                                     </div>
-                                    <p className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{new Date(d.createdAt).toLocaleDateString()}</p>
+                                    <p className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">{new Date(d.createdAt).toLocaleDateString()}</p>
                                 </div>
                                 <div className="flex justify-between items-end border-t border-border/40 pt-3">
                                     <div className="text-sm font-bold tabular-nums">{formatCurrency(d.amount, 'NGN')}</div>
                                     {d.receiptKey && (
-                                        <Button variant="ghost" size="sm" className="h-7 rounded-3xl text-[10px] font-bold text-primary" onClick={() => viewSecureReceipt(d.receiptKey)}>
+                                        <Button variant="ghost" size="sm" className="h-7 rounded-3xl text-[11px] font-bold text-primary" onClick={() => viewSecureReceipt(d.receiptKey)}>
                                             <ExternalLink className="h-3 w-3 mr-1" /> View
                                         </Button>
                                     )}
@@ -250,13 +250,13 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                                 <tr>
-                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-[11px] cursor-pointer hover:text-foreground" onClick={() => handleSort('vendorName')}>
+                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-xs cursor-pointer hover:text-foreground" onClick={() => handleSort('vendorName')}>
                                         <div className="flex items-center">Vendor <SortIcon column="vendorName" /></div>
                                     </th>
-                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-[11px] cursor-pointer hover:text-foreground" onClick={() => handleSort('createdAt')}>
+                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-xs cursor-pointer hover:text-foreground" onClick={() => handleSort('createdAt')}>
                                         <div className="flex items-center">Date <SortIcon column="createdAt" /></div>
                                     </th>
-                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-[11px] text-right" onClick={() => handleSort('amount')}>
+                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-xs text-right" onClick={() => handleSort('amount')}>
                                         <div className="flex items-center justify-end">Amount <SortIcon column="amount" /></div>
                                     </th>
                                     <th className="px-6 py-3 w-20"></th>
@@ -270,7 +270,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                         <tr key={d.id} className="hover:bg-muted/30 transition-all text-xs">
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-foreground">{d.vendorName}</div>
-                                                <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter mt-0.5">
+                                                <div className="text-[11px] text-muted-foreground uppercase font-bold tracking-tighter mt-0.5">
                                                     {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
                                                 </div>
                                             </td>

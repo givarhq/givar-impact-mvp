@@ -83,7 +83,7 @@ export function DangerZone() {
                                 autoFocus
                             />
 
-                            <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-[11px] text-amber-700 leading-relaxed flex gap-2.5">
+                            <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed flex gap-2.5">
                                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                                 <span>Note: Nodes with active projects are restricted from deletion to maintain donor trust.</span>
                             </div>

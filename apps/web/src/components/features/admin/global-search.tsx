@@ -177,7 +177,7 @@ export function GlobalSearch() {
                                         key={f.id}
                                         onClick={() => setActiveFilter(f.id)}
                                         className={cn(
-                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-3xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border shrink-0",
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-3xl text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border shrink-0",
                                             activeFilter === f.id
                                                 ? "bg-primary text-white border-primary shadow-sm"
                                                 : "bg-background border-border/60 text-muted-foreground hover:text-foreground hover:border-border hover:shadow-sm"
@@ -204,7 +204,7 @@ export function GlobalSearch() {
                                     <Search className="h-6 w-6 opacity-20" />
                                 </div>
                                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No matches found</p>
-                                <p className="text-[10px] text-muted-foreground/60 mt-1">Try searching by UUID, Email, or Ref ID</p>
+                                <p className="text-[11px] text-muted-foreground/60 mt-1">Try searching by UUID, Email, or Ref ID</p>
                             </div>
                         ) : displayData ? (
                             <div className="space-y-4 pb-2">
@@ -336,7 +336,7 @@ export function GlobalSearch() {
                                                 className="w-full flex items-center gap-3 p-2.5 rounded-3xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
                                             >
                                                 <div className={cn(
-                                                    "h-9 w-9 rounded-3xl flex items-center justify-center font-black text-[10px] border shrink-0",
+                                                    "h-9 w-9 rounded-3xl flex items-center justify-center font-black text-[11px] border shrink-0",
                                                     tx.type === 'CREDIT' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-rose-500/10 text-rose-600 border-rose-500/20"
                                                 )}>
                                                     {tx.type === 'CREDIT' ? 'CR' : 'DR'}

@@ -144,7 +144,7 @@ export function UserGlobalSearch() {
                             <X className="h-4 w-4" />
                         </button>
                     ) : (
-                        <div className="bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[10px] text-muted-foreground font-bold flex items-center gap-1 shadow-sm uppercase tracking-tighter">
+                        <div className="bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[11px] text-muted-foreground font-bold flex items-center gap-1 shadow-sm uppercase tracking-tighter">
                             <CornerDownLeft className="h-3 w-3" />
                         </div>
                     )}
@@ -195,7 +195,7 @@ export function UserGlobalSearch() {
                             <div className="space-y-4 pb-2 min-w-0">
                                 {activeFilter === 'all' && displayData.navigation.length > 0 && (
                                     <div className="space-y-1 min-w-0">
-                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Shortcuts</div>
+                                        <div className="px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">Shortcuts</div>
                                         {displayData.navigation.map((nav, i) => (
                                             <button key={i} onClick={() => handleNavigate(nav.path)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left group min-w-0">
                                                 <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-inner">
@@ -212,7 +212,7 @@ export function UserGlobalSearch() {
 
                                 {displayData.projects.length > 0 && (
                                     <div className="space-y-1 min-w-0">
-                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Verified causes</div>
+                                        <div className="px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">Verified causes</div>
                                         {displayData.projects.map(p => (
                                             <button key={p.id} onClick={() => handleNavigate(`/dashboard/impact/${p.slug}`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
                                                 <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
@@ -221,7 +221,7 @@ export function UserGlobalSearch() {
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{p.title}</span>
                                                     <div className="flex items-center gap-1.5 mt-0.5">
-                                                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter">Goal:</span>
+                                                        <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-tighter">Goal:</span>
                                                         <SmartCurrency amount={p.targetAmount.toString()} currency={p.currency} visible={true} size="small" />
                                                     </div>
                                                 </div>
@@ -232,7 +232,7 @@ export function UserGlobalSearch() {
 
                                 {displayData.proposals.length > 0 && (
                                     <div className="space-y-1 min-w-0">
-                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">My proposals</div>
+                                        <div className="px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">My proposals</div>
                                         {displayData.proposals.map(p => (
                                             <button key={p.id} onClick={() => handleNavigate(`/dashboard/proposals/edit/${p.id}/hook`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
                                                 <div className="h-10 w-10 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0 shadow-inner">
@@ -240,7 +240,7 @@ export function UserGlobalSearch() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{p.title || 'Untitled draft'}</span>
-                                                    <Badge variant="outline" className="text-[10px] h-5 mt-1 px-2 font-bold uppercase rounded-3xl border-purple-500/20 bg-purple-500/5">{p.status}</Badge>
+                                                    <Badge variant="outline" className="text-[11px] h-5 mt-1 px-2 font-bold uppercase rounded-3xl border-purple-500/20 bg-purple-500/5">{p.status}</Badge>
                                                 </div>
                                             </button>
                                         ))}
@@ -249,7 +249,7 @@ export function UserGlobalSearch() {
 
                                 {displayData.transactions.length > 0 && (
                                     <div className="space-y-1 min-w-0">
-                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Ledger history</div>
+                                        <div className="px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">Ledger history</div>
                                         {displayData.transactions.map(tx => (
                                             <button key={tx.id} onClick={() => handleNavigate(`/dashboard/history`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
                                                 <div className="h-10 w-10 rounded-2xl bg-secondary text-foreground flex items-center justify-center shrink-0 border border-border/40 shadow-inner">
@@ -260,7 +260,7 @@ export function UserGlobalSearch() {
                                                         <span className="font-mono text-xs font-bold text-foreground truncate">{tx.reference}</span>
                                                         <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" className="shrink-0" />
                                                     </div>
-                                                    <p className="text-[11px] text-muted-foreground truncate font-medium">{tx.description}</p>
+                                                    <p className="text-xs text-muted-foreground truncate font-medium">{tx.description}</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -269,7 +269,7 @@ export function UserGlobalSearch() {
 
                                 {displayData.subscriptions.length > 0 && (
                                     <div className="space-y-1 min-w-0">
-                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Recurring impact</div>
+                                        <div className="px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">Recurring impact</div>
                                         {displayData.subscriptions.map(s => (
                                             <button key={s.id} onClick={() => handleNavigate(`/dashboard/subscriptions`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left group min-w-0">
                                                 <div className="h-10 w-10 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
@@ -277,7 +277,7 @@ export function UserGlobalSearch() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{s.project.title}</span>
-                                                    <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-tight">{s.interval} donation</p>
+                                                    <p className="text-xs text-muted-foreground uppercase font-bold tracking-tight">{s.interval} donation</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -286,7 +286,7 @@ export function UserGlobalSearch() {
 
                                 {displayData.auditLogs.length > 0 && (
                                     <div className="space-y-1 min-w-0">
-                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Account activity</div>
+                                        <div className="px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">Account activity</div>
                                         {displayData.auditLogs.map(log => (
                                             <button key={log.id} onClick={() => handleNavigate(`/dashboard/settings?tab=activity`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
                                                 <div className="h-10 w-10 rounded-2xl bg-zinc-500/10 text-zinc-600 flex items-center justify-center shrink-0 shadow-inner">
@@ -294,7 +294,7 @@ export function UserGlobalSearch() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground block truncate">{log.action.replace(/_/g, ' ').toLowerCase()}</span>
-                                                    <span className="text-[11px] text-muted-foreground font-medium">{formatDate(log.createdAt)}</span>
+                                                    <span className="text-xs text-muted-foreground font-medium">{formatDate(log.createdAt)}</span>
                                                 </div>
                                             </button>
                                         ))}

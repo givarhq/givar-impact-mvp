@@ -97,7 +97,7 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                     <div className="px-4 pb-4 space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
                                         <div className="pt-3 border-t border-border/40 space-y-3">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Statement</p>
+                                                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Statement</p>
                                                 <p className="text-xs font-medium leading-relaxed italic">&quot;{proof.description}&quot;</p>
                                             </div>
                                             <div className="grid grid-cols-3 gap-2">
@@ -109,8 +109,8 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                             </div>
                                             {!isHandled && (
                                                 <div className="flex gap-2 pt-2">
-                                                    <Button onClick={() => handleReview(proof.id, 'APPROVED')} className="flex-1 h-9 rounded-3xl text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700">Verify</Button>
-                                                    <Button variant="outline" onClick={() => handleReview(proof.id, 'REJECTED')} className="flex-1 h-9 rounded-3xl text-[11px] font-bold border-destructive/20 text-destructive">Reject</Button>
+                                                    <Button onClick={() => handleReview(proof.id, 'APPROVED')} className="flex-1 h-9 rounded-3xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700">Verify</Button>
+                                                    <Button variant="outline" onClick={() => handleReview(proof.id, 'REJECTED')} className="flex-1 h-9 rounded-3xl text-xs font-bold border-destructive/20 text-destructive">Reject</Button>
                                                 </div>
                                             )}
                                         </div>
@@ -129,9 +129,9 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                             <tr>
                                 <th className="px-6 py-3 w-12"></th>
-                                <th className="px-6 py-3 font-bold uppercase tracking-wider text-[11px]">Cause & Phase</th>
-                                <th className="px-6 py-3 font-bold uppercase tracking-wider text-[11px] text-center">Submitted</th>
-                                <th className="px-6 py-3 font-bold uppercase tracking-wider text-[11px] text-right">Assets</th>
+                                <th className="px-6 py-3 font-bold uppercase tracking-wider text-xs">Cause & Phase</th>
+                                <th className="px-6 py-3 font-bold uppercase tracking-wider text-xs text-center">Submitted</th>
+                                <th className="px-6 py-3 font-bold uppercase tracking-wider text-xs text-right">Assets</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40">
@@ -157,11 +157,11 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                                 <div className="space-y-0.5">
                                                     <p className="font-bold text-foreground text-sm">{proof.project.title}</p>
                                                     <div className="flex items-center gap-2">
-                                                        <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none">
+                                                        <Badge variant="outline" className="text-[11px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none">
                                                             {proof.phaseName}
                                                         </Badge>
                                                         {isHandled && (
-                                                            <span className={cn("text-[10px] font-bold uppercase italic", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
+                                                            <span className={cn("text-[11px] font-bold uppercase italic", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
                                                                 {proof.status}
                                                             </span>
                                                         )}
@@ -172,7 +172,7 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                                 <p className="text-xs font-bold text-foreground">{formatDate(proof.submittedAt).split(',')[0]}</p>
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <Badge variant="secondary" className="rounded-3xl font-bold text-[10px] px-2.5">
+                                                <Badge variant="secondary" className="rounded-3xl font-bold text-[11px] px-2.5">
                                                     {proof.imageKeys.length} Files
                                                 </Badge>
                                             </td>
@@ -184,7 +184,7 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                                                         <div className="lg:col-span-8 space-y-6">
                                                             <div className="space-y-2">
-                                                                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                                                <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                                                                     <FileText className="h-3.5 w-3.5" /> Narrative
                                                                 </h4>
                                                                 <p className="text-sm text-foreground/90 leading-relaxed font-medium italic border-l-2 border-primary/30 pl-4 py-1">
@@ -192,7 +192,7 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                                                 </p>
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Visual Assets</h4>
+                                                                <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Visual Assets</h4>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {proof.imageUrls?.map((url: string, i: number) => (
                                                                         <button key={i} onClick={() => window.open(url, '_blank')} className="relative h-20 w-20 rounded-2xl overflow-hidden border border-border/40 bg-muted hover:ring-2 ring-primary/30 transition-all">
@@ -207,8 +207,8 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                                                 {!isHandled ? (
                                                                     <div className="space-y-4">
                                                                         <div className="text-center space-y-0.5">
-                                                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Audit Decision</p>
-                                                                            <p className="text-[11px] text-muted-foreground">Action required for verification</p>
+                                                                            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Audit Decision</p>
+                                                                            <p className="text-xs text-muted-foreground">Action required for verification</p>
                                                                         </div>
                                                                         <div className="space-y-2">
                                                                             <Button onClick={() => handleReview(proof.id, 'APPROVED')} disabled={isBusy} className="w-full h-10 rounded-3xl bg-emerald-600 hover:bg-emerald-700 font-bold text-xs gap-2">
@@ -243,7 +243,7 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                                                         </div>
                                                                         <div className="space-y-0.5">
                                                                             <p className="text-xs font-bold uppercase tracking-wider">{proof.status}</p>
-                                                                            <p className="text-[10px] text-muted-foreground font-medium">Recorded on {formatDate(proof.updatedAt || proof.submittedAt)}</p>
+                                                                            <p className="text-[11px] text-muted-foreground font-medium">Recorded on {formatDate(proof.updatedAt || proof.submittedAt)}</p>
                                                                         </div>
                                                                     </div>
                                                                 )}

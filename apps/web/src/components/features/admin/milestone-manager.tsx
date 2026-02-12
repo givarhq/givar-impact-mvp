@@ -64,7 +64,7 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
     <div className="space-y-6">
       <div className="flex items-center justify-between px-1">
         <h3 className="text-base font-bold text-foreground">Execution Tracking</h3>
-        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[10px] uppercase tracking-widest px-3">
+        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] uppercase tracking-widest px-3">
           {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Done
         </Badge>
       </div>
@@ -113,7 +113,7 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
                     <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{milestone.deliverables}</p>
 
                     <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/40">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wide">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
                         <Calendar className="h-3.5 w-3.5 opacity-70" />
                         Est. {milestone.estimatedDate}
                       </div>
@@ -127,7 +127,7 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
                         {status === 'PENDING' && (
                           <Button
                             variant="outline"
-                            className="flex-1 md:flex-none rounded-3xl h-10 text-[10px] font-bold border-blue-500/20 text-blue-600 hover:bg-blue-500/5 uppercase tracking-widest px-4"
+                            className="flex-1 md:flex-none rounded-3xl h-10 text-[11px] font-bold border-blue-500/20 text-blue-600 hover:bg-blue-500/5 uppercase tracking-widest px-4"
                             onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS')}
                             disabled={!!processingId}
                           >
@@ -135,7 +135,7 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
                           </Button>
                         )}
                         <Button
-                          className="flex-1 md:flex-none rounded-3xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm h-10 px-6 text-[10px] uppercase tracking-widest"
+                          className="flex-1 md:flex-none rounded-3xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm h-10 px-6 text-[11px] uppercase tracking-widest"
                           onClick={() => handleStatusChange(milestone.id, 'COMPLETED')}
                           disabled={!!processingId}
                         >
@@ -147,7 +147,7 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-[10px] font-bold uppercase text-muted-foreground hover:text-foreground h-9 rounded-3xl"
+                        className="text-[11px] font-bold uppercase text-muted-foreground hover:text-foreground h-9 rounded-3xl"
                         onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS')}
                         disabled={!!processingId}
                       >

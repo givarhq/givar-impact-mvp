@@ -120,7 +120,7 @@ export default function FundWalletPage() {
           isUnverified && "opacity-20 grayscale blur-[1px] pointer-events-none"
         )}>
           <div className="space-y-4 min-w-0">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">
+            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">
               Deposit amount
             </label>
             <div className="relative min-w-0">
@@ -142,7 +142,7 @@ export default function FundWalletPage() {
                   key={val}
                   onClick={() => setQuickAmount(val)}
                   disabled={isUnverified}
-                  className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-2xl transition-all font-bold text-[11px] disabled:opacity-50 shadow-sm"
+                  className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-2xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm"
                 >
                   ₦{Number(val).toLocaleString()}
                 </button>

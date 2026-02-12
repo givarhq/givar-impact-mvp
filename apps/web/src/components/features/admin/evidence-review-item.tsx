@@ -54,8 +54,8 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                             </Link>
                         </CardTitle>
                         <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Phase: {proof.phaseName}</span>
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-primary">Phase: {proof.phaseName}</span>
+                            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
                                 <Clock className="h-2.5 w-2.5" /> {new Date(proof.submittedAt).toLocaleDateString()}
                             </span>
                         </div>
@@ -70,7 +70,7 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     <div className="lg:col-span-3 space-y-6">
                         <div className="space-y-1.5">
-                            <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 ml-1">
+                            <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 ml-1">
                                 <FileText className="h-3 w-3" /> Narrative
                             </h4>
                             <p className="text-xs md:text-sm text-foreground/90 leading-relaxed font-medium italic border-l-2 border-primary/30 pl-4 py-1">
@@ -79,7 +79,7 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                         </div>
 
                         <div className="space-y-2">
-                            <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Evidence Assets</h4>
+                            <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Evidence Assets</h4>
                             <div className="flex flex-wrap gap-2">
                                 {proof.imageUrls?.map((url: string, i: number) => (
                                     <button
@@ -102,13 +102,13 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                             {isProcessed && (
                                 <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-emerald-600 animate-in fade-in duration-300">
                                     <CheckCircle2 className="h-10 w-10 mb-2" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">Audit Finalized</span>
+                                    <span className="text-[11px] font-bold uppercase tracking-widest">Audit Finalized</span>
                                 </div>
                             )}
 
                             <div className="text-center space-y-1">
-                                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Administrative Action</h4>
-                                <p className="text-[11px] text-muted-foreground font-medium">Verify against milestone criteria</p>
+                                <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Administrative Action</h4>
+                                <p className="text-xs text-muted-foreground font-medium">Verify against milestone criteria</p>
                             </div>
 
                             <div className="space-y-2">

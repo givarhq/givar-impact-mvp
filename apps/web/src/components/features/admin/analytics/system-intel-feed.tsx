@@ -48,7 +48,7 @@ export function SystemIntelFeed({ report }: { report: any }) {
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
             <CardHeader className="p-5 md:p-6 pb-2 border-b border-border/40">
-                <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Zap className="h-3.5 w-3.5 text-primary" /> Platform intelligence
                 </CardTitle>
             </CardHeader>
@@ -74,7 +74,7 @@ export function SystemIntelFeed({ report }: { report: any }) {
                                 <div className="flex-1 space-y-1">
                                     <div className="flex items-center justify-between">
                                         <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{item.title}</h4>
-                                        <span className="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-all">
+                                        <span className="text-[11px] font-bold text-primary opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-all">
                                             Resolve <ArrowRight className="h-3 w-3" />
                                         </span>
                                     </div>

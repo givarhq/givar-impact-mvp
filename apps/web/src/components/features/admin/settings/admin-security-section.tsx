@@ -84,12 +84,12 @@ export function AdminSecuritySection({ user }: { user: any }) {
                         <Button
                             onClick={startSetup}
                             disabled={isLoading}
-                            className="rounded-3xl h-12 px-8 font-bold tracking-wider text-[10px] shadow-lg shadow-primary/20 w-full md:w-auto"
+                            className="rounded-3xl h-12 px-8 font-bold tracking-wider text-[11px] shadow-lg shadow-primary/20 w-full md:w-auto"
                         >
                             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Setup 2fa"}
                         </Button>
                     ) : (
-                        <div className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-4 py-2 rounded-3xl font-bold text-[10px] tracking-wider flex items-center gap-2">
+                        <div className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-4 py-2 rounded-3xl font-bold text-[11px] tracking-wider flex items-center gap-2">
                             <ShieldCheck className="h-4 w-4" /> Active protection
                         </div>
                     )}
@@ -119,9 +119,9 @@ export function AdminSecuritySection({ user }: { user: any }) {
 
                                 <div className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-2">Manual secret</label>
+                                        <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-2">Manual secret</label>
                                         <div className="flex gap-2">
-                                            <code className="flex-1 bg-muted/50 p-3 rounded-2xl text-[11px] font-mono break-all border border-border/40 flex items-center text-foreground font-bold">
+                                            <code className="flex-1 bg-muted/50 p-3 rounded-2xl text-xs font-mono break-all border border-border/40 flex items-center text-foreground font-bold">
                                                 {setupData.secret}
                                             </code>
                                             <Button
@@ -136,7 +136,7 @@ export function AdminSecuritySection({ user }: { user: any }) {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold uppercase tracking-widest text-primary ml-2">Enter 6-digit code</label>
+                                        <label className="text-[11px] font-bold uppercase tracking-widest text-primary ml-2">Enter 6-digit code</label>
                                         <Input
                                             placeholder="000 000"
                                             value={code}

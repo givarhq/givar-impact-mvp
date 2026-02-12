@@ -115,7 +115,7 @@ export default async function ProjectManagePage({
                                         <Camera className={cn("h-5 w-5 shrink-0", isRejected ? "text-destructive" : "text-primary")} />
                                         <span>{isRejected ? 'Resubmit Proof' : 'Post Impact Update'}</span>
                                     </CardTitle>
-                                    <Badge variant="outline" className="rounded-3xl border-primary/20 bg-primary/5 text-primary font-bold text-[10px] shrink-0 uppercase">
+                                    <Badge variant="outline" className="rounded-3xl border-primary/20 bg-primary/5 text-primary font-bold text-[11px] shrink-0 uppercase">
                                         {currentMilestone.phase}
                                     </Badge>
                                 </div>
@@ -196,7 +196,7 @@ export default async function ProjectManagePage({
                                 <ShieldCheck className="h-6 w-6" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none">Procurement Node</p>
+                                <p className="text-[11px] font-bold text-primary uppercase tracking-widest leading-none">Procurement Node</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                                     Givar Management handles all vendor payments directly to maintain financial integrity.
                                 </p>
@@ -206,7 +206,7 @@ export default async function ProjectManagePage({
 
                     <Card className="rounded-[32px] border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                                 <Database className="h-3.5 w-3.5" /> Disbursement history
                             </CardTitle>
                         </CardHeader>
@@ -223,7 +223,7 @@ export default async function ProjectManagePage({
                                             !isVerified && !isPendingAudit && "cursor-pointer hover:bg-primary/5 transition-all"
                                         )}>
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-[10px] font-bold text-foreground truncate">
+                                                <p className="text-[11px] font-bold text-foreground truncate">
                                                     <span className="text-muted-foreground">Vendor:</span> {d.vendorName}
                                                 </p>
                                                 <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter truncate mt-0.5">
@@ -248,8 +248,8 @@ export default async function ProjectManagePage({
                                         <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 min-w-0 hover:border-primary/20 transition-all">
                                             <div className="flex justify-between items-start gap-2 min-w-0">
                                                 <div className="min-w-0">
-                                                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Outflow</p>
-                                                    <span className="text-[10px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
+                                                    <p className="text-[11px] font-bold text-primary uppercase tracking-widest">Outflow</p>
+                                                    <span className="text-[11px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
                                                 </div>
 
                                                 {isVerified ? (
@@ -283,7 +283,7 @@ export default async function ProjectManagePage({
                             ) : (
                                 <div className="text-center py-12 min-w-0">
                                     <Clock className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                                    <p className="text-[10px] text-muted-foreground italic font-medium">Awaiting first treasury disbursement.</p>
+                                    <p className="text-[11px] text-muted-foreground italic font-medium">Awaiting first treasury disbursement.</p>
                                 </div>
                             )}
                         </CardContent>
@@ -291,7 +291,7 @@ export default async function ProjectManagePage({
 
                     <div className="p-5 rounded-[32px] bg-muted/10 border border-dashed border-border/60 flex items-start gap-3 min-w-0">
                         <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+                        <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                             Vendor coordination issues? Contact Givar Compliance nodes directly via the support terminal.
                         </p>
                     </div>

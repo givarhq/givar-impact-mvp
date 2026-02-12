@@ -50,7 +50,7 @@ export function OrganizationHealthCard({ metrics }: OrganizationHealthProps) {
 
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
                         <p className="text-2xl font-bold text-foreground leading-none">{metrics.totalEntities}</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Entities</p>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Entities</p>
                     </div>
                 </div>
 

@@ -39,7 +39,7 @@ export function VerificationTabs({ orgs, evidence }: VerificationTabsProps) {
                     >
                         <FileSearch className="h-3.5 w-3.5" />
                         Impact evidence
-                        <span className="ml-1 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[10px] font-bold">
+                        <span className="ml-1 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
                             {evidence.meta.total}
                         </span>
                     </TabsTrigger>
@@ -49,7 +49,7 @@ export function VerificationTabs({ orgs, evidence }: VerificationTabsProps) {
                     >
                         <BadgeCheck className="h-3.5 w-3.5" />
                         KYC requests
-                        <span className="ml-1 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[10px] font-bold">
+                        <span className="ml-1 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
                             {orgs.meta.total}
                         </span>
                     </TabsTrigger>
@@ -73,10 +73,10 @@ export function VerificationTabs({ orgs, evidence }: VerificationTabsProps) {
                             <table className="w-full text-sm text-left border-collapse">
                                 <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                                     <tr>
-                                        <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider">Organization</th>
-                                        <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider">Proposer account</th>
-                                        <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider">Legal docs</th>
-                                        <th className="px-6 py-4 font-bold text-[11px] uppercase tracking-wider text-right">Decision</th>
+                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider">Organization</th>
+                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider">Proposer account</th>
+                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider">Legal docs</th>
+                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-right">Decision</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/40">

@@ -50,10 +50,10 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                         </div>
 
                         <div className="absolute top-3 left-3 flex gap-2">
-                            <div className="bg-primary text-primary-foreground rounded-3xl px-2 py-0.5 text-[10px] font-bold shadow-sm">
+                            <div className="bg-primary text-primary-foreground rounded-3xl px-2 py-0.5 text-[11px] font-bold shadow-sm">
                                 Featured
                             </div>
-                            <div className="bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-3xl px-2 py-0.5 text-[10px] font-bold flex items-center gap-1">
+                            <div className="bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-3xl px-2 py-0.5 text-[11px] font-bold flex items-center gap-1">
                                 <ShieldCheck className="h-3 w-3 text-primary" />
                                 <span>Verified</span>
                             </div>
@@ -66,7 +66,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                             <p className="text-xs text-zinc-300 leading-relaxed line-clamp-1 max-w-md font-medium">
                                 {current.shortDesc || current.description}
                             </p>
-                            <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+                            <div className="flex items-center gap-2 text-[11px] text-zinc-400">
                                 <span className="flex items-center gap-1 font-medium">
                                     <MapPin className="h-2.5 w-2.5 text-primary" /> {current.location}
                                 </span>
@@ -79,7 +79,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                         <div className="space-y-3">
                             <div className="flex justify-between items-end">
                                 <div className="space-y-0.5">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Progress</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Progress</p>
                                     <div className="flex items-baseline gap-1.5">
                                         <SmartCurrency amount={current.raisedAmount} currency={current.currency} visible={true} size="default" className="text-foreground" />
                                         <span className="text-xs font-bold text-primary">{percent.toFixed(0)}%</span>
@@ -101,19 +101,19 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                             <div className="flex flex-col gap-2">
                                 <div className="grid grid-cols-2 gap-2">
                                     <Link href={`/dashboard/impact/${current.slug}/donate`} className="w-full">
-                                        <Button className="w-full h-8 rounded-3xl font-bold text-[10px] uppercase tracking-wider shadow-sm">
+                                        <Button className="w-full h-8 rounded-3xl font-bold text-[11px] uppercase tracking-wider shadow-sm">
                                             Donate
                                         </Button>
                                     </Link>
                                     <Link href={`/dashboard/impact/${current.slug}`} className="w-full">
-                                        <Button variant="outline" className="w-full h-8 rounded-3xl font-bold text-[10px] uppercase tracking-wider bg-background border-border/60">
+                                        <Button variant="outline" className="w-full h-8 rounded-3xl font-bold text-[11px] uppercase tracking-wider bg-background border-border/60">
                                             Details
                                         </Button>
                                     </Link>
                                 </div>
 
                                 <Link href="/dashboard/impact" className="flex items-center justify-center">
-                                    <Button variant="ghost" className="h-7 text-[10px] font-bold text-muted-foreground hover:text-primary gap-1.5 uppercase tracking-widest transition-all">
+                                    <Button variant="ghost" className="h-7 text-[11px] font-bold text-muted-foreground hover:text-primary gap-1.5 uppercase tracking-widest transition-all">
                                         View all causes <ArrowRight className="h-3 w-3" />
                                     </Button>
                                 </Link>

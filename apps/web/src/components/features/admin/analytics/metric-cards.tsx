@@ -28,7 +28,7 @@ export function SectorAllocationCard({ data }: { data: Array<{ category: string;
                                         <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
                                             {cat.category}
                                         </p>
-                                        <p className="text-[10px] font-medium text-muted-foreground">
+                                        <p className="text-[11px] font-medium text-muted-foreground">
                                             {cat.count} active projects
                                         </p>
                                     </div>
@@ -54,7 +54,7 @@ export function SectorAllocationCard({ data }: { data: Array<{ category: string;
                 </div>
             </CardContent>
             <div className="p-4 bg-muted/20 border-t border-border/40 mt-auto">
-                <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-2">
+                <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-2">
                     <span>Ranked by liquidity</span>
                     <TrendingUp className="h-3 w-3" />
                 </div>
@@ -81,7 +81,7 @@ export function EntityCompositionCard({ data }: { data: Array<{ type: string; co
                 <div className="space-y-6">
                     <div className="text-center space-y-1">
                         <p className="text-3xl font-bold text-foreground tracking-tight leading-none">{total}</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Registered entities</p>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Registered entities</p>
                     </div>
 
                     <div className="space-y-4">
@@ -109,7 +109,7 @@ export function EntityCompositionCard({ data }: { data: Array<{ type: string; co
                     </div>
 
                     <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                        <p className="text-[11px] text-primary font-semibold leading-relaxed text-center italic">
+                        <p className="text-xs text-primary font-semibold leading-relaxed text-center italic">
                             Ecosystem ratio: {Math.round(individuals / (organizers || 1))}:1 donor to organizer.
                         </p>
                     </div>

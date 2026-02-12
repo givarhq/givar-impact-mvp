@@ -70,7 +70,7 @@ function SummaryCard({ label, value, subValue, icon: Icon, color, bg }: any) {
             )}>
               <Icon className="h-4 md:h-4.5 w-4 md:w-4.5" />
             </div>
-            <p className="text-[11px] md:text-xs font-bold text-muted-foreground/80 leading-tight truncate">
+            <p className="text-xs md:text-xs font-bold text-muted-foreground/80 leading-tight truncate">
               {label}
             </p>
           </div>
@@ -80,7 +80,7 @@ function SummaryCard({ label, value, subValue, icon: Icon, color, bg }: any) {
             <div className="text-lg md:text-2xl font-bold text-foreground tracking-tight leading-none truncate tabular-nums">
               {value.toLocaleString()}
             </div>
-            <p className="text-[11px] md:text-xs font-medium text-muted-foreground truncate opacity-80 leading-tight">
+            <p className="text-xs md:text-xs font-medium text-muted-foreground truncate opacity-80 leading-tight">
               {subValue}
             </p>
           </div>

@@ -167,7 +167,7 @@ export default function StartProposalPage() {
                             />
 
                             <div className="space-y-1.5 min-w-0">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Cause classification</label>
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Cause classification</label>
                                 <Controller
                                     control={control}
                                     name="categoryId"
@@ -188,7 +188,7 @@ export default function StartProposalPage() {
                                         </Select>
                                     )}
                                 />
-                                {errors.categoryId && <p className="text-[10px] font-bold text-destructive mt-1 ml-1">{errors.categoryId.message}</p>}
+                                {errors.categoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.categoryId.message}</p>}
                             </div>
                         </div>
 

@@ -22,12 +22,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
         return (
             <div className="bg-card border border-border/60 shadow-xl p-3 rounded-2xl min-w-[160px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-muted-foreground mb-2 uppercase tracking-wider">
                     {label}
                 </p>
                 <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-4">
-                        <span className="text-[11px] font-medium text-primary flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-primary flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Volume
                         </span>
                         <span className="text-xs font-bold text-foreground tabular-nums">
@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                         </span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                        <span className="text-[11px] font-medium text-blue-500 flex items-center gap-1.5">
+                        <span className="text-xs font-medium text-blue-500 flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Count
                         </span>
                         <span className="text-xs font-bold text-foreground tabular-nums">
@@ -63,9 +63,9 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
                     <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-primary" /> {title}
                     </CardTitle>
-                    <p className="text-[11px] text-muted-foreground font-medium">{subtitle}</p>
+                    <p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
                 </div>
-                <div className="hidden sm:flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
+                <div className="hidden sm:flex items-center gap-4 text-[11px] font-bold uppercase tracking-wider">
                     <div className="flex items-center gap-1.5 text-primary">
                         <div className="w-2 h-1 rounded-full bg-primary" /> Liquidity
                     </div>

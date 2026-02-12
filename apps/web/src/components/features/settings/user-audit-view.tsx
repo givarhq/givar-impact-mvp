@@ -111,11 +111,11 @@ export function UserAuditView() {
                                             </div>
                                             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                                                 <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
-                                                    <p className="text-muted-foreground font-bold uppercase text-[10px]">Origin IP</p>
+                                                    <p className="text-muted-foreground font-bold uppercase text-[11px]">Origin IP</p>
                                                     <p className="font-mono text-foreground truncate">{log.ipAddress}</p>
                                                 </div>
                                                 <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
-                                                    <p className="text-muted-foreground font-bold uppercase text-[10px]">User Agent</p>
+                                                    <p className="text-muted-foreground font-bold uppercase text-[11px]">User Agent</p>
                                                     <p className="truncate text-foreground">{log.userAgent}</p>
                                                 </div>
                                             </div>
@@ -172,17 +172,17 @@ export function UserAuditView() {
                                                             <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                                                                 <FileJson2 className="h-3.5 w-3.5" /> Payload Detail
                                                             </p>
-                                                            <div className="bg-zinc-950 p-4 rounded-3xl text-[11px] font-mono text-zinc-300 border border-zinc-800 h-32 overflow-y-auto no-scrollbar">
+                                                            <div className="bg-zinc-950 p-4 rounded-3xl text-xs font-mono text-zinc-300 border border-zinc-800 h-32 overflow-y-auto no-scrollbar">
                                                                 <pre>{JSON.stringify(log.metadata || {}, null, 2)}</pre>
                                                             </div>
                                                         </div>
                                                         <div className="space-y-4">
                                                             <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                <p className="text-[10px] font-bold uppercase text-muted-foreground">Identity ID</p>
+                                                                <p className="text-[11px] font-bold uppercase text-muted-foreground">Identity ID</p>
                                                                 <p className="font-mono text-foreground truncate">{log.id}</p>
                                                             </div>
                                                             <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                <p className="text-[10px] font-bold uppercase text-muted-foreground">Node IP</p>
+                                                                <p className="text-[11px] font-bold uppercase text-muted-foreground">Node IP</p>
                                                                 <p className="font-mono text-foreground">{log.ipAddress}</p>
                                                             </div>
                                                         </div>

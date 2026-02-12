@@ -93,7 +93,7 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
                         )}>
                             <Icon className="h-4 md:h-4.5 w-4 md:w-4.5" />
                         </div>
-                        <p className="text-[11px] md:text-xs font-bold text-muted-foreground/80 leading-tight">
+                        <p className="text-xs md:text-xs font-bold text-muted-foreground/80 leading-tight">
                             {title}
                         </p>
                     </div>
@@ -104,7 +104,7 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
                             {value}
                         </div>
                         <div className="flex items-center justify-between gap-2">
-                            <p className="text-[11px] md:text-xs font-medium text-muted-foreground truncate opacity-80">
+                            <p className="text-xs md:text-xs font-medium text-muted-foreground truncate opacity-80">
                                 {subValue}
                             </p>
                             {onClick && (

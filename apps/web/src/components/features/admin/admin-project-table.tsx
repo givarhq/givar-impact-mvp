@@ -47,7 +47,7 @@ export function AdminProjectTable({
         return (
             <th
                 className={cn(
-                    "px-5 py-3 font-bold uppercase tracking-wider text-[11px] cursor-pointer hover:text-primary transition-colors group select-none",
+                    "px-5 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer hover:text-primary transition-colors group select-none",
                     className
                 )}
                 onClick={() => handleSort(column)}
@@ -93,7 +93,7 @@ export function AdminProjectTable({
                                 <div className="min-w-0 flex-1">
                                     <p className="text-sm font-bold text-foreground truncate leading-tight">{project.title}</p>
                                     <div className="flex items-center gap-2 mt-1.5">
-                                        <span className="text-[10px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                        <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                             id: {project.id.split('-')[0]}
                                         </span>
                                         <Badge variant="outline" className="text-[9px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
@@ -108,15 +108,15 @@ export function AdminProjectTable({
 
                             <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
                                 <div className="space-y-1 min-w-0">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Raised / Target</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Raised / Target</p>
                                     <div className="flex items-center gap-1.5 flex-wrap">
                                         <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
-                                        <span className="text-muted-foreground/50 text-[10px]">of</span>
+                                        <span className="text-muted-foreground/50 text-[11px]">of</span>
                                         <span className="text-xs font-bold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
                                     </div>
                                 </div>
                                 <div className="text-right shrink-0">
-                                    <p className="text-[10px] font-bold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -133,7 +133,7 @@ export function AdminProjectTable({
                                 <SortHeader title="Cause details" column="title" />
                                 <SortHeader title="Status" column="status" />
                                 <SortHeader title="Launched" column="createdAt" />
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-[11px] text-right">
+                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs text-right">
                                     <div className="flex items-center justify-end gap-1.5">
                                         <TrendingUp className="h-3 w-3" /> Financials
                                     </div>
@@ -154,11 +154,11 @@ export function AdminProjectTable({
                                                 {project.title}
                                             </p>
                                             <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-[10px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                                <span className="text-[11px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                     id: {project.id.split('-')[0]}
                                                 </span>
                                                 {project.categoryName && (
-                                                    <span className="text-[10px] font-bold text-primary/70 uppercase tracking-tight">
+                                                    <span className="text-[11px] font-bold text-primary/70 uppercase tracking-tight">
                                                         {project.categoryName}
                                                     </span>
                                                 )}
@@ -168,7 +168,7 @@ export function AdminProjectTable({
                                     <td className="px-5 py-4">
                                         <Badge
                                             variant={project.status === 'ACTIVE' ? 'success' : 'outline'}
-                                            className="uppercase text-[10px] font-bold px-2 py-0 rounded-3xl"
+                                            className="uppercase text-[11px] font-bold px-2 py-0 rounded-3xl"
                                         >
                                             {project.status}
                                         </Badge>
@@ -189,7 +189,7 @@ export function AdminProjectTable({
                                                     size="small"
                                                 />
                                             </div>
-                                            <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
+                                            <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground uppercase tracking-tighter">
                                                 <Flag className="h-3 w-3 opacity-50" />
                                                 {formatCurrency(project.targetAmount, project.currency)}
                                             </div>

@@ -16,7 +16,7 @@ const CustomTooltip = ({ active, payload, mode }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-card border border-border/60 p-3 rounded-2xl shadow-xl min-w-[180px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
                     {mode === 'funded' ? 'Capital raised' : 'Donation volume'}
                 </p>
                 <p className="text-xs font-bold text-foreground mb-2 line-clamp-2 leading-tight">
@@ -55,8 +55,8 @@ export function ProjectPerformanceCard({ topFunded, mostActive }: ProjectPerform
                 </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
                     <TabsList className="bg-muted/50 p-1 rounded-2xl h-9 w-full sm:w-[220px] border border-border/40">
-                        <TabsTrigger value="funded" className="text-[10px] font-bold uppercase tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Top funded</TabsTrigger>
-                        <TabsTrigger value="active" className="text-[10px] font-bold uppercase tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Most active</TabsTrigger>
+                        <TabsTrigger value="funded" className="text-[11px] font-bold uppercase tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Top funded</TabsTrigger>
+                        <TabsTrigger value="active" className="text-[11px] font-bold uppercase tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Most active</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </CardHeader>
