@@ -122,7 +122,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
 
                                 <div className="w-full space-y-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Manual Key</label>
+                                        <label className="text-xs font-bold tracking-widest text-muted-foreground ml-1">Manual Key</label>
                                         <div className="flex gap-2">
                                             <code className="flex-1 bg-muted p-3 rounded-3xl text-xs font-mono break-all border border-border/40 flex items-center">{setupData.secret}</code>
                                             <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-3xl" onClick={() => {
@@ -135,7 +135,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-primary ml-1">Authentication Code</label>
+                                        <label className="text-xs font-bold tracking-widest text-primary ml-1">Authentication Code</label>
                                         <Input
                                             placeholder="000 000"
                                             value={verificationCode}
@@ -150,7 +150,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                         <Button
                             onClick={handleEnable}
                             disabled={isLoading || verificationCode.length !== 6}
-                            className="w-full h-12 rounded-3xl font-bold text-xs uppercase tracking-widest shadow-sm"
+                            className="w-full h-12 rounded-3xl font-bold text-sm tracking-widest shadow-sm"
                         >
                             {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Activate Protection'}
                         </Button>

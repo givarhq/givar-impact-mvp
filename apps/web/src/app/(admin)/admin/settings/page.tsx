@@ -26,7 +26,7 @@ export default async function AdminSettingsPage() {
         <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
             {/* Mobile page title */}
             <div className="px-1 md:hidden">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">System settings</h1>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">Account Settings</h1>
             </div>
 
             <div className="w-full min-w-0">

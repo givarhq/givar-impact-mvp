@@ -35,7 +35,7 @@ export default async function AdminDashboard() {
                 <div className="space-y-1 px-1">
                     <h1 className="text-xl md:hidden font-bold tracking-tight text-foreground flex items-center gap-3">
                         <LayoutDashboard className="h-5 w-5 text-primary" />
-                        Platform overview
+                        Platform Overview
                     </h1>
                     <p className="text-sm text-muted-foreground font-medium tracking-wider hidden md:block">
                         Operations Intelligence Dashboard

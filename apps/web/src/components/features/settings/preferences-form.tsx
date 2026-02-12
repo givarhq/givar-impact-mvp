@@ -113,7 +113,7 @@ export function PreferencesForm({ user }: { user: any }) {
                         </div>
                         <div className="space-y-0.5">
                             <h3 className="font-bold text-sm text-foreground">Visual Identity</h3>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">Platform interface settings</p>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Platform interface settings</p>
                         </div>
                     </div>
 
@@ -138,7 +138,7 @@ export function PreferencesForm({ user }: { user: any }) {
                         </div>
                         <div className="space-y-0.5">
                             <h3 className="font-bold text-sm text-foreground">Notification Protocols</h3>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">Automated ledger alerts</p>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Automated ledger alerts</p>
                         </div>
                     </div>
 

@@ -186,7 +186,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
                 <Building2 className="h-4.5 w-4.5" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-bold text-sm text-foreground">Entity identification</h3>
+                <h3 className="font-bold text-sm text-foreground">Entity Identification</h3>
                 <p className="text-xs text-muted-foreground font-medium">Core registration data for your organization.</p>
               </div>
             </div>
@@ -217,7 +217,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
                 <FileText className="h-4.5 w-4.5" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-bold text-sm text-foreground">Proof of incorporation</h3>
+                <h3 className="font-bold text-sm text-foreground">Proof of Incorporation</h3>
                 <p className="text-xs text-muted-foreground font-medium">Upload government-issued identity documents.</p>
               </div>
             </div>
@@ -289,10 +289,10 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
         <Button
           onClick={handleSubmit}
           disabled={isLoading || !legalName.trim() || docKeys.length === 0}
-          className="h-12 rounded-3xl px-8 font-bold text-xs uppercase tracking-widest shadow-sm active:scale-[0.98] transition-all gap-2"
+          className="h-12 rounded-3xl px-8 font-bold text-sm tracking-widest shadow-sm active:scale-[0.98] transition-all gap-2"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Commit verification
+          Request verification
         </Button>
       </div>
     </motion.div>

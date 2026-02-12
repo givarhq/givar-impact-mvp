@@ -191,7 +191,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardContent className="p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-muted-foreground uppercase">Account Status</span>
+                                <span className="text-xs font-bold text-muted-foreground">Account Status</span>
                                 <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-3xl">{user.accountType}</span>
                             </div>
                             <Button
@@ -242,7 +242,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                                 )}
                             >
                                 <div className="space-y-1 flex-1 min-w-0">
-                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Full Name</p>
+                                    <p className="text-xs font-bold text-muted-foreground tracking-widest">Full Name</p>
                                     {editingField === 'name' ? (
                                         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-2 pt-1 animate-in slide-in-from-left-1" onClick={(e) => e.stopPropagation()}>
                                             <Input {...register('firstName')} error={errors.firstName?.message} className="h-9 rounded-3xl text-sm" autoFocus />
@@ -260,12 +260,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
                             </div>
 
                             <div className="p-5 md:p-6 border-b border-border/40 bg-muted/10 opacity-70">
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Primary Email</p>
+                                <p className="text-xs font-bold text-muted-foreground tracking-widest mb-1">Email Address</p>
                                 <p className="text-sm font-bold text-foreground">{user.email}</p>
                             </div>
 
                             <div className="p-5 md:p-6 bg-muted/10 opacity-70">
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Node Identity ID</p>
+                                <p className="text-xs font-bold text-muted-foreground tracking-widest mb-1">Account ID</p>
                                 <p className="text-xs font-mono text-foreground truncate">{user.id}</p>
                             </div>
                         </CardContent>

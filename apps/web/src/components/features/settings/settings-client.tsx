@@ -63,7 +63,7 @@ const SETTINGS_OPTIONS = [
         icon: Bell,
         color: 'text-rose-500',
         bg: 'bg-rose-500/10',
-        description: 'Notification matrix settings.'
+        description: 'Notification and theme settings.'
     },
 ];
 
@@ -90,7 +90,7 @@ export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
             {/* Mobile Title - Only visible on main settings menu */}
             {!activeTab && (
                 <div className="md:hidden">
-                    <h1 className="text-xl font-bold tracking-tight text-foreground">Settings</h1>
+                    <h1 className="text-xl font-bold tracking-tight text-foreground">Account Settings</h1>
                 </div>
             )}
 

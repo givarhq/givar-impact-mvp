@@ -96,7 +96,7 @@ export function SecurityForm({ user }: { user: any }) {
                                 </div>
                                 <div className="space-y-0.5">
                                     <h3 className="font-bold text-sm text-foreground">Password Management</h3>
-                                    {!isEditing && <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">Update security credentials</p>}
+                                    {!isEditing && <p className="text-xs text-muted-foreground font-medium tracking-tight">Update security credentials</p>}
                                 </div>
                             </div>
                             {!isEditing && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/30 group-hover:opacity-100 transition-all" />}

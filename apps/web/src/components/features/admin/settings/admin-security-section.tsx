@@ -84,12 +84,12 @@ export function AdminSecuritySection({ user }: { user: any }) {
                         <Button
                             onClick={startSetup}
                             disabled={isLoading}
-                            className="rounded-3xl h-12 px-8 font-bold uppercase tracking-wider text-[10px] shadow-lg shadow-primary/20 w-full md:w-auto"
+                            className="rounded-3xl h-12 px-8 font-bold tracking-wider text-[10px] shadow-lg shadow-primary/20 w-full md:w-auto"
                         >
                             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Setup 2fa"}
                         </Button>
                     ) : (
-                        <div className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-4 py-2 rounded-3xl font-bold uppercase text-[10px] tracking-wider flex items-center gap-2">
+                        <div className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-4 py-2 rounded-3xl font-bold text-[10px] tracking-wider flex items-center gap-2">
                             <ShieldCheck className="h-4 w-4" /> Active protection
                         </div>
                     )}

@@ -77,7 +77,7 @@ export function UserAuditView() {
                         </div>
                         <div>
                             <CardTitle className="text-base font-bold">Activity Logs</CardTitle>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">Forensic account history</p>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Account history</p>
                         </div>
                     </div>
                 </CardHeader>
