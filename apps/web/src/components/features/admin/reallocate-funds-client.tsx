@@ -33,7 +33,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
     const [selectedSplits, setSelectedSplits] = useState<Array<{ id: string; title: string; amount: string }>>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    // Mobile Ledger State
     const [isMobileLedgerOpen, setIsMobileLedgerOpen] = useState(false);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
@@ -120,13 +119,11 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
         }
     };
 
-    // Reusable Ledger Content
     const LedgerContent = (
         <div className="flex flex-col h-full w-full">
-            {/* Drag handle + Header - Static */}
             <div className="bg-muted/40 border-b border-border/40 shrink-0">
                 <div className="flex justify-center pt-5 lg:hidden">
-                    <div className="h-1 w-12 rounded-full bg-foreground/10" />
+                    <div className="h-1.5 w-12 rounded-full bg-foreground/10" />
                 </div>
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-1">
@@ -141,7 +138,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                 </div>
             </div>
 
-            {/* List Area - Scrollable */}
             <div className="p-6 flex-1 overflow-y-auto no-scrollbar space-y-6 min-h-0">
                 {selectedSplits.length === 0 ? (
                     <div className="py-12 text-center space-y-3 border-2 border-dashed border-border/40 rounded-3xl bg-muted/10">
@@ -184,7 +180,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                 )}
             </div>
 
-            {/* Footer - Static with enhanced safe-area handling */}
             <div className="p-6 pb-[max(2rem,env(safe-area-inset-bottom))] bg-card border-t border-border/40 space-y-4 shrink-0 mt-auto">
                 <div className="flex justify-between items-center">
                     <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Original Cap</span>
@@ -223,7 +218,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-6 md:space-y-8 pb-32 md:pb-20 animate-in fade-in duration-500">
-            {/* Header Context */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div className="space-y-2">
                     <button
@@ -259,9 +253,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                {/* LEFT: Project Discovery Interface */}
                 <div className="lg:col-span-8 space-y-6">
-                    {/* Search */}
                     <div className="relative w-full group">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
@@ -272,7 +264,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                         />
                     </div>
 
-                    {/* Category Browser */}
                     <div className="relative flex items-center group/browser">
                         {showLeftArrow && (
                             <div className="absolute left-0 top-0 bottom-0 z-20 hidden md:flex items-center pr-8 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none">
@@ -327,7 +318,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                         )}
                     </div>
 
-                    {/* Cause Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {filteredProjects.length === 0 ? (
                             <div className="col-span-full py-20 text-center border-2 border-dashed border-border/60 rounded-3xl bg-muted/10">
@@ -350,7 +340,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                                     <div className="p-4 flex items-center gap-4">
                                         <div className="h-12 w-12 rounded-3xl overflow-hidden shrink-0 border border-border/40 bg-muted shadow-sm">
                                             {p.imageUrl ? (
-                                                <img src={p.imageUrl} className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all" />
+                                                <img src={p.imageUrl} className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all" alt="" />
                                             ) : (
                                                 <div className="flex items-center justify-center h-full w-full bg-secondary/50">
                                                     <Briefcase className="h-5 w-5 text-muted-foreground/40" />
@@ -377,7 +367,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                     </div>
                 </div>
 
-                {/* RIGHT: Desktop Ledger Panel (fixed height, internally scrollable) */}
                 <div className="hidden lg:block lg:col-span-4 sticky top-24">
                     <Card className="rounded-3xl border-border/40 bg-card shadow-lg overflow-hidden flex flex-col h-[calc(100vh-140px)]">
                         {LedgerContent}
@@ -385,9 +374,8 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                 </div>
             </div>
 
-            {/* MOBILE: Floating Ledger Action */}
             {selectedSplits.length > 0 && (
-                <div className="lg:hidden fixed left-4 right-4 bottom-[max(4rem,env(safe-area-inset-bottom))] z-50 animate-in slide-in-from-bottom duration-500">
+                <div className="lg:hidden fixed left-4 right-4 bottom-[max(4rem,env(safe-area-inset-bottom))] z-40 animate-in slide-in-from-bottom duration-500">
                     <div
                         onClick={() => setIsMobileLedgerOpen(true)}
                         className="bg-zinc-950/90 backdrop-blur-xl border border-white/10 rounded-full p-2 pl-6 pr-2 shadow-2xl flex items-center justify-between cursor-pointer active:scale-95 transition-transform"
@@ -410,9 +398,14 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                 </div>
             )}
 
-            {/* MOBILE: Full-Screen Bottom Sheet Modal (increased height, drag handle, close button) */}
             <Dialog open={isMobileLedgerOpen} onOpenChange={setIsMobileLedgerOpen}>
-                <DialogContent className="max-w-full h-[85dvh] p-0 rounded-t-[32px] rounded-b-none border-none shadow-2xl bg-card flex flex-col overflow-hidden fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 z-[60]">
+                {/* 
+                    FIX: Corrected mobile positioning. 
+                    - 'left-0 right-0 bottom-0 top-auto': Anchors precisely to the bottom.
+                    - 'translate-x-0 translate-y-0': Neutralizes the -50% centering logic from base component.
+                    - 'w-full max-w-full': Ensures edge-to-edge width on mobile.
+                */}
+                <DialogContent className="w-full max-w-full h-[85dvh] p-0 rounded-t-[32px] rounded-b-none border-none shadow-2xl bg-card flex flex-col overflow-hidden fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 z-50">
                     <DialogHeader className="sr-only">
                         <DialogTitle>Ledger Management</DialogTitle>
                     </DialogHeader>

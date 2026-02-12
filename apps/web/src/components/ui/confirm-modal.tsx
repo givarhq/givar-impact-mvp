@@ -49,7 +49,7 @@ export function ConfirmModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && onClose()}>
-            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl bg-card rounded-3xl gap-0">
+            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl bg-card rounded-3xl gap-0 z-[100]">
                 <div className="p-5 md:p-6 flex flex-col gap-6">
                     <div className="flex items-start gap-4">
                         <div
