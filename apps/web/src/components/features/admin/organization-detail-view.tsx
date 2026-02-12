@@ -139,11 +139,11 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center">
-                                        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Joined</p>
+                                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Joined</p>
                                         <p className="text-xs font-bold mt-1">{formatDate(profile.user.createdAt).split(',')[0]}</p>
                                     </div>
                                     <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center">
-                                        <p className="text-[9px] font-black uppercase text-muted-foreground tracking-wider">Causes</p>
+                                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">Causes</p>
                                         <p className="text-xs font-bold mt-1">{profile.user._count.projects}</p>
                                     </div>
                                 </div>
@@ -169,7 +169,7 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                                             </div>
                                             <div className="text-left min-w-0">
                                                 <p className="text-xs font-bold text-foreground truncate">Document {i + 1}</p>
-                                                <p className="text-[9px] text-muted-foreground font-mono opacity-60 uppercase truncate">{key.split('/').pop()?.slice(0, 12)}...</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono opacity-60 uppercase truncate">{key.split('/').pop()?.slice(0, 12)}...</p>
                                             </div>
                                         </div>
                                         <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
@@ -199,8 +199,8 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 min-w-0">
                                             <div className="space-y-2 flex-1 min-w-0 w-full">
                                                 <div className="flex items-center gap-2">
-                                                    <Badge variant="outline" className="text-[9px] font-bold uppercase rounded-3xl px-2 border-primary/20 bg-primary/5 text-primary shrink-0">{p.status}</Badge>
-                                                    <span className="text-[9px] font-mono text-muted-foreground opacity-50 uppercase truncate">#{p.id.split('-')[0]}</span>
+                                                    <Badge variant="outline" className="text-[10px] font-bold uppercase rounded-3xl px-2 border-primary/20 bg-primary/5 text-primary shrink-0">{p.status}</Badge>
+                                                    <span className="text-[10px] font-mono text-muted-foreground opacity-50 uppercase truncate">#{p.id.split('-')[0]}</span>
                                                 </div>
                                                 <h4 className="text-sm font-bold text-foreground leading-tight truncate">{p.title}</h4>
                                                 <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -208,11 +208,11 @@ export function OrganizationDetailView({ profile }: { profile: any }) {
                                                 </div>
                                             </div>
                                             <div className="text-left md:text-right shrink-0">
-                                                <p className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest mb-0.5">Raised</p>
+                                                <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest mb-0.5">Raised</p>
                                                 <div className="font-bold text-foreground text-sm tabular-nums">
                                                     <SmartCurrency amount={p.raisedAmount} currency={p.currency} visible={true} size="default" />
                                                 </div>
-                                                <p className="text-[9px] font-bold text-primary mt-0.5">{percent}% of Goal</p>
+                                                <p className="text-[10px] font-bold text-primary mt-0.5">{percent}% of Goal</p>
                                             </div>
                                         </div>
                                     </Card>

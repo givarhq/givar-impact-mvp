@@ -86,7 +86,7 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                             </div>
                                         </div>
                                         <div className="bg-zinc-950 p-3 rounded-2xl border border-zinc-800">
-                                            <pre className="text-[9px] text-zinc-400 font-mono overflow-x-auto whitespace-pre-wrap">
+                                            <pre className="text-[10px] text-zinc-400 font-mono overflow-x-auto whitespace-pre-wrap">
                                                 {JSON.stringify(log.metadata, null, 2)}
                                             </pre>
                                         </div>
@@ -180,16 +180,16 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                                     <div className="space-y-4">
                                                         <div className="grid grid-cols-2 gap-3">
                                                             <div className="p-4 rounded-3xl bg-card border border-border/40">
-                                                                <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Audit ID</p>
+                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Audit ID</p>
                                                                 <p className="text-[11px] font-mono font-bold truncate select-all">{log.id}</p>
                                                             </div>
                                                             <div className="p-4 rounded-3xl bg-card border border-border/40">
-                                                                <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Entity Reference</p>
+                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Entity Reference</p>
                                                                 <p className="text-[11px] font-mono font-bold truncate select-all">{log.entityId}</p>
                                                             </div>
                                                         </div>
                                                         <div className="p-4 rounded-3xl bg-card border border-border/40">
-                                                            <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">User Agent Trace</p>
+                                                            <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">User Agent Trace</p>
                                                             <p className="text-[11px] font-medium text-foreground leading-relaxed break-all">{log.userAgent}</p>
                                                         </div>
                                                     </div>

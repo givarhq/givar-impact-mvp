@@ -134,7 +134,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                             <Calculator className="h-3.5 w-3.5 text-primary" /> Reconciliation Ledger
                         </h3>
                         <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="rounded-3xl bg-background font-bold text-[9px]">{selectedSplits.length} Splits</Badge>
+                            <Badge variant="outline" className="rounded-3xl bg-background font-bold text-[10px]">{selectedSplits.length} Splits</Badge>
                         </div>
                     </div>
                     <p className="text-[11px] text-muted-foreground font-medium">Assign capital to selected nodes.</p>
@@ -158,7 +158,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                             <div key={s.id} className="p-4 rounded-3xl bg-muted/20 border border-border/40 space-y-3 animate-in zoom-in-95 duration-200">
                                 <div className="flex justify-between items-start gap-2">
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-[8px] font-bold text-primary uppercase tracking-wider mb-0.5">Target Cause</p>
+                                        <p className="text-[9px] font-bold text-primary uppercase tracking-wider mb-0.5">Target Cause</p>
                                         <p className="text-xs font-bold text-foreground truncate">{s.title}</p>
                                     </div>
                                     <button
@@ -194,7 +194,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                 </div>
                 <div className="p-4 rounded-3xl bg-zinc-950 text-white shadow-lg">
                     <div className="flex justify-between items-center">
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-500">Unallocated</span>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Unallocated</span>
                         <span className={cn(
                             "text-lg font-black tabular-nums tracking-tight",
                             remainingMinor === 0n ? "text-emerald-500" : remainingMinor < 0n ? "text-destructive" : "text-amber-500"
@@ -203,7 +203,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                         </span>
                     </div>
                     {remainingMinor !== 0n && selectedSplits.length > 0 && (
-                        <div className="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-zinc-400">
+                        <div className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-zinc-400">
                             <AlertTriangle className="h-3 w-3 text-amber-500" />
                             <span>Must balance to zero</span>
                         </div>
@@ -234,7 +234,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                     </button>
                     <h1 className="text-xl font-bold tracking-tight text-foreground">Reallocate Funds</h1>
                     <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="font-mono text-[9px] py-0.5 px-2 rounded-3xl border-border/50 bg-background">
+                        <Badge variant="outline" className="font-mono text-[10px] py-0.5 px-2 rounded-3xl border-border/50 bg-background">
                             REF: {transaction.reference}
                         </Badge>
                         <p className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
@@ -244,12 +244,12 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                 </div>
                 <div className="bg-primary/5 border border-primary/20 rounded-3xl p-5 flex items-center gap-6 shadow-sm w-full md:w-auto">
                     <div className="space-y-0.5">
-                        <p className="text-[9px] font-bold uppercase text-primary tracking-widest">Orphaned Capital</p>
+                        <p className="text-[10px] font-bold uppercase text-primary tracking-widest">Orphaned Capital</p>
                         <SmartCurrency amount={transaction.amount} currency={transaction.currency} visible={true} size="default" className="text-foreground" />
                     </div>
                     <div className="h-8 w-px bg-primary/20" />
                     <div className="text-right space-y-0.5">
-                        <p className="text-[9px] font-bold uppercase text-muted-foreground tracking-widest">Status</p>
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest">Status</p>
                         <div className="flex items-center gap-1.5 text-amber-500 font-bold text-[11px] uppercase italic">
                             <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
                             Pending
@@ -358,7 +358,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                                             )}
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-[8px] font-bold text-primary uppercase tracking-widest mb-0.5">{p.categoryName}</p>
+                                            <p className="text-[9px] font-bold text-primary uppercase tracking-widest mb-0.5">{p.categoryName}</p>
                                             <h4 className="font-bold text-sm text-foreground truncate">{p.title}</h4>
                                             <p className="text-[11px] text-muted-foreground font-medium mt-1 flex items-center gap-1.5">
                                                 <Target className="h-3 w-3" /> Goal: {formatCurrency(p.targetAmount, p.currency)}
@@ -393,7 +393,7 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                         className="bg-zinc-950/90 backdrop-blur-xl border border-white/10 rounded-full p-2 pl-6 pr-2 shadow-2xl flex items-center justify-between cursor-pointer active:scale-95 transition-transform"
                     >
                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Balance</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Balance</span>
                             <span className={cn(
                                 "text-sm font-black tabular-nums text-white",
                                 remainingMinor !== 0n && "text-amber-500"

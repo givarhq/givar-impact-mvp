@@ -96,7 +96,7 @@ export function AdminProjectTable({
                                         <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                             id: {project.id.split('-')[0]}
                                         </span>
-                                        <Badge variant="outline" className="text-[9px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
+                                        <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
                                             {project.status}
                                         </Badge>
                                     </div>

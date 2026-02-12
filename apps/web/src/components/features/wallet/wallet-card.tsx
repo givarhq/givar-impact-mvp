@@ -24,7 +24,7 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
             <Wallet className="h-4.5 w-4.5" />
           </div>
           <div className="space-y-0">
-            <p className="text-xs font-bold uppercase tracking-wider text-primary">Liquidity Node</p>
+            <p className="text-sm font-bold tracking-wider text-primary">Liquidity</p>
             <p className="text-xs font-medium text-muted-foreground">Available Balance</p>
           </div>
         </div>

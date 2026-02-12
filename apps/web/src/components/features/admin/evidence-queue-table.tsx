@@ -79,11 +79,11 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                     <div className="min-w-0 flex-1">
                                         <p className="text-sm font-bold text-foreground truncate">{proof.project.title}</p>
                                         <div className="flex items-center gap-2 mt-1.5">
-                                            <Badge variant="outline" className="text-[9px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border-primary/20 bg-primary/5 text-primary">
+                                            <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border-primary/20 bg-primary/5 text-primary">
                                                 {proof.phaseName}
                                             </Badge>
                                             {isHandled && (
-                                                <span className={cn("text-[9px] font-bold uppercase italic", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
+                                                <span className={cn("text-[10px] font-bold uppercase italic", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
                                                     {proof.status}
                                                 </span>
                                             )}
@@ -248,7 +248,7 @@ export function EvidenceQueueTable({ proofs }: EvidenceQueueTableProps) {
                                                                     </div>
                                                                 )}
                                                                 <div className="pt-4 border-t border-border/40 text-center">
-                                                                    <span className="text-[9px] font-bold text-emerald-600 flex items-center justify-center gap-1 uppercase tracking-widest"><Check className="h-2.5 w-2.5" /> Ledger Synchronized</span>
+                                                                    <span className="text-[10px] font-bold text-emerald-600 flex items-center justify-center gap-1 uppercase tracking-widest"><Check className="h-2.5 w-2.5" /> Ledger Synchronized</span>
                                                                 </div>
                                                             </div>
                                                         </div>

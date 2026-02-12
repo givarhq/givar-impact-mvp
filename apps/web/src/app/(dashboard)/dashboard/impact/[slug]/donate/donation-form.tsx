@@ -180,7 +180,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 {isGuest ? (
                     <>
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold text-muted-foreground">Donation amount ({project.currency})</label>
+                            <label className="text-xs font-bold text-muted-foreground">Donation Amount ({project.currency})</label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">₦</span>
                                 <Input
@@ -201,7 +201,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                         </div>
 
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold text-muted-foreground">Receipt email</label>
+                            <label className="text-xs font-bold text-muted-foreground">Receipt Email</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input

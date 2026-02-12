@@ -102,9 +102,9 @@ export function MilestoneManager({ projectId, timeline }: MilestoneManagerProps)
                   {/* Content Body */}
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Phase {index + 1}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phase {index + 1}</span>
                       {status === 'COMPLETED' && milestone.completedAt && (
-                        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-3xl">
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-3xl">
                           Finished {new Date(milestone.completedAt).toLocaleDateString()}
                         </span>
                       )}

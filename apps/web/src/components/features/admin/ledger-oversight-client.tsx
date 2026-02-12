@@ -115,7 +115,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                             <AlertTriangle className="h-3.5 w-3.5" />
                             Suspense Queue
                             {suspenseItems.length > 0 && (
-                                <span className="ml-1 bg-amber-500 text-white text-[9px] px-1.5 py-0.5 rounded-3xl font-black">
+                                <span className="ml-1 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-3xl font-black">
                                     {suspenseItems.length}
                                 </span>
                             )}
@@ -151,7 +151,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-3 mb-1.5">
                                                     <span className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600">Orphaned Capital</span>
-                                                    <Badge variant="outline" className="font-mono text-[9px] bg-muted/50 border-border/50 rounded-3xl px-2">REF: {item.reference}</Badge>
+                                                    <Badge variant="outline" className="font-mono text-[10px] bg-muted/50 border-border/50 rounded-3xl px-2">REF: {item.reference}</Badge>
                                                 </div>
                                                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
                                                     <SmartCurrency amount={item.amount} currency={item.currency} visible={true} size="large" className="text-foreground" />
@@ -170,7 +170,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                         <div className="flex items-center gap-2 w-full md:w-auto pt-4 md:pt-0 border-t md:border-none border-border/40">
                                             <Button
                                                 variant="outline"
-                                                className="flex-1 md:flex-none rounded-3xl h-11 px-6 border-destructive/20 text-destructive hover:bg-destructive/5 font-black text-[9px] uppercase tracking-widest transition-all"
+                                                className="flex-1 md:flex-none rounded-3xl h-11 px-6 border-destructive/20 text-destructive hover:bg-destructive/5 font-black text-[10px] uppercase tracking-widest transition-all"
                                                 onClick={() => openRefundPrompt(item.id, item.reference)}
                                                 disabled={isProcessing}
                                             >
@@ -178,7 +178,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                             </Button>
                                             <Link href={`/admin/ledger/reallocate/${item.id}`} className="flex-1 md:flex-none">
                                                 <Button
-                                                    className="w-full h-11 px-8 rounded-3xl font-black text-[9px] uppercase tracking-widest shadow-sm gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                                                    className="w-full h-11 px-8 rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-sm gap-2 transition-all hover:scale-[1.02] active:scale-95"
                                                     disabled={isProcessing}
                                                 >
                                                     <ArrowRightLeft className="h-3.5 w-3.5" /> Re-allocate
@@ -233,7 +233,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                         <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Value</span>
                                         <div className="text-right">
                                             <p className="font-black text-lg text-foreground">₦{(reconcileResult.external.amount / 100).toLocaleString()}</p>
-                                            <p className="text-[9px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">{reconcileResult.external.currency}</p>
+                                            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">{reconcileResult.external.currency}</p>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
@@ -306,7 +306,7 @@ function BadgeStatus({ status }: { status: string }) {
     const isSuccess = status.toLowerCase() === 'success' || status.toLowerCase() === 'synchronized';
     return (
         <span className={cn(
-            "px-4 py-1.5 rounded-3xl text-[9px] font-black uppercase tracking-[0.1em] border transition-all",
+            "px-4 py-1.5 rounded-3xl text-[10px] font-black uppercase tracking-[0.1em] border transition-all",
             isSuccess
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                 : "bg-amber-500/10 text-amber-600 border-amber-500/20"

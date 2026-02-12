@@ -57,7 +57,7 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                                         </span>
                                         <Badge
                                             variant="outline"
-                                            className={cn("text-[9px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
+                                            className={cn("text-[10px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
                                         >
                                             {p.status.replace('_', ' ')}
                                         </Badge>
@@ -82,7 +82,7 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                                     <div className="text-sm font-bold tabular-nums text-foreground">
                                         <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
                                     </div>
-                                    <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter mt-0.5">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mt-0.5">
                                         {formatDate(p.submittedAt).split(',')[0]}
                                     </p>
                                 </div>

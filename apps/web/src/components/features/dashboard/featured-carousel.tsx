@@ -86,7 +86,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] font-bold text-muted-foreground uppercase">Goal</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Goal</p>
                                     <SmartCurrency amount={current.targetAmount} currency={current.currency} visible={true} size="small" className="text-foreground/50" />
                                 </div>
                             </div>

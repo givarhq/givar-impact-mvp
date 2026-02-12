@@ -17,7 +17,7 @@ const ImpactStatCard = ({ value, subValue }: { value: string; subValue: number }
                         <Heart className="h-4.5 w-4.5 fill-current" />
                     </div>
                     <div className="space-y-0">
-                        <p className="text-xs font-bold uppercase tracking-wider text-rose-600/80">Lifetime Giving</p>
+                        <p className="text-sm font-bold tracking-wider text-rose-600/80">Lifetime Giving</p>
                         <p className="text-xs font-medium text-muted-foreground">Global Impact</p>
                     </div>
                 </div>

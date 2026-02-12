@@ -214,7 +214,7 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                         <History className="h-4 w-4 text-primary" />
                         Disbursement Log
                     </h3>
-                    <Badge variant="secondary" className="text-[9px] font-bold uppercase tracking-widest rounded-3xl">
+                    <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest rounded-3xl">
                         {disbursements.length} Records
                     </Badge>
                 </div>

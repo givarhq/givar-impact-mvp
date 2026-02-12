@@ -201,9 +201,9 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           </div>
           <div className="space-y-1.5">
             <div className="flex justify-between items-end px-1">
-              <label className="text-[9px] font-bold text-amber-700 uppercase tracking-widest">Amendment narrative</label>
+              <label className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Amendment narrative</label>
               <span className={cn(
-                "text-[9px] font-bold",
+                "text-[10px] font-bold",
                 (reason?.length || 0) < 10 ? "text-destructive" : "text-emerald-600"
               )}>
                 {reason?.length || 0} / 10 min

@@ -66,7 +66,7 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
 
                                 <div className="flex justify-between items-end border-t border-border/40 pt-3">
                                     <div className="flex items-center gap-2">
-                                        <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-[9px] font-bold text-muted-foreground shrink-0 border border-border/40">
+                                        <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0 border border-border/40">
                                             {profile.user?.firstName?.[0]}{profile.user?.lastName?.[0]}
                                         </div>
                                         <div className="min-w-0">
@@ -75,7 +75,7 @@ export function OrganizationTable({ profiles }: { profiles: any[] }) {
                                             </p>
                                         </div>
                                     </div>
-                                    <Badge className={cn("gap-1 px-2 py-0.5 rounded-3xl border text-[9px] font-bold shadow-none", config.color)}>
+                                    <Badge className={cn("gap-1 px-2 py-0.5 rounded-3xl border text-[10px] font-bold shadow-none", config.color)}>
                                         <StatusIcon className="h-3 w-3" />
                                         {config.label}
                                     </Badge>

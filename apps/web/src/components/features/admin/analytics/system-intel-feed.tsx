@@ -88,7 +88,7 @@ export function SystemIntelFeed({ report }: { report: any }) {
                 </div>
             </CardContent>
             <div className="p-4 bg-muted/20 border-t border-border/40 text-center">
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Last scan {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>

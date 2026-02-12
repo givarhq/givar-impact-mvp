@@ -269,7 +269,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-3">
-                                                        <Badge className={cn("h-5 px-2 rounded-3xl text-[9px] font-bold uppercase tracking-wider border-none", isAdjustment ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary")}>
+                                                        <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold uppercase tracking-wider border-none", isAdjustment ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary")}>
                                                             {isAdjustment ? 'Amendment' : update.type.replace('_', ' ')}
                                                         </Badge>
                                                         <span className="text-[11px] font-bold text-muted-foreground uppercase flex items-center gap-1">
@@ -283,7 +283,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
 
                                             <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/70" : "text-muted-foreground")}>{update.content}</p>
 
-                                            <div className="pt-4 border-t border-border/40 text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                                            <div className="pt-4 border-t border-border/40 text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                                                 <ShieldCheck className="h-3 w-3 text-primary" /> Verified entry
                                             </div>
                                         </Card>

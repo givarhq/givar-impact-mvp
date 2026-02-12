@@ -61,7 +61,7 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                         </div>
                     </div>
                 </div>
-                <Badge variant="outline" className="h-6 bg-background text-[9px] font-bold uppercase tracking-tighter text-muted-foreground border-border/60 rounded-3xl">
+                <Badge variant="outline" className="h-6 bg-background text-[10px] font-bold uppercase tracking-tighter text-muted-foreground border-border/60 rounded-3xl">
                     ID: {proof.id.split('-')[0]}
                 </Badge>
             </CardHeader>
@@ -159,7 +159,7 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                             </div>
 
                             <div className="pt-4 border-t border-border/40 text-center">
-                                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] italic">
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] italic">
                                     Notification will be auto-dispatched
                                 </span>
                             </div>

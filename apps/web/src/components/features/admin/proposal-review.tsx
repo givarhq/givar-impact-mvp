@@ -363,7 +363,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                 <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
                                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Verification
                                 </CardTitle>
-                                <Badge variant="secondary" className="text-[9px] font-bold rounded-3xl px-2">
+                                <Badge variant="secondary" className="text-[10px] font-bold rounded-3xl px-2">
                                     {proposal.kycDocuments?.length || 0} Files
                                 </Badge>
                             </div>
@@ -381,7 +381,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                         </div>
                                         <div className="text-left min-w-0">
                                             <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">Document {i + 1}</p>
-                                            <p className="text-[9px] text-muted-foreground font-mono opacity-60 uppercase truncate">Secure View</p>
+                                            <p className="text-[10px] text-muted-foreground font-mono opacity-60 uppercase truncate">Secure View</p>
                                         </div>
                                     </div>
                                     <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />

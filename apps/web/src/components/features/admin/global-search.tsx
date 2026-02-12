@@ -150,7 +150,7 @@ export function GlobalSearch() {
                             <X className="h-3.5 w-3.5" />
                         </button>
                     ) : (
-                        <div className="flex items-center gap-1 bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[9px] text-muted-foreground font-bold shadow-sm">
+                        <div className="flex items-center gap-1 bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[10px] text-muted-foreground font-bold shadow-sm">
                             <CornerDownLeft className="h-3 w-3" />
                         </div>
                     )}
@@ -187,7 +187,7 @@ export function GlobalSearch() {
                                         {f.label}
                                         {!isAll && (
                                             <span className={cn(
-                                                "ml-1 px-1.5 py-0.5 rounded-3xl text-[9px] min-w-[18px] text-center",
+                                                "ml-1 px-1.5 py-0.5 rounded-3xl text-[10px] min-w-[18px] text-center",
                                                 activeFilter === f.id ? "bg-white/20 text-white" : "bg-muted text-foreground"
                                             )}>{count}</span>
                                         )}
@@ -211,7 +211,7 @@ export function GlobalSearch() {
                                 {/* USERS */}
                                 {displayData.users.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
                                             <User className="h-3 w-3" /> Identities
                                         </div>
                                         {displayData.users.map(user => (
@@ -227,7 +227,7 @@ export function GlobalSearch() {
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-bold text-sm text-foreground">{user.firstName} {user.lastName}</span>
                                                         <span className={cn(
-                                                            "text-[8px] px-1.5 py-0.5 rounded-3xl uppercase font-black tracking-wider",
+                                                            "text-[9px] px-1.5 py-0.5 rounded-3xl uppercase font-black tracking-wider",
                                                             user.role === 'ADMIN' ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"
                                                         )}>{user.role}</span>
                                                     </div>
@@ -244,7 +244,7 @@ export function GlobalSearch() {
                                 {/* PROJECTS */}
                                 {displayData.projects.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Briefcase className="h-3 w-3" /> Projects
                                         </div>
                                         {displayData.projects.map(project => (
@@ -262,8 +262,8 @@ export function GlobalSearch() {
                                                         <SmartCurrency amount={project.raisedAmount.toString()} currency={project.currency} visible={true} size="small" className="shrink-0" />
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <Badge variant="outline" className="text-[8px] h-4 px-1.5 font-bold uppercase tracking-tight rounded-3xl">{project.status}</Badge>
-                                                        <span className="text-[9px] text-muted-foreground font-mono truncate opacity-60">ID: {project.slug}</span>
+                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold uppercase tracking-tight rounded-3xl">{project.status}</Badge>
+                                                        <span className="text-[10px] text-muted-foreground font-mono truncate opacity-60">ID: {project.slug}</span>
                                                     </div>
                                                 </div>
                                             </button>
@@ -274,7 +274,7 @@ export function GlobalSearch() {
                                 {/* PROPOSALS */}
                                 {displayData.proposals.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <FileText className="h-3 w-3" /> Proposals
                                         </div>
                                         {displayData.proposals.map(prop => (
@@ -289,8 +289,8 @@ export function GlobalSearch() {
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{prop.title}</span>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <Badge variant="outline" className="text-[8px] h-4 px-1.5 border-purple-500/30 text-purple-600 font-bold uppercase rounded-3xl">{prop.status}</Badge>
-                                                        <span className="text-[9px] text-muted-foreground font-medium">{prop.category?.name}</span>
+                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-purple-500/30 text-purple-600 font-bold uppercase rounded-3xl">{prop.status}</Badge>
+                                                        <span className="text-[10px] text-muted-foreground font-medium">{prop.category?.name}</span>
                                                     </div>
                                                 </div>
                                             </button>
@@ -301,7 +301,7 @@ export function GlobalSearch() {
                                 {/* ORGANIZATIONS */}
                                 {displayData.organizations.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Building2 className="h-3 w-3" /> Organizations
                                         </div>
                                         {displayData.organizations.map(org => (
@@ -315,9 +315,9 @@ export function GlobalSearch() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground block truncate">{org.legalName}</span>
-                                                    <span className="text-[9px] font-mono text-muted-foreground font-medium">{org.registrationNumber || 'No Reg ID'}</span>
+                                                    <span className="text-[10px] font-mono text-muted-foreground font-medium">{org.registrationNumber || 'No Reg ID'}</span>
                                                 </div>
-                                                <Badge variant="outline" className="text-[8px] font-bold uppercase rounded-3xl">{org.status}</Badge>
+                                                <Badge variant="outline" className="text-[9px] font-bold uppercase rounded-3xl">{org.status}</Badge>
                                             </button>
                                         ))}
                                     </div>
@@ -326,7 +326,7 @@ export function GlobalSearch() {
                                 {/* TRANSACTIONS */}
                                 {displayData.transactions.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Database className="h-3 w-3" /> Ledger
                                         </div>
                                         {displayData.transactions.map(tx => (
@@ -346,7 +346,7 @@ export function GlobalSearch() {
                                                         <span className="font-mono text-xs font-bold text-foreground truncate">{tx.reference}</span>
                                                         <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" className="shrink-0" />
                                                     </div>
-                                                    <p className="text-[9px] text-muted-foreground truncate mt-0.5 font-medium">{tx.description || 'System Transfer'}</p>
+                                                    <p className="text-[10px] text-muted-foreground truncate mt-0.5 font-medium">{tx.description || 'System Transfer'}</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -356,7 +356,7 @@ export function GlobalSearch() {
                                 {/* AUDIT LOGS */}
                                 {displayData.auditLogs.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <ShieldAlert className="h-3 w-3" /> Security
                                         </div>
                                         {displayData.auditLogs.map(log => (
@@ -371,9 +371,9 @@ export function GlobalSearch() {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-center gap-2">
                                                         <span className="font-bold text-xs text-foreground truncate">{log.action}</span>
-                                                        <span className="text-[8px] text-muted-foreground whitespace-nowrap">{formatDate(log.createdAt).split(',')[0]}</span>
+                                                        <span className="text-[9px] text-muted-foreground whitespace-nowrap">{formatDate(log.createdAt).split(',')[0]}</span>
                                                     </div>
-                                                    <p className="text-[9px] font-mono text-muted-foreground truncate mt-0.5">
+                                                    <p className="text-[10px] font-mono text-muted-foreground truncate mt-0.5">
                                                         {log.entityType} • {log.ipAddress}
                                                     </p>
                                                 </div>

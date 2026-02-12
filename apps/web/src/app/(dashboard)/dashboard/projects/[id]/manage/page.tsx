@@ -76,11 +76,11 @@ export default async function ProjectManagePage({
                             {project.title}
                         </h1>
                         <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase tracking-wider text-[9px] rounded-3xl px-2.5">
+                            <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase tracking-wider text-[10px] rounded-3xl px-2.5">
                                 Management Console
                             </Badge>
                             {isFullyCompleted && (
-                                <Badge className="bg-emerald-500 text-white font-bold text-[9px] uppercase rounded-3xl border-0">Mission Complete</Badge>
+                                <Badge className="bg-emerald-500 text-white font-bold text-[10px] uppercase rounded-3xl border-0">Mission Complete</Badge>
                             )}
                         </div>
                     </div>
@@ -172,7 +172,7 @@ export default async function ProjectManagePage({
                                                         {m.phase}
                                                     </h4>
                                                     <Badge variant="outline" className={cn(
-                                                        "text-[9px] uppercase font-bold px-2 rounded-3xl shrink-0 border",
+                                                        "text-[10px] uppercase font-bold px-2 rounded-3xl shrink-0 border",
                                                         isDone ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "bg-muted/30 border-border/60 text-muted-foreground"
                                                     )}>
                                                         {m.status?.replace('_', ' ') || 'PENDING'}
@@ -226,7 +226,7 @@ export default async function ProjectManagePage({
                                                 <p className="text-[11px] font-bold text-foreground truncate">
                                                     <span className="text-muted-foreground">Vendor:</span> {d.vendorName}
                                                 </p>
-                                                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-tighter truncate mt-0.5">
+                                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter truncate mt-0.5">
                                                     Phase: {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
                                                 </p>
                                             </div>
@@ -253,15 +253,15 @@ export default async function ProjectManagePage({
                                                 </div>
 
                                                 {isVerified ? (
-                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[8px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0">
+                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0">
                                                         <Check className="h-2 w-2 mr-1" /> Verified
                                                     </Badge>
                                                 ) : isPendingAudit ? (
-                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[8px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0 animate-pulse">
+                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[9px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0 animate-pulse">
                                                         <FileSearch className="h-2 w-2 mr-1" /> Audit
                                                     </Badge>
                                                 ) : (
-                                                    <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[8px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0">
+                                                    <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0">
                                                         <AlertCircle className="h-2 w-2 mr-1" /> Required
                                                     </Badge>
                                                 )}
@@ -272,7 +272,7 @@ export default async function ProjectManagePage({
                                                     {formatCurrency(d.amount, project.currency)}
                                                 </p>
                                                 {d.receiptKey && (
-                                                    <ReceiptButton receiptKey={d.receiptKey} projectId={project.id} className="h-7 px-3 rounded-xl border-border/40 text-[9px]" />
+                                                    <ReceiptButton receiptKey={d.receiptKey} projectId={project.id} className="h-7 px-3 rounded-xl border-border/40 text-[10px]" />
                                                 )}
                                             </div>
 

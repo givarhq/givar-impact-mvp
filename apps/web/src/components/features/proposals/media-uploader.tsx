@@ -162,7 +162,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                                 ) : item.type === 'VIDEO' ? (
                                     <div className="flex flex-col items-center gap-0.5">
                                         <Video className="h-5 w-5 text-muted-foreground" />
-                                        <span className="text-[8px] font-black uppercase text-muted-foreground/60">Video</span>
+                                        <span className="text-[9px] font-black uppercase text-muted-foreground/60">Video</span>
                                     </div>
                                 ) : (
                                     <FileText className="h-5 w-5 text-muted-foreground" />
@@ -171,7 +171,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
 
                             <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
                                 <div className="flex justify-between items-center gap-2">
-                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-widest border border-primary/10 shrink-0">
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-widest border border-primary/10 shrink-0">
                                         {item.type}
                                     </span>
                                     {!readOnly && (
