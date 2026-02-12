@@ -22,7 +22,7 @@ interface AdminSettingsClientProps {
 const ADMIN_SETTINGS_OPTIONS = [
     {
         id: 'identity',
-        label: 'Admin identity',
+        label: 'Admin Identity',
         icon: UserCircle,
         color: 'text-blue-500',
         bg: 'bg-blue-500/10',
@@ -30,7 +30,7 @@ const ADMIN_SETTINGS_OPTIONS = [
     },
     {
         id: 'security',
-        label: 'Access control',
+        label: 'Access Control',
         icon: Shield,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
@@ -38,7 +38,7 @@ const ADMIN_SETTINGS_OPTIONS = [
     },
     {
         id: 'notifications',
-        label: 'System alerts',
+        label: 'System Alerts',
         icon: Bell,
         color: 'text-amber-500',
         bg: 'bg-amber-500/10',

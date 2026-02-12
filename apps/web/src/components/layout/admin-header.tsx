@@ -170,7 +170,7 @@ export function AdminHeader({ user }: { user: any }) {
                 <div className="h-8 w-8 rounded-3xl bg-destructive/10 flex items-center justify-center text-destructive">
                   <Settings className="h-4 w-4" />
                 </div>
-                <span className="font-semibold text-sm">System Settings</span>
+                <span className="font-semibold text-sm">Settings</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
