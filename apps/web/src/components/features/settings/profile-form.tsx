@@ -192,7 +192,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardContent className="p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-muted-foreground">Account Status</span>
+                                <span className="text-xs font-bold text-muted-foreground">Account Type</span>
                                 <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-3xl">{user.accountType}</span>
                             </div>
                             <Button

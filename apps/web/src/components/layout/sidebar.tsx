@@ -86,8 +86,8 @@ export function Sidebar({ user }: { user: any }) {
                   <div className="flex h-5 w-5 items-center justify-center rounded-3xl bg-primary/20 text-primary">
                     <Rocket className="h-3 w-3" />
                   </div>
-                  <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
-                    Start a Cause
+                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                    Start a cause
                   </span>
                 </div>
                 <ArrowRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

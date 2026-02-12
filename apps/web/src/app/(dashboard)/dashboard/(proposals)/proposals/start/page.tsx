@@ -143,9 +143,6 @@ export default function StartProposalPage() {
 
     return (
         <div className="max-w-xl mx-auto space-y-6 min-w-0">
-            <div className="md:hidden px-1">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">New cause</h1>
-            </div>
 
             <Card className="border-border/40 bg-card rounded-[32px] shadow-sm overflow-hidden min-w-0">
                 <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
