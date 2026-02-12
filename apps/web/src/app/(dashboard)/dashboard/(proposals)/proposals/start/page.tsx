@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ApiService } from '../../../../../../services/api';
 import { getCookie, setCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Loader2, ArrowRight, Rocket, ShieldCheck, Sparkles, MailCheck, ChevronRight } from 'lucide-react';
+import { Loader2, ArrowRight, Rocket, ShieldCheck, Sparkles, MailCheck, AlertCircle, ExternalLink } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
+import Link from 'next/link';
 
 const startSchema = z.object({
     title: z.string().min(10, 'Title must be at least 10 characters'),
@@ -87,19 +88,52 @@ export default function StartProposalPage() {
         }
     };
 
-    if (!isOrganizer) {
+    // --- CASE 1: Identity Block (Email Verification) ---
+    if (isUnverified) {
         return (
-            <div className="max-w-xl mx-auto space-y-6 md:space-y-8 min-w-0">
-                <div className="md:hidden px-1">
-                    <h1 className="text-xl font-bold tracking-tight text-foreground">Launch cause</h1>
+            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2">
+                <div className="text-center space-y-2 py-2">
+                    <div className="h-16 w-16 rounded-[24px] bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-500/20 shadow-inner">
+                        <MailCheck className="h-8 w-8" />
+                    </div>
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">Verify your identity</h2>
+                    <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
+                        To maintain a secure environment, you must verify your email address before proposing causes.
+                    </p>
                 </div>
 
-                <div className="text-center space-y-2 py-4 min-w-0">
+                <Card className="border-rose-200 bg-rose-50/30 rounded-3xl overflow-hidden shadow-sm">
+                    <CardContent className="p-6 space-y-6 flex flex-col items-center">
+                        <div className="flex items-start gap-3 w-full">
+                            <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <p className="text-xs font-bold text-rose-900 ">Action Required</p>
+                                <p className="text-xs text-rose-800 leading-relaxed font-medium">
+                                    Check your inbox for a verification link or generate a new code in your profile settings.
+                                </p>
+                            </div>
+                        </div>
+                        <Link href="/dashboard/settings?tab=profile" className="block">
+                            <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs  tracking-widest bg-rose-600 hover:bg-rose-700 text-white border-0 gap-2 shadow-lg shadow-rose-600/20">
+                                Verify Profile <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // --- CASE 2: Mode Block (Individual needs to switch/verify Org) ---
+    if (!isOrganizer) {
+        return (
+            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2">
+                <div className="text-center space-y-2 py-2 min-w-0">
                     <div className="h-14 w-14 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">
                         <Rocket className="h-7 w-7" />
                     </div>
-                    <h2 className="hidden md:block text-2xl font-bold tracking-tight text-foreground">Launch your cause</h2>
-                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto font-medium leading-relaxed">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">Launch your cause</h2>
+                    <p className="text-sm text-muted-foreground max-w-[350px] mx-auto font-medium leading-relaxed">
                         Activate organizer mode to propose projects and raise verified impact capital.
                     </p>
                 </div>
@@ -121,29 +155,28 @@ export default function StartProposalPage() {
                     ))}
                 </div>
 
-                <Button
-                    onClick={onUpgrade}
-                    disabled={isUpgrading || isUnverified}
-                    className="w-full h-14 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2"
-                >
-                    {isUpgrading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate organizer mode'}
-                </Button>
+                <div className="space-y-4 flex flex-col items-center pt-2">
+                    <Button
+                        onClick={onUpgrade}
+                        disabled={isUpgrading}
+                        className="w-[12rem] h-12 rounded-3xl font-bold text-xs  tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2"
+                    >
+                        {isUpgrading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate Mode'}
+                    </Button>
 
-                {isUnverified && (
-                    <div className="p-5 rounded-3xl bg-amber-50 border border-amber-100 flex items-start gap-4 shadow-sm animate-in slide-in-from-top-2">
-                        <MailCheck className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                        <p className="text-xs text-amber-800 font-bold leading-relaxed">
-                            Cause initiation is restricted until you verify your email address. Please check your inbox.
+                    <Link href="/dashboard/settings?tab=org" className="block text-center">
+                        <p className="text-[11px] font-bold text-muted-foreground  tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                            Complete Organization Verification <ExternalLink className="h-3 w-3" />
                         </p>
-                    </div>
-                )}
+                    </Link>
+                </div>
             </div>
         );
     }
 
+    // --- CASE 3: Authorized (Organizer & Verified) ---
     return (
-        <div className="max-w-xl mx-auto space-y-6 min-w-0">
-
+        <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2">
             <Card className="border-border/40 bg-card rounded-[32px] shadow-sm overflow-hidden min-w-0">
                 <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
                     <CardTitle className="text-lg md:text-xl font-bold">Start a new cause</CardTitle>
@@ -152,24 +185,24 @@ export default function StartProposalPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 md:p-8 pt-6 min-w-0">
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 min-w-0">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
                         <div className="space-y-5 min-w-0">
                             <Input
                                 label="Project title"
                                 placeholder="e.g. Provide clean water for families"
                                 {...register('title')}
                                 error={errors.title?.message}
-                                disabled={isLoading || isUnverified}
+                                disabled={isLoading}
                                 className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
                             />
 
                             <div className="space-y-1.5 min-w-0">
-                                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Cause classification</label>
+                                <label className="text-[11px] font-bold text-muted-foreground  tracking-widest ml-1">Cause classification</label>
                                 <Controller
                                     control={control}
                                     name="categoryId"
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading || isUnverified}>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
                                             <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
                                                 <SelectValue placeholder="Select classification..." />
                                             </SelectTrigger>
@@ -191,8 +224,8 @@ export default function StartProposalPage() {
 
                         <Button
                             type="submit"
-                            className="w-full h-14 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2"
-                            disabled={isLoading || categories.length === 0 || isUnverified}
+                            className="w-full h-14 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
+                            disabled={isLoading || categories.length === 0}
                         >
                             {isLoading ? (
                                 <Loader2 className="h-5 w-5 animate-spin" />
