@@ -33,10 +33,6 @@ export default async function ReallocateFundsPage({
 
     return (
         <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
-            {/* Mobile-only page header title */}
-            <div className="md:hidden px-1">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Reallocate capital</h1>
-            </div>
 
             <div className="w-full min-w-0">
                 <ReallocateFundsClient
