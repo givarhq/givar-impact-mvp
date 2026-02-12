@@ -33,14 +33,14 @@ export class EmailService {
       });
 
       if (data.error) {
-        this.logger.error(`Resend API Error: ${data.error.message}`);
+        this.logger.error(`Resend API Error for ${to}: ${data.error.message}`);
         return false;
       }
 
-      this.logger.log(`Email sent id: ${data.data?.id}`);
+      this.logger.log(`Email dispatched to ${to}. ID: ${data.data?.id}`);
       return true;
     } catch (error) {
-      this.logger.error(`Email Transmission Failed: ${error}`);
+      this.logger.error(`Email Transmission Failed to ${to}: ${error}`);
       return false;
     }
   }

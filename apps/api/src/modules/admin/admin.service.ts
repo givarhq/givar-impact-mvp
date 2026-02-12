@@ -716,7 +716,7 @@ export class AdminService {
   async updateProject(adminId: string, projectId: string, dto: UpdateAdminProjectDto) {
     const existing = await this.prisma.project.findUnique({
       where: { id: projectId },
-      include: { user: { select: { email: true, firstName: true } } }
+      include: { user: { select: { email: true, firstName: true, preferences: true } } }
     });
     if (!existing) throw new NotFoundException('Project not found');
 
@@ -726,20 +726,16 @@ export class AdminService {
       ProjectStatus.COMPLETED
     ] as ProjectStatus[]).includes(existing.status);
 
-    const isGoalChanging = dto.targetAmount !== undefined && BigInt(dto.targetAmount) !== existing.targetAmount;
-
-    // Deep comparison for plan changes (Budget and Timeline)
+    const newTarget = dto.targetAmount !== undefined ? BigInt(dto.targetAmount) : existing.targetAmount;
+    const isGoalChanging = newTarget !== existing.targetAmount;
     const isBudgetChanging = dto.budgetBreakdown !== undefined && JSON.stringify(dto.budgetBreakdown) !== JSON.stringify(existing.budgetBreakdown);
     const isTimelineChanging = dto.executionTimeline !== undefined && JSON.stringify(dto.executionTimeline) !== JSON.stringify(existing.executionTimeline);
 
     const isPlanAmending = isGoalChanging || isBudgetChanging || isTimelineChanging;
 
-    // 1. Ledger Integrity Guard
     if (isLive && isPlanAmending) {
       if (!dto.reasonForGoalAdjustment || dto.reasonForGoalAdjustment.length < 10) {
-        throw new BadRequestException(
-          'Live projects require an amendment narrative to modify the goal, budget, or timeline.'
-        );
+        throw new BadRequestException('Live projects require an amendment narrative.');
       }
     }
 
@@ -756,44 +752,60 @@ export class AdminService {
       endDate: dto.endDate ? new Date(dto.endDate) : undefined,
     };
 
-    if (dto.targetAmount) {
-      updateData.targetAmount = BigInt(dto.targetAmount);
-    }
-
-    if (dto.categoryId) {
-      updateData.category = { connect: { id: dto.categoryId } };
-    }
-
-    if (dto.gallery) {
-      updateData.gallery = dto.gallery as unknown as Prisma.InputJsonValue;
-    }
-    if (dto.budgetBreakdown) {
-      updateData.budgetBreakdown = dto.budgetBreakdown as unknown as Prisma.InputJsonValue;
-    }
-    if (dto.executionTimeline) {
-      updateData.executionTimeline = dto.executionTimeline as unknown as Prisma.InputJsonValue;
-    }
+    if (dto.targetAmount) updateData.targetAmount = newTarget;
+    if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
+    if (dto.gallery) updateData.gallery = dto.gallery as any;
+    if (dto.budgetBreakdown) updateData.budgetBreakdown = dto.budgetBreakdown as any;
+    if (dto.executionTimeline) updateData.executionTimeline = dto.executionTimeline as any;
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // --- Surplus Liquidation ---
+      if (isGoalChanging && existing.raisedAmount > newTarget) {
+        const surplus = existing.raisedAmount - newTarget;
+
+        // Find a secure system wallet (Admin/Superadmin) to hold orphaned capital
+        const systemNode = await tx.user.findFirst({
+          where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+          include: { wallets: { where: { currency: existing.currency } } }
+        });
+
+        if (systemNode?.wallets[0]) {
+          await tx.walletTransaction.create({
+            data: {
+              walletId: systemNode.wallets[0].id,
+              amount: surplus,
+              currency: existing.currency,
+              type: TxType.CREDIT,
+              status: TxStatus.SUSPENSE,
+              reference: `SURPLUS-${projectId.slice(0, 8)}-${Date.now()}`,
+              description: `Surplus from goal reduction: ${existing.title}`,
+              metadata: { originalProjectId: projectId, reason: 'GOAL_REDUCTION_OVERAGE' }
+            }
+          });
+
+          // Sync raisedAmount to the new capped target
+          updateData.raisedAmount = newTarget;
+          this.logger.log(`Liquidated ${surplus} surplus from project ${projectId} to suspense.`);
+        }
+      }
+
       const project = await tx.project.update({
         where: { id: projectId },
         data: updateData,
       });
 
       if (isLive && isPlanAmending) {
-        // Create public announcement for the amendment
         await tx.projectUpdate.create({
           data: {
             projectId,
             title: isGoalChanging ? 'Financial Goal Adjusted' : 'Project Plan Amended',
             content: isGoalChanging
-              ? `The project goal has been adjusted from ${(Number(existing.targetAmount) / 100).toLocaleString()} to ${(Number(project.targetAmount) / 100).toLocaleString()}. Reason: ${dto.reasonForGoalAdjustment}`
-              : `The project execution plan (budget or timeline) has been updated. Reason: ${dto.reasonForGoalAdjustment}`,
+              ? `Goal adjusted from ${(Number(existing.targetAmount) / 100).toLocaleString()} to ${(Number(project.targetAmount) / 100).toLocaleString()}. Reason: ${dto.reasonForGoalAdjustment}`
+              : `Execution plan updated. Reason: ${dto.reasonForGoalAdjustment}`,
             type: 'ANNOUNCEMENT'
           }
         });
 
-        // Detailed audit log for forensics
         await tx.auditLog.create({
           data: {
             userId: adminId,
@@ -802,9 +814,6 @@ export class AdminService {
             entityType: 'Project',
             metadata: {
               action: 'PLAN_AMENDMENT',
-              isGoalChanging,
-              isBudgetChanging,
-              isTimelineChanging,
               oldGoal: existing.targetAmount.toString(),
               newGoal: project.targetAmount.toString(),
               reason: dto.reasonForGoalAdjustment
@@ -816,8 +825,8 @@ export class AdminService {
       return project;
     });
 
-    // Post-Transaction Broadcast to Stakeholders
     if (isLive && isPlanAmending) {
+      // Explicitly await the broadcast in the service layer to ensure it initiates correctly
       this.broadcastFinancialAdjustment(
         projectId,
         result.title,
@@ -826,8 +835,8 @@ export class AdminService {
         result.targetAmount,
         result.currency,
         dto.reasonForGoalAdjustment!,
-        existing.user // Organizer
-      ).catch(err => this.logger.error(`Adjustment broadcast failed: ${err.message}`));
+        existing.user
+      ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
     }
 
     return result;
