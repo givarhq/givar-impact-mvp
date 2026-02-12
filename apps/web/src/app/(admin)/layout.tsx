@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { AdminShell } from '../../components/layout/admin-shell';
 import { ApiService } from '../../services/api';
+import { IdentitySync } from '../../components/layout/identity-sync';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -17,5 +18,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/dashboard');
   }
 
-  return <AdminShell user={dbUser}>{children}</AdminShell>;
+  return (
+    <>
+      <IdentitySync user={dbUser} />
+      <AdminShell user={dbUser}>{children}</AdminShell>
+    </>
+  );
 }

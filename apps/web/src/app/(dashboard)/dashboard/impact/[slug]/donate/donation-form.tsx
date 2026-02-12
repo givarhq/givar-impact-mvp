@@ -326,30 +326,32 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     </div>
                 )}
 
-                <Button
-                    onClick={handleConfirm}
-                    disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod) || isOverfunding}
-                    className={cn(
-                        "w-full h-12 text-sm font-bold rounded-3xl shadow-sm transition-all mt-2",
-                        needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 border border-border/60" : "bg-primary text-white hover:bg-primary/90"
-                    )}
-                >
-                    {isLoading ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : (
-                        <span className="flex items-center gap-2">
-                            {needsFunding ? (
-                                <>
-                                    <Plus className="h-4 w-4" />
-                                    Fund wallet
-                                </>
-                            ) : (
-                                <>
-                                    <Lock className="h-4 w-4" />
-                                    {isGuest ? 'Proceed to pay' : 'Confirm donation'}
-                                </>
-                            )}
-                        </span>
-                    )}
-                </Button>
+                <div className="flex items-center justify-center">
+                    <Button
+                        onClick={handleConfirm}
+                        disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod) || isOverfunding}
+                        className={cn(
+                            "w-[12rem] h-12 text-sm font-bold rounded-3xl shadow-sm transition-all mt-2",
+                            needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 border border-border/60" : "bg-primary text-white hover:bg-primary/90"
+                        )}
+                    >
+                        {isLoading ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : (
+                            <span className="flex items-center gap-2">
+                                {needsFunding ? (
+                                    <>
+                                        <Plus className="h-4 w-4" />
+                                        Fund wallet
+                                    </>
+                                ) : (
+                                    <>
+                                        <Lock className="h-4 w-4" />
+                                        {isGuest ? 'Proceed to pay' : 'Confirm donation'}
+                                    </>
+                                )}
+                            </span>
+                        )}
+                    </Button>
+                </div>
             </div>
         </div>
     );

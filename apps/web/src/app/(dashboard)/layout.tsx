@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DashboardShell } from '../../components/layout/dashboard-shell';
 import { ApiService } from '../../services/api';
+import { IdentitySync } from '../../components/layout/identity-sync';
 
 export default async function DashboardLayout({
   children,
@@ -24,8 +25,11 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardShell user={dbUser}>
-      {children}
-    </DashboardShell>
+    <>
+      <IdentitySync user={dbUser} />
+      <DashboardShell user={dbUser}>
+        {children}
+      </DashboardShell>
+    </>
   );
 }
