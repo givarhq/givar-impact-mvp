@@ -113,7 +113,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                                 </div>
 
                                 <Link href="/dashboard/impact" className="flex items-center justify-center">
-                                    <Button variant="ghost" className="h-7 text-[11px] font-bold text-muted-foreground hover:text-primary gap-1.5 uppercase tracking-widest transition-all">
+                                    <Button variant="ghost" className="h-7 text-xs font-bold text-muted-foreground hover:text-primary gap-1.5 transition-all">
                                         View all causes <ArrowRight className="h-3 w-3" />
                                     </Button>
                                 </Link>
