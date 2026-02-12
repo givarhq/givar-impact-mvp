@@ -8,7 +8,7 @@ import { Button } from '../../../../../components/ui/button';
 import { SmartCurrency } from '../../../../../components/ui/smart-currency';
 
 export const metadata = {
-  title: 'Support This Cause',
+  title: 'Support this cause',
   description: 'Contribute to this verified mission and track your impact on the transparent ledger.',
 };
 
