@@ -46,7 +46,7 @@ const MenuButton = ({
         disabled={disabled}
         title={title}
         className={cn(
-            "p-2 rounded-lg transition-all duration-200 active:scale-90 disabled:opacity-30 disabled:pointer-events-none",
+            "p-2 rounded-3xl transition-all duration-200 active:scale-90 disabled:opacity-30 disabled:pointer-events-none",
             isActive
                 ? "bg-primary text-white shadow-sm ring-1 ring-primary"
                 : "text-muted-foreground hover:bg-muted"
@@ -95,9 +95,9 @@ export function RichTextEditor({
                     "focus:outline-none min-h-[200px] p-4 text-sm leading-relaxed max-w-none",
                     "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-xl [&_h2]:mt-4 [&_h2]:mb-2",
                     "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-lg [&_h3]:mt-3 [&_h3]:mb-1",
-                    "[&_p]:text-foreground/90 [&_p]:my-2",
-                    "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2",
-                    "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2",
+                    "[&_p]:text-foreground/80 [&_p]:my-2",
+                    "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2",
+                    "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-2",
                     "[&_li]:my-1",
                     "[&_strong]:font-bold [&_strong]:text-foreground",
                     "[&_em]:italic",
@@ -118,21 +118,21 @@ export function RichTextEditor({
     if (!editor) return null;
 
     return (
-        <div className="w-full space-y-1.5">
+        <div className="w-full space-y-1">
             {label && (
-                <label className="text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground/80">
+                <label className="text-xs font-bold text-muted-foreground/80 ml-1">
                     {label}
                 </label>
             )}
 
             <div className={cn(
-                "rounded-xl border transition-all duration-200 overflow-hidden",
+                "rounded-3xl border transition-all duration-200 overflow-hidden",
                 readOnly
                     ? "bg-muted/10 border-transparent shadow-none"
-                    : "bg-background/50 border-input focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary shadow-sm"
+                    : "bg-muted/20 border-border/40 focus-within:ring-2 focus-within:ring-primary/10 focus-within:border-primary/40 shadow-sm"
             )}>
                 {!readOnly && (
-                    <div className="flex flex-wrap items-center gap-1 p-1.5 border-b border-border bg-muted/20">
+                    <div className="flex flex-wrap items-center gap-1 p-1.5 border-b border-border/40 bg-muted/20">
                         <MenuButton
                             title="Bold"
                             onClick={() => editor.chain().focus().toggleBold().run()}
@@ -148,7 +148,7 @@ export function RichTextEditor({
                             <Italic className="h-4 w-4" />
                         </MenuButton>
 
-                        <div className="w-px h-4 bg-border mx-1" />
+                        <div className="w-px h-4 bg-border/40 mx-1" />
 
                         <MenuButton
                             title="Heading 2"
@@ -165,7 +165,7 @@ export function RichTextEditor({
                             <Heading3 className="h-4 w-4" />
                         </MenuButton>
 
-                        <div className="w-px h-4 bg-border mx-1" />
+                        <div className="w-px h-4 bg-border/40 mx-1" />
 
                         <MenuButton
                             title="Bullet List"

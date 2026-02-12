@@ -74,12 +74,12 @@ export function AdminHeader({ user }: { user: any }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-8 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
+    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-border/40 md:border-none">
       <div className="flex items-center justify-between w-full gap-4">
 
         {/* Left Section: Title (Desktop) and Brand (Mobile) */}
         <div className="flex items-center min-w-0">
-          <h1 className="text-lg md:text-xl font-bold text-foreground tracking-tight hidden md:block truncate">
+          <h1 className="text-lg md:text-xl font-semibold text-foreground hidden md:block truncate">
             {currentTitle}
           </h1>
 
@@ -89,24 +89,24 @@ export function AdminHeader({ user }: { user: any }) {
                 <Image
                   src="/Givar1.png"
                   alt="Givar Logo"
-                  width={28}
-                  height={28}
+                  width={24}
+                  height={24}
                   className="object-contain"
                   priority
                 />
               </div>
-              <span className="text-lg font-bold tracking-tight text-foreground">
+              <span className="text-lg font-semibold tracking-tight text-foreground">
                 Givar<span className="text-primary">.</span>
               </span>
             </Link>
 
             <div className={cn(
-              "flex items-center gap-1 border px-1.5 py-0.5 rounded-md shrink-0",
+              "flex items-center gap-1 border px-2 py-0.5 rounded-3xl shrink-0",
               isSuperAdmin ? "bg-purple-500/10 border-purple-500/20" : "bg-destructive/10 border-destructive/20"
             )}>
-              {isSuperAdmin ? <Zap className="h-2.5 w-2.5 text-purple-500" /> : <ShieldCheck className="h-2.5 w-2.5 text-destructive" />}
+              {isSuperAdmin ? <Zap className="h-3 w-3 text-purple-500" /> : <ShieldCheck className="h-3 w-3 text-destructive" />}
               <span className={cn(
-                "text-[7px] uppercase font-black tracking-wider",
+                "text-xs font-semibold tracking-tight",
                 isSuperAdmin ? "text-purple-600" : "text-destructive"
               )}>
                 {isSuperAdmin ? 'Super' : 'Root'}
@@ -128,41 +128,36 @@ export function AdminHeader({ user }: { user: any }) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="group flex items-center gap-2 rounded-full p-1 hover:bg-secondary/50 transition-all outline-none">
+              <button className="group flex items-center gap-2 rounded-3xl p-1 hover:bg-muted transition-all outline-none">
                 <div className={cn(
-                  "relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm flex items-center justify-center shrink-0",
-                  isSuperAdmin ? "bg-purple-500/10 text-purple-600" : "bg-destructive/10 text-destructive"
+                  "relative h-8 w-8 md:h-9 md:w-9 overflow-hidden rounded-3xl border border-border/40 shadow-sm flex items-center justify-center shrink-0",
+                  isSuperAdmin ? "bg-purple-500/10 text-purple-600" : "bg-primary/5 text-primary"
                 )}>
                   {isClient && avatarUrl ? (
                     <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                   ) : isClient && user?.firstName ? (
-                    <span className="font-bold text-sm uppercase">
+                    <span className="font-semibold text-xs uppercase">
                       {user.firstName[0]}
                     </span>
                   ) : (
-                    <CircleUser className="h-6 w-6" />
+                    <CircleUser className="h-5 w-5" />
                   )}
                 </div>
-                <div className="hidden text-left sm:block">
-                  <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[80px]">
-                    {isClient && user?.firstName ? user.firstName : 'Admin'}
-                  </span>
-                </div>
-                <ChevronDown className="hidden sm:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+                <ChevronDown className="hidden md:block h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
               </button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-64 rounded-2xl p-1 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl">
+            <DropdownMenuContent align="end" className="w-60 rounded-3xl p-1 shadow-xl border-border/40 bg-card/95 backdrop-blur-xl">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1 p-2">
-                  <p className="text-sm font-bold leading-none text-foreground">
+                <div className="flex flex-col space-y-0.5 p-2">
+                  <p className="text-sm font-semibold text-foreground">
                     {displayName}
                   </p>
-                  <p className="text-xs leading-none text-muted-foreground truncate opacity-70">
+                  <p className="text-xs text-muted-foreground truncate opacity-70">
                     {user?.email}
                   </p>
                   {isSuperAdmin && (
-                    <span className="mt-2 inline-flex items-center text-[9px] font-black uppercase tracking-widest text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded w-fit">
+                    <span className="mt-1.5 inline-flex items-center text-xs font-semibold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-3xl w-fit">
                       Full Permissions
                     </span>
                   )}
@@ -171,20 +166,18 @@ export function AdminHeader({ user }: { user: any }) {
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/admin/settings')}>
-                <div className="h-9 w-9 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive">
-                  <Settings className="h-4.5 w-4.5" />
+              <DropdownMenuItem className="rounded-3xl cursor-pointer py-2.5 gap-3" onClick={() => router.push('/admin/settings')}>
+                <div className="h-8 w-8 rounded-3xl bg-destructive/10 flex items-center justify-center text-destructive">
+                  <Settings className="h-4 w-4" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-sm">System Settings</span>
-                </div>
+                <span className="font-semibold text-sm">System Settings</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-xl cursor-pointer py-3 gap-3">
-                <LogOut className="h-4 w-4 ml-2.5" />
-                <span className="font-bold text-xs uppercase tracking-widest">Terminate Session</span>
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-3xl cursor-pointer py-2.5 gap-3">
+                <LogOut className="h-4 w-4 ml-2" />
+                <span className="font-semibold text-sm">Terminate Session</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

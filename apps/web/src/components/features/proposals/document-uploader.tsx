@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { UploadCloud, Loader2, Paperclip, FileText, Trash2 } from 'lucide-react';
+import { UploadCloud, Loader2, FileText, Trash2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
 import { useProposalStore } from '../../../stores/proposal-store';
 import { Button } from '../../ui/button';
+import { cn } from '../../../lib/utils/cn';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function DocumentUploader() {
   const { kycDocuments, addKycDocument, removeKycDocument } = useProposalStore();
@@ -15,74 +17,113 @@ export function DocumentUploader() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      toast.error('Document size cannot exceed 10MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size limit exceeded (max 10MB)');
       return;
     }
-    
+
     setIsLoading(true);
     try {
-      // 1. Get Presigned URL (using 'kyc' useCase for private pathing)
       const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
         fileType: file.type,
         useCase: 'kyc',
       });
 
-      // 2. Upload to S3
       await fetch(uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
       });
 
-      // 3. Update state with the KEY, not the public URL
       addKycDocument(key);
-      toast.success('Document uploaded successfully!');
+      toast.success('Document secured on ledger');
     } catch (error) {
-      toast.error('Upload failed. Please try again.');
+      toast.error('Secure upload failed');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-        <div className="p-4 rounded-xl bg-muted/30 border border-dashed border-border text-center">
-            <label htmlFor="doc-upload" className="cursor-pointer">
-                {isLoading ? (
-                    <Loader2 className="h-6 w-6 text-muted-foreground animate-spin mx-auto" />
-                ) : (
-                    <UploadCloud className="h-6 w-6 text-muted-foreground mx-auto" />
-                )}
-                <p className="mt-2 text-sm font-semibold text-foreground">Click to upload documents</p>
-                <p className="text-xs text-muted-foreground">PDF, DOCX, PNG, JPG up to 10MB</p>
-            </label>
-            <input 
-                id="doc-upload" 
-                type="file" 
-                className="hidden"
-                accept=".pdf,.doc,.docx,image/png,image/jpeg"
-                onChange={handleFileChange}
-                disabled={isLoading}
-            />
-        </div>
-        
-        {kycDocuments.length > 0 && (
-            <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Uploaded Files:</p>
-                {kycDocuments.map(key => (
-                    <div key={key} className="flex items-center justify-between p-2 pl-3 bg-card border rounded-lg">
-                        <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-primary" />
-                            <span className="text-xs font-mono text-muted-foreground">{key.split('/').pop()}</span>
-                        </div>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => removeKycDocument(key)}>
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                        </Button>
-                    </div>
-                ))}
+    <div className="space-y-4 w-full min-w-0">
+      {/* Upload Dropzone */}
+      <div className="w-full min-w-0">
+        <label
+          htmlFor="doc-upload"
+          className={cn(
+            "flex flex-col items-center justify-center p-8 rounded-[32px] bg-muted/10 border-2 border-dashed border-border/60 hover:bg-muted/20 hover:border-primary/30 transition-all cursor-pointer group text-center shadow-sm",
+            isLoading && "opacity-50 cursor-wait pointer-events-none"
+          )}
+        >
+          {isLoading ? (
+            <Loader2 className="h-8 w-8 text-primary animate-spin mb-3" />
+          ) : (
+            <div className="h-14 w-14 rounded-3xl bg-background border border-border/40 flex items-center justify-center mb-4 shadow-sm group-hover:scale-105 transition-transform">
+              <ShieldCheck className="h-7 w-7 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
-        )}
+          )}
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-foreground">Click to upload documents</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.15em] font-medium">PDF, DOCX, PNG up to 10MB</p>
+          </div>
+          <input
+            id="doc-upload"
+            type="file"
+            className="hidden"
+            accept=".pdf,.doc,.docx,image/png,image/jpeg"
+            onChange={handleFileChange}
+            disabled={isLoading}
+          />
+        </label>
+      </div>
+
+      {/* Asset List */}
+      <div className="space-y-2 w-full min-w-0">
+        <AnimatePresence mode="popLayout">
+          {kycDocuments.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="px-1"
+            >
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Identity asset vault</p>
+            </motion.div>
+          )}
+          {kycDocuments.map((key, index) => (
+            <motion.div
+              layout
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              key={key}
+              className="flex items-center justify-between p-3.5 bg-card border border-border/40 rounded-3xl shadow-sm group min-w-0"
+            >
+              <div className="flex items-center gap-4 min-w-0 flex-1">
+                <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10 shadow-inner">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold text-foreground truncate block">{key.split('/').pop()}</span>
+                  <div className="flex items-center gap-1.5 text-emerald-600 text-[10px] font-bold uppercase tracking-tight mt-0.5">
+                    <CheckCircle2 className="h-3 w-3" /> Encrypted path
+                  </div>
+                </div>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 outline-none"
+                onClick={() => {
+                  removeKycDocument(key);
+                  toast.success('Document detached');
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

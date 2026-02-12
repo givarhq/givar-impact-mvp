@@ -23,16 +23,16 @@ export default async function ImpactPage({
   const meta = projectsResult?.meta || { total: 0 };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-700 pb-20">
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-300">
 
-      <div className="px-1 space-y-8">
+      <div className="space-y-6">
         <ImpactFilters
           categories={categories || []}
           totalCount={meta.total}
         />
       </div>
 
-      <div className="min-h-[400px]">
+      <div className="min-h-[300px] pt-2">
         <ProjectGrid projects={projects} />
       </div>
     </div>

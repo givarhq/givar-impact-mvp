@@ -74,79 +74,84 @@ export function SecurityForm({ user }: { user: any }) {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 focus-visible:outline-none outline-none">
             <TwoFactorSetup isEnabled={user.twoFactorEnabled} />
 
-            <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
+            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden focus-visible:outline-none outline-none">
                 <CardContent className="p-0">
                     <div
                         onClick={() => !isEditing && setIsEditing(true)}
                         className={cn(
-                            "p-8 transition-all group",
+                            "p-5 md:p-6 transition-all group",
                             isEditing ? "bg-primary/[0.01]" : "hover:bg-muted/30 cursor-pointer"
                         )}
                     >
-                        <div className="flex items-center justify-between gap-6">
-                            <div className="flex items-center gap-5 flex-1 min-w-0">
-                                <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600 border border-amber-500/20">
-                                    <KeyRound className="h-6 w-6" />
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <div className={cn(
+                                    "h-10 w-10 rounded-3xl flex items-center justify-center border transition-colors",
+                                    isEditing ? "bg-primary/10 border-primary/20 text-primary" : "bg-amber-500/10 border-amber-500/20 text-amber-600"
+                                )}>
+                                    <KeyRound className="h-5 w-5" />
                                 </div>
-                                <div className="space-y-1">
-                                    <h3 className="font-bold text-lg text-foreground">Password Management</h3>
-                                    {!isEditing && <p className="text-sm text-muted-foreground font-medium">Update your password</p>}
+                                <div className="space-y-0.5">
+                                    <h3 className="font-bold text-sm text-foreground">Password Management</h3>
+                                    {!isEditing && <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">Update security credentials</p>}
                                 </div>
                             </div>
-                            {!isEditing && <ChevronRight className="h-5 w-5 shrink-0 ml-4 text-muted-foreground opacity-30 group-hover:opacity-100 transition-all" />}
+                            {!isEditing && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/30 group-hover:opacity-100 transition-all" />}
                         </div>
 
                         {isEditing && (
-                            <form onSubmit={handleSubmit(onSubmit)} className="mt-10 space-y-8 animate-in slide-in-from-top-4" onClick={(e) => e.stopPropagation()}>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-6">
+                            <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6 animate-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
                                         <Input
                                             label="Current Password"
                                             type={showPasswords ? "text" : "password"}
                                             {...register('currentPassword')}
                                             error={errors.currentPassword?.message}
-                                            placeholder="Verify current password"
-                                            className="h-12"
+                                            placeholder="Verify identity"
+                                            className="h-10 rounded-3xl"
                                             rightElement={
-                                                <button type="button" onClick={() => setShowPasswords(!showPasswords)} className="text-muted-foreground hover:text-foreground">
+                                                <button type="button" onClick={() => setShowPasswords(!showPasswords)} className="text-muted-foreground hover:text-foreground outline-none">
                                                     {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                                 </button>
                                             }
                                         />
-                                        <Input label="New Password" type={showPasswords ? "text" : "password"} {...register('newPassword')} error={errors.newPassword?.message} placeholder="Min. 8 characters" className="h-12" />
-                                        <Input label="Confirm New Password" type={showPasswords ? "text" : "password"} {...register('confirmPassword')} error={errors.confirmPassword?.message} placeholder="Repeat new password" className="h-12" />
+                                        <Input label="New Password" type={showPasswords ? "text" : "password"} {...register('newPassword')} error={errors.newPassword?.message} placeholder="Min. 8 characters" className="h-10 rounded-3xl" />
+                                        <Input label="Confirm New Password" type={showPasswords ? "text" : "password"} {...register('confirmPassword')} error={errors.confirmPassword?.message} placeholder="Repeat new password" className="h-10 rounded-3xl" />
                                     </div>
 
-                                    <div className="space-y-6">
-                                        <div className="p-6 rounded-[24px] bg-muted/20 border border-border/50 space-y-4">
+                                    <div className="space-y-4">
+                                        <div className="p-5 rounded-3xl bg-muted/20 border border-border/50 space-y-3">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Entropy Strength</span>
-                                                <span className={cn("text-[10px] font-bold uppercase", strengthScore < 3 ? "text-destructive" : "text-emerald-500")}>
-                                                    {strengthScore < 3 ? 'Weak' : 'Secure'}
+                                                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Security Strength</span>
+                                                <span className={cn("text-xs font-bold uppercase", strengthScore < 4 ? "text-destructive" : "text-emerald-600")}>
+                                                    {strengthScore < 4 ? 'Insufficient' : 'Secure'}
                                                 </span>
                                             </div>
-                                            <div className="flex gap-1.5 h-1.5">
+                                            <div className="flex gap-1 h-1">
                                                 {[1, 2, 3, 4].map(s => (
-                                                    <div key={s} className={cn("flex-1 rounded-full transition-all duration-500", s <= strengthScore ? (strengthScore < 3 ? "bg-destructive" : "bg-primary") : "bg-muted-foreground/10")} />
+                                                    <div key={s} className={cn("flex-1 rounded-3xl transition-all duration-500", s <= strengthScore ? (strengthScore < 4 ? "bg-destructive" : "bg-primary") : "bg-muted-foreground/10")} />
                                                 ))}
                                             </div>
-                                            <div className="space-y-2 pt-2">
-                                                <p className="text-[10px] text-muted-foreground leading-relaxed flex items-start gap-2">
-                                                    <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                                                    Updating your password will log you out of all other active sessions for security.
+                                            <div className="pt-2">
+                                                <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-2 italic">
+                                                    <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 opacity-50" />
+                                                    Note: Password rotation will terminate all other active ledger sessions.
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-3">
-                                            <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs gap-2">
+                                        <div className="flex gap-2 pt-2">
+                                            <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-11 rounded-3xl font-bold text-xs uppercase tracking-widest gap-2 shadow-sm border-0">
                                                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                                                Update Password
+                                                Update Credentials
                                             </Button>
-                                            <Button type="button" variant="outline" className="h-14 w-14 rounded-2xl border-border/60" onClick={() => { setIsEditing(false); reset(); }}><X className="h-5 w-5" /></Button>
+                                            <Button type="button" variant="outline" className="h-11 w-11 rounded-3xl border-border/60 shrink-0" onClick={() => { setIsEditing(false); reset(); }}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>

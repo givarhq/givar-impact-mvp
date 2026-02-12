@@ -6,6 +6,11 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { ApiService } from '../../../../../services/api';
 
+export const metadata = {
+  title: 'Cause Details',
+  description: 'View project narrative, execution plans, and real-time impact updates.',
+};
+
 async function getProject(slug: string) {
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
@@ -19,13 +24,13 @@ async function getProject(slug: string) {
   }
 }
 
-export default async function ProjectDetailsPage({ 
-  params 
-}: { 
-  params: Promise<{ slug: string }> 
+export default async function ProjectDetailsPage({
+  params
+}: {
+  params: Promise<{ slug: string }>
 }) {
   const { slug } = await params;
-  
+
   const project = await getProject(slug);
 
   if (!project) {
@@ -33,15 +38,24 @@ export default async function ProjectDetailsPage({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <Link href="/dashboard/impact">
-        <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Projects
-        </Button>
-      </Link>
+    <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+      {/* Navigation Header */}
+      <div className="flex flex-col gap-4 px-1 min-w-0">
+        <Link href="/dashboard/impact" className="w-fit">
+          <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">
+            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Back to Explore
+          </Button>
+        </Link>
 
-      <ProjectDetailsClient project={project} />
+        <div className="md:hidden">
+          <h1 className="text-xl font-bold tracking-tight text-foreground truncate">Cause Details</h1>
+        </div>
+      </div>
+
+      <div className="w-full min-w-0">
+        <ProjectDetailsClient project={project} />
+      </div>
     </div>
   );
 }

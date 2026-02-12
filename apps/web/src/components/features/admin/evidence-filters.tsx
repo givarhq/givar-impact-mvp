@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, Filter, X, Clock, CheckCircle2, XCircle, LayoutGrid } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Button } from '../../ui/button';
@@ -36,19 +36,18 @@ export function EvidenceFilters() {
     };
 
     return (
-        <div className="space-y-8">
-            {/* Top Header Row */}
-            <div className="flex items-center justify-between gap-4 w-full relative min-h-[40px]">
-                <div className="flex items-center gap-6 flex-1 min-w-0">
-                    <h1 className="md:hidden text-xl font-semibold tracking-tight text-foreground whitespace-nowrap">
-                        Trust & Safety
+        <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 relative min-h-[40px] w-full overflow-hidden">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground shrink-0">
+                        Evidence
                     </h1>
 
                     {/* Desktop Search */}
-                    <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-transparent focus-within:border-primary/30 transition-all">
+                    <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
-                            placeholder="Search by title or narrative..."
+                            placeholder="Search cause or narrative..."
                             className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -56,39 +55,37 @@ export function EvidenceFilters() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {/* Mobile Search Toggle */}
+                <div className="flex items-center gap-2 shrink-0">
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
                         className={cn(
-                            "md:hidden h-10 w-10 rounded-xl transition-all",
+                            "md:hidden h-9 w-9 rounded-3xl transition-all",
                             isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
                         )}
                     >
-                        {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                        {isMobileSearchVisible ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
                     </Button>
 
-                    {/* Desktop Filters */}
-                    <div className="hidden md:flex items-center gap-3">
+                    <div className="hidden md:flex items-center gap-2">
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger className="w-[200px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
-                                <div className="flex items-center gap-2">
-                                    <Filter className="h-3 w-3 text-muted-foreground" />
-                                    <SelectValue placeholder="Filter Status" />
+                            <SelectTrigger className="w-[160px] h-9 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
+                                <div className="flex items-center gap-1.5">
+                                    <Filter className="h-3 w-3" />
+                                    <SelectValue placeholder="Status" />
                                 </div>
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border shadow-xl">
-                                <SelectItem value="all">All Statuses</SelectItem>
-                                <SelectItem value="PENDING">Pending Audit</SelectItem>
-                                <SelectItem value="APPROVED">Approved</SelectItem>
-                                <SelectItem value="REJECTED">Rejected</SelectItem>
+                            <SelectContent className="rounded-3xl">
+                                <SelectItem value="all" className="text-xs">All status</SelectItem>
+                                <SelectItem value="PENDING" className="text-xs">Pending audit</SelectItem>
+                                <SelectItem value="APPROVED" className="text-xs">Verified</SelectItem>
+                                <SelectItem value="REJECTED" className="text-xs">Rejected</SelectItem>
                             </SelectContent>
                         </Select>
 
                         {(search || status !== 'PENDING') && (
-                            <Button variant="ghost" onClick={clear} className="h-10 px-4 rounded-xl text-muted-foreground text-xs font-semibold">
+                            <Button variant="ghost" onClick={clear} className="h-9 px-3 rounded-3xl text-muted-foreground text-xs font-bold">
                                 Reset
                             </Button>
                         )}
@@ -96,36 +93,32 @@ export function EvidenceFilters() {
                 </div>
             </div>
 
-            {/* Mobile Expanded Search Area */}
             {isMobileSearchVisible && (
-                <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300">
-                    <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <div className="md:hidden space-y-2 animate-in slide-in-from-top-2 duration-200">
+                    <div className="relative">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search evidence..."
-                            className="pl-11 h-12 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/20"
+                            placeholder="Search..."
+                            className="pl-10 h-10 rounded-3xl bg-muted/30 border-border/40 focus:bg-background"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
-                                <div className="flex items-center gap-2">
-                                    <Filter className="h-3 w-3" />
-                                    <SelectValue placeholder="Status" />
-                                </div>
+                            <SelectTrigger className="flex-1 h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
+                                <SelectValue placeholder="Status" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Statuses</SelectItem>
-                                <SelectItem value="PENDING">Pending Audit</SelectItem>
-                                <SelectItem value="APPROVED">Approved</SelectItem>
+                            <SelectContent className="rounded-3xl">
+                                <SelectItem value="all">All status</SelectItem>
+                                <SelectItem value="PENDING">Pending audit</SelectItem>
+                                <SelectItem value="APPROVED">Verified</SelectItem>
                                 <SelectItem value="REJECTED">Rejected</SelectItem>
                             </SelectContent>
                         </Select>
                         {(search || status !== 'PENDING') && (
-                            <Button variant="outline" onClick={clear} className="h-12 rounded-2xl border-dashed border-border text-xs font-semibold">
-                                Reset Filters
+                            <Button variant="outline" onClick={clear} className="h-10 px-4 rounded-3xl border-border/60 text-xs font-bold shrink-0">
+                                Reset
                             </Button>
                         )}
                     </div>

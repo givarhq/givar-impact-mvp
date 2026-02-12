@@ -2,6 +2,11 @@ import { cookies } from 'next/headers';
 import { HistoryClient } from '../../../../components/features/history/history-client';
 import { ApiService } from '../../../../services/api';
 
+export const metadata = {
+  title: 'Transaction History',
+  description: 'View your complete impact ledger, download receipts, and track capital flow.',
+};
+
 export default async function HistoryPage({
   searchParams,
 }: {
@@ -25,8 +30,11 @@ export default async function HistoryPage({
   };
 
   return (
-    <div className="animate-in fade-in duration-500">
-      <HistoryClient initialData={initialData} />
+    <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+
+      <div className="w-full min-w-0">
+        <HistoryClient initialData={initialData} />
+      </div>
     </div>
   );
 }

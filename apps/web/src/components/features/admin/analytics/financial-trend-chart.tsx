@@ -3,8 +3,8 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import {
-    ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid,
-    Tooltip, ResponsiveContainer, Area
+    ComposedChart, XAxis, YAxis, CartesianGrid,
+    Tooltip, ResponsiveContainer, Area, Bar
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import { formatCurrency } from '../../../../lib/utils/format';
@@ -17,27 +17,29 @@ interface FinancialTrendChartProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+        const volume = payload.find((p: any) => p.dataKey === 'volumeValue')?.value || 0;
+        const count = payload.find((p: any) => p.dataKey === 'donations')?.value || 0;
+
         return (
-            // FIX: Removed backdrop-blur to prevent text fuzziness during movement
-            <div className="bg-card border border-border shadow-2xl p-4 rounded-xl min-w-[200px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+            <div className="bg-card border border-border/60 shadow-xl p-3 rounded-2xl min-w-[160px] animate-in fade-in zoom-in-95 duration-100">
+                <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-wider">
                     {label}
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                     <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-bold text-primary flex items-center gap-2">
+                        <span className="text-[11px] font-medium text-primary flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Volume
                         </span>
-                        <span className="text-sm font-black text-foreground tabular-nums">
-                            {formatCurrency(payload.find((p: any) => p.dataKey === 'volumeValue')?.value || 0, 'NGN')}
+                        <span className="text-xs font-bold text-foreground tabular-nums">
+                            {formatCurrency(volume * 100, 'NGN')}
                         </span>
                     </div>
                     <div className="flex items-center justify-between gap-4">
-                        <span className="text-xs font-bold text-blue-500 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Tx Count
+                        <span className="text-[11px] font-medium text-blue-500 flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Count
                         </span>
-                        <span className="text-sm font-black text-foreground tabular-nums">
-                            {payload.find((p: any) => p.dataKey === 'donations')?.value || 0}
+                        <span className="text-xs font-bold text-foreground tabular-nums">
+                            {count}
                         </span>
                     </div>
                 </div>
@@ -55,40 +57,40 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
     }));
 
     return (
-        <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
-            <CardHeader className="p-8 pb-4 flex flex-row items-center justify-between">
-                <div className="space-y-1.5">
-                    <CardTitle className="text-sm font-black text-foreground uppercase tracking-[0.2em] flex items-center gap-2">
+        <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[380px]">
+            <CardHeader className="p-5 md:p-6 pb-2 flex flex-row items-center justify-between">
+                <div className="space-y-0.5">
+                    <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-primary" /> {title}
                     </CardTitle>
-                    <p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
+                    <p className="text-[11px] text-muted-foreground font-medium">{subtitle}</p>
                 </div>
-                <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-widest">
-                    <span className="flex items-center gap-1.5 text-primary">
+                <div className="hidden sm:flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">
+                    <div className="flex items-center gap-1.5 text-primary">
                         <div className="w-2 h-1 rounded-full bg-primary" /> Liquidity
-                    </span>
-                    <span className="flex items-center gap-1.5 text-blue-500">
+                    </div>
+                    <div className="flex items-center gap-1.5 text-blue-500">
                         <div className="w-2 h-1 rounded-full bg-blue-500" /> Frequency
-                    </span>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="p-0 flex-1 min-h-0">
                 <div className="h-full w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <ComposedChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
                             <defs>
                                 <linearGradient id="volumeGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
+                                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
 
                             <XAxis
                                 dataKey="dateShort"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 700 }}
+                                tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
                                 dy={10}
                             />
 
@@ -96,9 +98,8 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
                                 yAxisId="left"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
-                                tickFormatter={(val) => `₦${(val / 1000000).toFixed(1)}M`}
-                                width={60}
+                                tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
+                                tickFormatter={(val) => `₦${(val / 1000).toFixed(0)}k`}
                             />
 
                             <YAxis
@@ -106,29 +107,28 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
                                 orientation="right"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
-                                width={40}
+                                tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
                             />
 
-                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted)/0.2)' }} isAnimationActive={false} />
+                            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted)/0.3)' }} isAnimationActive={false} />
 
                             <Bar
                                 yAxisId="right"
                                 dataKey="donations"
-                                barSize={20}
+                                barSize={16}
                                 fill="#3b82f6"
-                                radius={[4, 4, 0, 0]}
-                                opacity={0.3}
+                                radius={[3, 3, 0, 0]}
+                                opacity={0.2}
                             />
 
                             <Area
                                 yAxisId="left"
                                 type="monotone"
                                 dataKey="volumeValue"
-                                stroke="#10b981"
-                                strokeWidth={2.5}
+                                stroke="hsl(var(--primary))"
+                                strokeWidth={2}
                                 fill="url(#volumeGradient)"
-                                activeDot={{ r: 5, strokeWidth: 0, fill: '#10b981' }}
+                                activeDot={{ r: 4, strokeWidth: 0, fill: 'hsl(var(--primary))' }}
                             />
                         </ComposedChart>
                     </ResponsiveContainer>

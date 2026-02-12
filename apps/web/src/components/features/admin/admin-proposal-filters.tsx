@@ -41,16 +41,18 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-4 w-full relative min-h-[40px]">
-        <div className="flex items-center gap-6 flex-1 min-w-0">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 relative min-h-[40px] w-full overflow-hidden">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground shrink-0">
+            Proposals
+          </h1>
 
           {/* Desktop Search */}
-          <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-transparent focus-within:border-primary/30 transition-all">
+          <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Search proposals..."
+              placeholder="Search proposer or title..."
               className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -58,54 +60,52 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Mobile Search Toggle */}
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
             className={cn(
-              "md:hidden h-10 w-10 rounded-xl transition-all",
+              "md:hidden h-9 w-9 rounded-3xl transition-all",
               isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
             )}
           >
-            {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+            {isMobileSearchVisible ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
           </Button>
 
-          {/* Desktop Filters */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-[180px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
-                <div className="flex items-center gap-2">
+              <SelectTrigger className="w-[140px] h-9 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
+                <div className="flex items-center gap-1.5">
                   <Filter className="h-3 w-3" />
                   <SelectValue placeholder="Status" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-border shadow-xl">
-                <SelectItem value="all" className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">All Statuses</SelectItem>
-                <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-                <SelectItem value="CHANGES_REQUESTED">Needs Edits</SelectItem>
+              <SelectContent className="rounded-3xl">
+                <SelectItem value="all" className="text-xs">All status</SelectItem>
+                <SelectItem value="SUBMITTED" className="text-xs">Submitted</SelectItem>
+                <SelectItem value="UNDER_REVIEW" className="text-xs">Review</SelectItem>
+                <SelectItem value="CHANGES_REQUESTED" className="text-xs">Edits</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[180px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
-                <div className="flex items-center gap-2">
+              <SelectTrigger className="w-[140px] h-9 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
+                <div className="flex items-center gap-1.5">
                   <LayoutGrid className="h-3 w-3" />
                   <SelectValue placeholder="Category" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-border shadow-xl">
-                <SelectItem value="all" className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground">All Categories</SelectItem>
+              <SelectContent className="rounded-3xl">
+                <SelectItem value="all" className="text-xs">All categories</SelectItem>
                 {categories.map(cat => (
-                  <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
+                  <SelectItem key={cat.id} value={cat.slug} className="text-xs">{cat.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             {(search || status !== 'all' || category !== 'all') && (
-              <Button variant="ghost" onClick={clearFilters} className="h-10 px-4 rounded-xl text-muted-foreground text-xs font-semibold">
+              <Button variant="ghost" onClick={clearFilters} className="h-9 px-3 rounded-3xl text-muted-foreground text-xs font-bold">
                 Reset
               </Button>
             )}
@@ -113,53 +113,46 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
         </div>
       </div>
 
-      {/* Mobile Expanded Search Area */}
       {isMobileSearchVisible && (
-        <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="md:hidden space-y-2 animate-in slide-in-from-top-2 duration-200">
+          <div className="relative">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search proposals..."
-              className="pl-11 h-12 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/20"
+              placeholder="Search..."
+              className="pl-10 h-10 rounded-3xl bg-muted/30 border-border/40 focus:bg-background"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
-                <div className="flex items-center gap-2">
-                  <Filter className="h-3 w-3" />
-                  <SelectValue placeholder="Status" />
-                </div>
+              <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+              <SelectContent className="rounded-3xl">
+                <SelectItem value="all">All status</SelectItem>
                 <SelectItem value="SUBMITTED">Submitted</SelectItem>
-                <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-                <SelectItem value="CHANGES_REQUESTED">Needs Edits</SelectItem>
+                <SelectItem value="UNDER_REVIEW">Review</SelectItem>
+                <SelectItem value="CHANGES_REQUESTED">Edits</SelectItem>
               </SelectContent>
             </Select>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
-                <div className="flex items-center gap-2">
-                  <LayoutGrid className="h-3 w-3" />
-                  <SelectValue placeholder="Category" />
-                </div>
+              <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
+                <SelectValue placeholder="Category" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+              <SelectContent className="rounded-3xl">
+                <SelectItem value="all">All categories</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {(search || status !== 'all' || category !== 'all') && (
-              <Button variant="outline" onClick={clearFilters} className="h-12 rounded-2xl border-dashed border-border text-xs font-semibold">
-                Reset Filters
-              </Button>
-            )}
           </div>
+          {(search || status !== 'all' || category !== 'all') && (
+            <Button variant="outline" onClick={clearFilters} className="w-full h-9 rounded-3xl border-border/60 text-xs font-bold">
+              Reset filters
+            </Button>
+          )}
         </div>
       )}
     </div>

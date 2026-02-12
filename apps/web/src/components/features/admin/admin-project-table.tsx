@@ -8,7 +8,6 @@ import {
     ArrowUp,
     ArrowDown,
     Calendar,
-    Target,
     TrendingUp,
     Flag
 } from 'lucide-react';
@@ -18,6 +17,7 @@ import { AdminProjectActions } from './project-actions';
 import { formatDate, formatCurrency } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Project } from '../../../types';
+import { Card, CardContent } from '../../ui/card';
 
 interface AdminProjectTableProps {
     projects: Project[];
@@ -33,27 +33,21 @@ export function AdminProjectTable({
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // Centralized Sorting Handler
     const handleSort = (column: string) => {
         const params = new URLSearchParams(searchParams.toString());
-
-        // Toggle logic: if clicking same column, flip order. If new column, default to desc.
         const newOrder = (currentSort === column && currentOrder === 'desc') ? 'asc' : 'desc';
-
         params.set('sortBy', column);
         params.set('sortOrder', newOrder);
-        params.set('page', '1'); // Reset to first page on sort
-
+        params.set('page', '1');
         router.push(`?${params.toString()}`);
     };
 
-    // Internal Component for Clean Header Logic
     const SortHeader = ({ title, column, className = "" }: { title: string, column: string, className?: string }) => {
         const isActive = currentSort === column;
         return (
             <th
                 className={cn(
-                    "px-6 py-4 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-primary transition-colors group select-none",
+                    "px-5 py-3 font-bold uppercase tracking-wider text-[11px] cursor-pointer hover:text-primary transition-colors group select-none",
                     className
                 )}
                 onClick={() => handleSort(column)}
@@ -63,10 +57,10 @@ export function AdminProjectTable({
                     <div className="relative flex items-center justify-center">
                         {isActive ? (
                             currentOrder === 'asc' ?
-                                <ArrowUp className="h-3 w-3 text-primary animate-in zoom-in duration-300" /> :
-                                <ArrowDown className="h-3 w-3 text-primary animate-in zoom-in duration-300" />
+                                <ArrowUp className="h-3 w-3 text-primary animate-in zoom-in" /> :
+                                <ArrowDown className="h-3 w-3 text-primary animate-in zoom-in" />
                         ) : (
-                            <ArrowUpDown className="h-3 w-3 opacity-0 group-hover:opacity-40 transition-all duration-200" />
+                            <ArrowUpDown className="h-3 w-3 opacity-0 group-hover:opacity-40 transition-opacity" />
                         )}
                     </div>
                 </div>
@@ -74,113 +68,142 @@ export function AdminProjectTable({
         );
     };
 
-    return (
-        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden relative">
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left border-collapse">
-                    <thead className="bg-muted/50 text-muted-foreground border-b border-border">
-                        <tr>
-                            <SortHeader title="Project Details" column="title" />
-                            <SortHeader title="Status" column="status" />
-                            <SortHeader title="Launched" column="createdAt" />
-                            <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px] text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                    <TrendingUp className="h-3 w-3" /> Financials
-                                </div>
-                            </th>
-                            <th className="px-6 py-4 font-bold uppercase tracking-widest text-[10px] text-right">Actions</th>
-                        </tr>
-                    </thead>
+    if (projects.length === 0) {
+        return (
+            <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
+                <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                <h3 className="text-sm font-bold text-foreground opacity-60 uppercase tracking-widest">No projects identified</h3>
+                <p className="text-xs text-muted-foreground mt-1 font-medium">Try adjusting your active filters.</p>
+            </div>
+        );
+    }
 
-                    <tbody className="divide-y divide-border">
-                        {projects.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-24 text-center text-muted-foreground italic">
-                                    <div className="flex flex-col items-center justify-center gap-3">
-                                        <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center border border-border">
-                                            <Inbox className="h-6 w-6 opacity-20" />
-                                        </div>
-                                        <p className="font-medium text-sm">No projects found matching your search</p>
+    return (
+        <div className="w-full overflow-hidden">
+            {/* MOBILE: High-Density Card List */}
+            <div className="grid gap-2 md:hidden">
+                {projects.map((project) => (
+                    <Card
+                        key={project.id}
+                        className="rounded-3xl border-border/40 shadow-sm active:scale-[0.99] transition-all cursor-pointer overflow-hidden"
+                        onClick={() => router.push(`/admin/projects/${project.id}/edit`)}
+                    >
+                        <CardContent className="p-4 space-y-4">
+                            <div className="flex justify-between items-start gap-4 w-full">
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-bold text-foreground truncate leading-tight">{project.title}</p>
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                        <span className="text-[10px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                            id: {project.id.split('-')[0]}
+                                        </span>
+                                        <Badge variant="outline" className="text-[9px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
+                                            {project.status}
+                                        </Badge>
                                     </div>
-                                </td>
+                                </div>
+                                <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
+                                    <AdminProjectActions id={project.id} status={project.status} />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
+                                <div className="space-y-1 min-w-0">
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Raised / Target</p>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                        <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
+                                        <span className="text-muted-foreground/50 text-[10px]">of</span>
+                                        <span className="text-xs font-bold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
+                                    </div>
+                                </div>
+                                <div className="text-right shrink-0">
+                                    <p className="text-[10px] font-bold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* DESKTOP: Forensic Table */}
+            <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left border-collapse">
+                        <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
+                            <tr>
+                                <SortHeader title="Cause details" column="title" />
+                                <SortHeader title="Status" column="status" />
+                                <SortHeader title="Launched" column="createdAt" />
+                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-[11px] text-right">
+                                    <div className="flex items-center justify-end gap-1.5">
+                                        <TrendingUp className="h-3 w-3" /> Financials
+                                    </div>
+                                </th>
+                                <th className="px-5 py-3"></th>
                             </tr>
-                        ) : (
-                            projects.map((project) => (
+                        </thead>
+                        <tbody className="divide-y divide-border/40">
+                            {projects.map((project) => (
                                 <tr
                                     key={project.id}
-                                    className="hover:bg-muted/30 transition-all cursor-pointer group/row"
+                                    className="hover:bg-muted/30 transition-all cursor-pointer group"
                                     onClick={() => router.push(`/admin/projects/${project.id}/edit`)}
                                 >
-                                    {/* Project & ID */}
-                                    <td className="px-6 py-4">
-                                        <div className="space-y-1 min-w-[200px]">
-                                            <p className="font-bold text-foreground group-hover/row:text-primary transition-colors line-clamp-1">
+                                    <td className="px-5 py-4">
+                                        <div className="min-w-[200px]">
+                                            <p className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
                                                 {project.title}
                                             </p>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[9px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-md border border-border/50 text-muted-foreground">
-                                                    ID: {project.id.split('-')[0]}
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-[10px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                                    id: {project.id.split('-')[0]}
                                                 </span>
                                                 {project.categoryName && (
-                                                    <span className="text-[9px] font-bold text-primary/70 uppercase">
+                                                    <span className="text-[10px] font-bold text-primary/70 uppercase tracking-tight">
                                                         {project.categoryName}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                     </td>
-
-                                    {/* Status Badge */}
-                                    <td className="px-6 py-4">
+                                    <td className="px-5 py-4">
                                         <Badge
-                                            variant={project.status === 'ACTIVE' ? 'success' : 'secondary'}
-                                            className="uppercase text-[9px] font-black tracking-widest px-2 py-1 rounded-xl shadow-sm"
+                                            variant={project.status === 'ACTIVE' ? 'success' : 'outline'}
+                                            className="uppercase text-[10px] font-bold px-2 py-0 rounded-3xl"
                                         >
                                             {project.status}
                                         </Badge>
                                     </td>
-
-                                    {/* Launched Date */}
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2 text-muted-foreground font-medium text-xs whitespace-nowrap">
-                                            <Calendar className="h-3.5 w-3.5 opacity-50" />
+                                    <td className="px-5 py-4">
+                                        <div className="flex items-center gap-1.5 text-muted-foreground font-medium text-xs whitespace-nowrap">
+                                            <Calendar className="h-3.5 w-3.5 opacity-40" />
                                             {formatDate(project.createdAt).split(',')[0]}
                                         </div>
                                     </td>
-
-                                    {/* Raised / Target */}
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex flex-col items-end gap-1 min-w-[120px]">
+                                    <td className="px-5 py-4 text-right">
+                                        <div className="flex flex-col items-end gap-0.5">
                                             <div className="font-bold tabular-nums text-foreground">
                                                 <SmartCurrency
                                                     amount={project.raisedAmount}
                                                     currency={project.currency}
                                                     visible={true}
                                                     size="small"
-                                                    className="text-sm"
                                                 />
                                             </div>
-
-                                            <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground uppercase tracking-tighter">
-                                                <Flag className="h-4 w-4 opacity-70" />
+                                            <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
+                                                <Flag className="h-3 w-3 opacity-50" />
                                                 {formatCurrency(project.targetAmount, project.currency)}
                                             </div>
                                         </div>
                                     </td>
-
-                                    {/* Action Column - Propagation Stopped */}
-                                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                        <div className="flex justify-end opacity-60 group-hover/row:opacity-100 transition-opacity">
-                                            <AdminProjectActions id={project.id} status={project.status} />
-                                        </div>
+                                    <td className="px-5 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                        <AdminProjectActions id={project.id} status={project.status} />
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
         </div>
     );
 }

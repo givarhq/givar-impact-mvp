@@ -5,7 +5,7 @@ import { SettingsClient } from '../../../../components/features/settings/setting
 
 export const metadata = {
     title: 'Account Settings',
-    description: 'Manage your profile, security, and notification preferences.',
+    description: 'Manage your profile, identity documents, security, and notification preferences.',
 };
 
 export default async function SettingsPage() {
@@ -16,7 +16,6 @@ export default async function SettingsPage() {
         redirect('/login');
     }
 
-    // Parallel fetch of user identity and organization profile for consolidation
     const [user, orgProfile] = await Promise.all([
         ApiService.auth.getMe(token),
         ApiService.organizations.getMe(token)
@@ -27,12 +26,11 @@ export default async function SettingsPage() {
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-            <div className="flex flex-col gap-1 px-1">
-                <h1 className="text-xl md:hidden font-black tracking-tight text-foreground">Settings</h1>
-            </div>
+        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
 
-            <SettingsClient user={user} orgProfile={orgProfile} />
+            <div className="w-full min-w-0">
+                <SettingsClient user={user} orgProfile={orgProfile} />
+            </div>
         </div>
     );
 }

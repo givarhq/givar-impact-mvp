@@ -4,6 +4,11 @@ import { OrganizationTable } from '../../../../components/features/admin/organiz
 import { OrganizationFilters } from '../../../../components/features/admin/organization-filters';
 import { Pagination } from '../../../../components/features/history/pagination';
 
+export const metadata = {
+    title: 'Organizations',
+    description: 'Directory of legal entities and verified project organizers.',
+};
+
 export default async function AdminOrganizationsPage({
     searchParams,
 }: {
@@ -23,14 +28,16 @@ export default async function AdminOrganizationsPage({
     const meta = result?.meta || { total: 0, page: 1, lastPage: 1 };
 
     return (
-        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
-            {/* Standardized Header/Filter Row */}
-            <OrganizationFilters />
+        <div className="w-full min-w-0 space-y-6 md:space-y-8 pb-20 animate-in fade-in duration-500">
+            {/* Standardized search and title row */}
+            <div className="w-full min-w-0">
+                <OrganizationFilters />
+            </div>
 
-            <div className="space-y-6">
+            <div className="space-y-6 w-full min-w-0">
                 <OrganizationTable profiles={profiles} />
 
-                <div className="pt-2">
+                <div className="pt-4 border-t border-border/40">
                     <Pagination currentPage={meta.page} totalPages={meta.lastPage} />
                 </div>
             </div>

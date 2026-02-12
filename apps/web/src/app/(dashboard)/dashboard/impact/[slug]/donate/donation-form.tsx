@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 import {
     Loader2, Wallet, CreditCard, CheckCircle, Mail,
-    Lock, AlertCircle, Eye, Repeat, MailCheck, Plus
+    Lock, AlertCircle, Eye, MailCheck, Plus
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -63,7 +62,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const donationAmountMinor = BigInt(parseFormattedNumber(amount) || '0') * 100n;
     const walletBalanceMinor = BigInt(wallet?.balance || '0');
 
-    // SOTA: CTA context logic
     const isWalletMethod = selectedMethod === 'wallet';
     const hasSufficientFunds = !isGuest && walletBalanceMinor >= donationAmountMinor;
     const needsFunding = isWalletMethod && !hasSufficientFunds && donationAmountMinor > 0n;
@@ -86,7 +84,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const handleConfirm = async () => {
         if (isReadOnly || isUnverified || isOverfunding) return;
 
-        // SOTA: Redirect to fund wallet if balance is low
         if (needsFunding) {
             router.push('/dashboard/wallet/fund');
             return;
@@ -144,73 +141,73 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     };
 
     return (
-        <div className="bg-card border border-border/50 rounded-xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+        <div className="bg-card border border-border/40 rounded-3xl p-5 md:p-6 shadow-sm relative overflow-hidden">
             {isReadOnly && (
-                <div className="absolute inset-0 z-20 bg-background/70 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
-                    <div className="h-16 w-16 rounded-3xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-6 shadow-xl shadow-amber-500/5">
-                        <Eye className="h-8 w-8" />
+                <div className="absolute inset-0 z-20 bg-background/70 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+                    <div className="h-14 w-14 rounded-3xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-4 border border-amber-500/20">
+                        <Eye className="h-6 w-6" />
                     </div>
-                    <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Audit Mode</h4>
-                    <p className="text-sm text-muted-foreground mt-3 max-w-[280px] leading-relaxed font-medium">
+                    <h4 className="text-lg font-bold text-foreground tracking-tight">Audit mode active</h4>
+                    <p className="text-xs text-muted-foreground mt-2 max-w-[280px] leading-relaxed font-medium">
                         You are viewing from a support perspective. Transactions are disabled to preserve ledger integrity.
                     </p>
                 </div>
             )}
 
             {!isReadOnly && isUnverified && (
-                <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-lg flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
-                    <div className="h-16 w-16 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl shadow-rose-500/5">
-                        <MailCheck className="h-8 w-8" />
+                <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+                    <div className="h-14 w-14 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-4 border border-rose-500/20">
+                        <MailCheck className="h-6 w-6" />
                     </div>
-                    <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Identity Pending</h4>
-                    <p className="text-sm text-muted-foreground mt-3 max-w-[280px] leading-relaxed font-medium">
+                    <h4 className="text-lg font-bold text-foreground tracking-tight">Identity pending</h4>
+                    <p className="text-xs text-muted-foreground mt-2 max-w-[280px] leading-relaxed font-medium">
                         To maintain a secure financial environment, donations are restricted until you verify your email address.
                     </p>
                     <Button
                         variant="outline"
-                        className="mt-8 rounded-xl h-12 px-8 border-rose-500/20 text-rose-600 hover:bg-rose-500/5 font-bold"
+                        className="mt-6 rounded-3xl h-10 px-6 border-rose-500/20 text-rose-600 hover:bg-rose-500/5 font-bold text-xs"
                         onClick={() => window.location.reload()}
                     >
-                        Check Verification Status
+                        Check verification status
                     </Button>
                 </div>
             )}
 
             <div className={cn(
-                "flex flex-col h-full space-y-6 transition-all duration-500",
+                "flex flex-col h-full space-y-5 transition-all duration-300",
                 (isReadOnly || isUnverified) && "opacity-20 grayscale pointer-events-none blur-[1px]"
             )}>
                 {isGuest ? (
                     <>
-                        <div className="space-y-3">
-                            <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Donation Amount ({project.currency})</label>
+                        <div className="space-y-2.5">
+                            <label className="text-xs font-bold text-muted-foreground">Donation amount ({project.currency})</label>
                             <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground">₦</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">₦</span>
                                 <Input
                                     type="text"
                                     placeholder="1,000"
-                                    className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
+                                    className="pl-10 h-12 text-lg font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
                                     value={formatNumberInput(amount)}
                                     onChange={handleAmountChange}
                                 />
                             </div>
                             <div className="flex gap-2 text-xs flex-wrap">
                                 {['1000', '5000', '10000', '25000'].map((val) => (
-                                    <button key={val} onClick={() => setQuickAmount(val)} className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-3 py-2 rounded-xl transition-all font-semibold">
+                                    <button key={val} onClick={() => setQuickAmount(val)} className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-3 py-1.5 rounded-3xl transition-all font-semibold">
                                         ₦{Number(val).toLocaleString()}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Receipt Email</label>
+                        <div className="space-y-2.5">
+                            <label className="text-xs font-bold text-muted-foreground">Receipt email</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
                                     type="email"
                                     placeholder="jane@example.com"
-                                    className="pl-12 h-14 rounded-xl bg-muted/30 border-transparent"
+                                    className="pl-11 h-12 rounded-3xl bg-muted/30 border-transparent text-sm"
                                     value={guestEmail}
                                     onChange={(e) => setGuestEmail(e.target.value)}
                                 />
@@ -219,29 +216,29 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     </>
                 ) : (
                     <Tabs value={donationType} onValueChange={(v) => setDonationType(v as 'one-time' | 'recurring')} className="w-full flex flex-col h-full">
-                        <div className="shrink-0 pb-6">
-                            <TabsList className="w-full h-12 rounded-xl p-1 bg-muted/50">
-                                <TabsTrigger value="one-time" className="flex-1 rounded-lg">One-Time</TabsTrigger>
-                                <TabsTrigger value="recurring" className="flex-1 rounded-lg">Recurring</TabsTrigger>
+                        <div className="shrink-0 pb-5">
+                            <TabsList className="w-full h-11 rounded-3xl p-1 bg-muted/50 border border-border/40">
+                                <TabsTrigger value="one-time" className="flex-1 rounded-3xl text-xs font-bold h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">One-time</TabsTrigger>
+                                <TabsTrigger value="recurring" className="flex-1 rounded-3xl text-xs font-bold h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">Recurring</TabsTrigger>
                             </TabsList>
                         </div>
 
-                        <div className="space-y-6">
-                            <div className="space-y-3">
-                                <label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Amount ({project.currency})</label>
+                        <div className="space-y-5">
+                            <div className="space-y-2.5">
+                                <label className="text-xs font-bold text-muted-foreground">Amount ({project.currency})</label>
                                 <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground">₦</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">₦</span>
                                     <Input
                                         type="text"
                                         placeholder="1,000"
-                                        className="pl-10 h-14 text-xl font-bold rounded-xl bg-muted/30 border-transparent focus:bg-background focus:border-primary tabular-nums"
+                                        className="pl-10 h-12 text-lg font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums"
                                         value={formatNumberInput(amount)}
                                         onChange={handleAmountChange}
                                     />
                                 </div>
                                 <div className="flex gap-2 text-xs flex-wrap">
                                     {['1000', '5000', '10000', '25000'].map((val) => (
-                                        <button key={val} onClick={() => setQuickAmount(val)} className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-3 py-2 rounded-xl transition-all font-semibold">
+                                        <button key={val} onClick={() => setQuickAmount(val)} className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-3 py-1.5 rounded-3xl transition-all font-semibold">
                                             ₦{Number(val).toLocaleString()}
                                         </button>
                                     ))}
@@ -249,46 +246,46 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                             </div>
 
                             {donationType === 'recurring' && (
-                                <div className="grid grid-cols-2 gap-3 pt-2">
-                                    <button onClick={() => setInterval('WEEKLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'WEEKLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>Weekly</button>
-                                    <button onClick={() => setInterval('MONTHLY')} className={cn("h-12 rounded-xl border transition-all font-bold", interval === 'MONTHLY' ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-muted/30 hover:border-border text-muted-foreground")}>Monthly</button>
+                                <div className="grid grid-cols-2 gap-3 pt-1">
+                                    <button onClick={() => setInterval('WEEKLY')} className={cn("h-11 rounded-3xl border transition-all text-xs font-bold", interval === 'WEEKLY' ? "bg-primary text-white border-primary shadow-sm" : "bg-muted/30 hover:border-border/60 text-muted-foreground")}>Weekly</button>
+                                    <button onClick={() => setInterval('MONTHLY')} className={cn("h-11 rounded-3xl border transition-all text-xs font-bold", interval === 'MONTHLY' ? "bg-primary text-white border-primary shadow-sm" : "bg-muted/30 hover:border-border/60 text-muted-foreground")}>Monthly</button>
                                 </div>
                             )}
 
                             {amount && (
-                                <div className="space-y-3 pt-4 border-t border-border/50 animate-in fade-in-0 duration-300">
-                                    <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Payment Method</p>
+                                <div className="space-y-2.5 pt-3 border-t border-border/40 animate-in fade-in-0 duration-200">
+                                    <p className="text-xs font-bold text-muted-foreground">Payment method</p>
                                     <button
                                         onClick={() => setSelectedMethod('wallet')}
                                         disabled={isOverfunding}
                                         className={cn(
-                                            "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
-                                            selectedMethod === 'wallet' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
+                                            "w-full h-auto flex items-center p-3 border rounded-3xl transition-all relative",
+                                            selectedMethod === 'wallet' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30",
                                             isOverfunding && "opacity-50 cursor-not-allowed grayscale"
                                         )}
                                     >
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 mr-4 text-primary"><Wallet className="h-5 w-5" /></div>
-                                        <div className="text-left">
-                                            <p className="font-bold text-foreground">Givar Wallet</p>
-                                            <p className={cn("text-xs font-medium", !hasSufficientFunds && donationAmountMinor > 0n ? "text-destructive" : "text-muted-foreground")}>
-                                                Bal: {formatCurrency(wallet?.balance || '0', project.currency)}
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-primary/10 mr-3 text-primary border border-primary/10 shrink-0"><Wallet className="h-4.5 w-4.5" /></div>
+                                        <div className="text-left flex-1 min-w-0">
+                                            <p className="font-bold text-sm text-foreground truncate">Givar Wallet</p>
+                                            <p className={cn("text-xs font-medium truncate", !hasSufficientFunds && donationAmountMinor > 0n ? "text-destructive" : "text-muted-foreground")}>
+                                                Balance: {formatCurrency(wallet?.balance || '0', project.currency)}
                                             </p>
                                         </div>
-                                        {selectedMethod === 'wallet' && <CheckCircle className="ml-auto h-5 w-5 text-primary" />}
+                                        {selectedMethod === 'wallet' && <CheckCircle className="ml-2 h-5 w-5 text-primary shrink-0" />}
                                     </button>
 
                                     <button
                                         onClick={() => setSelectedMethod('direct')}
                                         disabled={isOverfunding}
                                         className={cn(
-                                            "w-full h-auto flex items-center p-4 border rounded-xl transition-all relative",
-                                            selectedMethod === 'direct' ? "border-primary ring-2 ring-primary/50 bg-primary/5" : "hover:border-border hover:bg-muted/30",
+                                            "w-full h-auto flex items-center p-3 border rounded-3xl transition-all relative",
+                                            selectedMethod === 'direct' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30",
                                             isOverfunding && "opacity-50 cursor-not-allowed grayscale"
                                         )}
                                     >
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted mr-4 text-muted-foreground"><CreditCard className="h-5 w-5" /></div>
-                                        <div className="text-left"><p className="font-bold text-foreground">Direct Pay</p><p className="text-xs text-muted-foreground">Card, Bank, USSD</p></div>
-                                        {selectedMethod === 'direct' && <CheckCircle className="ml-auto h-5 w-5 text-primary" />}
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-muted mr-3 text-muted-foreground border border-border/40 shrink-0"><CreditCard className="h-4.5 w-4.5" /></div>
+                                        <div className="text-left flex-1 min-w-0"><p className="font-bold text-sm text-foreground truncate">Direct Pay</p><p className="text-xs font-medium text-muted-foreground truncate">Card, Bank transfer</p></div>
+                                        {selectedMethod === 'direct' && <CheckCircle className="ml-2 h-5 w-5 text-primary shrink-0" />}
                                     </button>
                                 </div>
                             )}
@@ -297,11 +294,11 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 )}
 
                 {amount && isOverfunding && (
-                    <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700">
-                        <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-                        <div className="text-xs space-y-1">
-                            <p className="font-bold uppercase tracking-tight">Goal Threshold Reached</p>
-                            <p>This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to complete. Please adjust.</p>
+                    <div className="flex items-start gap-2.5 p-3 rounded-3xl bg-amber-50 border border-amber-100 text-amber-700 animate-in slide-in-from-bottom-2">
+                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                        <div className="text-xs space-y-0.5">
+                            <p className="font-bold">Goal threshold reached</p>
+                            <p className="font-medium">This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to complete. Please adjust.</p>
                         </div>
                     </div>
                 )}
@@ -310,21 +307,21 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     onClick={handleConfirm}
                     disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod) || isOverfunding}
                     className={cn(
-                        "w-full h-16 text-lg font-bold rounded-xl shadow-lg transition-all",
-                        needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 shadow-none border border-border" : "shadow-primary/20"
+                        "w-full h-12 text-sm font-bold rounded-3xl shadow-sm transition-all mt-2",
+                        needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 border border-border/60" : "bg-primary text-white hover:bg-primary/90"
                     )}
                 >
-                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                    {isLoading ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : (
                         <span className="flex items-center gap-2">
                             {needsFunding ? (
                                 <>
-                                    <Plus className="h-5 w-5" />
-                                    Fund Wallet
+                                    <Plus className="h-4 w-4" />
+                                    Fund wallet
                                 </>
                             ) : (
                                 <>
-                                    <Lock className="h-5 w-5" />
-                                    {isGuest ? 'Proceed to Pay' : 'Confirm Donation'}
+                                    <Lock className="h-4 w-4" />
+                                    {isGuest ? 'Proceed to pay' : 'Confirm donation'}
                                 </>
                             )}
                         </span>

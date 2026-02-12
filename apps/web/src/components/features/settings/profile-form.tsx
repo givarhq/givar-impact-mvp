@@ -5,8 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
-    Loader2, User, ShieldCheck,
-    Camera, UploadCloud, AlertCircle,
+    Loader2, ShieldCheck, Camera, AlertCircle,
     MailCheck, RefreshCcw, ChevronRight, Check, X
 } from 'lucide-react';
 import { Input } from '../../ui/input';
@@ -150,40 +149,38 @@ export function ProfileForm({ user }: ProfileFormProps) {
     const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <div className="lg:col-span-4 space-y-6">
-                    <Card className="rounded-[32px] border-border/50 bg-card overflow-hidden shadow-xl relative group">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary/20 to-transparent opacity-40" />
-                        <div className="p-8 text-center space-y-5">
-                            <div className="relative inline-block">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="lg:col-span-4 space-y-4">
+                    <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
+                        <div className="p-6 text-center space-y-4">
+                            <div className="relative inline-block group">
                                 <div
                                     onClick={onAvatarClick}
                                     className={cn(
-                                        "h-28 w-28 rounded-[40px] flex items-center justify-center text-4xl font-black shadow-inner mx-auto border-2 border-primary/5 cursor-pointer relative overflow-hidden transition-all group-hover:scale-105 duration-500",
-                                        isUploading ? "opacity-50" : "opacity-100",
-                                        user.avatarUrl ? "bg-muted" : "bg-primary/10 text-primary"
+                                        "h-24 w-24 rounded-3xl flex items-center justify-center text-3xl font-black shadow-inner mx-auto border border-border/40 overflow-hidden transition-all",
+                                        user.avatarUrl ? "bg-muted" : "bg-primary/5 text-primary"
                                     )}
                                 >
-                                    {user.avatarUrl ? <img src={user.avatarUrl} className="h-full w-full object-cover" alt="Avatar" /> : initials}
-                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {isUploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
+                                    {user.avatarUrl ? <img src={user.avatarUrl} className="h-full w-full object-cover" alt="" /> : initials}
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                        {isUploading ? <Loader2 className="h-5 w-5 text-white animate-spin" /> : <Camera className="h-5 w-5 text-white" />}
                                     </div>
                                 </div>
                                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={isUploading} />
                             </div>
-                            <div className="space-y-1">
-                                <h2 className="text-2xl font-black tracking-tight text-foreground">{user.firstName} {user.lastName}</h2>
+                            <div className="space-y-0.5">
+                                <h2 className="text-lg font-bold text-foreground">{user.firstName} {user.lastName}</h2>
                                 <p className="text-xs text-muted-foreground font-medium">{user.email}</p>
                             </div>
-                            <div className="flex flex-wrap justify-center gap-2">
-                                <Badge variant="outline" className="rounded-lg bg-secondary/50 px-2.5 py-1 text-[9px] font-black uppercase border-border/50">{user.role}</Badge>
+                            <div className="flex flex-wrap justify-center gap-1.5">
+                                <Badge variant="outline" className="rounded-3xl bg-muted/30 px-2 py-0.5 text-xs font-bold uppercase border-border/40">{user.role}</Badge>
                                 {user.emailVerified ? (
-                                    <Badge className="rounded-lg bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] font-black uppercase gap-1">
+                                    <Badge className="rounded-3xl bg-emerald-50 text-emerald-600 border-emerald-100 text-xs font-bold uppercase gap-1">
                                         <ShieldCheck className="h-3 w-3" /> Verified
                                     </Badge>
                                 ) : (
-                                    <Badge className="rounded-lg bg-amber-500/10 text-amber-600 border-amber-500/20 text-[9px] font-black uppercase gap-1 animate-pulse">
+                                    <Badge className="rounded-3xl bg-amber-50 text-amber-600 border-amber-100 text-xs font-bold uppercase gap-1 animate-pulse">
                                         <AlertCircle className="h-3 w-3" /> Unverified
                                     </Badge>
                                 )}
@@ -191,15 +188,15 @@ export function ProfileForm({ user }: ProfileFormProps) {
                         </div>
                     </Card>
 
-                    <Card className="rounded-[28px] border-border/50 bg-card overflow-hidden shadow-sm">
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Account Status</span>
-                                <Badge className="text-[9px] font-bold uppercase">{user.accountType}</Badge>
+                    <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
+                        <CardContent className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-muted-foreground uppercase">Account Status</span>
+                                <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-3xl">{user.accountType}</span>
                             </div>
                             <Button
                                 variant="outline"
-                                className="w-full h-11 rounded-xl text-xs font-bold gap-2 border-border/60 hover:bg-muted"
+                                className="w-full h-9 rounded-3xl text-xs font-bold gap-2 border-border/60"
                                 onClick={() => setSwitchModal({
                                     isOpen: true,
                                     type: user.accountType === 'INDIVIDUAL' ? 'ORGANIZER' : 'INDIVIDUAL'
@@ -211,74 +208,65 @@ export function ProfileForm({ user }: ProfileFormProps) {
                     </Card>
                 </div>
 
-                <div className="lg:col-span-8 space-y-6">
+                <div className="lg:col-span-8 space-y-4">
                     {!user.emailVerified && (
-                        <div className="p-6 rounded-[28px] bg-amber-500/5 border border-amber-500/20 space-y-4 animate-in slide-in-from-top-2 duration-500 shadow-sm">
-                            <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
-                                    <MailCheck className="h-5 w-5" />
-                                </div>
-                                <div className="flex-1 space-y-1">
-                                    <h4 className="font-bold text-amber-800 text-sm uppercase tracking-tight">Verify Identity</h4>
-                                    <p className="text-[11px] text-amber-700/80 leading-relaxed font-medium">Verify your email to establish trust on the impact ledger.</p>
+                        <div className="p-4 rounded-3xl bg-amber-50 border border-amber-100 space-y-3 shadow-sm animate-in slide-in-from-top-2">
+                            <div className="flex items-center gap-3">
+                                <MailCheck className="h-5 w-5 text-amber-600 shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-amber-900 text-xs uppercase">Verify Identity</h4>
+                                    <p className="text-xs text-amber-700 font-medium">Verify your email to establish trust on the impact ledger.</p>
                                 </div>
                                 {!showCodeInput && (
-                                    <Button onClick={handleRequestCode} disabled={isVerifying} className="h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white border-0 font-bold text-xs px-6">
-                                        {isVerifying ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Get Code'}
+                                    <Button onClick={handleRequestCode} disabled={isVerifying} className="h-8 rounded-3xl bg-amber-600 text-white font-bold text-xs px-4">
+                                        {isVerifying ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Get Code'}
                                     </Button>
                                 )}
                             </div>
                             {showCodeInput && (
-                                <div className="flex flex-col sm:flex-row gap-3 pt-2 animate-in fade-in zoom-in-95">
-                                    <Input placeholder="Enter 6-digit code" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))} className="h-12 bg-white text-center font-bold tracking-[0.3em]" />
-                                    <Button onClick={handleVerifyCode} disabled={isVerifying || verificationCode.length !== 6} className="h-12 rounded-xl bg-primary text-white font-bold px-8">Verify</Button>
+                                <div className="flex flex-col sm:flex-row gap-2 animate-in zoom-in-95">
+                                    <Input placeholder="Enter 6-digit code" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))} className="h-9 bg-white text-center font-bold tracking-widest text-sm rounded-3xl" />
+                                    <Button onClick={handleVerifyCode} disabled={isVerifying || verificationCode.length !== 6} className="h-9 rounded-3xl px-6 font-bold text-xs">Verify</Button>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    <Card className="rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden">
+                    <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardContent className="p-0">
-                            {/* Row 1: Full Name */}
                             <div
                                 onClick={() => setEditingField('name')}
                                 className={cn(
-                                    "flex items-center justify-between p-8 border-b border-border/40 transition-all group",
-                                    editingField === 'name' ? "bg-primary/[0.02]" : "hover:bg-muted/30 cursor-pointer"
+                                    "flex items-center justify-between p-5 md:p-6 border-b border-border/40 transition-all cursor-pointer hover:bg-muted/30",
+                                    editingField === 'name' ? "bg-muted/10" : ""
                                 )}
                             >
                                 <div className="space-y-1 flex-1 min-w-0">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</p>
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Full Name</p>
                                     {editingField === 'name' ? (
-                                        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-4 pt-2 animate-in slide-in-from-left-2" onClick={(e) => e.stopPropagation()}>
-                                            <Input {...register('firstName')} error={errors.firstName?.message} className="h-10 bg-background" autoFocus />
-                                            <Input {...register('lastName')} error={errors.lastName?.message} className="h-10 bg-background" />
+                                        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-2 pt-1 animate-in slide-in-from-left-1" onClick={(e) => e.stopPropagation()}>
+                                            <Input {...register('firstName')} error={errors.firstName?.message} className="h-9 rounded-3xl text-sm" autoFocus />
+                                            <Input {...register('lastName')} error={errors.lastName?.message} className="h-9 rounded-3xl text-sm" />
                                             <div className="flex gap-2">
-                                                <Button type="submit" size="icon" className="h-10 w-10 shrink-0 shadow-lg shadow-primary/20" disabled={isLoading}><Check className="h-4 w-4" /></Button>
-                                                <Button type="button" variant="outline" size="icon" className="h-10 w-10 shrink-0" onClick={() => { setEditingField(null); reset(); }}><X className="h-4 w-4" /></Button>
+                                                <Button type="submit" size="icon" className="h-9 w-9 shrink-0 rounded-3xl" disabled={isLoading}><Check className="h-4 w-4" /></Button>
+                                                <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0 rounded-3xl" onClick={() => { setEditingField(null); reset(); }}><X className="h-4 w-4" /></Button>
                                             </div>
                                         </form>
                                     ) : (
                                         <p className="text-sm font-bold text-foreground">{user.firstName} {user.lastName}</p>
                                     )}
                                 </div>
-                                {editingField !== 'name' && <ChevronRight className="h-4 w-4 shrink-0 ml-4 text-muted-foreground opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />}
+                                {!editingField && <ChevronRight className="h-4 w-4 shrink-0 ml-4 text-muted-foreground/30 group-hover:text-primary transition-all" />}
                             </div>
 
-                            {/* Row 2: Email Address (Locked) */}
-                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 border-b border-border/40 bg-muted/10 opacity-70">
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Primary Email</p>
-                                    <p className="text-sm font-bold text-foreground">{user.email}</p>
-                                </div>
+                            <div className="p-5 md:p-6 border-b border-border/40 bg-muted/10 opacity-70">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Primary Email</p>
+                                <p className="text-sm font-bold text-foreground">{user.email}</p>
                             </div>
 
-                            {/* Row 3: Account ID (Locked) */}
-                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 bg-muted/10 opacity-70">
-                                <div className="space-y-1">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Node Identity ID</p>
-                                    <p className="text-xs font-mono text-foreground">{user.id}</p>
-                                </div>
+                            <div className="p-5 md:p-6 bg-muted/10 opacity-70">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1">Node Identity ID</p>
+                                <p className="text-xs font-mono text-foreground truncate">{user.id}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -292,11 +280,8 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 onClose={() => setSwitchModal({ isOpen: false, type: null })}
                 onConfirm={executeAccountSwitch}
                 isLoading={isLoading}
-                title={`Switch to ${switchModal.type === 'ORGANIZER' ? 'Organizer' : 'Individual'} Account`}
-                description={switchModal.type === 'ORGANIZER'
-                    ? "Upgrading allows you to create projects and access fundraising tools. You may be required to complete verification."
-                    : "Downgrading will restrict your ability to create new projects. Existing projects will remain active."
-                }
+                title={`Switch Account Mode`}
+                description={`Switch your account to ${switchModal.type === 'ORGANIZER' ? 'Organizer' : 'Individual'}? Upgrading allows cause launches, while downgrading restricts them.`}
                 confirmText="Confirm Switch"
             />
         </div>

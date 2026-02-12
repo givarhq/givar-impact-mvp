@@ -2,114 +2,114 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Wallet, ShieldCheck, Activity, PlayCircle, CreditCard } from 'lucide-react'; // Added CreditCard
+import { ArrowRight, Wallet, ShieldCheck, Activity, PlayCircle, CreditCard } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
 
 interface PlatformStats {
-  totalVolume: string;
-  latestDonation: {
-    projectTitle: string;
-    amount: string;
-    createdAt: string;
-  } | null;
+    totalVolume: string;
+    latestDonation: {
+        projectTitle: string;
+        amount: string;
+        createdAt: string;
+    } | null;
 }
 
 export function HeroSection({ stats }: { stats: PlatformStats }) {
-  return (
-    <div className="relative min-h-[90vh] w-full flex flex-col justify-end overflow-hidden bg-black">
-      {/* BACKGROUND LAYER */}
-      <div className="absolute inset-0 z-0">
-        <Image 
-            src="/Givar3.png" 
-            alt="Givar Impact" 
-            fill 
-            className="object-cover opacity-90 scale-105 animate-in fade-in duration-1000"
-            priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-      </div>
+    return (
+        <div className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-black">
+            {/* BACKGROUND LAYER */}
+            <div className="absolute inset-0 z-0">
+                <Image
+                    src="/Givar3.png"
+                    alt="Givar Impact"
+                    fill
+                    className="object-cover opacity-90 scale-105 animate-in fade-in duration-1000"
+                    priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
+            </div>
 
-      {/* CONTENT LAYER */}
-      <div className="relative z-10 container mx-auto px-6 pb-20 md:pb-32 pt-32">
-        <div className="max-w-3xl space-y-8 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-100">
-          
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-white leading-[0.95]">
-            Transparency is <br />
-            the new <span className="text-primary">currency.</span>
-          </h1>
+            {/* CONTENT LAYER */}
+            <div className="relative z-10 container mx-auto px-6 pb-20 md:pb-32 pt-32">
+                <div className="max-w-3xl space-y-8 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-100">
 
-          <p className="text-lg md:text-xl text-zinc-300 max-w-xl leading-relaxed font-light">
-            Don't just give. Invest in impact. The first philanthropy protocol that tracks every cent from your wallet to the project's execution.
-          </p>
+                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-white leading-[0.95]">
+                        Transparency is <br />
+                        the new <span className="text-primary">currency.</span>
+                    </h1>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Link href="/explore">
-                {/* Guest Giving CTA */}
-                <Button className="h-14 px-8 rounded-full bg-white text-black hover:bg-zinc-200 font-bold text-base transition-transform hover:scale-105 active:scale-95">
-                   <CreditCard className="mr-2 h-5 w-5" /> Give as Guest
-                </Button>
-            </Link>
-            <Link href="/signup">
-                <Button variant="ghost" className="h-14 px-8 rounded-full text-white hover:bg-white/10 border border-white/20 backdrop-blur-sm gap-2">
-                   Create Wallet
-                </Button>
-            </Link>
-          </div>
-        </div>
+                    <p className="text-lg md:text-xl text-zinc-300 max-w-xl leading-relaxed font-light">
+                        Don't just give. Invest in impact. The first philanthropy protocol that tracks every cent from your wallet to the project's execution.
+                    </p>
 
-        {/* FLOATING GLASS STATS - REAL DATA */}
-        <div className="absolute right-6 bottom-10 hidden lg:block animate-in fade-in slide-in-from-right-10 duration-1000 delay-300">
-            <Card className="w-80 border-white/10 bg-black/40 backdrop-blur-xl p-5 text-white shadow-2xl rounded-2xl">
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                        <Activity className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <p className="text-xs text-zinc-400 font-medium">Real-time Volume</p>
-                        <div className="text-lg font-bold font-mono">
-                            <SmartCurrency 
-                                amount={stats.totalVolume} 
-                                currency="NGN" 
-                                visible={true} 
-                                size="default" 
-                                className="text-white"
-                            />
-                        </div>
+                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                        <Link href="/explore">
+                            {/* Guest Giving CTA */}
+                            <Button className="h-14 px-8 rounded-full bg-white text-black hover:bg-zinc-200 font-bold text-base transition-transform hover:scale-105 active:scale-95">
+                                <CreditCard className="mr-2 h-5 w-5" /> Explore Causes
+                            </Button>
+                        </Link>
+                        <Link href="/signup">
+                            <Button variant="ghost" className="h-14 px-8 rounded-full text-white hover:bg-white/10 border border-white/20 backdrop-blur-sm gap-2">
+                                Create Wallet
+                            </Button>
+                        </Link>
                     </div>
                 </div>
-                
-                {stats.latestDonation ? (
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-xs">
-                            <span className="text-zinc-400 truncate max-w-[120px]">{stats.latestDonation.projectTitle}</span>
-                            <span className="text-primary font-mono">
-                                + <SmartCurrency 
-                                    amount={stats.latestDonation.amount} 
-                                    currency="NGN" 
-                                    visible={true} 
-                                    className="text-primary"
-                                />
-                            </span>
+
+                {/* FLOATING GLASS STATS - REAL DATA */}
+                <div className="absolute right-6 bottom-10 hidden lg:block animate-in fade-in slide-in-from-right-10 duration-1000 delay-300">
+                    <Card className="w-80 border-white/10 bg-black/40 backdrop-blur-xl p-5 text-white shadow-2xl rounded-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                                <Activity className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-zinc-400 font-medium">Real-time Volume</p>
+                                <div className="text-lg font-bold font-mono">
+                                    <SmartCurrency
+                                        amount={stats.totalVolume}
+                                        currency="NGN"
+                                        visible={true}
+                                        size="default"
+                                        className="text-white"
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary w-full animate-pulse" />
-                        </div>
-                        <div className="flex justify-between text-[10px] text-zinc-500 pt-1">
-                            <span>Just now</span>
-                            <span>Verified on-chain</span>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-xs text-zinc-500">Waiting for first donation...</div>
-                )}
-            </Card>
+
+                        {stats.latestDonation ? (
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-xs">
+                                    <span className="text-zinc-400 truncate max-w-[120px]">{stats.latestDonation.projectTitle}</span>
+                                    <span className="text-primary font-mono">
+                                        + <SmartCurrency
+                                            amount={stats.latestDonation.amount}
+                                            currency="NGN"
+                                            visible={true}
+                                            className="text-primary"
+                                        />
+                                    </span>
+                                </div>
+                                <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                                    <div className="h-full bg-primary w-full animate-pulse" />
+                                </div>
+                                <div className="flex justify-between text-xs text-zinc-500 pt-1">
+                                    <span>Just now</span>
+                                    <span>Verified on-chain</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-zinc-500">Waiting for first donation...</div>
+                        )}
+                    </Card>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export function FeatureSection() {

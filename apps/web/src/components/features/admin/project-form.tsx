@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
@@ -8,18 +7,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
 import {
-  Loader2, Save, X, Layout,
+  Loader2, Save, X,
   Image as ImageIcon,
   Briefcase,
   Clock,
   MapPin,
   ShieldCheck,
   ExternalLink,
-  Unlock,
-  Send,
   LockOpen,
   Fingerprint,
-  FileText
+  FileText,
+  Send
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -32,6 +30,7 @@ import { MediaManager, ImageUploader } from '../proposals/media-uploader';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Textarea } from '../../ui/textarea';
+import { Card } from '../../ui/card';
 
 const mediaItemSchema = z.object({
   id: z.string(),
@@ -83,7 +82,6 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-
   const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
   const readOnly = initialData ? !isEditing : false;
   const isAdjustmentMode = isLive && isEditing;
@@ -119,14 +117,13 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
     setIsSubmitting(true);
     try {
       const payload = { ...data, targetAmount: data.targetAmount * 100, status };
-
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
-        toast.success(status === 'DRAFT' ? 'Draft Saved' : 'Project Published');
+        toast.success(status === 'DRAFT' ? 'Draft saved' : 'Project published');
         setIsEditing(false);
       } else {
         await ApiService.admin.createProject(payload);
-        toast.success(status === 'DRAFT' ? 'Project Saved as Draft' : 'Project Launched Successfully');
+        toast.success(status === 'DRAFT' ? 'Project saved as draft' : 'Project launched successfully');
         if (status === 'DRAFT') {
           router.push('/admin/projects?tab=drafts');
         } else {
@@ -135,7 +132,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
       }
       router.refresh();
     } catch (error) {
-      toast.error('Failed to commit changes');
+      toast.error('Commit failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -157,79 +154,66 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   };
 
   const getInputClass = () => cn(
-    "transition-all duration-300 rounded-xl h-11 text-sm pr-10",
+    "transition-all duration-300 rounded-3xl h-11 text-sm pr-10",
     readOnly
-      ? "bg-muted/10 border-transparent shadow-none cursor-default focus-visible:ring-0 text-foreground font-medium"
-      : "bg-background border-border shadow-sm focus-visible:ring-primary/20"
+      ? "bg-muted/10 border-transparent shadow-none cursor-default focus-visible:ring-0 text-foreground font-bold"
+      : "bg-background border-border/60 shadow-sm focus-visible:ring-primary/20"
   );
 
   const getAreaClass = (minHeight: string = "min-h-[180px]") => cn(
-    "flex w-full rounded-xl border px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-foreground",
+    "flex w-full rounded-3xl border px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-foreground",
     minHeight,
     readOnly
       ? "bg-muted/10 border-transparent shadow-none cursor-default resize-none font-medium"
-      : "bg-background border-input focus-visible:border-primary"
+      : "bg-background border-border/60 focus-visible:border-primary"
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-32 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 pb-40 animate-in fade-in duration-300 w-full overflow-hidden">
+      {/* Verified origin badge – compact and standalone */}
+      {initialData?.proposalId && (
         <div className="flex flex-wrap items-center gap-3">
-          {initialData?.proposalId && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-400 w-fit">
-              <ShieldCheck className="h-4 w-4" />
-              <span className="text-[10px] font-bold uppercase tracking-widest">Verified Origin:</span>
-              <Link href={`/admin/proposals/${initialData.proposalId}`} className="text-xs font-bold underline hover:text-blue-800 flex items-center gap-1">
-                Proposal #{initialData.proposalId.split('-')[0]} <ExternalLink className="h-3 w-3" />
+          <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-3xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-widest shrink-0">Verified origin:</span>
+              <Link href={`/admin/proposals/${initialData.proposalId}`} className="text-xs font-bold underline hover:text-blue-800 flex items-center gap-1 truncate">
+                Proposal #{initialData.proposalId.split('-')[0]} <ExternalLink className="h-3 w-3 shrink-0" />
               </Link>
             </div>
-          )}
+          </div>
         </div>
+      )}
 
-        {initialData && (
-          <Button
-            type="button"
-            variant={isEditing ? "ghost" : "outline"}
-            onClick={() => isEditing ? handleCancel() : handleStartEditing()}
-            className={cn(
-              "h-11 rounded-xl px-6 font-bold transition-all gap-2",
-              isEditing ? "text-muted-foreground" : "border-primary/30 text-primary hover:bg-primary/5 shadow-sm"
-            )}
-          >
-            {isEditing ? <X className="h-4 w-4" /> : <LockOpen className="h-4 w-4" />}
-            {isEditing ? 'Cancel Editing' : 'Unlock for Editing'}
-          </Button>
-        )}
-      </div>
-
+      {/* Ledger amendment warning */}
       {isAdjustmentMode && (
-        <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-[32px] space-y-4 shadow-xl shadow-amber-500/5 animate-in slide-in-from-top-4 duration-500">
+        <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-3xl space-y-4 shadow-sm animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-[18px] bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
-              <Fingerprint className="h-6 w-6" />
+            <div className="h-10 w-10 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
+              <Fingerprint className="h-5 w-5" />
             </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-amber-800 uppercase tracking-tight">Ledger Amendment Protocol</h3>
-              <p className="text-xs text-amber-700/80 leading-relaxed font-medium max-w-2xl">
-                This project is live. Any modifications to the goal, timeline, or budget require an audit-traceable narrative that will be published to all donors for transparency.
+            <div className="space-y-0.5 min-w-0">
+              <h3 className="text-sm font-bold text-amber-800 tracking-tight">Ledger Amendment Protocol</h3>
+              <p className="text-[11px] text-amber-700 font-medium leading-relaxed">
+                This project is live. Changes to goal, timeline, or budget require an audit-traceable narrative for donors.
               </p>
             </div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex justify-between items-end px-1">
-              <label className="text-[10px] font-black text-amber-700 uppercase tracking-[0.2em]">Amendment Narrative (Required)</label>
+              <label className="text-[9px] font-bold text-amber-700 uppercase tracking-widest">Amendment narrative</label>
               <span className={cn(
-                "text-[10px] font-bold uppercase tracking-tighter",
+                "text-[9px] font-bold",
                 (reason?.length || 0) < 10 ? "text-destructive" : "text-emerald-600"
               )}>
-                {reason?.length || 0} / 10 characters minimum
+                {reason?.length || 0} / 10 min
               </span>
             </div>
             <Textarea
               {...register('reasonForGoalAdjustment')}
-              placeholder="State the reason for this change (e.g., inflation spikes, vendor availability)..."
+              placeholder="State the reason for this change..."
               className={cn(
-                "min-h-[100px] bg-white border-amber-200 focus-visible:ring-amber-500/20 text-sm rounded-2xl p-4 shadow-inner",
+                "min-h-[80px] bg-background border-amber-200 focus-visible:ring-amber-500/20 text-xs rounded-3xl p-4 shadow-inner resize-none",
                 (reason?.length || 0) < 10 && (reason?.length || 0) > 0 && "border-destructive/50"
               )}
             />
@@ -237,25 +221,25 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
       )}
 
+      {/* Project Identity Section */}
       <section className={cn(
-        "grid grid-cols-1 md:grid-cols-12 gap-6 p-8 bg-card rounded-[32px] border transition-all duration-500 relative group",
-        readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+        "grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-8 bg-card rounded-3xl border transition-all duration-300 relative group overflow-hidden",
+        readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md ring-1 ring-primary/5"
       )}>
-        <div className="md:col-span-12 flex items-center gap-3 mb-4">
+        <div className="md:col-span-12 flex items-center gap-3 mb-2 min-w-0">
           <div className={cn(
-            "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner",
+            "h-10 w-10 rounded-3xl flex items-center justify-center transition-all shadow-inner shrink-0",
             readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
           )}>
-            {readOnly ? <ShieldCheck className="h-5 w-5" /> : <Unlock className="h-5 w-5" />}
+            {readOnly ? <ShieldCheck className="h-5 w-5" /> : <LockOpen className="h-5 w-5" />}
           </div>
-          <div>
-            <h3 className="font-bold text-base text-foreground leading-none">Project Identity</h3>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Core forensic data</p>
+          <div className="min-w-0">
+            <h3 className="font-bold text-sm text-foreground leading-none">Project Identity</h3>
+            <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Core metadata</p>
           </div>
         </div>
-
-        <div className="md:col-span-8 space-y-1.5 relative">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Headline Title</label>
+        <div className="md:col-span-8 space-y-1 relative min-w-0">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Headline title</label>
           <Input
             {...register('title')}
             className={getInputClass()}
@@ -263,63 +247,60 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
             error={errors.title?.message}
           />
         </div>
-
-        <div className="md:col-span-4 space-y-1.5 relative">
+        <div className="md:col-span-4 space-y-1 relative min-w-0">
           <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Classification</label>
           <Controller
             control={control}
             name="categoryId"
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
-                <SelectTrigger className={cn(getInputClass(), "bg-background/50")}><SelectValue placeholder="Select category" /></SelectTrigger>
-                <SelectContent className="rounded-xl shadow-2xl border-border/50">
-                  {categories.map((c: any) => <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.name}</SelectItem>)}
+                <SelectTrigger className={cn(getInputClass(), "bg-muted/20")}>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                  {categories.map((c: any) => <SelectItem key={c.id} value={c.id} className="rounded-3xl text-xs font-medium py-2.5">{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
           />
         </div>
-
-        <div className="md:col-span-12 space-y-1.5 relative">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Short Narrative</label>
+        <div className="md:col-span-12 space-y-1 relative min-w-0">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Short narrative</label>
           <Textarea
-            className={cn(getAreaClass("min-h-[10px]"), "resize-none")}
+            className={cn(getAreaClass("min-h-[60px]"), "resize-none rounded-3xl")}
             {...register('shortDesc')}
             readOnly={readOnly}
             maxLength={140}
           />
         </div>
-
-        <div className="md:col-span-12 space-y-1.5 relative">
+        <div className="md:col-span-12 space-y-1 relative min-w-0">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Project description</label>
           <RichTextEditor
-            label="Detailed Project Description"
             content={description || ''}
             onChange={(val) => setValue('description', val, { shouldDirty: true })}
             readOnly={readOnly}
           />
-          {errors.description && <p className="text-xs text-destructive mt-1">{errors.description.message}</p>}
+          {errors.description && <p className="text-[11px] text-destructive mt-1 font-bold">{errors.description.message}</p>}
         </div>
-
-        <div className="md:col-span-6 space-y-1.5 relative">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Geographic Location</label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50" />
+        <div className="md:col-span-6 space-y-1 relative min-w-0">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Geographic location</label>
+          <div className="relative group">
+            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50 group-focus-within:text-primary transition-colors" />
             <Input
               {...register('location')}
-              className={cn(getInputClass(), "pl-9")}
+              className={cn(getInputClass(), "pl-10")}
               readOnly={readOnly}
             />
           </div>
         </div>
-
-        <div className="md:col-span-6 space-y-1.5 relative">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Capital Goal (NGN)</label>
+        <div className="md:col-span-6 space-y-1 relative min-w-0">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Capital goal (NGN)</label>
           <Controller
             control={control}
             name="targetAmount"
             render={({ field }) => (
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">₦</span>
+              <div className="relative group">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-xs">₦</span>
                 <Input
                   value={formatNumberInput(String(field.value || ''))}
                   onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
@@ -332,30 +313,30 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
       </section>
 
+      {/* Visual Assets Section */}
       <section className={cn(
-        "bg-card p-8 rounded-[32px] border shadow-sm space-y-8 transition-all duration-500 relative group",
-        readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
+        "bg-card p-6 md:p-8 rounded-3xl border shadow-sm space-y-6 transition-all duration-300 relative group overflow-hidden",
+        readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md ring-1 ring-primary/5"
       )}>
         <div className="flex items-center gap-3">
-          <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary")}>
+          <div className={cn("h-10 w-10 rounded-3xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary")}>
             <ImageIcon className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-base text-foreground leading-none">Visual Assets</h3>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Proof of impact media</p>
+            <h3 className="font-bold text-sm text-foreground leading-none">Visual Assets</h3>
+            <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Proof of impact media</p>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          <div className="lg:col-span-5 space-y-3">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Primary Display Asset</p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+          <div className="lg:col-span-5 space-y-3 min-w-0">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Primary hero asset</p>
             {coverImage ? (
-              <div className="relative aspect-video rounded-[24px] overflow-hidden border border-border shadow-2xl group/img">
-                <img src={coverImage} className="object-cover w-full h-full" alt="Cover" />
+              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-sm group/img bg-muted">
+                <img src={coverImage} className="w-full h-full object-cover" alt="Cover" />
                 {!readOnly && (
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                    <Button type="button" variant="destructive" size="sm" className="rounded-xl h-10 px-6 font-bold shadow-lg" onClick={() => setValue('coverImage', '')}>
-                      <X className="h-4 w-4 mr-2" /> Remove Image
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
+                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-9 px-5 font-bold text-xs" onClick={() => setValue('coverImage', '')}>
+                      <X className="h-3.5 w-3.5 mr-1.5" /> Remove
                     </Button>
                   </div>
                 )}
@@ -364,10 +345,9 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
               <ImageUploader label="Upload Hero Asset" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
             )}
           </div>
-
-          <div className="lg:col-span-7 space-y-3">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Evidence Gallery ({gallery.length}/10)</p>
-            <div className={cn(readOnly && "pointer-events-none opacity-95")}>
+          <div className="lg:col-span-7 space-y-3 min-w-0">
+            <p className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Project gallery ({gallery.length}/10)</p>
+            <div className={cn(readOnly && "pointer-events-none opacity-90")}>
               <MediaManager
                 items={gallery as any}
                 onAdd={(item) => !readOnly && setValue('gallery', [...gallery, item])}
@@ -380,90 +360,105 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
       </section>
 
-      <section className="space-y-4">
-        <p className="text-xs font-semibold text-muted-foreground px-2 uppercase tracking-widest">
-          Planning & Accountability
-        </p>
-        <p className="text-sm text-muted-foreground px-2 leading-relaxed max-w-4xl">
-          Define the project&apos;s financial requirements and implementation schedule. The <strong>Budget Ledger</strong> identifies procurement needs, while the <strong>Execution Roadmap</strong> establishes the verifiable milestones required for donor transparency and treasury release.
-        </p>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className={cn(
-            "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
-            readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
-          )}>
-            <div className="flex items-center gap-3 mb-2">
-              <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
-                <Briefcase className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-base text-foreground leading-none">Budget Ledger</h3>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Vendor procurement plan</p>
-              </div>
+      {/* Budget and Timeline Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <Card className={cn(
+          "p-6 md:p-8 bg-card rounded-3xl border space-y-6 transition-all duration-300 relative group overflow-hidden",
+          readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md"
+        )}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn("h-9 w-9 rounded-3xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
+              <Briefcase className="h-4.5 w-4.5" />
             </div>
-            <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
-          </div>
-
-          <div className={cn(
-            "p-8 bg-card rounded-[32px] border space-y-6 transition-all duration-500 relative group",
-            readOnly ? "border-border shadow-sm" : "border-primary/30 shadow-2xl ring-1 ring-primary/5"
-          )}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
-                <Clock className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">Milestone tracking</p>
-              </div>
+            <div>
+              <h3 className="font-bold text-sm text-foreground leading-none">Budget Ledger</h3>
+              <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Procurement plan</p>
             </div>
-            <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
           </div>
-        </div>
-      </section>
+          <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
+        </Card>
+        <Card className={cn(
+          "p-6 md:p-8 bg-card rounded-3xl border space-y-6 transition-all duration-300 relative group overflow-hidden",
+          readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md"
+        )}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn("h-9 w-9 rounded-3xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
+              <Clock className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-foreground leading-none">Execution Roadmap</h3>
+              <p className="text-[10px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Milestone tracking</p>
+            </div>
+          </div>
+          <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
+        </Card>
+      </div>
 
-      {(!initialData || isEditing) && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-50 md:pl-[300px] animate-in slide-in-from-bottom-5">
-          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleCancel}
-              className="rounded-xl h-12 px-6 font-bold text-muted-foreground hover:text-foreground"
-            >
-              {initialData ? 'Discard Changes' : 'Cancel'}
-            </Button>
-            <div className="flex items-center gap-3">
+      {/* Persistent sticky action bar – always visible, content adapts to current mode */}
+      <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-4 bg-background/90 backdrop-blur-xl border-t border-border/40 z-50">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          {/* Left side: Cancel / Discard changes (shown only when creating or editing) */}
+          <div>
+            {(isEditing || !initialData) && (
               <Button
                 type="button"
-                disabled={isSubmitting}
-                onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
-                variant="secondary"
-                className="rounded-xl h-12 px-8 font-bold text-sm border border-border/50 shadow-sm min-w-[140px]"
+                variant="ghost"
+                onClick={handleCancel}
+                className="rounded-3xl h-10 px-6 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto"
               >
-                {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <FileText className="mr-2 h-4 w-4" />}
-                Save Draft
+                {initialData ? 'Discard changes' : 'Cancel'}
               </Button>
+            )}
+          </div>
+
+          {/* Right side: Primary actions */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* Draft + Publish/Launch buttons (shown when creating new or editing existing) */}
+            {(isEditing || !initialData) && (
+              <>
+                <Button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
+                  variant="secondary"
+                  className="flex-1 sm:flex-none rounded-3xl h-10 px-5 font-bold text-xs border border-border/40 shadow-none bg-muted/40"
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+                  Draft
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
+                  onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
+                  className="flex-[2] sm:flex-none rounded-3xl h-10 px-8 font-bold text-xs shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="animate-spin h-4 w-4" />
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {initialData ? <Save className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
+                      {initialData ? 'Publish Updates' : 'Launch Project'}
+                    </div>
+                  )}
+                </Button>
+              </>
+            )}
+
+            {/* Unlock for editing button (shown only when viewing existing project in read-only mode) */}
+            {initialData && !isEditing && (
               <Button
                 type="button"
-                disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
-                onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
-                className="rounded-xl h-12 px-8 font-black text-sm shadow-xl shadow-primary/20 active:scale-95 transition-all min-w-[180px]"
+                variant="outline"
+                onClick={handleStartEditing}
+                className="rounded-3xl h-10 px-6 font-bold gap-2 text-xs border-border/60 text-primary hover:bg-muted shadow-sm"
               >
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin h-4 w-4" />
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {initialData ? <Save className="h-4 w-4" /> : <Send className="h-4 w-4" />}
-                    {initialData ? 'Publish Updates' : 'Launch Project'}
-                  </div>
-                )}
+                <LockOpen className="h-3.5 w-3.5" />
+                Unlock for editing
               </Button>
-            </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

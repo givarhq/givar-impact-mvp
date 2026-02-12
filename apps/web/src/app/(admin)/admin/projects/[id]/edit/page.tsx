@@ -5,9 +5,14 @@ import { AdminProjectForm } from '../../../../../../components/features/admin/pr
 import { MilestoneManager } from '../../../../../../components/features/admin/milestone-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../components/ui/tabs';
 import { Button } from '../../../../../../components/ui/button';
-import { ArrowLeft, Settings, Activity, Wallet } from 'lucide-react';
+import { ArrowLeft, Settings, Activity, Wallet, Fingerprint } from 'lucide-react';
 import Link from 'next/link';
 import { DisbursementForm } from '../../../../../../components/features/admin/disbursement-form';
+
+export const metadata = {
+  title: 'Edit project',
+  description: 'Manage project details, disbursements, and milestone execution.',
+};
 
 export default async function EditProjectPage({
   params
@@ -29,76 +34,88 @@ export default async function EditProjectPage({
     if (!project) notFound();
 
     return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Link href="/admin/projects">
-              <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-xl">
-                <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-                Back to Management
-              </Button>
-            </Link>
-            <h1 className="text-xl font-bold tracking-tight text-foreground md:hidden">Edit Project</h1>
-            <p className="text-xs text-muted-foreground font-mono opacity-60">UUID: {id}</p>
+      <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+
+        {/* Header and Breadcrumbs */}
+        <div className="flex flex-col gap-4 px-1 min-w-0">
+          <Link href="/admin/projects" className="w-fit">
+            <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">
+              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              Back to management
+            </Button>
+          </Link>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-bold tracking-tight text-foreground md:hidden truncate">{project.title}</h1>
+              <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-3xl bg-muted border border-border/40 text-[10px] font-mono text-muted-foreground shrink-0">
+                  <Fingerprint className="h-3 w-3" />
+                  {id}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <Tabs defaultValue="details" className="w-full space-y-8">
-          <div className="border-b border-border/50 pb-1">
-            <TabsList className="bg-transparent h-12 w-full justify-start gap-8 p-0">
+        <Tabs defaultValue="details" className="w-full space-y-8 min-w-0">
+          <div className="border-b border-border/40 pb-1 overflow-x-auto no-scrollbar">
+            <TabsList className="bg-transparent h-12 w-full justify-start gap-8 p-0 border-none shadow-none rounded-none">
               <TabsTrigger
                 value="details"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
-                <Settings className="mr-2 h-4 w-4" /> Project Details
+                <Settings className="mr-2 h-3.5 w-3.5" /> Project details
               </TabsTrigger>
 
               <TabsTrigger
                 value="disbursements"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
-                <Wallet className="mr-2 h-4 w-4" /> Disbursements
+                <Wallet className="mr-2 h-3.5 w-3.5" /> Disbursements
               </TabsTrigger>
 
               <TabsTrigger
                 value="execution"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-semibold text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
-                <Activity className="mr-2 h-4 w-4" /> Execution & Milestones
+                <Activity className="mr-2 h-3.5 w-3.5" /> Execution
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="details" className="mt-0 border-none p-0 outline-none">
-            <AdminProjectForm
-              initialData={project}
-              categories={categories || []}
-            />
-          </TabsContent>
-
-          <TabsContent value="execution" className="mt-0 border-none p-0 outline-none">
-            <div className="max-w-4xl mx-auto">
-              <MilestoneManager
-                projectId={id}
-                timeline={project.executionTimeline || []}
+          <div className="w-full min-w-0">
+            <TabsContent value="details" className="mt-0 border-none p-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <AdminProjectForm
+                initialData={project}
+                categories={categories || []}
               />
-            </div>
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="disbursements" className="mt-0 border-none p-0 outline-none">
-            <div className="max-w-4xl mx-auto">
-              <DisbursementForm
-                projectId={id}
-                timeline={project.executionTimeline || []}
-                disbursements={project.disbursements || []}
-              />
-            </div>
-          </TabsContent>
+            <TabsContent value="execution" className="mt-0 border-none p-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="max-w-4xl min-w-0">
+                <MilestoneManager
+                  projectId={id}
+                  timeline={project.executionTimeline || []}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="disbursements" className="mt-0 border-none p-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="max-w-4xl min-w-0">
+                <DisbursementForm
+                  projectId={id}
+                  timeline={project.executionTimeline || []}
+                  disbursements={project.disbursements || []}
+                />
+              </div>
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     );
   } catch (error) {
-    console.error("[EditProjectPage] Error:", error);
+    console.error("[EditProjectPage] error:", error);
     notFound();
   }
 }

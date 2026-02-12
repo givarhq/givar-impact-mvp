@@ -8,7 +8,7 @@ import {
     DialogTitle
 } from './dialog';
 import { Button } from './button';
-import { ShieldAlert, AlertTriangle, Info, Fingerprint } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, Info } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 
 interface ConfirmModalProps {
@@ -42,44 +42,47 @@ export function ConfirmModal({
     }[variant];
 
     const theme = {
-        default: "text-primary bg-primary/10 border-primary/20",
-        destructive: "text-destructive bg-destructive/10 border-destructive/20",
-        warning: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+        default: "text-primary bg-primary/10 border-primary/10",
+        destructive: "text-destructive bg-destructive/10 border-destructive/10",
+        warning: "text-amber-600 bg-amber-50 border-amber-100",
     }[variant];
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && onClose()}>
-            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[420px] p-0 overflow-hidden border-none shadow-2xl bg-card rounded-[32px] gap-0">
-
-                {/* Compact Content Area */}
-                <div className="p-6 space-y-5">
+            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl bg-card rounded-3xl gap-0">
+                <div className="p-5 md:p-6 flex flex-col gap-6">
                     <div className="flex items-start gap-4">
-                        <div className={cn("h-12 w-12 rounded-2xl shrink-0 flex items-center justify-center border shadow-inner", theme)}>
+                        <div
+                            className={cn(
+                                "h-11 w-11 rounded-2xl flex items-center justify-center border shadow-sm shrink-0",
+                                theme
+                            )}
+                        >
                             <Icon className="h-6 w-6" />
                         </div>
 
-                        <div className="space-y-1 pt-1">
-                            <DialogHeader className="text-left p-0">
-                                <DialogTitle className="text-lg tracking-tight text-foreground leading-none">
+                        <div className="space-y-1 pt-0.5 min-w-0">
+                            <DialogHeader className="p-0 text-left">
+                                <DialogTitle className="text-base font-bold tracking-tight text-foreground leading-tight">
                                     {title}
                                 </DialogTitle>
                             </DialogHeader>
-                            <p className="text-[13px] text-muted-foreground font-medium leading-relaxed">
+                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                                 {description}
                             </p>
                         </div>
                     </div>
 
-                    {/* Forensic Button Grid */}
-                    <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div className="grid grid-cols-2 gap-3">
                         <Button
-                            variant="outline"
+                            variant="ghost"
                             onClick={onClose}
                             disabled={isLoading}
-                            className="h-12 rounded-2xl font-bold text-sm border-border hover:bg-muted transition-all"
+                            className="h-12 rounded-3xl font-bold text-sm text-muted-foreground hover:bg-muted border border-border/40 transition-all min-w-0 overflow-hidden whitespace-nowrap text-ellipsis truncate"
                         >
                             {cancelText}
                         </Button>
+
                         <Button
                             variant={variant === 'destructive' ? 'destructive' : 'default'}
                             onClick={(e) => {
@@ -87,11 +90,7 @@ export function ConfirmModal({
                                 onConfirm();
                             }}
                             isLoading={isLoading}
-                            className={cn(
-                                "h-12 rounded-2xl font-bold text-sm shadow-lg transition-all active:scale-95 border-0",
-                                variant === 'default' && "shadow-primary/20",
-                                variant === 'destructive' && "shadow-destructive/20"
-                            )}
+                            className="h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/10 border-0 transition-all min-w-0 overflow-hidden whitespace-nowrap text-ellipsis truncate"
                         >
                             {confirmText}
                         </Button>

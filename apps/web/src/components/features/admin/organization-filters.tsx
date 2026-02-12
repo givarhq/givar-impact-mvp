@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Search, Filter, X, Building2, LayoutGrid } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
@@ -41,14 +41,14 @@ export function OrganizationFilters() {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between gap-4 w-full relative min-h-[40px]">
-                <div className="flex items-center gap-6 flex-1 min-w-0">
-                    <h1 className="md:hidden text-xl font-semibold tracking-tight text-foreground whitespace-nowrap">
+        <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 relative min-h-[40px] w-full overflow-hidden">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground shrink-0">
                         Organizations
                     </h1>
 
-                    <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-transparent focus-within:border-primary/30 transition-all">
+                    <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
                             placeholder="Search entities..."
@@ -65,41 +65,41 @@ export function OrganizationFilters() {
                         size="icon"
                         onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
                         className={cn(
-                            "md:hidden h-10 w-10 rounded-xl transition-all",
+                            "md:hidden h-9 w-9 rounded-3xl transition-all",
                             isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
                         )}
                     >
-                        {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                        {isMobileSearchVisible ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
                     </Button>
 
-                    <div className="hidden md:flex items-center gap-3">
+                    <div className="hidden md:flex items-center gap-2">
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger className="w-[180px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
+                            <SelectTrigger className="w-[160px] h-9 bg-muted/40 border-border/40 font-bold text-xs rounded-3xl">
                                 <div className="flex items-center gap-2">
                                     <Filter className="h-3 w-3 text-muted-foreground" />
                                     <SelectValue placeholder="Verification" />
                                 </div>
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border shadow-xl">
-                                <SelectItem value="all">All Entities</SelectItem>
-                                <SelectItem value="PENDING">Pending Review</SelectItem>
-                                <SelectItem value="VERIFIED">Verified</SelectItem>
-                                <SelectItem value="REJECTED">Rejected</SelectItem>
+                            <SelectContent className="rounded-3xl border-border shadow-lg">
+                                <SelectItem value="all" className="text-xs font-medium">All entities</SelectItem>
+                                <SelectItem value="PENDING" className="text-xs font-medium">Pending review</SelectItem>
+                                <SelectItem value="VERIFIED" className="text-xs font-medium">Verified</SelectItem>
+                                <SelectItem value="REJECTED" className="text-xs font-medium">Rejected</SelectItem>
                             </SelectContent>
                         </Select>
 
                         <Select value={sortBy} onValueChange={setSortBy}>
-                            <SelectTrigger className="w-[150px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
+                            <SelectTrigger className="w-[140px] h-9 bg-muted/40 border-border/40 font-bold text-xs rounded-3xl">
                                 <SelectValue placeholder="Sort by" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border shadow-xl">
-                                <SelectItem value="createdAt">Date Joined</SelectItem>
-                                <SelectItem value="legalName">Alphabetical</SelectItem>
+                            <SelectContent className="rounded-3xl border-border shadow-lg">
+                                <SelectItem value="createdAt" className="text-xs font-medium">Date joined</SelectItem>
+                                <SelectItem value="legalName" className="text-xs font-medium">Alphabetical</SelectItem>
                             </SelectContent>
                         </Select>
 
                         {(search || status !== 'all' || sortBy !== 'createdAt') && (
-                            <Button variant="ghost" onClick={clear} className="h-10 px-4 rounded-xl text-muted-foreground text-xs font-semibold">
+                            <Button variant="ghost" onClick={clear} className="h-9 px-3 rounded-3xl text-muted-foreground text-xs font-bold">
                                 Reset
                             </Button>
                         )}
@@ -108,34 +108,31 @@ export function OrganizationFilters() {
             </div>
 
             {isMobileSearchVisible && (
-                <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300">
+                <div className="md:hidden space-y-2 animate-in slide-in-from-top-2 duration-200">
                     <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search entities..."
-                            className="pl-11 h-12 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/20"
+                            className="pl-10 h-10 rounded-3xl bg-muted/30 border-border/40 focus:bg-background"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
-                                <div className="flex items-center gap-2">
-                                    <Filter className="h-3 w-3" />
-                                    <SelectValue placeholder="Verification Status" />
-                                </div>
+                            <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs flex-1">
+                                <SelectValue placeholder="Status" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Entities</SelectItem>
-                                <SelectItem value="PENDING">Pending Review</SelectItem>
+                            <SelectContent className="rounded-3xl">
+                                <SelectItem value="all">All entities</SelectItem>
+                                <SelectItem value="PENDING">Pending</SelectItem>
                                 <SelectItem value="VERIFIED">Verified</SelectItem>
                                 <SelectItem value="REJECTED">Rejected</SelectItem>
                             </SelectContent>
                         </Select>
                         {(search || status !== 'all' || sortBy !== 'createdAt') && (
-                            <Button variant="outline" onClick={clear} className="h-12 rounded-2xl border-dashed border-border text-xs font-semibold">
-                                Reset Filters
+                            <Button variant="outline" onClick={clear} className="h-10 px-4 rounded-3xl border-border/60 text-xs font-bold shrink-0">
+                                Reset
                             </Button>
                         )}
                     </div>

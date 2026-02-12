@@ -13,10 +13,8 @@ export function DashboardShell({
   user: any;
 }) {
   return (
-    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-300">
-
-      <div className="grid min-h-screen w-full md:grid-cols-[280px_1fr]">
-
+    <div className="min-h-screen w-full bg-background text-foreground transition-colors duration-200">
+      <div className="grid min-h-screen w-full md:grid-cols-[260px_1fr]">
         {/* Desktop Sidebar Column */}
         <div className="hidden md:block sticky top-0 h-screen overflow-hidden">
           <Sidebar user={user} />
@@ -26,8 +24,8 @@ export function DashboardShell({
         <div className="flex flex-col min-w-0">
           <Header user={user} />
 
-          <main className="flex-1 px-4 py-6 sm:px-6 md:px-8 pb-28 md:pb-8">
-            <div className="mx-auto w-full max-w-7xl animate-in fade-in-0 duration-300">
+          <main className="flex-1 px-4 py-4 md:px-8 md:py-6 pb-24 md:pb-8">
+            <div className="mx-auto w-full max-w-6xl animate-in fade-in-0 duration-300">
               {children}
             </div>
           </main>

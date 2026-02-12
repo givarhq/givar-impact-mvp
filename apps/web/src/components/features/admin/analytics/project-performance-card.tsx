@@ -15,11 +15,11 @@ interface ProjectPerformanceProps {
 const CustomTooltip = ({ active, payload, mode }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-card border border-border p-4 rounded-xl shadow-2xl min-w-[200px]">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
-                    {mode === 'funded' ? 'Capital Raised' : 'Transaction Volume'}
+            <div className="bg-card border border-border/60 p-3 rounded-2xl shadow-xl min-w-[180px] animate-in fade-in zoom-in-95 duration-100">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
+                    {mode === 'funded' ? 'Capital raised' : 'Donation volume'}
                 </p>
-                <p className="text-sm font-bold text-foreground mb-2 line-clamp-2 leading-tight">
+                <p className="text-xs font-bold text-foreground mb-2 line-clamp-2 leading-tight">
                     {payload[0].payload.title}
                 </p>
                 <div className="flex items-baseline gap-2">
@@ -28,10 +28,10 @@ const CustomTooltip = ({ active, payload, mode }: any) => {
                             amount={payload[0].value}
                             currency="NGN"
                             visible={true}
-                            className="text-lg text-emerald-500 font-black"
+                            className="text-base text-primary font-bold"
                         />
                     ) : (
-                        <span className="text-lg text-blue-500 font-black">{payload[0].value} Donations</span>
+                        <span className="text-base text-blue-500 font-bold">{payload[0].value} gifts</span>
                     )}
                 </div>
             </div>
@@ -46,40 +46,44 @@ export function ProjectPerformanceCard({ topFunded, mostActive }: ProjectPerform
     const activeData = mostActive.map(p => ({ ...p, value: p.donationCount }));
 
     return (
-        <Card className="col-span-1 lg:col-span-6 rounded-[32px] border-border/50 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
-            <CardHeader className="p-6 pb-2 flex flex-row items-center justify-between space-y-0">
-                <div className="space-y-1">
-                    <CardTitle className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-primary" /> Project Leaderboard
+        <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
+            <CardHeader className="p-5 md:p-6 pb-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                    <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-primary" /> Project leaderboard
                     </CardTitle>
                 </div>
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-                    <TabsList className="bg-muted/50 p-1 rounded-xl h-9">
-                        <TabsTrigger value="funded" className="text-[10px] font-bold uppercase tracking-wider rounded-lg h-7 px-3">Top Funded</TabsTrigger>
-                        <TabsTrigger value="active" className="text-[10px] font-bold uppercase tracking-wider rounded-lg h-7 px-3">Most Active</TabsTrigger>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+                    <TabsList className="bg-muted/50 p-1 rounded-2xl h-9 w-full sm:w-[220px] border border-border/40">
+                        <TabsTrigger value="funded" className="text-[10px] font-bold uppercase tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Top funded</TabsTrigger>
+                        <TabsTrigger value="active" className="text-[10px] font-bold uppercase tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Most active</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </CardHeader>
-            <CardContent className="p-6 pt-4 flex-1 min-h-0">
+            <CardContent className="p-4 md:p-6 pt-2 flex-1 min-h-0">
                 <div className="h-full w-full">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             layout="vertical"
                             data={activeTab === 'funded' ? fundedData : activeData}
                             margin={{ top: 0, right: 30, left: 0, bottom: 0 }}
-                            barSize={24}
+                            barSize={20}
                         >
                             <XAxis type="number" hide />
                             <YAxis
                                 type="category"
                                 dataKey="title"
-                                width={120}
-                                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
-                                tickFormatter={(val) => val.length > 15 ? `${val.substring(0, 15)}...` : val}
+                                width={110}
+                                tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
+                                tickFormatter={(val) => val.length > 15 ? `${val.substring(0, 15)}..` : val}
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <Tooltip content={<CustomTooltip mode={activeTab} />} cursor={{ fill: 'hsl(var(--muted)/0.2)', radius: 6 }} isAnimationActive={false} />
+                            <Tooltip
+                                content={<CustomTooltip mode={activeTab} />}
+                                cursor={{ fill: 'hsl(var(--muted)/0.3)', radius: 4 }}
+                                isAnimationActive={false}
+                            />
                             <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                                 {(activeTab === 'funded' ? fundedData : activeData).map((entry, index) => (
                                     <Cell

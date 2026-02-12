@@ -69,17 +69,17 @@ export function UserFilters() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-4 md:space-y-6">
             <div className="flex items-center justify-between gap-4 w-full relative min-h-[40px]">
                 <div className="flex items-center gap-6 flex-1 min-w-0">
-                    <h1 className="md:hidden text-xl font-semibold tracking-tight text-foreground whitespace-nowrap">
-                        User Management
+                    <h1 className="md:hidden text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
+                        Users
                     </h1>
 
-                    <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-transparent focus-within:border-primary/30 transition-all">
+                    <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
-                            placeholder="Search by name, email, or UUID..."
+                            placeholder="Search by name, email, or uuid..."
                             className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -93,48 +93,49 @@ export function UserFilters() {
                         size="icon"
                         onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
                         className={cn(
-                            "md:hidden h-10 w-10 rounded-xl transition-all",
+                            "md:hidden h-10 w-10 rounded-3xl transition-all",
                             isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
                         )}
                     >
-                        {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+                        {isMobileSearchVisible ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
                     </Button>
 
-                    <div className="hidden md:flex items-center gap-3">
+                    <div className="hidden md:flex items-center gap-2">
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger className="w-[140px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
+                            <SelectTrigger className="w-[130px] h-10 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border shadow-xl">
-                                <SelectItem value="all">All Statuses</SelectItem>
-                                <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="LOCKED">Locked</SelectItem>
+                            <SelectContent className="rounded-3xl">
+                                <SelectItem value="all" className="text-xs">All statuses</SelectItem>
+                                <SelectItem value="ACTIVE" className="text-xs">Active</SelectItem>
+                                <SelectItem value="LOCKED" className="text-xs">Locked</SelectItem>
                             </SelectContent>
                         </Select>
 
                         <Select value={type} onValueChange={setType}>
-                            <SelectTrigger className="w-[140px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
-                                <SelectValue placeholder="Type" />
+                            <SelectTrigger className="w-[130px] h-10 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
+                                <SelectValue placeholder="Account type" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border shadow-xl">
-                                <SelectItem value="all">All Types</SelectItem>
-                                <SelectItem value="INDIVIDUAL">Individual</SelectItem>
-                                <SelectItem value="ORGANIZER">Organizer</SelectItem>
+                            <SelectContent className="rounded-3xl">
+                                <SelectItem value="all" className="text-xs">All types</SelectItem>
+                                <SelectItem value="INDIVIDUAL" className="text-xs">Individual</SelectItem>
+                                <SelectItem value="ORGANIZER" className="text-xs">Organizer</SelectItem>
                             </SelectContent>
                         </Select>
 
                         <Button
                             variant="outline"
+                            size="sm"
                             onClick={handleExport}
                             disabled={isExporting}
-                            className="h-10 px-4 rounded-xl border-dashed border-border bg-transparent font-bold text-xs gap-2"
+                            className="h-10 px-4 rounded-3xl border-border/60 font-bold text-xs gap-2 bg-transparent"
                         >
-                            {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+                            {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
                             Export
                         </Button>
 
                         {(search || status !== 'all' || type !== 'all') && (
-                            <Button variant="ghost" onClick={clear} className="h-10 px-4 rounded-xl text-muted-foreground text-xs font-semibold">
+                            <Button variant="ghost" onClick={clear} className="h-10 px-4 rounded-3xl text-muted-foreground text-xs font-bold">
                                 Reset
                             </Button>
                         )}
@@ -143,33 +144,33 @@ export function UserFilters() {
             </div>
 
             {isMobileSearchVisible && (
-                <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300">
-                    <div className="relative group">
+                <div className="md:hidden space-y-3 animate-in slide-in-from-top-2 duration-300">
+                    <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search identities..."
-                            className="pl-11 h-12 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/20"
+                            className="pl-11 h-11 rounded-3xl bg-muted/30 border-border/40 focus:bg-background"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                         <Select value={status} onValueChange={setStatus}>
-                            <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
+                            <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectContent className="rounded-3xl">
+                                <SelectItem value="all">All statuses</SelectItem>
                                 <SelectItem value="ACTIVE">Active</SelectItem>
                                 <SelectItem value="LOCKED">Locked</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select value={type} onValueChange={setType}>
-                            <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
+                            <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
                                 <SelectValue placeholder="Type" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Types</SelectItem>
+                            <SelectContent className="rounded-3xl">
+                                <SelectItem value="all">All types</SelectItem>
                                 <SelectItem value="INDIVIDUAL">Individual</SelectItem>
                                 <SelectItem value="ORGANIZER">Organizer</SelectItem>
                             </SelectContent>
@@ -178,13 +179,13 @@ export function UserFilters() {
                             variant="outline"
                             onClick={handleExport}
                             disabled={isExporting}
-                            className="h-12 rounded-2xl border-dashed border-border font-bold text-xs gap-2 flex-1"
+                            className="h-10 rounded-3xl border-border/60 font-bold text-xs gap-2 flex-1"
                         >
-                            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                            Export CSV
+                            {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                            CSV export
                         </Button>
-                        <Button variant="ghost" onClick={clear} className="h-12 rounded-2xl font-bold text-xs flex-1">
-                            Reset Filters
+                        <Button variant="ghost" onClick={clear} className="h-10 rounded-3xl font-bold text-xs flex-1">
+                            Reset filters
                         </Button>
                     </div>
                 </div>

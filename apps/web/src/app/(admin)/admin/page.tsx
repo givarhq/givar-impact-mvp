@@ -10,9 +10,11 @@ export default async function AdminDashboard() {
     const token = cookieStore.get('givar_token')?.value;
 
     if (!token) return (
-        <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground">
-            <Lock className="h-10 w-10 mb-4 opacity-20" />
-            <p className="font-bold text-sm uppercase tracking-widest">Secure Session Required</p>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground p-6">
+            <div className="h-16 w-16 bg-muted rounded-3xl flex items-center justify-center mb-4 border border-border/40">
+                <Lock className="h-8 w-8 opacity-20" />
+            </div>
+            <p className="font-bold text-xs uppercase tracking-[0.2em]">Secure Session Required</p>
         </div>
     );
 
@@ -22,21 +24,21 @@ export default async function AdminDashboard() {
     if (!analyticsReport) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] text-muted-foreground">
-                <p>Analytics engine unavailable.</p>
+                <p className="text-sm font-medium">Analytics engine unavailable.</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-lg md:hidden font-black text-foreground flex items-center gap-3">
-                        <LayoutDashboard className="h-6 w-6 text-primary hidden md:block" />
-                        Platform Overview
+                <div className="space-y-1 px-1">
+                    <h1 className="text-xl md:hidden font-bold tracking-tight text-foreground flex items-center gap-3">
+                        <LayoutDashboard className="h-5 w-5 text-primary" />
+                        Platform overview
                     </h1>
-                    <p className="text-sm text-muted-foreground font-medium">
-                        Command center operational intelligence.
+                    <p className="text-sm text-muted-foreground font-medium tracking-wider hidden md:block">
+                        Operations Intelligence Dashboard
                     </p>
                 </div>
             </div>

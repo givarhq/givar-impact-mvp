@@ -5,6 +5,7 @@ import { ExternalLink, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
+import { Button } from '../../ui/button';
 
 interface ReceiptButtonProps {
     receiptKey: string;
@@ -22,32 +23,29 @@ export function ReceiptButton({ receiptKey, projectId, className }: ReceiptButto
         if (isLoading) return;
         setIsLoading(true);
 
-        const toastId = toast.loading('Decrypting secure receipt...');
+        const toastId = toast.loading('Opening receipt...');
 
         try {
-            // 1. Request signed URL from backend
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(receiptKey, projectId);
-
-            // 2. Open in new tab
             window.open(viewUrl, '_blank');
             toast.dismiss(toastId);
         } catch (error) {
-            console.error('Receipt view error:', error);
-            toast.error('Access Denied: Could not verify receipt access', { id: toastId });
+            toast.error('Access Denied', { id: toastId });
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <button
+        <Button
+            variant="outline"
+            size="sm"
             onClick={handleView}
             disabled={isLoading}
             className={cn(
-                "text-[9px] font-bold text-primary hover:text-primary/80 hover:underline flex items-center gap-1 uppercase tracking-wider transition-colors disabled:opacity-50",
+                "h-7 rounded-3xl px-3 border-border/60 font-bold text-xs uppercase tracking-wider gap-1.5 bg-background hover:bg-muted",
                 className
             )}
-            title="View Payment Proof"
         >
             {isLoading ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -55,6 +53,6 @@ export function ReceiptButton({ receiptKey, projectId, className }: ReceiptButto
                 <ExternalLink className="h-3 w-3" />
             )}
             View Receipt
-        </button>
+        </Button>
     );
 }

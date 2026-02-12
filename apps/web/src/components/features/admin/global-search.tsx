@@ -21,7 +21,7 @@ import { Input } from '../../ui/input';
 import { ApiService } from '../../../services/api';
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../lib/utils/cn';
-import { formatDate, formatCurrency } from '../../../lib/utils/format';
+import { formatDate } from '../../../lib/utils/format';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Badge } from '../../ui/badge';
 
@@ -56,7 +56,6 @@ export function GlobalSearch() {
     const containerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Debounce Logic
     useEffect(() => {
         const timer = setTimeout(async () => {
             if (query.length >= 2) {
@@ -82,7 +81,6 @@ export function GlobalSearch() {
         return () => clearTimeout(timer);
     }, [query]);
 
-    // Click Outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -93,7 +91,6 @@ export function GlobalSearch() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Handle Enter Key
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && query.length >= 2) {
             setIsOpen(true);
@@ -135,7 +132,7 @@ export function GlobalSearch() {
                     ref={inputRef}
                     type="text"
                     placeholder="Search ledger, users, forensic IDs..."
-                    className="w-full bg-secondary/50 hover:bg-secondary focus:bg-background border border-transparent focus:border-primary/30 rounded-2xl py-3 pl-11 pr-12 text-sm outline-none transition-all placeholder:text-muted-foreground/70 text-foreground font-medium shadow-sm focus:shadow-lg"
+                    className="w-full bg-secondary/50 hover:bg-secondary focus:bg-background border border-transparent focus:border-primary/30 rounded-3xl py-2.5 pl-11 pr-12 text-sm outline-none transition-all placeholder:text-muted-foreground/70 text-foreground font-medium shadow-sm focus:shadow-md"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={handleKeyDown}
@@ -153,7 +150,7 @@ export function GlobalSearch() {
                             <X className="h-3.5 w-3.5" />
                         </button>
                     ) : (
-                        <div className="flex items-center gap-1 bg-background border border-border/60 px-2 py-1 rounded-lg text-[10px] text-muted-foreground font-bold shadow-sm">
+                        <div className="flex items-center gap-1 bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[9px] text-muted-foreground font-bold shadow-sm">
                             <CornerDownLeft className="h-3 w-3" />
                         </div>
                     )}
@@ -161,9 +158,12 @@ export function GlobalSearch() {
             </div>
 
             {isOpen && (
-                <div className="absolute top-full mt-3 left-0 right-0 bg-card/95 backdrop-blur-2xl border border-border/50 rounded-[24px] shadow-2xl overflow-hidden max-h-[65vh] flex flex-col animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-200 origin-top">
-
-                    {/* Filter Tabs - Wrapped for visibility */}
+                <div className="absolute top-full mt-2 left-0 right-0 
+  bg-card border border-border/60 
+  rounded-3xl shadow-2xl overflow-hidden 
+  max-h-[60vh] flex flex-col 
+  animate-in fade-in zoom-in-95 duration-200 
+  origin-top min-w-0">
                     {hasResults && (
                         <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border/40 bg-muted/40 shrink-0 px-4">
                             {FILTERS.map(f => {
@@ -177,9 +177,9 @@ export function GlobalSearch() {
                                         key={f.id}
                                         onClick={() => setActiveFilter(f.id)}
                                         className={cn(
-                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border shrink-0",
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-3xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border shrink-0",
                                             activeFilter === f.id
-                                                ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                                                ? "bg-primary text-white border-primary shadow-sm"
                                                 : "bg-background border-border/60 text-muted-foreground hover:text-foreground hover:border-border hover:shadow-sm"
                                         )}
                                     >
@@ -187,7 +187,7 @@ export function GlobalSearch() {
                                         {f.label}
                                         {!isAll && (
                                             <span className={cn(
-                                                "ml-1 px-1.5 py-0.5 rounded text-[9px] min-w-[18px] text-center",
+                                                "ml-1 px-1.5 py-0.5 rounded-3xl text-[9px] min-w-[18px] text-center",
                                                 activeFilter === f.id ? "bg-white/20 text-white" : "bg-muted text-foreground"
                                             )}>{count}</span>
                                         )}
@@ -197,45 +197,44 @@ export function GlobalSearch() {
                         </div>
                     )}
 
-                    {/* Results Body */}
                     <div className="overflow-y-auto no-scrollbar flex-1 p-2">
                         {!hasResults && !isLoading ? (
-                            <div className="py-16 text-center text-muted-foreground flex flex-col items-center">
-                                <div className="h-16 w-16 bg-muted/50 rounded-full flex items-center justify-center mb-4">
-                                    <Search className="h-8 w-8 opacity-20" />
+                            <div className="py-12 text-center text-muted-foreground flex flex-col items-center">
+                                <div className="h-12 w-12 bg-muted/50 rounded-3xl flex items-center justify-center mb-3 border border-border/50">
+                                    <Search className="h-6 w-6 opacity-20" />
                                 </div>
-                                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No matches found on ledger</p>
-                                <p className="text-[10px] text-muted-foreground/60 mt-1">Try searching by UUID, Email, or Reference ID</p>
+                                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No matches found</p>
+                                <p className="text-[10px] text-muted-foreground/60 mt-1">Try searching by UUID, Email, or Ref ID</p>
                             </div>
                         ) : displayData ? (
                             <div className="space-y-4 pb-2">
                                 {/* USERS */}
                                 {displayData.users.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
                                             <User className="h-3 w-3" /> Identities
                                         </div>
                                         {displayData.users.map(user => (
                                             <button
                                                 key={user.id}
                                                 onClick={() => handleNavigate(`/admin/users/${user.id}`)}
-                                                className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
+                                                className="w-full flex items-center gap-3 p-2.5 rounded-3xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
                                             >
-                                                <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-black text-sm shrink-0">
+                                                <div className="h-9 w-9 rounded-3xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-black text-xs shrink-0">
                                                     {user.firstName[0]}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-bold text-sm text-foreground">{user.firstName} {user.lastName}</span>
                                                         <span className={cn(
-                                                            "text-[9px] px-1.5 py-0.5 rounded uppercase font-black tracking-wider",
+                                                            "text-[8px] px-1.5 py-0.5 rounded-3xl uppercase font-black tracking-wider",
                                                             user.role === 'ADMIN' ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"
                                                         )}>{user.role}</span>
                                                     </div>
                                                     <p className="text-xs text-muted-foreground truncate font-medium">{user.email}</p>
                                                 </div>
-                                                <div className="h-8 w-8 rounded-full bg-background border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm">
-                                                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                                                <div className="h-7 w-7 rounded-3xl bg-background border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm">
+                                                    <ArrowRight className="h-3 w-3 text-muted-foreground" />
                                                 </div>
                                             </button>
                                         ))}
@@ -245,17 +244,17 @@ export function GlobalSearch() {
                                 {/* PROJECTS */}
                                 {displayData.projects.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Briefcase className="h-3 w-3" /> Projects
                                         </div>
                                         {displayData.projects.map(project => (
                                             <button
                                                 key={project.id}
                                                 onClick={() => handleNavigate(`/admin/projects/${project.id}/edit`)}
-                                                className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
+                                                className="w-full flex items-center gap-3 p-2.5 rounded-3xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
                                             >
-                                                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                                                    <FileText className="h-5 w-5" />
+                                                <div className="h-9 w-9 rounded-3xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                                    <FileText className="h-4 w-4" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between gap-4">
@@ -263,8 +262,8 @@ export function GlobalSearch() {
                                                         <SmartCurrency amount={project.raisedAmount.toString()} currency={project.currency} visible={true} size="small" className="shrink-0" />
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold uppercase tracking-tight">{project.status}</Badge>
-                                                        <span className="text-[10px] text-muted-foreground font-mono truncate opacity-60">ID: {project.slug}</span>
+                                                        <Badge variant="outline" className="text-[8px] h-4 px-1.5 font-bold uppercase tracking-tight rounded-3xl">{project.status}</Badge>
+                                                        <span className="text-[9px] text-muted-foreground font-mono truncate opacity-60">ID: {project.slug}</span>
                                                     </div>
                                                 </div>
                                             </button>
@@ -275,54 +274,24 @@ export function GlobalSearch() {
                                 {/* PROPOSALS */}
                                 {displayData.proposals.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <FileText className="h-3 w-3" /> Proposals
                                         </div>
                                         {displayData.proposals.map(prop => (
                                             <button
                                                 key={prop.id}
                                                 onClick={() => handleNavigate(`/admin/proposals/${prop.id}`)}
-                                                className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
+                                                className="w-full flex items-center gap-3 p-2.5 rounded-3xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
                                             >
-                                                <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                                                    <FileText className="h-5 w-5" />
+                                                <div className="h-9 w-9 rounded-3xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                                                    <FileText className="h-4 w-4" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{prop.title}</span>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-purple-500/30 text-purple-600 font-bold uppercase">{prop.status}</Badge>
-                                                        <span className="text-[10px] text-muted-foreground font-medium">{prop.category?.name}</span>
+                                                        <Badge variant="outline" className="text-[8px] h-4 px-1.5 border-purple-500/30 text-purple-600 font-bold uppercase rounded-3xl">{prop.status}</Badge>
+                                                        <span className="text-[9px] text-muted-foreground font-medium">{prop.category?.name}</span>
                                                     </div>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* TRANSACTIONS */}
-                                {displayData.transactions.length > 0 && (
-                                    <div className="space-y-1">
-                                        <div className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
-                                            <Database className="h-3 w-3" /> Ledger
-                                        </div>
-                                        {displayData.transactions.map(tx => (
-                                            <button
-                                                key={tx.id}
-                                                onClick={() => handleNavigate(`/admin/ledger?search=${tx.reference}`)}
-                                                className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
-                                            >
-                                                <div className={cn(
-                                                    "h-10 w-10 rounded-xl flex items-center justify-center font-black text-xs border shrink-0",
-                                                    tx.type === 'CREDIT' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                                                )}>
-                                                    {tx.type === 'CREDIT' ? 'CR' : 'DR'}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <span className="font-mono text-xs font-bold text-foreground truncate">{tx.reference}</span>
-                                                        <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" className="shrink-0" />
-                                                    </div>
-                                                    <p className="text-[10px] text-muted-foreground truncate mt-0.5 font-medium">{tx.description || 'System Transfer'}</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -332,23 +301,53 @@ export function GlobalSearch() {
                                 {/* ORGANIZATIONS */}
                                 {displayData.organizations.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Building2 className="h-3 w-3" /> Organizations
                                         </div>
                                         {displayData.organizations.map(org => (
                                             <button
                                                 key={org.id}
                                                 onClick={() => handleNavigate(`/admin/organizations/${org.id}`)}
-                                                className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
+                                                className="w-full flex items-center gap-3 p-2.5 rounded-3xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
                                             >
-                                                <div className="h-10 w-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center shrink-0">
-                                                    <Building2 className="h-5 w-5" />
+                                                <div className="h-9 w-9 rounded-3xl bg-orange-500/10 text-orange-600 flex items-center justify-center shrink-0">
+                                                    <Building2 className="h-4 w-4" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground block truncate">{org.legalName}</span>
-                                                    <span className="text-[10px] font-mono text-muted-foreground font-medium">{org.registrationNumber || 'No Reg ID'}</span>
+                                                    <span className="text-[9px] font-mono text-muted-foreground font-medium">{org.registrationNumber || 'No Reg ID'}</span>
                                                 </div>
-                                                <Badge variant="outline" className="text-[9px] font-bold uppercase">{org.status}</Badge>
+                                                <Badge variant="outline" className="text-[8px] font-bold uppercase rounded-3xl">{org.status}</Badge>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {/* TRANSACTIONS */}
+                                {displayData.transactions.length > 0 && (
+                                    <div className="space-y-1">
+                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                            <Database className="h-3 w-3" /> Ledger
+                                        </div>
+                                        {displayData.transactions.map(tx => (
+                                            <button
+                                                key={tx.id}
+                                                onClick={() => handleNavigate(`/admin/ledger?search=${tx.reference}`)}
+                                                className="w-full flex items-center gap-3 p-2.5 rounded-3xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
+                                            >
+                                                <div className={cn(
+                                                    "h-9 w-9 rounded-3xl flex items-center justify-center font-black text-[10px] border shrink-0",
+                                                    tx.type === 'CREDIT' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-rose-500/10 text-rose-600 border-rose-500/20"
+                                                )}>
+                                                    {tx.type === 'CREDIT' ? 'CR' : 'DR'}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-4">
+                                                        <span className="font-mono text-xs font-bold text-foreground truncate">{tx.reference}</span>
+                                                        <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" className="shrink-0" />
+                                                    </div>
+                                                    <p className="text-[9px] text-muted-foreground truncate mt-0.5 font-medium">{tx.description || 'System Transfer'}</p>
+                                                </div>
                                             </button>
                                         ))}
                                     </div>
@@ -357,24 +356,24 @@ export function GlobalSearch() {
                                 {/* AUDIT LOGS */}
                                 {displayData.auditLogs.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <ShieldAlert className="h-3 w-3" /> Security
                                         </div>
                                         {displayData.auditLogs.map(log => (
                                             <button
                                                 key={log.id}
                                                 onClick={() => handleNavigate(`/admin/audit?search=${log.id}`)}
-                                                className="w-full flex items-center gap-4 p-3 rounded-2xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
+                                                className="w-full flex items-center gap-3 p-2.5 rounded-3xl hover:bg-primary/5 hover:border-primary/10 border border-transparent transition-all text-left group"
                                             >
-                                                <div className="h-10 w-10 rounded-xl bg-zinc-500/10 text-zinc-600 flex items-center justify-center shrink-0">
-                                                    <ShieldAlert className="h-5 w-5" />
+                                                <div className="h-9 w-9 rounded-3xl bg-zinc-500/10 text-zinc-600 flex items-center justify-center shrink-0">
+                                                    <ShieldAlert className="h-4 w-4" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-center gap-2">
                                                         <span className="font-bold text-xs text-foreground truncate">{log.action}</span>
-                                                        <span className="text-[9px] text-muted-foreground whitespace-nowrap">{formatDate(log.createdAt).split(',')[0]}</span>
+                                                        <span className="text-[8px] text-muted-foreground whitespace-nowrap">{formatDate(log.createdAt).split(',')[0]}</span>
                                                     </div>
-                                                    <p className="text-[10px] font-mono text-muted-foreground truncate mt-0.5">
+                                                    <p className="text-[9px] font-mono text-muted-foreground truncate mt-0.5">
                                                         {log.entityType} • {log.ipAddress}
                                                     </p>
                                                 </div>

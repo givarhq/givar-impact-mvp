@@ -105,23 +105,26 @@ export function UserGlobalSearch() {
         if (!results) return null;
         if (activeFilter === 'all') return results;
 
-        // At this point, TS knows activeFilter is not 'all', so we return empty arrays for non-matches
         return {
             projects: activeFilter === 'projects' ? results.projects : [],
             proposals: activeFilter === 'proposals' ? results.proposals : [],
             transactions: activeFilter === 'transactions' ? results.transactions : [],
             subscriptions: activeFilter === 'subscriptions' ? results.subscriptions : [],
             auditLogs: activeFilter === 'auditLogs' ? results.auditLogs : [],
-            navigation: [] // Shortcuts only show in 'All' view
+            navigation: []
         };
     };
 
     const displayData = getFilteredResults();
 
     return (
-        <div ref={containerRef} className="relative w-full max-w-lg hidden md:block z-50">
-            <div className="relative group">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
+        <div
+            ref={containerRef}
+            className="relative w-full hidden md:block z-50 min-w-0"
+        >
+
+            <div className="relative group min-w-0">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                 </div>
 
@@ -129,7 +132,7 @@ export function UserGlobalSearch() {
                     ref={inputRef}
                     type="text"
                     placeholder="Search causes, receipts, activity..."
-                    className="w-full bg-secondary/50 hover:bg-secondary focus:bg-background border border-transparent focus:border-primary/30 rounded-2xl py-2.5 pl-10 pr-12 text-sm outline-none transition-all placeholder:text-muted-foreground/70 text-foreground font-medium"
+                    className="w-full bg-secondary/50 hover:bg-secondary focus:bg-background border border-transparent focus:border-primary/30 rounded-3xl py-2.5 pl-11 pr-12 text-sm outline-none transition-all placeholder:text-muted-foreground/70 text-foreground font-medium shadow-sm"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => { if (query.length >= 2) setIsOpen(true); }}
@@ -137,11 +140,11 @@ export function UserGlobalSearch() {
 
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                     {query ? (
-                        <button onClick={() => { setQuery(''); inputRef.current?.focus(); }} className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-colors">
-                            <X className="h-3.5 w-3.5" />
+                        <button onClick={() => { setQuery(''); inputRef.current?.focus(); }} className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-colors outline-none">
+                            <X className="h-4 w-4" />
                         </button>
                     ) : (
-                        <div className="bg-background border border-border/60 px-1.5 py-0.5 rounded text-[9px] text-muted-foreground font-bold flex items-center gap-1 shadow-sm">
+                        <div className="bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[10px] text-muted-foreground font-bold flex items-center gap-1 shadow-sm uppercase tracking-tighter">
                             <CornerDownLeft className="h-3 w-3" />
                         </div>
                     )}
@@ -149,10 +152,16 @@ export function UserGlobalSearch() {
             </div>
 
             {isOpen && (
-                <div className="absolute top-full mt-2 left-0 right-0 bg-card/95 backdrop-blur-2xl border border-border/50 rounded-[24px] shadow-2xl overflow-hidden max-h-[60vh] flex flex-col animate-in fade-in zoom-in-95 duration-200 origin-top">
+                <div className="absolute top-full mt-2 left-0 right-0 
+  bg-card border border-border/60 
+  rounded-3xl shadow-2xl overflow-hidden 
+  max-h-[60vh] flex flex-col 
+  animate-in fade-in zoom-in-95 duration-200 
+  origin-top min-w-0">
+
 
                     {hasResults && (
-                        <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border/40 bg-muted/40 shrink-0 px-4">
+                        <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border/40 bg-muted/60 shrink-0 px-4">
                             {FILTERS.map(f => {
                                 const count = results && f.id !== 'all' ? (results[f.id as keyof UserSearchResults] as any[]).length : 0;
                                 if (f.id !== 'all' && count === 0) return null;
@@ -161,51 +170,53 @@ export function UserGlobalSearch() {
                                         key={f.id}
                                         onClick={() => setActiveFilter(f.id)}
                                         className={cn(
-                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border shrink-0",
+                                            "flex items-center gap-1.5 px-4 py-1.5 rounded-3xl text-xs font-bold transition-all whitespace-nowrap border shrink-0",
                                             activeFilter === f.id
-                                                ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                                                ? "bg-primary text-white border-primary shadow-sm"
                                                 : "bg-background border-border/60 text-muted-foreground hover:text-foreground"
                                         )}
                                     >
-                                        <f.icon className="h-3 w-3" />
+                                        <f.icon className="h-3.5 w-3.5" />
                                         {f.label}
-                                        {f.id !== 'all' && <span className="ml-1 opacity-60">{count}</span>}
+                                        {f.id !== 'all' && <span className="ml-1 opacity-60 tabular-nums">{count}</span>}
                                     </button>
                                 );
                             })}
                         </div>
                     )}
 
-                    <div className="overflow-y-auto no-scrollbar flex-1 p-2">
+                    <div className="overflow-y-auto no-scrollbar flex-1 p-2 min-w-0">
                         {!hasResults && !isLoading ? (
                             <div className="py-12 text-center text-muted-foreground flex flex-col items-center">
-                                <Compass className="h-8 w-8 opacity-20 mb-2" />
-                                <p className="text-xs font-bold uppercase tracking-widest">No matches found</p>
+                                <Compass className="h-10 w-10 opacity-20 mb-3" />
+                                <p className="text-xs font-bold uppercase tracking-widest">No matches identified</p>
                             </div>
                         ) : displayData && (
-                            <div className="space-y-4">
+                            <div className="space-y-4 pb-2 min-w-0">
                                 {activeFilter === 'all' && displayData.navigation.length > 0 && (
-                                    <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Shortcuts</div>
+                                    <div className="space-y-1 min-w-0">
+                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Shortcuts</div>
                                         {displayData.navigation.map((nav, i) => (
-                                            <button key={i} onClick={() => handleNavigate(nav.path)} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-all text-left group">
-                                                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                                    <Settings className="h-4 w-4" />
+                                            <button key={i} onClick={() => handleNavigate(nav.path)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left group min-w-0">
+                                                <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-inner">
+                                                    <Settings className="h-5 w-5" />
                                                 </div>
-                                                <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">{nav.label}</span>
-                                                <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground opacity-30" />
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors block truncate">{nav.label}</span>
+                                                </div>
+                                                <ChevronRight className="h-4 w-4 text-muted-foreground opacity-20 group-hover:opacity-100 transition-all shrink-0" />
                                             </button>
                                         ))}
                                     </div>
                                 )}
 
                                 {displayData.projects.length > 0 && (
-                                    <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Verified Causes</div>
+                                    <div className="space-y-1 min-w-0">
+                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Verified causes</div>
                                         {displayData.projects.map(p => (
-                                            <button key={p.id} onClick={() => handleNavigate(`/dashboard/impact/${p.slug}`)} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-all text-left">
-                                                <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                                                    <Compass className="h-4 w-4" />
+                                            <button key={p.id} onClick={() => handleNavigate(`/dashboard/impact/${p.slug}`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
+                                                <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                                                    <Compass className="h-5 w-5" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{p.title}</span>
@@ -220,16 +231,16 @@ export function UserGlobalSearch() {
                                 )}
 
                                 {displayData.proposals.length > 0 && (
-                                    <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">My Proposals</div>
+                                    <div className="space-y-1 min-w-0">
+                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">My proposals</div>
                                         {displayData.proposals.map(p => (
-                                            <button key={p.id} onClick={() => handleNavigate(`/dashboard/proposals/edit/${p.id}/hook`)} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-all text-left">
-                                                <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                                                    <FileText className="h-4 w-4" />
+                                            <button key={p.id} onClick={() => handleNavigate(`/dashboard/proposals/edit/${p.id}/hook`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
+                                                <div className="h-10 w-10 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0 shadow-inner">
+                                                    <FileText className="h-5 w-5" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <span className="font-bold text-sm text-foreground truncate block">{p.title || 'Untitled Draft'}</span>
-                                                    <Badge variant="outline" className="text-[9px] h-4 mt-1 px-1.5 font-bold uppercase">{p.status}</Badge>
+                                                    <span className="font-bold text-sm text-foreground truncate block">{p.title || 'Untitled draft'}</span>
+                                                    <Badge variant="outline" className="text-[10px] h-5 mt-1 px-2 font-bold uppercase rounded-3xl border-purple-500/20 bg-purple-500/5">{p.status}</Badge>
                                                 </div>
                                             </button>
                                         ))}
@@ -237,19 +248,19 @@ export function UserGlobalSearch() {
                                 )}
 
                                 {displayData.transactions.length > 0 && (
-                                    <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Ledger History</div>
+                                    <div className="space-y-1 min-w-0">
+                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Ledger history</div>
                                         {displayData.transactions.map(tx => (
-                                            <button key={tx.id} onClick={() => handleNavigate(`/dashboard/history`)} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-all text-left">
-                                                <div className="h-9 w-9 rounded-xl bg-secondary text-foreground flex items-center justify-center shrink-0 border border-border/50">
-                                                    <Database className="h-4 w-4" />
+                                            <button key={tx.id} onClick={() => handleNavigate(`/dashboard/history`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
+                                                <div className="h-10 w-10 rounded-2xl bg-secondary text-foreground flex items-center justify-center shrink-0 border border-border/40 shadow-inner">
+                                                    <Database className="h-5 w-5" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex justify-between items-center gap-2">
-                                                        <span className="font-mono text-[10px] font-bold text-foreground truncate">{tx.reference}</span>
-                                                        <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" />
+                                                    <div className="flex justify-between items-center gap-4">
+                                                        <span className="font-mono text-xs font-bold text-foreground truncate">{tx.reference}</span>
+                                                        <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" className="shrink-0" />
                                                     </div>
-                                                    <p className="text-[10px] text-muted-foreground truncate font-medium">{tx.description}</p>
+                                                    <p className="text-[11px] text-muted-foreground truncate font-medium">{tx.description}</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -257,16 +268,16 @@ export function UserGlobalSearch() {
                                 )}
 
                                 {displayData.subscriptions.length > 0 && (
-                                    <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Recurring Impact</div>
+                                    <div className="space-y-1 min-w-0">
+                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Recurring impact</div>
                                         {displayData.subscriptions.map(s => (
-                                            <button key={s.id} onClick={() => handleNavigate(`/dashboard/subscriptions`)} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-all text-left group">
-                                                <div className="h-9 w-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0">
-                                                    <Repeat className="h-4 w-4" />
+                                            <button key={s.id} onClick={() => handleNavigate(`/dashboard/subscriptions`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left group min-w-0">
+                                                <div className="h-10 w-10 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
+                                                    <Repeat className="h-5 w-5" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{s.project.title}</span>
-                                                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">{s.interval} Donation</p>
+                                                    <p className="text-[11px] text-muted-foreground uppercase font-bold tracking-tight">{s.interval} donation</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -274,16 +285,16 @@ export function UserGlobalSearch() {
                                 )}
 
                                 {displayData.auditLogs.length > 0 && (
-                                    <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Account Activity</div>
+                                    <div className="space-y-1 min-w-0">
+                                        <div className="px-4 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">Account activity</div>
                                         {displayData.auditLogs.map(log => (
-                                            <button key={log.id} onClick={() => handleNavigate(`/dashboard/settings?tab=activity`)} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-primary/5 transition-all text-left">
-                                                <div className="h-9 w-9 rounded-xl bg-zinc-500/10 text-zinc-500 flex items-center justify-center shrink-0">
-                                                    <History className="h-4 w-4" />
+                                            <button key={log.id} onClick={() => handleNavigate(`/dashboard/settings?tab=activity`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0">
+                                                <div className="h-10 w-10 rounded-2xl bg-zinc-500/10 text-zinc-600 flex items-center justify-center shrink-0 shadow-inner">
+                                                    <History className="h-5 w-5" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <span className="font-bold text-xs text-foreground block">{log.action.replace(/_/g, ' ')}</span>
-                                                    <span className="text-[9px] text-muted-foreground font-medium">{formatDate(log.createdAt)}</span>
+                                                    <span className="font-bold text-sm text-foreground block truncate">{log.action.replace(/_/g, ' ').toLowerCase()}</span>
+                                                    <span className="text-[11px] text-muted-foreground font-medium">{formatDate(log.createdAt)}</span>
                                                 </div>
                                             </button>
                                         ))}

@@ -31,6 +31,7 @@ import { ApiService } from '../../../services/api';
 import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../lib/utils/format';
 import { ImageUploader } from '../proposals/media-uploader';
 import toast from 'react-hot-toast';
+import { cn } from '../../../lib/utils/cn';
 
 interface DisbursementFormProps {
     projectId: string;
@@ -47,14 +48,12 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
-    // Form State
     const [milestoneId, setMilestoneId] = useState('');
     const [vendorName, setVendorName] = useState('');
     const [amount, setAmount] = useState('');
     const [reference, setReference] = useState('');
     const [receipt, setReceipt] = useState<{ key: string; previewUrl: string } | null>(null);
 
-    // Sorting State
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'desc' });
 
     const handleSort = (key: string) => {
@@ -64,7 +63,6 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
         }));
     };
 
-    // Memoized Sorted Data
     const sortedDisbursements = useMemo(() => {
         const items = [...disbursements];
         items.sort((a, b) => {
@@ -86,13 +84,12 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
 
     const handleSubmit = async () => {
         if (!milestoneId || !vendorName || !amount || !reference) {
-            return toast.error('Please fill in all required payment details.');
+            return toast.error('Check required fields');
         }
 
         setIsLoading(true);
         try {
             const minorAmount = parseFormattedNumber(amount) + '00';
-
             await ApiService.admin.recordDisbursement(projectId, {
                 milestoneId,
                 vendorName,
@@ -101,18 +98,18 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                 receiptKey: receipt?.key
             });
 
-            toast.success('Disbursement recorded successfully.');
+            toast.success('Disbursement recorded');
             setAmount(''); setVendorName(''); setReference(''); setMilestoneId(''); setReceipt(null);
             router.refresh();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to record disbursement.');
+            toast.error(error.response?.data?.message || 'Failed to record');
         } finally {
             setIsLoading(false);
         }
     };
 
     const viewSecureReceipt = async (key: string) => {
-        const toastId = toast.loading('Opening secure receipt...');
+        const toastId = toast.loading('Opening receipt...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, projectId);
             window.open(viewUrl, '_blank');
@@ -128,49 +125,48 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
     };
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-500">
-
-            <Card className="rounded-[32px] border-border/50 bg-card overflow-hidden shadow-xl">
-                <div className="bg-primary/5 p-6 border-b border-border/50 flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                        <DollarSign className="h-6 w-6" />
+        <div className="space-y-8 animate-in fade-in duration-300">
+            <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
+                <div className="bg-primary/5 p-5 border-b border-border/40 flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+                        <DollarSign className="h-5 w-5" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-foreground">Record Disbursement</h3>
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Treasury Outflow Management</p>
+                        <h3 className="text-base font-bold text-foreground">Record Disbursement</h3>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Treasury Outflow</p>
                     </div>
                 </div>
 
-                <CardContent className="p-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                        <div className="lg:col-span-7 space-y-6">
+                <CardContent className="p-6 md:p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-7 space-y-5">
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Target Milestone</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Target Phase</label>
                                     <Select onValueChange={setMilestoneId} value={milestoneId}>
-                                        <SelectTrigger className="h-12 rounded-xl bg-background/50">
-                                            <SelectValue placeholder="Select a project phase..." />
+                                        <SelectTrigger className="h-10 rounded-3xl bg-muted/20 border-border/40">
+                                            <SelectValue placeholder="Select phase..." />
                                         </SelectTrigger>
-                                        <SelectContent className="rounded-xl">
+                                        <SelectContent className="rounded-3xl">
                                             {timeline.map((m: any) => (
-                                                <SelectItem key={m.id} value={m.id} className="rounded-lg">{m.phase}</SelectItem>
+                                                <SelectItem key={m.id} value={m.id} className="rounded-3xl text-xs">{m.phase}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Input label="Vendor/Payee Name" placeholder="Legal Entity Name" value={vendorName} onChange={(e) => setVendorName(e.target.value)} className="h-12" />
-                                    <Input label="Bank Transaction Ref" placeholder="NIP/FT/..." value={reference} onChange={(e) => setReference(e.target.value)} className="h-12" />
+                                    <Input label="Payee" placeholder="Vendor Name" value={vendorName} onChange={(e) => setVendorName(e.target.value)} className="h-10 rounded-3xl" />
+                                    <Input label="Bank Reference" placeholder="NIP/FT/..." value={reference} onChange={(e) => setReference(e.target.value)} className="h-10 rounded-3xl" />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Amount Disbursed (NGN)</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Amount (NGN)</label>
                                     <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-lg">₦</span>
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">₦</span>
                                         <Input
                                             placeholder="0.00"
-                                            className="pl-10 h-14 text-xl font-bold rounded-xl bg-background/50 tabular-nums"
+                                            className="pl-10 h-11 text-lg font-bold rounded-3xl bg-muted/20 tabular-nums border-border/40"
                                             value={formatNumberInput(amount)}
                                             onChange={(e) => setAmount(e.target.value)}
                                         />
@@ -178,37 +174,34 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                                 </div>
                             </div>
 
-                            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-3">
-                                <ShieldCheck className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
-                                <p className="text-xs text-blue-700/80 dark:text-blue-400/80 leading-relaxed font-medium">
-                                    Logging a disbursement will automatically notify the project owner to provide Proof of Progress. Ensure the amount matches your bank transfer exactly.
+                            <div className="p-4 rounded-3xl bg-blue-50/50 border border-blue-100 flex items-start gap-3">
+                                <ShieldCheck className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                                <p className="text-[11px] text-blue-700 font-medium leading-relaxed">
+                                    Disbursement logs notify project owners and donors. Ensure data precision for audit compliance.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="lg:col-span-5 flex flex-col gap-6">
-                            <div className="space-y-1.5">
-                                <div className="flex justify-between items-center px-1">
-                                    <label className="text-[11px] font-bold text-muted-foreground uppercase">Bank Receipt</label>
-                                    <Badge variant="outline" className="text-[9px] h-4 rounded px-1.5 border-dashed">Optional</Badge>
-                                </div>
+                        <div className="lg:col-span-5 flex flex-col gap-5">
+                            <div className="space-y-2">
+                                <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Bank Receipt</label>
                                 {receipt ? (
-                                    <div className="relative aspect-video rounded-2xl overflow-hidden border border-border group shadow-lg">
-                                        <img src={receipt.previewUrl} className="object-cover w-full h-full" alt="Bank Receipt" />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                                            <Button variant="destructive" size="sm" className="rounded-xl font-bold h-10 px-4" onClick={() => setReceipt(null)}>
-                                                <Trash2 className="h-4 w-4 mr-2" /> Remove Proof
+                                    <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-sm">
+                                        <img src={receipt.previewUrl} className="object-cover w-full h-full" alt="Receipt" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                            <Button variant="destructive" size="sm" className="rounded-3xl font-bold h-8 text-[10px] px-4" onClick={() => setReceipt(null)}>
+                                                <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
                                             </Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <ImageUploader label="Upload Receipt (Optional)" onUploadComplete={setReceipt} useCase="docs" />
+                                    <ImageUploader label="Upload Receipt" onUploadComplete={setReceipt} useCase="docs" />
                                 )}
                             </div>
 
-                            <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="mt-auto w-full h-16 rounded-[20px] text-lg font-bold shadow-xl shadow-primary/20 transition-all active:scale-95">
-                                {isLoading ? <Loader2 className="animate-spin h-6 w-6" /> : <CheckCircle2 className="h-6 w-6 mr-2" />}
-                                Commit Disbursement
+                            <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="mt-auto w-full h-11 rounded-3xl font-bold text-xs shadow-sm">
+                                {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
+                                Commit Funds
                             </Button>
                         </div>
                     </div>
@@ -216,102 +209,82 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
             </Card>
 
             <div className="space-y-4">
-                <div className="flex items-center justify-between px-2">
-                    <h3 className="font-bold text-xl flex items-center gap-3 text-foreground">
-                        <History className="h-6 w-6 text-primary" />
-                        Historical Disbursements
+                <div className="flex items-center justify-between px-1">
+                    <h3 className="font-bold text-sm flex items-center gap-2 text-foreground uppercase tracking-tight">
+                        <History className="h-4 w-4 text-primary" />
+                        Disbursement Log
                     </h3>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted px-3 py-1 rounded-lg border border-border/50">
+                    <Badge variant="secondary" className="text-[9px] font-bold uppercase tracking-widest rounded-3xl">
                         {disbursements.length} Records
-                    </span>
+                    </Badge>
                 </div>
 
-                <div className="rounded-[32px] border border-border bg-card overflow-hidden shadow-sm">
+                <div className="grid gap-2 md:hidden">
+                    {sortedDisbursements.map((d: any) => (
+                        <Card key={d.id} className="rounded-3xl border-border/40 shadow-sm">
+                            <CardContent className="p-4 space-y-3">
+                                <div className="flex justify-between items-start">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-foreground truncate">{d.vendorName}</p>
+                                        <p className="text-[10px] font-bold text-primary uppercase tracking-tighter mt-0.5">
+                                            {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General Funds'}
+                                        </p>
+                                    </div>
+                                    <p className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{new Date(d.createdAt).toLocaleDateString()}</p>
+                                </div>
+                                <div className="flex justify-between items-end border-t border-border/40 pt-3">
+                                    <div className="text-sm font-bold tabular-nums">{formatCurrency(d.amount, 'NGN')}</div>
+                                    {d.receiptKey && (
+                                        <Button variant="ghost" size="sm" className="h-7 rounded-3xl text-[10px] font-bold text-primary" onClick={() => viewSecureReceipt(d.receiptKey)}>
+                                            <ExternalLink className="h-3 w-3 mr-1" /> View
+                                        </Button>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                <Card className="hidden md:block rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-muted/40 text-muted-foreground border-b border-border">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                                 <tr>
-                                    <th
-                                        className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors"
-                                        onClick={() => handleSort('vendorName')}
-                                    >
-                                        <div className="flex items-center">Vendor & Milestone <SortIcon column="vendorName" /></div>
+                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-[11px] cursor-pointer hover:text-foreground" onClick={() => handleSort('vendorName')}>
+                                        <div className="flex items-center">Vendor <SortIcon column="vendorName" /></div>
                                     </th>
-                                    <th
-                                        className="px-6 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors"
-                                        onClick={() => handleSort('createdAt')}
-                                    >
+                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-[11px] cursor-pointer hover:text-foreground" onClick={() => handleSort('createdAt')}>
                                         <div className="flex items-center">Date <SortIcon column="createdAt" /></div>
                                     </th>
-                                    <th
-                                        className="px-6 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors"
-                                        onClick={() => handleSort('reference')}
-                                    >
-                                        <div className="flex items-center">Bank Reference <SortIcon column="reference" /></div>
-                                    </th>
-                                    <th
-                                        className="px-6 py-5 font-bold uppercase tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors text-right"
-                                        onClick={() => handleSort('amount')}
-                                    >
+                                    <th className="px-6 py-3 font-bold uppercase tracking-widest text-[11px] text-right" onClick={() => handleSort('amount')}>
                                         <div className="flex items-center justify-end">Amount <SortIcon column="amount" /></div>
                                     </th>
-                                    <th className="px-8 py-5 font-bold uppercase tracking-widest text-[10px] text-right">Proof</th>
+                                    <th className="px-6 py-3 w-20"></th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border">
+                            <tbody className="divide-y divide-border/40">
                                 {sortedDisbursements.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-20 text-center text-muted-foreground italic font-medium">
-                                            No disbursements have been logged for this project.
-                                        </td>
-                                    </tr>
+                                    <tr><td colSpan={4} className="p-12 text-center text-xs text-muted-foreground italic font-medium">No disbursements recorded.</td></tr>
                                 ) : (
                                     sortedDisbursements.map((d: any) => (
-                                        <tr key={d.id} className="hover:bg-muted/20 transition-all group">
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-9 w-9 rounded-lg bg-primary/5 border border-primary/10 flex items-center justify-center text-primary">
-                                                        <Building2 className="h-4 w-4" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-foreground leading-none">{d.vendorName}</p>
-                                                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter mt-1.5 flex items-center gap-1">
-                                                            {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General Funds'}
-                                                        </p>
-                                                    </div>
+                                        <tr key={d.id} className="hover:bg-muted/30 transition-all text-xs">
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-foreground">{d.vendorName}</div>
+                                                <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter mt-0.5">
+                                                    {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                                                    <span className="font-medium text-foreground">{new Date(d.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}</span>
-                                                </div>
+                                            <td className="px-6 py-4 font-medium text-muted-foreground">
+                                                {new Date(d.createdAt).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-5">
-                                                <div className="flex items-center gap-2">
-                                                    <Hash className="h-3.5 w-3.5 text-muted-foreground" />
-                                                    <span className="font-mono text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md border border-border/50">
-                                                        {d.reference}
-                                                    </span>
-                                                </div>
+                                            <td className="px-6 py-4 text-right font-bold tabular-nums">
+                                                {formatCurrency(d.amount, 'NGN')}
                                             </td>
-                                            <td className="px-6 py-5 text-right">
-                                                <div className="font-bold text-foreground tabular-nums text-base">
-                                                    {formatCurrency(d.amount, 'NGN')}
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5 text-right">
-                                                {d.receiptKey ? (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="rounded-xl h-9 text-xs font-bold text-primary hover:bg-primary/10 transition-colors"
-                                                        onClick={() => viewSecureReceipt(d.receiptKey)}
-                                                    >
-                                                        <ExternalLink className="h-4 w-4 mr-2" /> View
+                                            <td className="px-6 py-4 text-right">
+                                                {d.receiptKey && (
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-3xl" onClick={() => viewSecureReceipt(d.receiptKey)}>
+                                                        <ExternalLink className="h-3.5 w-3.5" />
                                                     </Button>
-                                                ) : (
-                                                    <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-40">No Proof</span>
                                                 )}
                                             </td>
                                         </tr>
@@ -320,9 +293,8 @@ export function DisbursementForm({ projectId, timeline, disbursements = [] }: Di
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </Card>
             </div>
-
         </div>
     );
 }

@@ -6,6 +6,7 @@ import { Card } from '../../../ui/card';
 import { SmartCurrency } from '../../../ui/smart-currency';
 import { Users, AlertTriangle, Wallet, BarChart3, ChevronRight } from 'lucide-react';
 import { cn } from '../../../../lib/utils/cn';
+import { motion } from 'framer-motion';
 
 interface AnalyticsStatGridProps {
     summary: {
@@ -23,11 +24,11 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
     const router = useRouter();
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <StatCard
-                title="Total Entities"
+                title="Total entities"
                 value={summary.totalUsers}
-                subValue={`${Math.abs(summary.userGrowthPercent)}% growth vs last month`}
+                subValue={`${Math.abs(summary.userGrowthPercent)}% growth`}
                 icon={Users}
                 color="text-blue-500"
                 bg="bg-blue-500/10"
@@ -35,9 +36,9 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="System Liquidity"
+                title="System liquidity"
                 value={<SmartCurrency amount={summary.totalVolume.NGN} currency="NGN" visible={true} size="default" />}
-                subValue="Cumulative volume processed"
+                subValue="Processed volume"
                 icon={Wallet}
                 color="text-emerald-500"
                 bg="bg-emerald-500/10"
@@ -45,18 +46,18 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="Avg. Contribution"
+                title="Avg. contribution"
                 value={<SmartCurrency amount={avgDonation} currency="NGN" visible={true} size="default" />}
-                subValue="Per successful transaction"
+                subValue="Per gift"
                 icon={BarChart3}
                 color="text-purple-500"
                 bg="bg-purple-500/10"
             />
 
             <StatCard
-                title="Risk Indicators"
+                title="Risk indicators"
                 value={summary.unresolvedSuspenseCount}
-                subValue={`${summary.pendingKycCount} KYC reviews pending`}
+                subValue={`${summary.pendingKycCount} pending kyc`}
                 icon={AlertTriangle}
                 color="text-amber-500"
                 bg="bg-amber-500/10"
@@ -69,38 +70,58 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
 
 function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, onClick }: any) {
     return (
-        <Card
-            onClick={onClick}
-            className={cn(
-                "relative p-6 bg-card overflow-hidden rounded-[28px] transition-all duration-300 group",
-                "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
-                onClick ? "cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1" : "cursor-default",
-                highlight && "ring-2 ring-amber-500/20 bg-amber-500/[0.02]"
-            )}
+        <motion.div
+            whileHover={onClick ? { y: -1 } : {}}
+            whileTap={onClick ? { scale: 0.98 } : {}}
+            className="h-full"
         >
-            {/* Background Decor */}
-            <div className={cn("absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 scale-110", color)}>
-                <Icon className="h-24 w-24" />
-            </div>
-
-            <div className="flex flex-col h-full justify-between relative z-10">
-                <div className="flex justify-between items-start mb-6">
-                    <div className={cn("h-12 w-12 rounded-[18px] flex items-center justify-center shadow-sm", bg, color)}>
-                        <Icon className="h-6 w-6" />
-                    </div>
-                    {onClick && (
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <Card
+                onClick={onClick}
+                className={cn(
+                    "relative p-3.5 md:p-5 bg-card overflow-hidden rounded-3xl transition-all duration-300 group h-full flex flex-col justify-between",
+                    "border-border/40 shadow-sm",
+                    onClick && "cursor-pointer hover:shadow-md hover:border-primary/20",
+                    highlight && "ring-2 ring-amber-500/20 bg-amber-500/[0.01]"
+                )}
+            >
+                <div className="relative z-10 space-y-3 md:space-y-4">
+                    {/* Header: Icon and Title aligned horizontally */}
+                    <div className="flex items-center gap-2.5 md:gap-3">
+                        <div className={cn(
+                            "h-8 w-8 md:h-9 md:w-9 rounded-2xl flex items-center justify-center shadow-sm border border-transparent shrink-0",
+                            bg, color
+                        )}>
+                            <Icon className="h-4 md:h-4.5 w-4 md:w-4.5" />
                         </div>
-                    )}
+                        <p className="text-[11px] md:text-xs font-bold text-muted-foreground/80 leading-tight">
+                            {title}
+                        </p>
+                    </div>
+
+                    {/* Data: Value and Subtext */}
+                    <div className="space-y-0.5">
+                        <div className="text-lg md:text-2xl font-bold text-foreground tracking-tight leading-none truncate">
+                            {value}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                            <p className="text-[11px] md:text-xs font-medium text-muted-foreground truncate opacity-80">
+                                {subValue}
+                            </p>
+                            {onClick && (
+                                <ChevronRight className="h-3 w-3 text-muted-foreground/30 group-hover:text-primary transition-all shrink-0 hidden md:block" />
+                            )}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70">{title}</p>
-                    <div className="text-2xl font-black text-foreground tracking-tight">{value}</div>
-                    <p className="text-[11px] font-bold text-muted-foreground mt-1">{subValue}</p>
+                {/* Subtle background decoration */}
+                <div className={cn(
+                    "absolute -bottom-2 -right-2 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity duration-500 pointer-events-none",
+                    color
+                )}>
+                    <Icon className="h-16 w-16 md:h-20 md:w-20 rotate-12" />
                 </div>
-            </div>
-        </Card>
+            </Card>
+        </motion.div>
     );
 }

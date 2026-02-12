@@ -10,7 +10,6 @@ import { Pagination } from '../../../../components/features/history/pagination';
 import { getCookie } from 'cookies-next';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../../../components/ui/tabs';
 import { Users, ShieldAlert } from 'lucide-react';
-import Link from 'next/link';
 
 export default function AdminUsersPage() {
     const searchParams = useSearchParams();
@@ -56,6 +55,7 @@ export default function AdminUsersPage() {
         const params = new URLSearchParams(searchParams.toString());
         params.set('tab', value);
         params.set('page', '1');
+        // Clean exclusive context when switching views
         params.delete('role');
         params.delete('accountType');
         params.delete('status');
@@ -73,28 +73,32 @@ export default function AdminUsersPage() {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-            {/* Standardized Header/Filter Row */}
-            <UserFilters />
+        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+            {/* Header and Filter block */}
+            <div className="w-full min-w-0">
+                <UserFilters />
+            </div>
 
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6">
-                <TabsList className="bg-muted/50 p-1.5 rounded-[22px] h-14 w-full md:w-auto border border-border/40 inline-flex">
-                    <TabsTrigger
-                        value="users"
-                        className="rounded-xl px-8 h-full gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-lg"
-                    >
-                        <Users className="h-4 w-4" /> Users
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="admins"
-                        className="rounded-xl px-8 h-full gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-destructive data-[state=active]:shadow-lg"
-                    >
-                        <ShieldAlert className="h-4 w-4" /> Admins
-                    </TabsTrigger>
-                </TabsList>
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6 min-w-0">
+                <div className="w-full min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 w-full md:w-fit border border-border/40 shadow-inner inline-flex">
+                        <TabsTrigger
+                            value="users"
+                            className="rounded-2xl px-8 h-full gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
+                        >
+                            <Users className="h-3.5 w-3.5" /> Users
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="admins"
+                            className="rounded-2xl px-8 h-full gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-destructive data-[state=active]:shadow-sm"
+                        >
+                            <ShieldAlert className="h-3.5 w-3.5" /> Admins
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
-                <div className="relative">
-                    <TabsContent value="users" className="mt-0 outline-none">
+                <div className="w-full min-w-0 overflow-hidden">
+                    <TabsContent value="users" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <UserTable
                             users={data.data}
                             currentSort={searchParams.get('sortBy') || 'createdAt'}
@@ -105,7 +109,7 @@ export default function AdminUsersPage() {
                         />
                     </TabsContent>
 
-                    <TabsContent value="admins" className="mt-0 outline-none">
+                    <TabsContent value="admins" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <UserTable
                             users={data.data}
                             currentSort={searchParams.get('sortBy') || 'createdAt'}
@@ -118,7 +122,7 @@ export default function AdminUsersPage() {
                 </div>
             </Tabs>
 
-            <div className="pt-4 border-t border-border/50">
+            <div className="pt-4 border-t border-border/40 min-w-0">
                 <Pagination currentPage={data.meta.page} totalPages={data.meta.lastPage} />
             </div>
 

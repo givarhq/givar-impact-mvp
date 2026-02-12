@@ -6,10 +6,9 @@ import { useProposalStore } from '../../../../../../../../stores/proposal-store'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, ArrowRight, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trash2, Loader2, Camera, ImageIcon } from 'lucide-react';
 import { MediaManager, ImageUploader } from '../../../../../../../../components/features/proposals/media-uploader';
 import toast from 'react-hot-toast';
-import { Badge } from '../../../../../../../../components/ui/badge';
 
 export default function MediaPage() {
   const router = useRouter();
@@ -30,7 +29,7 @@ export default function MediaPage() {
         setIsLoading(false);
       })
       .catch(() => {
-        toast.error('Could not load proposal draft.');
+        toast.error('Draft failed to load');
         router.push('/dashboard/proposals');
       });
   }, [proposalId, setProposal, router]);
@@ -40,75 +39,96 @@ export default function MediaPage() {
     updateField('coverImageKey', data.key);
   };
 
-  const handleRemoveCover = () => {
-    updateField('coverImage', null);
-    updateField('coverImageKey', null);
-  };
-
   if (isLoading) {
     return (
-      <div className="flex h-[400px] items-center justify-center text-muted-foreground animate-pulse">
-        <Loader2 className="h-8 w-8 animate-spin mr-3" /> Initializing Media Assets...
+      <div className="flex h-64 items-center justify-center text-muted-foreground min-w-0">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0">
-        <CardTitle className="text-2xl font-bold tracking-tight text-foreground">Media & Proof</CardTitle>
-        <CardDescription>
-          A great cover image is crucial. Use the gallery to add detailed photos, videos, or documents.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-10 px-0">
+    <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
 
-        {/* Section 1: Cover Image (Single) */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium text-foreground">Cover Image (Required)</label>
-          {coverImage ? (
-            <div className="relative w-full aspect-video rounded-3xl overflow-hidden group border border-border shadow-md">
-              <img src={coverImage} alt="Cover" className="object-cover w-full h-full" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                <Button variant="destructive" className="rounded-xl font-bold h-11" onClick={handleRemoveCover}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Remove Cover Image
-                </Button>
-              </div>
+      <Card className="border-border/40 bg-card rounded-[32px] overflow-hidden shadow-sm min-w-0">
+        <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
+          <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
+            <Camera className="h-4 w-4 shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Visuals</span>
+          </div>
+          <CardTitle className="text-lg md:text-xl font-bold">Project media</CardTitle>
+          <CardDescription className="text-xs font-medium">
+            High-quality visuals build trust and help donors connect with your cause mission.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="p-6 md:p-8 pt-6 space-y-10 min-w-0">
+          {/* Cover Asset Section */}
+          <div className="space-y-4 min-w-0">
+            <div className="flex items-center gap-2 px-1">
+              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Primary hero image</label>
             </div>
-          ) : (
-            <ImageUploader
-              useCase="public"
-              onUploadComplete={handleCoverUpload}
-              label="Click to Upload Cover Image (Landscape)"
-            />
-          )}
-        </div>
-
-        {/* Section 2: Detailed Media Gallery */}
-        <div className="space-y-4">
-          <div className="flex justify-between items-baseline px-1">
-            <label className="text-sm font-medium text-foreground">Project Gallery</label>
-            <Badge variant="secondary" className="rounded-lg h-5 text-[10px]">{gallery.length} items</Badge>
+            {coverImage ? (
+              <div className="relative aspect-video rounded-[28px] overflow-hidden border border-border/40 group shadow-md bg-muted">
+                <img src={coverImage} alt="Cover" className="object-cover w-full h-full transition-transform group-hover:scale-105 duration-700" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
+                  <Button
+                    variant="destructive"
+                    className="rounded-3xl font-bold h-10 px-6 text-xs active:scale-95 transition-all shadow-lg"
+                    onClick={() => {
+                      updateField('coverImage', null);
+                      updateField('coverImageKey', null);
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Remove hero
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="h-48 md:h-64">
+                <ImageUploader
+                  useCase="public"
+                  onUploadComplete={handleCoverUpload}
+                  label="Upload project hero image"
+                />
+              </div>
+            )}
           </div>
 
-          <MediaManager
-            items={gallery}
-            onAdd={addGalleryItem}
-            onRemove={removeGalleryItem}
-            onUpdate={updateGalleryItem}
-          />
-        </div>
+          {/* Gallery Section */}
+          <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Project gallery</label>
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
+            </div>
 
-        {/* Navigation */}
-        <div className="flex justify-between items-center pt-8 border-t border-border">
-          <Button variant="outline" className="rounded-xl h-11 px-6" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/hook`)}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Hook
-          </Button>
-          <Button size="lg" className="h-11 rounded-xl px-10 shadow-lg shadow-primary/20 font-bold" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)}>
-            Next: Execution Plan <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            <MediaManager
+              items={gallery}
+              onAdd={addGalleryItem}
+              onRemove={removeGalleryItem}
+              onUpdate={updateGalleryItem}
+            />
+          </div>
+
+          {/* Navigation Controls */}
+          <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
+            <Button
+              variant="outline"
+              className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95"
+              onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/hook`)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+            <Button
+              className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0"
+              onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)}
+            >
+              Next: Execution <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

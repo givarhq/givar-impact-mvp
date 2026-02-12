@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import {
-    AlertTriangle, Trash2, Loader2, Lock,
-    ShieldAlert, XCircle
+    Trash2, Loader2,
+    ShieldAlert, XCircle, AlertCircle
 } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { Card, CardContent } from '../../ui/card';
 import { Input } from '../../ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { ApiService } from '../../../services/api';
@@ -25,14 +24,13 @@ export function DangerZone() {
         try {
             await ApiService.auth.deleteAccount(password);
 
-            // Atomic Cleanup
             deleteCookie('givar_token');
             deleteCookie('givar_user');
 
             toast.success("Account successfully deleted");
             window.location.href = '/';
         } catch (error: any) {
-            const message = error.response?.data?.message || "Deletion failed. Please check your password.";
+            const message = error.response?.data?.message || "Deletion failed. Check your credentials.";
             toast.error(message);
         } finally {
             setIsLoading(false);
@@ -40,71 +38,68 @@ export function DangerZone() {
     };
 
     return (
-        <div className="pt-8 border-t border-border/60">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-8 rounded-[32px] bg-destructive/[0.02] border border-destructive/20 shadow-sm">
-                <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-destructive flex items-center gap-2">
-                        <ShieldAlert className="h-5 w-5" /> Danger Zone
+        <div className="pt-6 border-t border-border/40">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-3xl bg-destructive/5 border border-destructive/10 shadow-sm">
+                <div className="space-y-0.5">
+                    <h3 className="text-sm font-bold text-destructive flex items-center gap-2">
+                        <ShieldAlert className="h-4 w-4" /> Danger zone
                     </h3>
-                    <p className="text-sm text-muted-foreground font-medium max-w-xl leading-relaxed">
-                        Permanently delete your account and funds from the Givar platform. This action cannot be undone. Historical donation records will be preserved for transparency.
+                    <p className="text-xs text-muted-foreground font-medium max-w-lg leading-relaxed">
+                        Permanently remove your account and data. This action is irreversible. Historical donation records are preserved for ledger transparency.
                     </p>
                 </div>
                 <Button
                     variant="destructive"
                     onClick={() => setIsDialogOpen(true)}
-                    className="h-12 px-8 rounded-xl font-bold gap-2 shadow-lg shadow-destructive/10"
+                    className="h-9 rounded-3xl px-6 font-bold text-xs shadow-sm"
                 >
-                    <Trash2 className="h-4 w-4" /> Delete Account
+                    <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete account
                 </Button>
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="rounded-[32px] p-0 overflow-hidden border-none shadow-2xl bg-card">
-                    <div className="p-8 space-y-6">
-                        <div className="text-center space-y-4">
-                            <div className="h-16 w-16 rounded-3xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto shadow-inner">
-                                <XCircle className="h-8 w-8" />
+                <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-sm">
+                    <div className="p-6 md:p-8 space-y-6">
+                        <div className="text-center space-y-2">
+                            <div className="h-12 w-12 rounded-3xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
+                                <XCircle className="h-6 w-6" />
                             </div>
                             <DialogHeader>
-                                <DialogTitle className="text-lg font-black tracking-tight text-center">Delete Account</DialogTitle>
+                                <DialogTitle className="text-lg font-bold tracking-tight text-center">Delete account</DialogTitle>
                             </DialogHeader>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                Enter your password to confirm you want to permanently remove your account from Givar.
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                Enter your password to authorize permanent removal from the Givar protocol.
                             </p>
                         </div>
 
                         <div className="space-y-4">
                             <Input
                                 type="password"
-                                label="Confirm Password"
+                                label="Confirm password"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="h-12"
+                                className="h-10 rounded-3xl bg-muted/20"
                                 autoFocus
                             />
 
-                            <div className="p-4 rounded-xl bg-muted/50 border border-border text-[11px] text-muted-foreground leading-relaxed flex gap-3">
-                                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-                                <span>If you have active projects, this action will be restricted to maintain transparency for your donors.</span>
+                            <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-[11px] text-amber-700 leading-relaxed flex gap-2.5">
+                                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                                <span>Note: Nodes with active projects are restricted from deletion to maintain donor trust.</span>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 pt-2">
-                            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-2xl h-12 font-bold">Cancel</Button>
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="rounded-3xl h-10 text-xs font-bold border-border/60">Cancel</Button>
                             <Button
                                 variant="destructive"
                                 onClick={handleDelete}
                                 disabled={isLoading || !password}
-                                className="rounded-2xl h-12 font-black uppercase tracking-widest text-[11px] shadow-lg shadow-destructive/20"
+                                className="rounded-3xl h-10 font-bold text-xs shadow-sm"
                             >
-                                {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm Deletion'}
+                                {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : 'Confirm deletion'}
                             </Button>
                         </div>
-                    </div>
-                    <div className="bg-muted/30 py-3 text-center border-t border-border/50">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">Security Verification Required</span>
                     </div>
                 </DialogContent>
             </Dialog>

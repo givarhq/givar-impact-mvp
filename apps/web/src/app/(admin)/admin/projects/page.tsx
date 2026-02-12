@@ -9,6 +9,11 @@ import { AdminProposalTable } from '../../../../components/features/admin/admin-
 import { Pagination } from '../../../../components/features/history/pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs';
 
+export const metadata = {
+    title: 'Cause management',
+    description: 'Oversee live projects, review drafts, and manage incoming proposals.',
+};
+
 export default async function AdminProjectsPage({
     searchParams,
 }: {
@@ -53,77 +58,81 @@ export default async function AdminProjectsPage({
         : (projectResult?.meta || { page: 1, lastPage: 1 });
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
 
-            {/* 1. Header & Filters (Standardized Title/Search Row) */}
-            <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
+            {/* Title and Global Actions Row */}
+            <div className="w-full min-w-0">
+                <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
+            </div>
 
-            {/* 2. Global Actions & Tab Switcher */}
-            <Tabs value={activeTab} className="w-full space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <TabsList className="bg-muted/50 p-1.5 rounded-[22px] h-14 w-full md:w-auto border border-border/40">
-                        <Link href="?tab=live" className="flex-1 md:flex-none">
+            <Tabs value={activeTab} className="w-full space-y-6 min-w-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+                    <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 w-full md:w-fit border border-border/40 shadow-inner shrink-0">
+                        <Link href="?tab=live" className="flex-1 md:flex-none h-full">
                             <TabsTrigger
                                 value="live"
-                                className="w-full md:w-[140px] h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
+                                className="w-full md:w-[120px] h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                             >
-                                <TrendingUp className="h-4 w-4" /> Live
+                                <TrendingUp className="h-3.5 w-3.5" /> Live
                             </TabsTrigger>
                         </Link>
-                        <Link href="?tab=drafts" className="flex-1 md:flex-none">
+                        <Link href="?tab=drafts" className="flex-1 md:flex-none h-full">
                             <TabsTrigger
                                 value="drafts"
-                                className="w-full md:w-[140px] h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
+                                className="w-full md:w-[120px] h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                             >
-                                <FileBox className="h-4 w-4" /> Drafts
+                                <FileBox className="h-3.5 w-3.5" /> Drafts
                             </TabsTrigger>
                         </Link>
-                        <Link href="?tab=proposals" className="flex-1 md:flex-none">
+                        <Link href="?tab=proposals" className="flex-1 md:flex-none h-full">
                             <TabsTrigger
                                 value="proposals"
-                                className="w-full md:w-[140px] h-full rounded-xl gap-2 font-bold text-[11px] uppercase tracking-widest data-[state=active]:shadow-lg"
+                                className="w-full md:w-[120px] h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                             >
-                                <ClipboardList className="h-4 w-4" /> Proposals
+                                <ClipboardList className="h-3.5 w-3.5" /> Proposals
                             </TabsTrigger>
                         </Link>
                     </TabsList>
 
                     <Link href="/admin/projects/new" className="shrink-0 w-full md:w-auto">
-                        <Button className="w-full md:w-auto rounded-2xl font-bold bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 h-14 px-6 border-0">
-                            <Plus className="mr-2 h-5 w-5" /> New Project
+                        <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
+                            <Plus className="mr-2 h-4 w-4" /> New project
                         </Button>
                     </Link>
                 </div>
 
-                {/* 3. Table Content */}
-                <TabsContent value="live" className="mt-0 outline-none">
-                    <AdminProjectTable
-                        projects={projects}
-                        currentSort={String(resolvedParams.sortBy || 'createdAt')}
-                        currentOrder={String(resolvedParams.sortOrder || 'desc')}
-                    />
-                </TabsContent>
-
-                <TabsContent value="drafts" className="mt-0 outline-none">
-                    {projects.length === 0 ? (
-                        <div className="py-24 text-center border-2 border-dashed border-border rounded-[32px] bg-muted/10">
-                            <Inbox className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-20" />
-                            <h3 className="text-lg font-bold text-foreground opacity-60 uppercase tracking-widest">No Drafts Found</h3>
-                        </div>
-                    ) : (
+                {/* Table View Container */}
+                <div className="w-full min-w-0 overflow-hidden">
+                    <TabsContent value="live" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <AdminProjectTable
                             projects={projects}
                             currentSort={String(resolvedParams.sortBy || 'createdAt')}
                             currentOrder={String(resolvedParams.sortOrder || 'desc')}
                         />
-                    )}
-                </TabsContent>
+                    </TabsContent>
 
-                <TabsContent value="proposals" className="mt-0 outline-none">
-                    <AdminProposalTable proposals={proposals} />
-                </TabsContent>
+                    <TabsContent value="drafts" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {projects.length === 0 ? (
+                            <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5 min-w-0">
+                                <Inbox className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-3" />
+                                <h3 className="text-sm font-bold text-foreground opacity-60 tracking-tight">No drafts found</h3>
+                                <p className="text-xs text-muted-foreground mt-1 font-medium">Any projects saved as drafts will appear here.</p>
+                            </div>
+                        ) : (
+                            <AdminProjectTable
+                                projects={projects}
+                                currentSort={String(resolvedParams.sortBy || 'createdAt')}
+                                currentOrder={String(resolvedParams.sortOrder || 'desc')}
+                            />
+                        )}
+                    </TabsContent>
 
-                <div className="pt-4 border-t border-border/40">
+                    <TabsContent value="proposals" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <AdminProposalTable proposals={proposals} />
+                    </TabsContent>
+                </div>
+
+                <div className="pt-4 border-t border-border/40 min-w-0">
                     <Pagination currentPage={activeMeta.page} totalPages={activeMeta.lastPage} />
                 </div>
             </Tabs>

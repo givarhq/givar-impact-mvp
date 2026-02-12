@@ -60,72 +60,75 @@ export default function FundWalletPage() {
       }
     } catch (error) {
       setIsLoading(false);
-      toast.error('Failed to initialize payment');
+      toast.error('Payment initialization failed');
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <Button
-        variant="ghost"
-        onClick={() => router.back()}
-        className="group text-muted-foreground hover:text-foreground -ml-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-        Back to Wallet
-      </Button>
+    <div className="max-w-2xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20 min-w-0">
 
-      <Card className="border-border/50 shadow-xl overflow-hidden rounded-3xl relative">
-        {/* 
-            FIX: Adjusted z-index from z-50 to z-20. 
-            This ensures the overlay stays below the sticky Header (z-30) 
-            while remaining above the Card content.
-        */}
+      {/* Navigation Header */}
+      <div className="flex flex-col gap-4 px-1 min-w-0">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="w-fit pl-0 text-muted-foreground hover:text-foreground group rounded-3xl"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Back to Wallet
+        </Button>
+      </div>
+
+      <Card className="border-border/40 shadow-xl overflow-hidden rounded-[32px] relative min-w-0 bg-card">
         {isUnverified && (
           <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
-            <div className="h-16 w-16 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl">
+            <div className="h-16 w-16 rounded-[24px] bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl border border-rose-500/20">
               <MailCheck className="h-8 w-8" />
             </div>
-            <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Identity Pending</h4>
-            <p className="text-sm text-muted-foreground mt-3 max-w-[320px] leading-relaxed font-medium">
-              Wallet funding is restricted until you verify your email address. Please check your inbox for the verification link.
-            </p>
+            <div className="space-y-2 max-w-[320px] mx-auto min-w-0">
+              <h4 className="text-lg font-bold text-foreground leading-tight">Identity verification pending</h4>
+              <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                Wallet funding is restricted until you verify your email address. Please check your inbox for the activation link.
+              </p>
+            </div>
             <Button
               variant="outline"
-              className="mt-8 rounded-xl h-12 px-8 border-rose-500/20 text-rose-600 font-bold"
+              className="mt-8 rounded-3xl h-11 px-8 border-rose-500/20 text-rose-600 font-bold text-xs hover:bg-rose-500/5 transition-all"
               onClick={() => window.location.reload()}
             >
-              Check Verification Status
+              Check verification status
             </Button>
           </div>
         )}
 
-        <CardHeader className="pt-8 px-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+        <CardHeader className="pt-8 px-6 md:px-8 border-b border-border/40 bg-muted/10">
+          <div className="flex items-center gap-4 mb-1 min-w-0">
+            <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20 shadow-inner">
               <CreditCard className="h-5 w-5" />
             </div>
-            <CardTitle className="text-2xl font-bold">Add Funds</CardTitle>
+            <div className="min-w-0">
+              <CardTitle className="text-lg md:text-xl font-bold">Top up wallet</CardTitle>
+              <CardDescription className="text-xs font-medium">
+                Securely fund your Givar node via Paystack gateway.
+              </CardDescription>
+            </div>
           </div>
-          <CardDescription className="text-base">
-            Securely top up your Givar Wallet via Paystack.
-          </CardDescription>
         </CardHeader>
 
         <CardContent className={cn(
-          "p-8 space-y-8 transition-all duration-500",
+          "p-6 md:p-8 space-y-10 transition-all duration-500 min-w-0",
           isUnverified && "opacity-20 grayscale blur-[1px] pointer-events-none"
         )}>
-          <div className="space-y-4">
-            <label className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">
-              Amount to Deposit
+          <div className="space-y-4 min-w-0">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">
+              Deposit amount
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground">₦</span>
+            <div className="relative min-w-0">
+              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground/60">₦</span>
               <Input
                 type="text"
                 placeholder="5,000"
-                className="pl-12 h-16 text-3xl font-bold rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary transition-all tabular-nums"
+                className="pl-12 h-16 text-3xl font-bold rounded-[22px] bg-muted/20 border-border/40 focus:bg-background focus:border-primary/40 transition-all tabular-nums"
                 value={formatNumberInput(amount)}
                 onChange={handleAmountChange}
                 autoFocus={!isUnverified}
@@ -133,13 +136,13 @@ export default function FundWalletPage() {
               />
             </div>
 
-            <div className="flex gap-2 text-xs flex-wrap pt-2">
+            <div className="flex gap-2 text-xs flex-wrap pt-2 min-w-0">
               {['2000', '5000', '10000', '25000', '50000'].map((val) => (
                 <button
                   key={val}
                   onClick={() => setQuickAmount(val)}
                   disabled={isUnverified}
-                  className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-4 py-2.5 rounded-xl transition-all font-semibold disabled:opacity-50"
+                  className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-2xl transition-all font-bold text-[11px] disabled:opacity-50 shadow-sm"
                 >
                   ₦{Number(val).toLocaleString()}
                 </button>
@@ -147,20 +150,20 @@ export default function FundWalletPage() {
             </div>
           </div>
 
-          <div className="bg-primary/5 border border-primary/10 p-4 rounded-2xl flex items-start gap-3">
+          <div className="bg-primary/5 border border-primary/20 p-5 rounded-[24px] flex items-start gap-4 shadow-inner min-w-0">
             <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Your transaction is encrypted and processed by Paystack. Givar does not store your card details.
+            <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+              Transactions are encrypted and processed by Paystack. Givar does not store your sensitive card information on the ledger.
             </p>
           </div>
 
           <Button
             onClick={handleFund}
             disabled={isLoading || !amount || isUnverified}
-            className="w-full h-16 text-lg font-bold rounded-2xl shadow-lg shadow-primary/20"
+            className="w-full h-14 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-0"
           >
-            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : (
-              isUnverified ? 'Verification Required' : 'Proceed to Payment'
+            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+              isUnverified ? 'Verification Required' : 'Proceed to Gateway'
             )}
           </Button>
         </CardContent>

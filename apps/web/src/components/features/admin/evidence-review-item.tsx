@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Check, X, Loader2 } from 'lucide-react';
+import { Check, X, Loader2, Camera, Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
 import { ApiService } from '../../../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
-import { Inbox, Camera, Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '../../../lib/utils/cn';
 
@@ -21,17 +20,17 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
 
     const handleReview = async (status: 'APPROVED' | 'REJECTED') => {
         if (status === 'REJECTED' && !feedback) {
-            return toast.error("Please provide rejection feedback.");
+            return toast.error("Rejection feedback required");
         }
 
         setIsProcessing(true);
         try {
             await ApiService.admin.reviewEvidence(proof.id, { status, feedback });
-            toast.success(status === 'APPROVED' ? 'Proof Verified!' : 'Proof Rejected');
+            toast.success(status === 'APPROVED' ? 'Proof Verified' : 'Proof Rejected');
             setIsProcessed(true);
             router.refresh();
         } catch (e) {
-            toast.error('Audit action failed');
+            toast.error('Audit failed');
         } finally {
             setIsProcessing(false);
         }
@@ -39,63 +38,57 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
 
     return (
         <Card className={cn(
-            "group relative rounded-[32px] border-border/50 bg-card overflow-hidden shadow-sm transition-all duration-500",
-            isProcessed ? "opacity-40 grayscale-[0.5]" : "hover:shadow-md"
+            "relative rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm transition-all duration-300",
+            isProcessed && "opacity-60"
         )}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-10 -mt-10" />
-
-            <CardHeader className="bg-muted/30 border-b border-border/40 py-5 px-6 md:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="h-11 w-11 rounded-2xl bg-background border border-border/50 shadow-sm flex items-center justify-center text-primary">
-                        {isProcessed ? <CheckCircle2 className="h-6 w-6 text-emerald-500" /> : <Camera className="h-5 w-5" />}
+            <CardHeader className="bg-muted/30 border-b border-border/40 p-5 md:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0">
+                    <div className="h-10 w-10 rounded-3xl bg-background border border-border/40 shadow-sm flex items-center justify-center text-primary shrink-0">
+                        {isProcessed ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <Camera className="h-5 w-5" />}
                     </div>
-                    <div className="space-y-0.5">
-                        <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                    <div className="min-w-0">
+                        <CardTitle className="text-sm font-bold text-foreground truncate flex items-center gap-1.5">
                             {proof.project.title}
                             <Link href={`/admin/projects/${proof.projectId}/edit`} className="text-muted-foreground hover:text-primary transition-colors">
                                 <ExternalLink className="h-3 w-3" />
                             </Link>
                         </CardTitle>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">Phase: {proof.phaseName}</span>
-                            <span className="text-border">|</span>
-                            <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-3 w-3" /> Submitted {new Date(proof.submittedAt).toLocaleString()}
+                        <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Phase: {proof.phaseName}</span>
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <Clock className="h-2.5 w-2.5" /> {new Date(proof.submittedAt).toLocaleDateString()}
                             </span>
                         </div>
                     </div>
                 </div>
-                <Badge variant="outline" className="h-6 bg-background text-[10px] font-bold uppercase tracking-tighter text-muted-foreground">
-                    REF: {proof.id.split('-')[0]}
+                <Badge variant="outline" className="h-6 bg-background text-[9px] font-bold uppercase tracking-tighter text-muted-foreground border-border/60 rounded-3xl">
+                    ID: {proof.id.split('-')[0]}
                 </Badge>
             </CardHeader>
 
-            <CardContent className="p-6 md:p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+            <CardContent className="p-5 md:p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     <div className="lg:col-span-3 space-y-6">
-                        <div className="space-y-3">
-                            <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-                                <FileText className="h-3 w-3" /> Submitter Narrative
+                        <div className="space-y-1.5">
+                            <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 ml-1">
+                                <FileText className="h-3 w-3" /> Narrative
                             </h4>
-                            <div className="relative">
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/20 rounded-full" />
-                                <p className="text-sm md:text-base text-foreground/90 leading-relaxed font-medium pl-6 py-1 whitespace-pre-line italic">
-                                    &quot;{proof.description}&quot;
-                                </p>
-                            </div>
+                            <p className="text-xs md:text-sm text-foreground/90 leading-relaxed font-medium italic border-l-2 border-primary/30 pl-4 py-1">
+                                &quot;{proof.description}&quot;
+                            </p>
                         </div>
 
-                        <div className="space-y-3">
-                            <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Visual Evidence Assets</h4>
-                            <div className="flex flex-wrap gap-3">
+                        <div className="space-y-2">
+                            <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Evidence Assets</h4>
+                            <div className="flex flex-wrap gap-2">
                                 {proof.imageUrls?.map((url: string, i: number) => (
                                     <button
                                         key={i}
                                         onClick={() => window.open(url, '_blank')}
-                                        className="relative h-24 w-24 md:h-28 md:w-28 rounded-[20px] overflow-hidden border border-border/50 bg-muted hover:ring-2 ring-primary/50 transition-all shadow-sm group/img"
+                                        className="relative h-16 w-16 md:h-20 md:w-20 rounded-2xl overflow-hidden border border-border/40 bg-muted hover:ring-2 ring-primary/30 transition-all shadow-sm group"
                                     >
-                                        <img src={url} className="w-full h-full object-cover transition-transform group-hover/img:scale-110" alt="Proof Asset" />
-                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                        <img src={url} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="Proof" />
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center">
                                             <ExternalLink className="h-4 w-4 text-white" />
                                         </div>
                                     </button>
@@ -104,25 +97,28 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                         </div>
                     </div>
 
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-muted/30 border border-border/50 p-6 rounded-[28px] space-y-6 relative overflow-hidden">
+                    <div className="lg:col-span-2">
+                        <div className="bg-muted/30 border border-border/40 p-5 rounded-3xl space-y-5 relative">
                             {isProcessed && (
-                                <div className="absolute inset-0 bg-emerald-500/5 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center text-emerald-600 animate-in fade-in duration-500">
-                                    <CheckCircle2 className="h-12 w-12 mb-2" />
-                                    <span className="text-xs font-black uppercase tracking-widest">Audit Completed</span>
+                                <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-emerald-600 animate-in fade-in duration-300">
+                                    <CheckCircle2 className="h-10 w-10 mb-2" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">Audit Finalized</span>
                                 </div>
                             )}
 
-                            <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] text-center">Audit Decision</h4>
+                            <div className="text-center space-y-1">
+                                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Administrative Action</h4>
+                                <p className="text-[11px] text-muted-foreground font-medium">Verify against milestone criteria</p>
+                            </div>
 
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                                 <Button
                                     onClick={() => handleReview('APPROVED')}
                                     disabled={isProcessing || isProcessed}
-                                    className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg shadow-emerald-500/20 gap-2 transition-all active:scale-95"
+                                    className="w-full h-10 rounded-3xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-2 transition-all active:scale-[0.98]"
                                 >
-                                    {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                                    Verify & Approve
+                                    {isProcessing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                                    Approve Proof
                                 </Button>
 
                                 <Dialog>
@@ -130,46 +126,42 @@ export default function EvidenceReviewItem({ proof }: { proof: any }) {
                                         <Button
                                             variant="outline"
                                             disabled={isProcessing || isProcessed}
-                                            className="w-full h-12 rounded-2xl border-destructive/20 text-destructive hover:bg-destructive/5 font-bold text-sm gap-2"
+                                            className="w-full h-10 rounded-3xl border-destructive/20 text-destructive hover:bg-destructive/5 font-bold text-xs"
                                         >
-                                            <X className="h-4 w-4" /> Reject Evidence
+                                            Reject Proof
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="rounded-[32px]">
+                                    <DialogContent className="rounded-3xl p-8 shadow-2xl border-none">
                                         <DialogHeader>
-                                            <DialogTitle className="text-xl font-black text-foreground">Reject Proof of Work</DialogTitle>
+                                            <DialogTitle className="text-xl font-bold tracking-tight">Reject Evidence</DialogTitle>
                                         </DialogHeader>
                                         <div className="space-y-5 pt-4">
-                                            <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                                                Please provide specific feedback. The project owner will see this and must resubmit new evidence to continue.
+                                            <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                                                Provide specific feedback. The project owner must resubmit verified proof to continue tranches.
                                             </p>
                                             <textarea
-                                                className="w-full h-32 rounded-2xl border border-border bg-background p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
-                                                placeholder="e.g. Image quality is too low..."
+                                                className="w-full h-28 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
+                                                placeholder="e.g. Insufficient visual detail..."
                                                 value={feedback}
                                                 onChange={(e) => setFeedback(e.target.value)}
                                             />
                                             <Button
                                                 variant="destructive"
-                                                className="w-full h-14 rounded-2xl font-bold shadow-lg shadow-destructive/20"
+                                                className="w-full h-12 rounded-3xl font-bold text-sm shadow-sm"
                                                 onClick={() => handleReview('REJECTED')}
                                                 disabled={isProcessing || !feedback}
                                             >
-                                                {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm Rejection'}
+                                                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm Rejection'}
                                             </Button>
                                         </div>
                                     </DialogContent>
                                 </Dialog>
                             </div>
 
-                            <div className="pt-4 border-t border-border/40">
-                                <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase">
-                                    <span>Milestone Status</span>
-                                    <span className="text-primary">In Progress</span>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground mt-2 leading-relaxed italic">
-                                    Note: Approval will trigger an automated public update and notify all donors via email.
-                                </p>
+                            <div className="pt-4 border-t border-border/40 text-center">
+                                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] italic">
+                                    Notification will be auto-dispatched
+                                </span>
                             </div>
                         </div>
                     </div>

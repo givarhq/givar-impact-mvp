@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UploadCloud, Loader2, Link as LinkIcon, X, FileText, Image as ImageIcon, Video, Trash2, Plus } from 'lucide-react';
+import { UploadCloud, Loader2, Link as LinkIcon, X, FileText, Image as ImageIcon, Video, Trash2, Plus, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
@@ -10,13 +10,14 @@ import { Input } from '../../ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { MediaItem } from '../../../stores/proposal-store';
 import { useParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MediaManagerProps {
     items: MediaItem[];
     onAdd: (item: MediaItem) => void;
     onRemove: (id: string) => void;
     onUpdate: (id: string, updates: Partial<MediaItem>) => void;
-    readOnly?: boolean; // SOTA: Added readOnly prop
+    readOnly?: boolean;
 }
 
 export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = false }: MediaManagerProps) {
@@ -26,7 +27,6 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
     const [isLoading, setIsLoading] = useState(false);
     const [urlInput, setUrlInput] = useState('');
 
-    // Hydrate preview URLs for existing private keys on mount
     useEffect(() => {
         items.forEach(async (item) => {
             if (item.key && !item.key.includes('://') && (!item.url || item.url === item.key)) {
@@ -34,13 +34,12 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                     const { viewUrl } = await ApiService.proposals.getPreviewUrl(item.key, proposalId);
                     onUpdate(item.id, { url: viewUrl });
                 } catch (e) {
-                    console.error("Failed to refresh preview for", item.key);
+                    console.error("Preview sync failure", item.key);
                 }
             }
         });
     }, []);
 
-    // --- Upload Handler ---
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -48,14 +47,12 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
         setIsLoading(true);
         try {
             const type = file.type.startsWith('image/') ? 'IMAGE' : 'DOCUMENT';
-
             const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
                 fileType: file.type,
                 useCase: 'public',
             });
 
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
 
             onAdd({
@@ -66,18 +63,16 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                 caption: ''
             });
 
-            toast.success('Uploaded successfully!');
+            toast.success('File added to gallery');
         } catch (error) {
-            toast.error('Upload failed.');
+            toast.error('Upload failed');
         } finally {
             setIsLoading(false);
         }
     };
 
-    // --- URL Handler ---
     const handleUrlAdd = () => {
         if (!urlInput) return;
-
         const isVideo = urlInput.includes('youtube') || urlInput.includes('vimeo') || urlInput.endsWith('.mp4');
         const isImage = urlInput.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
 
@@ -89,105 +84,120 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
             caption: ''
         });
         setUrlInput('');
+        toast.success('Link added');
     };
 
     return (
-        <div className="space-y-6">
-
-            {/* SOTA: ADD MEDIA AREA (Only shown in edit mode) */}
+        <div className="space-y-4 w-full min-w-0">
             {!readOnly && (
-                <div className="p-4 border border-border rounded-xl bg-card animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                        <TabsList className="w-full mb-4">
-                            <TabsTrigger value="upload" className="flex-1 gap-2"><UploadCloud className="h-4 w-4" /> Upload</TabsTrigger>
-                            <TabsTrigger value="url" className="flex-1 gap-2"><LinkIcon className="h-4 w-4" /> Add Link</TabsTrigger>
+                <div className="p-1.5 border border-border/40 rounded-3xl bg-muted/20 w-full min-w-0">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0">
+                        <TabsList className="h-10 bg-muted/40 p-1 rounded-2xl w-full border border-border/40 mb-2 shadow-inner">
+                            <TabsTrigger value="upload" className="rounded-xl text-[10px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                                <UploadCloud className="h-3.5 w-3.5" /> Upload
+                            </TabsTrigger>
+                            <TabsTrigger value="url" className="rounded-xl text-[10px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                                <LinkIcon className="h-3.5 w-3.5" /> Remote link
+                            </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="upload" className="mt-0">
-                            <label className={cn(
-                                "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-xl cursor-pointer bg-muted/20 hover:bg-muted/40 transition-colors",
-                                isLoading && "opacity-50 cursor-not-allowed"
-                            )}>
-                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                    {isLoading ? (
-                                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                                    ) : (
-                                        <Plus className="h-8 w-8 text-muted-foreground" />
-                                    )}
-                                    <p className="mt-2 text-sm text-muted-foreground">Click to upload Image or Doc</p>
-                                </div>
-                                <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} disabled={isLoading} />
-                            </label>
-                        </TabsContent>
+                        <div className="p-1">
+                            <TabsContent value="upload" className="mt-0 outline-none">
+                                <label className={cn(
+                                    "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border/60 rounded-[22px] cursor-pointer bg-background/50 hover:bg-background hover:border-primary/30 transition-all group",
+                                    isLoading && "opacity-50 cursor-not-allowed pointer-events-none"
+                                )}>
+                                    <div className="flex flex-col items-center justify-center">
+                                        {isLoading ? (
+                                            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                        ) : (
+                                            <Plus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                        )}
+                                        <p className="mt-1.5 text-xs font-bold text-muted-foreground">Select local file</p>
+                                    </div>
+                                    <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} disabled={isLoading} />
+                                </label>
+                            </TabsContent>
 
-                        <TabsContent value="url" className="mt-0 flex gap-2">
-                            <Input
-                                placeholder="https://..."
-                                value={urlInput}
-                                onChange={(e) => setUrlInput(e.target.value)}
-                                className="flex-1 rounded-xl"
-                            />
-                            <Button onClick={handleUrlAdd} disabled={!urlInput} className="rounded-xl">Add</Button>
-                        </TabsContent>
+                            <TabsContent value="url" className="mt-0 outline-none">
+                                <div className="flex gap-2 min-w-0">
+                                    <Input
+                                        placeholder="Paste image or video link..."
+                                        value={urlInput}
+                                        onChange={(e) => setUrlInput(e.target.value)}
+                                        className="h-11 rounded-2xl bg-background border-border/40 min-w-0 flex-1 shadow-inner text-xs font-medium"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleUrlAdd()}
+                                    />
+                                    <Button
+                                        onClick={handleUrlAdd}
+                                        disabled={!urlInput}
+                                        className="h-11 rounded-2xl px-6 text-xs font-bold shrink-0 shadow-sm"
+                                    >
+                                        Add
+                                    </Button>
+                                </div>
+                            </TabsContent>
+                        </div>
                     </Tabs>
                 </div>
             )}
 
-            {/* MEDIA LIST */}
-            {items.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
+                <AnimatePresence mode="popLayout">
                     {items.map((item) => (
-                        <div key={item.id} className={cn(
-                            "group relative flex gap-3 p-3 rounded-xl border transition-all duration-300",
-                            readOnly ? "bg-muted/10 border-transparent shadow-none" : "bg-card border-border hover:shadow-md"
-                        )}>
-                            {/* Thumbnail / Icon */}
-                            <div className="h-20 w-20 shrink-0 rounded-lg overflow-hidden bg-muted flex items-center justify-center border border-border">
+                        <motion.div
+                            layout
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            key={item.id}
+                            className={cn(
+                                "group relative flex gap-3 p-3 rounded-3xl border transition-all duration-200 min-w-0",
+                                readOnly ? "bg-transparent border-border/20" : "bg-card border-border/40 shadow-sm"
+                            )}
+                        >
+                            <div className="h-14 w-14 shrink-0 rounded-2xl overflow-hidden bg-muted flex items-center justify-center border border-border/40 shadow-inner relative">
                                 {item.type === 'IMAGE' ? (
-                                    <img src={item.url} alt={item.caption || 'Preview'} className="h-full w-full object-cover" />
+                                    <img src={item.url} alt="" className="h-full w-full object-cover" />
                                 ) : item.type === 'VIDEO' ? (
-                                    <Video className="h-8 w-8 text-muted-foreground" />
+                                    <div className="flex flex-col items-center gap-0.5">
+                                        <Video className="h-5 w-5 text-muted-foreground" />
+                                        <span className="text-[8px] font-black uppercase text-muted-foreground/60">Video</span>
+                                    </div>
                                 ) : (
-                                    <FileText className="h-8 w-8 text-muted-foreground" />
+                                    <FileText className="h-5 w-5 text-muted-foreground" />
                                 )}
                             </div>
 
-                            {/* Details Editor */}
-                            <div className="flex-1 min-w-0 flex flex-col gap-2 justify-center">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground uppercase tracking-widest border border-border/50">
+                            <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
+                                <div className="flex justify-between items-center gap-2">
+                                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-widest border border-primary/10 shrink-0">
                                         {item.type}
                                     </span>
-
                                     {!readOnly && (
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md"
+                                        <button
                                             onClick={() => onRemove(item.id)}
+                                            className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 outline-none"
                                         >
-                                            <X className="h-3.5 w-3.5" />
-                                        </Button>
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
                                     )}
                                 </div>
-
                                 <Input
                                     value={item.caption}
                                     onChange={(e) => onUpdate(item.id, { caption: e.target.value })}
                                     className={cn(
-                                        "h-8 text-xs transition-all duration-300",
-                                        readOnly
-                                            ? "bg-transparent border-transparent shadow-none font-bold text-foreground cursor-default focus-visible:ring-0 px-0"
-                                            : "bg-muted/30 border-input focus:bg-background rounded-lg"
+                                        "h-8 text-[11px] rounded-xl bg-muted/30 border-transparent focus:bg-background shadow-none px-2.5",
+                                        readOnly && "font-medium opacity-80"
                                     )}
-                                    placeholder={readOnly ? "" : "Add a caption (optional)..."}
+                                    placeholder="Add caption..."
                                     readOnly={readOnly}
                                 />
                             </div>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
-            )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 }
@@ -210,24 +220,33 @@ export function ImageUploader({
         if (!file) return;
         setIsLoading(true);
         try {
-            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
-                fileType: file.type,
-                useCase
-            });
-
+            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase });
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
-
             onUploadComplete({ key, previewUrl: viewUrl });
-            toast.success('Uploaded!');
-        } catch (e) { toast.error('Failed'); } finally { setIsLoading(false); }
+            toast.success('Uploaded successfully');
+        } catch (e) {
+            toast.error('Upload failed');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <label className={cn("flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-xl cursor-pointer bg-muted/20 hover:bg-muted/40 transition-colors", isLoading && "opacity-50 cursor-wait")}>
-            {isLoading ? <Loader2 className="animate-spin text-muted-foreground h-8 w-8" /> : <UploadCloud className="text-muted-foreground h-8 w-8" />}
-            <span className="mt-2 text-sm text-muted-foreground font-medium">{label}</span>
+        <label className={cn(
+            "flex flex-col items-center justify-center w-full h-full min-h-[120px] border-2 border-dashed border-border/60 rounded-[28px] cursor-pointer bg-muted/10 hover:bg-muted/20 hover:border-primary/30 transition-all shadow-sm group",
+            isLoading && "opacity-50 cursor-wait pointer-events-none"
+        )}>
+            <div className="flex flex-col items-center justify-center px-4 text-center">
+                {isLoading ? (
+                    <Loader2 className="animate-spin text-primary h-6 w-6" />
+                ) : (
+                    <div className="h-10 w-10 rounded-2xl bg-background border border-border/40 flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                        <UploadCloud className="text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors" />
+                    </div>
+                )}
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
+            </div>
             <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isLoading} />
         </label>
     )

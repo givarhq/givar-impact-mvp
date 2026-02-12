@@ -35,28 +35,28 @@ export function ProjectShowcase({ initialProjects, categories }: ProjectShowcase
     const handleShare = () => { };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
             <CategoryBrowser
                 categories={categories}
                 selected={selectedCategory}
                 onSelect={setSelectedCategory}
             />
 
-            <div className="relative min-h-[300px]">
+            <div className="relative min-h-[200px]">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={selectedCategory}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.2 }}
                     >
                         {isPending ? (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                            <div className="flex h-40 items-center justify-center">
+                                <Loader2 className="h-6 w-6 text-primary animate-spin" />
                             </div>
                         ) : projects.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                 {projects.map(p => (
                                     <ProjectCard
                                         key={p.id}
@@ -67,9 +67,12 @@ export function ProjectShowcase({ initialProjects, categories }: ProjectShowcase
                                 ))}
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center justify-center text-center py-20 text-muted-foreground border-2 border-dashed border-border rounded-2xl bg-muted/20">
-                                <Inbox className="h-10 w-10 opacity-20 mb-3" />
-                                <p className="font-semibold">No active causes in this category</p>
+                            <div className="flex flex-col items-center justify-center text-center py-12 px-4 rounded-3xl border border-dashed border-border/60 bg-muted/20">
+                                <div className="h-10 w-10 rounded-3xl bg-muted flex items-center justify-center mb-3">
+                                    <Inbox className="h-5 w-5 text-muted-foreground/50" />
+                                </div>
+                                <p className="text-sm font-bold text-foreground">No causes found</p>
+                                <p className="text-xs text-muted-foreground mt-1">Try another category or check back later.</p>
                             </div>
                         )}
                     </motion.div>

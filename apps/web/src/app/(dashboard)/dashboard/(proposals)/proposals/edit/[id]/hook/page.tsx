@@ -9,7 +9,7 @@ import { Input } from '../../../../../../../../components/ui/input';
 import { Textarea } from '../../../../../../../../components/ui/textarea';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function HookPage() {
@@ -30,81 +30,85 @@ export default function HookPage() {
         const data = await ApiService.proposals.get(proposalId);
         setProposal(data);
       } catch (error) {
-        toast.error("Failed to load proposal draft");
+        toast.error("Draft failed to load");
         router.push('/dashboard/proposals');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (proposalId) {
-      fetchProposal();
-    }
+    if (proposalId) fetchProposal();
   }, [proposalId, setProposal, router]);
 
   if (isLoading) {
     return (
-      <div className="flex h-[400px] items-center justify-center text-muted-foreground animate-pulse">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm font-medium">Initializing Workspace...</p>
-        </div>
+      <div className="flex h-64 items-center justify-center text-muted-foreground min-w-0">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <Card className="border-none shadow-none bg-transparent animate-in fade-in duration-500">
-      <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-2xl font-bold tracking-tight text-foreground">The Hook</CardTitle>
-        <CardDescription className="text-base">
-          Craft a compelling story. Use formatting to highlight your impact and make the proposal readable for donors.
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <Card className="border-border/40 bg-card rounded-[32px] overflow-hidden shadow-sm min-w-0">
+        <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
+          <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
+            <Sparkles className="h-4 w-4 shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Storytelling</span>
+          </div>
+          <CardTitle className="text-lg md:text-xl font-bold">Craft your cause narrative</CardTitle>
+          <CardDescription className="text-xs font-medium">
+            Define your mission and impact goals. This is the first thing donors will see.
+          </CardDescription>
+        </CardHeader>
 
-      <CardContent className="space-y-8 px-0 mt-4">
-        <div className="space-y-6">
-          <Input
-            label="Project Title"
-            placeholder="e.g., Clean Water for Owerri Community"
-            value={title}
-            onChange={(e) => updateField('title', e.target.value)}
-          />
+        <CardContent className="p-6 md:p-8 pt-6 space-y-8 min-w-0">
+          <div className="space-y-6 min-w-0">
+            <Input
+              label="Cause Title"
+              placeholder="e.g. Clean water for Owerri communities"
+              value={title}
+              onChange={(e) => updateField('title', e.target.value)}
+              className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
+            />
 
-          <Textarea
-            label="Elevator Pitch (140 characters)"
-            placeholder="A punchy one-liner that appears on discovery cards..."
-            value={shortDesc || ''}
-            onChange={(e) => updateField('shortDesc', e.target.value)}
-            maxLength={140}
-            className="h-20"
-          />
+            <Textarea
+              label="Elevator Pitch"
+              placeholder="A punchy one-liner (max 140 chars)..."
+              value={shortDesc || ''}
+              onChange={(e) => updateField('shortDesc', e.target.value)}
+              maxLength={140}
+              className="h-24 rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none"
+            />
 
-          <RichTextEditor
-            label="Full Project Description"
-            content={description || ''}
-            onChange={(content) => updateField('description', content)}
-            placeholder="Tell the full story. Who are the beneficiaries? What is the core problem and your verified solution?"
-          />
+            <div className="space-y-1.5 min-w-0">
+              <label className="text-xs font-bold text-muted-foreground/80 ml-1">Cause Description</label>
+              <RichTextEditor
+                content={description || ''}
+                onChange={(content) => updateField('description', content)}
+                placeholder="Tell the full story. Who are the beneficiaries and what is the solution?"
+              />
+            </div>
 
-          <Input
-            label="Target Location"
-            placeholder="e.g., Lagos, Nigeria"
-            value={location || ''}
-            onChange={(e) => updateField('location', e.target.value)}
-          />
-        </div>
+            <Input
+              label="Primary Location"
+              placeholder="e.g. Lagos, Nigeria"
+              value={location || ''}
+              onChange={(e) => updateField('location', e.target.value)}
+              className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
+            />
+          </div>
 
-        <div className="flex justify-end pt-8 border-t border-border/50">
-          <Button
-            size="lg"
-            className="h-12 rounded-xl px-10 shadow-xl shadow-primary/20 font-bold gap-2 active:scale-95 transition-all"
-            onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
-          >
-            Next: Media & Evidence <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex justify-end pt-6 border-t border-border/40 min-w-0">
+            <Button
+              className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0"
+              onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
+            >
+              Next: Media <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -4,16 +4,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Search,
   CircleUser,
   LogOut,
   Settings,
   ChevronDown,
   ShieldCheck,
-  User as UserIcon,
 } from 'lucide-react';
 import { deleteCookie, getCookie } from 'cookies-next';
-import toast from 'react-hot-toast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,8 +43,7 @@ export function Header({ user }: { user: any }) {
   }, []);
 
   const isImpersonating = getCookie('givar_is_impersonating') === 'true';
-
-  const displayName = user ? `${user.firstName} ${user.lastName}` : 'My Account';
+  const displayName = user ? `${user.firstName} ${user.lastName}` : 'My account';
   const displayEmail = user?.email || '';
   const avatarUrl = user?.avatarUrl;
 
@@ -71,40 +67,44 @@ export function Header({ user }: { user: any }) {
   const currentTitle = PAGE_TITLES[pathname] || 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 md:h-20 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
+    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center justify-between gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-border/40">
 
-      <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex items-center gap-6 w-full">
-          {/* Mobile Brand */}
+      {/* 1. Left Section: Title & Mobile Brand */}
+      <div className="flex items-center flex-1 min-w-0">
+        <div className="flex items-center gap-4">
           <div className="md:hidden flex items-center gap-3 shrink-0">
             <Link href="/dashboard" className="flex items-center gap-2 group">
-              <div>
-                <Image
-                  src="/Givar1.png"
-                  alt="Givar Logo"
-                  width={32}
-                  height={32}
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-foreground">
+              <Image
+                src="/Givar1.png"
+                alt="Givar Logo"
+                width={28}
+                height={28}
+                className="object-contain"
+                priority
+              />
+              <span className="text-lg font-bold tracking-tight text-foreground">
                 Givar<span className="text-primary">.</span>
               </span>
             </Link>
           </div>
 
-          {/* Desktop: Title and Global Search */}
-          <div className="hidden md:flex items-center gap-10 flex-1">
-            <h1 className="text-xl font-semibold text-foreground shrink-0 hidden lg:block">
-              {currentTitle}
-            </h1>
-            <UserGlobalSearch />
-          </div>
+          <h1 className="hidden md:block text-lg lg:text-xl font-semibold text-foreground truncate">
+            {currentTitle}
+          </h1>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3 shrink-0">
+      {/* 2. Middle Section: Wide Centered Search Bar */}
+      <div className="hidden md:flex flex-[3] justify-center px-8">
+        <div className="w-full max-w-6xl">
+          <UserGlobalSearch />
+        </div>
+      </div>
+
+
+
+      {/* 3. Right Section: User Actions & Profile */}
+      <div className="flex items-center justify-end flex-1 gap-2 md:gap-3 shrink-0">
         {isClient && ['ADMIN', 'SUPERADMIN'].includes(user?.role) && !isImpersonating && (
           <ViewModeToggle currentRole={user.role} />
         )}
@@ -113,38 +113,34 @@ export function Header({ user }: { user: any }) {
           <WalletWidget />
         </div>
 
-        <div className="h-8 w-px bg-border/50 mx-1 hidden md:block" />
+        <div className="hidden md:block h-6 w-px bg-border/40 mx-1" />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="group flex items-center gap-2 rounded-full pl-1 pr-1 md:pr-3 py-1 hover:bg-secondary/50 transition-all outline-none">
-              <div className="relative h-8 w-8 md:h-10 md:w-10 overflow-hidden rounded-full border-2 border-background shadow-sm bg-primary/10 flex items-center justify-center text-primary">
+            <button className="group flex items-center gap-2.5 rounded-3xl pl-1 pr-1 md:pr-3 py-1 hover:bg-muted transition-all outline-none">
+              <div className="relative h-8 w-8 md:h-9 md:w-9 overflow-hidden rounded-3xl border border-border/40 shadow-sm bg-primary/5 flex items-center justify-center text-primary shrink-0">
                 {isClient && avatarUrl ? (
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : isClient && user?.firstName ? (
-                  <span className="font-bold text-sm uppercase">
+                  <span className="font-bold text-xs uppercase">
                     {user.firstName[0]}
                   </span>
                 ) : (
-                  <CircleUser className="h-6 w-6" />
+                  <CircleUser className="h-5 w-5" />
                 )}
               </div>
-              <div className="hidden text-left md:block pr-2">
-                <span className="text-sm font-medium text-foreground leading-none block truncate max-w-[100px]">
-                  {isClient && user?.firstName ? user.firstName : 'Account'}
-                </span>
-              </div>
-              <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
+
+              <ChevronDown className="hidden md:block h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
             </button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-64 rounded-2xl p-1 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl">
+          <DropdownMenuContent align="end" className="w-60 rounded-3xl p-1 shadow-xl border-border/40 bg-card/95 backdrop-blur-xl">
             <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1 p-2">
-                <p className="text-sm font-bold leading-none text-foreground">
+              <div className="flex flex-col space-y-0.5 p-2">
+                <p className="text-sm font-bold text-foreground">
                   {displayName}
                 </p>
-                <p className="text-xs leading-none text-muted-foreground truncate">
+                <p className="text-xs text-muted-foreground truncate opacity-70">
                   {displayEmail}
                 </p>
               </div>
@@ -152,31 +148,27 @@ export function Header({ user }: { user: any }) {
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/settings')}>
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-muted-foreground">
-                <Settings className="h-4.5 w-4.5" />
+            <DropdownMenuItem className="rounded-3xl cursor-pointer py-2.5 gap-3" onClick={() => router.push('/dashboard/settings')}>
+              <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
+                <Settings className="h-4 w-4" />
               </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm">Profile & Settings</span>
-              </div>
+              <span className="font-semibold text-sm">Settings</span>
             </DropdownMenuItem>
 
             {user?.accountType === 'ORGANIZER' && (
-              <DropdownMenuItem className="rounded-xl cursor-pointer py-3 gap-3" onClick={() => router.push('/dashboard/settings?tab=org')}>
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-muted-foreground">
-                  <ShieldCheck className="h-4.5 w-4.5" />
+              <DropdownMenuItem className="rounded-3xl cursor-pointer py-2.5 gap-3" onClick={() => router.push('/dashboard/settings?tab=org')}>
+                <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
+                  <ShieldCheck className="h-4 w-4" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-sm">Verification Status</span>
-                </div>
+                <span className="font-semibold text-sm">Organization</span>
               </DropdownMenuItem>
             )}
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-xl cursor-pointer py-3 gap-3">
-              <LogOut className="h-4 w-4 ml-2.5" />
-              <span className="font-bold text-xs uppercase tracking-widest">Sign Out</span>
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-3xl cursor-pointer py-2.5 gap-3">
+              <LogOut className="h-4 w-4 ml-2" />
+              <span className="font-semibold text-sm">Sign out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

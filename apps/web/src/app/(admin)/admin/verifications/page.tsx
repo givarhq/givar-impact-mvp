@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
 import { VerificationTabs } from '../../../../components/features/admin/verification-tabs';
 import { Pagination } from '../../../../components/features/history/pagination';
-import { EvidenceFilters } from '../../../../components/features/admin/evidence-filters';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,14 +38,10 @@ export default async function AdminVerificationPage({
     const activeMeta = activeTab === 'evidence' ? evidenceData.meta : orgsData.meta;
 
     return (
-        <div className="space-y-8 pb-20 animate-in fade-in duration-500">
-            {/* Header row with search and title */}
-            <EvidenceFilters />
-
-            {/* Content Tabs */}
+        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
             <VerificationTabs orgs={orgsData} evidence={evidenceData} />
 
-            <div className="pt-4 border-t border-border/50">
+            <div className="pt-4 border-t border-border/40">
                 <Pagination currentPage={Number(activeMeta.page)} totalPages={Number(activeMeta.lastPage)} />
             </div>
         </div>

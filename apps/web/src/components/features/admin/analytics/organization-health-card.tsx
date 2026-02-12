@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 import { Building2 } from 'lucide-react';
+import { cn } from '../../../../lib/utils/cn';
 
 interface OrganizationHealthProps {
     metrics: {
@@ -15,30 +16,29 @@ interface OrganizationHealthProps {
 }
 
 export function OrganizationHealthCard({ metrics }: OrganizationHealthProps) {
-    // Calculate percentages for Radial Bars
     const verifiedPercent = metrics.totalEntities > 0 ? (metrics.verifiedCount / metrics.totalEntities) * 100 : 0;
     const activePercent = metrics.totalEntities > 0 ? (metrics.activeOrganizers / metrics.totalEntities) * 100 : 0;
 
     const data = [
-        { name: 'Verified', value: verifiedPercent, fill: '#10b981' },
+        { name: 'Verified', value: verifiedPercent, fill: 'hsl(var(--primary))' },
         { name: 'Active', value: activePercent, fill: '#3b82f6' }
     ];
 
     return (
-        <Card className="col-span-1 lg:col-span-4 rounded-[32px] border-border/50 bg-card shadow-xl shadow-primary/5 overflow-hidden h-[380px] flex flex-col">
-            <CardHeader className="p-6 pb-2">
-                <CardTitle className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-blue-500" /> Partner Health
+        <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
+            <CardHeader className="p-5 md:p-6 pb-2">
+                <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-blue-500" /> Partner health
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 relative flex flex-col items-center justify-center">
 
-                <div className="h-48 w-full relative">
+                <div className="h-44 w-full relative">
                     <ResponsiveContainer width="100%" height="100%">
                         <RadialBarChart
                             innerRadius="70%"
                             outerRadius="100%"
-                            barSize={12}
+                            barSize={10}
                             data={data}
                             startAngle={90}
                             endAngle={-270}
@@ -48,37 +48,35 @@ export function OrganizationHealthCard({ metrics }: OrganizationHealthProps) {
                         </RadialBarChart>
                     </ResponsiveContainer>
 
-                    {/* Center Stat */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                        <p className="text-3xl font-black text-foreground">{metrics.totalEntities}</p>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Entities</p>
+                        <p className="text-2xl font-bold text-foreground leading-none">{metrics.totalEntities}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Entities</p>
                     </div>
                 </div>
 
-                <div className="w-full px-8 pb-8 space-y-4">
+                <div className="w-full px-8 pb-6 space-y-3 mt-2">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-emerald-500" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Verified</span>
+                            <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                            <span className="text-xs font-medium text-muted-foreground">Verified nodes</span>
                         </div>
-                        <span className="text-sm font-black text-foreground">{metrics.verifiedCount}</span>
+                        <span className="text-xs font-bold text-foreground tabular-nums">{metrics.verifiedCount}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-blue-500" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Active Projects</span>
+                            <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                            <span className="text-xs font-medium text-muted-foreground">Active projects</span>
                         </div>
-                        <span className="text-sm font-black text-foreground">{metrics.activeOrganizers}</span>
+                        <span className="text-xs font-bold text-foreground tabular-nums">{metrics.activeOrganizers}</span>
                     </div>
-                    <div className="flex justify-between items-center opacity-60">
+                    <div className="flex justify-between items-center opacity-50">
                         <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-muted-foreground" />
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pending</span>
+                            <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                            <span className="text-xs font-medium text-muted-foreground">Pending review</span>
                         </div>
-                        <span className="text-sm font-black text-foreground">{metrics.pendingCount}</span>
+                        <span className="text-xs font-bold text-foreground tabular-nums">{metrics.pendingCount}</span>
                     </div>
                 </div>
-
             </CardContent>
         </Card>
     );

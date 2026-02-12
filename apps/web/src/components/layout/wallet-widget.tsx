@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Plus, ArrowUpRight, Eye, EyeOff } from 'lucide-react';
 import { SmartCurrency } from '../ui/smart-currency';
 import { ApiService } from '../../services/api';
-import { cn } from '../../lib/utils/cn';
 
 export function WalletWidget() {
     const [data, setData] = useState<{ balance: string, currency: string } | null>(null);
@@ -37,9 +36,9 @@ export function WalletWidget() {
             </Link>
 
             {/* Balance Display Area - Fixed width to prevent layout jump */}
-            <div className="flex items-center px-2 min-w-[120px] justify-between">
+            <div className="flex items-center px-2 pt-1 min-w-[120px] justify-between">
                 <div className="flex flex-col">
-                    <span className="text-[9px] uppercase font-black tracking-[0.15em] text-foreground/80 leading-none mb-0.5">
+                    <span className="text-xs font-semibold tracking-[0.15em] text-foreground/80 leading-none mb-0.5">
                         Wallet
                     </span>
                     <div className="h-5 flex items-center">

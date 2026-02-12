@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ApiService } from '../../../../../../services/api';
 import { getCookie, setCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Loader2, ArrowRight, Rocket, ShieldCheck, Sparkles, MailCheck } from 'lucide-react';
+import { Loader2, ArrowRight, Rocket, ShieldCheck, Sparkles, MailCheck, ChevronRight } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 
 const startSchema = z.object({
@@ -46,7 +46,7 @@ export default function StartProposalPage() {
         if (isOrganizer) {
             ApiService.projects.getCategories()
                 .then(setCategories)
-                .catch(() => toast.error('Could not load categories.'));
+                .catch(() => toast.error('Categories offline'));
         }
     }, [isOrganizer]);
 
@@ -65,11 +65,11 @@ export default function StartProposalPage() {
         try {
             await ApiService.auth.upgradeToOrganizer();
             const updatedUser = { ...user, accountType: 'ORGANIZER' };
-            setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 604800 });
-            toast.success('Organizer mode activated!');
+            setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 604800, path: '/' });
+            toast.success('Organizer mode active');
             router.refresh();
         } catch (e) {
-            toast.error('Upgrade failed.');
+            toast.error('Activation failed');
         } finally {
             setIsUpgrading(false);
         }
@@ -80,139 +80,134 @@ export default function StartProposalPage() {
         setIsLoading(true);
         try {
             const newProposal = await ApiService.proposals.create(data);
-            toast.success('Draft created! Lets add the details.');
             router.push(`/dashboard/proposals/edit/${newProposal.id}/hook`);
         } catch (error) {
-            toast.error('Failed to create draft.');
+            toast.error('Failed to initialize');
             setIsLoading(false);
         }
     };
 
-    const VerificationOverlay = () => (
-        <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300 rounded-[24px]">
-            <div className="h-16 w-16 rounded-3xl bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl shadow-rose-500/5">
-                <MailCheck className="h-8 w-8" />
-            </div>
-            <h4 className="text-xl font-black text-foreground uppercase tracking-tight">Identity Pending</h4>
-            <p className="text-sm text-muted-foreground mt-3 max-w-[320px] leading-relaxed font-medium">
-                Starting a new cause is restricted until you verify your email address. Please check your inbox.
-            </p>
-            <Button
-                variant="outline"
-                className="mt-8 rounded-xl h-12 px-8 border-rose-500/20 text-rose-600 font-bold hover:bg-rose-500/5"
-                onClick={() => window.location.reload()}
-            >
-                Check Verification Status
-            </Button>
-        </div>
-    );
-
     if (!isOrganizer) {
         return (
-            <div className="max-w-2xl mx-auto py-8 relative">
-                {isUnverified && <VerificationOverlay />}
+            <div className="max-w-xl mx-auto space-y-6 md:space-y-8 min-w-0">
+                <div className="md:hidden px-1">
+                    <h1 className="text-xl font-bold tracking-tight text-foreground">Launch cause</h1>
+                </div>
 
-                <div className={cn("space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500", isUnverified && "opacity-20 grayscale pointer-events-none")}>
-                    <div className="text-center space-y-2">
-                        <div className="h-16 w-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <Rocket className="h-8 w-8" />
+                <div className="text-center space-y-2 py-4 min-w-0">
+                    <div className="h-14 w-14 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">
+                        <Rocket className="h-7 w-7" />
+                    </div>
+                    <h2 className="hidden md:block text-2xl font-bold tracking-tight text-foreground">Launch your cause</h2>
+                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto font-medium leading-relaxed">
+                        Activate organizer mode to propose projects and raise verified impact capital.
+                    </p>
+                </div>
+
+                <div className="grid gap-3 min-w-0">
+                    {[
+                        { icon: ShieldCheck, title: 'Verified trust', desc: 'Complete identity vetting for donor confidence.', color: 'text-primary' },
+                        { icon: Sparkles, title: 'Direct funding', desc: 'Automated procurement and ledger tracking.', color: 'text-blue-500' }
+                    ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-4 p-4 rounded-3xl border border-border/40 bg-card shadow-sm min-w-0 group hover:border-primary/20 transition-all">
+                            <div className={cn("h-11 w-11 rounded-2xl bg-muted flex items-center justify-center shrink-0 shadow-inner", item.color)}>
+                                <item.icon className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h4 className="font-bold text-sm text-foreground leading-none mb-1">{item.title}</h4>
+                                <p className="text-xs text-muted-foreground truncate font-medium">{item.desc}</p>
+                            </div>
                         </div>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Launch your cause</h1>
-                        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                            Switch your account to Organizer mode to start proposing projects and raising funds.
+                    ))}
+                </div>
+
+                <Button
+                    onClick={onUpgrade}
+                    disabled={isUpgrading || isUnverified}
+                    className="w-full h-14 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2"
+                >
+                    {isUpgrading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate organizer mode'}
+                </Button>
+
+                {isUnverified && (
+                    <div className="p-5 rounded-3xl bg-amber-50 border border-amber-100 flex items-start gap-4 shadow-sm animate-in slide-in-from-top-2">
+                        <MailCheck className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-800 font-bold leading-relaxed">
+                            Cause initiation is restricted until you verify your email address. Please check your inbox.
                         </p>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-2">
-                            <ShieldCheck className="h-5 w-5 text-primary" />
-                            <h4 className="font-bold text-sm text-foreground">Verified Trust</h4>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                                Complete a one-time KYC process to ensure transparency and donor confidence.
-                            </p>
-                        </div>
-                        <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-2">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                            <h4 className="font-bold text-sm text-foreground">Direct Funding</h4>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                                Access the Givar treasury for automated vendor payments and tracking.
-                            </p>
-                        </div>
-                    </div>
-
-                    <Button
-                        onClick={onUpgrade}
-                        disabled={isUpgrading || isUnverified}
-                        size="lg"
-                        className="w-full h-12 rounded-xl font-bold shadow-lg shadow-primary/20"
-                    >
-                        {isUpgrading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate Organizer Mode'}
-                    </Button>
-                </div>
+                )}
             </div>
         );
     }
 
     return (
-        <Card className="border-none shadow-none bg-transparent relative">
-            {isUnverified && <VerificationOverlay />}
+        <div className="max-w-xl mx-auto space-y-6 min-w-0">
+            <div className="md:hidden px-1">
+                <h1 className="text-xl font-bold tracking-tight text-foreground">New cause</h1>
+            </div>
 
-            <div className={cn("transition-all duration-500", isUnverified && "opacity-20 grayscale blur-[1px] pointer-events-none")}>
-                <CardHeader>
-                    <CardTitle className="text-2xl font-bold tracking-tight">Start a New Cause</CardTitle>
-                    <CardDescription>
-                        Let&apos;s begin with a compelling title and the right category. This helps donors find your cause.
+            <Card className="border-border/40 bg-card rounded-[32px] shadow-sm overflow-hidden min-w-0">
+                <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
+                    <CardTitle className="text-lg md:text-xl font-bold">Start a new cause</CardTitle>
+                    <CardDescription className="text-xs font-medium">
+                        Begin with a compelling title and industry category.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                        <Input
-                            label="Project Title"
-                            placeholder="e.g., Provide Clean Drinking Water for 100 Families in Rural Lagos"
-                            {...register('title')}
-                            error={errors.title?.message}
-                            disabled={isLoading || isUnverified}
-                        />
+                <CardContent className="p-6 md:p-8 pt-6 min-w-0">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 min-w-0">
+                        <div className="space-y-5 min-w-0">
+                            <Input
+                                label="Project title"
+                                placeholder="e.g. Provide clean water for families"
+                                {...register('title')}
+                                error={errors.title?.message}
+                                disabled={isLoading || isUnverified}
+                                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
+                            />
 
-                        <Controller
-                            control={control}
-                            name="categoryId"
-                            render={({ field }) => (
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Category</label>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading || isUnverified}>
-                                        <SelectTrigger className="h-11 rounded-xl">
-                                            <SelectValue placeholder="Select a primary category..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {categories.length === 0 ? (
-                                                <div className="p-2 text-sm text-muted-foreground">Loading categories...</div>
-                                            ) : (
-                                                categories.map(cat => (
-                                                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.categoryId && <p className="text-xs text-destructive mt-1">{errors.categoryId.message}</p>}
-                                </div>
-                            )}
-                        />
-
-                        <div className="flex justify-end pt-4">
-                            <Button type="submit" size="lg" className="h-12 rounded-xl" disabled={isLoading || categories.length === 0 || isUnverified}>
-                                {isLoading ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <>
-                                        Save & Continue <ArrowRight className="ml-2 h-4 w-4" />
-                                    </>
-                                )}
-                            </Button>
+                            <div className="space-y-1.5 min-w-0">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Cause classification</label>
+                                <Controller
+                                    control={control}
+                                    name="categoryId"
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading || isUnverified}>
+                                            <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
+                                                <SelectValue placeholder="Select classification..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                                                {categories.length === 0 ? (
+                                                    <div className="p-4 text-xs text-muted-foreground text-center italic">Loading categories...</div>
+                                                ) : (
+                                                    categories.map(cat => (
+                                                        <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.categoryId && <p className="text-[10px] font-bold text-destructive mt-1 ml-1">{errors.categoryId.message}</p>}
+                            </div>
                         </div>
+
+                        <Button
+                            type="submit"
+                            className="w-full h-14 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2"
+                            disabled={isLoading || categories.length === 0 || isUnverified}
+                        >
+                            {isLoading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                                <>
+                                    Continue to setup <ArrowRight className="ml-1 h-4 w-4" />
+                                </>
+                            )}
+                        </Button>
                     </form>
                 </CardContent>
-            </div>
-        </Card>
+            </Card>
+        </div>
     );
 }

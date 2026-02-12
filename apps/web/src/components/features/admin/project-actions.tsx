@@ -41,20 +41,20 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
   };
 
   if (isLoading) return (
-    <div className="flex justify-end pr-4">
+    <div className="flex justify-end pr-2">
       <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
     </div>
   );
 
   return (
     <>
-      <div className="flex items-center justify-end gap-1">
+      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
         {/* Reactivate Action (Only if Suspended) */}
         {status === 'SUSPENDED' && (
           <button
             onClick={() => setShowReactivateConfirm(true)}
             title="Reactivate Project"
-            className="flex items-center justify-center text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 h-8 w-8 rounded-xl transition-colors"
+            className="flex items-center justify-center text-emerald-600 hover:bg-emerald-500/10 h-8 w-8 rounded-3xl transition-colors"
           >
             <PlayCircle className="h-4 w-4" />
           </button>
@@ -65,7 +65,7 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
           <button
             onClick={() => setShowSuspendConfirm(true)}
             title="Suspend Project"
-            className="flex items-center justify-center text-amber-500 hover:text-amber-600 hover:bg-amber-500/10 h-8 w-8 rounded-xl transition-colors"
+            className="flex items-center justify-center text-amber-600 hover:bg-amber-500/10 h-8 w-8 rounded-3xl transition-colors"
           >
             <Ban className="h-4 w-4" />
           </button>
@@ -75,7 +75,7 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         <button
           onClick={() => setShowDeleteConfirm(true)}
           title="Delete Project"
-          className="flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 h-8 w-8 rounded-xl transition-colors"
+          className="flex items-center justify-center text-rose-600 hover:bg-rose-500/10 h-8 w-8 rounded-3xl transition-colors"
         >
           <Trash2 className="h-4 w-4" />
         </button>

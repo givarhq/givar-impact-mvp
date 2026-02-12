@@ -18,56 +18,53 @@ export function Sidebar({ user }: { user: any }) {
   });
 
   return (
-    <div className="sticky top-0 h-screen w-full p-4 hidden md:block">
-      <div className="h-full flex flex-col gap-4 rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-xl overflow-hidden">
-
+    <div className="sticky top-0 h-screen w-full p-3 hidden md:block">
+      <div className="h-full flex flex-col gap-2 rounded-3xl bg-card border border-border/40 shadow-sm overflow-hidden">
         {/* Brand Area */}
-        <div className="flex h-[80px] shrink-0 items-center px-6">
+        <div className="flex h-16 shrink-0 items-center px-5">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 font-semibold group"
+            className="flex items-center gap-2.5 font-semibold group"
           >
-            <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg shadow-primary/10 transition-transform duration-300 group-hover:scale-105">
+            <div className="relative h-8 w-8 overflow-hidden rounded-3xl border border-border bg-background flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
               <Image
                 src="/Givar1.png"
                 alt="Givar Logo"
-                width={36}
-                height={36}
+                width={24}
+                height={24}
                 className="object-contain"
                 priority
               />
             </div>
-
-            <div className="flex flex-col">
-              <span className="text-xl tracking-wide font-bold transition-colors">
-                <span className="text-foreground">Givar</span>
-                <span className="text-primary">.</span>
-              </span>
-            </div>
+            <span className="text-lg tracking-tight font-bold text-foreground">
+              Givar<span className="text-primary">.</span>
+            </span>
           </Link>
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 px-3 py-2 overflow-y-auto no-scrollbar">
-          <nav className="grid items-start gap-2 text-sm font-medium">
+        <div className="flex-1 px-2 py-2 overflow-y-auto no-scrollbar">
+          <nav className="grid items-start gap-1 text-sm font-medium">
             {filteredNav.map((item, index) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              const isActive = item.href === '/dashboard'
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
 
               return (
                 <Link
                   key={index}
                   href={item.href}
                   className={cn(
-                    'group flex items-center gap-3 px-4 py-3 transition-all duration-300 rounded-xl',
+                    'group flex items-center gap-3 px-4 py-2.5 transition-all duration-200 rounded-3xl',
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-semibold'
+                      ? 'bg-primary text-primary-foreground shadow-sm font-bold'
                       : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   )}
                 >
                   <Icon
                     className={cn(
-                      'h-5 w-5 transition-colors',
+                      'h-4.5 w-4.5 transition-colors',
                       isActive
                         ? 'text-primary-foreground'
                         : 'text-muted-foreground group-hover:text-foreground'
@@ -80,24 +77,23 @@ export function Sidebar({ user }: { user: any }) {
           </nav>
         </div>
 
-        {/* Start a Cause */}
-        <div className="p-3 mt-auto shrink-0">
+        {/* Start a Cause - High Density Card */}
+        <div className="p-2 mt-auto shrink-0 border-t border-border/40">
           <Link href="/dashboard/proposals/start" className="block group">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10 p-4 transition-all hover:shadow-lg hover:shadow-primary/5">
-              <div className="flex items-center justify-between mb-2">
+            <div className="relative overflow-hidden rounded-3xl bg-muted/30 border border-border/50 p-4 transition-all hover:bg-muted/50">
+              <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-3xl bg-primary/20 text-primary">
                     <Rocket className="h-3 w-3" />
                   </div>
-                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                  <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">
                     Start a Cause
                   </span>
                 </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
               </div>
-
-              <p className="text-[10px] text-muted-foreground leading-relaxed">
-                Raise funds for your community with transparent tracking.
+              <p className="text-xs text-muted-foreground leading-tight">
+                Launch your verified impact project.
               </p>
             </div>
           </Link>

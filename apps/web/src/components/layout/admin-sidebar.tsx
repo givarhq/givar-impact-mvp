@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, FileText, ShieldAlert,
-  LogOut, Lock, BadgeCheck, NotebookPen, Database, Building
+  LogOut, Lock, BadgeCheck, Database, Building
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
@@ -42,29 +42,29 @@ export function AdminSidebar({ user }: { user: any }) {
   };
 
   return (
-    <div className="sticky top-0 h-screen p-4">
-      <div className="h-full flex flex-col gap-4 rounded-3xl bg-card/50 backdrop-blur-xl border border-border/50 shadow-xl overflow-hidden">
+    <div className="sticky top-0 h-screen p-3">
+      <div className="h-full flex flex-col gap-2 rounded-3xl bg-card border border-border/40 shadow-sm overflow-hidden">
 
         {/* Brand Area */}
-        <div className="flex h-[80px] shrink-0 items-center px-6">
+        <div className="flex h-16 shrink-0 items-center px-6">
           <div className="flex items-center gap-3 font-semibold">
-            <div className="relative h-9 w-9 rounded-xl border border-destructive/20 bg-destructive/10 flex items-center justify-center text-destructive font-bold shadow-lg shadow-destructive/5">
+            <div className="relative h-9 w-9 rounded-3xl border border-destructive/20 bg-destructive/10 flex items-center justify-center text-destructive shadow-sm">
               <Lock className="h-4 w-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg tracking-wide font-bold transition-colors text-foreground leading-none">
+              <span className="text-lg tracking-tight font-bold text-foreground leading-none">
                 Givar
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-destructive mt-1">
-                Admin Panel
+              <span className="text-xs font-bold text-destructive mt-1">
+                Admin panel
               </span>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <div className="flex-1 px-3 py-2 overflow-y-auto no-scrollbar">
-          <nav className="grid items-start gap-2 text-sm font-medium">
+        <div className="flex-1 px-2 py-2 overflow-y-auto no-scrollbar">
+          <nav className="grid items-start gap-1 text-sm font-medium">
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -74,13 +74,13 @@ export function AdminSidebar({ user }: { user: any }) {
                   key={index}
                   href={item.href}
                   className={cn(
-                    'group flex items-center gap-3 px-4 py-3 transition-all duration-300 rounded-xl',
+                    'group flex items-center gap-3 px-4 py-2.5 transition-all duration-200 rounded-3xl',
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 font-semibold'
+                      ? 'bg-primary text-primary-foreground shadow-sm font-bold'
                       : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                   )}
                 >
-                  <Icon className={cn("h-5 w-5 transition-colors", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                  <Icon className={cn("h-4.5 w-4.5 transition-colors", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
                   {item.title}
                 </Link>
               );
@@ -89,13 +89,13 @@ export function AdminSidebar({ user }: { user: any }) {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-3 mt-auto shrink-0 border-t border-border/50">
+        <div className="p-2 mt-auto shrink-0 border-t border-border/40">
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-11 rounded-xl transition-all"
+            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 rounded-3xl transition-all font-bold text-xs"
             onClick={handleLogout}
           >
-            <LogOut className="mr-3 h-4 w-4" /> Sign Out
+            <LogOut className="mr-3 h-4 w-4" /> Sign out
           </Button>
         </div>
       </div>

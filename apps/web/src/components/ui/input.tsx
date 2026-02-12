@@ -12,9 +12,9 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, error, label, rightElement, ...props }, ref) => {
     return (
-      <div className="w-full space-y-1.5">
+      <div className="w-full space-y-1">
         {label && (
-          <label className="text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground/80">
+          <label className="text-xs font-bold text-muted-foreground/80 ml-1">
             {label}
           </label>
         )}
@@ -22,8 +22,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             type={type}
             className={cn(
-              'flex h-12 w-full rounded-xl border border-input bg-background/50 px-4 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 pr-12',
-              error && 'border-destructive focus-visible:ring-destructive/20',
+              'flex h-10 w-full rounded-3xl border border-border/40 bg-muted/20 px-4 py-2 text-sm transition-all duration-200 outline-none placeholder:text-muted-foreground/50 focus:bg-background focus:ring-2 focus:ring-primary/10 focus:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50 pr-10',
+              error && 'border-destructive/50 focus:ring-destructive/10 focus:border-destructive/40',
               className
             )}
             ref={ref}
@@ -36,7 +36,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className="text-[0.75rem] font-bold text-destructive animate-in slide-in-from-top-1 fade-in-0 px-1">
+          <p className="text-xs font-bold text-destructive px-1 animate-in slide-in-from-top-1 duration-200">
             {error}
           </p>
         )}

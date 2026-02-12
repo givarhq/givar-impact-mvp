@@ -10,31 +10,28 @@ import { ApiService } from '../../../services/api';
 
 interface ProjectGridProps {
   projects: Project[];
-  isPublic?: boolean
+  isPublic?: boolean;
 }
 
 export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [shareProject, setShareProject] = useState<Project | null>(null);
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  
   const [wallet, setWallet] = useState<Wallet | null>(null);
 
   const handleDonateClick = (project: Project) => {
     const token = getCookie('givar_token');
 
     if (token && !wallet) {
-        ApiService.wallet.get()
-            .then(setWallet)
-            .catch((err) => {
-               console.error("Wallet fetch skipped/failed:", err);
-            });
+      ApiService.wallet.get()
+        .then(setWallet)
+        .catch((err) => {
+          console.error("Wallet fetch skipped/failed:", err);
+        });
     }
-    
+
     setSelectedProject(project);
-    setIsModalOpen(true);
+    // Note: Redirection to donation page is handled within ProjectCard
   };
 
   const handleShareClick = (project: Project) => {
@@ -42,46 +39,41 @@ export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
     setIsShareOpen(true);
   };
 
-  const handleClose = () => {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedProject(null), 200);
-  };
-
   if (projects.length === 0) {
     return (
-        <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-border rounded-2xl bg-card/30">
-            <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                <SearchX className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold">No causes found</h3>
-            <p className="text-muted-foreground mt-2 max-w-md">
-                Try adjusting your filters or search terms.
-            </p>
+      <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5 min-w-0">
+        <div className="h-14 w-14 bg-muted/50 rounded-3xl flex items-center justify-center mb-4 border border-border/40">
+          <SearchX className="h-6 w-6 text-muted-foreground/40" />
         </div>
+        <h3 className="text-sm font-bold text-foreground tracking-tight">No causes found</h3>
+        <p className="text-xs text-muted-foreground mt-1.5 max-w-[240px] font-medium leading-relaxed">
+          Try adjusting your active filters or searching for another term.
+        </p>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+    <div className="w-full min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 min-w-0">
         {projects.map((project) => (
-          <ProjectCard 
-            key={project.id} 
-            project={project} 
-            onDonate={handleDonateClick} 
-            onShare={handleShareClick}
-            isPublic={isPublic}
-          />
+          <div key={project.id} className="min-w-0 flex-1">
+            <ProjectCard
+              project={project}
+              onDonate={handleDonateClick}
+              onShare={handleShareClick}
+              isPublic={isPublic}
+            />
+          </div>
         ))}
       </div>
 
-
-      <ShareModal 
+      <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
         projectTitle={shareProject?.title || ''}
         projectSlug={shareProject?.slug || ''}
       />
-    </>
+    </div>
   );
 }

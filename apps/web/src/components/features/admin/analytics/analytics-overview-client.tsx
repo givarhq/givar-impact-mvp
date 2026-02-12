@@ -17,20 +17,20 @@ export function AnalyticsOverviewClient({ report }: AnalyticsOverviewClientProps
     if (!report) return null;
 
     return (
-        <div className="space-y-8 pb-20">
-            {/* ROW 1: KPI Stat Grid (Now fully interactive) */}
+        <div className="space-y-6 md:space-y-8 pb-20 animate-in fade-in duration-500">
+            {/* KPI Stat Grid */}
             <AnalyticsStatGrid
                 summary={report.summary}
                 avgDonation={report.financials?.avgDonationAmount}
             />
 
-            {/* ROW 2: Financials & Intelligence (The Mix of Graphic and Text) */}
+            {/* Main Financial & Operational Row */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-8">
                     <FinancialTrendChart
                         data={report.financials.recentTrends}
-                        title="Liquidity Velocity"
-                        subtitle="Volume vs Frequency (30 Day Trend)"
+                        title="Liquidity velocity"
+                        subtitle="Volume vs frequency (30 day trend)"
                     />
                 </div>
                 <div className="lg:col-span-4">
@@ -38,20 +38,30 @@ export function AnalyticsOverviewClient({ report }: AnalyticsOverviewClientProps
                 </div>
             </div>
 
-            {/* ROW 3: Leaderboard & Critical Intel Feed (Direct Action Center) */}
+            {/* Performance & Intel Feed */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <ProjectPerformanceCard
-                    topFunded={report.projectPerformance.topFunded || []}
-                    mostActive={report.projectPerformance.mostActive || []}
-                />
-                <SystemIntelFeed report={report} />
+                <div className="lg:col-span-6">
+                    <ProjectPerformanceCard
+                        topFunded={report.projectPerformance.topFunded || []}
+                        mostActive={report.projectPerformance.mostActive || []}
+                    />
+                </div>
+                <div className="lg:col-span-6">
+                    <SystemIntelFeed report={report} />
+                </div>
             </div>
 
-            {/* ROW 4: Auxiliary Operational Context */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <SectorAllocationCard data={report.projectMetrics.categoryDistribution} />
-                <EvidenceStatusChart metrics={report.evidenceMetrics} />
-                <EntityCompositionCard data={report.userMetrics.accountTypeDistribution} />
+            {/* Distribution Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-6">
+                <div className="lg:col-span-4">
+                    <SectorAllocationCard data={report.projectMetrics.categoryDistribution} />
+                </div>
+                <div className="lg:col-span-4">
+                    <EvidenceStatusChart metrics={report.evidenceMetrics} />
+                </div>
+                <div className="lg:col-span-4">
+                    <EntityCompositionCard data={report.userMetrics.accountTypeDistribution} />
+                </div>
             </div>
         </div>
     );

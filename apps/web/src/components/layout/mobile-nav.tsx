@@ -46,7 +46,7 @@ export function MobileNav({ user }: { user: any }) {
         )}
       >
         <Icon className={cn("h-5 w-5 mb-0.5", isActive && "fill-current/20")} />
-        <span className="text-[10px] font-medium text-center">{item.title}</span>
+        <span className="text-xs font-medium text-center">{item.title}</span>
       </Link>
     );
   };

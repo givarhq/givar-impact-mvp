@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Download, Loader2, Search, X, Filter } from 'lucide-react';
+import { Download, Loader2, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import {
@@ -36,6 +36,8 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
+  const prevFiltersRef = useRef<string>('');
+
   const [sort, setSort] = useState({
     column: (searchParams.get('sortBy') || 'createdAt') as "status" | "createdAt" | "amount" | "description",
     order: (searchParams.get('sortOrder') || 'desc') as "asc" | "desc",
@@ -64,22 +66,38 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
   };
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', '1');
+    const params = new URLSearchParams();
+
+    const currentFiltersStr = JSON.stringify({ ...filters, ...sort });
+    const filtersChanged = prevFiltersRef.current !== '' && prevFiltersRef.current !== currentFiltersStr;
+
+    if (filtersChanged) {
+      params.set('page', '1');
+    } else {
+      params.set('page', searchParams.get('page') || '1');
+    }
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value && value !== 'all') params.set(key, value);
-      else params.delete(key);
     });
 
     params.set('sortBy', sort.column);
     params.set('sortOrder', sort.order);
 
-    const handler = setTimeout(() => {
-      router.replace(`${pathname}?${params.toString()}`);
-    }, 300);
+    const newQueryString = params.toString();
+    const currentQueryString = searchParams.toString();
 
-    return () => clearTimeout(handler);
+    if (newQueryString !== currentQueryString) {
+      const handler = setTimeout(() => {
+        router.replace(`${pathname}?${newQueryString}`);
+        prevFiltersRef.current = currentFiltersStr;
+      }, 300);
+      return () => clearTimeout(handler);
+    }
+
+    if (prevFiltersRef.current === '') {
+      prevFiltersRef.current = currentFiltersStr;
+    }
   }, [filters, sort, pathname, router, searchParams]);
 
   const handleExport = async () => {
@@ -98,9 +116,9 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success('Export downloaded successfully');
+      toast.success('Forensic ledger exported');
     } catch (error) {
-      toast.error('Failed to export transactions');
+      toast.error('Export failed');
     } finally {
       setIsExporting(false);
     }
@@ -109,61 +127,62 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
   const hasActiveFilters = filters.search || filters.type !== 'all' || filters.status !== 'all';
 
   return (
-    <div className="space-y-8">
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-4 w-full relative min-h-[40px]">
+    <div className="space-y-6 md:space-y-8 w-full min-w-0 animate-in fade-in duration-500">
+      {/* Header & Global Filters Row */}
+      <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
         <div className="flex items-center gap-6 flex-1 min-w-0">
-          <h1 className="md:hidden text-xl font-semibold tracking-tight text-foreground whitespace-nowrap">
+          <h1 className="md:hidden text-xl font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">
             History
           </h1>
 
-          {/* Desktop Search */}
-          <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-transparent focus-within:border-primary/30 transition-all">
-            <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          {/* Desktop Search Integration */}
+          <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
+            <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
             <Input
-              placeholder="Search by description or reference..."
-              className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
+              placeholder="Search reference or description..."
+              className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-11 w-full placeholder:text-muted-foreground/50 font-medium"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Mobile Search Toggle */}
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
             className={cn(
-              "md:hidden h-10 w-10 rounded-xl transition-all",
+              "md:hidden h-11 w-11 rounded-3xl transition-all",
               isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
             )}
           >
             {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
           </Button>
 
-          {/* Desktop Filters */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
-              <SelectTrigger className="w-[130px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
+              <SelectTrigger className="w-[130px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="CREDIT">Credit</SelectItem>
-                <SelectItem value="DEBIT">Debit</SelectItem>
+              <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All types</SelectItem>
+                <SelectItem value="CREDIT" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Credit</SelectItem>
+                <SelectItem value="DEBIT" className="text-xs font-bold rounded-2xl py-2 text-rose-600">Debit</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
-              <SelectTrigger className="w-[130px] h-10 bg-muted/50 border-none font-semibold text-xs tracking-widest rounded-xl">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger className="w-[140px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
+                <div className="flex items-center gap-2 truncate">
+                  <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <SelectValue placeholder="Status" />
+                </div>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All status</SelectItem>
+                <SelectItem value="COMPLETED" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Completed</SelectItem>
+                <SelectItem value="PENDING" className="text-xs font-bold rounded-2xl py-2 text-amber-600">Pending</SelectItem>
               </SelectContent>
             </Select>
 
@@ -172,14 +191,14 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
               size="sm"
               onClick={handleExport}
               disabled={isExporting}
-              className="h-10 px-4 rounded-xl border-dashed border-border text-xs font-semibold gap-2 bg-transparent"
+              className="h-11 px-6 rounded-3xl border-border/60 font-bold text-xs uppercase tracking-widest gap-2 bg-transparent hover:bg-muted transition-all"
             >
-              {isExporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
+              {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
               Export
             </Button>
 
             {hasActiveFilters && (
-              <Button variant="ghost" onClick={clearFilters} className="h-10 px-4 rounded-xl text-muted-foreground text-xs font-semibold">
+              <Button variant="ghost" onClick={clearFilters} className="h-11 px-4 rounded-3xl text-muted-foreground text-xs font-bold hover:text-primary transition-colors">
                 Reset
               </Button>
             )}
@@ -187,51 +206,58 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
         </div>
       </div>
 
-      {/* Mobile Expanded Search Area */}
+      {/* Mobile Expanded Filters */}
       {isMobileSearchVisible && (
-        <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300 w-full min-w-0">
+          <div className="relative group min-w-0">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
             <Input
               placeholder="Search history..."
-              className="pl-11 h-12 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/20"
+              className="pl-11 h-12 rounded-3xl bg-muted/30 border-border/40 focus:bg-background focus:border-primary/20 text-sm font-medium"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
-              <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="CREDIT">Credit</SelectItem>
-                <SelectItem value="DEBIT">Debit</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
-              <SelectTrigger className="h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-12 rounded-2xl border-dashed border-border font-bold text-xs gap-2 flex-1">
-              {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              CSV
-            </Button>
-            <Button variant="ghost" onClick={clearFilters} className="h-12 rounded-2xl font-bold text-xs flex-1">
-              Reset Filters
-            </Button>
+          <div className="flex flex-col gap-3 min-w-0">
+            <div className="grid grid-cols-2 gap-3">
+              <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
+                <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent className="rounded-3xl">
+                  <SelectItem value="all">All types</SelectItem>
+                  <SelectItem value="CREDIT">Credit</SelectItem>
+                  <SelectItem value="DEBIT">Debit</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
+                <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-3xl">
+                  <SelectItem value="all">All status</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-12 rounded-3xl border-border/60 font-bold text-xs uppercase tracking-widest gap-2 flex-1 bg-background">
+                {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                CSV export
+              </Button>
+              {hasActiveFilters && (
+                <Button variant="ghost" onClick={clearFilters} className="h-12 rounded-3xl font-bold text-xs uppercase tracking-widest flex-1 border border-transparent">
+                  Reset
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      <div className="space-y-6">
+      {/* Ledger Records Container */}
+      <div className="space-y-6 w-full min-w-0 overflow-hidden">
         <HistoryTable
           transactions={initialData.data}
           sortBy={sort.column}
@@ -239,10 +265,12 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
           onSort={handleSort}
         />
 
-        <Pagination
-          currentPage={initialData.meta.page}
-          totalPages={initialData.meta.lastPage}
-        />
+        <div className="pt-4 border-t border-border/40">
+          <Pagination
+            currentPage={initialData.meta.page}
+            totalPages={initialData.meta.lastPage}
+          />
+        </div>
       </div>
     </div>
   );

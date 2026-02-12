@@ -34,9 +34,7 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
             try {
                 const user = JSON.parse(cookie as string);
                 setUserRole(user.role);
-            } catch (e) {
-                // Ignore parse error
-            }
+            } catch (e) { }
         }
     }, []);
 
@@ -55,12 +53,12 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
         setIsBusy(true);
         try {
             await ApiService.admin.bulkUpdateUsers({ userIds: selectedIds, action });
-            toast.success(`Batch execution sequence successful.`);
+            toast.success(`Batch operation successful`);
             setConfirmConfig({ isOpen: false, action: null });
             onClear();
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Batch operation failure.");
+            toast.error(e.response?.data?.message || "Batch failure");
         } finally {
             setIsBusy(false);
         }
@@ -68,12 +66,11 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
 
     const getActionMeta = (action: BulkActionType | null) => {
         if (!action) return { title: '', desc: '', variant: 'default' as const };
-
-        const label = action.replace('SET_', '').replace('_', ' ');
+        const label = action.replace('SET_', '').replace('_', ' ').toLowerCase();
         const count = selectedIds.length;
 
-        let title = `Confirm Batch ${label}`;
-        let desc = `You are about to apply the ${label} status to ${count} selected accounts.`;
+        let title = `Confirm batch ${label}`;
+        let desc = `Apply ${label} status to ${count} selected accounts?`;
         let variant: 'default' | 'destructive' | 'warning' = 'default';
 
         if (action === 'LOCK') {
@@ -81,12 +78,12 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
             desc += " This will restrict access immediately.";
         } else if (action === 'SET_ADMIN') {
             variant = 'warning';
-            title = "Promote to Admin";
-            desc += " These users will gain elevated system privileges. This is a high-risk action.";
+            title = "Promote to admin";
+            desc += " Accounts will gain administrative privileges.";
         } else if (action === 'SET_USER') {
             variant = 'destructive';
-            title = "Demote to User";
-            desc += " These accounts will lose all administrative privileges.";
+            title = "Demote to user";
+            desc += " Accounts will lose all admin permissions.";
         }
 
         return { title, desc, variant };
@@ -96,86 +93,76 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
 
     return (
         <>
-            <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-bottom-20 duration-700 w-fit max-w-[98vw] px-2">
-                <div className="bg-zinc-950/95 text-white rounded-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] p-1.5 flex items-center border border-white/10 backdrop-blur-2xl ring-1 ring-white/5">
+            <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-bottom-8 duration-300 w-fit max-w-[95vw]">
+                <div className="bg-zinc-950 text-white rounded-3xl shadow-2xl p-1.5 flex items-center border border-white/10 backdrop-blur-xl">
 
-                    {/* 1. Forensic Selection Stats */}
-                    <div className="flex items-center gap-3 border-r border-white/10 pl-4 pr-4 shrink-0">
-                        <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-[14px] font-black text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+                    <div className="flex items-center gap-3 border-r border-white/10 pl-4 pr-3 shrink-0">
+                        <div className="h-8 w-8 rounded-3xl bg-primary flex items-center justify-center text-xs font-bold text-black">
                             {selectedIds.length}
                         </div>
                         <div className="flex flex-col leading-tight">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-200">Selected</span>
-                            <span className="text-[8px] font-bold text-zinc-500 uppercase">Forensic batch</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300">Batch</span>
+                            <span className="text-xs font-medium text-zinc-500">selected</span>
                         </div>
                     </div>
 
-                    {/* 2. Action Hub */}
-                    <div className="flex items-center gap-0.5 shrink-0 px-1">
+                    <div className="flex items-center gap-0.5 px-1 shrink-0">
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-10 rounded-full hover:bg-destructive/20 text-white hover:text-white font-bold text-[9px] uppercase tracking-widest px-3 border-none"
+                            className="h-9 rounded-3xl text-white hover:bg-destructive/20 font-bold text-[11px] uppercase tracking-wider px-3"
                             onClick={() => handleActionClick('LOCK')}
                             disabled={isBusy}
                         >
-                            <Lock className="h-3.5 w-3.5 text-destructive mr-1.5" />
-                            <span className="hidden sm:inline">Lock</span>
+                            <Lock className="h-3.5 w-3.5 mr-1.5 text-destructive" />
+                            Lock
                         </Button>
 
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-10 rounded-full hover:bg-emerald-500/10 text-white hover:text-white font-bold text-[9px] uppercase tracking-widest px-3 border-none"
+                            className="h-9 rounded-3xl text-white hover:bg-emerald-500/10 font-bold text-[11px] uppercase tracking-wider px-3"
                             onClick={() => handleActionClick('UNLOCK')}
                             disabled={isBusy}
                         >
-                            <Unlock className="h-3.5 w-3.5 text-emerald-500 mr-1.5" />
-                            <span className="hidden sm:inline">Unlock</span>
+                            <Unlock className="h-3.5 w-3.5 mr-1.5 text-emerald-500" />
+                            Unlock
                         </Button>
 
-                        {/* SUPERADMIN ONLY CONTROLS */}
                         {isSuperAdmin && (
                             <>
-                                <div className="w-px h-6 bg-white/10 mx-1" />
-
+                                <div className="w-px h-5 bg-white/10 mx-1" />
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-10 rounded-full hover:bg-blue-500/10 text-white hover:text-white font-bold text-[9px] uppercase tracking-widest px-3 border-none"
+                                    className="h-9 rounded-3xl text-white hover:bg-blue-500/10 font-bold text-[11px] uppercase tracking-wider px-3"
                                     onClick={() => handleActionClick('SET_ADMIN')}
                                     disabled={isBusy}
                                 >
-                                    <Shield className="h-3.5 w-3.5 text-blue-400 mr-1.5" />
-                                    <span className="hidden sm:inline">Promote</span>
+                                    <Shield className="h-3.5 w-3.5 mr-1.5 text-blue-400" />
+                                    Promote
                                 </Button>
-
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-10 rounded-full hover:bg-amber-500/10 text-white hover:text-white font-bold text-[9px] uppercase tracking-widest px-3 border-none"
+                                    className="h-9 rounded-3xl text-white hover:bg-amber-500/10 font-bold text-[11px] uppercase tracking-wider px-3"
                                     onClick={() => handleActionClick('SET_USER')}
                                     disabled={isBusy}
                                 >
-                                    <ShieldOff className="h-3.5 w-3.5 text-amber-500 mr-1.5" />
-                                    <span className="hidden sm:inline">Demote</span>
+                                    <ShieldOff className="h-3.5 w-3.5 mr-1.5 text-amber-500" />
+                                    Demote
                                 </Button>
                             </>
                         )}
                     </div>
 
-                    {/* 3. Termination Control */}
-                    <div className="flex items-center shrink-0 border-l border-white/10 pl-1.5 pr-1.5">
+                    <div className="flex items-center shrink-0 border-l border-white/10 pl-1">
                         <button
                             onClick={onClear}
-                            className="h-9 w-9 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center transition-all text-zinc-400 hover:text-white group"
-                            title="Discard Selection"
+                            className="h-8 w-8 rounded-3xl hover:bg-white/10 flex items-center justify-center transition-all text-zinc-400 hover:text-white"
+                            title="Discard"
                         >
-                            {isBusy ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <X className="h-4 w-4 group-hover:rotate-90 transition-transform" />
-                            )}
+                            {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-4 w-4" />}
                         </button>
                     </div>
                 </div>
@@ -189,7 +176,7 @@ export function BulkActionsToolbar({ selectedIds, onClear }: BulkActionsToolbarP
                 variant={meta.variant}
                 title={meta.title}
                 description={meta.desc}
-                confirmText="Execute Batch"
+                confirmText="Execute"
             />
         </>
     );

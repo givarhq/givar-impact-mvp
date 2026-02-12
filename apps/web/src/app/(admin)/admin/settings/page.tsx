@@ -4,7 +4,7 @@ import { ApiService } from '../../../../services/api';
 import { AdminSettingsClient } from '../../../../components/features/admin/settings/admin-settings-client';
 
 export const metadata = {
-    title: 'System Settings',
+    title: 'System settings',
     description: 'Configure administrative identity, security protocols, and system preferences.',
 };
 
@@ -23,12 +23,15 @@ export default async function AdminSettingsPage() {
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-            <div className="flex flex-col gap-1 px-1">
-                <h1 className="text-xl md:hidden font-black tracking-tight text-foreground">System Settings</h1>
+        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+            {/* Mobile page title */}
+            <div className="px-1 md:hidden">
+                <h1 className="text-xl font-bold tracking-tight text-foreground">System settings</h1>
             </div>
 
-            <AdminSettingsClient user={user} />
+            <div className="w-full min-w-0">
+                <AdminSettingsClient user={user} />
+            </div>
         </div>
     );
 }

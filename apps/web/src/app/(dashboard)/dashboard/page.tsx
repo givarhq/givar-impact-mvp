@@ -17,7 +17,6 @@ export default async function DashboardPage({
   const resolvedParams = await searchParams;
   const activeTab = resolvedParams.tab || 'discovery';
 
-  // Comprehensive parallel fetch for Discovery and Portfolio states
   const [
     dbUser,
     history,
@@ -50,21 +49,18 @@ export default async function DashboardPage({
   const trending = activeProjects.slice(3, 6);
 
   return (
-    <div className="animate-in fade-in duration-500 pb-10">
-      <Tabs defaultValue={activeTab} className="space-y-6">
-
-        {/* Intelligence Header & Tab Switcher */}
+    <div className="animate-in fade-in duration-300">
+      <Tabs defaultValue={activeTab} className="space-y-4 md:space-y-6">
+        {/* Unified Identity & Tab Switcher */}
         <DashboardHero
           firstName={dbUser.firstName}
           totalImpact={totalImpactBigInt.toString()}
           donationCount={history?.length || 0}
         />
 
-        {/* --- DISCOVERY TAB --- */}
-        <TabsContent value="discovery" className="space-y-8 outline-none mt-0">
-          <section className="pt-2">
-            <FeaturedCarousel projects={featured} />
-          </section>
+        {/* Discovery Feed Tab */}
+        <TabsContent value="discovery" className="space-y-6 md:space-y-8 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <FeaturedCarousel projects={featured} />
 
           <DiscoveryFeed
             trending={trending}
@@ -73,15 +69,14 @@ export default async function DashboardPage({
           />
         </TabsContent>
 
-        {/* --- PORTFOLIO TAB --- */}
-        <TabsContent value="portfolio" className="outline-none mt-0">
+        {/* Impact Portfolio Tab */}
+        <TabsContent value="portfolio" className="outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <PortfolioView
             wallet={wallet || { balance: '0', currency: 'NGN' }}
             history={history || []}
             activeGoal={activeGoal}
           />
         </TabsContent>
-
       </Tabs>
     </div>
   );

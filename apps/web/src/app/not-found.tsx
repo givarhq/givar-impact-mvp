@@ -63,24 +63,24 @@ export default async function NotFound() {
                 {/* Smart Actions */}
                 <div className="flex flex-col gap-3 pt-4">
                     <Link href={homePath} className="w-full">
-                        <Button size="lg" className="w-full h-14 rounded-2xl font-bold text-base shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform gap-2">
+                        <Button size="lg" className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0">
                             <Home className="h-4 w-4" />
                             {isAuthenticated ? 'Back to Dashboard' : 'Return to Home'}
                         </Button>
                     </Link>
 
                     <Link href={browsePath} className="w-full">
-                        <Button variant="ghost" className="w-full h-12 rounded-xl text-muted-foreground hover:text-foreground font-semibold gap-2">
+                        <Button variant="ghost" className="w-full h-12 rounded-3xl text-muted-foreground hover:text-foreground font-semibold gap-2">
                             Browse Verified Causes <ArrowRight className="h-4 w-4" />
                         </Button>
                     </Link>
                 </div>
 
                 {/* Footer Meta */}
-                <div className="pt-12 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/30">
+                <div className="pt-12 text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/30">
                     Error: RESOURCE_NOT_FOUND_ON_LEDGER
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

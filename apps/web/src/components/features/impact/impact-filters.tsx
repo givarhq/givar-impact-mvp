@@ -48,96 +48,100 @@ export function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
   };
 
   return (
-    <div className="space-y-8">
-      {/* Top Header Row */}
-      <div className="flex items-center justify-between gap-4 relative min-h-[40px]">
-        <div className="flex items-center gap-6 flex-1">
-          <h1 className="md:hidden text-xl font-semibold tracking-tight text-foreground whitespace-nowrap">
-            Explore Causes
+    <div className="space-y-6 md:space-y-8 w-full min-w-0">
+      {/* Header Row */}
+      <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
+        <div className="flex items-center gap-6 flex-1 min-w-0">
+          <h1 className="md:hidden text-xl font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">
+            Explore causes
           </h1>
 
-          {/* Desktop Search: Beside H1, no background */}
-          <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-transparent focus-within:border-primary/30 transition-all">
-            <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          {/* Desktop Search */}
+          <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
+            <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
             <Input
-              placeholder="Search causes..."
-              className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
+              placeholder="Search causes by title or location..."
+              className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-11 w-full placeholder:text-muted-foreground/50 font-medium"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Action Group: Mobile Search Toggle + Desktop Sort */}
-        <div className="flex items-center gap-2">
-          {/* Mobile Search Toggle */}
+        {/* Global Action Group */}
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
             className={cn(
-              "md:hidden h-10 w-10 rounded-xl transition-all",
+              "md:hidden h-11 w-11 rounded-3xl transition-all",
               isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
             )}
           >
             {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
           </Button>
 
-          {/* Sort Dropdown - Desktop Only in this row */}
+          {/* Desktop Sort */}
           <div className="hidden md:block">
             <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="w-[140px] h-10 rounded-xl bg-muted/50 border-none font-semibold text-xs tracking-widest">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-3 w-3" />
-                  <SelectValue placeholder="Sort" />
+              <SelectTrigger className="w-[160px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
+                <div className="flex items-center gap-2 min-w-0">
+                  <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <SelectValue placeholder="Sort" className="truncate" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl shadow-xl border-border/50">
-                <SelectItem value="newest" className="text-xs font-semibold">Newest</SelectItem>
-                <SelectItem value="most_funded" className="text-xs font-semibold">Most Funded</SelectItem>
-                <SelectItem value="ending_soon" className="text-xs font-semibold">Ending Soon</SelectItem>
+              <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                <SelectItem value="newest" className="text-xs font-bold rounded-2xl py-2">Newest arrival</SelectItem>
+                <SelectItem value="most_funded" className="text-xs font-bold rounded-2xl py-2">Highest funded</SelectItem>
+                <SelectItem value="ending_soon" className="text-xs font-bold rounded-2xl py-2">Closing soon</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
       </div>
 
-      {/* Expanded Mobile Search Area */}
+      {/* Mobile Expanded Filters Area */}
       {isMobileSearchVisible && (
-        <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300">
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300 w-full min-w-0">
+          <div className="relative group min-w-0">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
             <Input
               placeholder="Search causes..."
-              className="pl-11 h-12 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/20"
+              className="pl-11 h-12 rounded-3xl bg-muted/30 border-border/40 focus:bg-background focus:border-primary/20 text-sm font-medium"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-3 min-w-0">
             <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="flex-1 h-12 rounded-2xl bg-muted/30 border-transparent font-semibold text-xs tracking-widest">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="h-3 w-3" />
-                  <SelectValue placeholder="Sort" />
+              <SelectTrigger className="w-full h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
+                <div className="flex items-center gap-2 min-w-0">
+                  <SlidersHorizontal className="h-4 w-4 shrink-0" />
+                  <SelectValue placeholder="Sort by" className="truncate" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl shadow-xl border-border/50">
-                <SelectItem value="newest" className="text-xs font-semibold">Newest</SelectItem>
-                <SelectItem value="most_funded" className="text-xs font-semibold">Most Funded</SelectItem>
-                <SelectItem value="ending_soon" className="text-xs font-semibold">Ending Soon</SelectItem>
+              <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                <SelectItem value="newest" className="text-xs font-bold">Newest arrival</SelectItem>
+                <SelectItem value="most_funded" className="text-xs font-bold">Highest funded</SelectItem>
+                <SelectItem value="ending_soon" className="text-xs font-bold">Closing soon</SelectItem>
               </SelectContent>
             </Select>
             {(search || activeCategory !== 'all' || sort !== 'newest') && (
-              <Button variant="outline" onClick={clearFilters} className="h-12 rounded-2xl border-dashed border-border text-xs font-semibold">
-                Reset
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="w-full h-12 rounded-3xl border-dashed border-border/60 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all"
+              >
+                Clear filters
               </Button>
             )}
           </div>
         </div>
       )}
 
-      <div className="pt-2">
+      {/* Category Navigation */}
+      <div className="pt-2 w-full min-w-0 overflow-hidden">
         <CategoryBrowser
           categories={categories}
           selected={activeCategory}
