@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
     Loader2, Wallet, CreditCard, CheckCircle, Mail,
-    Lock, AlertCircle, Eye, MailCheck, Plus
+    Lock, AlertCircle, Eye, MailCheck, Plus, RefreshCw
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -26,6 +26,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const router = useRouter();
     const [amount, setAmount] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
     const [interval, setInterval] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
     const [selectedMethod, setSelectedMethod] = useState<'wallet' | 'direct' | null>(null);
@@ -33,10 +34,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isUnverified, setIsUnverified] = useState(false);
 
-    useEffect(() => {
-        const impersonating = getCookie('givar_is_impersonating') === 'true';
-        setIsReadOnly(impersonating);
-
+    const checkVerification = () => {
         const userCookie = getCookie('givar_user');
         if (userCookie) {
             try {
@@ -46,6 +44,12 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 setIsUnverified(false);
             }
         }
+    };
+
+    useEffect(() => {
+        const impersonating = getCookie('givar_is_impersonating') === 'true';
+        setIsReadOnly(impersonating);
+        checkVerification();
 
         setAmount('');
         setIsLoading(false);
@@ -55,6 +59,23 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
             setSelectedMethod(null);
         }
     }, [project, isAuthenticated]);
+
+    const handleRefreshStatus = async () => {
+        setIsRefreshing(true);
+        try {
+            const freshUser = await ApiService.auth.getMe();
+            if (freshUser.emailVerified) {
+                setIsUnverified(false);
+                toast.success("Identity verified. Access restored.");
+            } else {
+                toast.error("Status: Still Pending");
+            }
+        } catch (error) {
+            toast.error("Verification check failed");
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
 
     const isGuest = !isAuthenticated;
     const [guestEmail, setGuestEmail] = useState('');
@@ -165,9 +186,11 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     </p>
                     <Button
                         variant="outline"
-                        className="mt-6 rounded-3xl h-10 px-6 border-rose-500/20 text-rose-600 hover:bg-rose-500/5 font-bold text-xs"
-                        onClick={() => window.location.reload()}
+                        className="mt-6 rounded-3xl h-10 px-6 border-rose-500/20 text-rose-600 hover:bg-rose-500/5 font-bold text-xs gap-2"
+                        onClick={handleRefreshStatus}
+                        disabled={isRefreshing}
                     >
+                        {isRefreshing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                         Check verification status
                     </Button>
                 </div>

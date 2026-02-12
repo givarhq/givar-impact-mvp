@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CreditCard, Loader2, ShieldCheck, MailCheck } from 'lucide-react';
+import { ArrowLeft, CreditCard, Loader2, ShieldCheck, MailCheck, RefreshCw } from 'lucide-react';
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../components/ui/card';
@@ -16,9 +16,10 @@ export default function FundWalletPage() {
   const router = useRouter();
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUnverified, setIsUnverified] = useState(false);
 
-  useEffect(() => {
+  const checkVerification = () => {
     const userCookie = getCookie('givar_user');
     if (userCookie) {
       try {
@@ -28,7 +29,28 @@ export default function FundWalletPage() {
         setIsUnverified(false);
       }
     }
+  };
+
+  useEffect(() => {
+    checkVerification();
   }, []);
+
+  const handleRefreshStatus = async () => {
+    setIsRefreshing(true);
+    try {
+      const freshUser = await ApiService.auth.getMe();
+      if (freshUser.emailVerified) {
+        setIsUnverified(false);
+        toast.success("Identity verified. Wallet access restored.");
+      } else {
+        toast.error("Verification still pending");
+      }
+    } catch (error) {
+      toast.error("Status check failed");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isUnverified) return;
@@ -67,7 +89,6 @@ export default function FundWalletPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20 min-w-0">
 
-      {/* Navigation Header */}
       <div className="flex flex-col gap-4 px-1 min-w-0">
         <Button
           variant="ghost"
@@ -93,9 +114,11 @@ export default function FundWalletPage() {
             </div>
             <Button
               variant="outline"
-              className="mt-8 rounded-3xl h-11 px-8 border-rose-500/20 text-rose-600 font-bold text-xs hover:bg-rose-500/5 transition-all"
-              onClick={() => window.location.reload()}
+              className="mt-8 rounded-3xl h-11 px-8 border-rose-500/20 text-rose-600 font-bold text-xs hover:bg-rose-500/5 transition-all gap-2"
+              onClick={handleRefreshStatus}
+              disabled={isRefreshing}
             >
+              {isRefreshing ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
               Check verification status
             </Button>
           </div>

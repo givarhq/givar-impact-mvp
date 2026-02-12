@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { apiClient } from '../lib/api-client';
 import { GivingGoal, OrganizationProfile, Project, Wallet } from '../types';
+import { setCookie } from 'cookies-next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_V1 = `${BASE_URL}/v1`;
@@ -72,7 +73,20 @@ export const ApiService = {
     upgradeToOrganizer: () =>
       apiClient.patch('/auth/account-type/organizer').then(r => r.data),
 
-    getMe: (token: string) => serverFetch<any>('/auth/me', token),
+    getMe: async (token?: string) => {
+      // 1. If token is provided, it's a server-side call
+      if (token) return serverFetch<any>('/auth/me', token);
+
+      // 2. If no token, it's a client-side call using the instance interceptor
+      const res = await apiClient.get('/auth/me');
+
+      // 3. Synchronize fresh profile state to client cookies for real-time UI updates
+      if (typeof window !== 'undefined') {
+        setCookie('givar_user', JSON.stringify(res.data), { maxAge: 604800, path: '/' });
+      }
+
+      return res.data;
+    },
 
     updateProfile: (data: { firstName: string; lastName: string }) =>
       apiClient.patch('/auth/profile', data).then(r => r.data),
