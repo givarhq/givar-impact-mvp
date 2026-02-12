@@ -119,9 +119,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
         setIsVerifying(true);
         try {
             await ApiService.auth.verifyEmailCode(verificationCode);
+            // Refresh full profile and sync cookie using updated getMe()
+            await ApiService.auth.getMe();
             toast.success("Email verified successfully");
-            setCookie('givar_user', JSON.stringify({ ...user, emailVerified: true }), { maxAge: 604800, path: '/' });
-            window.location.reload();
+            window.location.reload(); // Refresh UI to clear unverified states globally
         } catch (e) {
             toast.error("Invalid verification code");
         } finally {

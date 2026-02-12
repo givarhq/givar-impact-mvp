@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ApiService } from '../../../services/api';
 import { Loader2, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
+import { getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 
 export default function VerifyEmailPage({
@@ -22,14 +23,24 @@ export default function VerifyEmailPage({
       return;
     }
 
-    ApiService.auth.verifyEmail(token)
-      .then(() => {
+    const performVerification = async () => {
+      try {
+        await ApiService.auth.verifyEmail(token);
+
+        // If the user is already logged in, refresh their profile cookie immediately
+        const existingToken = getCookie('givar_token');
+        if (existingToken) {
+          await ApiService.auth.getMe();
+        }
+
         setStatus('success');
         toast.success('Email verified successfully');
-      })
-      .catch(() => {
+      } catch (error) {
         setStatus('error');
-      });
+      }
+    };
+
+    performVerification();
   }, [token]);
 
   return (
@@ -61,7 +72,7 @@ export default function VerifyEmailPage({
             </p>
           </div>
           <Button className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] border-0 gap-2" onClick={() => router.push('/login')}>
-            Continue to sign in <ArrowRight className="h-4 w-4" />
+            Continue <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       )}
