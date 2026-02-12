@@ -18,7 +18,7 @@ interface PlatformStats {
 
 export function HeroSection({ stats }: { stats: PlatformStats }) {
     return (
-        <div className="relative min-h-screen w-full flex flex-col justify-end overflow-hidden bg-black">
+        <div className="relative min-h-screen w-full flex flex-col justify-start md:justify-end overflow-hidden bg-black">
             {/* BACKGROUND LAYER */}
             <div className="absolute inset-0 z-0">
                 <Image
