@@ -281,4 +281,28 @@ export class AdminController {
     }
     return this.service.sweepStaleSmallRemainderProjects(req.user.id);
   }
+
+  /**
+   * Bulk Project Operation
+   * Handles batch activation, suspension, or deletion of cause nodes.
+   */
+  @Post('projects/bulk')
+  async bulkUpdateProjects(
+    @Req() req: any,
+    @Body() dto: { projectIds: string[], action: 'ACTIVATE' | 'SUSPEND' | 'DELETE' }
+  ) {
+    return this.service.bulkUpdateProjects(req.user.id, dto);
+  }
+
+  /**
+   * Bulk Proposal Operation
+   * Orchestrates mass approval or rejection of incoming project proposals.
+   */
+  @Post('proposals/bulk')
+  async bulkUpdateProposals(
+    @Req() req: any,
+    @Body() dto: { proposalIds: string[], action: 'APPROVE' | 'REJECT' }
+  ) {
+    return this.service.bulkUpdateProposals(req.user.id, dto);
+  }
 }

@@ -285,6 +285,12 @@ export const ApiService = {
     bulkUpdateUsers: (data: { userIds: string[], action: 'LOCK' | 'UNLOCK' | 'SET_USER' | 'SET_ADMIN' }) =>
       apiClient.post('/admin/users/bulk', data).then(r => r.data),
 
+    bulkUpdateProjects: (data: { projectIds: string[], action: 'ACTIVATE' | 'SUSPEND' | 'DELETE' }) =>
+      apiClient.post('/admin/projects/bulk', data).then(r => r.data),
+
+    bulkUpdateProposals: (data: { proposalIds: string[], action: 'APPROVE' | 'REJECT' }) =>
+      apiClient.post('/admin/proposals/bulk', data).then(r => r.data),
+
     exportUsers: (params: URLSearchParams) =>
       apiClient.get(`/admin/users/export?${params.toString()}`, {
         responseType: 'blob',
