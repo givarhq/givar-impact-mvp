@@ -90,7 +90,9 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const targetAmountMinor = BigInt(project?.targetAmount || '0');
     const raisedAmountMinor = BigInt(project?.raisedAmount || '0');
     const remainingNeededMinor = targetAmountMinor - raisedAmountMinor;
-    const isOverfunding = donationAmountMinor > remainingNeededMinor;
+
+    // Logic: Identify when a donation will finish or exceed the goal
+    const isCompletingProject = donationAmountMinor >= remainingNeededMinor && remainingNeededMinor > 0n;
 
     if (!project) return null;
 
@@ -103,7 +105,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     };
 
     const handleConfirm = async () => {
-        if (isReadOnly || isUnverified || isOverfunding) return;
+        if (isReadOnly || isUnverified) return;
 
         if (needsFunding) {
             router.push('/dashboard/wallet/fund');
@@ -280,11 +282,9 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                     <p className="text-xs font-bold text-muted-foreground">Payment method</p>
                                     <button
                                         onClick={() => setSelectedMethod('wallet')}
-                                        disabled={isOverfunding}
                                         className={cn(
                                             "w-full h-auto flex items-center p-3 border rounded-3xl transition-all relative",
-                                            selectedMethod === 'wallet' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30",
-                                            isOverfunding && "opacity-50 cursor-not-allowed grayscale"
+                                            selectedMethod === 'wallet' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30"
                                         )}
                                     >
                                         <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-primary/10 mr-3 text-primary border border-primary/10 shrink-0"><Wallet className="h-4.5 w-4.5" /></div>
@@ -299,11 +299,9 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
                                     <button
                                         onClick={() => setSelectedMethod('direct')}
-                                        disabled={isOverfunding}
                                         className={cn(
                                             "w-full h-auto flex items-center p-3 border rounded-3xl transition-all relative",
-                                            selectedMethod === 'direct' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30",
-                                            isOverfunding && "opacity-50 cursor-not-allowed grayscale"
+                                            selectedMethod === 'direct' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30"
                                         )}
                                     >
                                         <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-muted mr-3 text-muted-foreground border border-border/40 shrink-0"><CreditCard className="h-4.5 w-4.5" /></div>
@@ -316,12 +314,14 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     </Tabs>
                 )}
 
-                {amount && isOverfunding && (
-                    <div className="flex items-start gap-2.5 p-3 rounded-3xl bg-amber-50 border border-amber-100 text-amber-700 animate-in slide-in-from-bottom-2">
-                        <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                {amount && isCompletingProject && (
+                    <div className="flex items-start gap-2.5 p-3 rounded-3xl bg-primary/5 border border-primary/10 text-primary animate-in slide-in-from-bottom-2">
+                        <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />
                         <div className="text-xs space-y-0.5">
-                            <p className="font-bold">Goal threshold reached</p>
-                            <p className="font-medium">This project only needs <strong>{formatCurrency(remainingNeededMinor.toString(), project.currency)}</strong> to complete. Please adjust.</p>
+                            <p className="font-bold">Final Contribution</p>
+                            <p className="font-medium">
+                                This gift will complete the project goal. Any surplus will be reallocated to urgent causes on the ledger.
+                            </p>
                         </div>
                     </div>
                 )}
@@ -329,7 +329,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 <div className="flex items-center justify-center">
                     <Button
                         onClick={handleConfirm}
-                        disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod) || isOverfunding}
+                        disabled={isLoading || !amount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod)}
                         className={cn(
                             "w-[12rem] h-12 text-sm font-bold rounded-3xl shadow-sm transition-all mt-2",
                             needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 border border-border/60" : "bg-primary text-white hover:bg-primary/90"
