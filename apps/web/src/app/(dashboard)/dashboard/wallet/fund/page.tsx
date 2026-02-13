@@ -80,9 +80,10 @@ export default function FundWalletPage() {
       if (data.authorizationUrl) {
         window.location.href = data.authorizationUrl;
       }
-    } catch (error) {
+    } catch (error: any) {
       setIsLoading(false);
-      toast.error('Payment initialization failed');
+      const message = error.response?.data?.message || 'Payment initialization failed';
+      toast.error(message);
     }
   };
 
@@ -165,7 +166,7 @@ export default function FundWalletPage() {
                   key={val}
                   onClick={() => setQuickAmount(val)}
                   disabled={isUnverified}
-                  className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-2xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm"
+                  className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-3xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm"
                 >
                   ₦{Number(val).toLocaleString()}
                 </button>
@@ -183,7 +184,7 @@ export default function FundWalletPage() {
           <Button
             onClick={handleFund}
             disabled={isLoading || !amount || isUnverified}
-            className="w-full h-14 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-0"
+            className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-0"
           >
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
               isUnverified ? 'Verification Required' : 'Proceed to Gateway'

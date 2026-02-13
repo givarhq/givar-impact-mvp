@@ -23,7 +23,7 @@ import { EmailService } from '../email/email.service';
 export class WalletService {
   private readonly logger = new Logger(WalletService.name);
 
-  private readonly MAX_AMOUNT_MINOR = 100_000_000_000_000n;
+  private readonly MAX_AMOUNT_MINOR = 10_000_000_000n;
   private readonly MIN_AMOUNT_MINOR = 10000n;
 
   constructor(
@@ -41,15 +41,17 @@ export class WalletService {
     try {
       amountBig = BigInt(amountStr);
     } catch {
-      throw new BadRequestException('Invalid amount format');
+      throw new BadRequestException('Invalid amount format provided to the ledger node.');
     }
 
     if (amountBig < this.MIN_AMOUNT_MINOR) {
-      throw new BadRequestException('Amount below minimum allowed (100.00)');
+      throw new BadRequestException('Amount below minimum allowed (₦100.00).');
     }
 
     if (amountBig > this.MAX_AMOUNT_MINOR) {
-      throw new BadRequestException('Amount exceeds maximum allowed limit');
+      throw new BadRequestException(
+        'Transaction exceeds high-capital threshold (₦100m). Please split the deposit or contact Givar support for institutional onboarding.'
+      );
     }
 
     return Number(amountBig);
