@@ -2058,4 +2058,89 @@ export class AdminService {
       auditLogs
     };
   }
+
+  /**
+   * Dust Sweep Protocol
+   * Identifies projects where the remaining balance is less than the minimum donation (₦100)
+   * and has been stagnant for over 30 days.
+   */
+  async sweepStaleSmallRemainderProjects(adminId: string) {
+    const STALE_THRESHOLD_DAYS = 30;
+    const DUST_LIMIT_MINOR = 10000n; // ₦100.00
+    const staleDate = subDays(new Date(), STALE_THRESHOLD_DAYS);
+
+    // 1. Identify candidate nodes
+    const candidates = await this.prisma.project.findMany({
+      where: {
+        status: ProjectStatus.ACTIVE,
+        updatedAt: { lt: staleDate },
+      },
+    });
+
+    const staleProjects = candidates.filter(p => {
+      const remaining = p.targetAmount - p.raisedAmount;
+      return remaining > 0n && remaining < DUST_LIMIT_MINOR;
+    });
+
+    if (staleProjects.length === 0) {
+      return { swept: 0, message: 'No stale dust nodes identified.' };
+    }
+
+    const results = await this.prisma.$transaction(async (tx) => {
+      const sweptIds = [];
+
+      for (const project of staleProjects) {
+        const gap = project.targetAmount - project.raisedAmount;
+
+        // 2. Perform Target Alignment
+        // We set the goal to exactly what was raised to 'complete' the ledger node.
+        await tx.project.update({
+          where: { id: project.id },
+          data: {
+            targetAmount: project.raisedAmount,
+            status: ProjectStatus.FUNDED,
+            fundedAt: new Date(),
+          },
+        });
+
+        // 3. Create transparency update
+        await tx.projectUpdate.create({
+          data: {
+            projectId: project.id,
+            title: 'Project Goal Finalized',
+            content: `The project goal has been aligned to the total capital raised (₦${(Number(project.raisedAmount) / 100).toLocaleString()}) to initiate the execution phase.`,
+            type: 'ANNOUNCEMENT',
+          },
+        });
+
+        // 4. Forensic Audit
+        await tx.auditLog.create({
+          data: {
+            userId: adminId,
+            action: AuditAction.PROJECT_UPDATED,
+            entityId: project.id,
+            entityType: 'Project',
+            metadata: {
+              action: 'DUST_SWEEP_PROTOCOL',
+              originalTarget: project.targetAmount.toString(),
+              finalTarget: project.raisedAmount.toString(),
+              absorbedGap: gap.toString(),
+              reason: 'STALE_SMALL_REMAINDER',
+            },
+          },
+        });
+
+        sweptIds.push(project.id);
+      }
+
+      return sweptIds;
+    });
+
+    this.logger.log(`[Sweep] Protocol executed by ${adminId}. Resolved ${results.length} stale nodes.`);
+
+    return {
+      swept: results.length,
+      projectIds: results,
+    };
+  }
 }

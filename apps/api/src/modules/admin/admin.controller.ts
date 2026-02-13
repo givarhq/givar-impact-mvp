@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards, Delete, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards, Delete, Post, Res, ForbiddenException } from '@nestjs/common';
 import { type Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -267,5 +267,18 @@ export class AdminController {
   @Get('search')
   globalSearch(@Query('q') query: string) {
     return this.service.globalSearch(query);
+  }
+
+  /**
+   * Trigger Dust Sweep Protocol
+   * Manually invoke the cleanup of stale projects with negligible remaining balances.
+   */
+  @Post('ledger/sweep')
+  async triggerDustSweep(@Req() req: any) {
+    // Note: Usually restricted to SUPERADMIN via internal logic check if needed
+    if (req.user.role !== UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Root access required for ledger sweep.');
+    }
+    return this.service.sweepStaleSmallRemainderProjects(req.user.id);
   }
 }
