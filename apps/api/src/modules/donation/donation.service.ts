@@ -390,14 +390,12 @@ export class DonationService {
   }) {
     const { userId, guestEmail, guestName, projectId, amount, currency, reference, channel } = data;
 
-    // 1. Channel Validation (Anti-Fraud) - Outside TX for performance
     if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money'].includes(channel)) {
       this.logger.warn(`Suspicious payment channel ignored`, { channel, reference });
       return { status: 'ignored_channel', reference };
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
-      // 2. Strict Webhook Idempotency Check (Inside Serializable TX)
       const existingUserDonation = await tx.donation.findFirst({
         where: { transaction: { reference } },
         select: { id: true }
@@ -411,14 +409,12 @@ export class DonationService {
         return { status: 'duplicate', reference };
       }
 
-      // 3. Transactional Re-read of Project State
       const project = await tx.project.findUnique({
         where: { id: projectId },
       });
 
       if (!project) throw new NotFoundException('Project node missing on ledger');
 
-      // 4. Cap & Spillover Calculation
       const currentRemaining = project.targetAmount - project.raisedAmount;
       const actualRemaining = (project.status !== ProjectStatus.ACTIVE || currentRemaining <= 0n) ? 0n : currentRemaining;
 
@@ -428,38 +424,30 @@ export class DonationService {
       let processedDonationId: string;
       let isGoalMet = false;
 
-      // 5. Branching Logic: Registered User vs Guest
       if (userId !== 'GUEST') {
-        // --- PATH: REGISTERED USER ---
-        const wallet = await tx.wallet.findUniqueOrThrow({
-          where: { userId_currency: { userId, currency } }
-        });
+        // --- PATH: REGISTERED USER (FIXED FOR SYMMETRY) ---
 
-        // Double-entry symmetry: Record the gateway inflow to user wallet first
-        await tx.walletTransaction.create({
-          data: {
-            walletId: wallet.id,
-            amount,
-            currency,
-            type: TxType.CREDIT,
-            status: TxStatus.COMPLETED,
-            reference: `IN-${reference}`,
-            description: `Direct Pay Inflow`,
-          },
-        });
+        // 1. Process Inflow: Atomically increment wallet balance
+        await this.walletRepo.processTransaction({
+          userId,
+          amount,
+          currency,
+          type: TxType.CREDIT,
+          reference: `IN-${reference}`,
+          description: `Direct Pay Inflow`,
+          status: TxStatus.COMPLETED,
+        }, tx);
 
-        // Record the debit for the donation
-        const donationTx = await tx.walletTransaction.create({
-          data: {
-            walletId: wallet.id,
-            amount,
-            currency,
-            type: TxType.DEBIT,
-            status: TxStatus.COMPLETED,
-            reference,
-            description: `Direct donation: ${project.title}`,
-          },
-        });
+        // 2. Process Outflow: Atomically decrement wallet balance
+        const { transaction: donationTx } = await this.walletRepo.processTransaction({
+          userId,
+          amount,
+          currency,
+          type: TxType.DEBIT,
+          reference,
+          description: `Direct donation: ${project.title}`,
+          status: TxStatus.COMPLETED,
+        }, tx);
 
         if (amountToProject > 0n) {
           const donation = await tx.donation.create({
@@ -498,7 +486,7 @@ export class DonationService {
           data: {
             guestDonorId: guestDonor.id,
             projectId,
-            amount: amountToProject, // Only the capped portion
+            amount: amountToProject,
             currency,
             reference,
             status: TxStatus.COMPLETED
@@ -507,7 +495,6 @@ export class DonationService {
         processedDonationId = guestDonation.id;
       }
 
-      // 6. Impact Application (Project Credit)
       if (amountToProject > 0n) {
         const updatedProject = await tx.project.update({
           where: { id: projectId },
@@ -524,7 +511,6 @@ export class DonationService {
         }
       }
 
-      // 7. Surplus Protocol (Route to System Suspense)
       if (surplus > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -566,13 +552,19 @@ export class DonationService {
         }
       }, tx);
 
-      return { status: 'processed', isGoalMet, projectTitle: project.title, projectSlug: project.slug, projectUserId: project.userId };
+      return {
+        status: 'processed',
+        isGoalMet,
+        projectTitle: project.title,
+        projectSlug: project.slug,
+        projectUserId: project.userId,
+        surplus // Pass surplus to triggerReceipt logic
+      };
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
       timeout: 20000
     });
 
-    // 8. Post-Transaction Notifications
     if (result.status === 'processed') {
       await this.triggerReceipt(
         userId === 'GUEST' ? null : userId,
@@ -584,7 +576,6 @@ export class DonationService {
       );
 
       if (result.isGoalMet) {
-        // Notify Organizer
         this.prisma.user.findUnique({
           where: { id: result.projectUserId },
           select: { email: true, firstName: true }
@@ -593,7 +584,7 @@ export class DonationService {
             this.emailService.sendProjectFundedAlert(organizer.email, {
               name: organizer.firstName,
               projectTitle: result.projectTitle,
-              amount: (Number(amount) / 100).toLocaleString(), // This reflects the finishing push
+              amount: (Number(amount) / 100).toLocaleString(),
               currency: currency,
               projectId: projectId
             });
