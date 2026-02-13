@@ -37,7 +37,15 @@ export class DonationService {
   ) { }
 
   // Centralized Receipt Logic
-  private async triggerReceipt(userId: string | null, guestEmail: string | null, projectId: string, amount: bigint, currency: Currency, reference: string) {
+  private async triggerReceipt(
+    userId: string | null,
+    guestEmail: string | null,
+    projectId: string,
+    amount: bigint,
+    currency: Currency,
+    reference: string,
+    surplus: bigint = 0n
+  ) {
     try {
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
@@ -47,28 +55,26 @@ export class DonationService {
       let email: string | undefined | null = guestEmail;
 
       if (!email && userId) {
-        const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, preferences: true } });
-
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, preferences: true }
+        });
         const prefs = user?.preferences as any;
-        if (prefs?.donationReceipts === false) {
-          this.logger.log(`Skipping receipt for user ${userId} per preference settings.`);
-          return;
-        }
-
+        if (prefs?.donationReceipts === false) return;
         email = user?.email;
       }
 
       if (email) {
-        // Fire and forget (don't await) to keep API responsive
-        this.emailService.sendDonationReceipt(email, {
+        const appliedAmount = amount - surplus;
+
+        await this.emailService.sendDonationReceipt(email, {
           amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
           currency: currency,
           project: project?.title || 'Impact Project',
           date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-          ref: reference
-        }).catch(err => {
-          const msg = err instanceof Error ? err.message : String(err);
-          this.logger.error(`Receipt Email Failed: ${msg}`);
+          ref: reference,
+          surplus: surplus > 0n ? (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined,
+          applied: surplus > 0n ? (Number(appliedAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined
         });
       }
     } catch (err) {
@@ -248,13 +254,13 @@ export class DonationService {
       );
 
       // We return the txProject as it has the original context needed for notifications
-      return { donation, isGoalMet, project: txProject };
+      return { donation, isGoalMet, project: txProject, surplus };
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable
     });
 
     // 1. Trigger Individual Receipt for the FULL amount paid (matches bank statement)
-    await this.triggerReceipt(userId, null, dto.projectId, amount, dto.currency, `WAL-${result.project.id.slice(0, 8)}`);
+    await this.triggerReceipt(userId, null, dto.projectId, amount, dto.currency, `WAL-${result.project.id.slice(0, 8)}`, result.surplus);
 
     // 2. Trigger "Project Funded" Alert to Organizer
     if (result.isGoalMet) {
@@ -572,7 +578,8 @@ export class DonationService {
         projectId,
         amount,
         currency,
-        reference
+        reference,
+        result.surplus
       );
 
       if (result.isGoalMet) {

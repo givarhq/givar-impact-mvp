@@ -15,6 +15,7 @@ export const EmailTemplates = {
           .footer { padding: 32px; background-color: #f9fafb; text-align: center; border-top: 1px solid #f3f4f6; }
           .button { background-color: #10b981; color: #ffffff !important; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 700; display: inline-block; }
           .stat-box { background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 24px; margin: 24px 0; }
+          .breakdown-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
           h1 { color: #064e3b; font-size: 26px; font-weight: 800; margin-bottom: 16px; letter-spacing: -0.02em; }
           p { color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 18px; }
         </style>
@@ -74,17 +75,47 @@ export const EmailTemplates = {
     <p style="font-size: 13px; color: #6b7280;">This link/code will expire in 24 hours. If you didn't create an account, you can safely ignore this email.</p>
   `,
 
-  receipt: (data: { amount: string; currency: string; project: string; date: string; ref: string }) => `
+  receipt: (data: {
+    amount: string;
+    currency: string;
+    project: string;
+    date: string;
+    ref: string;
+    surplus?: string;
+    applied?: string;
+  }) => `
     <p>Your donation has been successfully verified and recorded on the <strong>Givar Impact</strong> public ledger.</p>
+    
     <div class="stat-box">
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Amount</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total Contribution</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
-      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Beneficiary</div>
-      <div style="font-size: 18px; font-weight: 700; color: #065f46;">${data.project}</div>
+      
+      ${data.surplus && data.surplus !== '0.00' ? `
+        <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+        <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Ledger Distribution</div>
+        
+        <div class="breakdown-row">
+          <span style="color: #374151; font-weight: 600;">To ${data.project}:</span>
+          <span style="color: #064e3b; font-weight: 700;">${data.currency} ${data.applied}</span>
+        </div>
+        
+        <div class="breakdown-row">
+          <span style="color: #374151; font-weight: 600;">Spillover (Impact Fund):</span>
+          <span style="color: #064e3b; font-weight: 700;">${data.currency} ${data.surplus}</span>
+        </div>
+        
+        <p style="font-size: 11px; color: #059669; margin-top: 12px; font-style: italic; line-height: 1.4;">
+          Note: This project was completed by your gift. The surplus has been moved to our community fund for reallocation to active causes.
+        </p>
+      ` : `
+        <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+        <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Beneficiary</div>
+        <div style="font-size: 18px; font-weight: 700; color: #065f46;">${data.project}</div>
+      `}
     </div>
+    
     <p><strong>Reference:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-family: monospace;">${data.ref}</code></p>
-    <p>Thank you for making a tangible difference today.</p>
+    <p>Thank you for your commitment to transparent impact.</p>
   `,
 
   securityAlert: (data: { ip: string; time: string }) => `

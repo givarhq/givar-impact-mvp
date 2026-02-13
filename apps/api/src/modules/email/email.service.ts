@@ -57,7 +57,18 @@ export class EmailService {
   }
 
   // 2. Donation Receipt
-  async sendDonationReceipt(email: string, data: { amount: string; currency: string; project: string; date: string; ref: string }) {
+  async sendDonationReceipt(
+    email: string,
+    data: {
+      amount: string;
+      currency: string;
+      project: string;
+      date: string;
+      ref: string;
+      surplus?: string;
+      applied?: string;
+    }
+  ) {
     const content = EmailTemplates.receipt(data);
     const html = EmailTemplates.base(content, 'Donation Receipt');
     return this.send(email, `Givar Impact: Receipt for your donation to ${data.project}`, html);
