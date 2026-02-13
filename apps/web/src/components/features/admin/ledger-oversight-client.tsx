@@ -323,14 +323,13 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                             </CardHeader>
                             <CardContent className="p-6 space-y-6">
                                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                                    Identifies active projects with remaining balances less than ₦100.00 that have been stagnant for 30 days.
-                                    The protocol aligns the goal to the current raised amount and marks them as funded.
+                                    Finalizes projects that are mathematically stuck (remaining balance &lt; ₦100.00) or have been stagnant for 30 days with a minor gap.
                                 </p>
 
                                 <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 flex items-start gap-3">
                                     <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                                     <p className="text-[11px] text-muted-foreground font-medium">
-                                        This procedure is final and recorded on the forensic audit log. Affected project owners will receive a ledger update notice.
+                                        Goal targets will be aligned to actual capital raised. Affected project owners will receive an automated transparency notice.
                                     </p>
                                 </div>
 
@@ -345,6 +344,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                         </Card>
                     </div>
                 </TabsContent>
+
             </Tabs>
 
             <ConfirmModal

@@ -2066,24 +2066,32 @@ export class AdminService {
    */
   async sweepStaleSmallRemainderProjects(adminId: string) {
     const STALE_THRESHOLD_DAYS = 30;
-    const DUST_LIMIT_MINOR = 10000n; // ₦100.00
+    const DUST_LIMIT_MINOR = 10000n; // ₦100.00 (Platform Minimum)
     const staleDate = subDays(new Date(), STALE_THRESHOLD_DAYS);
 
-    // 1. Identify candidate nodes
+    // 1. Fetch all active candidate projects
     const candidates = await this.prisma.project.findMany({
       where: {
         status: ProjectStatus.ACTIVE,
-        updatedAt: { lt: staleDate },
+        isActive: true
       },
     });
 
+    // 2. Identify "Stuck" or "Stagnant" dust
     const staleProjects = candidates.filter(p => {
       const remaining = p.targetAmount - p.raisedAmount;
-      return remaining > 0n && remaining < DUST_LIMIT_MINOR;
+
+      // Condition A: Mathematically Stuck (Remaining < Min Donation) -> Sweep immediately
+      const isStuck = remaining > 0n && remaining < DUST_LIMIT_MINOR;
+
+      // Condition B: Stagnant (Remaining is small but fundable, but hasn't moved in 30 days)
+      const isStagnant = remaining > 0n && remaining < (DUST_LIMIT_MINOR * 5n) && p.updatedAt < staleDate;
+
+      return isStuck || isStagnant;
     });
 
     if (staleProjects.length === 0) {
-      return { swept: 0, message: 'No stale dust nodes identified.' };
+      return { swept: 0, message: 'No candidate dust nodes identified.' };
     }
 
     const results = await this.prisma.$transaction(async (tx) => {
@@ -2092,8 +2100,6 @@ export class AdminService {
       for (const project of staleProjects) {
         const gap = project.targetAmount - project.raisedAmount;
 
-        // 2. Perform Target Alignment
-        // We set the goal to exactly what was raised to 'complete' the ledger node.
         await tx.project.update({
           where: { id: project.id },
           data: {
@@ -2103,7 +2109,6 @@ export class AdminService {
           },
         });
 
-        // 3. Create transparency update
         await tx.projectUpdate.create({
           data: {
             projectId: project.id,
@@ -2113,7 +2118,6 @@ export class AdminService {
           },
         });
 
-        // 4. Forensic Audit
         await tx.auditLog.create({
           data: {
             userId: adminId,
@@ -2125,7 +2129,7 @@ export class AdminService {
               originalTarget: project.targetAmount.toString(),
               finalTarget: project.raisedAmount.toString(),
               absorbedGap: gap.toString(),
-              reason: 'STALE_SMALL_REMAINDER',
+              reason: gap < DUST_LIMIT_MINOR ? 'MATHEMATICALLY_STUCK' : 'STAGNANT_SMALL_REMAINDER',
             },
           },
         });
@@ -2135,8 +2139,6 @@ export class AdminService {
 
       return sweptIds;
     });
-
-    this.logger.log(`[Sweep] Protocol executed by ${adminId}. Resolved ${results.length} stale nodes.`);
 
     return {
       swept: results.length,
