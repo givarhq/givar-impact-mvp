@@ -1062,6 +1062,12 @@ export class AdminService {
       reference,
     });
 
+    const serializedResult: any = { ...result };
+
+    if (result && 'surplus' in result && typeof result.surplus === 'bigint') {
+      serializedResult.surplus = result.surplus.toString();
+    }
+
     // High-priority Audit Log
     await this.prisma.auditLog.create({
       data: {
@@ -1069,7 +1075,11 @@ export class AdminService {
         action: AuditAction.RECONCILIATION_PERFORMED,
         entityId: reference,
         entityType: 'LedgerCorrection',
-        metadata: { reference, adminId, result },
+        metadata: {
+          reference,
+          adminId,
+          result: serializedResult
+        },
       },
     });
 
