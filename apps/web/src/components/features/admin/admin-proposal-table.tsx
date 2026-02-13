@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
     Inbox,
     Calendar,
-    User,
     ChevronRight
 } from 'lucide-react';
 import { Badge } from '../../ui/badge';
@@ -22,8 +21,21 @@ const statusStyles: Record<string, string> = {
     REJECTED: 'bg-destructive/10 text-destructive border-destructive/20',
 };
 
-export function AdminProposalTable({ proposals }: { proposals: any[] }) {
+interface AdminProposalTableProps {
+    proposals: any[];
+    selectedIds: string[];
+    onSelectRow: (id: string, checked: boolean) => void;
+    onSelectAll: (checked: boolean) => void;
+}
+
+export function AdminProposalTable({
+    proposals,
+    selectedIds,
+    onSelectRow,
+    onSelectAll
+}: AdminProposalTableProps) {
     const router = useRouter();
+    const isAllSelected = proposals.length > 0 && selectedIds.length === proposals.length;
 
     if (proposals.length === 0) {
         return (
@@ -39,65 +51,97 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
         <div className="w-full overflow-hidden">
             {/* MOBILE: High-Density Card List */}
             <div className="grid gap-2 md:hidden">
-                {proposals.map((p) => (
-                    <Card
-                        key={p.id}
-                        className="rounded-3xl border-border/40 shadow-sm active:scale-[0.99] transition-all cursor-pointer overflow-hidden"
-                        onClick={() => router.push(`/admin/proposals/${p.id}`)}
-                    >
-                        <CardContent className="p-4 space-y-4">
-                            <div className="flex justify-between items-start gap-4 w-full">
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-bold text-foreground truncate leading-tight">
-                                        {p.title || 'Untitled Proposal'}
-                                    </p>
-                                    <div className="flex items-center gap-2 mt-1.5">
-                                        <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                            id: {p.id.split('-')[0]}
-                                        </span>
-                                        <Badge
-                                            variant="outline"
-                                            className={cn("text-[10px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
-                                        >
-                                            {p.status.replace('_', ' ')}
-                                        </Badge>
+                <div className="flex items-center gap-2 px-2 mb-1">
+                    <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+                        checked={isAllSelected}
+                        onChange={(e) => onSelectAll(e.target.checked)}
+                    />
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Select all</span>
+                </div>
+                {proposals.map((p) => {
+                    const isSelected = selectedIds.includes(p.id);
+                    return (
+                        <Card
+                            key={p.id}
+                            className={cn(
+                                "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden",
+                                isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
+                            )}
+                            onClick={() => router.push(`/admin/proposals/${p.id}`)}
+                        >
+                            <CardContent className="p-4 space-y-4">
+                                <div className="flex justify-between items-start gap-4 w-full">
+                                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
+                                            checked={isSelected}
+                                            onChange={(e) => onSelectRow(p.id, e.target.checked)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-foreground truncate leading-tight">
+                                                {p.title || 'Untitled Proposal'}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1.5">
+                                                <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                                    id: {p.id.split('-')[0]}
+                                                </span>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn("text-[10px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
+                                                >
+                                                    {p.status.replace('_', ' ')}
+                                                </Badge>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="shrink-0 pt-1">
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
                                     </div>
                                 </div>
-                                <div className="shrink-0 pt-1">
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-                                </div>
-                            </div>
 
-                            <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground shrink-0 border border-border/40">
-                                        {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
+                                <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground shrink-0 border border-border/40">
+                                            {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
+                                            <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
+                                        </div>
                                     </div>
-                                    <div className="min-w-0">
-                                        <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
-                                        <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
+                                    <div className="text-right shrink-0">
+                                        <div className="text-sm font-bold tabular-nums text-foreground">
+                                            <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
+                                        </div>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mt-0.5">
+                                            {formatDate(p.submittedAt).split(',')[0]}
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="text-right shrink-0">
-                                    <div className="text-sm font-bold tabular-nums text-foreground">
-                                        <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
-                                    </div>
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mt-0.5">
-                                        {formatDate(p.submittedAt).split(',')[0]}
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                            </CardContent>
+                        </Card>
+                    );
+                })}
             </div>
 
-            {/* DESKTOP: Standard Refined Table */}
+            {/* DESKTOP: Forensic Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                             <tr>
+                                <th className="px-5 py-3 w-[50px]">
+                                    <input
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+                                        checked={isAllSelected}
+                                        onChange={(e) => onSelectAll(e.target.checked)}
+                                    />
+                                </th>
                                 <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Proposal details</th>
                                 <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Proposer</th>
                                 <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Requested</th>
@@ -107,64 +151,78 @@ export function AdminProposalTable({ proposals }: { proposals: any[] }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40">
-                            {proposals.map((p) => (
-                                <tr
-                                    key={p.id}
-                                    className="hover:bg-muted/30 transition-all cursor-pointer group"
-                                    onClick={() => router.push(`/admin/proposals/${p.id}`)}
-                                >
-                                    <td className="px-5 py-4">
-                                        <div className="min-w-[200px]">
-                                            <p className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
-                                                {p.title || 'Untitled Proposal'}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-[11px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                    id: {p.id.split('-')[0]}
-                                                </span>
-                                                <span className="text-[11px] font-bold text-primary/70 uppercase tracking-tight">
-                                                    {p.category?.name}
-                                                </span>
+                            {proposals.map((p) => {
+                                const isSelected = selectedIds.includes(p.id);
+                                return (
+                                    <tr
+                                        key={p.id}
+                                        className={cn(
+                                            "hover:bg-muted/30 transition-all cursor-pointer group",
+                                            isSelected ? "bg-primary/[0.01]" : ""
+                                        )}
+                                        onClick={() => router.push(`/admin/proposals/${p.id}`)}
+                                    >
+                                        <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="checkbox"
+                                                className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+                                                checked={isSelected}
+                                                onChange={(e) => onSelectRow(p.id, e.target.checked)}
+                                            />
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="min-w-[200px]">
+                                                <p className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
+                                                    {p.title || 'Untitled Proposal'}
+                                                </p>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-[11px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                                        id: {p.id.split('-')[0]}
+                                                    </span>
+                                                    <span className="text-[11px] font-bold text-primary/70 uppercase tracking-tight">
+                                                        {p.category?.name}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground border border-border/40 shrink-0">
-                                                {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground border border-border/40 shrink-0">
+                                                    {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
+                                                    <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
+                                                </div>
                                             </div>
-                                            <div className="min-w-0">
-                                                <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
-                                                <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <div className="font-bold text-foreground tabular-nums">
+                                                <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        <div className="font-bold text-foreground tabular-nums">
-                                            <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4">
-                                        <Badge
-                                            variant="outline"
-                                            className={cn("text-[11px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border", statusStyles[p.status] || 'bg-muted')}
-                                        >
-                                            {p.status.replace('_', ' ')}
-                                        </Badge>
-                                    </td>
-                                    <td className="px-5 py-4 text-right whitespace-nowrap">
-                                        <div className="flex items-center justify-end gap-1.5 text-muted-foreground font-medium text-xs">
-                                            <Calendar className="h-3.5 w-3.5 opacity-40" />
-                                            {formatDate(p.submittedAt).split(',')[0]}
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-4 text-right">
-                                        <Button variant="ghost" size="sm" className="h-8 rounded-3xl text-xs font-bold px-3">
-                                            Review
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <Badge
+                                                variant="outline"
+                                                className={cn("text-[11px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border shadow-none", statusStyles[p.status] || 'bg-muted')}
+                                            >
+                                                {p.status.replace('_', ' ')}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-5 py-4 text-right whitespace-nowrap">
+                                            <div className="flex items-center justify-end gap-1.5 text-muted-foreground font-medium text-xs">
+                                                <Calendar className="h-3.5 w-3.5 opacity-40" />
+                                                {formatDate(p.submittedAt).split(',')[0]}
+                                            </div>
+                                        </td>
+                                        <td className="px-5 py-4 text-right">
+                                            <Button variant="ghost" size="sm" className="h-8 rounded-3xl text-xs font-bold px-3">
+                                                Review
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
