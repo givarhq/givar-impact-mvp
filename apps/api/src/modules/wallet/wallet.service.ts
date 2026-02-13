@@ -34,7 +34,7 @@ export class WalletService {
     private donationService: DonationService,
     private audit: AuditService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   private toPaystackAmount(amountStr: string): number {
     let amountBig: bigint;
@@ -163,7 +163,17 @@ export class WalletService {
       if (data.metadata?.action === 'wallet_funding') {
         await this.processSuccessfulFunding(data);
       } else if (data.metadata?.donationType === 'DIRECT') {
-        await this.processDirectDonation(data);
+        // Delegate to DonationService which handles Serializable TX and Cap/Spillover logic
+        await this.donationService.fulfillDirectDonation({
+          userId: data.metadata.userId,
+          guestEmail: data.metadata.guestEmail,
+          guestName: data.metadata.guestName,
+          projectId: data.metadata.projectId,
+          amount: BigInt(data.amount),
+          currency: data.currency as Currency,
+          reference: data.reference,
+          channel: data.channel
+        });
       }
     }
 
@@ -245,11 +255,11 @@ export class WalletService {
 
       if (user) {
         this.emailService.sendWalletFundingEmail(user.email, {
-            name: user.firstName,
-            amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
-            currency: currency,
-            ref: reference,
-            newBalance: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })
+          name: user.firstName,
+          amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+          currency: currency,
+          ref: reference,
+          newBalance: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })
         }).catch(err => this.logger.error(`Funding Email Failed: ${err.message}`));
       }
 
@@ -291,11 +301,11 @@ export class WalletService {
       ...(status && { status }),
       ...(startDate &&
         endDate && {
-          createdAt: {
-            gte: new Date(startDate),
-            lte: new Date(endDate),
-          },
-        }),
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      }),
       ...(search && {
         OR: [
           { description: { contains: search, mode: 'insensitive' } },
@@ -351,8 +361,8 @@ export class WalletService {
       ...(status && { status }),
       ...(startDate &&
         endDate && {
-          createdAt: { gte: new Date(startDate), lte: new Date(endDate) },
-        }),
+        createdAt: { gte: new Date(startDate), lte: new Date(endDate) },
+      }),
       ...(search && {
         OR: [
           { description: { contains: search, mode: 'insensitive' } },
@@ -423,7 +433,7 @@ export class WalletService {
     currency: Currency;
     reference: string;
   }) {
-    
+
     this.logger.log(`[RECONCILIATION] Manually fulfilling reference: ${data.reference}`);
 
     // The 'donationService' will handle both Guest and User logic internally.

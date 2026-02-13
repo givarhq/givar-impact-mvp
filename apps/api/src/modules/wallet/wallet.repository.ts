@@ -13,7 +13,7 @@ import { PrismaService } from '../../common/prisma.service';
 
 @Injectable()
 export class WalletRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Retrieves or lazily creates a user's wallet for the specified currency.
@@ -25,24 +25,24 @@ export class WalletRepository {
     tx?: Prisma.TransactionClient,
   ): Promise<{ id: string; balance: bigint; currency: Currency }> {
     const client = tx ?? this.prisma;
-  
+
     let wallet = await client.wallet.findUnique({
       where: { userId_currency: { userId, currency } },
-      select: { 
-        id: true, 
+      select: {
+        id: true,
         balance: true,
         currency: true   // ← Add this
       },
     });
-  
+
     if (!wallet) {
       try {
         wallet = await client.wallet.create({
           data: { userId, currency, balance: 0n },
-          select: { 
-            id: true, 
+          select: {
+            id: true,
             balance: true,
-            currency: true 
+            currency: true
           },
         });
       } catch (err) {
@@ -56,7 +56,7 @@ export class WalletRepository {
         }
       }
     }
-  
+
     return wallet;
   }
 
@@ -86,9 +86,9 @@ export class WalletRepository {
     return this.prisma.$transaction(
       async (tx) => this._executeLedgerLogic(tx, params),
       {
-        maxWait: 5000,      // default 2000
-        timeout: 10000,     // default 5000 - give more time for complex cases
-        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+        maxWait: 5000,
+        timeout: 10000,
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
       },
     );
   }
