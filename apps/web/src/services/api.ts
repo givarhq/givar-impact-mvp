@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { apiClient } from '../lib/api-client';
 import { GivingGoal, OrganizationProfile, Project, Wallet } from '../types';
 import { setCookie } from 'cookies-next';
@@ -385,6 +384,9 @@ export const ApiService = {
         transactions: any[];
         auditLogs: any[];
       }>(`/admin/search?q=${encodeURIComponent(query)}`, token),
+
+    triggerDustSweep: () =>
+      apiClient.post('/admin/ledger/sweep').then(r => r.data),
   },
 
   // Organization Verification Domain
