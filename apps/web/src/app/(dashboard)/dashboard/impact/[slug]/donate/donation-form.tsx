@@ -205,7 +205,12 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                 {isGuest ? (
                     <>
                         <div className="space-y-2.5">
-                            <label className="text-xs font-bold text-muted-foreground">Donation Amount ({project.currency})</label>
+                            <div className="flex justify-between items-center px-1">
+                                <label className="text-xs font-bold text-muted-foreground">Donation Amount ({project.currency})</label>
+                                <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
+                                    Remaining: {formatCurrency(remainingNeededMinor, project.currency)}
+                                </span>
+                            </div>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">₦</span>
                                 <Input
@@ -250,7 +255,12 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
                         <div className="space-y-5">
                             <div className="space-y-2.5">
-                                <label className="text-xs font-bold text-muted-foreground">Amount ({project.currency})</label>
+                                <div className="flex justify-between items-center px-1">
+                                    <label className="text-xs font-bold text-muted-foreground">Amount ({project.currency})</label>
+                                    <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
+                                        Needed: {formatCurrency(remainingNeededMinor, project.currency)}
+                                    </span>
+                                </div>
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground">₦</span>
                                     <Input
