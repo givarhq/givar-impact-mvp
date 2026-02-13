@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
     Search, ShieldCheck, AlertTriangle, CheckCircle2,
     Loader2, Database, Globe, RefreshCcw, ArrowRightLeft,
-    Ban, Calendar,
+    Ban, Calendar, Wrench, Sparkles, Info
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -26,6 +27,7 @@ interface LedgerOversightProps {
 }
 
 export function LedgerOversightClient({ initialSuspense, activeProjects }: LedgerOversightProps) {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState('suspense');
 
     const [refInput, setRefInput] = useState('');
@@ -34,6 +36,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
 
     const [suspenseItems, setSuspenseItems] = useState(initialSuspense);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [showSweepConfirm, setShowSweepConfirm] = useState(false);
 
     const [refundModal, setRefundModal] = useState<{ isOpen: boolean; txId: string; reference: string }>({
         isOpen: false,
@@ -83,6 +86,24 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
         }
     };
 
+    const handleDustSweep = async () => {
+        setIsProcessing(true);
+        try {
+            const result = await ApiService.admin.triggerDustSweep();
+            if (result.swept > 0) {
+                toast.success(`Successfully aligned ${result.swept} stagnant projects`);
+            } else {
+                toast.error("No stagnant dust nodes identified");
+            }
+            setShowSweepConfirm(false);
+            router.refresh();
+        } catch (e: any) {
+            toast.error(e.response?.data?.message || "Protocol execution failed");
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const openRefundPrompt = (txId: string, reference: string) => {
         setRefundModal({ isOpen: true, txId, reference });
     };
@@ -123,6 +144,10 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                         <TabsTrigger value="reconcile" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
                             <RefreshCcw className="h-3.5 w-3.5" />
                             Manual Sync
+                        </TabsTrigger>
+                        <TabsTrigger value="maintenance" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                            <Wrench className="h-3.5 w-3.5" />
+                            Maintenance
                         </TabsTrigger>
                     </TabsList>
                 </div>
@@ -286,7 +311,52 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                         </div>
                     )}
                 </TabsContent>
+
+                {/* --- TAB 3: MAINTENANCE --- */}
+                <TabsContent value="maintenance" className="space-y-6 outline-none">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden">
+                            <CardHeader className="bg-primary/5 border-b border-border/40 p-6">
+                                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                                    <Sparkles className="h-4 w-4 text-primary" /> Dust sweep protocol
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6 space-y-6">
+                                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                                    Identifies active projects with remaining balances less than ₦100.00 that have been stagnant for 30 days.
+                                    The protocol aligns the goal to the current raised amount and marks them as funded.
+                                </p>
+
+                                <div className="p-4 rounded-2xl bg-muted/30 border border-border/40 flex items-start gap-3">
+                                    <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-muted-foreground font-medium">
+                                        This procedure is final and recorded on the forensic audit log. Affected project owners will receive a ledger update notice.
+                                    </p>
+                                </div>
+
+                                <Button
+                                    onClick={() => setShowSweepConfirm(true)}
+                                    disabled={isProcessing}
+                                    className="w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20"
+                                >
+                                    {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Run sweep protocol"}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
             </Tabs>
+
+            <ConfirmModal
+                isOpen={showSweepConfirm}
+                onClose={() => setShowSweepConfirm(false)}
+                onConfirm={handleDustSweep}
+                isLoading={isProcessing}
+                variant="warning"
+                title="Execute Dust Sweep"
+                description="This will align the goals and finalize all stagnant projects with balances under ₦100. Are you sure you want to proceed?"
+                confirmText="Execute"
+            />
 
             <ConfirmModal
                 isOpen={refundModal.isOpen}
@@ -309,7 +379,7 @@ function BadgeStatus({ status }: { status: string }) {
             "px-4 py-1.5 rounded-3xl text-[10px] font-black uppercase tracking-[0.1em] border transition-all",
             isSuccess
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                : "bg-amber-500/10 text-amber-600 border-amber-100/20"
         )}>
             {status}
         </span>
