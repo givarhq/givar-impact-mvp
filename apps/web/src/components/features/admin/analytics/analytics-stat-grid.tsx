@@ -4,7 +4,15 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '../../../ui/card';
 import { SmartCurrency } from '../../../ui/smart-currency';
-import { Users, AlertTriangle, Wallet, BarChart3, ChevronRight } from 'lucide-react';
+import {
+    Users,
+    AlertTriangle,
+    Wallet,
+    BarChart3,
+    ChevronRight,
+    ShieldAlert,
+    FileSearch
+} from 'lucide-react';
 import { cn } from '../../../../lib/utils/cn';
 import { motion } from 'framer-motion';
 
@@ -16,12 +24,50 @@ interface AnalyticsStatGridProps {
         activeProjects: number;
         pendingKycCount: number;
         unresolvedSuspenseCount: number;
+        dominantRisk: 'LEDGER_SUSPENSE' | 'KYC_PENDING' | 'EVIDENCE_AUDIT' | 'NONE';
+        riskLabel: string;
+        riskCount: number;
     };
     avgDonation?: string;
 }
 
 export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatGridProps) {
     const router = useRouter();
+
+    const getRiskConfig = () => {
+        switch (summary.dominantRisk) {
+            case 'LEDGER_SUSPENSE':
+                return {
+                    icon: Wallet,
+                    path: '/admin/ledger',
+                    color: 'text-rose-500',
+                    bg: 'bg-rose-500/10'
+                };
+            case 'KYC_PENDING':
+                return {
+                    icon: ShieldAlert,
+                    path: '/admin/verifications?tab=orgs',
+                    color: 'text-amber-500',
+                    bg: 'bg-amber-500/10'
+                };
+            case 'EVIDENCE_AUDIT':
+                return {
+                    icon: FileSearch,
+                    path: '/admin/verifications?tab=evidence',
+                    color: 'text-blue-500',
+                    bg: 'bg-blue-500/10'
+                };
+            default:
+                return {
+                    icon: AlertTriangle,
+                    path: '/admin/verifications',
+                    color: 'text-zinc-400',
+                    bg: 'bg-muted'
+                };
+        }
+    };
+
+    const risk = getRiskConfig();
 
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
@@ -56,13 +102,13 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
 
             <StatCard
                 title="Risk indicators"
-                value={summary.unresolvedSuspenseCount}
-                subValue={`${summary.pendingKycCount} pending kyc`}
-                icon={AlertTriangle}
-                color="text-amber-500"
-                bg="bg-amber-500/10"
-                highlight={summary.unresolvedSuspenseCount > 0 || summary.pendingKycCount > 0}
-                onClick={() => router.push('/admin/verifications')}
+                value={summary.riskCount}
+                subValue={summary.riskLabel}
+                icon={risk.icon}
+                color={risk.color}
+                bg={risk.bg}
+                highlight={summary.riskCount > 0}
+                onClick={() => router.push(risk.path)}
             />
         </div>
     );
@@ -81,7 +127,7 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
                     "relative p-3.5 md:p-5 bg-card overflow-hidden rounded-3xl transition-all duration-300 group h-full flex flex-col justify-between",
                     "border-border/40 shadow-sm",
                     onClick && "cursor-pointer hover:shadow-md hover:border-primary/20",
-                    highlight && "ring-2 ring-amber-500/20 bg-amber-500/[0.01]"
+                    highlight && "ring-2 ring-primary/10 bg-primary/[0.01]"
                 )}
             >
                 <div className="relative z-10 space-y-3 md:space-y-4">

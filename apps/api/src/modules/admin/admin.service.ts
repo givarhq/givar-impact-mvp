@@ -49,7 +49,8 @@ export class AdminService {
       proposalStats,
       evidenceStats,
       activeOrganizerCount,
-      categories
+      categories,
+      pendingEvidenceCount // NEW: Capturing evidence risk
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { createdAt: { lt: thirtyDaysAgo } } }),
@@ -68,7 +69,8 @@ export class AdminService {
       this.prisma.projectProposal.groupBy({ by: ['status'], _count: true }),
       this.prisma.milestoneProof.groupBy({ by: ['status'], _count: true }),
       this.prisma.project.groupBy({ by: ['userId'], where: { status: 'ACTIVE' }, _count: true }).then(r => r.length),
-      this.prisma.category.findMany({ select: { id: true, name: true } })
+      this.prisma.category.findMany({ select: { id: true, name: true } }),
+      this.prisma.milestoneProof.count({ where: { status: 'PENDING' } }) // NEW query
     ]);
 
     const catPerf = categories.map(cat => {
@@ -117,6 +119,25 @@ export class AdminService {
 
     const growth = prevUsers === 0 ? 100 : ((totalUsers - prevUsers) / prevUsers) * 100;
 
+    // --- NEW: Dynamic Risk Analysis ---
+    let dominantRisk = 'NONE';
+    let riskCount = 0;
+    let riskLabel = 'System healthy';
+
+    if (suspenseCount > 0) {
+      dominantRisk = 'LEDGER_SUSPENSE';
+      riskCount = suspenseCount;
+      riskLabel = `${suspenseCount} orphaned transaction(s)`;
+    } else if (pendingKyc > 0) {
+      dominantRisk = 'KYC_PENDING';
+      riskCount = pendingKyc;
+      riskLabel = `${pendingKyc} pending kyc`;
+    } else if (pendingEvidenceCount > 0) {
+      dominantRisk = 'EVIDENCE_AUDIT';
+      riskCount = pendingEvidenceCount;
+      riskLabel = `${pendingEvidenceCount} proofs to audit`;
+    }
+
     return {
       summary: {
         totalUsers,
@@ -125,6 +146,9 @@ export class AdminService {
         activeProjects: projects.filter(p => p.status === 'ACTIVE').length,
         pendingKycCount: pendingKyc,
         unresolvedSuspenseCount: suspenseCount,
+        dominantRisk,
+        riskLabel,
+        riskCount
       },
       financials: {
         recentTrends,
