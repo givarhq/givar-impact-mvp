@@ -2169,4 +2169,87 @@ export class AdminService {
       projectIds: results,
     };
   }
+
+  /**
+   * Bulk Project Node Processor
+   * Per-unit audit logging is enforced for forensic traceability.
+   */
+  async bulkUpdateProjects(adminId: string, data: { projectIds: string[], action: 'ACTIVATE' | 'SUSPEND' | 'DELETE' }) {
+    const projects = await this.prisma.project.findMany({
+      where: { id: { in: data.projectIds } },
+      include: { _count: { select: { donations: true } } }
+    });
+
+    return this.prisma.$transaction(async (tx) => {
+      for (const project of projects) {
+        if (data.action === 'ACTIVATE') {
+          await tx.project.update({
+            where: { id: project.id },
+            data: { status: ProjectStatus.ACTIVE, isActive: true }
+          });
+        } else if (data.action === 'SUSPEND') {
+          await tx.project.update({
+            where: { id: project.id },
+            data: { status: ProjectStatus.SUSPENDED, isActive: false }
+          });
+        } else if (data.action === 'DELETE') {
+          // Guard: Forensic integrity check for each unit
+          if (project._count.donations > 0) {
+            throw new BadRequestException(`Cannot delete project ${project.id}: historical ledger records detected.`);
+          }
+          await tx.project.delete({ where: { id: project.id } });
+        }
+
+        await this.audit.log({
+          userId: adminId,
+          action: data.action === 'DELETE' ? AuditAction.PROJECT_DELETED : AuditAction.PROJECT_UPDATED,
+          entityId: project.id,
+          entityType: 'Project',
+          metadata: { action: data.action, forensicContext: 'BULK_OPERATION' }
+        }, tx);
+      }
+      return { count: projects.length };
+    }, { timeout: 20000 });
+  }
+
+  /**
+   * Bulk Proposal Workflow Orchestrator
+   * Reuses internal promotion logic for approvals to ensure data consistency.
+   */
+  async bulkUpdateProposals(adminId: string, data: { proposalIds: string[], action: 'APPROVE' | 'REJECT' }) {
+    const proposals = await this.prisma.projectProposal.findMany({
+      where: { id: { in: data.proposalIds } }
+    });
+
+    if (data.action === 'APPROVE') {
+      const results = [];
+      for (const prop of proposals) {
+        try {
+          const project = await this.approveAndPromote(prop.id, adminId);
+          results.push(project.id);
+        } catch (e: any) {
+          this.logger.error(`Bulk approval failed for ${prop.id}: ${e.message}`);
+        }
+      }
+      return { count: results.length, total: proposals.length };
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.projectProposal.updateMany({
+        where: { id: { in: data.proposalIds } },
+        data: { status: ProposalStatus.REJECTED, adminFeedback: 'Batch rejected by administrator.' }
+      });
+
+      for (const id of data.proposalIds) {
+        await this.audit.log({
+          userId: adminId,
+          action: AuditAction.PROPOSAL_REJECTED,
+          entityId: id,
+          entityType: 'ProjectProposal',
+          metadata: { action: 'BULK_REJECT' }
+        }, tx);
+      }
+      return { count: result.count };
+    });
+  }
 }
