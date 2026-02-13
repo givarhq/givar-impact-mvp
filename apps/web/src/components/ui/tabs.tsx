@@ -13,7 +13,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'inline-flex h-10 items-center justify-center rounded-3xl bg-muted/50 p-1 text-muted-foreground w-full border border-border/40 shadow-inner',
+      'inline-flex h-10 items-center justify-start rounded-3xl bg-muted/50 p-1 text-muted-foreground w-full border border-border/40 shadow-inner overflow-x-auto whitespace-nowrap no-scrollbar',
       className
     )}
     {...props}
@@ -28,10 +28,11 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      'inline-flex items-center justify-center text-center rounded-3xl px-4 py-2 text-xs font-bold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm w-full h-full break-words',
+      'inline-flex items-center justify-center text-center rounded-3xl px-4 py-2 text-xs font-bold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm shrink-0',
       className
     )}
     {...props}
+    onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center' })}
   />
 ));
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
