@@ -393,6 +393,22 @@ export const ApiService = {
 
     triggerDustSweep: () =>
       apiClient.post('/admin/ledger/sweep').then(r => r.data),
+
+    /**
+     * Treasury Intelligence Node
+     * Fetches aggregated financial reports based on temporal and sectoral filters.
+     */
+    getFinanceReport: (params: URLSearchParams) =>
+      apiClient.get(`/admin/finances/report?${params.toString()}`).then(r => r.data),
+
+    /**
+     * Forensic Export Node
+     * Triggers a blob stream of the financial ledger for the specified criteria.
+     */
+    exportFinanceCsv: (params: URLSearchParams) =>
+      apiClient.get(`/admin/finances/export?${params.toString()}`, {
+        responseType: 'blob',
+      }),
   },
 
   // Organization Verification Domain
