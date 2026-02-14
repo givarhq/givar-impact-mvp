@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Inbox,
@@ -38,8 +38,10 @@ export function AdminProjectTable({
 }: AdminProjectTableProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
     const isAllSelected = projects.length > 0 && selectedIds.length === projects.length;
+    const isSelectionMode = selectedIds.length > 0;
 
     const handleSort = (column: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -50,12 +52,24 @@ export function AdminProjectTable({
         router.push(`?${params.toString()}`);
     };
 
+    // Mobile Long Press Logic
+    const startLongPress = (id: string) => {
+        longPressTimer.current = setTimeout(() => {
+            onSelectRow(id, true);
+            window.navigator.vibrate?.(50);
+        }, 500);
+    };
+
+    const clearLongPress = () => {
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    };
+
     const SortHeader = ({ title, column, className = "" }: { title: string, column: string, className?: string }) => {
         const isActive = currentSort === column;
         return (
             <th
                 className={cn(
-                    "px-5 py-3 font-bold uppercase tracking-wider text-xs cursor-pointer hover:text-primary transition-colors group select-none",
+                    "px-5 py-3 font-semibold uppercase tracking-wider text-xs cursor-pointer hover:text-primary transition-colors group select-none",
                     className
                 )}
                 onClick={() => handleSort(column)}
@@ -66,7 +80,7 @@ export function AdminProjectTable({
                         {isActive ? (
                             currentOrder === 'asc' ?
                                 <ArrowUp className="w-3 h-3 text-primary animate-in zoom-in" /> :
-                                <ArrowDown className="h-3 w-3 text-primary animate-in zoom-in" />
+                                <ArrowDown className="w-3 h-3 text-primary animate-in zoom-in" />
                         ) : (
                             <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
                         )}
@@ -80,7 +94,7 @@ export function AdminProjectTable({
         return (
             <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-bold text-foreground opacity-60 uppercase tracking-widest">No projects identified</h3>
+                <h3 className="text-sm font-semibold text-foreground opacity-60 uppercase tracking-widest">No projects identified</h3>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">Try adjusting your active filters.</p>
             </div>
         );
@@ -90,14 +104,17 @@ export function AdminProjectTable({
         <div className="w-full overflow-hidden">
             {/* MOBILE: High-Density Card List */}
             <div className="grid gap-2 md:hidden">
-                <div className="flex items-center gap-2 px-2 mb-1">
+                <div className={cn(
+                    "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
+                    isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}>
                     <input
                         type="checkbox"
                         className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
                         checked={isAllSelected}
                         onChange={(e) => onSelectAll(e.target.checked)}
                     />
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Select all</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select all</span>
                 </div>
                 {projects.map((project) => {
                     const isSelected = selectedIds.includes(project.id);
@@ -105,28 +122,39 @@ export function AdminProjectTable({
                         <Card
                             key={project.id}
                             className={cn(
-                                "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden",
+                                "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden touch-none",
                                 isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
                             )}
-                            onClick={() => router.push(`/admin/projects/${project.id}/edit`)}
+                            onPointerDown={() => startLongPress(project.id)}
+                            onPointerUp={clearLongPress}
+                            onPointerLeave={clearLongPress}
+                            onClick={() => {
+                                if (isSelectionMode) onSelectRow(project.id, !isSelected);
+                                else router.push(`/admin/projects/${project.id}/edit`);
+                            }}
                         >
                             <CardContent className="p-4 space-y-4">
                                 <div className="flex justify-between items-start gap-4 w-full">
                                     <div className="flex items-start gap-3 min-w-0 flex-1">
-                                        <input
-                                            type="checkbox"
-                                            className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
-                                            checked={isSelected}
-                                            onChange={(e) => onSelectRow(project.id, e.target.checked)}
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
+                                        <div className={cn(
+                                            "transition-all duration-200 overflow-hidden",
+                                            isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
+                                        )}>
+                                            <input
+                                                type="checkbox"
+                                                className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
+                                                checked={isSelected}
+                                                onChange={(e) => onSelectRow(project.id, e.target.checked)}
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-foreground truncate leading-tight">{project.title}</p>
+                                            <p className="text-sm font-semibold text-foreground truncate leading-tight">{project.title}</p>
                                             <div className="flex items-center gap-2 mt-1.5">
                                                 <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                     id: {project.id.split('-')[0]}
                                                 </span>
-                                                <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
+                                                <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
                                                     {project.status}
                                                 </Badge>
                                             </div>
@@ -138,15 +166,15 @@ export function AdminProjectTable({
                                 </div>
                                 <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
                                     <div className="space-y-1 min-w-0">
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Raised / Target</p>
+                                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Raised / Target</p>
                                         <div className="flex items-center gap-1.5 flex-wrap">
                                             <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
                                             <span className="text-muted-foreground/50 text-[11px]">of</span>
-                                            <span className="text-xs font-bold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
+                                            <span className="text-xs font-semibold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
                                         </div>
                                     </div>
                                     <div className="text-right shrink-0">
-                                        <p className="text-[11px] font-bold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
+                                        <p className="text-[11px] font-semibold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -159,20 +187,25 @@ export function AdminProjectTable({
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left border-collapse">
-                        <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
+                        <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground group">
                             <tr>
                                 <th className="px-5 py-3 w-[50px]">
-                                    <input
-                                        type="checkbox"
-                                        className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
-                                        checked={isAllSelected}
-                                        onChange={(e) => onSelectAll(e.target.checked)}
-                                    />
+                                    <div className={cn(
+                                        "transition-opacity duration-200",
+                                        (isAllSelected || isSelectionMode) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                    )}>
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+                                            checked={isAllSelected}
+                                            onChange={(e) => onSelectAll(e.target.checked)}
+                                        />
+                                    </div>
                                 </th>
                                 <SortHeader title="Cause details" column="title" />
                                 <SortHeader title="Status" column="status" />
                                 <SortHeader title="Launched" column="createdAt" />
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs text-right">
+                                <th className="px-5 py-3 font-semibold uppercase tracking-wider text-xs text-right">
                                     <div className="flex items-center justify-end gap-1.5">
                                         <TrendingUp className="h-3 w-3" /> Financials
                                     </div>
@@ -193,16 +226,21 @@ export function AdminProjectTable({
                                         onClick={() => router.push(`/admin/projects/${project.id}/edit`)}
                                     >
                                         <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                                            <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
-                                                checked={isSelected}
-                                                onChange={(e) => onSelectRow(project.id, e.target.checked)}
-                                            />
+                                            <div className={cn(
+                                                "transition-opacity duration-200",
+                                                isSelected || isSelectionMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                            )}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+                                                    checked={isSelected}
+                                                    onChange={(e) => onSelectRow(project.id, e.target.checked)}
+                                                />
+                                            </div>
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="min-w-[200px]">
-                                                <p className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
+                                                <p className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
                                                     {project.title}
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-0.5">
@@ -210,7 +248,7 @@ export function AdminProjectTable({
                                                         id: {project.id.split('-')[0]}
                                                     </span>
                                                     {project.categoryName && (
-                                                        <span className="text-[11px] font-bold text-primary/70 uppercase tracking-tight">
+                                                        <span className="text-[11px] font-semibold text-primary/70 uppercase tracking-tight">
                                                             {project.categoryName}
                                                         </span>
                                                     )}
@@ -220,7 +258,7 @@ export function AdminProjectTable({
                                         <td className="px-5 py-4">
                                             <Badge
                                                 variant={project.status === 'ACTIVE' ? 'success' : 'outline'}
-                                                className="uppercase text-[11px] font-bold px-2 py-0 rounded-3xl"
+                                                className="uppercase text-[11px] font-semibold px-2 py-0 rounded-3xl"
                                             >
                                                 {project.status}
                                             </Badge>
@@ -233,7 +271,7 @@ export function AdminProjectTable({
                                         </td>
                                         <td className="px-5 py-4 text-right">
                                             <div className="flex flex-col items-end gap-0.5">
-                                                <div className="font-bold tabular-nums text-foreground">
+                                                <div className="font-semibold tabular-nums text-foreground">
                                                     <SmartCurrency
                                                         amount={project.raisedAmount}
                                                         currency={project.currency}
@@ -241,7 +279,7 @@ export function AdminProjectTable({
                                                         size="small"
                                                     />
                                                 </div>
-                                                <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground uppercase tracking-tighter">
+                                                <div className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-tighter">
                                                     <Flag className="h-3 w-3 opacity-50" />
                                                     {formatCurrency(project.targetAmount, project.currency)}
                                                 </div>
