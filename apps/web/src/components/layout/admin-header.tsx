@@ -35,7 +35,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/verifications': 'Verifications',
   '/admin/ledger': 'Ledger Oversight',
   '/admin/organizations': 'Organizations',
-  '/admin/settings': 'System Settings'
+  '/admin/settings': 'System Settings',
+  '/admin/finances': 'Financial Report'
 };
 
 export function AdminHeader({ user }: { user: any }) {

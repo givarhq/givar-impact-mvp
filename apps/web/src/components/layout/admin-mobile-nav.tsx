@@ -10,7 +10,8 @@ import {
   Database,
   ShieldAlert,
   Building,
-  MoreHorizontal
+  MoreHorizontal,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import {
@@ -31,6 +32,7 @@ const ALL_NAV_ITEMS = [
   { title: 'Organizations', href: '/admin/organizations', icon: Building },
   { title: 'Ledger', href: '/admin/ledger', icon: Database },
   { title: 'Audit', href: '/admin/audit', icon: ShieldAlert },
+  { title: 'Financials', href: '/admin/finances', icon: BarChart3 },
 ];
 
 export function AdminMobileNav({ user }: { user: any }) {
