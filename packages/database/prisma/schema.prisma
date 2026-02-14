@@ -158,6 +158,12 @@ enum ProofStatus {
   REJECTED
 }
 
+enum ModerationStatus {
+  APPROVED
+  FLAGGED
+  HIDDEN
+}
+
 // ---------------------------
 // USER & AUTH
 // ---------------------------
@@ -304,6 +310,12 @@ model Project {
   guestDonations GuestDonation[]
   disbursements  Disbursement[]
   milestoneProofs MilestoneProof[]
+
+  moderationStatus  ModerationStatus @default(APPROVED)
+  isFeatured        Boolean          @default(false)
+  featureWeight     Int              @default(0)
+  visibilityScore   Float            @default(0.0)
+  featuredSlots     FeaturedSlot[]
 
   @@map("projects")
   @@index([categoryId])
@@ -576,4 +588,27 @@ model MilestoneProof {
   project       Project  @relation(fields: [projectId], references: [id])
 
   @@map("milestone_proofs")
+}
+
+model RecommendationConfig {
+  id               String   @id @default("default")
+  recencyWeight    Float    @default(1.0)
+  velocityWeight   Float    @default(1.5)
+  engagementWeight Float    @default(1.0)
+  adminWeight      Float    @default(2.0)
+  diversityLimit   Int      @default(3)
+  updatedAt        DateTime @updatedAt
+
+  @@map("recommendation_configs")
+}
+
+model FeaturedSlot {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  position  Int      @unique
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@map("featured_slots")
 }
