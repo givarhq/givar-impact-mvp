@@ -594,7 +594,9 @@ export class AdminService {
 
     // 1. Construct Dynamic Forensic Filter
     const where: Prisma.UserWhereInput = {
-      ...(role && { role }),
+      ...(role && {
+        role: role === UserRole.ADMIN ? { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } : role
+      }),
       ...(accountType && { accountType }),
       ...(status === 'LOCKED' && { accountLockedUntil: { gte: new Date() } }),
       ...(status === 'ACTIVE' && {
@@ -649,7 +651,8 @@ export class AdminService {
         ...user,
         donations: undefined,
         lifetimeImpact: liv.toString(),
-        isLocked: !!user.accountLockedUntil && user.accountLockedUntil > new Date()
+        isLocked: !!user.accountLockedUntil && user.accountLockedUntil > new Date(),
+        accountType: user.role !== UserRole.USER ? 'SYSTEM' : user.accountType
       };
     });
 
@@ -685,7 +688,8 @@ export class AdminService {
       ...user,
       passwordHash: undefined, // Security: never leak hash even to admins
       lifetimeImpact: livResult._sum.amount?.toString() || '0',
-      wallets: user.wallets.map(w => ({ ...w, balance: w.balance.toString() }))
+      wallets: user.wallets.map(w => ({ ...w, balance: w.balance.toString() })),
+      accountType: user.role !== UserRole.USER ? 'SYSTEM' : user.accountType
     };
   }
 

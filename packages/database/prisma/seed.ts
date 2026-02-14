@@ -69,7 +69,7 @@ async function main() {
 
   // 3. USERS
   const adminUser = await prisma.user.create({
-    data: { email: 'admin@givar.com', firstName: 'Givar', lastName: 'Admin', passwordHash: adminPass, role: UserRole.ADMIN, emailVerified: true, accountType: AccountType.INDIVIDUAL, createdAt: subDays(new Date(), 60) }
+    data: { email: 'admin@givar.com', firstName: 'Givar', lastName: 'Admin', passwordHash: adminPass, role: UserRole.SUPERADMIN, emailVerified: true, accountType: AccountType.INDIVIDUAL, createdAt: subDays(new Date(), 60) }
   });
 
   const tedUser = await prisma.user.create({
