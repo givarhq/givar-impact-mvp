@@ -11,7 +11,8 @@ import {
     BarChart3,
     ChevronRight,
     ShieldAlert,
-    FileSearch
+    FileSearch,
+    FileWarning
 } from 'lucide-react';
 import { cn } from '../../../../lib/utils/cn';
 import { motion } from 'framer-motion';
@@ -38,7 +39,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
         switch (summary.dominantRisk) {
             case 'LEDGER_SUSPENSE':
                 return {
-                    icon: Wallet,
+                    icon: FileWarning,
                     path: '/admin/ledger',
                     color: 'text-rose-500',
                     bg: 'bg-rose-500/10'
@@ -131,7 +132,6 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
                 )}
             >
                 <div className="relative z-10 space-y-3 md:space-y-4">
-                    {/* Header: Icon and Title aligned horizontally */}
                     <div className="flex items-center gap-2.5 md:gap-3">
                         <div className={cn(
                             "h-8 w-8 md:h-9 md:w-9 rounded-2xl flex items-center justify-center shadow-sm border border-transparent shrink-0",
@@ -144,7 +144,6 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
                         </p>
                     </div>
 
-                    {/* Data: Value and Subtext */}
                     <div className="space-y-0.5">
                         <div className="text-lg md:text-2xl font-bold text-foreground tracking-tight leading-none truncate">
                             {value}
@@ -160,7 +159,6 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
                     </div>
                 </div>
 
-                {/* Subtle background decoration */}
                 <div className={cn(
                     "absolute -bottom-2 -right-2 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity duration-500 pointer-events-none",
                     color

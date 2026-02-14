@@ -50,7 +50,7 @@ export class AdminService {
       evidenceStats,
       activeOrganizerCount,
       categories,
-      pendingEvidenceCount // NEW: Capturing evidence risk
+      pendingEvidenceCount
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { createdAt: { lt: thirtyDaysAgo } } }),
@@ -70,7 +70,7 @@ export class AdminService {
       this.prisma.milestoneProof.groupBy({ by: ['status'], _count: true }),
       this.prisma.project.groupBy({ by: ['userId'], where: { status: 'ACTIVE' }, _count: true }).then(r => r.length),
       this.prisma.category.findMany({ select: { id: true, name: true } }),
-      this.prisma.milestoneProof.count({ where: { status: 'PENDING' } }) // NEW query
+      this.prisma.milestoneProof.count({ where: { status: 'PENDING' } })
     ]);
 
     const catPerf = categories.map(cat => {
@@ -127,15 +127,15 @@ export class AdminService {
     if (suspenseCount > 0) {
       dominantRisk = 'LEDGER_SUSPENSE';
       riskCount = suspenseCount;
-      riskLabel = `${suspenseCount} orphaned transaction(s)`;
+      riskLabel = 'orphaned transaction(s)';
     } else if (pendingKyc > 0) {
       dominantRisk = 'KYC_PENDING';
       riskCount = pendingKyc;
-      riskLabel = `${pendingKyc} pending kyc`;
+      riskLabel = 'pending kyc';
     } else if (pendingEvidenceCount > 0) {
       dominantRisk = 'EVIDENCE_AUDIT';
       riskCount = pendingEvidenceCount;
-      riskLabel = `${pendingEvidenceCount} proofs to audit`;
+      riskLabel = 'proofs to audit';
     }
 
     return {
