@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Inbox,
     Calendar,
@@ -35,13 +35,28 @@ export function AdminProposalTable({
     onSelectAll
 }: AdminProposalTableProps) {
     const router = useRouter();
+    const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
     const isAllSelected = proposals.length > 0 && selectedIds.length === proposals.length;
+    const isSelectionMode = selectedIds.length > 0;
+
+    // Mobile Long Press logic
+    const startLongPress = (id: string) => {
+        longPressTimer.current = setTimeout(() => {
+            onSelectRow(id, true);
+            window.navigator.vibrate?.(50);
+        }, 500);
+    };
+
+    const clearLongPress = () => {
+        if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    };
 
     if (proposals.length === 0) {
         return (
             <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-bold text-foreground opacity-60 uppercase tracking-widest">Pipeline empty</h3>
+                <h3 className="text-sm font-semibold text-foreground opacity-60 uppercase tracking-widest">Pipeline empty</h3>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">No proposals currently match your criteria.</p>
             </div>
         );
@@ -51,14 +66,17 @@ export function AdminProposalTable({
         <div className="w-full overflow-hidden">
             {/* MOBILE: High-Density Card List */}
             <div className="grid gap-2 md:hidden">
-                <div className="flex items-center gap-2 px-2 mb-1">
+                <div className={cn(
+                    "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
+                    isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
+                )}>
                     <input
                         type="checkbox"
                         className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
                         checked={isAllSelected}
                         onChange={(e) => onSelectAll(e.target.checked)}
                     />
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Select all</span>
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select all</span>
                 </div>
                 {proposals.map((p) => {
                     const isSelected = selectedIds.includes(p.id);
@@ -66,23 +84,34 @@ export function AdminProposalTable({
                         <Card
                             key={p.id}
                             className={cn(
-                                "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden",
+                                "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden touch-none",
                                 isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
                             )}
-                            onClick={() => router.push(`/admin/proposals/${p.id}`)}
+                            onPointerDown={() => startLongPress(p.id)}
+                            onPointerUp={clearLongPress}
+                            onPointerLeave={clearLongPress}
+                            onClick={() => {
+                                if (isSelectionMode) onSelectRow(p.id, !isSelected);
+                                else router.push(`/admin/proposals/${p.id}`);
+                            }}
                         >
                             <CardContent className="p-4 space-y-4">
                                 <div className="flex justify-between items-start gap-4 w-full">
                                     <div className="flex items-start gap-3 min-w-0 flex-1">
-                                        <input
-                                            type="checkbox"
-                                            className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
-                                            checked={isSelected}
-                                            onChange={(e) => onSelectRow(p.id, e.target.checked)}
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
+                                        <div className={cn(
+                                            "transition-all duration-200 overflow-hidden",
+                                            isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
+                                        )}>
+                                            <input
+                                                type="checkbox"
+                                                className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
+                                                checked={isSelected}
+                                                onChange={(e) => onSelectRow(p.id, e.target.checked)}
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-foreground truncate leading-tight">
+                                            <p className="text-sm font-semibold text-foreground truncate leading-tight">
                                                 {p.title || 'Untitled Proposal'}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1.5">
@@ -91,7 +120,7 @@ export function AdminProposalTable({
                                                 </span>
                                                 <Badge
                                                     variant="outline"
-                                                    className={cn("text-[10px] px-2 py-0 rounded-3xl font-bold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
+                                                    className={cn("text-[10px] px-2 py-0 rounded-3xl font-semibold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
                                                 >
                                                     {p.status.replace('_', ' ')}
                                                 </Badge>
@@ -109,15 +138,15 @@ export function AdminProposalTable({
                                             {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
+                                            <p className="text-xs font-semibold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
                                             <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
                                         </div>
                                     </div>
                                     <div className="text-right shrink-0">
-                                        <div className="text-sm font-bold tabular-nums text-foreground">
+                                        <div className="text-sm font-semibold tabular-nums text-foreground">
                                             <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
                                         </div>
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter mt-0.5">
+                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tighter mt-0.5">
                                             {formatDate(p.submittedAt).split(',')[0]}
                                         </p>
                                     </div>
@@ -132,21 +161,26 @@ export function AdminProposalTable({
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left border-collapse">
-                        <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
+                        <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground group">
                             <tr>
                                 <th className="px-5 py-3 w-[50px]">
-                                    <input
-                                        type="checkbox"
-                                        className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
-                                        checked={isAllSelected}
-                                        onChange={(e) => onSelectAll(e.target.checked)}
-                                    />
+                                    <div className={cn(
+                                        "transition-opacity duration-200",
+                                        (isAllSelected || isSelectionMode) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                    )}>
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+                                            checked={isAllSelected}
+                                            onChange={(e) => onSelectAll(e.target.checked)}
+                                        />
+                                    </div>
                                 </th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Proposal details</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Proposer</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Requested</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs">Status</th>
-                                <th className="px-5 py-3 font-bold uppercase tracking-wider text-xs text-right">Submitted</th>
+                                <th className="px-5 py-3 font-semibold uppercase tracking-wider text-xs">Proposal details</th>
+                                <th className="px-5 py-3 font-semibold uppercase tracking-wider text-xs">Proposer</th>
+                                <th className="px-5 py-3 font-semibold uppercase tracking-wider text-xs">Requested</th>
+                                <th className="px-5 py-3 font-semibold uppercase tracking-wider text-xs">Status</th>
+                                <th className="px-5 py-3 font-semibold uppercase tracking-wider text-xs text-right">Submitted</th>
                                 <th className="px-5 py-3"></th>
                             </tr>
                         </thead>
@@ -163,23 +197,28 @@ export function AdminProposalTable({
                                         onClick={() => router.push(`/admin/proposals/${p.id}`)}
                                     >
                                         <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
-                                            <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
-                                                checked={isSelected}
-                                                onChange={(e) => onSelectRow(p.id, e.target.checked)}
-                                            />
+                                            <div className={cn(
+                                                "transition-opacity duration-200",
+                                                isSelected || isSelectionMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                                            )}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+                                                    checked={isSelected}
+                                                    onChange={(e) => onSelectRow(p.id, e.target.checked)}
+                                                />
+                                            </div>
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="min-w-[200px]">
-                                                <p className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
+                                                <p className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
                                                     {p.title || 'Untitled Proposal'}
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[11px] font-mono uppercase bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                         id: {p.id.split('-')[0]}
                                                     </span>
-                                                    <span className="text-[11px] font-bold text-primary/70 uppercase tracking-tight">
+                                                    <span className="text-[11px] font-semibold text-primary/70 uppercase tracking-tight">
                                                         {p.category?.name}
                                                     </span>
                                                 </div>
@@ -191,20 +230,20 @@ export function AdminProposalTable({
                                                     {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-xs font-bold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
+                                                    <p className="text-xs font-semibold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
                                                     <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <div className="font-bold text-foreground tabular-nums">
+                                            <div className="font-semibold text-foreground tabular-nums">
                                                 <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
                                             </div>
                                         </td>
                                         <td className="px-5 py-4">
                                             <Badge
                                                 variant="outline"
-                                                className={cn("text-[11px] font-bold uppercase tracking-tight px-2 py-0 rounded-3xl border shadow-none", statusStyles[p.status] || 'bg-muted')}
+                                                className={cn("text-[11px] font-semibold uppercase tracking-tight px-2 py-0 rounded-3xl border shadow-none", statusStyles[p.status] || 'bg-muted')}
                                             >
                                                 {p.status.replace('_', ' ')}
                                             </Badge>
@@ -216,7 +255,7 @@ export function AdminProposalTable({
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 text-right">
-                                            <Button variant="ghost" size="sm" className="h-8 rounded-3xl text-xs font-bold px-3">
+                                            <Button variant="ghost" size="sm" className="h-8 rounded-3xl text-xs font-semibold px-3">
                                                 Review
                                             </Button>
                                         </td>
