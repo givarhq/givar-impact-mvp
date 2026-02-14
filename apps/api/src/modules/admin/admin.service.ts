@@ -15,6 +15,7 @@ import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
 import { add, format, subDays } from 'date-fns';
 import { json2csv } from 'json-2-csv';
 import { JwtService } from '@nestjs/jwt';
+import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 
 @Injectable()
 export class AdminService {
@@ -2255,5 +2256,155 @@ export class AdminService {
       }
       return { count: result.count };
     });
+  }
+
+  /**
+   * Financial Intelligence Engine
+   * Aggregates platform capital flow, project performance, and category-level efficiency.
+   */
+  async getFinancialReport(query: AdminFinanceQueryDto) {
+    const { startDate, endDate, categoryIds } = query;
+
+    const dateFilter: Prisma.DateTimeFilter = {};
+    if (startDate) dateFilter.gte = new Date(startDate);
+    if (endDate) dateFilter.lte = new Date(endDate);
+
+    const categoryFilter = categoryIds && categoryIds.length > 0 ? { in: categoryIds } : undefined;
+
+    // 1. Core Capital Flow Aggregates
+    const [inflowRes, donationRes, disbursementRes] = await Promise.all([
+      // Gross Inflow (Wallet Funding + Direct Pay)
+      this.prisma.walletTransaction.aggregate({
+        where: { type: TxType.CREDIT, createdAt: dateFilter, status: TxStatus.COMPLETED },
+        _sum: { amount: true },
+        _count: true
+      }),
+      // Donations (Capital Commitment)
+      this.prisma.donation.aggregate({
+        where: { createdAt: dateFilter, project: { categoryId: categoryFilter } },
+        _sum: { amount: true },
+        _count: true
+      }),
+      // Disbursements (Capital Deployment)
+      this.prisma.disbursement.aggregate({
+        where: { createdAt: dateFilter, project: { categoryId: categoryFilter } },
+        _sum: { amount: true },
+        _count: true
+      })
+    ]);
+
+    // 2. Performance Rankings (Most/Least Performing Causes)
+    const projectStats = await this.prisma.project.findMany({
+      where: {
+        categoryId: categoryFilter,
+        createdAt: startDate ? { gte: new Date(startDate) } : undefined
+      },
+      select: {
+        id: true,
+        title: true,
+        targetAmount: true,
+        raisedAmount: true,
+        currency: true,
+        status: true,
+        category: { select: { name: true } }
+      }
+    });
+
+    const causePerformance = projectStats.map(p => {
+      const rate = p.targetAmount > 0n
+        ? Number((p.raisedAmount * 10000n) / p.targetAmount) / 100
+        : 0;
+      return { ...p, fundingRate: rate };
+    });
+
+    const topPerformers = [...causePerformance]
+      .sort((a, b) => b.fundingRate - a.fundingRate)
+      .slice(0, 5);
+
+    const leastPerformers = [...causePerformance]
+      .filter(p => p.status === 'ACTIVE')
+      .sort((a, b) => a.fundingRate - b.fundingRate)
+      .slice(0, 5);
+
+    // 3. Category Sector Performance
+    const categories = await this.prisma.category.findMany({
+      include: {
+        _count: { select: { projects: true } },
+        projects: {
+          select: { raisedAmount: true, targetAmount: true }
+        }
+      }
+    });
+
+    const sectorStats = categories.map(cat => {
+      const totalRaised = cat.projects.reduce((acc, p) => acc + p.raisedAmount, 0n);
+      const totalTarget = cat.projects.reduce((acc, p) => acc + p.targetAmount, 0n);
+      const avgFundingRate = totalTarget > 0n
+        ? Number((totalRaised * 10000n) / totalTarget) / 100
+        : 0;
+
+      return {
+        id: cat.id,
+        name: cat.name,
+        projectCount: cat._count.projects,
+        volume: totalRaised.toString(),
+        avgFundingRate
+      };
+    }).sort((a, b) => Number(b.volume) - Number(a.volume));
+
+    return {
+      overview: {
+        grossInflow: inflowRes._sum.amount?.toString() || '0',
+        committedCapital: donationRes._sum.amount?.toString() || '0',
+        deployedCapital: disbursementRes._sum.amount?.toString() || '0',
+        transactionCount: inflowRes._count + donationRes._count + disbursementRes._count,
+        efficiencyRatio: donationRes._sum.amount > 0n
+          ? (Number(disbursementRes._sum.amount || 0n) / Number(donationRes._sum.amount)) * 100
+          : 0
+      },
+      performance: {
+        topPerformers: topPerformers.map(p => ({ ...p, targetAmount: p.targetAmount.toString(), raisedAmount: p.raisedAmount.toString() })),
+        leastPerformers: leastPerformers.map(p => ({ ...p, targetAmount: p.targetAmount.toString(), raisedAmount: p.raisedAmount.toString() })),
+        mostFundedSectors: sectorStats.slice(0, 5),
+        leastFundedSectors: [...sectorStats].reverse().slice(0, 5)
+      }
+    };
+  }
+
+  async exportFinancialsToCsv(query: AdminFinanceQueryDto) {
+    const { startDate, endDate, categoryIds } = query;
+    const dateFilter = {
+      createdAt: {
+        ...(startDate && { gte: new Date(startDate) }),
+        ...(endDate && { lte: new Date(endDate) }),
+      }
+    };
+
+    const transactions = await this.prisma.walletTransaction.findMany({
+      where: {
+        ...dateFilter,
+        donation: categoryIds && categoryIds.length > 0 ? { project: { categoryId: { in: categoryIds } } } : undefined
+      },
+      include: {
+        wallet: { include: { user: { select: { email: true } } } },
+        donation: { include: { project: { include: { category: true } } } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const flattened = transactions.map(tx => ({
+      Timestamp: tx.createdAt.toISOString(),
+      Reference: tx.reference,
+      Type: tx.type,
+      Amount: (Number(tx.amount) / 100).toFixed(2),
+      Currency: tx.currency,
+      Status: tx.status,
+      Donor: tx.wallet.user.email,
+      Category: tx.donation?.project?.category?.name || 'N/A',
+      Cause: tx.donation?.project?.title || 'System Top-up',
+      Description: tx.description
+    }));
+
+    return flattened.length > 0 ? json2csv(flattened) : '';
   }
 }

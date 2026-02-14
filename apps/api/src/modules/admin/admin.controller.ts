@@ -11,6 +11,7 @@ import { ResolveSuspenseDto } from './dto/admin-suspense.dto';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
+import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 
 @SkipThrottle()
 @Controller('admin')
@@ -304,5 +305,31 @@ export class AdminController {
     @Body() dto: { proposalIds: string[], action: 'APPROVE' | 'REJECT' }
   ) {
     return this.service.bulkUpdateProposals(req.user.id, dto);
+  }
+
+  /**
+   * Treasury Intelligence Report
+   * Generates a forensic financial summary based on date ranges and categories.
+   */
+  @Get('finances/report')
+  async getFinanceReport(@Query() query: AdminFinanceQueryDto) {
+    return this.service.getFinancialReport(query);
+  }
+
+  /**
+   * Forensic CSV Export
+   * Streams a row-per-transaction ledger for tax and audit compliance.
+   */
+  @Get('finances/export')
+  async exportFinanceCsv(
+    @Query() query: AdminFinanceQueryDto,
+    @Res() res: Response
+  ) {
+    const csv = await this.service.exportFinancialsToCsv(query);
+    const filename = `givar-forensic-finance-${new Date().toISOString().split('T')[0]}.csv`;
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment(filename);
+    return res.send(csv);
   }
 }
