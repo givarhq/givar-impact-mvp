@@ -28,7 +28,7 @@ export default async function DashboardPage({
   ] = await Promise.all([
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
-    ApiService.projects.list(token, new URLSearchParams({ limit: '6', status: 'ACTIVE' })),
+    ApiService.projects.list(token, new URLSearchParams({ limit: '10', status: 'ACTIVE' })),
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
     ApiService.projects.getCategories(token),
     ApiService.wallet.get(token),
@@ -45,20 +45,20 @@ export default async function DashboardPage({
 
   const activeProjects = activeResponse?.data || [];
   const completedProjects = completedResponse?.data || [];
-  const featured = activeProjects.slice(0, 3);
-  const trending = activeProjects.slice(3, 6);
+
+  // Explicitly ensure carousel only features ACTIVE projects
+  const featured = activeProjects.filter(p => p.status === 'ACTIVE').slice(0, 3);
+  const trending = activeProjects.slice(3, 10);
 
   return (
     <div className="animate-in fade-in duration-300">
       <Tabs defaultValue={activeTab} className="space-y-4 md:space-y-6">
-        {/* Unified Identity & Tab Switcher */}
         <DashboardHero
           firstName={dbUser.firstName}
           totalImpact={totalImpactBigInt.toString()}
           donationCount={history?.length || 0}
         />
 
-        {/* Discovery Feed Tab */}
         <TabsContent value="discovery" className="space-y-6 md:space-y-8 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <FeaturedCarousel projects={featured} />
 
@@ -69,7 +69,6 @@ export default async function DashboardPage({
           />
         </TabsContent>
 
-        {/* Impact Portfolio Tab */}
         <TabsContent value="portfolio" className="outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <PortfolioView
             wallet={wallet || { balance: '0', currency: 'NGN' }}

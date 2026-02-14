@@ -159,7 +159,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                                 <div
                                     onClick={onAvatarClick}
                                     className={cn(
-                                        "h-24 w-24 rounded-3xl flex items-center justify-center text-3xl font-black shadow-inner mx-auto border border-border/40 overflow-hidden transition-all",
+                                        "h-24 w-24 rounded-full flex items-center justify-center text-3xl font-black shadow-inner mx-auto border border-border/40 overflow-hidden transition-all",
                                         user.avatarUrl ? "bg-muted" : "bg-primary/5 text-primary"
                                     )}
                                 >

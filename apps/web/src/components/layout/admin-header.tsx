@@ -32,7 +32,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/users': 'User Management',
   '/admin/projects': 'Cause Management',
   '/admin/audit': 'Audit Logs',
-  '/admin/verifications': 'Evidence & Verification',
+  '/admin/verifications': 'Verifications',
   '/admin/ledger': 'Ledger Oversight',
   '/admin/organizations': 'Organizations',
   '/admin/settings': 'System Settings'

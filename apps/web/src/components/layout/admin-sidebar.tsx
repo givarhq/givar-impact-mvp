@@ -17,7 +17,7 @@ const navItems = [
   { title: 'Platform Overview', href: '/admin', icon: LayoutDashboard },
   { title: 'User Management', href: '/admin/users', icon: Users },
   { title: 'Cause Management', href: '/admin/projects', icon: FileText },
-  { title: 'Evidence & Verification', href: '/admin/verifications', icon: BadgeCheck },
+  { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
   { title: 'Organizations', href: '/admin/organizations', icon: Building },
   { title: 'Audit Logs', href: '/admin/audit', icon: ShieldAlert },
   { title: 'Ledger Oversight', href: '/admin/ledger', icon: Database }

@@ -32,7 +32,6 @@ const TabsTrigger = React.forwardRef<
       className
     )}
     {...props}
-    onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center' })}
   />
 ));
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;

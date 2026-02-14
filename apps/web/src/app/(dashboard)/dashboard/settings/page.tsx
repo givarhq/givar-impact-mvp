@@ -16,9 +16,11 @@ export default async function SettingsPage() {
         redirect('/login');
     }
 
-    const [user, orgProfile] = await Promise.all([
+    // Fetch User, Org Profile, and Subscriptions in parallel
+    const [user, orgProfile, subscriptions] = await Promise.all([
         ApiService.auth.getMe(token),
-        ApiService.organizations.getMe(token)
+        ApiService.organizations.getMe(token),
+        ApiService.donations.getSubscriptions(token)
     ]);
 
     if (!user) {
@@ -27,9 +29,12 @@ export default async function SettingsPage() {
 
     return (
         <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
-
             <div className="w-full min-w-0">
-                <SettingsClient user={user} orgProfile={orgProfile} />
+                <SettingsClient
+                    user={user}
+                    orgProfile={orgProfile}
+                    subscriptions={subscriptions || []}
+                />
             </div>
         </div>
     );

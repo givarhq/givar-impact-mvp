@@ -50,7 +50,7 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
       <div className="p-4 flex-1 flex flex-col gap-3">
         <div className="space-y-1">
           <Link href={detailsLink}>
-            <h3 className="font-bold text-sm leading-tight text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-bold text-sm leading-tight text-foreground line-clamp-1 group-hover:text-primary transition-colors">
               {project.title}
             </h3>
           </Link>
@@ -98,7 +98,11 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onShare(project)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onShare(project);
+            }}
             className="h-9 w-9 rounded-3xl border-border/60 text-muted-foreground hover:text-foreground"
           >
             <Share2 className="h-3.5 w-3.5" />

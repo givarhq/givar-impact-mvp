@@ -312,7 +312,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                             </Button>
                         ) : (
                             <Link href={donateLink} className="block w-full">
-                                <Button size="lg" className="w-full h-14 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95">
+                                <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95">
                                     Fund this impact
                                 </Button>
                             </Link>
@@ -362,7 +362,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                     <div className="p-5 bg-muted/20 rounded-3xl border border-border/40 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                            <strong className="text-foreground">Givar protocol:</strong> funds are released in tranches only after audit nodes verify proof of work.
+                            <strong className="text-foreground">Givar Protocol:</strong> funds are released in tranches only after audit nodes verify proof of work.
                         </p>
                     </div>
                 </div>

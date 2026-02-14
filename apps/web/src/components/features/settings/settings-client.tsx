@@ -9,7 +9,9 @@ import {
     Activity,
     Building2,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    Repeat,
+    Inbox
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { ProfileForm } from './profile-form';
@@ -17,11 +19,13 @@ import { SecurityForm } from './security-form';
 import { PreferencesForm } from './preferences-form';
 import { UserAuditView } from './user-audit-view';
 import { VerificationWizard } from '../organization/verification-wizard';
+import { SubscriptionCard } from '../subscriptions/subscription-card';
 import { cn } from '../../../lib/utils/cn';
 
 interface SettingsClientProps {
     user: any;
     orgProfile: any;
+    subscriptions: any[];
 }
 
 const SETTINGS_OPTIONS = [
@@ -40,6 +44,14 @@ const SETTINGS_OPTIONS = [
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
         description: 'Verification and trust docs.'
+    },
+    {
+        id: 'recurring',
+        label: 'Recurring',
+        icon: Repeat,
+        color: 'text-blue-500',
+        bg: 'bg-blue-500/10',
+        description: 'Manage automated impact plans.'
     },
     {
         id: 'security',
@@ -67,7 +79,7 @@ const SETTINGS_OPTIONS = [
     },
 ];
 
-export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
+export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const activeTab = searchParams.get('tab');
@@ -87,32 +99,48 @@ export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
 
     return (
         <div className="w-full space-y-4 md:space-y-0">
-            {/* Mobile Title - Only visible on main settings menu */}
             {!activeTab && (
                 <div className="md:hidden">
                     <h1 className="text-xl font-bold tracking-tight text-foreground">Account Settings</h1>
                 </div>
             )}
 
-            {/* Desktop Navigation */}
             <div className="hidden md:block">
                 <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full space-y-6">
-                    <TabsList className="h-11 bg-muted/50 p-1 rounded-3xl w-fit border border-border/40 shadow-inner">
-                        {SETTINGS_OPTIONS.map((opt) => (
-                            <TabsTrigger
-                                key={opt.id}
-                                value={opt.id}
-                                className="rounded-3xl px-6 gap-2 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                            >
-                                <opt.icon className="h-3.5 w-3.5" />
-                                {opt.label}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
+                    <div className="overflow-x-auto no-scrollbar pb-1">
+                        <TabsList className="h-11 bg-muted/50 p-1 rounded-3xl w-fit border border-border/40 shadow-inner inline-flex">
+                            {SETTINGS_OPTIONS.map((opt) => (
+                                <TabsTrigger
+                                    key={opt.id}
+                                    value={opt.id}
+                                    className="rounded-3xl px-6 gap-2 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm whitespace-nowrap"
+                                >
+                                    <opt.icon className="h-3.5 w-3.5" />
+                                    {opt.label}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </div>
 
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <TabsContent value="profile" className="mt-0 outline-none"><ProfileForm user={user} /></TabsContent>
                         <TabsContent value="org" className="mt-0 outline-none"><VerificationWizard initialProfile={orgProfile} /></TabsContent>
+                        <TabsContent value="recurring" className="mt-0 outline-none">
+                            <div className="max-w-5xl mx-auto space-y-4">
+                                {subscriptions.length === 0 ? (
+                                    <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
+                                        <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No recurring plans</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-4">
+                                        {subscriptions.map(sub => (
+                                            <SubscriptionCard key={sub.id} subscription={sub} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </TabsContent>
                         <TabsContent value="security" className="mt-0 outline-none"><SecurityForm user={user} /></TabsContent>
                         <TabsContent value="activity" className="mt-0 outline-none"><UserAuditView /></TabsContent>
                         <TabsContent value="preferences" className="mt-0 outline-none"><PreferencesForm user={user} /></TabsContent>
@@ -120,7 +148,6 @@ export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
                 </Tabs>
             </div>
 
-            {/* Mobile View */}
             <div className="md:hidden">
                 {!activeTab ? (
                     <div className="grid gap-2 animate-in fade-in duration-200">
@@ -151,6 +178,17 @@ export function SettingsClient({ user, orgProfile }: SettingsClientProps) {
                         <div>
                             {activeTab === 'profile' && <ProfileForm user={user} />}
                             {activeTab === 'org' && <VerificationWizard initialProfile={orgProfile} />}
+                            {activeTab === 'recurring' && (
+                                <div className="space-y-3">
+                                    {subscriptions.length === 0 ? (
+                                        <div className="py-12 text-center bg-muted/20 rounded-3xl border-2 border-dashed border-border/40">
+                                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No plans</p>
+                                        </div>
+                                    ) : (
+                                        subscriptions.map(sub => <SubscriptionCard key={sub.id} subscription={sub} />)
+                                    )}
+                                </div>
+                            )}
                             {activeTab === 'security' && <SecurityForm user={user} />}
                             {activeTab === 'activity' && <UserAuditView />}
                             {activeTab === 'preferences' && <PreferencesForm user={user} />}

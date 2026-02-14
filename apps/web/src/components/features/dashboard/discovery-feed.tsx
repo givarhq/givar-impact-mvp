@@ -53,7 +53,12 @@ export function DiscoveryFeed({ trending, completed, categories }: DiscoveryFeed
                         <p className="text-xs text-muted-foreground font-medium tracking-widest">Active Communities</p>
                     </div>
                 </div>
-                <ProjectShowcase initialProjects={trending} categories={categories} />
+                <ProjectShowcase
+                    initialProjects={trending}
+                    categories={categories}
+                    onDonate={handleDonate}
+                    onShare={handleShare}
+                />
             </section>
 
             {/* Completed / Historical Impact */}

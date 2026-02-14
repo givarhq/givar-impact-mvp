@@ -11,9 +11,11 @@ import { Loader2, Inbox } from 'lucide-react';
 interface ProjectShowcaseProps {
     initialProjects: Project[];
     categories: Array<{ id: string; name: string; slug: string; icon: string }>;
+    onDonate: (project: Project) => void;
+    onShare: (project: Project) => void;
 }
 
-export function ProjectShowcase({ initialProjects, categories }: ProjectShowcaseProps) {
+export function ProjectShowcase({ initialProjects, categories, onDonate, onShare }: ProjectShowcaseProps) {
     const [projects, setProjects] = useState(initialProjects);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [isPending, startTransition] = useTransition();
@@ -30,9 +32,6 @@ export function ProjectShowcase({ initialProjects, categories }: ProjectShowcase
                 .catch(() => setProjects([]));
         });
     }, [selectedCategory]);
-
-    const handleDonate = () => { };
-    const handleShare = () => { };
 
     return (
         <div className="space-y-4 md:space-y-6">
@@ -61,8 +60,8 @@ export function ProjectShowcase({ initialProjects, categories }: ProjectShowcase
                                     <ProjectCard
                                         key={p.id}
                                         project={p as any}
-                                        onDonate={handleDonate}
-                                        onShare={handleShare}
+                                        onDonate={onDonate}
+                                        onShare={onShare}
                                     />
                                 ))}
                             </div>

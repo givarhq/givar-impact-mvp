@@ -15,10 +15,6 @@ interface DashboardHeroProps {
 export function DashboardHero({ firstName, totalImpact, donationCount }: DashboardHeroProps) {
     return (
         <div className="flex flex-col gap-4 md:gap-6 py-2">
-            {/* Mobile Title - Only visible on small screens */}
-            <div className="md:hidden">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Overview</h1>
-            </div>
 
             <motion.div
                 initial={{ opacity: 0, y: -4 }}
