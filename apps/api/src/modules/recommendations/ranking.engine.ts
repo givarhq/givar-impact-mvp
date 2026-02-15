@@ -21,12 +21,13 @@ export interface RankingWeights {
 export class RankingEngine {
     /**
      * Computes hybrid score using logarithmic recency decay and weighted velocity,
-     * then applies a high-sensitivity category multiplier for sector-wide prioritization.
+     * then applies a global category multiplier for sector-wide prioritization.
      * 
-     * logic: we add a constant base (10.0) and square the category weight to ensure 
-     * that administrative sector boosts provide a significant vertical lift.
-     * 
-     * score = (baseScore + 10.0) * (categoryWeight ^ 2)
+     * score = ( (recencyWeight * recencyScore) + 
+     *           (velocityWeight * donationVelocity) + 
+     *           (engagementWeight * engagementScore) + 
+     *           (adminWeight * featureWeight) + 
+     *           visibilityScore ) * categoryWeight
      */
     calculateScore(candidate: RankingCandidate, weights: RankingWeights): number {
         const recencyScore = this.calculateRecencyScore(candidate.createdAt);
@@ -44,14 +45,8 @@ export class RankingEngine {
             candidate.visibilityScore
         );
 
-        // Sensitivity Logic: 
-        // 1. Add +10 to the base so the multiplier has a meaningful 'sum' to act on.
-        // 2. Square the weight so that 2.0x is 4x more powerful than 1.0x, 
-        //    creating a more responsive administrative lever.
-        const sensitivityConstant = 10.0;
-        const exponentialWeight = Math.pow(candidate.categoryWeight, 2);
-
-        return (baseScore + sensitivityConstant) * exponentialWeight;
+        // Apply the category-level multiplier to shift priority across entire sectors
+        return baseScore * candidate.categoryWeight;
     }
 
     private calculateRecencyScore(createdAt: Date): number {
