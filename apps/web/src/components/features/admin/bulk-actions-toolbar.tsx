@@ -73,11 +73,12 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
         }
     };
 
-    const getActionMeta = (action: string | null): { title: string; desc: string; variant: "default" | "destructive" | "warning" } => {
+    const getActionMeta = (
+        action: string | null
+    ): { title: string; desc: string; variant: "default" | "destructive" | "warning" } => {
         if (!action) return { title: '', desc: '', variant: 'default' };
         const count = selectedIds.length;
 
-        // 1. User Context Logic
         if (context === 'USER') {
             const label = action.replace('SET_', '').replace('_', ' ').toLowerCase();
             let variant: "default" | "destructive" | "warning" = 'default';
@@ -91,7 +92,6 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             };
         }
 
-        // 2. Project Context Logic
         if (context === 'PROJECT') {
             let variant: "default" | "destructive" | "warning" = 'default';
             if (action === 'DELETE') variant = 'destructive';
@@ -103,7 +103,6 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             };
         }
 
-        // 3. Proposal Context Logic
         if (context === 'PROPOSAL') {
             let variant: "default" | "destructive" | "warning" = 'default';
             if (action === 'REJECT') variant = 'destructive';
@@ -114,27 +113,66 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             };
         }
 
-        return { title: 'Confirm Action', desc: `Proceed with ${action} for ${count} items?`, variant: 'default' };
+        return {
+            title: 'Confirm Action',
+            desc: `Proceed with ${action} for ${count} items?`,
+            variant: 'default'
+        };
     };
+
+    const baseBtn =
+        "h-10 sm:h-9 rounded-3xl text-white font-bold text-xs uppercase tracking-wider px-3 sm:px-3 snap-start";
 
     const renderActions = () => {
         if (context === 'USER') {
             return (
                 <>
-                    <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-destructive/20 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('LOCK')} disabled={isBusy}>
-                        <Lock className="h-3.5 w-3.5 mr-1.5 text-destructive" /> Lock
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${baseBtn} hover:text-white hover:bg-destructive/20`}
+                        onClick={() => handleActionClick('LOCK')}
+                        disabled={isBusy}
+                    >
+                        <Lock className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-destructive" />
+                        <span className="hidden sm:inline">Lock</span>
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-emerald-500/10 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('UNLOCK')} disabled={isBusy}>
-                        <Unlock className="h-3.5 w-3.5 mr-1.5 text-emerald-500" /> Unlock
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${baseBtn} hover:text-white hover:bg-emerald-500/10`}
+                        onClick={() => handleActionClick('UNLOCK')}
+                        disabled={isBusy}
+                    >
+                        <Unlock className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-emerald-500" />
+                        <span className="hidden sm:inline">Unlock</span>
                     </Button>
+
                     {isSuperAdmin && (
                         <>
-                            <div className="w-px h-5 bg-white/10 mx-1" />
-                            <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-blue-500/10 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('SET_ADMIN')} disabled={isBusy}>
-                                <Shield className="h-3.5 w-3.5 mr-1.5 text-blue-400" /> Promote
+                            <div className="w-px h-5 bg-white/10 mx-1 hidden sm:block" />
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`${baseBtn} hover:text-white hover:bg-blue-500/10`}
+                                onClick={() => handleActionClick('SET_ADMIN')}
+                                disabled={isBusy}
+                            >
+                                <Shield className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-blue-400" />
+                                <span className="hidden sm:inline">Promote</span>
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-amber-500/10 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('SET_USER')} disabled={isBusy}>
-                                <ShieldOff className="h-3.5 w-3.5 mr-1.5 text-amber-500" /> Demote
+
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`${baseBtn} hover:text-white hover:bg-amber-500/10`}
+                                onClick={() => handleActionClick('SET_USER')}
+                                disabled={isBusy}
+                            >
+                                <ShieldOff className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-amber-500" />
+                                <span className="hidden sm:inline">Demote</span>
                             </Button>
                         </>
                     )}
@@ -145,14 +183,37 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
         if (context === 'PROJECT') {
             return (
                 <>
-                    <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-emerald-500/10 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('ACTIVATE')} disabled={isBusy}>
-                        <PlayCircle className="h-3.5 w-3.5 mr-1.5 text-emerald-500" /> Activate
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${baseBtn} hover:text-white hover:bg-emerald-500/10`}
+                        onClick={() => handleActionClick('ACTIVATE')}
+                        disabled={isBusy}
+                    >
+                        <PlayCircle className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-emerald-500" />
+                        <span className="hidden sm:inline">Activate</span>
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-amber-500/10 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('SUSPEND')} disabled={isBusy}>
-                        <Ban className="h-3.5 w-3.5 mr-1.5 text-amber-500" /> Suspend
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${baseBtn} hover:text-white hover:bg-amber-500/10`}
+                        onClick={() => handleActionClick('SUSPEND')}
+                        disabled={isBusy}
+                    >
+                        <Ban className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-amber-500" />
+                        <span className="hidden sm:inline">Suspend</span>
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-destructive/20 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('DELETE')} disabled={isBusy}>
-                        <Trash2 className="h-3.5 w-3.5 mr-1.5 text-destructive" /> Delete
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${baseBtn} hover:text-white hover:bg-destructive/20`}
+                        onClick={() => handleActionClick('DELETE')}
+                        disabled={isBusy}
+                    >
+                        <Trash2 className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-destructive" />
+                        <span className="hidden sm:inline">Delete</span>
                     </Button>
                 </>
             );
@@ -161,11 +222,26 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
         if (context === 'PROPOSAL') {
             return (
                 <>
-                    <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-emerald-500/10 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('APPROVE')} disabled={isBusy}>
-                        <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-500" /> Approve
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${baseBtn} hover:text-white hover:bg-emerald-500/10`}
+                        onClick={() => handleActionClick('APPROVE')}
+                        disabled={isBusy}
+                    >
+                        <CheckCircle2 className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-emerald-500" />
+                        <span className="hidden sm:inline">Approve</span>
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-9 rounded-3xl text-white hover:text-white hover:bg-destructive/20 font-bold text-xs uppercase tracking-wider px-3" onClick={() => handleActionClick('REJECT')} disabled={isBusy}>
-                        <X className="h-3.5 w-3.5 mr-1.5 text-destructive" /> Reject
+
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${baseBtn} hover:text-white hover:bg-destructive/20`}
+                        onClick={() => handleActionClick('REJECT')}
+                        disabled={isBusy}
+                    >
+                        <X className="h-4 w-4 sm:h-3.5 sm:w-3.5 sm:mr-1.5 text-destructive" />
+                        <span className="hidden sm:inline">Reject</span>
                     </Button>
                 </>
             );
@@ -176,25 +252,39 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
 
     return (
         <>
-            <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] animate-in slide-in-from-bottom-8 duration-300 w-fit max-w-[95vw]">
-                <div className="bg-zinc-950 text-white rounded-3xl shadow-2xl p-1.5 flex items-center border border-white/10 backdrop-blur-xl">
-                    <div className="flex items-center gap-3 border-r border-white/10 pl-4 pr-3 shrink-0">
-                        <div className="h-8 w-8 rounded-3xl bg-primary flex items-center justify-center text-xs font-bold text-black">
+            <div className="fixed bottom-4 sm:bottom-20 left-1/2 -translate-x-1/2 z-[60] w-[95vw] sm:w-fit max-w-[95vw] animate-in slide-in-from-bottom-8 duration-300">
+                <div className="bg-zinc-950 text-white rounded-3xl shadow-2xl p-1 sm:p-1.5 flex items-center border border-white/10 backdrop-blur-2xl sm:backdrop-blur-xl">
+
+                    <div className="flex items-center gap-2 sm:gap-3 border-r border-white/10 pl-3 sm:pl-4 pr-2 sm:pr-3 shrink-0">
+                        <div className="h-8 w-8 sm:h-8 sm:w-8 rounded-3xl bg-primary flex items-center justify-center text-xs font-bold text-black">
                             {selectedIds.length}
                         </div>
-                        <div className="flex flex-col leading-tight">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-300">Batch</span>
-                            <span className="text-xs font-medium text-zinc-500">selected</span>
+
+                        <div className="hidden sm:flex flex-col leading-tight">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                                Batch
+                            </span>
+                            <span className="text-xs font-medium text-zinc-500">
+                                selected
+                            </span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-0.5 px-1 shrink-0">
+                    <div className="flex items-center gap-1 px-1 shrink-0 overflow-x-auto no-scrollbar snap-x snap-mandatory">
                         {renderActions()}
                     </div>
 
                     <div className="flex items-center shrink-0 border-l border-white/10 pl-1">
-                        <button onClick={onClear} className="h-8 w-8 rounded-3xl hover:bg-white/10 flex items-center justify-center transition-all text-zinc-400 hover:text-white" title="Discard">
-                            {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-4 w-4" />}
+                        <button
+                            onClick={onClear}
+                            className="h-10 w-10 sm:h-8 sm:w-8 rounded-3xl hover:bg-white/10 flex items-center justify-center transition-all text-zinc-400 hover:text-white"
+                            title="Discard"
+                        >
+                            {isBusy ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <X className="h-4 w-4" />
+                            )}
                         </button>
                     </div>
                 </div>
