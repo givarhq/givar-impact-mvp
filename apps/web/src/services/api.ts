@@ -450,21 +450,22 @@ export const ApiService = {
   recommendations: {
     /**
      * Discovery Logic: Hybrid prioritized carousel.
-     * Supports server-side token passing or client-side interceptor.
      */
     getFeatured: (token?: string) =>
       token
-        ? serverFetch<Project[]>('/recommendations/featured', token)
+        ? serverFetch<{ data: Project[]; meta: any }>('/recommendations/featured', token)
         : apiClient.get('/recommendations/featured').then(r => r.data),
 
     /**
      * Discovery Logic: Diversity-enforced discovery feed.
-     * Supports server-side token passing or client-side interceptor.
+     * Supports pagination via page and limit parameters.
      */
-    getFeed: (token?: string) =>
-      token
-        ? serverFetch<Project[]>('/recommendations/feed', token)
-        : apiClient.get('/recommendations/feed').then(r => r.data),
+    getFeed: (token?: string, page: number = 1, limit: number = 24) => {
+      const endpoint = `/recommendations/feed?page=${page}&limit=${limit}`;
+      return token
+        ? serverFetch<{ data: Project[]; meta: any }>(endpoint, token)
+        : apiClient.get(endpoint).then(r => r.data);
+    },
   },
 
   // Organization Verification Domain
