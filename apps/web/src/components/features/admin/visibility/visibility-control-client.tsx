@@ -3,17 +3,19 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    Zap, Trash2, Plus,
+    Activity, Zap, Trash2, Plus,
     Loader2, Save, ShieldCheck, RefreshCw,
     Info, SlidersHorizontal, LayoutGrid
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Button } from '../../../ui/button';
 import { Badge } from '../../../ui/badge';
+import { Input } from '../../../ui/input';
 import { ApiService } from '../../../../services/api';
 import { Project } from '../../../../types';
 import { ProjectSelectorModal } from './project-selector-modal';
 import toast from 'react-hot-toast';
+import { cn } from '../../../../lib/utils/cn';
 
 interface VisibilityControlProps {
     initialConfig: {
@@ -35,23 +37,20 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
     const [isSelectorOpen, setIsSelectorOpen] = useState(false);
     const [activePosition, setActivePosition] = useState<number | null>(null);
 
-    // 1. Algorithmic Weight Persistence
     const handleUpdateConfig = async () => {
         setIsSaving(true);
-        const toastId = toast.loading("Broadcasting ledger discovery updates...");
+        const toastId = toast.loading("Updating discovery algorithm...");
         try {
             await ApiService.admin.updateConfig(config);
-            toast.success("Discovery variables synchronized", { id: toastId });
+            toast.success("Weights updated successfully", { id: toastId });
             router.refresh();
         } catch (e: any) {
-            const message = e.response?.data?.message || "Protocol update failed";
-            toast.error(message, { id: toastId });
+            toast.error("Failed to update logic", { id: toastId });
         } finally {
             setIsSaving(false);
         }
     };
 
-    // 2. Slot Selection Management
     const openSelector = (position: number) => {
         setActivePosition(position);
         setIsSelectorOpen(true);
@@ -60,26 +59,25 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
     const handleSelectProject = async (project: Project) => {
         if (activePosition === null) return;
 
-        const toastId = toast.loading(`Assigning ${project.title} to Slot ${activePosition + 1}...`);
+        const toastId = toast.loading(`Pinning ${project.title}...`);
         try {
             await ApiService.admin.createSlot({
                 projectId: project.id,
                 position: activePosition
             });
-            toast.success("Featured position updated on-chain", { id: toastId });
+            toast.success("Project pinned to carousel", { id: toastId });
             setIsSelectorOpen(false);
             router.refresh();
         } catch (e) {
-            toast.error("Slot allocation rejected", { id: toastId });
+            toast.error("Failed to update slot", { id: toastId });
         }
     };
 
-    // 3. Slot Deletion Protocol
     const handleRemoveSlot = async (slotId: string) => {
-        const toastId = toast.loading("De-allocating discovery slot...");
+        const toastId = toast.loading("Removing pin...");
         try {
             await ApiService.admin.deleteSlot(slotId);
-            toast.success("Slot released successfully", { id: toastId });
+            toast.success("Slot cleared", { id: toastId });
             router.refresh();
         } catch (e) {
             toast.error("Action failed", { id: toastId });
@@ -87,76 +85,74 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
 
-                {/* --- LEFT COLUMN: ALGORITHMIC VARIABLES --- */}
+                {/* DISCOVERY VARIABLES */}
                 <div className="lg:col-span-7 space-y-6">
-                    <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden border-2">
+                    <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <CardTitle className="text-sm font-black flex items-center gap-2 uppercase tracking-[0.2em] text-foreground">
+                                <div className="space-y-0.5">
+                                    <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
                                         <SlidersHorizontal className="h-4 w-4 text-primary" /> Discovery Variables
                                     </CardTitle>
-                                    <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Weights & Scaling</p>
+                                    <p className="text-xs text-muted-foreground font-medium">Algorithmic Weights and Scaling</p>
                                 </div>
-                                <Badge variant="outline" className="rounded-3xl font-mono text-[10px] bg-background border-border/60">v2.1_FORENSIC</Badge>
+                                <Badge variant="outline" className="rounded-3xl font-mono text-[10px] bg-background border-border/60">v2.1</Badge>
                             </div>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8 space-y-10">
-                            {/* Weight Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
                                 <WeightSlider
                                     label="Recency Decay"
-                                    desc="Priority multiplier for fresh causes"
+                                    desc="Priority for newer causes"
                                     value={config.recencyWeight}
                                     onChange={(v) => setConfig({ ...config, recencyWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
                                     label="Donation Velocity"
-                                    desc="Priority for high 7-day frequency"
+                                    desc="Priority for high frequency"
                                     value={config.velocityWeight}
                                     onChange={(v) => setConfig({ ...config, velocityWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
                                     label="Engagement Signal"
-                                    desc="Social & update interaction weight"
+                                    desc="Social interaction weight"
                                     value={config.engagementWeight}
                                     onChange={(v) => setConfig({ ...config, engagementWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
-                                    label="Administrative Weight"
-                                    desc="Multiplier for manual featureWeight"
+                                    label="Admin Weight"
+                                    desc="Manual priority multiplier"
                                     value={config.adminWeight}
                                     onChange={(v) => setConfig({ ...config, adminWeight: parseFloat(v) })}
                                 />
                             </div>
 
-                            {/* Diversity Configuration */}
                             <div className="pt-8 border-t border-border/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="flex items-start gap-4">
-                                    <div className="h-10 w-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
+                                    <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                         <LayoutGrid className="h-5 w-5" />
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-0.5">
                                         <h4 className="text-sm font-bold text-foreground">Diversity Constraint</h4>
-                                        <p className="text-[11px] text-muted-foreground font-medium leading-relaxed max-w-[280px]">
-                                            Maximum projects from a single category allowed in the top discovery results.
+                                        <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
+                                            Maximum projects per category in results.
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 bg-muted/20 p-2 rounded-2xl border border-border/40">
+                                <div className="flex items-center gap-3 bg-muted/20 p-1.5 rounded-2xl border border-border/40">
                                     <button
                                         onClick={() => setConfig({ ...config, diversityLimit: Math.max(1, config.diversityLimit - 1) })}
-                                        className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted active:scale-95 transition-all"
+                                        className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all"
                                     >
                                         -
                                     </button>
-                                    <span className="w-12 text-center font-black text-lg tabular-nums">{config.diversityLimit}</span>
+                                    <span className="w-10 text-center font-bold text-base tabular-nums">{config.diversityLimit}</span>
                                     <button
                                         onClick={() => setConfig({ ...config, diversityLimit: Math.min(10, config.diversityLimit + 1) })}
-                                        className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted active:scale-95 transition-all"
+                                        className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all"
                                     >
                                         +
                                     </button>
@@ -166,40 +162,37 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                             <Button
                                 onClick={handleUpdateConfig}
                                 disabled={isSaving}
-                                className="w-full h-14 rounded-3xl font-black tracking-[0.2em] uppercase text-xs shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
+                                className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                             >
                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                                Commit Global Logic
+                                Commit Changes
                             </Button>
                         </CardContent>
                     </Card>
 
-                    <div className="p-6 rounded-[32px] bg-amber-50 border border-dashed border-amber-200 flex items-start gap-4 shadow-sm animate-in zoom-in-95 duration-500">
-                        <ShieldCheck className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-                        <div className="space-y-1">
-                            <p className="text-xs font-bold text-amber-900 uppercase tracking-widest">Protocol Notice</p>
-                            <p className="text-xs text-amber-800/80 leading-relaxed font-medium">
-                                Modifying weights will trigger an instant cache invalidation. Discovery results for all guest and registered users will shift immediately based on the new weighted score.
-                            </p>
-                        </div>
+                    <div className="p-5 rounded-[32px] bg-amber-50 border border-amber-100 flex items-start gap-3 shadow-sm">
+                        <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                        <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                            Updates to discovery variables apply immediately to all guest and registered user feeds.
+                        </p>
                     </div>
                 </div>
 
-                {/* --- RIGHT COLUMN: PINNED CONTENT --- */}
+                {/* CAROUSEL PINS */}
                 <div className="lg:col-span-5 space-y-6">
-                    <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden h-full flex flex-col border-2">
+                    <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden h-full flex flex-col">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
                             <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <CardTitle className="text-sm font-black flex items-center gap-2 uppercase tracking-[0.2em] text-foreground">
+                                <div className="space-y-0.5">
+                                    <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
                                         <Zap className="h-4 w-4 text-amber-500" /> Carousel Pins
                                     </CardTitle>
-                                    <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Manual Slot Control</p>
+                                    <p className="text-xs text-muted-foreground font-medium">Manual Position Control</p>
                                 </div>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 rounded-xl hover:bg-background border border-transparent hover:border-border/40"
+                                    className="h-8 w-8 rounded-xl"
                                     onClick={() => router.refresh()}
                                 >
                                     <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
@@ -211,22 +204,22 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                 {[0, 1, 2, 3, 4].map((pos) => {
                                     const slot = initialSlots.find(s => s.position === pos);
                                     return (
-                                        <div key={pos} className="p-6 flex items-center justify-between hover:bg-muted/[0.02] transition-colors group">
-                                            <div className="flex items-center gap-5 min-w-0">
-                                                <div className="h-10 w-10 rounded-2xl bg-muted flex items-center justify-center text-xs font-black text-muted-foreground border border-border/40 shrink-0 shadow-inner group-hover:bg-background transition-colors">
+                                        <div key={pos} className="p-5 flex items-center justify-between hover:bg-muted/[0.02] transition-colors group">
+                                            <div className="flex items-center gap-4 min-w-0">
+                                                <div className="h-9 w-9 rounded-2xl bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground border border-border/40 shrink-0 shadow-inner">
                                                     {pos + 1}
                                                 </div>
-                                                <div className="min-w-0 space-y-1">
+                                                <div className="min-w-0 space-y-0.5">
                                                     {slot ? (
                                                         <>
-                                                            <p className="text-sm font-bold text-foreground truncate leading-tight">{slot.project.title}</p>
+                                                            <p className="text-sm font-bold text-foreground truncate">{slot.project.title}</p>
                                                             <div className="flex items-center gap-2">
-                                                                <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black h-4 px-1.5 rounded-3xl tracking-widest">PINNED</Badge>
-                                                                <span className="text-[10px] text-muted-foreground font-mono bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 truncate">id: {slot.project.id.split('-')[0]}</span>
+                                                                <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-bold h-4 px-2 rounded-3xl">PINNED</Badge>
+                                                                <span className="text-[10px] text-muted-foreground font-mono">#{slot.project.id.split('-')[0]}</span>
                                                             </div>
                                                         </>
                                                     ) : (
-                                                        <p className="text-xs font-medium text-muted-foreground italic opacity-60">Slot available for content injection</p>
+                                                        <p className="text-xs font-medium text-muted-foreground italic opacity-60">Empty position</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -235,7 +228,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-9 w-9 rounded-2xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/10"
+                                                        className="h-9 w-9 rounded-2xl text-destructive hover:bg-destructive/10"
                                                         onClick={() => handleRemoveSlot(slot.id)}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -244,7 +237,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-9 w-9 rounded-2xl text-primary hover:bg-primary/10 bg-muted/20 opacity-40 group-hover:opacity-100 transition-all border border-transparent hover:border-primary/20 shadow-sm"
+                                                        className="h-9 w-9 rounded-2xl text-primary hover:bg-primary/10 bg-muted/20 opacity-40 group-hover:opacity-100 transition-all border border-transparent shadow-sm"
                                                         onClick={() => openSelector(pos)}
                                                     >
                                                         <Plus className="h-4 w-4" />
@@ -256,11 +249,6 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                 })}
                             </div>
                         </CardContent>
-                        <div className="p-6 bg-muted/10 border-t border-border/40">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-2">
-                                <Info className="h-3 w-3 text-primary" /> Max 5 slots active per period
-                            </p>
-                        </div>
                     </Card>
                 </div>
             </div>
@@ -277,19 +265,19 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
 
 function WeightSlider({ label, desc, value, onChange }: { label: string, desc: string, value: number, onChange: (v: string) => void }) {
     return (
-        <div className="space-y-4 p-5 rounded-3xl bg-muted/20 border border-border/40 group hover:border-primary/20 hover:bg-muted/30 transition-all">
+        <div className="space-y-4 p-5 rounded-3xl bg-muted/20 border border-border/40 group hover:border-primary/20 transition-all">
             <div className="flex justify-between items-start gap-4">
-                <div className="space-y-1">
-                    <label className="text-[11px] font-black uppercase tracking-[0.15em] text-foreground group-hover:text-primary transition-colors block">
+                <div className="space-y-0.5">
+                    <label className="text-xs font-bold text-foreground group-hover:text-primary transition-colors block">
                         {label}
                     </label>
-                    <p className="text-[10px] text-muted-foreground font-bold tracking-tight">{desc}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">{desc}</p>
                 </div>
-                <div className="h-8 px-2.5 rounded-2xl bg-background border border-border/60 flex items-center justify-center shadow-sm">
-                    <span className="text-xs font-black text-primary tabular-nums">{(value || 0).toFixed(1)}</span>
+                <div className="h-7 px-2 rounded-2xl bg-background border border-border/60 flex items-center justify-center shadow-sm">
+                    <span className="text-xs font-bold text-primary tabular-nums">{(value || 0).toFixed(1)}</span>
                 </div>
             </div>
-            <div className="relative flex items-center h-4">
+            <div className="relative flex items-center h-2">
                 <input
                     type="range"
                     min="0"
