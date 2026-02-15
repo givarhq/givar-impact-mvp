@@ -109,7 +109,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
                 <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full space-y-6">
                     <div className="overflow-x-auto no-scrollbar pb-1">
                         <TabsList className="h-11 bg-muted/50 p-1 rounded-3xl w-fit border border-border/40 shadow-inner inline-flex">
-                            {SETTINGS_OPTIONS.map((opt) => (
+                            {SETTINGS_OPTIONS.filter(o => o.id !== 'org' || user.accountType === 'ORGANIZER').map((opt) => (
                                 <TabsTrigger
                                     key={opt.id}
                                     value={opt.id}
@@ -124,7 +124,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
 
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <TabsContent value="profile" className="mt-0 outline-none"><ProfileForm user={user} /></TabsContent>
-                        <TabsContent value="org" className="mt-0 outline-none"><VerificationWizard initialProfile={orgProfile} /></TabsContent>
+                        {user.accountType === 'ORGANIZER' && <TabsContent value="org" className="mt-0 outline-none"><VerificationWizard initialProfile={orgProfile} /></TabsContent>}
                         <TabsContent value="recurring" className="mt-0 outline-none">
                             <div className="max-w-5xl mx-auto space-y-4">
                                 {subscriptions.length === 0 ? (
@@ -151,7 +151,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
             <div className="md:hidden">
                 {!activeTab ? (
                     <div className="grid gap-2 animate-in fade-in duration-200">
-                        {SETTINGS_OPTIONS.map((opt) => (
+                        {SETTINGS_OPTIONS.filter(o => o.id !== 'org' || user.accountType === 'ORGANIZER').map((opt) => (
                             <button
                                 key={opt.id}
                                 onClick={() => handleTabChange(opt.id)}
@@ -177,7 +177,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
                         </button>
                         <div>
                             {activeTab === 'profile' && <ProfileForm user={user} />}
-                            {activeTab === 'org' && <VerificationWizard initialProfile={orgProfile} />}
+                            {activeTab === 'org' && user.accountType === 'ORGANIZER' && <VerificationWizard initialProfile={orgProfile} />}
                             {activeTab === 'recurring' && (
                                 <div className="space-y-3">
                                     {subscriptions.length === 0 ? (
