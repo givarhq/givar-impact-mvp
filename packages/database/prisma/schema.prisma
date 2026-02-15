@@ -343,6 +343,8 @@ model Category {
   slug        String    @unique
   description String?
   icon        String?   // Lucide icon name or emoji
+
+  visibilityWeight Float  @default(1.0)
   
   projects    Project[]
   proposals ProjectProposal[]
