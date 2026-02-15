@@ -14,13 +14,26 @@ export default async function ImpactPage({
   const resolvedParams = await searchParams;
   const params = new URLSearchParams(resolvedParams as any);
 
-  const [projectsResult, categories] = await Promise.all([
-    ApiService.projects.list(token, params),
-    ApiService.projects.getCategories(token)
-  ]);
+  // 1. Logic: Identify if Smart Discovery is applicable.
+  // We use the recommendation feed ONLY if the user hasn't triggered manual filters (search, sort, or category).
+  const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category');
 
-  const projects = projectsResult?.data || [];
-  const meta = projectsResult?.meta || { total: 0 };
+  let projects: any[] = [];
+  let totalCount = 0;
+
+  if (isSmartDiscovery) {
+    // 2. Fetch from Recommendation Engine (Authenticated context for Personalization)
+    const recommended = await ApiService.recommendations.getFeed(token);
+    projects = recommended || [];
+    totalCount = projects.length;
+  } else {
+    // 3. Fallback to standard Query Engine for specific searches
+    const projectsResult = await ApiService.projects.list(token, params);
+    projects = projectsResult?.data || [];
+    totalCount = projectsResult?.meta?.total || 0;
+  }
+
+  const categories = await ApiService.projects.getCategories(token);
 
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-300">
@@ -28,8 +41,17 @@ export default async function ImpactPage({
       <div className="space-y-6">
         <ImpactFilters
           categories={categories || []}
-          totalCount={meta.total}
+          totalCount={totalCount}
         />
+
+        {isSmartDiscovery && projects.length > 0 && (
+          <div className="px-1 flex items-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+              Personalized Discovery Active
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="min-h-[300px] pt-2">
