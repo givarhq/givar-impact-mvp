@@ -24,7 +24,7 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
     const [userRole, setUserRole] = useState<string | null>(null);
     const [confirmConfig, setConfirmConfig] = useState<{
         isOpen: boolean;
-        action: string | null
+        action: string | null;
     }>({
         isOpen: false,
         action: null,
@@ -36,7 +36,7 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             try {
                 const user = JSON.parse(cookie as string);
                 setUserRole(user.role);
-            } catch (e) { }
+            } catch (e) {}
         }
     }, []);
 
@@ -55,11 +55,20 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
         setIsBusy(true);
         try {
             if (context === 'USER') {
-                await ApiService.admin.bulkUpdateUsers({ userIds: selectedIds, action: action as any });
+                await ApiService.admin.bulkUpdateUsers({
+                    userIds: selectedIds,
+                    action: action as any,
+                });
             } else if (context === 'PROJECT') {
-                await ApiService.admin.bulkUpdateProjects({ projectIds: selectedIds, action: action as any });
+                await ApiService.admin.bulkUpdateProjects({
+                    projectIds: selectedIds,
+                    action: action as any,
+                });
             } else if (context === 'PROPOSAL') {
-                await ApiService.admin.bulkUpdateProposals({ proposalIds: selectedIds, action: action as any });
+                await ApiService.admin.bulkUpdateProposals({
+                    proposalIds: selectedIds,
+                    action: action as any,
+                });
             }
 
             toast.success(`Batch operation successful`);
@@ -67,7 +76,7 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             onClear();
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Batch failure");
+            toast.error(e.response?.data?.message || 'Batch failure');
         } finally {
             setIsBusy(false);
         }
@@ -75,53 +84,53 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
 
     const getActionMeta = (
         action: string | null
-    ): { title: string; desc: string; variant: "default" | "destructive" | "warning" } => {
+    ): { title: string; desc: string; variant: 'default' | 'destructive' | 'warning' } => {
         if (!action) return { title: '', desc: '', variant: 'default' };
         const count = selectedIds.length;
 
         if (context === 'USER') {
             const label = action.replace('SET_', '').replace('_', ' ').toLowerCase();
-            let variant: "default" | "destructive" | "warning" = 'default';
+            let variant: 'default' | 'destructive' | 'warning' = 'default';
             if (action === 'LOCK') variant = 'destructive';
             if (action === 'SET_ADMIN') variant = 'warning';
             if (action === 'SET_USER') variant = 'destructive';
             return {
                 title: `Confirm batch ${label}`,
                 desc: `Apply ${label} status to ${count} selected accounts?`,
-                variant
+                variant,
             };
         }
 
         if (context === 'PROJECT') {
-            let variant: "default" | "destructive" | "warning" = 'default';
+            let variant: 'default' | 'destructive' | 'warning' = 'default';
             if (action === 'DELETE') variant = 'destructive';
             if (action === 'SUSPEND') variant = 'warning';
             return {
                 title: `Batch ${action.toLowerCase()}`,
                 desc: `Apply ${action.toLowerCase()} to ${count} projects? This is recorded in the audit trail.`,
-                variant
+                variant,
             };
         }
 
         if (context === 'PROPOSAL') {
-            let variant: "default" | "destructive" | "warning" = 'default';
+            let variant: 'default' | 'destructive' | 'warning' = 'default';
             if (action === 'REJECT') variant = 'destructive';
             return {
                 title: `Batch ${action.toLowerCase()}`,
                 desc: `Perform bulk ${action.toLowerCase()} on ${count} proposals?`,
-                variant
+                variant,
             };
         }
 
         return {
             title: 'Confirm Action',
             desc: `Proceed with ${action} for ${count} items?`,
-            variant: 'default'
+            variant: 'default',
         };
     };
 
     const baseBtn =
-        "h-10 sm:h-9 rounded-3xl text-white font-bold text-xs uppercase tracking-wider px-3 sm:px-3 snap-start";
+        'h-10 sm:h-9 rounded-3xl text-white font-bold text-xs uppercase tracking-wider px-3 snap-start';
 
     const renderActions = () => {
         if (context === 'USER') {
@@ -255,8 +264,9 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             <div className="fixed bottom-4 sm:bottom-20 left-1/2 -translate-x-1/2 z-[60] w-[95vw] sm:w-fit max-w-[95vw] animate-in slide-in-from-bottom-8 duration-300">
                 <div className="bg-zinc-950 text-white rounded-3xl shadow-2xl p-1 sm:p-1.5 flex items-center border border-white/10 backdrop-blur-2xl sm:backdrop-blur-xl">
 
+                    {/* LEFT */}
                     <div className="flex items-center gap-2 sm:gap-3 border-r border-white/10 pl-3 sm:pl-4 pr-2 sm:pr-3 shrink-0">
-                        <div className="h-8 w-8 sm:h-8 sm:w-8 rounded-3xl bg-primary flex items-center justify-center text-xs font-bold text-black">
+                        <div className="h-8 w-8 rounded-3xl bg-primary flex items-center justify-center text-xs font-bold text-black">
                             {selectedIds.length}
                         </div>
 
@@ -270,26 +280,25 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
                         </div>
                     </div>
 
-                    <div className="flex items-center shrink-0 border-l border-white/10 pl-0.5 sm:pl-1 ml-0.5 sm:ml-0">
-    <button
-        onClick={onClear}
-        className="
-            h-9 w-9 sm:h-8 sm:w-8
-            rounded-full
-            hover:bg-white/10
-            flex items-center justify-center
-            transition-all
-            text-zinc-400 hover:text-white
-        "
-        title="Discard"
-    >
-        {isBusy ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-            <X className="h-4 w-4" />
-        )}
-    </button>
-</div>
+                    {/* MIDDLE (flex-grow area) */}
+                    <div className="flex-1 min-w-0 flex items-center gap-1 px-2 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+                        {renderActions()}
+                    </div>
+
+                    {/* RIGHT (compact close) */}
+                    <div className="shrink-0 pl-0.5 sm:pl-1 border-l border-white/10">
+                        <button
+                            onClick={onClear}
+                            className="h-9 w-9 sm:h-8 sm:w-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-zinc-400 hover:text-white"
+                            title="Discard"
+                        >
+                            {isBusy ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <X className="h-4 w-4" />
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -305,4 +314,4 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             />
         </>
     );
-}
+            }
