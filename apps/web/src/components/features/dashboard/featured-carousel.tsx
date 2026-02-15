@@ -55,7 +55,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                     className="flex flex-col lg:grid lg:grid-cols-2 w-full lg:h-[220px] cursor-pointer touch-pan-y"
                     onClick={handleCardClick}
                 >
-                    {/* Column 1: Graphics & Narrative - Restored compact h-[160px] */}
+                    {/* Column 1: Graphics & Narrative */}
                     <div className="relative flex flex-col h-[160px] lg:h-full group/col">
                         <div className="absolute inset-0 overflow-hidden bg-muted">
                             <img
