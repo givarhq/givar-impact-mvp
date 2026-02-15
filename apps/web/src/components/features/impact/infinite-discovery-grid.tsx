@@ -42,8 +42,10 @@ export function InfiniteDiscoveryGrid({
         try {
             let response;
             if (isSmartDiscovery) {
+                // Discovery Feed call handles weights, personalization, and sector multipliers
                 response = await ApiService.recommendations.getFeed(token, nextPage, 24);
             } else {
+                // Standard Project List call for explicit searches or filters
                 const params = new URLSearchParams(searchParams);
                 params.set('page', nextPage.toString());
                 params.set('limit', '24');
