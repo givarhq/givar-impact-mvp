@@ -22,27 +22,27 @@ export function ProjectShowcase({ initialProjects, categories, onDonate, onShare
     const [isPending, startTransition] = useTransition();
 
     useEffect(() => {
-        // We use the recommendation feed even for categorized views to maintain 
-        // weighted sorting (velocity/recency) and diversity logic.
+        // Logic: Dashboard category switching stays compact (Limit 12)
         startTransition(() => {
             const token = getCookie('givar_token') as string;
 
-            // If it's the 'all' view, we use the pre-fetched feed from the server
             if (selectedCategory === 'all') {
                 setProjects(initialProjects);
                 return;
             }
 
-            // For specific categories, we fetch from recommendations to ensure 
-            // the ranking engine is still the source of truth for the sort order.
-            ApiService.recommendations.getFeed(token)
+            // Fetch from recommendation feed but filter by category locally 
+            // This ensures we maintain the weighted ranking for that sector
+            ApiService.recommendations.getFeed(token, 1, 50) // Fetch larger sample for local filtering
                 .then(response => {
-                    const filtered = (response || []).filter((p: any) => p.category?.slug === selectedCategory);
-                    setProjects(filtered);
+                    const data = response?.data || [];
+                    const filtered = data.filter((p: any) => p.categoryId === categories.find(c => c.slug === selectedCategory)?.id);
+                    // Slice to 12 to maintain the "Junior Extension" feel
+                    setProjects(filtered.slice(0, 12));
                 })
                 .catch(() => setProjects([]));
         });
-    }, [selectedCategory, initialProjects]);
+    }, [selectedCategory, initialProjects, categories]);
 
     return (
         <div className="space-y-4 md:space-y-6">
@@ -56,9 +56,9 @@ export function ProjectShowcase({ initialProjects, categories, onDonate, onShare
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={selectedCategory}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                     >
                         {isPending ? (

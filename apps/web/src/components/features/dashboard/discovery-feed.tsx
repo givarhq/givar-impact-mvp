@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Project, Wallet } from '../../../types';
 import { ProjectCard } from '../impact/project-card';
-import { Zap, CheckCircle2 } from 'lucide-react';
+import { Zap, CheckCircle2, ArrowRight } from 'lucide-react';
 import { ShareModal } from '../impact/share-modal';
 import { Modal } from '../../ui/modal';
+import { Button } from '../../ui/button';
 import { DonationForm } from '../../../app/(dashboard)/dashboard/impact/[slug]/donate/donation-form';
 import { ApiService } from '../../../services/api';
 import { getCookie } from 'cookies-next';
@@ -43,34 +45,54 @@ export function DiscoveryFeed({ trending, completed, categories }: DiscoveryFeed
     return (
         <div className="space-y-8 md:space-y-12">
             {/* Trending / Active Grid */}
-            <section className="space-y-4">
-                <div className="flex items-center gap-3 px-1">
-                    <div className="h-9 w-9 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-                        <Zap className="h-4.5 w-4.5 fill-current" />
-                    </div>
-                    <div>
-                        <h3 className="text-sm font-bold text-foreground">Trending Causes</h3>
-                        <p className="text-xs text-muted-foreground font-medium tracking-widest">Active Communities</p>
+            <section className="space-y-6">
+                <div className="flex items-center justify-between px-1">
+                    <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+                            <Zap className="h-4.5 w-4.5 fill-current" />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-bold text-foreground">Trending Causes</h3>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Top performing communities</p>
+                        </div>
                     </div>
                 </div>
-                <ProjectShowcase
-                    initialProjects={trending}
-                    categories={categories}
-                    onDonate={handleDonate}
-                    onShare={handleShare}
-                />
+
+                <div className="space-y-8">
+                    <ProjectShowcase
+                        initialProjects={trending}
+                        categories={categories}
+                        onDonate={handleDonate}
+                        onShare={handleShare}
+                    />
+
+                    {/* Logic: Bridge to full discovery feed */}
+                    {trending.length > 0 && (
+                        <div className="flex justify-center pt-2">
+                            <Link href="/dashboard/impact">
+                                <Button
+                                    variant="outline"
+                                    className="rounded-3xl h-11 px-8 font-bold text-xs gap-2 border-border/60 hover:border-primary/30 hover:text-primary transition-all group active:scale-95"
+                                >
+                                    View all
+                                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+                </div>
             </section>
 
             {/* Completed / Historical Impact */}
             {completed.length > 0 && (
-                <section className="space-y-4 pt-6 border-t border-border/40">
+                <section className="space-y-4 pt-8 border-t border-border/40">
                     <div className="flex items-center gap-3 px-1">
                         <div className="h-9 w-9 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/10">
                             <CheckCircle2 className="h-4.5 w-4.5" />
                         </div>
                         <div>
                             <h3 className="text-sm font-bold text-foreground">Mission Accomplished</h3>
-                            <p className="text-xs text-muted-foreground font-medium tracking-widest">Verified Success</p>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Verified Success</p>
                         </div>
                     </div>
 
