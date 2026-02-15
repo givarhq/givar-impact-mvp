@@ -31,7 +31,7 @@ export class RecommendationsService {
     /**
      * Discovery Feed Logic.
      */
-    async getDiscoveryFeed(userId?: string, page: number = 1, limit: number = 12) {
+    async getDiscoveryFeed(userId?: string, page: number = 1, limit: number = 18) {
         return this.recommendPipeline({ limit, page, userId });
     }
 

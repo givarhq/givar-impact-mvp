@@ -31,7 +31,7 @@ export default async function DashboardPage({
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
     ApiService.recommendations.getFeatured(token),
-    ApiService.recommendations.getFeed(token, 1, 12), // Explicitly limit to 12 items
+    ApiService.recommendations.getFeed(token, 1, 18), // Explicitly limit to 12 items
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
     ApiService.projects.getCategories(token),
     ApiService.wallet.get(token),
