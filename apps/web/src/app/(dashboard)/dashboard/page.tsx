@@ -17,6 +17,7 @@ export default async function DashboardPage({
   const resolvedParams = await searchParams;
   const activeTab = resolvedParams.tab || 'discovery';
 
+  // Logic: Parallel fetch for high-intent dashboard discovery
   const [
     dbUser,
     history,
@@ -30,7 +31,7 @@ export default async function DashboardPage({
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
     ApiService.recommendations.getFeatured(token),
-    ApiService.recommendations.getFeed(token),
+    ApiService.recommendations.getFeed(token, 1, 12), // Explicitly limit to 12 items
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
     ApiService.projects.getCategories(token),
     ApiService.wallet.get(token),
@@ -45,7 +46,6 @@ export default async function DashboardPage({
     return acc + BigInt(tx.amount || 0);
   }, 0n);
 
-  // Logic: Extract the .data array from paginated responses
   const featuredProjects = featuredResponse?.data || [];
   const feedProjects = feedResponse?.data || [];
   const completedProjects = completedResponse?.data || [];
@@ -60,8 +60,10 @@ export default async function DashboardPage({
         />
 
         <TabsContent value="discovery" className="space-y-6 md:space-y-8 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {/* Main Hero discovery */}
           <FeaturedCarousel projects={featuredProjects} />
 
+          {/* Junior discovery extension: Limited to 12 top-scored items */}
           <DiscoveryFeed
             trending={feedProjects}
             completed={completedProjects}
