@@ -248,6 +248,8 @@ export class AdminService {
       ...(categoryId && { categoryId }),
       ...(search && {
         OR: [
+          { id: { contains: search, mode: 'insensitive' } },
+          { slug: { contains: search, mode: 'insensitive' } },
           { title: { contains: search, mode: 'insensitive' } },
           { location: { contains: search, mode: 'insensitive' } },
         ],
