@@ -130,8 +130,8 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
     };
 
     const baseBtn =
-        'h-10 sm:h-9 rounded-3xl text-white font-bold text-xs uppercase tracking-wider px-3 snap-start';
-
+        'flex-1 h-10 sm:h-9 rounded-3xl text-white font-bold text-xs uppercase tracking-wider px-3 sm:px-3.5 snap-start';
+    
     const renderActions = () => {
         if (context === 'USER') {
             return (
@@ -281,9 +281,9 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
                     </div>
 
                     {/* MIDDLE (flex-grow area) */}
-                    <div className="flex-1 min-w-0 flex items-center gap-1 px-2 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                        {renderActions()}
-                    </div>
+                    <div className="flex-1 min-w-0 flex items-center px-2 sm:gap-1 overflow-x-auto no-scrollbar sm:snap-x sm:snap-mandatory justify-between">
+    {renderActions()}
+</div>
 
                     {/* RIGHT (compact close) */}
                     <div className="shrink-0 pl-0.5 sm:pl-1 border-l border-white/10">
