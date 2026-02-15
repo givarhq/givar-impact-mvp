@@ -5,7 +5,9 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, FileText, ShieldAlert,
   LogOut, Lock, BadgeCheck, Database, Building,
-  BarChart3
+  BarChart3,
+  Megaphone,
+  Binoculars
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
@@ -20,8 +22,9 @@ const navItems = [
   { title: 'Cause Management', href: '/admin/projects', icon: FileText },
   { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
   { title: 'Organizations', href: '/admin/organizations', icon: Building },
+  { title: 'Visibility Control', href: '/admin/visibility', icon: Binoculars },
   { title: 'Audit Logs', href: '/admin/audit', icon: ShieldAlert },
-  { title: 'Financial Report', href: '/admin/finances', icon: BarChart3 },
+  { title: 'Treasury Intelligence', href: '/admin/finances', icon: BarChart3 },
   { title: 'Ledger Oversight', href: '/admin/ledger', icon: Database }
 ];
 

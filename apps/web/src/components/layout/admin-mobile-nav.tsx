@@ -11,7 +11,8 @@ import {
   ShieldAlert,
   Building,
   MoreHorizontal,
-  BarChart3
+  BarChart3,
+  Binoculars
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import {
@@ -32,7 +33,8 @@ const ALL_NAV_ITEMS = [
   { title: 'Organizations', href: '/admin/organizations', icon: Building },
   { title: 'Ledger', href: '/admin/ledger', icon: Database },
   { title: 'Audit', href: '/admin/audit', icon: ShieldAlert },
-  { title: 'Financials', href: '/admin/finances', icon: BarChart3 },
+  { title: 'Treasury', href: '/admin/finances', icon: BarChart3 },
+  { title: 'Visiblity', href: '/admin/visibility', icon: Binoculars },
 ];
 
 export function AdminMobileNav({ user }: { user: any }) {
