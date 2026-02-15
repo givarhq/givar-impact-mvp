@@ -65,18 +65,15 @@ export class RecommendationsService {
     }
 
     private async recommendPipeline(options: { limit: number; page: number; userId?: string }) {
-        // console.log(`\n🚀 [DISCOVERY START] User: ${options.userId || 'GUEST'} Page: ${options.page}`);
-
         const config = await this.getInternalConfig();
         const projects = await this.repo.getCandidates();
 
-        if (projects.length === 0) return [];
+        if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
         const projectIds = projects.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
         const slots = await this.repo.getFeaturedSlots();
 
-        // 1. Score All (Fast)
         const scored: ScoredItem[] = projects.map((p) => ({
             id: p.id,
             categoryId: p.categoryId || 'none',
@@ -90,18 +87,12 @@ export class RecommendationsService {
             }, config),
         }));
 
-        // 2. Personalize All
         let processed = scored;
         if (options.userId) {
-            try {
-                const affinity = await this.repo.getUserAffinity(options.userId);
-                processed = this.personalization.apply(scored, affinity, projects);
-            } catch (err) {
-                this.logger.error(`Personalization logic failed for user ${options.userId}`, err);
-            }
+            const affinity = await this.repo.getUserAffinity(options.userId);
+            processed = this.personalization.apply(scored, affinity, projects);
         }
 
-        // 3. Sort & Diversify All
         const sorted = [...processed].sort((a, b) => b.score - a.score);
         const diversified = this.diversity.enforce(sorted, config.diversityLimit || 3);
         const finalOrder = this.overrides.apply(
@@ -109,12 +100,12 @@ export class RecommendationsService {
             slots.map(s => ({ projectId: s.projectId, position: s.position }))
         );
 
-        // 4. Pagination Slice (Selecting only the range we need)
+        // --- Metadata Calculation ---
+        const total = finalOrder.length;
+        const lastPage = Math.ceil(total / options.limit);
         const startIndex = (options.page - 1) * options.limit;
-        const endIndex = startIndex + options.limit;
-        const topIds = finalOrder.slice(startIndex, endIndex).map((item) => item.id);
+        const topIds = finalOrder.slice(startIndex, startIndex + options.limit).map((item) => item.id);
 
-        // 5. Heavy Hydration (Only for the sliced 24 projects)
         const hydratedProjects = await this.prisma.project.findMany({
             where: { id: { in: topIds } },
             include: {
@@ -127,7 +118,7 @@ export class RecommendationsService {
             .map(id => hydratedProjects.find(p => p.id === id))
             .filter((p): p is NonNullable<typeof p> => !!p);
 
-        return Promise.all(orderedHydrated.map(async (p) => {
+        const data = await Promise.all(orderedHydrated.map(async (p) => {
             const hydrated = await this.storage.hydrateEntityMedia(p as any);
             const raised = Number(hydrated.raisedAmount || 0n);
             const target = Number(hydrated.targetAmount || 0n);
@@ -137,12 +128,21 @@ export class RecommendationsService {
                 ...hydrated,
                 targetAmount: hydrated.targetAmount.toString(),
                 raisedAmount: hydrated.raisedAmount.toString(),
-                percentFunded: Number(hydrated.targetAmount) > 0 ? Math.min(100, Math.round((Number(hydrated.raisedAmount) / Number(hydrated.targetAmount)) * 100)) : 0,
+                percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
                 categoryName: hydrated.category?.name || 'General Impact',
                 isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
                 organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
             };
         }));
+
+        return {
+            data,
+            meta: {
+                total,
+                page: options.page,
+                lastPage
+            }
+        };
     }
 
     private async getInternalConfig() {
