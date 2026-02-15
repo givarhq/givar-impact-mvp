@@ -73,7 +73,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <StatCard
-                title="Total entities"
+                title="Total Entities"
                 value={summary.totalUsers}
                 subValue={`${Math.abs(summary.userGrowthPercent)}% growth`}
                 icon={Users}
@@ -83,7 +83,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="System liquidity"
+                title="System Liquidity"
                 value={<SmartCurrency amount={summary.totalVolume.NGN} currency="NGN" visible={true} size="default" />}
                 subValue="Processed volume"
                 icon={Wallet}
@@ -93,7 +93,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="Avg. contribution"
+                title="Avg. Contribution"
                 value={<SmartCurrency amount={avgDonation} currency="NGN" visible={true} size="default" />}
                 subValue="Per gift"
                 icon={BarChart3}
@@ -102,7 +102,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="Risk indicators"
+                title="Risk Indicators"
                 value={summary.riskCount}
                 subValue={summary.riskLabel}
                 icon={risk.icon}
