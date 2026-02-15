@@ -409,6 +409,62 @@ export const ApiService = {
       apiClient.get(`/admin/finances/export?${params.toString()}`, {
         responseType: 'blob',
       }),
+
+    /**
+   * Discovery Logic: Fetch current algorithmic weights and diversity limits.
+   */
+    getConfig: (token: string) =>
+      serverFetch<any>('/recommendations/admin/config', token),
+
+    /**
+     * Discovery Logic: Update global ranking variables.
+     */
+    updateConfig: (data: any) =>
+      apiClient.patch('/recommendations/admin/config', data).then(r => r.data),
+
+    /**
+     * Discovery Logic: Fetch manually pinned project slots.
+     */
+    getSlots: (token: string) =>
+      serverFetch<any[]>('/recommendations/admin/slots', token),
+
+    /**
+     * Discovery Logic: Pin a project to a specific position in the carousel.
+     */
+    createSlot: (data: { projectId: string; position: number; expiresAt?: string }) =>
+      apiClient.post('/recommendations/admin/slots', data).then(r => r.data),
+
+    /**
+     * Discovery Logic: Remove a manual pin.
+     */
+    deleteSlot: (id: string) =>
+      apiClient.delete(`/recommendations/admin/slots/${id}`).then(r => r.data),
+
+    /**
+     * Discovery Logic: Update specific project weights for manual boosts.
+     */
+    updateProjectWeights: (id: string, data: { featureWeight?: number; visibilityScore?: number }) =>
+      apiClient.patch(`/recommendations/admin/project/${id}/weights`, data).then(r => r.data),
+  },
+
+  recommendations: {
+    /**
+     * Discovery Logic: Hybrid prioritized carousel.
+     * Supports server-side token passing or client-side interceptor.
+     */
+    getFeatured: (token?: string) =>
+      token
+        ? serverFetch<Project[]>('/recommendations/featured', token)
+        : apiClient.get('/recommendations/featured').then(r => r.data),
+
+    /**
+     * Discovery Logic: Diversity-enforced discovery feed.
+     * Supports server-side token passing or client-side interceptor.
+     */
+    getFeed: (token?: string) =>
+      token
+        ? serverFetch<Project[]>('/recommendations/feed', token)
+        : apiClient.get('/recommendations/feed').then(r => r.data),
   },
 
   // Organization Verification Domain
