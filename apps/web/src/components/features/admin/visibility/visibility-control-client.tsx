@@ -183,22 +183,38 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                         <CardContent className="p-6 md:p-8">
                             <div className="space-y-3 max-h-[380px] overflow-y-auto no-scrollbar pr-2">
                                 {categories.map((cat) => (
-                                    <div key={cat.id} className="flex items-center justify-between gap-6 p-4 rounded-2xl bg-muted/10 border border-border/40 group hover:border-primary/20 transition-all">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold text-foreground truncate">{cat.name}</p>
-                                        </div>
-                                        <div className="flex items-center gap-4 w-48">
-                                            <input
-                                                type="range" min="0.5" max="5" step="0.1"
-                                                value={categoryWeights[cat.id] || 1.0}
-                                                onChange={(e) => setCategoryWeights({ ...categoryWeights, [cat.id]: parseFloat(e.target.value) })}
-                                                className="flex-1 h-1 bg-border rounded-3xl appearance-none cursor-pointer accent-primary focus:outline-none"
-                                            />
-                                            <span className="text-xs font-bold text-primary tabular-nums w-8 text-right">
-                                                {(categoryWeights[cat.id] || 1.0).toFixed(1)}x
-                                            </span>
-                                        </div>
-                                    </div>
+                                    <div
+  key={cat.id}
+  className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-2xl bg-muted/10 border border-border/40 group hover:border-primary/20 transition-all"
+>
+  {/* Category Name */}
+  <div className="flex-1">
+    <p className="text-sm font-bold text-foreground leading-snug break-words">
+      {cat.name}
+    </p>
+  </div>
+
+  {/* Slider + Value */}
+  <div className="flex items-center gap-4 w-full md:w-56">
+    <input
+      type="range"
+      min="0.5"
+      max="5"
+      step="0.1"
+      value={categoryWeights[cat.id] || 1.0}
+      onChange={(e) =>
+        setCategoryWeights({
+          ...categoryWeights,
+          [cat.id]: parseFloat(e.target.value),
+        })
+      }
+      className="flex-1 h-1 bg-border rounded-3xl appearance-none cursor-pointer accent-primary focus:outline-none"
+    />
+    <span className="text-xs font-bold text-primary tabular-nums w-10 text-right">
+      {(categoryWeights[cat.id] || 1.0).toFixed(1)}x
+    </span>
+  </div>
+</div>
                                 ))}
                             </div>
                         </CardContent>
