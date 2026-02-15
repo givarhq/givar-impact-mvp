@@ -13,16 +13,21 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
     const [index, setIndex] = useState(0);
 
     useEffect(() => {
-        if (projects.length <= 1) return;
+        if (!projects || projects.length <= 1) return;
         const timer = setInterval(() => {
             setIndex((prev) => (prev + 1) % projects.length);
         }, 8000);
         return () => clearInterval(timer);
-    }, [projects.length]);
+    }, [projects?.length]);
 
-    if (projects.length === 0) return null;
+    // Defensive Guard: Handle null, undefined, or empty data
+    if (!projects || projects.length === 0) return null;
 
     const current = projects[index];
+
+    // Final Safety: If for some reason the index points to nothing
+    if (!current) return null;
+
     const raised = Number(current.raisedAmount || 0);
     const target = Number(current.targetAmount || 0);
     const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
@@ -55,14 +60,15 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                     className="flex flex-col lg:grid lg:grid-cols-2 w-full lg:h-[220px] cursor-pointer touch-pan-y"
                     onClick={handleCardClick}
                 >
-                    {/* Column 1: Graphics & Narrative */}
                     <div className="relative flex flex-col h-[160px] lg:h-full group/col">
                         <div className="absolute inset-0 overflow-hidden bg-muted">
-                            <img
-                                src={current.imageUrl}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover/col:scale-105"
-                                alt=""
-                            />
+                            {current.imageUrl && (
+                                <img
+                                    src={current.imageUrl}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/col:scale-105"
+                                    alt=""
+                                />
+                            )}
                             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent" />
                         </div>
 
@@ -82,13 +88,12 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                             </h2>
                             <div className="flex items-center gap-2 text-[11px] text-zinc-300">
                                 <span className="flex items-center gap-1 font-medium">
-                                    <MapPin className="h-2.5 w-2.5 text-primary" /> {current.location}
+                                    <MapPin className="h-2.5 w-2.5 text-primary" /> {current.location || 'Global'}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Column 2: Ledger & Actions */}
                     <div className="flex flex-col justify-center p-4 lg:p-6 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 text-center">
                         <div className="space-y-4">
                             <div className="space-y-2.5">
@@ -141,7 +146,6 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                 </motion.div>
             </AnimatePresence>
 
-            {/* Pagination Controls */}
             {projects.length > 1 && (
                 <div className="absolute top-3 right-4 flex items-center gap-1.5 z-10">
                     {projects.map((_, i) => (

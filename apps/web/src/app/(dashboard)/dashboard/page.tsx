@@ -17,12 +17,11 @@ export default async function DashboardPage({
   const resolvedParams = await searchParams;
   const activeTab = resolvedParams.tab || 'discovery';
 
-  // Fetching personalized recommendation streams instead of static project lists
   const [
     dbUser,
     history,
-    featuredProjects,
-    feedProjects,
+    featuredResponse,
+    feedResponse,
     completedResponse,
     categories,
     wallet,
@@ -30,8 +29,8 @@ export default async function DashboardPage({
   ] = await Promise.all([
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
-    ApiService.recommendations.getFeatured(token), // Hybrid prioritized carousel
-    ApiService.recommendations.getFeed(token),     // Diversity-enforced discovery feed
+    ApiService.recommendations.getFeatured(token),
+    ApiService.recommendations.getFeed(token),
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
     ApiService.projects.getCategories(token),
     ApiService.wallet.get(token),
@@ -46,6 +45,9 @@ export default async function DashboardPage({
     return acc + BigInt(tx.amount || 0);
   }, 0n);
 
+  // Logic: Extract the .data array from paginated responses
+  const featuredProjects = featuredResponse?.data || [];
+  const feedProjects = feedResponse?.data || [];
   const completedProjects = completedResponse?.data || [];
 
   return (
@@ -58,10 +60,10 @@ export default async function DashboardPage({
         />
 
         <TabsContent value="discovery" className="space-y-6 md:space-y-8 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <FeaturedCarousel projects={featuredProjects || []} />
+          <FeaturedCarousel projects={featuredProjects} />
 
           <DiscoveryFeed
-            trending={feedProjects || []}
+            trending={feedProjects}
             completed={completedProjects}
             categories={categories || []}
           />
