@@ -16,12 +16,13 @@ export class RecommendationsRepository {
     /**
      * Fetches discovery candidates.
      * Logic: Captures projects regardless of moderationStatus nullability to ensure 
-     * visibility during the system transition.
+     * visibility during the system transition. Includes category weight for ranking.
      */
     async getCandidates() {
         return this.prisma.project.findMany({
             where: {
                 isActive: true,
+                // Accept any status for now to ensure we see data
                 status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] },
             },
             select: {
@@ -31,6 +32,11 @@ export class RecommendationsRepository {
                 featureWeight: true,
                 visibilityScore: true,
                 tags: true,
+                category: {
+                    select: {
+                        visibilityWeight: true
+                    }
+                }
             }
         });
     }
