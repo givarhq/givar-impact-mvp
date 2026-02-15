@@ -103,85 +103,86 @@ export function AdminProjectTable({
     return (
         <div className="w-full overflow-hidden">
             {/* MOBILE: High-Density Card List */}
-            <div className="grid gap-2 md:hidden">
-                <div className={cn(
-                    "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
-                    isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
-                )}>
-                    <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
-                        checked={isAllSelected}
-                        onChange={(e) => onSelectAll(e.target.checked)}
-                    />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select all</span>
-                </div>
-                {projects.map((project) => {
-                    const isSelected = selectedIds.includes(project.id);
-                    return (
-                        <Card
-                            key={project.id}
-                            className={cn(
-                                "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden touch-none",
-                                isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
-                            )}
-                            onPointerDown={() => startLongPress(project.id)}
-                            onPointerUp={clearLongPress}
-                            onPointerLeave={clearLongPress}
-                            onClick={() => {
-                                if (isSelectionMode) onSelectRow(project.id, !isSelected);
-                                else router.push(`/admin/projects/${project.id}/edit`);
-                            }}
-                        >
-                            <CardContent className="p-4 space-y-4">
-                                <div className="flex justify-between items-start gap-4 w-full">
-                                    <div className="flex items-start gap-3 min-w-0 flex-1">
-                                        <div className={cn(
-                                            "transition-all duration-200 overflow-hidden",
-                                            isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
-                                        )}>
-                                            <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
-                                                checked={isSelected}
-                                                onChange={(e) => onSelectRow(project.id, e.target.checked)}
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-semibold text-foreground truncate leading-tight">{project.title}</p>
-                                            <div className="flex items-center gap-2 mt-1.5">
-                                                <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                    id: {project.id.split('-')[0]}
-                                                </span>
-                                                <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
-                                                    {project.status}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
-                                        <AdminProjectActions id={project.id} status={project.status} />
-                                    </div>
+<div className="grid gap-2 md:hidden">
+    <div className={cn(
+        "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
+        isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
+    )}>
+        <input
+            type="checkbox"
+            className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+            checked={isAllSelected}
+            onChange={(e) => onSelectAll(e.target.checked)}
+        />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select all</span>
+    </div>
+    {projects.map((project) => {
+        const isSelected = selectedIds.includes(project.id);
+        return (
+            <Card
+                key={project.id}
+                className={cn(
+                    "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden md:overflow-visible",
+                    "touch-pan-y select-none",
+                    isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
+                )}
+                onPointerDown={() => startLongPress(project.id)}
+                onPointerUp={clearLongPress}
+                onPointerLeave={clearLongPress}
+                onClick={() => {
+                    if (isSelectionMode) onSelectRow(project.id, !isSelected);
+                    else router.push(`/admin/projects/${project.id}/edit`);
+                }}
+            >
+                <CardContent className="p-4 space-y-4 select-none">
+                    <div className="flex justify-between items-start gap-4 w-full">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <div className={cn(
+                                "transition-all duration-200 overflow-visible",
+                                isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
+                            )}>
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
+                                    checked={isSelected}
+                                    onChange={(e) => onSelectRow(project.id, e.target.checked)}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-foreground truncate leading-tight">{project.title}</p>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                    <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                        id: {project.id.split('-')[0]}
+                                    </span>
+                                    <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold uppercase tracking-tight border-primary/20 bg-primary/5 text-primary">
+                                        {project.status}
+                                    </Badge>
                                 </div>
-                                <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
-                                    <div className="space-y-1 min-w-0">
-                                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Raised / Target</p>
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
-                                            <span className="text-muted-foreground/50 text-[11px]">of</span>
-                                            <span className="text-xs font-semibold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                        <p className="text-[11px] font-semibold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </div>
+                            </div>
+                        </div>
+                        <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
+                            <AdminProjectActions id={project.id} status={project.status} />
+                        </div>
+                    </div>
+                    <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
+                        <div className="space-y-1 min-w-0">
+                            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">Raised / Target</p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                                <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
+                                <span className="text-muted-foreground/50 text-[11px]">of</span>
+                                <span className="text-xs font-semibold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
+                            </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                            <p className="text-[11px] font-semibold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    })}
+</div>
 
             {/* DESKTOP: Forensic Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
