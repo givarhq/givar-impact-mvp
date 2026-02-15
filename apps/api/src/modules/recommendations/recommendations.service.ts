@@ -60,6 +60,17 @@ export class RecommendationsService {
 
     async deleteSlot(id: string) { return this.prisma.featuredSlot.delete({ where: { id } }); }
 
+    /**
+     * Updates the visibility multiplier for an entire category.
+     * This affects the ranking score of all projects within this sector.
+     */
+    async updateCategoryWeight(id: string, weight: number) {
+        return this.prisma.category.update({
+            where: { id },
+            data: { visibilityWeight: weight }
+        });
+    }
+
     async updateProjectWeights(id: string, dto: any) {
         const project = await this.prisma.project.findUnique({ where: { id } });
         if (!project) throw new NotFoundException('Project node not found');
