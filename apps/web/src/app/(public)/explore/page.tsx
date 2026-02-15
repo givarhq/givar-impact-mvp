@@ -1,6 +1,6 @@
 import { PublicLayout } from '../../../components/layout/public-layout';
-import { ProjectGrid } from '../../../components/features/impact/project-grid';
 import { ImpactFilters } from '../../../components/features/impact/impact-filters';
+import { InfiniteDiscoveryGrid } from '../../../components/features/impact/infinite-discovery-grid';
 import { ApiService } from '../../../services/api';
 import { cookies } from 'next/headers';
 
@@ -14,22 +14,22 @@ export default async function ExplorePage({
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
 
-  // 1. Logic: If no specific search or manual sort is applied, 
-  // use the smart Recommendation Feed for high-utility discovery.
+  // Logic: Only use Smart Discovery if no manual search/sort/category is active
   const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category');
 
   let projects: any[] = [];
-  let totalCount = 0;
+  let meta = { total: 0, page: 1, lastPage: 1 };
 
+  // Initial Server-Side Fetch for SEO and Instant Interaction
   if (isSmartDiscovery) {
-    const recommended = await ApiService.recommendations.getFeed(token);
-    projects = recommended || [];
-    totalCount = projects.length;
+    const response = await ApiService.recommendations.getFeed(token, 1, 24);
+    projects = response?.data || [];
+    meta = response?.meta || meta;
   } else {
-    // 2. Logic: If user applies manual filters, fall back to the standard search engine
+    // Standard fetch for filtered/searched states
     const projectsResult = await ApiService.projects.list(token || '', params);
     projects = projectsResult?.data || [];
-    totalCount = projectsResult?.meta?.total || 0;
+    meta = projectsResult?.meta || meta;
   }
 
   const categories = await ApiService.projects.getCategories(token);
@@ -41,18 +41,19 @@ export default async function ExplorePage({
         <div className="px-1">
           <ImpactFilters
             categories={categories || []}
-            totalCount={totalCount}
+            totalCount={meta.total}
           />
-          {isSmartDiscovery && projects.length > 0 && (
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mt-4 flex items-center gap-2 animate-pulse">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Smart discovery active
-            </p>
-          )}
         </div>
 
-        {/* Results Section */}
+        {/* Optimized Discovery Grid */}
         <div className="min-h-[400px]">
-          <ProjectGrid projects={projects} isPublic={true} />
+          <InfiniteDiscoveryGrid
+            initialData={projects}
+            initialMeta={meta}
+            isSmartDiscovery={isSmartDiscovery}
+            searchParams={params.toString()}
+            isPublic={true}
+          />
         </div>
       </div>
     </PublicLayout>
