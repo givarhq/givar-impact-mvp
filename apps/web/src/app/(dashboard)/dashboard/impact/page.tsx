@@ -43,15 +43,6 @@ export default async function ImpactPage({
           categories={categories || []}
           totalCount={totalCount}
         />
-
-        {isSmartDiscovery && projects.length > 0 && (
-          <div className="px-1 flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-              Personalized Discovery Active
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="min-h-[300px] pt-2">
