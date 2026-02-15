@@ -212,10 +212,10 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                                 <div className="min-w-0 space-y-0.5">
                                                     {slot ? (
                                                         <>
-                                                            <p className="text-sm font-bold text-foreground truncate">{slot.project.title}</p>
+                                                            <p className="text-sm font-bold text-foreground truncate">{slot.project?.title || 'Unknown Project'}</p>
                                                             <div className="flex items-center gap-2">
                                                                 <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-bold h-4 px-2 rounded-3xl">PINNED</Badge>
-                                                                <span className="text-[10px] text-muted-foreground font-mono">#{slot.project.id.split('-')[0]}</span>
+                                                                <span className="text-[10px] text-muted-foreground font-mono">#{slot.projectId.split('-')[0]}</span>
                                                             </div>
                                                         </>
                                                     ) : (
