@@ -445,6 +445,12 @@ export const ApiService = {
      */
     updateProjectWeights: (id: string, data: { featureWeight?: number; visibilityScore?: number }) =>
       apiClient.patch(`/recommendations/admin/project/${id}/weights`, data).then(r => r.data),
+
+    /**
+     * Discovery Logic: Update visibility multiplier for an entire impact sector.
+     */
+    updateCategoryWeight: (id: string, weight: number) =>
+      apiClient.patch(`/recommendations/admin/category/${id}/weight`, { weight }).then(r => r.data),
   },
 
   recommendations: {
