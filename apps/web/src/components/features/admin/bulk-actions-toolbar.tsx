@@ -270,23 +270,26 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1 px-1 shrink-0 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                        {renderActions()}
-                    </div>
-
-                    <div className="flex items-center shrink-0 border-l border-white/10 pl-1">
-                        <button
-                            onClick={onClear}
-                            className="h-10 w-10 sm:h-8 sm:w-8 rounded-3xl hover:bg-white/10 flex items-center justify-center transition-all text-zinc-400 hover:text-white"
-                            title="Discard"
-                        >
-                            {isBusy ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <X className="h-4 w-4" />
-                            )}
-                        </button>
-                    </div>
+                    <div className="flex items-center shrink-0 border-l border-white/10 pl-0.5 sm:pl-1 ml-0.5 sm:ml-0">
+    <button
+        onClick={onClear}
+        className="
+            h-9 w-9 sm:h-8 sm:w-8
+            rounded-full
+            hover:bg-white/10
+            flex items-center justify-center
+            transition-all
+            text-zinc-400 hover:text-white
+        "
+        title="Discard"
+    >
+        {isBusy ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+            <X className="h-4 w-4" />
+        )}
+    </button>
+</div>
                 </div>
             </div>
 
