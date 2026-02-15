@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, UseGuards, Req, Post, Delete, Param } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards, Req, Post, Delete, Param, Query } from '@nestjs/common';
 import { RecommendationsService } from './recommendations.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -10,19 +10,38 @@ import { AuthGuard } from '@nestjs/passport';
 export class RecommendationsController {
     constructor(private readonly service: RecommendationsService) { }
 
+    /**
+     * Public/Guest: Get the "Featured" carousel items (Top 5).
+     * Personalization applied if Authorization header is present.
+     */
     @UseGuards(OptionalJwtAuthGuard)
     @Get('featured')
     async getFeatured(@Req() req: any) {
         return this.service.getFeatured(req.user?.id);
     }
 
+    /**
+     * Public/Guest: Get the main "Discovery" feed.
+     * Supports pagination for infinite scrolling.
+     */
     @UseGuards(OptionalJwtAuthGuard)
     @Get('feed')
-    async getFeed(@Req() req: any) {
-        return this.service.getDiscoveryFeed(req.user?.id);
+    async getFeed(
+        @Req() req: any,
+        @Query('page') page?: number,
+        @Query('limit') limit?: number
+    ) {
+        const pageNum = page ? Number(page) : 1;
+        const limitNum = limit ? Number(limit) : 24;
+
+        return this.service.getDiscoveryFeed(
+            req.user?.id,
+            pageNum,
+            limitNum
+        );
     }
 
-    // --- Admin Configuration ---
+    // --- Admin Configuration Endpoints ---
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)

@@ -9,7 +9,7 @@ import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class RecommendationsService {
-    private readonly logger = new Logger(RecommendationsService.name);
+    private readonly logger = new Logger('DiscoveryEngine');
     private configCache: any = null;
     private cacheTimestamp: number = 0;
     private readonly CACHE_TTL = 60000;
@@ -25,113 +25,101 @@ export class RecommendationsService {
     ) { }
 
     async getFeatured(userId?: string) {
-        return this.recommendPipeline({ limit: 5, userId });
+        return this.recommendPipeline({ limit: 5, page: 1, userId });
     }
 
-    async getDiscoveryFeed(userId?: string) {
-        return this.recommendPipeline({ limit: 12, userId });
+    async getDiscoveryFeed(userId?: string, page: number = 1, limit: number = 24) {
+        return this.recommendPipeline({ limit, page, userId });
     }
 
-    async getRecommendationConfig() {
-        return this.getInternalConfig();
-    }
+    async getRecommendationConfig() { return this.getInternalConfig(); }
 
     async updateConfig(dto: any) {
-        const updated = await this.prisma.recommendationConfig.update({
+        const updated = await this.prisma.recommendationConfig.upsert({
             where: { id: 'default' },
-            data: dto,
+            update: dto,
+            create: { id: 'default', ...dto, updatedAt: new Date() },
         });
         this.configCache = updated;
         this.cacheTimestamp = Date.now();
         return updated;
     }
 
-    // --- Slot Logic ---
-
-    async getSlots() {
-        return this.repo.getFeaturedSlots();
-    }
+    async getSlots() { return this.repo.getFeaturedSlots(); }
 
     async createSlot(dto: { projectId: string; position: number; expiresAt?: string }) {
         return this.prisma.featuredSlot.upsert({
             where: { position: dto.position },
-            update: {
-                projectId: dto.projectId,
-                expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
-            },
-            create: {
-                projectId: dto.projectId,
-                position: dto.position,
-                expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
-            },
+            update: { projectId: dto.projectId, expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null },
+            create: { projectId: dto.projectId, position: dto.position, expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null },
         });
     }
 
-    async deleteSlot(id: string) {
-        return this.prisma.featuredSlot.delete({ where: { id } });
-    }
-
-    // --- Individual Weight Logic ---
+    async deleteSlot(id: string) { return this.prisma.featuredSlot.delete({ where: { id } }); }
 
     async updateProjectWeights(id: string, dto: any) {
         const project = await this.prisma.project.findUnique({ where: { id } });
         if (!project) throw new NotFoundException('Project node not found');
 
-        return this.prisma.project.update({
-            where: { id },
-            data: dto,
-        });
+        return this.prisma.project.update({ where: { id }, data: dto });
     }
 
-    private async recommendPipeline(options: { limit: number; userId?: string }) {
+    private async recommendPipeline(options: { limit: number; page: number; userId?: string }) {
+        // console.log(`\n🚀 [DISCOVERY START] User: ${options.userId || 'GUEST'} Page: ${options.page}`);
+
         const config = await this.getInternalConfig();
         const projects = await this.repo.getCandidates();
-        const projectIds: string[] = projects.map((p) => p.id);
+
+        if (projects.length === 0) return [];
+
+        const projectIds = projects.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
         const slots = await this.repo.getFeaturedSlots();
 
-        const scored: ScoredItem[] = projects.map((p) => {
-            const candidate: RankingCandidate = {
+        // 1. Score All (Fast)
+        const scored: ScoredItem[] = projects.map((p) => ({
+            id: p.id,
+            categoryId: p.categoryId || 'none',
+            score: this.ranking.calculateScore({
                 id: p.id,
                 createdAt: p.createdAt,
-                featureWeight: p.featureWeight,
-                visibilityScore: p.visibilityScore,
+                featureWeight: p.featureWeight || 0,
+                visibilityScore: p.visibilityScore || 0,
                 donationVelocity: velocityMap.get(p.id) || 0,
                 engagementScore: 0,
-            };
-            return {
-                id: p.id,
-                categoryId: p.categoryId || '',
-                score: this.ranking.calculateScore(candidate, config),
-            };
-        });
+            }, config),
+        }));
 
+        // 2. Personalize All
         let processed = scored;
         if (options.userId) {
-            const affinity = await this.repo.getUserAffinity(options.userId);
-            processed = this.personalization.apply(scored, affinity, projects);
+            try {
+                const affinity = await this.repo.getUserAffinity(options.userId);
+                processed = this.personalization.apply(scored, affinity, projects);
+            } catch (err) {
+                this.logger.error(`Personalization logic failed for user ${options.userId}`, err);
+            }
         }
 
+        // 3. Sort & Diversify All
         const sorted = [...processed].sort((a, b) => b.score - a.score);
-        const diversified = this.diversity.enforce(sorted, config.diversityLimit);
-
+        const diversified = this.diversity.enforce(sorted, config.diversityLimit || 3);
         const finalOrder = this.overrides.apply(
             diversified,
             slots.map(s => ({ projectId: s.projectId, position: s.position }))
         );
 
-        const topIds = finalOrder.slice(0, options.limit).map((item) => item.id);
+        // 4. Pagination Slice (Selecting only the range we need)
+        const startIndex = (options.page - 1) * options.limit;
+        const endIndex = startIndex + options.limit;
+        const topIds = finalOrder.slice(startIndex, endIndex).map((item) => item.id);
 
+        // 5. Heavy Hydration (Only for the sliced 24 projects)
         const hydratedProjects = await this.prisma.project.findMany({
             where: { id: { in: topIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
-                user: {
-                    select: {
-                        role: true,
-                        organization: { select: { status: true, legalName: true } }
-                    }
-                }
+                user: { select: { role: true, organization: { select: { status: true, legalName: true } } } }
             }
         });
 
@@ -149,10 +137,10 @@ export class RecommendationsService {
                 ...hydrated,
                 targetAmount: hydrated.targetAmount.toString(),
                 raisedAmount: hydrated.raisedAmount.toString(),
-                percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
-                categoryName: hydrated.category?.name,
-                isVerifiedOrganizer: isSystem ? true : p.user?.organization?.status === 'VERIFIED',
-                organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual'),
+                percentFunded: Number(hydrated.targetAmount) > 0 ? Math.min(100, Math.round((Number(hydrated.raisedAmount) / Number(hydrated.targetAmount)) * 100)) : 0,
+                categoryName: hydrated.category?.name || 'General Impact',
+                isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
+                organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
             };
         }));
     }
@@ -162,9 +150,15 @@ export class RecommendationsService {
         if (!this.configCache || (now - this.cacheTimestamp) > this.CACHE_TTL) {
             let config = await this.repo.getConfig();
             if (!config) {
-                config = await this.prisma.recommendationConfig.create({
-                    data: { id: 'default' }
-                });
+                config = {
+                    id: 'default',
+                    recencyWeight: 1,
+                    velocityWeight: 1.5,
+                    engagementWeight: 1,
+                    adminWeight: 2,
+                    diversityLimit: 3,
+                    updatedAt: new Date()
+                };
             }
             this.configCache = config;
             this.cacheTimestamp = now;
