@@ -7,6 +7,7 @@ export interface RankingCandidate {
     visibilityScore: number;
     donationVelocity: number; // Count of donations in last 7 days
     engagementScore: number;  // Placeholder for future metrics
+    categoryWeight: number;   // Global multiplier for the project's sector
 }
 
 export interface RankingWeights {
@@ -19,12 +20,14 @@ export interface RankingWeights {
 @Injectable()
 export class RankingEngine {
     /**
-     * Computes hybrid score using logarithmic recency decay and weighted velocity.
-     * score = (recencyWeight * recencyScore) + 
-     *         (velocityWeight * donationVelocity) + 
-     *         (engagementWeight * engagementScore) + 
-     *         (adminWeight * featureWeight) + 
-     *         visibilityScore
+     * Computes hybrid score using logarithmic recency decay and weighted velocity,
+     * then applies a global category multiplier for sector-wide prioritization.
+     * 
+     * score = ( (recencyWeight * recencyScore) + 
+     *           (velocityWeight * donationVelocity) + 
+     *           (engagementWeight * engagementScore) + 
+     *           (adminWeight * featureWeight) + 
+     *           visibilityScore ) * categoryWeight
      */
     calculateScore(candidate: RankingCandidate, weights: RankingWeights): number {
         const recencyScore = this.calculateRecencyScore(candidate.createdAt);
@@ -34,13 +37,16 @@ export class RankingEngine {
         const weightedEngagement = weights.engagementWeight * candidate.engagementScore;
         const weightedAdmin = weights.adminWeight * candidate.featureWeight;
 
-        return (
+        const baseScore = (
             weightedRecency +
             weightedVelocity +
             weightedEngagement +
             weightedAdmin +
             candidate.visibilityScore
         );
+
+        // Apply the category-level multiplier to shift priority across entire sectors
+        return baseScore * candidate.categoryWeight;
     }
 
     private calculateRecencyScore(createdAt: Date): number {
