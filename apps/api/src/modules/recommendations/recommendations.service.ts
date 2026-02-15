@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { RecommendationsRepository } from './recommendations.repository';
 import { RankingEngine, RankingCandidate } from './ranking.engine';
 import { DiversityEngine, ScoredItem } from './diversity.engine';
@@ -46,10 +46,46 @@ export class RecommendationsService {
         return updated;
     }
 
+    // --- Slot Logic ---
+
+    async getSlots() {
+        return this.repo.getFeaturedSlots();
+    }
+
+    async createSlot(dto: { projectId: string; position: number; expiresAt?: string }) {
+        return this.prisma.featuredSlot.upsert({
+            where: { position: dto.position },
+            update: {
+                projectId: dto.projectId,
+                expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+            },
+            create: {
+                projectId: dto.projectId,
+                position: dto.position,
+                expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+            },
+        });
+    }
+
+    async deleteSlot(id: string) {
+        return this.prisma.featuredSlot.delete({ where: { id } });
+    }
+
+    // --- Individual Weight Logic ---
+
+    async updateProjectWeights(id: string, dto: any) {
+        const project = await this.prisma.project.findUnique({ where: { id } });
+        if (!project) throw new NotFoundException('Project node not found');
+
+        return this.prisma.project.update({
+            where: { id },
+            data: dto,
+        });
+    }
+
     private async recommendPipeline(options: { limit: number; userId?: string }) {
         const config = await this.getInternalConfig();
         const projects = await this.repo.getCandidates();
-
         const projectIds: string[] = projects.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
         const slots = await this.repo.getFeaturedSlots();
