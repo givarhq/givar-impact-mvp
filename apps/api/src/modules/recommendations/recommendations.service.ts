@@ -77,7 +77,7 @@ export class RecommendationsService {
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
         const slots = await this.repo.getFeaturedSlots();
 
-        const scored: ScoredItem[] = projects.map((p) => ({
+        const scored: ScoredItem[] = projects.map((p: any) => ({
             id: p.id,
             categoryId: p.categoryId || 'none',
             score: this.ranking.calculateScore({
@@ -87,13 +87,18 @@ export class RecommendationsService {
                 visibilityScore: p.visibilityScore || 0,
                 donationVelocity: velocityMap.get(p.id) || 0,
                 engagementScore: 0,
+                categoryWeight: p.category?.visibilityWeight ?? 1.0,
             }, config),
         }));
 
         let processed = scored;
         if (options.userId) {
-            const affinity = await this.repo.getUserAffinity(options.userId);
-            processed = this.personalization.apply(scored, affinity, projects);
+            try {
+                const affinity = await this.repo.getUserAffinity(options.userId);
+                processed = this.personalization.apply(scored, affinity, projects);
+            } catch (err) {
+                this.logger.error(`Personalization logic failed for user ${options.userId}`, err);
+            }
         }
 
         const sorted = [...processed].sort((a, b) => b.score - a.score);

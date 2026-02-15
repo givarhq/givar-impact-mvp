@@ -80,6 +80,18 @@ export class RecommendationsController {
         return this.service.deleteSlot(id);
     }
 
+    // --- Sector Prioritization ---
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+    @Patch('admin/category/:id/weight')
+    async updateCategoryWeight(
+        @Param('id') id: string,
+        @Body('weight') weight: number
+    ) {
+        return this.service.updateCategoryWeight(id, weight);
+    }
+
     // --- Individual Project Overrides ---
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
