@@ -17,10 +17,12 @@ export default async function DashboardPage({
   const resolvedParams = await searchParams;
   const activeTab = resolvedParams.tab || 'discovery';
 
+  // Fetching personalized recommendation streams instead of static project lists
   const [
     dbUser,
     history,
-    activeResponse,
+    featuredProjects,
+    feedProjects,
     completedResponse,
     categories,
     wallet,
@@ -28,7 +30,8 @@ export default async function DashboardPage({
   ] = await Promise.all([
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
-    ApiService.projects.list(token, new URLSearchParams({ limit: '10', status: 'ACTIVE' })),
+    ApiService.recommendations.getFeatured(token), // Hybrid prioritized carousel
+    ApiService.recommendations.getFeed(token),     // Diversity-enforced discovery feed
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
     ApiService.projects.getCategories(token),
     ApiService.wallet.get(token),
@@ -43,12 +46,7 @@ export default async function DashboardPage({
     return acc + BigInt(tx.amount || 0);
   }, 0n);
 
-  const activeProjects = activeResponse?.data || [];
   const completedProjects = completedResponse?.data || [];
-
-  // Explicitly ensure carousel only features ACTIVE projects
-  const featured = activeProjects.filter(p => p.status === 'ACTIVE').slice(0, 3);
-  const trending = activeProjects.slice(3, 10);
 
   return (
     <div className="animate-in fade-in duration-300">
@@ -60,10 +58,10 @@ export default async function DashboardPage({
         />
 
         <TabsContent value="discovery" className="space-y-6 md:space-y-8 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <FeaturedCarousel projects={featured} />
+          <FeaturedCarousel projects={featuredProjects || []} />
 
           <DiscoveryFeed
-            trending={trending}
+            trending={feedProjects || []}
             completed={completedProjects}
             categories={categories || []}
           />

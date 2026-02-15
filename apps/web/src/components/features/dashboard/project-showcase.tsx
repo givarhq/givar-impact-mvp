@@ -7,6 +7,7 @@ import { ProjectCard } from '../impact/project-card';
 import { CategoryBrowser } from './category-browser';
 import { ApiService } from '../../../services/api';
 import { Loader2, Inbox } from 'lucide-react';
+import { getCookie } from 'cookies-next';
 
 interface ProjectShowcaseProps {
     initialProjects: Project[];
@@ -21,17 +22,27 @@ export function ProjectShowcase({ initialProjects, categories, onDonate, onShare
     const [isPending, startTransition] = useTransition();
 
     useEffect(() => {
+        // We use the recommendation feed even for categorized views to maintain 
+        // weighted sorting (velocity/recency) and diversity logic.
         startTransition(() => {
-            const params = new URLSearchParams({ limit: '6', status: 'ACTIVE' });
-            if (selectedCategory !== 'all') {
-                params.set('category', selectedCategory);
+            const token = getCookie('givar_token') as string;
+
+            // If it's the 'all' view, we use the pre-fetched feed from the server
+            if (selectedCategory === 'all') {
+                setProjects(initialProjects);
+                return;
             }
 
-            ApiService.projects.list('', params)
-                .then(response => setProjects(response?.data || []))
+            // For specific categories, we fetch from recommendations to ensure 
+            // the ranking engine is still the source of truth for the sort order.
+            ApiService.recommendations.getFeed(token)
+                .then(response => {
+                    const filtered = (response || []).filter((p: any) => p.category?.slug === selectedCategory);
+                    setProjects(filtered);
+                })
                 .catch(() => setProjects([]));
         });
-    }, [selectedCategory]);
+    }, [selectedCategory, initialProjects]);
 
     return (
         <div className="space-y-4 md:space-y-6">
