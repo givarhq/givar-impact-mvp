@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
-import { ProjectGrid } from '../../../../components/features/impact/project-grid';
 import { ImpactFilters } from '../../../../components/features/impact/impact-filters';
+import { InfiniteDiscoveryGrid } from '../../../../components/features/impact/infinite-discovery-grid';
 
 export default async function ImpactPage({
   searchParams,
@@ -14,39 +14,42 @@ export default async function ImpactPage({
   const resolvedParams = await searchParams;
   const params = new URLSearchParams(resolvedParams as any);
 
-  // 1. Logic: Identify if Smart Discovery is applicable.
-  // We use the recommendation feed ONLY if the user hasn't triggered manual filters (search, sort, or category).
+  // Logic: Identify Smart Discovery Context
   const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category');
 
   let projects: any[] = [];
-  let totalCount = 0;
+  let meta = { total: 0, page: 1, lastPage: 1 };
 
+  // Fetch initial Page 1 on the Server for instant paint
   if (isSmartDiscovery) {
-    // 2. Fetch from Recommendation Engine (Authenticated context for Personalization)
-    const recommended = await ApiService.recommendations.getFeed(token);
-    projects = recommended || [];
-    totalCount = projects.length;
+    const response = await ApiService.recommendations.getFeed(token, 1, 24);
+    projects = response?.data || [];
+    meta = response?.meta || meta;
   } else {
-    // 3. Fallback to standard Query Engine for specific searches
     const projectsResult = await ApiService.projects.list(token, params);
     projects = projectsResult?.data || [];
-    totalCount = projectsResult?.meta?.total || 0;
+    meta = projectsResult?.meta || meta;
   }
 
   const categories = await ApiService.projects.getCategories(token);
 
   return (
-    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-300">
-
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-300 pb-20">
       <div className="space-y-6">
         <ImpactFilters
           categories={categories || []}
-          totalCount={totalCount}
+          totalCount={meta.total}
         />
       </div>
 
-      <div className="min-h-[300px] pt-2">
-        <ProjectGrid projects={projects} />
+      <div className="min-h-[400px]">
+        {/* Pass server data to the Infinite Grid for client-side expansion */}
+        <InfiniteDiscoveryGrid
+          initialData={projects}
+          initialMeta={meta}
+          isSmartDiscovery={isSmartDiscovery}
+          searchParams={params.toString()}
+        />
       </div>
     </div>
   );
