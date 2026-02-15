@@ -65,97 +65,98 @@ export function AdminProposalTable({
     return (
         <div className="w-full overflow-hidden">
             {/* MOBILE: High-Density Card List */}
-            <div className="grid gap-2 md:hidden">
-                <div className={cn(
-                    "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
-                    isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
-                )}>
-                    <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
-                        checked={isAllSelected}
-                        onChange={(e) => onSelectAll(e.target.checked)}
-                    />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select all</span>
-                </div>
-                {proposals.map((p) => {
-                    const isSelected = selectedIds.includes(p.id);
-                    return (
-                        <Card
-                            key={p.id}
-                            className={cn(
-                                "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden touch-none",
-                                isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
-                            )}
-                            onPointerDown={() => startLongPress(p.id)}
-                            onPointerUp={clearLongPress}
-                            onPointerLeave={clearLongPress}
-                            onClick={() => {
-                                if (isSelectionMode) onSelectRow(p.id, !isSelected);
-                                else router.push(`/admin/proposals/${p.id}`);
-                            }}
-                        >
-                            <CardContent className="p-4 space-y-4">
-                                <div className="flex justify-between items-start gap-4 w-full">
-                                    <div className="flex items-start gap-3 min-w-0 flex-1">
-                                        <div className={cn(
-                                            "transition-all duration-200 overflow-hidden",
-                                            isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
-                                        )}>
-                                            <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
-                                                checked={isSelected}
-                                                onChange={(e) => onSelectRow(p.id, e.target.checked)}
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-semibold text-foreground truncate leading-tight">
-                                                {p.title || 'Untitled Proposal'}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1.5">
-                                                <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                    id: {p.id.split('-')[0]}
-                                                </span>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={cn("text-[10px] px-2 py-0 rounded-3xl font-semibold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
-                                                >
-                                                    {p.status.replace('_', ' ')}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="shrink-0 pt-1">
-                                        <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
-                                    </div>
+<div className="grid gap-2 md:hidden">
+    <div className={cn(
+        "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
+        isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
+    )}>
+        <input
+            type="checkbox"
+            className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
+            checked={isAllSelected}
+            onChange={(e) => onSelectAll(e.target.checked)}
+        />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select all</span>
+    </div>
+    {proposals.map((p) => {
+        const isSelected = selectedIds.includes(p.id);
+        return (
+            <Card
+                key={p.id}
+                className={cn(
+                    "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden md:overflow-visible",
+                    "touch-pan-y select-none",
+                    isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
+                )}
+                onPointerDown={() => startLongPress(p.id)}
+                onPointerUp={clearLongPress}
+                onPointerLeave={clearLongPress}
+                onClick={() => {
+                    if (isSelectionMode) onSelectRow(p.id, !isSelected);
+                    else router.push(`/admin/proposals/${p.id}`);
+                }}
+            >
+                <CardContent className="p-4 space-y-4 select-none">
+                    <div className="flex justify-between items-start gap-4 w-full">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <div className={cn(
+                                "transition-all duration-200 overflow-visible",
+                                isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
+                            )}>
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded-3xl border-border/40 text-primary mt-1"
+                                    checked={isSelected}
+                                    onChange={(e) => onSelectRow(p.id, e.target.checked)}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-foreground truncate leading-tight">
+                                    {p.title || 'Untitled Proposal'}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                    <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                        id: {p.id.split('-')[0]}
+                                    </span>
+                                    <Badge
+                                        variant="outline"
+                                        className={cn("text-[10px] px-2 py-0 rounded-3xl font-semibold uppercase tracking-tight border", statusStyles[p.status] || 'bg-muted')}
+                                    >
+                                        {p.status.replace('_', ' ')}
+                                    </Badge>
                                 </div>
+                            </div>
+                        </div>
+                        <div className="shrink-0 pt-1">
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+                        </div>
+                    </div>
 
-                                <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground shrink-0 border border-border/40">
-                                            {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-xs font-semibold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
-                                            <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                        <div className="text-sm font-semibold tabular-nums text-foreground">
-                                            <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
-                                        </div>
-                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tighter mt-0.5">
-                                            {formatDate(p.submittedAt).split(',')[0]}
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </div>
+                    <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <div className="h-7 w-7 rounded-3xl bg-secondary flex items-center justify-center text-[11px] font-black text-muted-foreground shrink-0 border border-border/40">
+                                {p.user?.firstName?.[0]}{p.user?.lastName?.[0]}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-xs font-semibold text-foreground truncate">{p.user?.firstName} {p.user?.lastName}</p>
+                                <p className="text-[11px] text-muted-foreground truncate">{p.user?.email}</p>
+                            </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                            <div className="text-sm font-semibold tabular-nums text-foreground">
+                                <SmartCurrency amount={p.targetAmount} currency={p.currency} visible={true} size="small" />
+                            </div>
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-tighter mt-0.5">
+                                {formatDate(p.submittedAt).split(',')[0]}
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    })}
+</div>
 
             {/* DESKTOP: Forensic Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
