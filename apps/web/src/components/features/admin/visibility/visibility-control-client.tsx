@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import {
     Activity, Zap, Trash2, Plus,
     Loader2, Save, ShieldCheck, RefreshCw,
-    Info, SlidersHorizontal, LayoutGrid
+    Info, SlidersHorizontal, LayoutGrid,
+    TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Button } from '../../../ui/button';
@@ -34,6 +35,9 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
     const router = useRouter();
     const [isSaving, setIsSaving] = useState(false);
     const [config, setConfig] = useState(initialConfig);
+    const [categoryWeights, setCategoryWeights] = useState<Record<string, number>>(
+        categories.reduce((acc, cat) => ({ ...acc, [cat.id]: cat.visibilityWeight || 1.0 }), {})
+    );
     const [isSelectorOpen, setIsSelectorOpen] = useState(false);
     const [activePosition, setActivePosition] = useState<number | null>(null);
 
@@ -41,8 +45,14 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
         setIsSaving(true);
         const toastId = toast.loading("Updating discovery algorithm...");
         try {
-            await ApiService.admin.updateConfig(config);
-            toast.success("Weights updated successfully", { id: toastId });
+            // Unified Update: Commits both global weights and sector multipliers
+            await Promise.all([
+                ApiService.admin.updateConfig(config),
+                ...Object.entries(categoryWeights).map(([id, weight]) =>
+                    ApiService.admin.updateCategoryWeight(id, weight)
+                )
+            ]);
+            toast.success("Discovery logic updated", { id: toastId });
             router.refresh();
         } catch (e: any) {
             toast.error("Failed to update logic", { id: toastId });
@@ -58,7 +68,6 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
 
     const handleSelectProject = async (project: Project) => {
         if (activePosition === null) return;
-
         const toastId = toast.loading(`Pinning ${project.title}...`);
         try {
             await ApiService.admin.createSlot({
@@ -88,7 +97,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
         <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
 
-                {/* DISCOVERY VARIABLES */}
+                {/* DISCOVERY CONTROL COLUMN */}
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
@@ -99,7 +108,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                     </CardTitle>
                                     <p className="text-xs text-muted-foreground font-medium">Algorithmic Weights and Scaling</p>
                                 </div>
-                                <Badge variant="outline" className="rounded-3xl font-mono text-[10px] bg-background border-border/60">v2.1</Badge>
+                                <Badge variant="outline" className="rounded-3xl font-mono text-[10px] bg-background border-border/60">v2.2</Badge>
                             </div>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8 space-y-10">
@@ -158,27 +167,64 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                     </button>
                                 </div>
                             </div>
-
-                            <Button
-                                onClick={handleUpdateConfig}
-                                disabled={isSaving}
-                                className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
-                            >
-                                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                                Commit Changes
-                            </Button>
                         </CardContent>
                     </Card>
 
-                    <div className="p-5 rounded-[32px] bg-amber-50 border border-amber-100 flex items-start gap-3 shadow-sm">
-                        <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                        <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                            Updates to discovery variables apply immediately to all guest and registered user feeds.
-                        </p>
+                    {/* SECTOR PRIORITIZATION */}
+                    <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
+                            <div className="space-y-0.5">
+                                <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+                                    <TrendingUp className="h-4 w-4 text-primary" /> Sector Prioritization
+                                </CardTitle>
+                                <p className="text-xs text-muted-foreground font-medium">Global multipliers for impact categories</p>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6 md:p-8">
+                            <div className="space-y-3 max-h-[380px] overflow-y-auto no-scrollbar pr-2">
+                                {categories.map((cat) => (
+                                    <div key={cat.id} className="flex items-center justify-between gap-6 p-4 rounded-2xl bg-muted/10 border border-border/40 group hover:border-primary/20 transition-all">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-bold text-foreground truncate">{cat.name}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4 w-48">
+                                            <input
+                                                type="range" min="0.5" max="5" step="0.1"
+                                                value={categoryWeights[cat.id] || 1.0}
+                                                onChange={(e) => setCategoryWeights({ ...categoryWeights, [cat.id]: parseFloat(e.target.value) })}
+                                                className="flex-1 h-1 bg-border rounded-3xl appearance-none cursor-pointer accent-primary focus:outline-none"
+                                            />
+                                            <span className="text-xs font-bold text-primary tabular-nums w-8 text-right">
+                                                {(categoryWeights[cat.id] || 1.0).toFixed(1)}x
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <div className="p-5 rounded-[32px] bg-primary/5 border border-dashed border-primary/20 flex items-start gap-3 shadow-sm">
+                        <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                            <p className="text-xs font-bold text-primary uppercase tracking-tight">Consensus Sync</p>
+                            <p className="text-xs text-primary/70 font-medium leading-relaxed">
+                                Committing changes will recalculate the discovery score for all causes. Pinned positions remain locked.
+                            </p>
+                        </div>
                     </div>
+
+                    <Button
+                        onClick={handleUpdateConfig}
+                        disabled={isSaving}
+                        className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                    >
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                        Commit Discovery Logic
+                    </Button>
                 </div>
 
-                {/* CAROUSEL PINS */}
+                {/* CAROUSEL PINS COLUMN */}
                 <div className="lg:col-span-5 space-y-6">
                     <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden h-full flex flex-col">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
