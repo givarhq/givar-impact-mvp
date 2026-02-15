@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -10,21 +9,35 @@ import { cn } from '../../lib/utils/cn';
 export function MobileNav({ user }: { user: any }) {
   const pathname = usePathname();
 
+  // 1. Filter the base navigation from config
   const filteredNav = dashboardNav.filter(item => {
-    // 1. Filter out verification if not an organizer
+    // Filter out verification if not an organizer (if it exists in config)
     if (item.href === '/dashboard/verify' && user?.accountType !== 'ORGANIZER') {
       return false;
     }
-    // 2. Skip "Explore" on mobile because we manually place it in the center as "Donate"
+    // Skip "Explore" from the config because we manually place "Donate" in the center
     if (item.href === '/dashboard/impact') {
       return false;
     }
     return true;
   });
 
-  // 3. Logic: Append Profile to the nav list to ensure it occupies the extreme right
-  const navWithProfile = [
-    ...filteredNav,
+  // 2. Construct the final flat array for perfectly even spacing
+  // The goal is exactly 5 items: Home, History, Donate (Center), Proposals, Profile
+  const navItems = [
+    // Item 1: Home (Extracted from config)
+    filteredNav[0], 
+    // Item 2: History (Extracted from config)
+    filteredNav[1], 
+    // Item 3: Donate (Manual Center Component)
+    {
+      title: 'Donate',
+      href: '/dashboard/impact',
+      icon: Heart
+    },
+    // Item 4: Proposals (Extracted from config)
+    filteredNav[2], 
+    // Item 5: Profile (Manual Extreme Right Component)
     {
       title: 'Profile',
       href: '/dashboard/settings',
@@ -32,12 +45,9 @@ export function MobileNav({ user }: { user: any }) {
     }
   ];
 
-  // Balance 4 items around the center "Donate" button (2 left, 2 right)
-  const midPoint = 2; 
-  const leftItems = navWithProfile.slice(0, midPoint);
-  const rightItems = navWithProfile.slice(midPoint);
-
   const renderNavItem = (item: any) => {
+    if (!item) return null;
+    
     const Icon = item.icon;
     const isActive = item.href === '/dashboard'
       ? pathname === item.href
@@ -60,27 +70,9 @@ export function MobileNav({ user }: { user: any }) {
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-14 bg-background border-t border-border/40">
-      <nav className="flex items-center justify-between h-full px-2">
-
-        {/* Left Side: Home, History */}
-        <div className="flex flex-1 justify-around">
-          {leftItems.map(renderNavItem)}
-        </div>
-
-        {/* Center: Donate (Manual insertion) */}
-        <div className="flex flex-1 justify-around">
-          {renderNavItem({
-            title: 'Donate',
-            href: '/dashboard/impact',
-            icon: Heart
-          })}
-        </div>
-
-        {/* Right Side: Proposals, Profile */}
-        <div className="flex flex-1 justify-around">
-          {rightItems.map(renderNavItem)}
-        </div>
-
+      <nav className="flex items-center justify-around h-full px-2">
+        {/* Mapping all 5 items in a single container ensures mathematical even spacing */}
+        {navItems.map(renderNavItem)}
       </nav>
     </div>
   );
