@@ -1,8 +1,9 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart } from 'lucide-react';
+import { Heart, CircleUser } from 'lucide-react';
 import { dashboardNav } from '../../config/dashboard';
 import { cn } from '../../lib/utils/cn';
 
@@ -21,10 +22,20 @@ export function MobileNav({ user }: { user: any }) {
     return true;
   });
 
-  // Balance remaining 4 items around the center (2 left, 2 right)
-  const midPoint = Math.ceil(filteredNav.length / 2);
-  const leftItems = filteredNav.slice(0, midPoint);
-  const rightItems = filteredNav.slice(midPoint);
+  // 3. Logic: Append Profile to the nav list to ensure it occupies the extreme right
+  const navWithProfile = [
+    ...filteredNav,
+    {
+      title: 'Profile',
+      href: '/dashboard/settings',
+      icon: CircleUser,
+    }
+  ];
+
+  // Balance 4 items around the center "Donate" button (2 left, 2 right)
+  const midPoint = 2; 
+  const leftItems = navWithProfile.slice(0, midPoint);
+  const rightItems = navWithProfile.slice(midPoint);
 
   const renderNavItem = (item: any) => {
     const Icon = item.icon;
@@ -65,7 +76,7 @@ export function MobileNav({ user }: { user: any }) {
           })}
         </div>
 
-        {/* Right Side: Proposals, Settings */}
+        {/* Right Side: Proposals, Profile */}
         <div className="flex flex-1 justify-around">
           {rightItems.map(renderNavItem)}
         </div>
