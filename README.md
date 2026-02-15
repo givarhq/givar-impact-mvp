@@ -9,7 +9,7 @@ Givar is a high-transparency philanthropy protocol designed to bridge the trust 
 
 ---
 
-## 🧭 Operational Overview (Non-Exhaustive) 
+## Operational Overview (Non-Exhaustive) 
 - Money never moves without a ledger transaction and audit log. 
 - Admin impersonation is strictly read-only. 
 - Funds are only released via verified milestones. 
@@ -18,7 +18,7 @@ Givar is a high-transparency philanthropy protocol designed to bridge the trust 
 
 ---
 
-## 📂 Repository Structure (Monorepo)
+## Repository Structure (Monorepo)
 
 This project is managed as a **Turborepo Monorepo**. This allows for shared TypeScript interfaces and configurations across the stack.
 
@@ -37,7 +37,7 @@ This project is managed as a **Turborepo Monorepo**. This allows for shared Type
 ```
 ---
 
-## 👋 New Developer Starting Point
+## New Developer Starting Point
 
 If you are new to the codebase: 
 1. Read the **WalletModule** and **AuditModule** first to understand the financial invariants of the platform.
@@ -47,7 +47,7 @@ If you are new to the codebase:
 
 ---
 
-## 🛠 Tech Stack & Infrastructure
+## Tech Stack & Infrastructure
 
 ### Core Frameworks
 - **Frontend:** Next.js 16.1.1 (App Router), React 19, Tailwind CSS, Framer Motion, Zustand (State), TanStack Query.
@@ -62,13 +62,13 @@ If you are new to the codebase:
 
 ---
 
-## 📐 High-Level Architecture & Technical Implementation
+## High-Level Architecture & Technical Implementation
 
 Givar is engineered with a **Domain-Driven Design (DDD)** approach within a modular monolith (NestJS) and a reactive frontend (Next.js).
 
 ---
 
-## 📐 Architectural Boundaries 
+## Architectural Boundaries 
 
 - **Service-Oriented Logic:** All core business logic and financial calculations are strictly encapsulated in **Services**. Controllers are orchestration-only, handling DTO validation and response mapping.
 - **Atomic Persistence:** Multi-entity writes (e.g., a Donation affecting a Project, a Wallet, and an Audit Log) must be wrapped in a single **Prisma Transaction** (`$transaction`) to ensure data consistency.
@@ -140,9 +140,19 @@ A specialized service for tracking donor impact.
 - **Shared Type Safety:** The Frontend imports Zod schemas and TypeScript interfaces directly from the shared packages (e.g., `packages/database`).
 - **Global State:** Minimalist approach using `Zustand` for UI-only state (modals, auto-save buffers, and search states).
 
+### 12. Hybrid Recommendation & Discovery Engine (`apps/api/src/modules/recommendations`)
+Givar utilizes a multi-stage discovery pipeline to balance organic momentum, donor relevance, and administrative intent.
+- **The Multi-Stage Pipeline:** Every discovery request (Feed, Carousel, or Explore) passes through a deterministic sequence: `Lightweight Scan` -> `Hybrid Scoring` -> `Personalization` -> `Diversity Enforcement` -> `Admin Overrides` -> `Heavy Hydration`.
+- **Hybrid Scoring Logic:** The engine calculates a "Visibility Score" using a weighted formula: `(Recency Decay × Weight) + (7-Day Donation Velocity × Weight) + Admin Weighting + Manual Boost`. 
+- **Logarithmic Decay:** To ensure freshness, newer projects receive a boost that tapers off using a `1 / log2(2 + age_in_days)` decay curve, preventing stagnant projects from camping at the top of the feed.
+- **Diversity & Category Capping:** To prevent "sector clusters," the `DiversityEngine` enforces a `diversityLimit` (e.g., max 3 projects per category in the top results), ensuring a broad representation of impact areas.
+- **Personalization Multiplier:** For authenticated users, the `PersonalizationEngine` calculates category affinity from their contribution history, applying a `1.2x - 1.5x` multiplier to causes matching their donor profile.
+- **Administrative "Visibility Control":** Admins can manually override the algorithm using `FeaturedSlots` (pinned positions 1-5) and adjust global category multipliers to prioritize specific sectors (e.g., Emergency Relief) platform-wide.
+- **Performance Architecture:** To handle 1,000+ projects, the system uses a "Score-All, Hydrate-Page" strategy. It calculates scores for the entire ledger in-memory (lightweight) but only performs heavy database joins (hydration) and S3 presigning for the specific 18-24 items requested for the current page.
+
 ---
 
-## 🛠 Project Structure Detail
+## Project Structure Detail
 
 ### `packages/database` (The Single Source of Truth)
 Contains the `schema.prisma` and the centralized database client. All other apps depend on this for data consistency.
@@ -160,7 +170,7 @@ Contains the `schema.prisma` and the centralized database client. All other apps
 
 ---
 
-## 🚫 Invariants (Do Not Violate)
+## Invariants (Do Not Violate)
 - **Supporting Transactions:** Never update a `Wallet` balance without a corresponding `WalletTransaction` and `AuditLog` entry.
 - **Audit Compulsion:** Never bypass the `AuditService` for state mutations. Every change must be traceable to an actor.
 - **Private Asset Security:** Never store or serve public URLs for KYC or legal documents. Assets must remain in the `/private/` S3 path and be accessed via short-lived (15-min) presigned URLs.
@@ -169,7 +179,7 @@ Contains the `schema.prisma` and the centralized database client. All other apps
 
 ---
 
-## 🏗 Workflow
+## Workflow
 
 ### Adding a New Financial Feature
 1.  **Schema:** Add the transaction type to `AuditAction` and `TxStatus`/`TxType` in `schema.prisma`.
@@ -184,12 +194,12 @@ Contains the `schema.prisma` and the centralized database client. All other apps
 
 ***
 
-### 📝 Final Note for Developers
+### Final Note for Developers
 This system is built for **forensic integrity**. If you are tasked with changing how money moves through the platform, your first point of reference must be the `WalletModule` and `WalletRepository`. Never modify balances directly; always create a supporting transaction record.
 
 ---
 
-## 🚀 Getting Started (Development)
+## Getting Started (Development)
 
 ### 1. Environment Configuration
 The system relies on local environment variables. **Do not commit `.env` files.**
@@ -290,7 +300,7 @@ pnpm dev
 
 ---
 
-## 🔄 Development Workflow
+## Development Workflow
 
 ### Database Migrations
 When changing the schema in `packages/database/prisma/schema.prisma`:
@@ -306,7 +316,7 @@ The API is self-documenting via its NestJS modules. Refer to the controllers for
 
 ---
 
-## 📦 Deployment & CI/CD
+## Deployment & CI/CD
 
 ### Production Environments
 - **Frontend:** Deployed on **Vercel**.
@@ -320,7 +330,7 @@ The API is self-documenting via its NestJS modules. Refer to the controllers for
 
 ---
 
-## ⚠️ Known Limitations & Technical Debt
+## Known Limitations & Technical Debt
 
 - **Full-Text Search:** Currently relies on Prisma `ILIKE` filters. As the database grows, a migration to **Postgres Full Text Search** or **Algolia** is recommended.
 - **Webhook Idempotency:** While the Paystack webhook handler checks for existing transactions using references, adding a Redis-based idempotency layer would further harden the system.
@@ -328,7 +338,7 @@ The API is self-documenting via its NestJS modules. Refer to the controllers for
 
 ---
 
-## 🛡 Security & Support
+## Security & Support
 For access to production service accounts (Vercel, Render, Paystack, Neon), refer to the **Private Handover Document** provided to the Project Owner.
 
 **Critical Note:** Always rotate API keys if they are accidentally logged or exposed in the client-side bundle.
