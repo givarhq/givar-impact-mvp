@@ -41,24 +41,30 @@ export class RecommendationsService {
     async getRecommendationConfig() { return this.getInternalConfig(); }
 
     async updateConfig(dto: any, adminId: string) {
-        const previous = await this.getInternalConfig();
+        // Logic: Snapshot previous state to prevent reference mutation in logs
+        const previousState = { ...(await this.getInternalConfig()) };
+
+        // Logic: Force explicit float casting to prevent integer truncation in Json metadata
+        const sanitizedDto = { ...dto };
+        ['recencyWeight', 'velocityWeight', 'engagementWeight', 'adminWeight'].forEach(key => {
+            if (sanitizedDto[key] !== undefined) sanitizedDto[key] = Number(parseFloat(sanitizedDto[key]));
+        });
 
         const updated = await this.prisma.recommendationConfig.upsert({
             where: { id: 'default' },
-            update: dto,
-            create: { id: 'default', ...dto, updatedAt: new Date() },
+            update: sanitizedDto,
+            create: { id: 'default', ...sanitizedDto, updatedAt: new Date() },
         });
 
-        // Forensic Trace: Record weight shift
         await this.audit.log({
             userId: adminId,
             action: AuditAction.RECOMMENDATION_CONFIG_UPDATED,
             entityType: 'RecommendationConfig',
             entityId: 'default',
             metadata: {
-                before: previous,
+                before: previousState,
                 after: updated,
-                delta: dto
+                delta: sanitizedDto
             }
         });
 
@@ -123,10 +129,11 @@ export class RecommendationsService {
      */
     async updateCategoryWeight(id: string, weight: number, adminId: string) {
         const category = await this.prisma.category.findUnique({ where: { id } });
+        const previousWeight = Number(category?.visibilityWeight || 1.0);
 
         const updated = await this.prisma.category.update({
             where: { id },
-            data: { visibilityWeight: weight }
+            data: { visibilityWeight: Number(weight) }
         });
 
         await this.audit.log({
@@ -136,8 +143,8 @@ export class RecommendationsService {
             entityId: id,
             metadata: {
                 categoryName: category?.name,
-                previousWeight: category?.visibilityWeight,
-                newWeight: weight
+                before: previousWeight,
+                after: Number(weight)
             }
         });
 
