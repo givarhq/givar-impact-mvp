@@ -1455,8 +1455,40 @@ export class AdminService {
           const updatedProject = await txPrisma.project.update({
             where: { id: split.projectId },
             data: { raisedAmount: { increment: splitAmount } },
-            select: { title: true, id: true }
+            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true }
           });
+
+          // Logic: Check Goal Completion
+          const isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
+          if (isGoalMet) {
+            await txPrisma.project.update({
+              where: { id: updatedProject.id },
+              data: { status: 'FUNDED', fundedAt: new Date() }
+            });
+          }
+
+          // Logic: Notify Owner of Reallocation
+          await txPrisma.notification.create({
+            data: {
+              userId: updatedProject.userId,
+              type: 'DONATION_RECEIVED', // Re-using donation type for consistency
+              title: 'Capital reallocation received',
+              content: `Your project "${updatedProject.title}" received a system allocation of ${tx.currency} ${(Number(splitAmount) / 100).toLocaleString()}.`,
+              link: `/dashboard/projects/${updatedProject.id}/manage`
+            }
+          });
+
+          if (isGoalMet) {
+            await txPrisma.notification.create({
+              data: {
+                userId: updatedProject.userId,
+                type: 'PROJECT_STATUS',
+                title: 'Goal reached via allocation!',
+                content: `Success! "${updatedProject.title}" is now fully funded following a ledger adjustment.`,
+                link: `/dashboard/projects/${updatedProject.id}/manage`
+              }
+            });
+          }
 
           // Forensic update: Log both raw and human-readable amounts
           forensicAllocationLog.push({
