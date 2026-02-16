@@ -78,8 +78,9 @@ export function AuditFilters() {
           </Button>
 
           <div className="hidden md:flex items-center gap-2">
-            {/* Unified Temporal Command Block */}
-            <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-sm w-full lg:w-auto">
+            
+            {/* Unified Temporal Command Block (Exact Finance Styling) */}
+            <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-sm">
                 <div className="flex items-center px-3 gap-2">
                     <span className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-tighter">From</span>
                     <input 
@@ -138,30 +139,51 @@ export function AuditFilters() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          
           <div className="grid gap-2">
-            <div className="flex items-center justify-between bg-muted/30 p-1 rounded-2xl border border-border/40">
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-transparent h-9 text-[10px] font-bold px-2 flex-1" />
-                <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
-                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-transparent h-9 text-[10px] font-bold px-2 flex-1" />
+            {/* Mobile Adaptive Temporal Block */}
+            <div className="flex items-center justify-between bg-muted/40 p-1 rounded-[22px] border border-border/40 shadow-sm">
+                <div className="flex items-center px-3 gap-2 flex-1">
+                    <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter">From</span>
+                    <input 
+                        type="date" 
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="bg-transparent h-9 text-[10px] font-bold uppercase text-foreground outline-none border-none cursor-pointer w-full"
+                    />
+                </div>
+                <ArrowRight className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+                <div className="flex items-center px-3 gap-2 flex-1">
+                    <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter">To</span>
+                    <input 
+                        type="date" 
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="bg-transparent h-9 text-[10px] font-bold uppercase text-foreground outline-none border-none cursor-pointer w-full"
+                    />
+                </div>
             </div>
-            <Select value={action} onValueChange={setAction}>
-              <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
-                <SelectValue placeholder="Action Type" />
-              </SelectTrigger>
-              <SelectContent className="rounded-3xl">
-                <SelectItem value="all">All Actions</SelectItem>
-                <SelectItem value="USER_LOGIN">Logins</SelectItem>
-                <SelectItem value="DONATION_CREATED">Donations</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasActiveFilters && (
-              <Button variant="outline" onClick={clearFilters} className="w-full h-9 rounded-3xl border-border/60 text-xs font-bold">
-                Reset filters
-              </Button>
-            )}
+
+            <div className="flex gap-2">
+              <Select value={action} onValueChange={setAction}>
+                <SelectTrigger className="flex-1 h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
+                  <SelectValue placeholder="Action Type" />
+                </SelectTrigger>
+                <SelectContent className="rounded-3xl">
+                  <SelectItem value="all">All Actions</SelectItem>
+                  <SelectItem value="USER_LOGIN">Logins</SelectItem>
+                  <SelectItem value="DONATION_CREATED">Donations</SelectItem>
+                </SelectContent>
+              </Select>
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters} className="h-10 px-4 rounded-3xl border-border/60 text-xs font-bold shrink-0">
+                  Reset
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
     </div>
   );
-                  }
+}
