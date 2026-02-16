@@ -14,7 +14,7 @@ export class CommunicationService {
 
     /**
      * Internal Feedback Logic
-     * Logic: Validates context ownership -> Atomic persistence -> Audit logging -> Email trigger.
+     * Logic: Validates context ownership -> Atomic persistence -> Audit logging -> Specialized Notification.
      */
     async sendMessage(userId: string, userRole: UserRole, dto: {
         content: string;
@@ -24,30 +24,33 @@ export class CommunicationService {
         const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPERADMIN;
 
         let recipientEmail: string | null = null;
+        let recipientName: string | null = null;
         let contextTitle: string = '';
 
         // 1. Context Resolution & Identity Guard
         if (dto.proposalId) {
             const proposal = await this.prisma.projectProposal.findUnique({
                 where: { id: dto.proposalId },
-                include: { user: { select: { email: true, id: true } } }
+                include: { user: { select: { email: true, id: true, firstName: true } } }
             });
 
             if (!proposal) throw new NotFoundException('Proposal not found');
             if (!isAdmin && proposal.userId !== userId) throw new ForbiddenException('Access denied');
 
             recipientEmail = isAdmin ? proposal.user.email : null;
+            recipientName = isAdmin ? proposal.user.firstName : null;
             contextTitle = proposal.title || 'Project Proposal';
         } else if (dto.projectId) {
             const project = await this.prisma.project.findUnique({
                 where: { id: dto.projectId },
-                include: { user: { select: { email: true, id: true } } }
+                include: { user: { select: { email: true, id: true, firstName: true } } }
             });
 
             if (!project) throw new NotFoundException('Project not found');
             if (!isAdmin && project.userId !== userId) throw new ForbiddenException('Access denied');
 
             recipientEmail = isAdmin ? project.user.email : null;
+            recipientName = isAdmin ? project.user.firstName : null;
             contextTitle = project.title;
         } else {
             throw new BadRequestException('Proposal or Project ID is required');
@@ -74,13 +77,14 @@ export class CommunicationService {
                 metadata: { isAdmin, context: contextTitle }
             }, tx);
 
-            // 3. Stakeholder Notification
-            if (isAdmin && recipientEmail) {
-                this.emailService.sendProposalStatusUpdate(recipientEmail, {
-                    name: message.author.firstName,
-                    project: contextTitle,
-                    status: 'New Feedback Received',
-                    feedback: dto.content
+            // 3. Specialized Stakeholder Notification
+            if (isAdmin && recipientEmail && recipientName) {
+                this.emailService.sendFeedbackNotification(recipientEmail, {
+                    userName: recipientName,
+                    projectTitle: contextTitle,
+                    messageContent: dto.content,
+                    proposalId: dto.proposalId,
+                    projectId: dto.projectId
                 }).catch(() => { });
             }
 
@@ -90,7 +94,6 @@ export class CommunicationService {
 
     /**
      * Retrieve Thread History
-     * Enforces privacy by ensuring only owners or admins can see the thread.
      */
     async getMessages(userId: string, userRole: UserRole, context: { proposalId?: string; projectId?: string }) {
         const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPERADMIN;
