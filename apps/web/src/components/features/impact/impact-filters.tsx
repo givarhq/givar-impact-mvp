@@ -53,7 +53,7 @@ export function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
       <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <h1 className="md:hidden text-xl font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">
-            Explore causes
+            Explore Causes
           </h1>
 
           {/* Desktop Search */}
