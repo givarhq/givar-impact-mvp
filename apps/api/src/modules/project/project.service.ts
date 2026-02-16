@@ -2,10 +2,11 @@ import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundEx
 import { PrismaService } from '../../common/prisma.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { ProjectQueryDto, ProjectSort } from './dto/project-query.dto';
-import { AuditAction, Prisma, ProjectStatus } from '@givar/database';
+import { AuditAction, NotificationType, Prisma, ProjectStatus, UserRole } from '@givar/database';
 import { SubmitMilestoneProofDto } from './dto/evidence.dto';
 import { AuditService } from '../audit/audit.service';
 import { StorageService } from '../storage/storage.service';
+import { EmailService } from '../email/email.service';
 
 type ProjectMediaValue = {
   url: string;
@@ -20,6 +21,7 @@ export class ProjectService {
     private prisma: PrismaService,
     private audit: AuditService,
     private storage: StorageService,
+    private emailService: EmailService
   ) { }
 
   async create(dto: CreateProjectDto) {
@@ -240,25 +242,45 @@ export class ProjectService {
     });
     if (!project) throw new NotFoundException('Project not found');
     if (project.userId !== userId) throw new ForbiddenException('Access denied');
+
     // 2. Validate Milestone ID exists in this project
     const timeline = (project.executionTimeline as any[]) || [];
     const milestone = timeline.find(m => m.id === dto.milestoneId);
     if (!milestone) throw new BadRequestException('Invalid milestone ID');
-    // 3. Create the Proof Record
+
+    // 3. Atomic Transaction for Proof and Notifications
     return this.prisma.$transaction(async (tx) => {
       const proof = await tx.milestoneProof.create({
         data: {
-          projectId: project.id,  // Use resolved project ID
+          projectId: project.id,
           milestoneId: dto.milestoneId,
           description: dto.description,
           imageKeys: dto.imageKeys,
         }
       });
-      // 4. Audit: Log the submission
+
+      // Logic: Fetch all admins to generate in-app alerts
+      const admins = await tx.user.findMany({
+        where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+        select: { id: true }
+      });
+
+      if (admins.length > 0) {
+        await tx.notification.createMany({
+          data: admins.map(admin => ({
+            userId: admin.id,
+            type: 'MILESTONE_ALERT' as NotificationType,
+            title: 'New proof of work',
+            content: `Evidence has been submitted for "${project.title}" (${milestone.phase}).`,
+            link: '/admin/verifications?tab=evidence'
+          }))
+        });
+      }
+
       await this.audit.log({
         userId,
         action: AuditAction.MILESTONE_PROOF_SUBMITTED,
-        entityId: project.id,  // Use resolved project ID
+        entityId: project.id,
         entityType: 'MilestoneProof',
         metadata: {
           milestone: milestone.phase,
@@ -266,9 +288,16 @@ export class ProjectService {
           imageCount: dto.imageKeys.length
         }
       }, tx);
-      // 5. System Logic: Optional - Auto-notify Admins via internal logging
-      this.logger.log(`New Proof of Work submitted for ${project.title} - ${milestone.phase}`);
-      return proof;
+
+      return { proof, projectTitle: project.title, phase: milestone.phase };
+    }).then(async (res) => {
+      // 4. Trigger External Broadcast to Admin Emails
+      this.emailService.sendAdminEvidenceAlert({
+        projectTitle: res.projectTitle,
+        milestonePhase: res.phase
+      }).catch(err => this.logger.error(`Admin Evidence Email Failed: ${err.message}`));
+
+      return res.proof;
     });
   }
 
