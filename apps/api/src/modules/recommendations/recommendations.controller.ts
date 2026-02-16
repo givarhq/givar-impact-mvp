@@ -10,20 +10,12 @@ import { AuthGuard } from '@nestjs/passport';
 export class RecommendationsController {
     constructor(private readonly service: RecommendationsService) { }
 
-    /**
-     * Public/Guest: Get the "Featured" carousel items (Top 5).
-     * Personalization applied if Authorization header is present.
-     */
     @UseGuards(OptionalJwtAuthGuard)
     @Get('featured')
     async getFeatured(@Req() req: any) {
         return this.service.getFeatured(req.user?.id);
     }
 
-    /**
-     * Public/Guest: Get the main "Discovery" feed.
-     * Supports pagination for infinite scrolling.
-     */
     @UseGuards(OptionalJwtAuthGuard)
     @Get('feed')
     async getFeed(
@@ -34,14 +26,10 @@ export class RecommendationsController {
         const pageNum = page ? Number(page) : 1;
         const limitNum = limit ? Number(limit) : 24;
 
-        return this.service.getDiscoveryFeed(
-            req.user?.id,
-            pageNum,
-            limitNum
-        );
+        return this.service.getDiscoveryFeed(req.user?.id, pageNum, limitNum);
     }
 
-    // --- Admin Configuration Endpoints ---
+    // --- Admin Configuration (Audited) ---
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
@@ -53,11 +41,11 @@ export class RecommendationsController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
     @Patch('admin/config')
-    async updateConfig(@Body() dto: any) {
-        return this.service.updateConfig(dto);
+    async updateConfig(@Req() req: any, @Body() dto: any) {
+        return this.service.updateConfig(dto, req.user.id);
     }
 
-    // --- Featured Slot Management ---
+    // --- Featured Slot Management (Audited) ---
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
@@ -69,38 +57,40 @@ export class RecommendationsController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
     @Post('admin/slots')
-    async createSlot(@Body() dto: { projectId: string; position: number; expiresAt?: string }) {
-        return this.service.createSlot(dto);
+    async createSlot(@Req() req: any, @Body() dto: { projectId: string; position: number; expiresAt?: string }) {
+        return this.service.createSlot(dto, req.user.id);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
     @Delete('admin/slots/:id')
-    async deleteSlot(@Param('id') id: string) {
-        return this.service.deleteSlot(id);
+    async deleteSlot(@Req() req: any, @Param('id') id: string) {
+        return this.service.deleteSlot(id, req.user.id);
     }
 
-    // --- Sector Prioritization ---
+    // --- Sector Prioritization (Audited) ---
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
     @Patch('admin/category/:id/weight')
     async updateCategoryWeight(
+        @Req() req: any,
         @Param('id') id: string,
         @Body('weight') weight: number
     ) {
-        return this.service.updateCategoryWeight(id, weight);
+        return this.service.updateCategoryWeight(id, weight, req.user.id);
     }
 
-    // --- Individual Project Overrides ---
+    // --- Individual Project Overrides (Audited) ---
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
     @Patch('admin/project/:id/weights')
     async updateProjectWeights(
+        @Req() req: any,
         @Param('id') id: string,
         @Body() dto: { featureWeight?: number; visibilityScore?: number; moderationStatus?: any }
     ) {
-        return this.service.updateProjectWeights(id, dto);
+        return this.service.updateProjectWeights(id, dto, req.user.id);
     }
 }
