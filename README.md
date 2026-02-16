@@ -150,6 +150,18 @@ Givar utilizes a multi-stage discovery pipeline to balance organic momentum, don
 - **Administrative "Visibility Control":** Admins can manually override the algorithm using `FeaturedSlots` (pinned positions 1-5) and adjust global category multipliers to prioritize specific sectors (e.g., Emergency Relief) platform-wide.
 - **Performance Architecture:** To handle 1,000+ projects, the system uses a "Score-All, Hydrate-Page" strategy. It calculates scores for the entire ledger in-memory (lightweight) but only performs heavy database joins (hydration) and S3 presigning for the specific 18-24 items requested for the current page.
 
+### 13. Integrated Communication & Feedback Loop (apps/api/src/modules/communication)
+Givar facilitates a secure, direct dialogue between administrative compliance nodes and project organizers.
+- **Contextual Threading:** Messages are logically partitioned by the entity they address (Project or Proposal), creating a permanent, forensic-grade record of all vetting discussions and execution queries.
+- **Bidirectional Alerts:** The system triggers bidirectional notifications. Messages from admins notify the specific organizer, while organizer replies are broadcasted to all administrative nodes to ensure rapid response times.
+- **Email Redundancy:** To ensure stakeholders never miss critical feedback, every administrative message triggers an asynchronous email dispatch via Resend, providing a link directly back to the secure management terminal.
+
+### 14. Notification System (apps/api/src/modules/notifications)
+The platform features a centralized event dispatcher designed to keep users synchronized with their impact ledger.
+- **Event Taxonomy:** Notifications are categorized by type, including `KYC_STATUS`, `PROJECT_STATUS`, `MILESTONE_ALERT`, and `MESSAGE`, allowing the UI to render distinct visual cues and navigation paths.
+- **Real-time Synchronization:** The system provides optimized unread count queries for header badges and supports bulk state transitions ("Mark all as read") to maintain a clean donor experience.
+- **Actionable Alerts:** Every notification is optionally linked to a specific platform route, enabling users to move from an alert to the relevant ledger record or management console in a single interaction.
+
 ---
 
 ## Project Structure Detail
