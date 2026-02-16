@@ -172,6 +172,16 @@ enum ModerationStatus {
   HIDDEN
 }
 
+enum NotificationType {
+  SYSTEM
+  MESSAGE
+  PROJECT_STATUS
+  KYC_STATUS
+  PROPOSAL_STATUS
+  MILESTONE_ALERT
+  DONATION_RECEIVED
+}
+
 // ---------------------------
 // USER & AUTH
 // ---------------------------
@@ -213,6 +223,7 @@ model User {
   projectProposals ProjectProposal[]
   projects      Project[]
   sentMessages Message[] @relation("Author")
+  notifications Notification[]
 
   @@map("users")
 }
@@ -650,4 +661,22 @@ model Message {
   @@map("messages")
   @@index([proposalId])
   @@index([projectId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      NotificationType
+  title     String
+  content   String           @db.Text
+  link      String?          // The relative path to navigate to when clicked
+  
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([createdAt])
 }
