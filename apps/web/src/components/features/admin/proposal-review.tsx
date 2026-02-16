@@ -22,6 +22,7 @@ import { ConfirmModal } from '../../ui/confirm-modal';
 import { Input } from '../../ui/input';
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
+import { FeedbackThread } from '../communication/feedback-thread';
 
 interface ProposalReviewProps {
     proposal: ProjectProposal;
@@ -324,7 +325,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     </Card>
                 </div>
 
-                {/* RIGHT COLUMN: Meta & Controls */}
+                {/* RIGHT COLUMN: Meta, Controls & Conversation */}
                 <div className="lg:col-span-4 space-y-6">
                     {/* Proposer Card */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
@@ -355,6 +356,12 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Feedback Loop (Communication) */}
+                    <FeedbackThread
+                        proposalId={proposal.id}
+                        title="Conversation with owner"
+                    />
 
                     {/* KYC Docs */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
