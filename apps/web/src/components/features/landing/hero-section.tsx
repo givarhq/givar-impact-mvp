@@ -65,25 +65,31 @@ export function HeroSection({ stats }: { stats: PlatformStats }) {
                     {/* Desktop Snippet */}
                     <div className="hidden lg:block w-full max-w-5xl">
                         <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
-                            <Image
-                                src="/Givar-desk.png"
-                                alt="Givar Dashboard Desktop"
-                                width={1200}
-                                height={675}
-                                className="w-full h-auto object-cover"
+                            <Image 
+                                src="/Givar-desk.png" 
+                                alt="Givar Dashboard Desktop" 
+                                width={1920}
+                                height={1080}
+                                quality={100}
+                                unoptimized
+                                className="w-full h-auto object-contain"
+                                priority
                             />
                         </div>
                     </div>
 
                     {/* Mobile Snippet */}
-                    <div className="lg:hidden w-full max-w-[300px] mx-auto">
+                    <div className="lg:hidden w-full max-w-[320px] mx-auto">
                         <div className="relative rounded-[22px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
-                            <Image
-                                src="/Givar-mob.png"
-                                alt="Givar Dashboard Mobile"
-                                width={300}
-                                height={650}
-                                className="w-full h-auto object-cover"
+                            <Image 
+                                src="/Givar-mob.png" 
+                                alt="Givar Dashboard Mobile" 
+                                width={640}
+                                height={1386}
+                                quality={100}
+                                unoptimized
+                                className="w-full h-auto object-contain"
+                                priority
                             />
                         </div>
                     </div>
