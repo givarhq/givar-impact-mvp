@@ -347,4 +347,27 @@ export const EmailTemplates = {
 
     <p style="font-size: 13px; color: #6b7280;">If you have any questions, simply reply to this email to reach our support team.</p>
   `,
+
+  adminEvidenceSubmitted: (data: {
+    adminName: string;
+    projectTitle: string;
+    milestonePhase: string;
+    queueUrl: string;
+  }) => `
+    <p>Hi ${data.adminName},</p>
+    <p>A new proof of work has been submitted for <strong>${data.projectTitle}</strong> and requires your review.</p>
+    
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Project Phase</p>
+      <p style="font-size: 18px; color: #064e3b; font-weight: 800; margin: 0;">${data.milestonePhase}</p>
+    </div>
+
+    <p>Please audit the uploaded photos and description to ensure they meet the project requirements. Once verified, the next funding tranche will be eligible for disbursement.</p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.queueUrl}" class="button">Open evidence queue</a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">This is an automated administrative alert from the Givar compliance system.</p>
+  `,
 };

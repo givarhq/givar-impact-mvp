@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
 import { EmailTemplates } from './email.templates';
+import { PrismaService } from 'src/common/prisma.service';
 
 @Injectable()
 export class EmailService {
@@ -10,7 +11,10 @@ export class EmailService {
   private readonly fromEmail: string;
   private readonly isDev: boolean;
 
-  constructor(private config: ConfigService) {
+  constructor(
+    private config: ConfigService,
+    private prisma: PrismaService,
+  ) {
     this.resend = new Resend(this.config.get('RESEND_API_KEY'));
 
     const envFrom = this.config.get('RESEND_FROM_EMAIL');
@@ -213,5 +217,32 @@ export class EmailService {
 
     const html = EmailTemplates.base(content, 'New message from Givar');
     return this.send(email, `New message regarding ${data.projectTitle}`, html);
+  }
+
+  // 16. Broadcasts an alert to all Administrators when new evidence is uploaded.
+  async sendAdminEvidenceAlert(data: { projectTitle: string; milestonePhase: string }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    if (admins.length === 0) return;
+
+    const frontendUrl = this.config.get('FRONTEND_URL');
+    const queueUrl = `${frontendUrl}/admin/verifications?tab=evidence`;
+
+    // Process dispatches in parallel
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminEvidenceSubmitted({
+          adminName: admin.firstName,
+          projectTitle: data.projectTitle,
+          milestonePhase: data.milestonePhase,
+          queueUrl
+        });
+        const html = EmailTemplates.base(content, 'New Evidence for Review');
+        return this.send(admin.email, `Action Required: Evidence for ${data.projectTitle}`, html);
+      })
+    );
   }
 }
