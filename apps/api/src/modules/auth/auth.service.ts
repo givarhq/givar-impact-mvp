@@ -413,6 +413,12 @@ export class AuthService {
         createdAt: true,
         twoFactorEnabled: true,
         preferences: true,
+        organization: {
+          select: {
+            status: true,
+            legalName: true,
+          }
+        },
       },
     });
 
