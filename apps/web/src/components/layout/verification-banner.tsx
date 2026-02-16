@@ -75,7 +75,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
     }
 
     return (
-        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 animate-in slide-in-from-top duration-500 z-40">
+        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 sm:py-2.5 animate-in slide-in-from-top duration-500 z-40">
             <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
 
                 {/* Left Section */}
@@ -97,19 +97,15 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
                 {/* Right Section */}
                 <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
 
-                    {/* 
-                        FIX: Switched from flex-col to flex-row on mobile 
-                        to prevent the browser from jumping to a tall button stack.
-                    */}
-                    <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         {needsEmail && (
                             <button
                                 onClick={handleResendEmail}
                                 disabled={isLoading}
-                                className="h-8 px-4 rounded-3xl text-xs font-bold text-amber-700 hover:bg-amber-500/10 transition-colors disabled:opacity-50 flex items-center justify-center whitespace-nowrap"
+                                className="h-8 sm:h-8 px-4 rounded-3xl text-xs font-bold text-amber-700 hover:bg-amber-500/10 transition-colors disabled:opacity-50 w-full sm:w-auto flex items-center justify-center"
                             >
                                 {isLoading ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                                    <Loader2 className="h-3 w-3 animate-spin mr-2" />
                                 ) : null}
                                 Resend email
                             </button>
@@ -117,12 +113,11 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
 
                         <Link
                             href={`/dashboard/settings?tab=${linkTab}`}
-                            scroll={false}
-                            className="shrink-0"
+                            className="w-full sm:w-auto"
                         >
                             <Button
                                 size="sm"
-                                className="h-8 rounded-3xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 shadow-sm active:scale-95 transition-all"
+                                className="h-8 sm:h-8 w-full sm:w-auto rounded-3xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 shadow-sm active:scale-95 transition-all"
                             >
                                 {buttonText}
                                 <ArrowRight className="ml-1.5 h-3 w-3" />
@@ -132,7 +127,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
 
                     <button
                         onClick={() => setIsDismissed(true)}
-                        className="p-1 hover:bg-amber-500/10 rounded-full text-amber-700/50 transition-colors shrink-0"
+                        className="p-1 hover:bg-amber-500/10 rounded-full text-amber-700/50 transition-colors"
                     >
                         <X className="h-4 w-4" />
                     </button>
