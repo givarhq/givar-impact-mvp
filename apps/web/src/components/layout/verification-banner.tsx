@@ -6,7 +6,6 @@ import { Button } from '../ui/button';
 import { ApiService } from '../../services/api';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import { cn } from '../../lib/utils/cn';
 
 interface VerificationBannerProps {
     user: {
@@ -51,61 +50,68 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
 
     let title = 'Verify your email address';
     let description =
-        'Check your inbox for a confirmation link to secure your account';
-    let buttonText = 'Verify';
+        'Please check your inbox for a confirmation link to secure your account';
+    let buttonText = 'Verify email';
     let linkTab = 'profile';
     let Icon = ShieldAlert;
 
     if (needsEmail && (needsOrgSubmission || isOrgPending)) {
-        title = 'Setup incomplete';
+        title = 'Finish setting up your account';
         description =
-            'Confirm your email to continue with organization setup';
+            'Please confirm your email to continue with your organization setup';
     } else if (!needsEmail && needsOrgSubmission) {
-        title = 'Setup organization';
+        title = 'Set up your organization';
         description =
-            'Upload entity details to start raising impact capital';
-        buttonText = 'Configure';
+            'Upload your organization details to start raising funds for your projects';
+        buttonText = 'Set up organization';
         linkTab = 'org';
     } else if (!needsEmail && isOrgPending) {
-        title = 'Review in progress';
+        title = 'Organization review in progress';
         description =
-            "We're checking your documents. We'll notify you shortly";
-        buttonText = 'Status';
+            "We're currently checking your documents. We'll notify you as soon as you're verified";
+        buttonText = 'View status';
         linkTab = 'org';
         Icon = Clock;
     }
 
     return (
-        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 animate-in slide-in-from-top duration-500 z-40 relative">
+        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-4 py-2.5 animate-in slide-in-from-top duration-500 z-40">
             <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
 
-                {/* Left Section: Content Identity */}
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-9 w-9 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
-                        <Icon className="h-5 w-5" />
+                {/* Left Section */}
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl sm:rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
+                        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
 
-                    <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-amber-900 leading-none mb-1">
+                    <div className="min-w-0 space-y-0 sm:space-y-0.5">
+                        <p className="text-sm font-bold text-amber-900 leading-snug">
                             {title}
                         </p>
-                        <p className="text-xs text-amber-800/80 font-medium leading-tight line-clamp-1 sm:line-clamp-none">
+                        <p className="text-xs text-amber-800/80 font-medium leading-snug sm:truncate">
                             {description}
                         </p>
                     </div>
                 </div>
 
-                {/* Right Section: Compact Actions */}
-                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
-                    <div className="flex items-center gap-2">
+                {/* Right Section */}
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+
+                    {/* 
+                        FIX: Switched from flex-col to flex-row on mobile 
+                        to prevent the browser from jumping to a tall button stack.
+                    */}
+                    <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
                         {needsEmail && (
                             <button
                                 onClick={handleResendEmail}
                                 disabled={isLoading}
-                                className="h-8 px-3 rounded-3xl text-[11px] font-bold text-amber-700 hover:bg-amber-500/10 transition-colors disabled:opacity-50 flex items-center justify-center whitespace-nowrap"
+                                className="h-8 px-4 rounded-3xl text-xs font-bold text-amber-700 hover:bg-amber-500/10 transition-colors disabled:opacity-50 flex items-center justify-center whitespace-nowrap"
                             >
-                                {isLoading && <Loader2 className="h-3 w-3 animate-spin mr-1.5" />}
-                                Resend
+                                {isLoading ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" />
+                                ) : null}
+                                Resend email
                             </button>
                         )}
 
@@ -116,22 +122,20 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
                         >
                             <Button
                                 size="sm"
-                                className="h-8 rounded-3xl text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white border-0 px-4 shadow-sm active:scale-95 transition-all gap-1.5"
+                                className="h-8 rounded-3xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 shadow-sm active:scale-95 transition-all"
                             >
                                 {buttonText}
-                                <ArrowRight className="h-3 w-3" />
+                                <ArrowRight className="ml-1.5 h-3 w-3" />
                             </Button>
                         </Link>
-
-                        <div className="w-px h-4 bg-amber-500/20 mx-1 hidden sm:block" />
-
-                        <button
-                            onClick={() => setIsDismissed(true)}
-                            className="p-1.5 hover:bg-amber-500/10 rounded-full text-amber-700/50 transition-colors shrink-0"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
                     </div>
+
+                    <button
+                        onClick={() => setIsDismissed(true)}
+                        className="p-1 hover:bg-amber-500/10 rounded-full text-amber-700/50 transition-colors shrink-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
                 </div>
             </div>
         </div>
