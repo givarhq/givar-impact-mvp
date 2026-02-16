@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { PrismaService } from '../../common/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../email/email.service';
-import { AuditAction, UserRole } from '@givar/database';
+import { AuditAction, UserRole, Prisma } from '@givar/database';
 
 @Injectable()
 export class CommunicationService {
@@ -12,6 +12,10 @@ export class CommunicationService {
         private emailService: EmailService,
     ) { }
 
+    /**
+     * Internal Feedback Logic
+     * Logic: Validates context ownership -> Atomic persistence -> Audit logging -> Email trigger.
+     */
     async sendMessage(userId: string, userRole: UserRole, dto: {
         content: string;
         proposalId?: string;
@@ -19,35 +23,37 @@ export class CommunicationService {
     }) {
         const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPERADMIN;
 
-        // 1. Context Validation & Ownership Check
         let recipientEmail: string | null = null;
         let contextTitle: string = '';
 
+        // 1. Context Resolution & Identity Guard
         if (dto.proposalId) {
             const proposal = await this.prisma.projectProposal.findUnique({
                 where: { id: dto.proposalId },
                 include: { user: { select: { email: true, id: true } } }
             });
+
             if (!proposal) throw new NotFoundException('Proposal not found');
             if (!isAdmin && proposal.userId !== userId) throw new ForbiddenException('Access denied');
 
-            recipientEmail = isAdmin ? proposal.user.email : null; // Only notify user if admin sends msg
+            recipientEmail = isAdmin ? proposal.user.email : null;
             contextTitle = proposal.title || 'Project Proposal';
         } else if (dto.projectId) {
             const project = await this.prisma.project.findUnique({
                 where: { id: dto.projectId },
                 include: { user: { select: { email: true, id: true } } }
             });
+
             if (!project) throw new NotFoundException('Project not found');
             if (!isAdmin && project.userId !== userId) throw new ForbiddenException('Access denied');
 
             recipientEmail = isAdmin ? project.user.email : null;
             contextTitle = project.title;
         } else {
-            throw new BadRequestException('Context (Proposal or Project) is required');
+            throw new BadRequestException('Proposal or Project ID is required');
         }
 
-        // 2. Atomic Persistence & Audit
+        // 2. Ledger Transaction for Message Persistence
         return this.prisma.$transaction(async (tx) => {
             const message = await tx.message.create({
                 data: {
@@ -68,10 +74,8 @@ export class CommunicationService {
                 metadata: { isAdmin, context: contextTitle }
             }, tx);
 
-            // 3. Notification Logic
+            // 3. Stakeholder Notification
             if (isAdmin && recipientEmail) {
-                // Trigger non-blocking email notification to the project owner
-                // Using existing generic logic - can be refined with specific template later
                 this.emailService.sendProposalStatusUpdate(recipientEmail, {
                     name: message.author.firstName,
                     project: contextTitle,
@@ -84,18 +88,21 @@ export class CommunicationService {
         });
     }
 
+    /**
+     * Retrieve Thread History
+     * Enforces privacy by ensuring only owners or admins can see the thread.
+     */
     async getMessages(userId: string, userRole: UserRole, context: { proposalId?: string; projectId?: string }) {
         const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPERADMIN;
 
-        // Security: Check if user has right to see this thread
         if (context.proposalId) {
             const proposal = await this.prisma.projectProposal.findUnique({ where: { id: context.proposalId } });
-            if (!proposal) throw new NotFoundException();
-            if (!isAdmin && proposal.userId !== userId) throw new ForbiddenException();
+            if (!proposal) throw new NotFoundException('Proposal not found');
+            if (!isAdmin && proposal.userId !== userId) throw new ForbiddenException('Access denied');
         } else if (context.projectId) {
             const project = await this.prisma.project.findUnique({ where: { id: context.projectId } });
-            if (!project) throw new NotFoundException();
-            if (!isAdmin && project.userId !== userId) throw new ForbiddenException();
+            if (!project) throw new NotFoundException('Project not found');
+            if (!isAdmin && project.userId !== userId) throw new ForbiddenException('Access denied');
         }
 
         return this.prisma.message.findMany({
