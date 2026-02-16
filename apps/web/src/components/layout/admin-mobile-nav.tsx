@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -23,6 +24,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator
 } from '../ui/dropdown-menu';
+import { ApiService } from '../../services/api';
 
 const ALL_NAV_ITEMS = [
   { title: 'Overview', href: '/admin', icon: LayoutDashboard },
@@ -39,6 +41,22 @@ const ALL_NAV_ITEMS = [
 
 export function AdminMobileNav({ user }: { user: any }) {
   const pathname = usePathname();
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const checkNotifications = async () => {
+      try {
+        const res = await ApiService.notifications.unreadCount();
+        setHasUnread(res.count > 0);
+      } catch (e) {
+        setHasUnread(false);
+      }
+    };
+
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Split: First 4 are direct, rest go into "More"
   const primaryItems = ALL_NAV_ITEMS.slice(0, 4);
@@ -81,7 +99,12 @@ export function AdminMobileNav({ user }: { user: any }) {
                 isSecondaryActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <MoreHorizontal className={cn("h-5 w-5 mb-0.5", isSecondaryActive && "fill-current/20")} />
+              <div className="relative">
+                <MoreHorizontal className={cn("h-5 w-5 mb-0.5", isSecondaryActive && "fill-current/20")} />
+                {hasUnread && (
+                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-destructive rounded-full border border-background" />
+                )}
+              </div>
               <span className="text-[10px] font-medium text-center">More</span>
             </button>
           </DropdownMenuTrigger>

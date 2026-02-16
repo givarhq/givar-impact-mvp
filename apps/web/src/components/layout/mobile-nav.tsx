@@ -1,21 +1,37 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Heart, CircleUser } from 'lucide-react';
 import { dashboardNav } from '../../config/dashboard';
 import { cn } from '../../lib/utils/cn';
+import { ApiService } from '../../services/api';
 
 export function MobileNav({ user }: { user: any }) {
   const pathname = usePathname();
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const checkNotifications = async () => {
+      try {
+        const res = await ApiService.notifications.unreadCount();
+        setHasUnread(res.count > 0);
+      } catch (e) {
+        setHasUnread(false);
+      }
+    };
+
+    checkNotifications();
+    const interval = setInterval(checkNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // 1. Filter the base navigation from config
   const filteredNav = dashboardNav.filter(item => {
-    // Filter out verification if not an organizer (if it exists in config)
     if (item.href === '/dashboard/verify' && user?.accountType !== 'ORGANIZER') {
       return false;
     }
-    // Skip "Explore" from the config because we manually place "Donate" in the center
     if (item.href === '/dashboard/impact') {
       return false;
     }
@@ -23,21 +39,15 @@ export function MobileNav({ user }: { user: any }) {
   });
 
   // 2. Construct the final flat array for perfectly even spacing
-  // The goal is exactly 5 items: Home, History, Donate (Center), Proposals, Profile
   const navItems = [
-    // Item 1: Home (Extracted from config)
-    filteredNav[0], 
-    // Item 2: History (Extracted from config)
-    filteredNav[1], 
-    // Item 3: Donate (Manual Center Component)
+    filteredNav[0],
+    filteredNav[1],
     {
       title: 'Donate',
       href: '/dashboard/impact',
       icon: Heart
     },
-    // Item 4: Proposals (Extracted from config)
-    filteredNav[2], 
-    // Item 5: Profile (Manual Extreme Right Component)
+    filteredNav[2],
     {
       title: 'Profile',
       href: '/dashboard/settings',
@@ -47,11 +57,13 @@ export function MobileNav({ user }: { user: any }) {
 
   const renderNavItem = (item: any) => {
     if (!item) return null;
-    
+
     const Icon = item.icon;
     const isActive = item.href === '/dashboard'
       ? pathname === item.href
       : pathname.startsWith(item.href);
+
+    const isProfileNode = item.title === 'Profile';
 
     return (
       <Link
@@ -62,7 +74,12 @@ export function MobileNav({ user }: { user: any }) {
           isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
         )}
       >
-        <Icon className={cn("h-5 w-5 mb-0.5", isActive && "fill-current/20")} />
+        <div className="relative">
+          <Icon className={cn("h-5 w-5 mb-0.5", isActive && "fill-current/20")} />
+          {isProfileNode && hasUnread && (
+            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-destructive rounded-full border border-background" />
+          )}
+        </div>
         <span className="text-xs font-medium text-center">{item.title}</span>
       </Link>
     );
@@ -71,7 +88,6 @@ export function MobileNav({ user }: { user: any }) {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-14 bg-background border-t border-border/40">
       <nav className="flex items-center justify-around h-full px-2">
-        {/* Mapping all 5 items in a single container ensures mathematical even spacing */}
         {navItems.map(renderNavItem)}
       </nav>
     </div>
