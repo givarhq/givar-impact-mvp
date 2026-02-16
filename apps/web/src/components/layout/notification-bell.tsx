@@ -95,7 +95,12 @@ export function NotificationBell() {
                 </button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-80 rounded-[28px] p-0 overflow-hidden border-border/40 shadow-2xl bg-card/95 backdrop-blur-xl">
+            <DropdownMenuContent align="end" className={cn(
+  "p-0 overflow-hidden border-border/40 shadow-2xl bg-card/95 backdrop-blur-xl",
+  "w-80 rounded-[28px]",
+  "sm:w-80",
+  "max-sm:w-screen max-sm:rounded-none"
+)}>
                 <DropdownMenuLabel className="p-4 border-b border-border/40">
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-foreground">Notifications</span>
