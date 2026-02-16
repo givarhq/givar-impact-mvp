@@ -501,4 +501,22 @@ export const ApiService = {
     getOrganizationById: (token: string, id: string) =>
       serverFetch<any>(`/organizations/admin/${id}`, token),
   },
+
+  communication: {
+    /**
+     * Send a message within a specific context (Proposal or Project).
+     */
+    sendMessage: (data: { content: string; proposalId?: string; projectId?: string }) =>
+      apiClient.post('/communication', data).then(r => r.data),
+
+    /**
+     * Fetch the complete conversation history for a specific context.
+     */
+    getThread: (params: { proposalId?: string; projectId?: string }) => {
+      const query = new URLSearchParams();
+      if (params.proposalId) query.set('proposalId', params.proposalId);
+      if (params.projectId) query.set('projectId', params.projectId);
+      return apiClient.get(`/communication/thread?${query.toString()}`).then(r => r.data);
+    }
+  },
 };

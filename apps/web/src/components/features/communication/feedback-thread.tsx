@@ -1,0 +1,178 @@
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { MessageSquare, Send, Loader2, Clock } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Button } from '../../ui/button';
+import { Textarea } from '../../ui/textarea';
+import { ApiService } from '../../../services/api';
+import { formatDate } from '../../../lib/utils/format';
+import { cn } from '../../../lib/utils/cn';
+import toast from 'react-hot-toast';
+
+interface Message {
+    id: string;
+    content: string;
+    isAdmin: boolean;
+    createdAt: string;
+    author: {
+        firstName: string;
+        lastName: string;
+        role: string;
+    };
+}
+
+interface FeedbackThreadProps {
+    proposalId?: string;
+    projectId?: string;
+    title?: string;
+}
+
+export function FeedbackThread({ proposalId, projectId, title = "Feedback and conversation" }: FeedbackThreadProps) {
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSending, setIsSending] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    const fetchMessages = async () => {
+        try {
+            const data = await ApiService.communication.getThread({ proposalId, projectId });
+            setMessages(data || []);
+        } catch (error) {
+            console.error("Could not load conversation history");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMessages();
+        // Poll for new messages every 15 seconds
+        const interval = setInterval(fetchMessages, 15000);
+        return () => clearInterval(interval);
+    }, [proposalId, projectId]);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    const handleSend = async () => {
+        const content = newMessage.trim();
+        if (!content || isSending) return;
+
+        setIsSending(true);
+        try {
+            const sent = await ApiService.communication.sendMessage({
+                content,
+                proposalId,
+                projectId
+            });
+            setMessages(prev => [...prev, sent]);
+            setNewMessage('');
+
+            // Focus back on textarea after sending
+            const textarea = document.getElementById('message-input');
+            textarea?.focus();
+        } catch (error) {
+            toast.error("Message could not be sent. Please try again.");
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    return (
+        <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[500px]">
+            <CardHeader className="bg-muted/30 border-b border-border/40 p-5 shrink-0">
+                <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
+                    <MessageSquare className="h-4 w-4 text-primary" /> {title}
+                </CardTitle>
+            </CardHeader>
+
+            <CardContent className="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar bg-muted/[0.02]" ref={scrollRef}>
+                {isLoading && messages.length === 0 ? (
+                    <div className="h-full flex items-center justify-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
+                    </div>
+                ) : messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-2 opacity-40">
+                        <div className="h-10 w-10 rounded-2xl bg-muted flex items-center justify-center">
+                            <MessageSquare className="h-5 w-5" />
+                        </div>
+                        <p className="text-xs font-medium">No messages yet. Start the conversation below.</p>
+                    </div>
+                ) : (
+                    messages.map((msg) => (
+                        <div key={msg.id} className={cn(
+                            "flex flex-col max-w-[85%] space-y-1",
+                            msg.isAdmin ? "mr-auto" : "ml-auto items-end"
+                        )}>
+                            <div className="flex items-center gap-2 px-1">
+                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight">
+                                    {msg.author.firstName} {msg.author.lastName}
+                                </span>
+                                {msg.isAdmin && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                        Givar Admin
+                                    </span>
+                                )}
+                            </div>
+                            <div className={cn(
+                                "p-3.5 rounded-[22px] text-xs leading-relaxed font-medium shadow-sm",
+                                msg.isAdmin
+                                    ? "bg-muted/60 text-foreground rounded-tl-none border border-border/40"
+                                    : "bg-primary text-white rounded-tr-none"
+                            )}>
+                                {msg.content}
+                            </div>
+                            <div className="flex items-center gap-1 px-1 opacity-40">
+                                <Clock className="h-2.5 w-2.5" />
+                                <span className="text-[9px] font-bold">
+                                    {formatDate(msg.createdAt).split(',')[1]}
+                                </span>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </CardContent>
+
+            <div className="p-4 bg-background border-t border-border/40 shrink-0">
+                <div className="relative flex items-end gap-2">
+                    <Textarea
+                        id="message-input"
+                        placeholder="Write a message..."
+                        className="min-h-[44px] max-h-[120px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-xs resize-none pr-12 py-3"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        disabled={isSending}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSend();
+                            }
+                        }}
+                    />
+                    <Button
+                        size="icon"
+                        disabled={!newMessage.trim() || isSending}
+                        onClick={handleSend}
+                        className="absolute right-1.5 bottom-1.5 h-8 w-8 rounded-xl shadow-md transition-all active:scale-95"
+                    >
+                        {isSending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <Send className="h-3.5 w-3.5" />
+                        )}
+                    </Button>
+                </div>
+                <div className="mt-3 px-1">
+                    <p className="text-[9px] text-muted-foreground leading-relaxed italic">
+                        Your conversation is saved as part of the permanent project history.
+                    </p>
+                </div>
+            </div>
+        </Card>
+    );
+}
