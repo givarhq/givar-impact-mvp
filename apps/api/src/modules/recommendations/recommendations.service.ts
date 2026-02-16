@@ -6,6 +6,8 @@ import { PersonalizationEngine } from './personalization.engine';
 import { AdminOverrideEngine } from './admin-override.engine';
 import { PrismaService } from '../../common/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '@givar/database';
 
 @Injectable()
 export class RecommendationsService {
@@ -22,6 +24,7 @@ export class RecommendationsService {
         private overrides: AdminOverrideEngine,
         private prisma: PrismaService,
         private storage: StorageService,
+        private audit: AuditService
     ) { }
 
     async getFeatured(userId?: string) {
@@ -37,12 +40,28 @@ export class RecommendationsService {
 
     async getRecommendationConfig() { return this.getInternalConfig(); }
 
-    async updateConfig(dto: any) {
+    async updateConfig(dto: any, adminId: string) {
+        const previous = await this.getInternalConfig();
+
         const updated = await this.prisma.recommendationConfig.upsert({
             where: { id: 'default' },
             update: dto,
             create: { id: 'default', ...dto, updatedAt: new Date() },
         });
+
+        // Forensic Trace: Record weight shift
+        await this.audit.log({
+            userId: adminId,
+            action: AuditAction.RECOMMENDATION_CONFIG_UPDATED,
+            entityType: 'RecommendationConfig',
+            entityId: 'default',
+            metadata: {
+                before: previous,
+                after: updated,
+                delta: dto
+            }
+        });
+
         this.configCache = updated;
         this.cacheTimestamp = Date.now();
         return updated;
@@ -50,32 +69,107 @@ export class RecommendationsService {
 
     async getSlots() { return this.repo.getFeaturedSlots(); }
 
-    async createSlot(dto: { projectId: string; position: number; expiresAt?: string }) {
-        return this.prisma.featuredSlot.upsert({
+    async createSlot(dto: { projectId: string; position: number; expiresAt?: string }, adminId: string) {
+        const project = await this.prisma.project.findUnique({
+            where: { id: dto.projectId },
+            select: { title: true }
+        });
+
+        const slot = await this.prisma.featuredSlot.upsert({
             where: { position: dto.position },
             update: { projectId: dto.projectId, expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null },
             create: { projectId: dto.projectId, position: dto.position, expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null },
         });
+
+        await this.audit.log({
+            userId: adminId,
+            action: AuditAction.FEATURED_SLOT_CREATED,
+            entityType: 'FeaturedSlot',
+            entityId: slot.id,
+            metadata: {
+                projectTitle: project?.title,
+                projectId: dto.projectId,
+                position: dto.position,
+                expiresAt: dto.expiresAt
+            }
+        });
+
+        return slot;
     }
 
-    async deleteSlot(id: string) { return this.prisma.featuredSlot.delete({ where: { id } }); }
+    async deleteSlot(id: string, adminId: string) {
+        const slot = await this.prisma.featuredSlot.findUnique({
+            where: { id },
+            include: { project: { select: { title: true } } }
+        });
+
+        await this.prisma.featuredSlot.delete({ where: { id } });
+
+        await this.audit.log({
+            userId: adminId,
+            action: AuditAction.FEATURED_SLOT_DELETED,
+            entityType: 'FeaturedSlot',
+            entityId: id,
+            metadata: {
+                projectTitle: slot?.project?.title,
+                position: slot?.position
+            }
+        });
+    }
 
     /**
      * Updates the visibility multiplier for an entire category.
      * This affects the ranking score of all projects within this sector.
      */
-    async updateCategoryWeight(id: string, weight: number) {
-        return this.prisma.category.update({
+    async updateCategoryWeight(id: string, weight: number, adminId: string) {
+        const category = await this.prisma.category.findUnique({ where: { id } });
+
+        const updated = await this.prisma.category.update({
             where: { id },
             data: { visibilityWeight: weight }
         });
+
+        await this.audit.log({
+            userId: adminId,
+            action: AuditAction.CATEGORY_WEIGHT_UPDATED,
+            entityType: 'Category',
+            entityId: id,
+            metadata: {
+                categoryName: category?.name,
+                previousWeight: category?.visibilityWeight,
+                newWeight: weight
+            }
+        });
+
+        return updated;
     }
 
-    async updateProjectWeights(id: string, dto: any) {
+    async updateProjectWeights(id: string, dto: any, adminId: string) {
         const project = await this.prisma.project.findUnique({ where: { id } });
         if (!project) throw new NotFoundException('Project node not found');
 
-        return this.prisma.project.update({ where: { id }, data: dto });
+        const updated = await this.prisma.project.update({
+            where: { id },
+            data: dto,
+        });
+
+        await this.audit.log({
+            userId: adminId,
+            action: AuditAction.PROJECT_DISCOVERY_WEIGHTS_UPDATED,
+            entityType: 'Project',
+            entityId: id,
+            metadata: {
+                projectTitle: project.title,
+                changes: dto,
+                previous: {
+                    featureWeight: project.featureWeight,
+                    visibilityScore: project.visibilityScore,
+                    moderationStatus: project.moderationStatus
+                }
+            }
+        });
+
+        return updated;
     }
 
     private async recommendPipeline(options: { limit: number; page: number; userId?: string }) {
