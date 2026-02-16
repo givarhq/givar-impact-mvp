@@ -44,14 +44,15 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
 
-    // NEW STATE
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
+    const MOBILE_ROWS = 2;
+    const DESKTOP_ROWS = 1;
+    const ROW_HEIGHT = 44; // approx pill height + gap
+
     useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
@@ -63,7 +64,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
     ];
 
     const checkScroll = () => {
-        if (scrollRef.current) {
+        if (scrollRef.current && !isExpanded) {
             const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
             setShowLeftArrow(scrollLeft > 10);
             setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
@@ -74,13 +75,12 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         checkScroll();
         window.addEventListener('resize', checkScroll);
         return () => window.removeEventListener('resize', checkScroll);
-    }, [categories]);
+    }, [categories, isExpanded]);
 
     const handleScroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
-            const scrollAmount = 240;
             scrollRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
+                left: direction === 'left' ? -240 : 240,
                 behavior: 'smooth'
             });
         }
@@ -101,20 +101,18 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         return iconMap.default;
     };
 
-    // Row height control
-    // Approx height per row ≈ 44px including gap
-    const MOBILE_ROWS = 2;
-    const DESKTOP_ROWS = 1;
-
-    const rowHeight = 44;
     const maxHeight = isExpanded
         ? 'none'
-        : `${rowHeight * (isMobile ? MOBILE_ROWS : DESKTOP_ROWS)}px`;
+        : `${ROW_HEIGHT * (isMobile ? MOBILE_ROWS : DESKTOP_ROWS)}px`;
+
+    const handleSelect = (slug: string) => {
+        onSelect(slug);
+        setIsExpanded(false);
+    };
 
     return (
         <div className="relative w-full">
 
-            {/* Category Container */}
             <div className="relative flex items-center w-full min-w-0 overflow-hidden">
 
                 {showLeftArrow && !isExpanded && (
@@ -132,9 +130,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                     ref={scrollRef}
                     onScroll={checkScroll}
                     style={{ maxHeight }}
-                    className={cn(
-                        "flex flex-wrap gap-2 overflow-hidden transition-all duration-300 w-full"
-                    )}
+                    className="flex flex-wrap gap-2 overflow-hidden transition-all duration-300 w-full pb-1 px-1"
                 >
                     {allCategories.map((cat) => {
                         const Icon = resolveIcon(cat.name, cat.slug);
@@ -143,7 +139,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                         return (
                             <button
                                 key={cat.id}
-                                onClick={() => onSelect(cat.slug)}
+                                onClick={() => handleSelect(cat.slug)}
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold",
                                     isActive
@@ -161,6 +157,22 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                             </button>
                         );
                     })}
+
+                    {/* Inline More Pill */}
+                    {allCategories.length > 0 && (
+                        <button
+                            onClick={() => setIsExpanded(prev => !prev)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-3xl border text-xs font-bold bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/50 hover:text-foreground transition-all duration-200"
+                        >
+                            {isExpanded ? 'Show less' : 'More'}
+                            <ChevronDown
+                                className={cn(
+                                    "h-3.5 w-3.5 transition-transform duration-300",
+                                    isExpanded && "rotate-180"
+                                )}
+                            />
+                        </button>
+                    )}
                 </div>
 
                 {showRightArrow && !isExpanded && (
@@ -175,24 +187,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                 )}
 
             </div>
-
-            {/* Expand / Collapse Button */}
-            {allCategories.length > 0 && (
-                <div className="flex justify-center mt-2">
-                    <button
-                        onClick={() => setIsExpanded(prev => !prev)}
-                        className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                        {isExpanded ? 'Show less' : 'More'}
-                        <ChevronDown
-                            className={cn(
-                                "h-3.5 w-3.5 transition-transform duration-300",
-                                isExpanded && "rotate-180"
-                            )}
-                        />
-                    </button>
-                </div>
-            )}
         </div>
     );
 }
