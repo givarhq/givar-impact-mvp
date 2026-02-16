@@ -5,10 +5,11 @@ import { AdminProjectForm } from '../../../../../../components/features/admin/pr
 import { MilestoneManager } from '../../../../../../components/features/admin/milestone-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../components/ui/tabs';
 import { Button } from '../../../../../../components/ui/button';
-import { ArrowLeft, Settings, Activity, Wallet, Fingerprint, Sparkles } from 'lucide-react';
+import { ArrowLeft, Settings, Activity, Wallet, Fingerprint, Sparkles, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { DisbursementForm } from '../../../../../../components/features/admin/disbursement-form';
 import { ProjectVisibilityForm } from '../../../../../../components/features/admin/visibility/project-visibility-form';
+import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 
 export const metadata = {
   title: 'Edit project',
@@ -95,6 +96,13 @@ export default async function EditProjectPage({
               >
                 <Sparkles className="mr-2 h-3.5 w-3.5" /> Discovery
               </TabsTrigger>
+
+              <TabsTrigger
+                value="communication"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+              >
+                <MessageSquare className="mr-2 h-3.5 w-3.5" /> Communication
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -131,6 +139,16 @@ export default async function EditProjectPage({
                 project={project}
                 globalConfig={globalConfig}
               />
+            </TabsContent>
+
+            {/* 5. Communication Tab */}
+            <TabsContent value="communication" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="max-w-4xl min-w-0">
+                <FeedbackThread
+                  projectId={id}
+                  title="Direct line with owner"
+                />
+              </div>
             </TabsContent>
           </div>
         </Tabs>
