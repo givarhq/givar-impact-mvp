@@ -18,6 +18,7 @@ import { EmailModule } from './modules/email/email.module';
 import { ReadOnlyGuard } from './common/guards/read-only.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
+import { CommunicationModule } from './modules/communication/communication.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
     ProposalModule,
     OrganizationModule,
     RecommendationsModule,
+    CommunicationModule,
   ],
   controllers: [],
   providers: [
