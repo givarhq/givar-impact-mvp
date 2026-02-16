@@ -60,6 +60,35 @@ export function HeroSection({ stats }: { stats: PlatformStats }) {
                     </div>
                 </div>
 
+                {/* DASHBOARD SNIPPET AFFIX */}
+                <div className="mt-16 md:mt-24 relative w-full animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
+                    {/* Desktop Snippet */}
+                    <div className="hidden lg:block w-full max-w-5xl">
+                        <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
+                            <Image
+                                src="/Givar-desk.png"
+                                alt="Givar Dashboard Desktop"
+                                width={1200}
+                                height={675}
+                                className="w-full h-auto object-cover"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Mobile Snippet */}
+                    <div className="lg:hidden w-full max-w-[300px] mx-auto">
+                        <div className="relative rounded-[22px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
+                            <Image
+                                src="/Givar-mob.png"
+                                alt="Givar Dashboard Mobile"
+                                width={300}
+                                height={650}
+                                className="w-full h-auto object-cover"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* FLOATING GLASS STATS - REAL DATA */}
                 <div className="absolute right-6 bottom-10 hidden lg:block animate-in fade-in slide-in-from-right-10 duration-1000 delay-300">
                     <Card className="w-80 border-white/10 bg-black/40 backdrop-blur-xl p-5 text-white shadow-2xl rounded-2xl">
