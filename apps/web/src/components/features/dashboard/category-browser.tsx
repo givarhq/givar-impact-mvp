@@ -49,7 +49,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
-    const [hasOverflow, setHasOverflow] = useState(false);
 
     const allCategories: Category[] = [
         { id: 'all', name: 'All causes', slug: 'all' },
@@ -61,14 +60,11 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
 
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
 
-        const overflow = scrollWidth > clientWidth + 4;
-        setHasOverflow(overflow);
-
         setShowLeftArrow(scrollLeft > 10);
         setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
     }, []);
 
-    // Debounced resize listener
+    // Debounced resize handling
     useEffect(() => {
         let timeout: NodeJS.Timeout;
 
@@ -88,7 +84,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         };
     }, [categories, checkScroll]);
 
-    // Auto-scroll active into view
+    // Auto-scroll active tab into view
     useEffect(() => {
         const active = scrollRef.current?.querySelector('[data-active="true"]');
         active?.scrollIntoView({
@@ -129,7 +125,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         return iconMap.default;
     };
 
-    // Keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
         if (e.key === 'ArrowRight') {
             e.preventDefault();
@@ -156,11 +151,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
 
     return (
         <div className="relative flex items-center w-full min-w-0 overflow-hidden">
-            {/* Left Gradient Cue */}
-            {hasOverflow && (
-                <div className="absolute left-0 top-0 bottom-0 z-10 pointer-events-none bg-gradient-to-r from-background via-background/90 to-transparent w-10" />
-            )}
-
             {/* Left Arrow */}
             {showLeftArrow && (
                 <div className="absolute left-0 top-0 bottom-0 z-20 hidden md:flex items-center pl-1">
@@ -214,11 +204,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                 })}
             </div>
 
-            {/* Right Gradient Cue */}
-            {hasOverflow && (
-                <div className="absolute right-0 top-0 bottom-0 z-10 pointer-events-none bg-gradient-to-l from-background via-background/90 to-transparent w-10" />
-            )}
-
             {/* Right Arrow */}
             {showRightArrow && (
                 <div className="absolute right-0 top-0 bottom-0 z-20 hidden md:flex items-center pr-1">
@@ -233,4 +218,4 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
             )}
         </div>
     );
-}
+                }
