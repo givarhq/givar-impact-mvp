@@ -187,4 +187,31 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Project Successfully Funded');
     return this.send(email, `Givar Impact: The project you supported is fully funded!`, html);
   }
+
+  // 15. Dispatches a friendly notification when an Admin leaves feedback.
+  async sendFeedbackNotification(
+    email: string,
+    data: {
+      userName: string;
+      projectTitle: string;
+      messageContent: string;
+      proposalId?: string;
+      projectId?: string;
+    },
+  ) {
+    const frontendUrl = this.config.get('FRONTEND_URL');
+    const actionUrl = data.projectId
+      ? `${frontendUrl}/dashboard/projects/${data.projectId}/manage`
+      : `${frontendUrl}/dashboard/proposals/edit/${data.proposalId}/hook`;
+
+    const content = EmailTemplates.feedbackReceived({
+      userName: data.userName,
+      projectTitle: data.projectTitle,
+      messageContent: data.messageContent,
+      actionUrl,
+    });
+
+    const html = EmailTemplates.base(content, 'New message from Givar');
+    return this.send(email, `New message regarding ${data.projectTitle}`, html);
+  }
 }

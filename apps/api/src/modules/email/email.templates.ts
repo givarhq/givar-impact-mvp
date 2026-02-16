@@ -322,4 +322,29 @@ export const EmailTemplates = {
     </div>
     <p style="font-size: 14px; color: #6b7280;">Thank you for your generosity and for being part of this impact journey.</p>
   `,
+
+  feedbackReceived: (data: {
+    userName: string;
+    projectTitle: string;
+    messageContent: string;
+    actionUrl: string;
+  }) => `
+    <p>Hi ${data.userName},</p>
+    <p>You have a new message from the Givar team regarding <strong>${data.projectTitle}</strong>.</p>
+    
+    <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 8px; font-weight: 700;">Message content</p>
+      <p style="font-size: 15px; color: #111827; line-height: 1.6; margin: 0; font-style: italic;">
+        "${data.messageContent}"
+      </p>
+    </div>
+
+    <p>We recommend reviewing this feedback soon to keep your project moving forward. You can reply directly through your dashboard.</p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.actionUrl}" class="button">View conversation</a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">If you have any questions, simply reply to this email to reach our support team.</p>
+  `,
 };
