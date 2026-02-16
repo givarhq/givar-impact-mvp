@@ -519,4 +519,26 @@ export const ApiService = {
       return apiClient.get(`/communication/thread?${query.toString()}`).then(r => r.data);
     }
   },
+
+  notifications: {
+    /**
+     * Retrieve the alert stream for the current session.
+     */
+    list: () => apiClient.get('/notifications').then(r => r.data),
+
+    /**
+     * Fetch unread tally for the header badge.
+     */
+    unreadCount: () => apiClient.get('/notifications/unread-count').then(r => r.data),
+
+    /**
+     * Synchronize a specific alert to the read state.
+     */
+    markRead: (id: string) => apiClient.patch(`/notifications/${id}/read`).then(r => r.data),
+
+    /**
+     * Bulk synchronize all alerts to the read state.
+     */
+    markAllRead: () => apiClient.patch('/notifications/read-all').then(r => r.data),
+  },
 };
