@@ -1,0 +1,138 @@
+'use client';
+
+import React, { useState } from 'react';
+import { ShieldAlert, ArrowRight, Loader2, X, Clock } from 'lucide-react';
+import { Button } from '../ui/button';
+import { ApiService } from '../../services/api';
+import toast from 'react-hot-toast';
+import Link from 'next/link';
+
+interface VerificationBannerProps {
+    user: {
+        email: string;
+        emailVerified: boolean;
+        accountType: 'INDIVIDUAL' | 'ORGANIZER';
+        organization?: {
+            status: 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+        } | null;
+    };
+}
+
+export function VerificationBanner({ user }: VerificationBannerProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(false);
+
+    const handleResendEmail = async () => {
+        setIsLoading(true);
+        try {
+            await ApiService.auth.resendVerification(user.email);
+            toast.success("Verification link sent to your inbox");
+        } catch (error) {
+            toast.error("Could not send the link. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isDismissed) return null;
+
+    const needsEmail = !user.emailVerified;
+    const orgStatus = user.organization?.status || 'NOT_SUBMITTED';
+    const isOrgVerified = orgStatus === 'VERIFIED';
+    const isOrgPending = orgStatus === 'PENDING';
+    const needsOrgSubmission =
+        user.accountType === 'ORGANIZER' &&
+        !isOrgVerified &&
+        !isOrgPending;
+
+    if (!needsEmail && isOrgVerified && user.accountType === 'ORGANIZER') return null;
+    if (!needsEmail && user.accountType === 'INDIVIDUAL') return null;
+
+    let title = 'Verify your email address';
+    let description =
+        'Please check your inbox for a confirmation link to secure your account';
+    let buttonText = 'Verify email';
+    let linkTab = 'profile';
+    let Icon = ShieldAlert;
+
+    if (needsEmail && (needsOrgSubmission || isOrgPending)) {
+        title = 'Finish setting up your account';
+        description =
+            'Please confirm your email to continue with your organization setup';
+    } else if (!needsEmail && needsOrgSubmission) {
+        title = 'Set up your organization';
+        description =
+            'Upload your organization details to start raising funds for your projects';
+        buttonText = 'Set up organization';
+        linkTab = 'org';
+    } else if (!needsEmail && isOrgPending) {
+        title = 'Organization review in progress';
+        description =
+            "We're currently checking your documents. We'll notify you as soon as you're verified";
+        buttonText = 'View status';
+        linkTab = 'org';
+        Icon = Clock;
+    }
+
+    return (
+        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 sm:py-2.5 animate-in slide-in-from-top duration-500 z-40">
+            <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+
+                {/* Left Section */}
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl sm:rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
+                        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </div>
+
+                    <div className="min-w-0 space-y-0 sm:space-y-0.5">
+                        <p className="text-sm font-bold text-amber-900 leading-snug">
+                            {title}
+                        </p>
+                        <p className="text-xs text-amber-800/80 font-medium leading-snug sm:truncate">
+                            {description}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Right Section */}
+                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
+
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        {needsEmail && (
+                            <button
+                                onClick={handleResendEmail}
+                                disabled={isLoading}
+                                className="h-8 sm:h-8 px-4 rounded-3xl text-xs font-bold text-amber-700 hover:bg-amber-500/10 transition-colors disabled:opacity-50 w-full sm:w-auto flex items-center justify-center"
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                                ) : null}
+                                Resend email
+                            </button>
+                        )}
+
+                        <Link
+                            href={`/dashboard/settings?tab=${linkTab}`}
+                            className="w-full sm:w-auto"
+                        >
+                            <Button
+                                size="sm"
+                                className="h-8 sm:h-8 w-full sm:w-auto rounded-3xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 shadow-sm active:scale-95 transition-all"
+                            >
+                                {buttonText}
+                                <ArrowRight className="ml-1.5 h-3 w-3" />
+                            </Button>
+                        </Link>
+                    </div>
+
+                    <button
+                        onClick={() => setIsDismissed(true)}
+                        className="p-1 hover:bg-amber-500/10 rounded-full text-amber-700/50 transition-colors"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
