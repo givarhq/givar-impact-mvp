@@ -23,6 +23,7 @@ import { EvidenceSubmission } from '../../../../../../components/features/propos
 import { cn } from '../../../../../../lib/utils/cn';
 import { formatCurrency, formatDate } from '../../../../../../lib/utils/format';
 import { ReceiptButton } from '../../../../../../components/features/proposals/receipt-button';
+import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 
 export const metadata = {
     title: 'Project Console',
@@ -186,6 +187,14 @@ export default async function ProjectManagePage({
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Direct Support Loop */}
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <FeedbackThread
+                            projectId={project.id}
+                            title="Direct line with the Givar team"
+                        />
+                    </div>
                 </div>
 
                 {/* RIGHT: Financials */}
