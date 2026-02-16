@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Currency, TxStatus, TxType, AuditAction, ProjectStatus, UserRole, Prisma } from '@givar/database';
+import { Currency, TxStatus, TxType, AuditAction, ProjectStatus, UserRole, Prisma, NotificationType } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
 import { WalletRepository } from '../wallet/wallet.repository';
 import {
@@ -229,6 +229,29 @@ export class DonationService {
             data: {
               status: ProjectStatus.FUNDED,
               fundedAt: new Date(),
+            }
+          });
+        }
+
+        // 7. Success Alerts: Notify owner of incoming capital and goal milestones
+        await tx.notification.create({
+          data: {
+            userId: txProject.userId,
+            type: 'DONATION_RECEIVED' as NotificationType,
+            title: 'New contribution received',
+            content: `You received a gift for "${txProject.title}".`,
+            link: `/dashboard/projects/${txProject.id}/manage`
+          }
+        });
+
+        if (isGoalMet) {
+          await tx.notification.create({
+            data: {
+              userId: txProject.userId,
+              type: 'PROJECT_STATUS' as NotificationType,
+              title: 'Goal reached!',
+              content: `Success! "${txProject.title}" is now fully funded.`,
+              link: `/dashboard/projects/${txProject.id}/manage`
             }
           });
         }
@@ -513,6 +536,29 @@ export class DonationService {
           await tx.project.update({
             where: { id: projectId },
             data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
+          });
+        }
+
+        // Logic: Notify owner of incoming direct donation
+        await tx.notification.create({
+          data: {
+            userId: project.userId,
+            type: 'DONATION_RECEIVED' as NotificationType,
+            title: 'New contribution received',
+            content: `You received a gift for "${project.title}".`,
+            link: `/dashboard/projects/${project.id}/manage`
+          }
+        });
+
+        if (isGoalMet) {
+          await tx.notification.create({
+            data: {
+              userId: project.userId,
+              type: 'PROJECT_STATUS' as NotificationType,
+              title: 'Goal reached!',
+              content: `Success! "${project.title}" is now fully funded.`,
+              link: `/dashboard/projects/${project.id}/manage`
+            }
           });
         }
       }

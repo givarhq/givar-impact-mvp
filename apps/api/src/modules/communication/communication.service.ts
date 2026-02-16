@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { PrismaService } from '../../common/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../email/email.service';
-import { AuditAction, UserRole, Prisma } from '@givar/database';
+import { AuditAction, UserRole, Prisma, NotificationType } from '@givar/database';
 
 @Injectable()
 export class CommunicationService {
@@ -14,7 +14,7 @@ export class CommunicationService {
 
     /**
      * Internal Feedback Logic
-     * Logic: Validates context ownership -> Atomic persistence -> Audit logging -> Specialized Notification.
+     * Logic: Validates context ownership -> Atomic persistence -> Audit logging -> Cross-Node Notification.
      */
     async sendMessage(userId: string, userRole: UserRole, dto: {
         content: string;
@@ -25,7 +25,9 @@ export class CommunicationService {
 
         let recipientEmail: string | null = null;
         let recipientName: string | null = null;
+        let ownerId: string | null = null;
         let contextTitle: string = '';
+        let appLink: string = '';
 
         // 1. Context Resolution & Identity Guard
         if (dto.proposalId) {
@@ -37,9 +39,11 @@ export class CommunicationService {
             if (!proposal) throw new NotFoundException('Proposal not found');
             if (!isAdmin && proposal.userId !== userId) throw new ForbiddenException('Access denied');
 
+            ownerId = proposal.userId;
             recipientEmail = isAdmin ? proposal.user.email : null;
             recipientName = isAdmin ? proposal.user.firstName : null;
             contextTitle = proposal.title || 'Project Proposal';
+            appLink = `/dashboard/proposals/edit/${dto.proposalId}/hook`;
         } else if (dto.projectId) {
             const project = await this.prisma.project.findUnique({
                 where: { id: dto.projectId },
@@ -49,14 +53,16 @@ export class CommunicationService {
             if (!project) throw new NotFoundException('Project not found');
             if (!isAdmin && project.userId !== userId) throw new ForbiddenException('Access denied');
 
+            ownerId = project.userId;
             recipientEmail = isAdmin ? project.user.email : null;
             recipientName = isAdmin ? project.user.firstName : null;
             contextTitle = project.title;
+            appLink = `/dashboard/projects/${dto.projectId}/manage`;
         } else {
             throw new BadRequestException('Proposal or Project ID is required');
         }
 
-        // 2. Ledger Transaction for Message Persistence
+        // 2. Ledger Transaction for Message Persistence and In-App Alerts
         return this.prisma.$transaction(async (tx) => {
             const message = await tx.message.create({
                 data: {
@@ -69,6 +75,38 @@ export class CommunicationService {
                 include: { author: { select: { firstName: true, lastName: true } } }
             });
 
+            // Logic: Trigger bidirectional in-app notifications
+            if (isAdmin) {
+                // If Admin sent it -> Notify the specific Owner
+                await tx.notification.create({
+                    data: {
+                        userId: ownerId!,
+                        type: 'MESSAGE' as NotificationType,
+                        title: 'New message from Givar',
+                        content: `The team sent a message regarding "${contextTitle}".`,
+                        link: appLink
+                    }
+                });
+            } else {
+                // If Owner sent it -> Notify all Administrators
+                const admins = await tx.user.findMany({
+                    where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+                    select: { id: true }
+                });
+
+                if (admins.length > 0) {
+                    await tx.notification.createMany({
+                        data: admins.map(admin => ({
+                            userId: admin.id,
+                            type: 'MESSAGE' as NotificationType,
+                            title: 'New message from owner',
+                            content: `You have a new reply for "${contextTitle}".`,
+                            link: dto.proposalId ? `/admin/proposals/${dto.proposalId}` : `/admin/projects/${dto.projectId}/edit`
+                        }))
+                    });
+                }
+            }
+
             await this.audit.log({
                 userId,
                 action: AuditAction.MESSAGE_SENT,
@@ -77,7 +115,7 @@ export class CommunicationService {
                 metadata: { isAdmin, context: contextTitle }
             }, tx);
 
-            // 3. Specialized Stakeholder Notification
+            // 3. Specialized Stakeholder Email Notification (Async)
             if (isAdmin && recipientEmail && recipientName) {
                 this.emailService.sendFeedbackNotification(recipientEmail, {
                     userName: recipientName,
@@ -92,9 +130,6 @@ export class CommunicationService {
         });
     }
 
-    /**
-     * Retrieve Thread History
-     */
     async getMessages(userId: string, userRole: UserRole, context: { proposalId?: string; projectId?: string }) {
         const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPERADMIN;
 
