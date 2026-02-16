@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import { Prisma, VerificationStatus, AuditAction, ProposalStatus, AccountType } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
 import { OrganizationQueryDto } from './dto/organization-query.dto';
+import { NotificationService } from '../notifications/notification.service';
 
 @Injectable()
 export class OrganizationService {
@@ -10,6 +11,7 @@ export class OrganizationService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
+    private notification: NotificationService
   ) { }
 
   // 1. User: Submit KYC
@@ -81,6 +83,17 @@ export class OrganizationService {
         if (result.count > 0) {
           this.logger.log(`Auto-submitted ${result.count} proposals for verified user ${updated.userId}`);
         }
+
+        // Logic: Notify user of successful verification
+        await tx.notification.create({
+          data: {
+            userId: updated.userId,
+            type: 'KYC_STATUS',
+            title: 'Organization verified',
+            content: `Your entity "${profile.legalName}" has been successfully verified. You can now launch public causes.`,
+            link: '/dashboard/settings?tab=org'
+          }
+        });
       } else if (status === VerificationStatus.REJECTED) {
         // --- PATH: REJECTION ---
         // Downgrade account type to prevent further organizer actions until re-verified
@@ -98,6 +111,16 @@ export class OrganizationService {
           data: {
             status: ProposalStatus.DRAFT,
             adminFeedback: `KYC Rejected: ${feedback || 'Please review your verification documents.'}`
+          }
+        });
+        // Logic: Notify user of rejection with feedback
+        await tx.notification.create({
+          data: {
+            userId: updated.userId,
+            type: 'KYC_STATUS',
+            title: 'Verification rejected',
+            content: `We could not verify your organization at this time. Feedback: ${feedback || 'Please review your documents.'}`,
+            link: '/dashboard/settings?tab=org'
           }
         });
       }

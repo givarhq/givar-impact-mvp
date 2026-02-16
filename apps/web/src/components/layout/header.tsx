@@ -24,6 +24,7 @@ import { useState, useEffect } from 'react';
 import { ViewModeToggle } from './view-mode-toggle';
 import { WalletWidget } from './wallet-widget';
 import { UserGlobalSearch } from '../features/dashboard/user-global-search';
+import { NotificationBell } from './notification-bell';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
@@ -112,6 +113,10 @@ export function Header({ user }: { user: any }) {
         <div className="hidden lg:flex">
           <WalletWidget />
         </div>
+
+        {isClient && user && (
+          <NotificationBell />
+        )}
 
         <div className="hidden md:block h-6 w-px bg-border/40 mx-1" />
 

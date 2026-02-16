@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { GlobalSearch } from '../features/admin/global-search';
+import { NotificationBell } from './notification-bell';
 
 const PAGE_TITLES: Record<string, string> = {
   '/admin': 'Platform Overview',
@@ -127,6 +128,10 @@ export function AdminHeader({ user }: { user: any }) {
         <div className="flex items-center gap-2 shrink-0">
           {isClient && (
             <ViewModeToggle currentRole={user.role} />
+          )}
+
+          {isClient && user && (
+            <NotificationBell />
           )}
 
           <DropdownMenu>
