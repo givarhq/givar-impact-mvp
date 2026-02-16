@@ -78,25 +78,25 @@ export function AuditFilters() {
           </Button>
 
           <div className="hidden md:flex items-center gap-2">
-            {/* Temporal Command Block */}
-            <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-inner">
+            {/* Unified Temporal Command Block */}
+            <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-sm w-full lg:w-auto">
                 <div className="flex items-center px-3 gap-2">
-                    <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter">From</span>
+                    <span className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-tighter">From</span>
                     <input 
                         type="date" 
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-transparent h-7 text-[10px] font-bold uppercase text-foreground outline-none border-none cursor-pointer"
+                        className="bg-transparent h-9 text-[11px] font-bold uppercase text-foreground outline-none border-none cursor-pointer"
                     />
                 </div>
                 <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
                 <div className="flex items-center px-3 gap-2">
-                    <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter">To</span>
+                    <span className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-tighter">To</span>
                     <input 
                         type="date" 
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-transparent h-7 text-[10px] font-bold uppercase text-foreground outline-none border-none cursor-pointer"
+                        className="bg-transparent h-9 text-[11px] font-bold uppercase text-foreground outline-none border-none cursor-pointer"
                     />
                 </div>
             </div>
@@ -164,4 +164,4 @@ export function AuditFilters() {
       )}
     </div>
   );
-}
+                  }
