@@ -9,6 +9,7 @@ import {
     Shield,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     Sprout,
     Leaf,
     PawPrint,
@@ -43,10 +44,33 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
 
+    // NEW STATE
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    const MOBILE_LIMIT = 3;
+    const DESKTOP_LIMIT = 8;
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
     const allCategories = [
         { id: 'all', name: 'All causes', slug: 'all' },
         ...categories
     ];
+
+    const limit = isMobile ? MOBILE_LIMIT : DESKTOP_LIMIT;
+    const shouldLimit = !isExpanded && allCategories.length > limit;
+
+    const visibleCategories = shouldLimit
+        ? allCategories.slice(0, limit)
+        : allCategories;
 
     const checkScroll = () => {
         if (scrollRef.current) {
@@ -60,7 +84,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         checkScroll();
         window.addEventListener('resize', checkScroll);
         return () => window.removeEventListener('resize', checkScroll);
-    }, [categories]);
+    }, [categories, isExpanded]);
 
     const handleScroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
@@ -89,6 +113,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
 
     return (
         <div className="relative flex items-center w-full min-w-0 overflow-hidden">
+
             {showLeftArrow && (
                 <div className="absolute left-0 top-0 bottom-0 z-10 hidden md:flex items-center pr-12 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none">
                     <button
@@ -105,7 +130,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                 onScroll={checkScroll}
                 className="flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar scroll-smooth w-full touch-pan-x min-w-0"
             >
-                {allCategories.map((cat) => {
+                {visibleCategories.map((cat) => {
                     const Icon = resolveIcon(cat.name, cat.slug);
                     const isActive = selected === cat.slug;
 
@@ -120,11 +145,32 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                                     : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/50 hover:text-foreground"
                             )}
                         >
-                            <Icon className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                            <Icon
+                                className={cn(
+                                    "h-3.5 w-3.5 shrink-0",
+                                    isActive ? "text-primary" : "text-muted-foreground"
+                                )}
+                            />
                             <span className="truncate">{cat.name}</span>
                         </button>
                     );
                 })}
+
+                {/* Expand / Collapse Button */}
+                {allCategories.length > limit && (
+                    <button
+                        onClick={() => setIsExpanded(prev => !prev)}
+                        className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                    >
+                        {isExpanded ? 'Show less' : 'More'}
+                        <ChevronDown
+                            className={cn(
+                                "h-3.5 w-3.5 transition-transform duration-300",
+                                isExpanded && "rotate-180"
+                            )}
+                        />
+                    </button>
+                )}
             </div>
 
             {showRightArrow && (
@@ -137,6 +183,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                     </button>
                 </div>
             )}
+
         </div>
     );
 }
