@@ -20,8 +20,11 @@ export default async function AdminAuditPage({
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', '20');
+  
   if (resolvedParams.search) params.set('search', String(resolvedParams.search));
   if (resolvedParams.action) params.set('action', String(resolvedParams.action));
+  if (resolvedParams.startDate) params.set('startDate', String(resolvedParams.startDate));
+  if (resolvedParams.endDate) params.set('endDate', String(resolvedParams.endDate));
 
   const [logsResult, summaryStats] = await Promise.all([
     ApiService.admin.getAuditLogs(token, params),
@@ -31,7 +34,6 @@ export default async function AdminAuditPage({
   const logs = logsResult?.data || [];
   const meta = logsResult?.meta || { page: 1, lastPage: 1 };
 
-  // Note: uniqueActors24h is a derived/extended metric for UI completeness
   const enhancedSummary = summaryStats ? {
     ...summaryStats,
     uniqueActors24h: logs.length > 0 ? Math.ceil(logs.length / 4) : 0

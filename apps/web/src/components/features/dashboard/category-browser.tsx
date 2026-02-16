@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import {
     Compass,
     Droplets,
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
 
-const iconMap = {
+const iconMap: Record<string, React.ElementType> = {
     water: Droplets,
     education: Book,
     health: HeartPulse,
@@ -32,8 +32,15 @@ const iconMap = {
     default: Compass,
 };
 
+interface Category {
+    id: string;
+    name: string;
+    slug: string;
+    icon?: string;
+}
+
 interface CategoryBrowserProps {
-    categories: Array<{ id: string; name: string; slug: string; icon?: string }>;
+    categories: Category[];
     selected: string;
     onSelect: (slug: string) => void;
 }
@@ -43,37 +50,67 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
 
-    const allCategories = [
+    const allCategories: Category[] = [
         { id: 'all', name: 'All causes', slug: 'all' },
         ...categories
     ];
 
-    const checkScroll = () => {
-        if (scrollRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-            setShowLeftArrow(scrollLeft > 10);
-            setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
-        }
-    };
+    const checkScroll = useCallback(() => {
+        if (!scrollRef.current) return;
 
+        const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+
+        setShowLeftArrow(scrollLeft > 10);
+        setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
+    }, []);
+
+    // Debounced resize handling
     useEffect(() => {
+        let timeout: NodeJS.Timeout;
+
+        const handleResize = () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                checkScroll();
+            }, 100);
+        };
+
         checkScroll();
-        window.addEventListener('resize', checkScroll);
-        return () => window.removeEventListener('resize', checkScroll);
-    }, [categories]);
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(timeout);
+        };
+    }, [categories, checkScroll]);
+
+    // Auto-scroll active tab into view
+    useEffect(() => {
+        const active = scrollRef.current?.querySelector('[data-active="true"]');
+        active?.scrollIntoView({
+            behavior: 'smooth',
+            inline: 'center',
+            block: 'nearest'
+        });
+    }, [selected]);
 
     const handleScroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const scrollAmount = 240;
-            scrollRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
-        }
+        if (!scrollRef.current) return;
+
+        const scrollAmount = scrollRef.current.clientWidth * 0.8;
+
+        scrollRef.current.scrollBy({
+            left: direction === 'left' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth'
+        });
     };
 
-    const resolveIcon = (name: string, slug: string) => {
-        const str = `${name} ${slug}`.toLowerCase();
+    const resolveIcon = (cat: Category) => {
+        if (cat.icon && iconMap[cat.icon]) {
+            return iconMap[cat.icon];
+        }
+
+        const str = `${cat.name} ${cat.slug}`.toLowerCase();
         if (str.includes('water')) return iconMap.water;
         if (str.includes('education')) return iconMap.education;
         if (str.includes('health')) return iconMap.health;
@@ -84,54 +121,96 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         if (str.includes('tech')) return iconMap.tech;
         if (str.includes('arts')) return iconMap.arts;
         if (str.includes('community')) return iconMap.community;
+
         return iconMap.default;
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            const next = (index + 1) % allCategories.length;
+            onSelect(allCategories[next].slug);
+        }
+
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const prev = (index - 1 + allCategories.length) % allCategories.length;
+            onSelect(allCategories[prev].slug);
+        }
+
+        if (e.key === 'Home') {
+            e.preventDefault();
+            onSelect(allCategories[0].slug);
+        }
+
+        if (e.key === 'End') {
+            e.preventDefault();
+            onSelect(allCategories[allCategories.length - 1].slug);
+        }
     };
 
     return (
         <div className="relative flex items-center w-full min-w-0 overflow-hidden">
+            {/* Left Arrow */}
             {showLeftArrow && (
-                <div className="absolute left-0 top-0 bottom-0 z-10 hidden md:flex items-center pr-12 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none">
+                <div className="absolute left-0 top-0 bottom-0 z-20 hidden md:flex items-center pl-1">
                     <button
                         onClick={() => handleScroll('left')}
-                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground pointer-events-auto hover:bg-muted hover:text-foreground transition-all active:scale-90"
+                        aria-label="Scroll left"
+                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </button>
                 </div>
             )}
 
+            {/* Scroll Container */}
             <div
                 ref={scrollRef}
                 onScroll={checkScroll}
-                className="flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar scroll-smooth w-full touch-pan-x min-w-0"
+                role="tablist"
+                className="flex gap-2 overflow-x-auto pb-1 px-1 scroll-smooth w-full touch-pan-x min-w-0 no-scrollbar"
+                style={{ scrollbarGutter: 'stable' }}
             >
-                {allCategories.map((cat) => {
-                    const Icon = resolveIcon(cat.name, cat.slug);
+                {allCategories.map((cat, index) => {
+                    const Icon = resolveIcon(cat);
                     const isActive = selected === cat.slug;
 
                     return (
                         <button
                             key={cat.id}
+                            role="tab"
+                            aria-selected={isActive}
+                            tabIndex={isActive ? 0 : -1}
+                            data-active={isActive}
                             onClick={() => onSelect(cat.slug)}
+                            onKeyDown={(e) => handleKeyDown(e, index)}
                             className={cn(
-                                "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0",
+                                "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                                 isActive
-                                    ? "bg-primary/5 text-primary border-primary/40 shadow-sm"
+                                    ? "bg-primary/10 text-primary border-primary/50 shadow-sm scale-[1.02]"
                                     : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/50 hover:text-foreground"
                             )}
                         >
-                            <Icon className={cn("h-3.5 w-3.5 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                            <Icon
+                                className={cn(
+                                    "h-3.5 w-3.5 shrink-0",
+                                    isActive ? "text-primary" : "text-muted-foreground"
+                                )}
+                            />
                             <span className="truncate">{cat.name}</span>
                         </button>
                     );
                 })}
             </div>
 
+            {/* Right Arrow */}
             {showRightArrow && (
-                <div className="absolute right-0 top-0 bottom-0 z-10 hidden md:flex items-center pl-12 bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none">
+                <div className="absolute right-0 top-0 bottom-0 z-20 hidden md:flex items-center pr-1">
                     <button
                         onClick={() => handleScroll('right')}
-                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground pointer-events-auto hover:bg-muted hover:text-foreground transition-all active:scale-90"
+                        aria-label="Scroll right"
+                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </button>
@@ -139,4 +218,4 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
             )}
         </div>
     );
-}
+                }
