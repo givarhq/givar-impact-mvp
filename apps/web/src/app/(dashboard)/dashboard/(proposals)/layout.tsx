@@ -6,6 +6,7 @@ import { cn } from '../../../../lib/utils/cn';
 import { Check } from 'lucide-react';
 import { useProposalAutoSave } from '../../../../hooks/use-proposal-auto-save';
 import { motion } from 'framer-motion';
+import { FeedbackThread } from '../../../../components/features/communication/feedback-thread';
 
 const steps = [
   { href: '/hook', name: 'Hook', number: 1 },
@@ -105,8 +106,19 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
           isEditPage ? "pt-6" : "pt-6"
         )}
       >
-        <div className="min-w-0 w-full">
-          {children}
+        <div className="min-w-0 w-full space-y-12">
+          <div className="min-w-0 w-full">
+            {children}
+          </div>
+
+          {isEditPage && proposalId && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <FeedbackThread
+                proposalId={proposalId}
+                title="Messages from the team"
+              />
+            </div>
+          )}
         </div>
       </main>
     </div>
