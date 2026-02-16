@@ -142,7 +142,6 @@ export function AdminSecuritySection({ user }: { user: any }) {
                                             value={code}
                                             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                             className="h-14 text-center text-2xl font-bold tracking-[0.4em] rounded-2xl bg-muted/20 border-transparent focus-visible:ring-primary/20"
-                                            autoFocus
                                         />
                                     </div>
                                 </div>

@@ -171,7 +171,6 @@ export function ReallocateFundsClient({ transaction, initialProjects, categories
                                         className="h-10 pl-8 rounded-3xl bg-background border-border/60 text-sm font-bold tabular-nums shadow-sm"
                                         value={formatNumberInput(s.amount)}
                                         onChange={(e) => updateSplitAmount(s.id, e.target.value)}
-                                        autoFocus={window.innerWidth >= 1024}
                                     />
                                 </div>
                             </div>

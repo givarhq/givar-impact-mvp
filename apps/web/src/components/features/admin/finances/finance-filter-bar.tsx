@@ -142,7 +142,6 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
                                         value={catQuery}
                                         onChange={(e) => setCatQuery(e.target.value)}
                                         className="pl-10 h-11 rounded-2xl bg-muted/20 border-border/40 focus:bg-background"
-                                        autoFocus
                                     />
                                 </div>
                             </div>

@@ -159,7 +159,6 @@ function LoginComponent() {
                 className="text-center text-2xl font-black tracking-[0.5em] h-14 rounded-3xl bg-muted/20 border-border/60 focus:bg-background"
                 autoComplete="one-time-code"
                 disabled={isLoading}
-                autoFocus
               />
             </div>
           </div>

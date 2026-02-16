@@ -155,7 +155,6 @@ export default function FundWalletPage() {
                 className="pl-12 h-16 text-3xl font-bold rounded-[22px] bg-muted/20 border-border/40 focus:bg-background focus:border-primary/40 transition-all tabular-nums"
                 value={formatNumberInput(amount)}
                 onChange={handleAmountChange}
-                autoFocus={!isUnverified}
                 disabled={isUnverified}
               />
             </div>

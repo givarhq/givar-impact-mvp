@@ -246,7 +246,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                                     <p className="text-xs font-bold text-muted-foreground tracking-widest">Full Name</p>
                                     {editingField === 'name' ? (
                                         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-2 pt-1 animate-in slide-in-from-left-1" onClick={(e) => e.stopPropagation()}>
-                                            <Input {...register('firstName')} error={errors.firstName?.message} className="h-9 rounded-3xl text-sm" autoFocus />
+                                            <Input {...register('firstName')} error={errors.firstName?.message} className="h-9 rounded-3xl text-sm" />
                                             <Input {...register('lastName')} error={errors.lastName?.message} className="h-9 rounded-3xl text-sm" />
                                             <div className="flex gap-2">
                                                 <Button type="submit" size="icon" className="h-9 w-9 shrink-0 rounded-3xl" disabled={isLoading}><Check className="h-4 w-4" /></Button>
