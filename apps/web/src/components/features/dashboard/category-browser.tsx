@@ -48,9 +48,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
     const [isExpanded, setIsExpanded] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
-    const MOBILE_LIMIT = 3;
-    const DESKTOP_LIMIT = 8;
-
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 768);
@@ -65,13 +62,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         ...categories
     ];
 
-    const limit = isMobile ? MOBILE_LIMIT : DESKTOP_LIMIT;
-    const shouldLimit = !isExpanded && allCategories.length > limit;
-
-    const visibleCategories = shouldLimit
-        ? allCategories.slice(0, limit)
-        : allCategories;
-
     const checkScroll = () => {
         if (scrollRef.current) {
             const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -84,7 +74,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         checkScroll();
         window.addEventListener('resize', checkScroll);
         return () => window.removeEventListener('resize', checkScroll);
-    }, [categories, isExpanded]);
+    }, [categories]);
 
     const handleScroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
@@ -111,56 +101,87 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         return iconMap.default;
     };
 
+    // Row height control
+    // Approx height per row ≈ 44px including gap
+    const MOBILE_ROWS = 2;
+    const DESKTOP_ROWS = 1;
+
+    const rowHeight = 44;
+    const maxHeight = isExpanded
+        ? 'none'
+        : `${rowHeight * (isMobile ? MOBILE_ROWS : DESKTOP_ROWS)}px`;
+
     return (
-        <div className="relative flex items-center w-full min-w-0 overflow-hidden">
+        <div className="relative w-full">
 
-            {showLeftArrow && (
-                <div className="absolute left-0 top-0 bottom-0 z-10 hidden md:flex items-center pr-12 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none">
-                    <button
-                        onClick={() => handleScroll('left')}
-                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground pointer-events-auto hover:bg-muted hover:text-foreground transition-all active:scale-90"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                    </button>
-                </div>
-            )}
+            {/* Category Container */}
+            <div className="relative flex items-center w-full min-w-0 overflow-hidden">
 
-            <div
-                ref={scrollRef}
-                onScroll={checkScroll}
-                className="flex gap-2 overflow-x-auto pb-1 px-1 no-scrollbar scroll-smooth w-full touch-pan-x min-w-0"
-            >
-                {visibleCategories.map((cat) => {
-                    const Icon = resolveIcon(cat.name, cat.slug);
-                    const isActive = selected === cat.slug;
-
-                    return (
+                {showLeftArrow && !isExpanded && (
+                    <div className="absolute left-0 top-0 bottom-0 z-10 hidden md:flex items-center pr-12 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none">
                         <button
-                            key={cat.id}
-                            onClick={() => onSelect(cat.slug)}
-                            className={cn(
-                                "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0",
-                                isActive
-                                    ? "bg-primary/5 text-primary border-primary/40 shadow-sm"
-                                    : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/50 hover:text-foreground"
-                            )}
+                            onClick={() => handleScroll('left')}
+                            className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground pointer-events-auto hover:bg-muted hover:text-foreground transition-all active:scale-90"
                         >
-                            <Icon
-                                className={cn(
-                                    "h-3.5 w-3.5 shrink-0",
-                                    isActive ? "text-primary" : "text-muted-foreground"
-                                )}
-                            />
-                            <span className="truncate">{cat.name}</span>
+                            <ChevronLeft className="h-4 w-4" />
                         </button>
-                    );
-                })}
+                    </div>
+                )}
 
-                {/* Expand / Collapse Button */}
-                {allCategories.length > limit && (
+                <div
+                    ref={scrollRef}
+                    onScroll={checkScroll}
+                    style={{ maxHeight }}
+                    className={cn(
+                        "flex flex-wrap gap-2 overflow-hidden transition-all duration-300 w-full"
+                    )}
+                >
+                    {allCategories.map((cat) => {
+                        const Icon = resolveIcon(cat.name, cat.slug);
+                        const isActive = selected === cat.slug;
+
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => onSelect(cat.slug)}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold",
+                                    isActive
+                                        ? "bg-primary/5 text-primary border-primary/40 shadow-sm"
+                                        : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/50 hover:text-foreground"
+                                )}
+                            >
+                                <Icon
+                                    className={cn(
+                                        "h-3.5 w-3.5",
+                                        isActive ? "text-primary" : "text-muted-foreground"
+                                    )}
+                                />
+                                <span className="truncate">{cat.name}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {showRightArrow && !isExpanded && (
+                    <div className="absolute right-0 top-0 bottom-0 z-10 hidden md:flex items-center pl-12 bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none">
+                        <button
+                            onClick={() => handleScroll('right')}
+                            className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground pointer-events-auto hover:bg-muted hover:text-foreground transition-all active:scale-90"
+                        >
+                            <ChevronRight className="h-4 w-4" />
+                        </button>
+                    </div>
+                )}
+
+            </div>
+
+            {/* Expand / Collapse Button */}
+            {allCategories.length > 0 && (
+                <div className="flex justify-center mt-2">
                     <button
                         onClick={() => setIsExpanded(prev => !prev)}
-                        className="flex items-center gap-1 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shrink-0"
+                        className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
                     >
                         {isExpanded ? 'Show less' : 'More'}
                         <ChevronDown
@@ -170,20 +191,8 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                             )}
                         />
                     </button>
-                )}
-            </div>
-
-            {showRightArrow && (
-                <div className="absolute right-0 top-0 bottom-0 z-10 hidden md:flex items-center pl-12 bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none">
-                    <button
-                        onClick={() => handleScroll('right')}
-                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground pointer-events-auto hover:bg-muted hover:text-foreground transition-all active:scale-90"
-                    >
-                        <ChevronRight className="h-4 w-4" />
-                    </button>
                 </div>
             )}
-
         </div>
     );
 }
