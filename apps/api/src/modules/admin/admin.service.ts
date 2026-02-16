@@ -16,6 +16,7 @@ import { add, format, subDays } from 'date-fns';
 import { json2csv } from 'json-2-csv';
 import { JwtService } from '@nestjs/jwt';
 import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
+import { NotificationService } from '../notifications/notification.service';
 
 @Injectable()
 export class AdminService {
@@ -28,6 +29,7 @@ export class AdminService {
     private emailService: EmailService,
     private audit: AuditService,
     private jwtService: JwtService,
+    private notification: NotificationService
   ) { }
 
   /**
@@ -469,6 +471,17 @@ export class AdminService {
         },
       });
 
+      // Notify the project owner that their cause is now live
+      await tx.notification.create({
+        data: {
+          userId: proposal.userId,
+          type: 'PROPOSAL_STATUS',
+          title: 'Project approved',
+          content: `Your cause "${proposal.title}" has been verified and is now accepting donations.`,
+          link: `/dashboard/impact/${project.slug}`
+        }
+      });
+
       return project;
     }).then(async (project) => {
       this.emailService.sendProposalStatusUpdate(proposal.user.email, {
@@ -510,6 +523,17 @@ export class AdminService {
           feedback
         }
       }, tx);
+
+      // Notify the owner of the rejection
+      await tx.notification.create({
+        data: {
+          userId: proposal.userId,
+          type: 'PROPOSAL_STATUS',
+          title: 'Proposal not approved',
+          content: `We could not approve "${proposal.title || 'your project'}" at this time. Feedback: ${feedback}`,
+          link: '/dashboard/proposals'
+        }
+      });
 
       return updated;
     });

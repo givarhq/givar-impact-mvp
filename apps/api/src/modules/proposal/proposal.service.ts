@@ -94,12 +94,34 @@ export class ProposalService {
     }
 
     // --- Execution: State Transition ---
-    return this.prisma.projectProposal.update({
-      where: { id: proposalId },
-      data: {
-        status: ProposalStatus.SUBMITTED,
-        submittedAt: new Date(),
-      },
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.projectProposal.update({
+        where: { id: proposalId },
+        data: {
+          status: ProposalStatus.SUBMITTED,
+          submittedAt: new Date(),
+        },
+      });
+
+      // Alert all administrators that a new cause requires vetting
+      const admins = await tx.user.findMany({
+        where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+        select: { id: true }
+      });
+
+      if (admins.length > 0) {
+        await tx.notification.createMany({
+          data: admins.map(admin => ({
+            userId: admin.id,
+            type: 'SYSTEM',
+            title: 'New proposal for review',
+            content: `A new cause "${proposal.title}" has been submitted and requires technical vetting.`,
+            link: `/admin/proposals/${proposalId}`
+          }))
+        });
+      }
+
+      return updated;
     });
   }
 
