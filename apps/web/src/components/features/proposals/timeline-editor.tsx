@@ -144,7 +144,6 @@ export function TimelineEditor({
                           value={item.phase}
                           onChange={(e) => handleUpdate(item.id, 'phase', e.target.value)}
                           className={cn(inputStyle, "pl-8 bg-primary/5 border-primary/20")}
-                          autoFocus
                         />
                       </div>
                     )}
@@ -186,7 +185,6 @@ export function TimelineEditor({
                             value={item.deliverables}
                             onChange={(e) => handleUpdate(item.id, 'deliverables', e.target.value)}
                             className="min-h-[100px] w-full border-none focus-visible:ring-0 text-xs p-3 bg-transparent rounded-3xl"
-                            autoFocus
                           />
                           <div className="flex justify-end p-2 border-t border-border/40 bg-muted/10 rounded-b-[24px]">
                             <Button size="sm" className="h-7 text-xs font-bold rounded-3xl px-4" onClick={() => setEditingId(null)}>Done</Button>

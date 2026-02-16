@@ -83,7 +83,6 @@ export function ProjectSelectorModal({ isOpen, onClose, onSelect, position }: Pr
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             className="pl-10 h-11 rounded-xl bg-muted/20 border-border/40 focus:bg-background text-sm font-medium"
-                            autoFocus
                         />
                     </div>
 

@@ -80,7 +80,6 @@ export function DangerZone() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="h-10 rounded-3xl bg-muted/20"
-                                autoFocus
                             />
 
                             <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed flex gap-2.5">

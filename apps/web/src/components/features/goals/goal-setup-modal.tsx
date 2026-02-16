@@ -103,7 +103,6 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
               className="pl-8 h-12 text-lg font-bold rounded-3xl bg-muted/20 border-border/40 focus:bg-background focus:border-primary/50"
               value={formatNumberInput(targetAmount)}
               onChange={handleAmountChange}
-              autoFocus
             />
           </div>
         </div>
