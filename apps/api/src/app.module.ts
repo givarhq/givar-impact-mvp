@@ -19,6 +19,7 @@ import { ReadOnlyGuard } from './common/guards/read-only.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { CommunicationModule } from './modules/communication/communication.module';
+import { NotificationModule } from './modules/notifications/notification.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { CommunicationModule } from './modules/communication/communication.modul
     OrganizationModule,
     RecommendationsModule,
     CommunicationModule,
+    NotificationModule
   ],
   controllers: [],
   providers: [
