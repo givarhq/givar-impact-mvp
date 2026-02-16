@@ -39,7 +39,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/settings': 'System Settings',
   '/admin/finances': 'Treasury Intelligence',
   '/admin/visibility': 'Visibility Control'
-
 };
 
 export function AdminHeader({ user }: { user: any }) {
@@ -130,6 +129,7 @@ export function AdminHeader({ user }: { user: any }) {
             <ViewModeToggle currentRole={user.role} />
           )}
 
+          {/* Logic: Bell is visible on all screens within the actions flexbox */}
           {isClient && user && (
             <NotificationBell />
           )}

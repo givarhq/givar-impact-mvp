@@ -102,8 +102,6 @@ export function Header({ user }: { user: any }) {
         </div>
       </div>
 
-
-
       {/* 3. Right Section: User Actions & Profile */}
       <div className="flex items-center justify-end flex-1 gap-2 md:gap-3 shrink-0">
         {isClient && ['ADMIN', 'SUPERADMIN'].includes(user?.role) && !isImpersonating && (
@@ -114,6 +112,7 @@ export function Header({ user }: { user: any }) {
           <WalletWidget />
         </div>
 
+        {/* Logic: Bell integrated and visible on all screen sizes */}
         {isClient && user && (
           <NotificationBell />
         )}
