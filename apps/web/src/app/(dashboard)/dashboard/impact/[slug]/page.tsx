@@ -47,10 +47,6 @@ export default async function ProjectDetailsPage({
             Back to Explore
           </Button>
         </Link>
-
-        <div className="md:hidden">
-          <h1 className="text-xl font-bold tracking-tight text-foreground truncate">Cause Details</h1>
-        </div>
       </div>
 
       <div className="w-full min-w-0">
