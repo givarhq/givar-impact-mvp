@@ -2,20 +2,24 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException
+  BadRequestException,
+  Logger
 } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { CreateProposalDto, UpdateProposalDto } from './dto/proposal.dto';
 import { ProposalStatus, Prisma, AuditAction } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
 import { StorageService } from '../storage/storage.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class ProposalService {
+  private readonly logger = new Logger(ProposalService.name);
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
-    private storage: StorageService
+    private storage: StorageService,
+    private emailService: EmailService
   ) { }
 
   // 1. Start a Draft
@@ -122,6 +126,17 @@ export class ProposalService {
       }
 
       return updated;
+    }).then(async (result) => {
+      // Logic: Explicitly fetch user details to provide proposer context to admins
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+      this.emailService.sendAdminProposalAlert({
+        projectTitle: proposal.title || 'Untitled',
+        proposerName: `${user.firstName} ${user.lastName}`,
+        proposalId: result.id
+      }).catch(err => this.logger.error(`Admin Proposal Alert Failed: ${err.message}`));
+
+      return result;
     });
   }
 

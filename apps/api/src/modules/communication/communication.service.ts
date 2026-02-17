@@ -126,6 +126,17 @@ export class CommunicationService {
                 }).catch(() => { });
             }
 
+            // Logic: If the sender is an Organizer, broadcast to Admin nodes via email
+            if (!isAdmin) {
+                this.emailService.sendAdminMessageAlert({
+                    senderName: `${message.author.firstName} ${message.author.lastName}`,
+                    projectTitle: contextTitle,
+                    content: message.content,
+                    contextId: dto.proposalId || dto.projectId!,
+                    isProposal: !!dto.proposalId
+                }).catch(() => { });
+            }
+
             return message;
         });
     }

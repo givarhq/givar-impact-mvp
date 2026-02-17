@@ -4,6 +4,7 @@ import { Prisma, VerificationStatus, AuditAction, ProposalStatus, AccountType } 
 import { AuditService } from '../audit/audit.service';
 import { OrganizationQueryDto } from './dto/organization-query.dto';
 import { NotificationService } from '../notifications/notification.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class OrganizationService {
@@ -11,24 +12,26 @@ export class OrganizationService {
   constructor(
     private prisma: PrismaService,
     private audit: AuditService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private emailService: EmailService
   ) { }
 
   // 1. User: Submit KYC
   async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[] }) {
-    return this.prisma.organizationProfile.upsert({
+    const profile = await this.prisma.organizationProfile.upsert({
       where: { userId },
-      update: {
-        ...data,
-        status: VerificationStatus.PENDING,
-        adminFeedback: null,
-      },
-      create: {
-        userId,
-        ...data,
-        status: VerificationStatus.PENDING,
-      },
+      update: { ...data, status: VerificationStatus.PENDING, adminFeedback: null },
+      create: { userId, ...data, status: VerificationStatus.PENDING },
+      include: { user: { select: { firstName: true, lastName: true } } }
     });
+
+    // Logic: Notify admin nodes of new compliance evidence
+    this.emailService.sendAdminKycAlert({
+      orgName: data.legalName,
+      proposerName: `${profile.user.firstName} ${profile.user.lastName}`
+    }).catch(err => this.logger.error(`Admin KYC Alert Failed: ${err.message}`));
+
+    return profile;
   }
 
   // 2. Admin: Get Pending Verifications
