@@ -7,7 +7,6 @@ export async function GET(request: Request) {
 
   const cookiesToClear = [
     'givar_token',
-    'givar_refresh_token',
     'givar_user',
     'givar_view_mode',
     'givar_is_impersonating',
@@ -15,7 +14,7 @@ export async function GET(request: Request) {
     'givar_admin_backup_user'
   ];
 
-  // Hard clear all potential session keys
+  // Hard clear all active session keys
   for (const cookieName of cookiesToClear) {
     cookieStore.set(cookieName, '', {
       path: '/',
