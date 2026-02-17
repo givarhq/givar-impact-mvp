@@ -3,15 +3,14 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    Activity, Zap, Trash2, Plus,
+    Zap, Trash2, Plus,
     Loader2, Save, ShieldCheck, RefreshCw,
-    Info, SlidersHorizontal, LayoutGrid,
+    SlidersHorizontal, LayoutGrid,
     TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Button } from '../../../ui/button';
 import { Badge } from '../../../ui/badge';
-import { Input } from '../../../ui/input';
 import { ApiService } from '../../../../services/api';
 import { Project } from '../../../../types';
 import { ProjectSelectorModal } from './project-selector-modal';
@@ -26,6 +25,7 @@ interface VisibilityControlProps {
         engagementWeight: number;
         adminWeight: number;
         diversityLimit: number;
+        showFundedProjects: boolean;
     };
     initialSlots: any[];
     categories: any[];
@@ -139,32 +139,62 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                 />
                             </div>
 
-                            <div className="pt-8 border-t border-border/40 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                <div className="flex items-start gap-4">
-                                    <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                        <LayoutGrid className="h-5 w-5" />
+                            <div className="pt-8 border-t border-border/40 space-y-8">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                            <ShieldCheck className="h-5 w-5" />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <h4 className="text-sm font-bold text-foreground">Funded Visibility</h4>
+                                            <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
+                                                Show completed project nodes in the user discovery feed.
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="space-y-0.5">
-                                        <h4 className="text-sm font-bold text-foreground">Diversity Constraint</h4>
-                                        <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
-                                            Maximum projects per category in results.
-                                        </p>
-                                    </div>
+                                    <button
+                                        onClick={() => setConfig({ ...config, showFundedProjects: !config.showFundedProjects })}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                                            config.showFundedProjects ? "bg-primary" : "bg-muted-foreground/20"
+                                        )}
+                                    >
+                                        <span
+                                            className={cn(
+                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                                config.showFundedProjects ? "translate-x-5" : "translate-x-0"
+                                            )}
+                                        />
+                                    </button>
                                 </div>
-                                <div className="flex items-center gap-3 bg-muted/20 p-1.5 rounded-2xl border border-border/40">
-                                    <button
-                                        onClick={() => setConfig({ ...config, diversityLimit: Math.max(1, config.diversityLimit - 1) })}
-                                        className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all"
-                                    >
-                                        -
-                                    </button>
-                                    <span className="w-10 text-center font-bold text-base tabular-nums">{config.diversityLimit}</span>
-                                    <button
-                                        onClick={() => setConfig({ ...config, diversityLimit: Math.min(10, config.diversityLimit + 1) })}
-                                        className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all"
-                                    >
-                                        +
-                                    </button>
+
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-8 border-t border-border/10">
+                                    <div className="flex items-start gap-4">
+                                        <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                            <LayoutGrid className="h-5 w-5" />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <h4 className="text-sm font-bold text-foreground">Diversity Constraint</h4>
+                                            <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
+                                                Maximum projects per category in results.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 bg-muted/20 p-1.5 rounded-2xl border border-border/40">
+                                        <button
+                                            onClick={() => setConfig({ ...config, diversityLimit: Math.max(1, config.diversityLimit - 1) })}
+                                            className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="w-10 text-center font-bold text-base tabular-nums">{config.diversityLimit}</span>
+                                        <button
+                                            onClick={() => setConfig({ ...config, diversityLimit: Math.min(10, config.diversityLimit + 1) })}
+                                            className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

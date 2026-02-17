@@ -622,6 +622,7 @@ model RecommendationConfig {
   engagementWeight Float    @default(1.0)
   adminWeight      Float    @default(2.0)
   diversityLimit   Int      @default(3)
+  showFundedProjects Boolean  @default(false)
   updatedAt        DateTime @updatedAt
 
   @@map("recommendation_configs")

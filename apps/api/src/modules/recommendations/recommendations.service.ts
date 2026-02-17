@@ -185,6 +185,12 @@ export class RecommendationsService {
 
         if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
+        const filteredCandidates = config.showFundedProjects
+            ? projects
+            : projects.filter(p => p.status === ProjectStatus.ACTIVE);
+
+        if (filteredCandidates.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
+
         const projectIds = projects.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
         const slots = await this.repo.getFeaturedSlots();
@@ -277,6 +283,7 @@ export class RecommendationsService {
                     engagementWeight: 1,
                     adminWeight: 2,
                     diversityLimit: 3,
+                    showFundedProjects: false,
                     updatedAt: new Date()
                 };
             }
