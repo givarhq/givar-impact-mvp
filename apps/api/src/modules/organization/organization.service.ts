@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { Prisma, VerificationStatus, AuditAction, ProposalStatus, AccountType } from '@givar/database';
+import { Prisma, VerificationStatus, AuditAction, ProposalStatus, AccountType, NotificationType, UserRole } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
 import { OrganizationQueryDto } from './dto/organization-query.dto';
 import { NotificationService } from '../notifications/notification.service';
@@ -18,20 +18,52 @@ export class OrganizationService {
 
   // 1. User: Submit KYC
   async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[] }) {
-    const profile = await this.prisma.organizationProfile.upsert({
-      where: { userId },
-      update: { ...data, status: VerificationStatus.PENDING, adminFeedback: null },
-      create: { userId, ...data, status: VerificationStatus.PENDING },
-      include: { user: { select: { firstName: true, lastName: true } } }
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Update or Create the Organization Profile
+      const profile = await tx.organizationProfile.upsert({
+        where: { userId },
+        update: {
+          ...data,
+          status: VerificationStatus.PENDING,
+          adminFeedback: null,
+        },
+        create: {
+          userId,
+          ...data,
+          status: VerificationStatus.PENDING,
+        },
+        include: { user: { select: { firstName: true, lastName: true } } }
+      });
+
+      // 2. Fetch all Administrative Nodes
+      const admins = await tx.user.findMany({
+        where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+        select: { id: true }
+      });
+
+      // 3. Dispatch In-App Notifications
+      if (admins.length > 0) {
+        await tx.notification.createMany({
+          data: admins.map(admin => ({
+            userId: admin.id,
+            type: 'KYC_STATUS' as NotificationType,
+            title: 'KYC Review Required',
+            content: `${profile.user.firstName} ${profile.user.lastName} submitted documents for "${data.legalName}".`,
+            link: '/admin/verifications?tab=orgs'
+          }))
+        });
+      }
+
+      return profile;
+    }).then(async (profile) => {
+      // 4. Trigger External Email Broadcast (Async)
+      this.emailService.sendAdminKycAlert({
+        orgName: data.legalName,
+        proposerName: `${profile.user.firstName} ${profile.user.lastName}`
+      }).catch(err => this.logger.error(`Admin KYC Email Failed: ${err.message}`));
+
+      return profile;
     });
-
-    // Logic: Notify admin nodes of new compliance evidence
-    this.emailService.sendAdminKycAlert({
-      orgName: data.legalName,
-      proposerName: `${profile.user.firstName} ${profile.user.lastName}`
-    }).catch(err => this.logger.error(`Admin KYC Alert Failed: ${err.message}`));
-
-    return profile;
   }
 
   // 2. Admin: Get Pending Verifications
