@@ -130,7 +130,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
                                 {subscriptions.length === 0 ? (
                                     <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                         <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No recurring plans</p>
+                                        <p className="text-xs font-bold text-muted-foreground  tracking-widest">No recurring plans</p>
                                     </div>
                                 ) : (
                                     <div className="grid gap-4">
@@ -182,7 +182,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
                                 <div className="space-y-3">
                                     {subscriptions.length === 0 ? (
                                         <div className="py-12 text-center bg-muted/20 rounded-3xl border-2 border-dashed border-border/40">
-                                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No plans</p>
+                                            <p className="text-xs font-bold text-muted-foreground  tracking-widest">No plans</p>
                                         </div>
                                     ) : (
                                         subscriptions.map(sub => <SubscriptionCard key={sub.id} subscription={sub} />)

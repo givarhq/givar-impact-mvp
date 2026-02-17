@@ -65,7 +65,7 @@ export function SubscriptionCard({ subscription }: { subscription: Subscription 
                                 {subscription.project.title}
                             </h4>
                         </Link>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-muted-foreground uppercase tracking-tight">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-muted-foreground  tracking-tight">
                             <span className="flex items-center gap-1">
                                 <Repeat className="h-3 w-3" /> {subscription.interval.toLowerCase()}
                             </span>
@@ -80,7 +80,7 @@ export function SubscriptionCard({ subscription }: { subscription: Subscription 
                 {/* Status & Value */}
                 <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-none border-border/40 min-w-0">
                     <div className="text-left md:text-right min-w-0 shrink-0">
-                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest leading-none mb-1.5">Contribution</p>
+                        <p className="text-[11px] font-bold text-muted-foreground  tracking-widest leading-none mb-1.5">Contribution</p>
                         <div className="font-bold text-base text-foreground tabular-nums leading-none">
                             <SmartCurrency
                                 amount={subscription.amount}
@@ -93,7 +93,7 @@ export function SubscriptionCard({ subscription }: { subscription: Subscription 
 
                     <div className="flex items-center gap-2 shrink-0">
                         <Badge variant="outline" className={cn(
-                            "h-8 px-3 rounded-3xl font-bold text-[11px] uppercase tracking-wider border shadow-none",
+                            "h-8 px-3 rounded-3xl font-bold text-[11px]  tracking-wider border shadow-none",
                             isActive
                                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                                 : "bg-muted text-muted-foreground border-border/60"

@@ -50,7 +50,7 @@ export function FinanceReportClient({ categories }: FinanceReportClientProps) {
             {isLoading && !report ? (
                 <div className="flex flex-col items-center justify-center py-32 space-y-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                    <p className="text-xs font-bold text-muted-foreground  tracking-widest">
                         Compiling treasury data...
                     </p>
                 </div>

@@ -77,7 +77,7 @@ export default async function NotFound() {
                 </div>
 
                 {/* Footer Meta */}
-                <div className="pt-12 text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/30">
+                <div className="pt-12 text-xs font-black  tracking-[0.3em] text-muted-foreground/30">
                     Error: RESOURCE_NOT_FOUND_ON_LEDGER
                 </div>
             </div>

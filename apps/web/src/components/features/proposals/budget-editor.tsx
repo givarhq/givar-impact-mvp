@@ -93,7 +93,7 @@ export function BudgetEditor({
           <div key={item.id} className={fieldContainerClass}>
             {/* ITEM DESCRIPTION */}
             <div className="md:col-span-4 space-y-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-tight ml-1">Item</label>
+              <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Item</label>
               <Input
                 placeholder="Description..."
                 value={item.item}
@@ -105,7 +105,7 @@ export function BudgetEditor({
 
             {/* UNIT COST */}
             <div className="md:col-span-2 space-y-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-tight ml-1">Cost</label>
+              <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Cost</label>
               <div className="relative">
                 {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
                 <Input
@@ -120,7 +120,7 @@ export function BudgetEditor({
 
             {/* VENDOR */}
             <div className="md:col-span-3 space-y-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase tracking-tight ml-1">Vendor</label>
+              <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Vendor</label>
               <Input
                 placeholder="Payee..."
                 value={item.vendor}
@@ -133,9 +133,9 @@ export function BudgetEditor({
             {/* CATEGORY & DELETE */}
             <div className="md:col-span-3 flex gap-2 items-end">
               <div className="flex-1 space-y-1">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-tight ml-1">Category</label>
+                <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Category</label>
                 <Select value={item.type} onValueChange={(v) => handleUpdate(item.id, 'type', v)} disabled={isLocked}>
-                  <SelectTrigger className={cn(inputStyle, "text-xs uppercase font-bold", isLocked && "text-primary")}>
+                  <SelectTrigger className={cn(inputStyle, "text-xs  font-bold", isLocked && "text-primary")}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-3xl shadow-xl">
@@ -177,7 +177,7 @@ export function BudgetEditor({
         "flex justify-between items-center px-5 py-3 rounded-3xl border transition-all",
         isLocked ? "bg-primary/5 border-primary/20" : "bg-muted/10 border-border/40"
       )}>
-        <span className="text-xs font-bold uppercase tracking-widest text-primary">Budget Total</span>
+        <span className="text-xs font-bold  tracking-widest text-primary">Budget Total</span>
         <span className="text-xl font-bold text-foreground tabular-nums">₦ {formatNumberInput(String(totalCost))}</span>
       </div>
     </div>

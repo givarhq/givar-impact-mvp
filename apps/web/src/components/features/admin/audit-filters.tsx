@@ -78,28 +78,28 @@ export function AuditFilters() {
           </Button>
 
           <div className="hidden md:flex items-center gap-2">
-            
+
             {/* Unified Temporal Command Block (Exact Finance Styling) */}
             <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-sm">
-                <div className="flex items-center px-3 gap-2">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-tighter">From</span>
-                    <input 
-                        type="date" 
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-transparent h-9 text-[11px] font-bold uppercase text-foreground outline-none border-none cursor-pointer"
-                    />
-                </div>
-                <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
-                <div className="flex items-center px-3 gap-2">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-tighter">To</span>
-                    <input 
-                        type="date" 
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-transparent h-9 text-[11px] font-bold uppercase text-foreground outline-none border-none cursor-pointer"
-                    />
-                </div>
+              <div className="flex items-center px-3 gap-2">
+                <span className="text-[10px] font-black  text-muted-foreground/60 tracking-tighter">From</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-transparent h-9 text-[11px] font-bold  text-foreground outline-none border-none cursor-pointer"
+                />
+              </div>
+              <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
+              <div className="flex items-center px-3 gap-2">
+                <span className="text-[10px] font-black  text-muted-foreground/60 tracking-tighter">To</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-transparent h-9 text-[11px] font-bold  text-foreground outline-none border-none cursor-pointer"
+                />
+              </div>
             </div>
 
             <Select value={action} onValueChange={setAction}>
@@ -139,29 +139,29 @@ export function AuditFilters() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          
+
           <div className="grid gap-2">
             {/* Mobile Adaptive Temporal Block */}
             <div className="flex items-center justify-between bg-muted/40 p-1 rounded-[22px] border border-border/40 shadow-sm">
-                <div className="flex items-center px-3 gap-2 flex-1">
-                    <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter">From</span>
-                    <input 
-                        type="date" 
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-transparent h-9 text-[10px] font-bold uppercase text-foreground outline-none border-none cursor-pointer w-full"
-                    />
-                </div>
-                <ArrowRight className="h-3 w-3 text-muted-foreground/30 shrink-0" />
-                <div className="flex items-center px-3 gap-2 flex-1">
-                    <span className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-tighter">To</span>
-                    <input 
-                        type="date" 
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-transparent h-9 text-[10px] font-bold uppercase text-foreground outline-none border-none cursor-pointer w-full"
-                    />
-                </div>
+              <div className="flex items-center px-3 gap-2 flex-1">
+                <span className="text-[9px] font-black  text-muted-foreground/60 tracking-tighter">From</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="bg-transparent h-9 text-[10px] font-bold  text-foreground outline-none border-none cursor-pointer w-full"
+                />
+              </div>
+              <ArrowRight className="h-3 w-3 text-muted-foreground/30 shrink-0" />
+              <div className="flex items-center px-3 gap-2 flex-1">
+                <span className="text-[9px] font-black  text-muted-foreground/60 tracking-tighter">To</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="bg-transparent h-9 text-[10px] font-bold  text-foreground outline-none border-none cursor-pointer w-full"
+                />
+              </div>
             </div>
 
             <div className="flex gap-2">

@@ -91,7 +91,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                 </div>
                 <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-bold text-foreground">Submit progress proof</h3>
-                    <p className="text-xs text-muted-foreground font-medium truncate uppercase tracking-wider">
+                    <p className="text-xs text-muted-foreground font-medium truncate  tracking-wider">
                         Phase: <span className="text-primary font-bold">{milestone.phase}</span>
                     </p>
                 </div>
@@ -101,7 +101,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                 {/* Narrative Input Section */}
                 <div className="space-y-2 min-w-0">
                     <div className="flex justify-between items-center px-1">
-                        <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <label className="text-[11px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5">
                             <FileText className="h-3.5 w-3.5" /> Narrative update
                         </label>
                         <span className={cn(
@@ -122,7 +122,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
 
                 {/* Visual Media Section */}
                 <div className="space-y-3 min-w-0">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 px-1">
+                    <label className="text-[11px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5 px-1">
                         <Camera className="h-3.5 w-3.5" /> Visual evidence
                     </label>
 
@@ -172,7 +172,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting || description.length < 20 || media.length === 0}
-                        className="w-full h-12 rounded-3xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/10 transition-all active:scale-[0.98] gap-2 border-0"
+                        className="w-full h-12 rounded-3xl font-bold text-xs  tracking-widest shadow-lg shadow-primary/10 transition-all active:scale-[0.98] gap-2 border-0"
                     >
                         {isSubmitting ? (
                             <>

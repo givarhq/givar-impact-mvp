@@ -115,7 +115,7 @@ export function AdminMobileNav({ user }: { user: any }) {
             sideOffset={15}
             className="w-56 rounded-2xl p-2 shadow-2xl border-border/50 bg-card/95 backdrop-blur-xl mb-1"
           >
-            <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black  tracking-[0.2em] text-muted-foreground">
               System Tools
             </DropdownMenuLabel>
 

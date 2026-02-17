@@ -175,13 +175,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
                                 <p className="text-xs text-muted-foreground font-medium">{user.email}</p>
                             </div>
                             <div className="flex flex-wrap justify-center gap-1.5">
-                                <Badge variant="outline" className="rounded-3xl bg-muted/30 px-2 py-0.5 text-xs font-bold uppercase border-border/40">{user.role}</Badge>
+                                <Badge variant="outline" className="rounded-3xl bg-muted/30 px-2 py-0.5 text-xs font-bold  border-border/40">{user.role}</Badge>
                                 {user.emailVerified ? (
-                                    <Badge className="rounded-3xl bg-emerald-50 text-emerald-600 border-emerald-100 text-xs font-bold uppercase gap-1">
+                                    <Badge className="rounded-3xl bg-emerald-50 text-emerald-600 border-emerald-100 text-xs font-bold  gap-1">
                                         <ShieldCheck className="h-3 w-3" /> Verified
                                     </Badge>
                                 ) : (
-                                    <Badge className="rounded-3xl bg-amber-50 text-amber-600 border-amber-100 text-xs font-bold uppercase gap-1 animate-pulse">
+                                    <Badge className="rounded-3xl bg-amber-50 text-amber-600 border-amber-100 text-xs font-bold  gap-1 animate-pulse">
                                         <AlertCircle className="h-3 w-3" /> Unverified
                                     </Badge>
                                 )}
@@ -215,7 +215,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                             <div className="flex items-center gap-3">
                                 <MailCheck className="h-5 w-5 text-amber-600 shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-amber-900 text-xs uppercase">Verify Identity</h4>
+                                    <h4 className="font-bold text-amber-900 text-xs ">Verify Identity</h4>
                                     <p className="text-xs text-amber-700 font-medium">Verify your email to establish trust on the impact ledger.</p>
                                 </div>
                                 {!showCodeInput && (

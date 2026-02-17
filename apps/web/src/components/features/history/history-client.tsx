@@ -191,7 +191,7 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
               size="sm"
               onClick={handleExport}
               disabled={isExporting}
-              className="h-11 px-6 rounded-3xl border-border/60 font-bold text-xs uppercase tracking-widest gap-2 bg-transparent hover:bg-muted transition-all"
+              className="h-11 px-6 rounded-3xl border-border/60 font-bold text-xs  tracking-widest gap-2 bg-transparent hover:bg-muted transition-all"
             >
               {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
               Export
@@ -242,12 +242,12 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
               </Select>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-12 rounded-3xl border-border/60 font-bold text-xs uppercase tracking-widest gap-2 flex-1 bg-background">
+              <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-12 rounded-3xl border-border/60 font-bold text-xs  tracking-widest gap-2 flex-1 bg-background">
                 {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
                 CSV export
               </Button>
               {hasActiveFilters && (
-                <Button variant="ghost" onClick={clearFilters} className="h-12 rounded-3xl font-bold text-xs uppercase tracking-widest flex-1 border border-transparent">
+                <Button variant="ghost" onClick={clearFilters} className="h-12 rounded-3xl font-bold text-xs  tracking-widest flex-1 border border-transparent">
                   Reset
                 </Button>
               )}

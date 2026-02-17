@@ -96,18 +96,18 @@ export function NotificationBell() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" className={cn(
-  "p-0 overflow-hidden border-border/40 shadow-2xl bg-card/95 backdrop-blur-xl",
-  "w-80 rounded-[28px]",
-  "sm:w-80",
-  "max-sm:w-screen max-sm:rounded-none"
-)}>
+                "p-0 overflow-hidden border-border/40 shadow-2xl bg-card/95 backdrop-blur-xl",
+                "w-80 rounded-[28px]",
+                "sm:w-80",
+                "max-sm:w-screen max-sm:rounded-none"
+            )}>
                 <DropdownMenuLabel className="p-4 border-b border-border/40">
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-foreground">Notifications</span>
                         {unreadCount > 0 && (
                             <button
                                 onClick={handleMarkAllRead}
-                                className="text-[10px] font-bold uppercase tracking-wider text-primary hover:underline"
+                                className="text-[10px] font-bold  tracking-wider text-primary hover:underline"
                             >
                                 Mark all as read
                             </button>
@@ -160,7 +160,7 @@ export function NotificationBell() {
                 <div className="p-3 bg-muted/20 text-center">
                     <button
                         onClick={() => { setIsOpen(false); router.push('/dashboard/settings?tab=activity'); }}
-                        className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                        className="text-[10px] font-bold  tracking-widest text-muted-foreground hover:text-primary transition-colors"
                     >
                         View all activity
                     </button>

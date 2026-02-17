@@ -77,11 +77,11 @@ export default async function ProjectManagePage({
                             {project.title}
                         </h1>
                         <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold uppercase tracking-wider text-[10px] rounded-3xl px-2.5">
+                            <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 font-bold  tracking-wider text-[10px] rounded-3xl px-2.5">
                                 Management Console
                             </Badge>
                             {isFullyCompleted && (
-                                <Badge className="bg-emerald-500 text-white font-bold text-[10px] uppercase rounded-3xl border-0">Mission Complete</Badge>
+                                <Badge className="bg-emerald-500 text-white font-bold text-[10px]  rounded-3xl border-0">Mission Complete</Badge>
                             )}
                         </div>
                     </div>
@@ -100,7 +100,7 @@ export default async function ProjectManagePage({
                                 <FileX className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <h4 className="text-xs font-bold text-destructive uppercase tracking-widest leading-none">Evidence Rejected</h4>
+                                <h4 className="text-xs font-bold text-destructive  tracking-widest leading-none">Evidence Rejected</h4>
                                 <p className="text-sm text-foreground/80 font-medium italic">
                                     &quot;{latestProof.adminFeedback}&quot;
                                 </p>
@@ -116,7 +116,7 @@ export default async function ProjectManagePage({
                                         <Camera className={cn("h-5 w-5 shrink-0", isRejected ? "text-destructive" : "text-primary")} />
                                         <span>{isRejected ? 'Resubmit Proof' : 'Post Impact Update'}</span>
                                     </CardTitle>
-                                    <Badge variant="outline" className="rounded-3xl border-primary/20 bg-primary/5 text-primary font-bold text-[11px] shrink-0 uppercase">
+                                    <Badge variant="outline" className="rounded-3xl border-primary/20 bg-primary/5 text-primary font-bold text-[11px] shrink-0 ">
                                         {currentMilestone.phase}
                                     </Badge>
                                 </div>
@@ -173,7 +173,7 @@ export default async function ProjectManagePage({
                                                         {m.phase}
                                                     </h4>
                                                     <Badge variant="outline" className={cn(
-                                                        "text-[10px] uppercase font-bold px-2 rounded-3xl shrink-0 border",
+                                                        "text-[10px]  font-bold px-2 rounded-3xl shrink-0 border",
                                                         isDone ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "bg-muted/30 border-border/60 text-muted-foreground"
                                                     )}>
                                                         {m.status?.replace('_', ' ') || 'PENDING'}
@@ -205,7 +205,7 @@ export default async function ProjectManagePage({
                                 <ShieldCheck className="h-6 w-6" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <p className="text-[11px] font-bold text-primary uppercase tracking-widest leading-none">Procurement Node</p>
+                                <p className="text-[11px] font-bold text-primary  tracking-widest leading-none">Procurement Node</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                                     Givar Management handles all vendor payments directly to maintain financial integrity.
                                 </p>
@@ -215,7 +215,7 @@ export default async function ProjectManagePage({
 
                     <Card className="rounded-[32px] border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
                                 <Database className="h-3.5 w-3.5" /> Disbursement history
                             </CardTitle>
                         </CardHeader>
@@ -235,7 +235,7 @@ export default async function ProjectManagePage({
                                                 <p className="text-[11px] font-bold text-foreground truncate">
                                                     <span className="text-muted-foreground">Vendor:</span> {d.vendorName}
                                                 </p>
-                                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tighter truncate mt-0.5">
+                                                <p className="text-[10px] text-muted-foreground font-bold  tracking-tighter truncate mt-0.5">
                                                     Phase: {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
                                                 </p>
                                             </div>
@@ -257,20 +257,20 @@ export default async function ProjectManagePage({
                                         <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 min-w-0 hover:border-primary/20 transition-all">
                                             <div className="flex justify-between items-start gap-2 min-w-0">
                                                 <div className="min-w-0">
-                                                    <p className="text-[11px] font-bold text-primary uppercase tracking-widest">Outflow</p>
+                                                    <p className="text-[11px] font-bold text-primary  tracking-widest">Outflow</p>
                                                     <span className="text-[11px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
                                                 </div>
 
                                                 {isVerified ? (
-                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0">
+                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-bold  h-5 px-1.5 rounded-3xl shrink-0">
                                                         <Check className="h-2 w-2 mr-1" /> Verified
                                                     </Badge>
                                                 ) : isPendingAudit ? (
-                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[9px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0 animate-pulse">
+                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[9px] font-bold  h-5 px-1.5 rounded-3xl shrink-0 animate-pulse">
                                                         <FileSearch className="h-2 w-2 mr-1" /> Audit
                                                     </Badge>
                                                 ) : (
-                                                    <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-bold uppercase h-5 px-1.5 rounded-3xl shrink-0">
+                                                    <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[9px] font-bold  h-5 px-1.5 rounded-3xl shrink-0">
                                                         <AlertCircle className="h-2 w-2 mr-1" /> Required
                                                     </Badge>
                                                 )}

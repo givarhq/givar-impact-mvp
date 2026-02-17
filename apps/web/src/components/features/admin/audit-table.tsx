@@ -29,7 +29,7 @@ export function AuditTable({ logs }: { logs: any[] }) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-border/40 bg-muted/5">
                 <ShieldAlert className="h-10 w-10 mb-3 text-muted-foreground/30" />
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">No audit logs found</p>
+                <p className="text-sm font-bold text-muted-foreground  tracking-widest">No audit logs found</p>
             </div>
         );
     }
@@ -56,10 +56,10 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                             <style.icon className="h-5 w-5" />
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-foreground truncate uppercase tracking-tight">
+                                            <p className="text-sm font-bold text-foreground truncate  tracking-tight">
                                                 {log.action.replace(/_/g, ' ')}
                                             </p>
-                                            <p className="text-[11px] font-medium text-muted-foreground uppercase">
+                                            <p className="text-[11px] font-medium text-muted-foreground ">
                                                 {formatDate(log.createdAt).split(',')[0]}
                                             </p>
                                         </div>
@@ -72,15 +72,15 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                 {isExpanded && (
                                     <div className="px-4 pb-4 space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
                                         <div className="pt-3 border-t border-border/40 space-y-2">
-                                            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                            <div className="flex items-center justify-between text-[11px] font-bold  tracking-wider text-muted-foreground">
                                                 <span>Actor</span>
                                                 <span className="text-foreground">{log.user?.email || 'System'}</span>
                                             </div>
-                                            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                            <div className="flex items-center justify-between text-[11px] font-bold  tracking-wider text-muted-foreground">
                                                 <span>Target</span>
                                                 <span className="text-foreground">{log.entityType}</span>
                                             </div>
-                                            <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                            <div className="flex items-center justify-between text-[11px] font-bold  tracking-wider text-muted-foreground">
                                                 <span>IP Address</span>
                                                 <span className="text-foreground font-mono">{log.ipAddress}</span>
                                             </div>
@@ -104,10 +104,10 @@ export function AuditTable({ logs }: { logs: any[] }) {
                     <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                         <tr>
                             <th className="px-6 py-4 w-12"></th>
-                            <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest">Actor</th>
-                            <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest">Action</th>
-                            <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest">Target</th>
-                            <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest text-right">Timestamp</th>
+                            <th className="px-6 py-4 font-bold text-xs  tracking-widest">Actor</th>
+                            <th className="px-6 py-4 font-bold text-xs  tracking-widest">Action</th>
+                            <th className="px-6 py-4 font-bold text-xs  tracking-widest">Target</th>
+                            <th className="px-6 py-4 font-bold text-xs  tracking-widest text-right">Timestamp</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40">
@@ -144,7 +144,7 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge variant="outline" className={cn("gap-1.5 px-2 py-0 rounded-3xl font-bold text-[11px] uppercase tracking-tight border-0 shadow-none", style.bg, style.color)}>
+                                            <Badge variant="outline" className={cn("gap-1.5 px-2 py-0 rounded-3xl font-bold text-[11px]  tracking-tight border-0 shadow-none", style.bg, style.color)}>
                                                 <Icon className="h-3 w-3" />
                                                 {log.action.replace(/_/g, ' ')}
                                             </Badge>
@@ -160,7 +160,7 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex flex-col items-end">
                                                 <span className="text-xs font-bold text-foreground tabular-nums">{formatDate(log.createdAt).split(',')[1]}</span>
-                                                <span className="text-[11px] font-medium text-muted-foreground uppercase">{formatDate(log.createdAt).split(',')[0]}</span>
+                                                <span className="text-[11px] font-medium text-muted-foreground ">{formatDate(log.createdAt).split(',')[0]}</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -170,7 +170,7 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                             <td colSpan={5} className="px-10 py-6 border-t border-border/20">
                                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                                     <div className="space-y-2">
-                                                        <h4 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                                        <h4 className="text-[11px] font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
                                                             <FileJson className="h-3.5 w-3.5" /> Event Metadata
                                                         </h4>
                                                         <div className="bg-zinc-950 text-zinc-400 p-4 rounded-3xl text-xs font-mono border border-zinc-800 shadow-inner">
@@ -180,16 +180,16 @@ export function AuditTable({ logs }: { logs: any[] }) {
                                                     <div className="space-y-4">
                                                         <div className="grid grid-cols-2 gap-3">
                                                             <div className="p-4 rounded-3xl bg-card border border-border/40">
-                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Audit ID</p>
+                                                                <p className="text-[10px] font-bold text-muted-foreground  mb-1">Audit ID</p>
                                                                 <p className="text-[11px] font-mono font-bold truncate select-all">{log.id}</p>
                                                             </div>
                                                             <div className="p-4 rounded-3xl bg-card border border-border/40">
-                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Entity Reference</p>
+                                                                <p className="text-[10px] font-bold text-muted-foreground  mb-1">Entity Reference</p>
                                                                 <p className="text-[11px] font-mono font-bold truncate select-all">{log.entityId}</p>
                                                             </div>
                                                         </div>
                                                         <div className="p-4 rounded-3xl bg-card border border-border/40">
-                                                            <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1">User Agent Trace</p>
+                                                            <p className="text-[10px] font-bold text-muted-foreground  mb-1">User Agent Trace</p>
                                                             <p className="text-[11px] font-medium text-foreground leading-relaxed break-all">{log.userAgent}</p>
                                                         </div>
                                                     </div>

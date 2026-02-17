@@ -126,7 +126,7 @@ export function Header({ user }: { user: any }) {
                 {isClient && avatarUrl ? (
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : isClient && user?.firstName ? (
-                  <span className="font-bold text-xs uppercase">
+                  <span className="font-bold text-xs ">
                     {user.firstName[0]}
                   </span>
                 ) : (

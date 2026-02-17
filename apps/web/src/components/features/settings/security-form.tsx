@@ -21,7 +21,7 @@ const securitySchema = z.object({
     currentPassword: z.string().min(1, "Required"),
     newPassword: z.string()
         .min(8, "Min 8 characters")
-        .regex(/[A-Z]/, "Requires uppercase")
+        .regex(/[A-Z]/, "Requires ")
         .regex(/[0-9]/, "Requires a digit")
         .regex(/[^A-Za-z0-9]/, "Requires a symbol"),
     confirmPassword: z.string()
@@ -126,8 +126,8 @@ export function SecurityForm({ user }: { user: any }) {
                                     <div className="space-y-4">
                                         <div className="p-5 rounded-3xl bg-muted/20 border border-border/50 space-y-3">
                                             <div className="flex justify-between items-center">
-                                                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Security Strength</span>
-                                                <span className={cn("text-xs font-bold uppercase", strengthScore < 4 ? "text-destructive" : "text-emerald-600")}>
+                                                <span className="text-xs font-bold  tracking-widest text-muted-foreground">Security Strength</span>
+                                                <span className={cn("text-xs font-bold ", strengthScore < 4 ? "text-destructive" : "text-emerald-600")}>
                                                     {strengthScore < 4 ? 'Insufficient' : 'Secure'}
                                                 </span>
                                             </div>
@@ -145,7 +145,7 @@ export function SecurityForm({ user }: { user: any }) {
                                         </div>
 
                                         <div className="flex gap-2 pt-2">
-                                            <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-11 rounded-3xl font-bold text-xs uppercase tracking-widest gap-2 shadow-sm border-0">
+                                            <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-11 rounded-3xl font-bold text-xs  tracking-widest gap-2 shadow-sm border-0">
                                                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
                                                 Update Credentials
                                             </Button>

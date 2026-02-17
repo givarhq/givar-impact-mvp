@@ -71,35 +71,35 @@ export default async function EditProjectPage({
             <TabsList className="bg-transparent h-12 w-full justify-start gap-8 p-0 border-none shadow-none rounded-none">
               <TabsTrigger
                 value="details"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs  tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Settings className="mr-2 h-3.5 w-3.5" /> Project details
               </TabsTrigger>
 
               <TabsTrigger
                 value="disbursements"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs  tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Wallet className="mr-2 h-3.5 w-3.5" /> Disbursements
               </TabsTrigger>
 
               <TabsTrigger
                 value="execution"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs  tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Activity className="mr-2 h-3.5 w-3.5" /> Execution
               </TabsTrigger>
 
               <TabsTrigger
                 value="discovery"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs  tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Sparkles className="mr-2 h-3.5 w-3.5" /> Discovery
               </TabsTrigger>
 
               <TabsTrigger
                 value="communication"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs uppercase tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs  tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <MessageSquare className="mr-2 h-3.5 w-3.5" /> Communication
               </TabsTrigger>

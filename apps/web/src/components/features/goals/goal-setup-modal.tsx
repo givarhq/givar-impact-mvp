@@ -72,7 +72,7 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
     >
       <div className="space-y-5 pt-1">
         <div className="space-y-2">
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Frequency</label>
+          <label className="text-xs font-bold text-muted-foreground  tracking-wider ml-1">Frequency</label>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setInterval('MONTHLY')}
@@ -94,7 +94,7 @@ export function GoalSetupModal({ isOpen, onClose, goal }: GoalSetupModalProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider ml-1">Target amount (ngn)</label>
+          <label className="text-xs font-bold text-muted-foreground  tracking-wider ml-1">Target amount (ngn)</label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>
             <Input

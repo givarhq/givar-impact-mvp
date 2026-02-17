@@ -43,7 +43,7 @@ export function ReceiptButton({ receiptKey, projectId, className }: ReceiptButto
             onClick={handleView}
             disabled={isLoading}
             className={cn(
-                "h-7 rounded-3xl px-3 border-border/60 font-bold text-xs uppercase tracking-wider gap-1.5 bg-background hover:bg-muted",
+                "h-7 rounded-3xl px-3 border-border/60 font-bold text-xs  tracking-wider gap-1.5 bg-background hover:bg-muted",
                 className
             )}
         >

@@ -19,7 +19,7 @@ export function GoalProgressCard({ goal, onEditGoal }: GoalProgressCardProps) {
     <Card className="rounded-3xl border-border/40 bg-card shadow-sm h-full flex flex-col">
       <CardContent className="p-5 flex flex-col flex-1">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-xs text-muted-foreground uppercase tracking-widest">
+          <h3 className="font-bold text-xs text-muted-foreground  tracking-widest">
             {goal ? `${goal.interval.toLowerCase()} Goal` : 'Impact Goal'}
           </h3>
           <Button

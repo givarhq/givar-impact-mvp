@@ -51,7 +51,7 @@ export function RecentActivity({ transactions }: { transactions: Transaction[] }
                   <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
                     {tx.project?.title || tx.description}
                   </p>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-tight">
+                  <p className="text-xs text-muted-foreground font-medium  tracking-tight">
                     {formatDate(tx.createdAt)}
                   </p>
                 </div>

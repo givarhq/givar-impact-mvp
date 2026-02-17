@@ -40,7 +40,7 @@ const ImpactStatCard = ({ value, subValue }: { value: string; subValue: number }
                         <Activity className="h-3 w-3 text-rose-500" />
                         <span className="text-xs font-bold text-foreground">{subValue} Donations</span>
                     </div>
-                    <span className="text-xs font-bold text-muted-foreground/50 uppercase tracking-widest">Verified</span>
+                    <span className="text-xs font-bold text-muted-foreground/50  tracking-widest">Verified</span>
                 </div>
             </div>
         </Card>

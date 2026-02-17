@@ -22,7 +22,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
         return (
             <div className="bg-card border border-border/60 shadow-xl p-3 rounded-2xl min-w-[160px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[11px] font-bold text-muted-foreground mb-2 uppercase tracking-wider">
+                <p className="text-[11px] font-bold text-muted-foreground mb-2  tracking-wider">
                     {label}
                 </p>
                 <div className="space-y-1.5">
@@ -65,7 +65,7 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
                     </CardTitle>
                     <p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
                 </div>
-                <div className="hidden sm:flex items-center gap-4 text-[11px] font-bold uppercase tracking-wider">
+                <div className="hidden sm:flex items-center gap-4 text-[11px] font-bold  tracking-wider">
                     <div className="flex items-center gap-1.5 text-primary">
                         <div className="w-2 h-1 rounded-full bg-primary" /> Liquidity
                     </div>

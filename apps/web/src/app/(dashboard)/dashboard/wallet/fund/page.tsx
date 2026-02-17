@@ -144,7 +144,7 @@ export default function FundWalletPage() {
           isUnverified && "opacity-20 grayscale blur-[1px] pointer-events-none"
         )}>
           <div className="space-y-4 min-w-0">
-            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">
+            <label className="text-[11px] font-bold text-muted-foreground  tracking-[0.2em] ml-1">
               Deposit amount
             </label>
             <div className="relative min-w-0">

@@ -184,37 +184,37 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                             <div className="space-y-3 max-h-[380px] overflow-y-auto no-scrollbar pr-2">
                                 {categories.map((cat) => (
                                     <div
-  key={cat.id}
-  className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-2xl bg-muted/10 border border-border/40 group hover:border-primary/20 transition-all"
->
-  {/* Category Name */}
-  <div className="flex-1">
-    <p className="text-sm font-bold text-foreground leading-snug break-words">
-      {cat.name}
-    </p>
-  </div>
+                                        key={cat.id}
+                                        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-2xl bg-muted/10 border border-border/40 group hover:border-primary/20 transition-all"
+                                    >
+                                        {/* Category Name */}
+                                        <div className="flex-1">
+                                            <p className="text-sm font-bold text-foreground leading-snug break-words">
+                                                {cat.name}
+                                            </p>
+                                        </div>
 
-  {/* Slider + Value */}
-  <div className="flex items-center gap-4 w-full md:w-56">
-    <input
-      type="range"
-      min="0.5"
-      max="5"
-      step="0.1"
-      value={categoryWeights[cat.id] || 1.0}
-      onChange={(e) =>
-        setCategoryWeights({
-          ...categoryWeights,
-          [cat.id]: parseFloat(e.target.value),
-        })
-      }
-      className="flex-1 h-1 bg-border rounded-3xl appearance-none cursor-pointer accent-primary focus:outline-none"
-    />
-    <span className="text-xs font-bold text-primary tabular-nums w-10 text-right">
-      {(categoryWeights[cat.id] || 1.0).toFixed(1)}x
-    </span>
-  </div>
-</div>
+                                        {/* Slider + Value */}
+                                        <div className="flex items-center gap-4 w-full md:w-56">
+                                            <input
+                                                type="range"
+                                                min="0.5"
+                                                max="5"
+                                                step="0.1"
+                                                value={categoryWeights[cat.id] || 1.0}
+                                                onChange={(e) =>
+                                                    setCategoryWeights({
+                                                        ...categoryWeights,
+                                                        [cat.id]: parseFloat(e.target.value),
+                                                    })
+                                                }
+                                                className="flex-1 h-1 bg-border rounded-3xl appearance-none cursor-pointer accent-primary focus:outline-none"
+                                            />
+                                            <span className="text-xs font-bold text-primary tabular-nums w-10 text-right">
+                                                {(categoryWeights[cat.id] || 1.0).toFixed(1)}x
+                                            </span>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </CardContent>
@@ -223,7 +223,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                     <div className="p-5 rounded-[32px] bg-primary/5 border border-dashed border-primary/20 flex items-start gap-3 shadow-sm">
                         <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                         <div className="space-y-1">
-                            <p className="text-xs font-bold text-primary uppercase tracking-tight">Consensus Sync</p>
+                            <p className="text-xs font-bold text-primary  tracking-tight">Consensus Sync</p>
                             <p className="text-xs text-primary/70 font-medium leading-relaxed">
                                 Committing changes will recalculate the discovery score for all causes. Pinned positions remain locked.
                             </p>

@@ -36,7 +36,7 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             try {
                 const user = JSON.parse(cookie as string);
                 setUserRole(user.role);
-            } catch (e) {}
+            } catch (e) { }
         }
     }, []);
 
@@ -130,8 +130,8 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
     };
 
     const baseBtn =
-        'flex-1 h-10 sm:h-9 rounded-3xl text-white font-bold text-xs uppercase tracking-wider px-3 sm:px-3.5 snap-start';
-    
+        'flex-1 h-10 sm:h-9 rounded-3xl text-white font-bold text-xs  tracking-wider px-3 sm:px-3.5 snap-start';
+
     const renderActions = () => {
         if (context === 'USER') {
             return (
@@ -271,7 +271,7 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
                         </div>
 
                         <div className="hidden sm:flex flex-col leading-tight">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-300">
+                            <span className="text-[11px] font-bold  tracking-wider text-zinc-300">
                                 Batch
                             </span>
                             <span className="text-xs font-medium text-zinc-500">
@@ -282,8 +282,8 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
 
                     {/* MIDDLE (flex-grow area) */}
                     <div className="flex-1 min-w-0 flex items-center px-2 sm:gap-1 overflow-x-auto no-scrollbar sm:snap-x sm:snap-mandatory justify-between">
-    {renderActions()}
-</div>
+                        {renderActions()}
+                    </div>
 
                     {/* RIGHT (compact close) */}
                     <div className="shrink-0 pl-0.5 sm:pl-1 border-l border-white/10">
@@ -314,4 +314,4 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             />
         </>
     );
-            }
+}

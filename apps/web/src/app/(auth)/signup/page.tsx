@@ -19,7 +19,7 @@ const signupSchema = z.object({
   email: z.string().email('Provide a valid email address'),
   password: z.string()
     .min(8, 'Minimum 8 characters')
-    .regex(/[A-Z]/, 'Require one uppercase')
+    .regex(/[A-Z]/, 'Require one ')
     .regex(/[0-9]/, 'Require one digit'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {

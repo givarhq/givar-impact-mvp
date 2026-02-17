@@ -75,7 +75,7 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
           {/* Card Header: Status & Context */}
           <div className="flex justify-between items-center gap-2 min-w-0 shrink-0">
             <div className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-3xl border text-[11px] font-bold uppercase tracking-wider transition-colors min-w-0 truncate",
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-3xl border text-[11px] font-bold  tracking-wider transition-colors min-w-0 truncate",
               config.color
             )}>
               <StatusIcon className="h-3 w-3 shrink-0" />
@@ -123,10 +123,10 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
             </Link>
 
             <div className="mt-4 flex flex-wrap items-center gap-3 min-w-0">
-              <span className="bg-muted/50 text-muted-foreground px-2.5 py-0.5 rounded-3xl border border-border/40 text-[11px] font-bold uppercase tracking-wider truncate max-w-[120px]">
+              <span className="bg-muted/50 text-muted-foreground px-2.5 py-0.5 rounded-3xl border border-border/40 text-[11px] font-bold  tracking-wider truncate max-w-[120px]">
                 {proposal.category?.name || 'Impact'}
               </span>
-              <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground/60 uppercase tracking-tight shrink-0">
+              <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground/60  tracking-tight shrink-0">
                 <Clock className="h-3 w-3" /> {formatDate(proposal.updatedAt).split(',')[0]}
               </div>
             </div>
@@ -147,7 +147,7 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
                 </Button>
               </Link>
             ) : (
-              <div className="flex items-center justify-center gap-2 h-10 w-full rounded-3xl border border-dashed border-border/60 bg-muted/10 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+              <div className="flex items-center justify-center gap-2 h-10 w-full rounded-3xl border border-dashed border-border/60 bg-muted/10 text-xs font-bold text-muted-foreground  tracking-widest">
                 <Clock className="h-3.5 w-3.5" /> In review
               </div>
             )}

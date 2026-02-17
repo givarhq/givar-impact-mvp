@@ -100,7 +100,7 @@ export function TransparencyCard({ project }: TransparencyCardProps) {
                         <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-1.5">
                                 <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-xs font-bold text-muted-foreground uppercase">Goal</span>
+                                <span className="text-xs font-bold text-muted-foreground ">Goal</span>
                             </div>
                             {expandedCard === 'goal' && <X className="h-3 w-3 text-muted-foreground" />}
                         </div>
@@ -127,7 +127,7 @@ export function TransparencyCard({ project }: TransparencyCardProps) {
                         <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-1.5">
                                 <AlertCircle className="h-3 w-3 text-amber-600" />
-                                <span className="text-xs font-bold text-muted-foreground uppercase">Remaining</span>
+                                <span className="text-xs font-bold text-muted-foreground ">Remaining</span>
                             </div>
                             {expandedCard === 'remaining' && <X className="h-3 w-3 text-muted-foreground" />}
                         </div>
@@ -146,7 +146,7 @@ export function TransparencyCard({ project }: TransparencyCardProps) {
                 <div className="col-span-2 p-3 rounded-3xl bg-muted/20 border border-border/40 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                         <Users className="h-3 w-3 text-blue-500" />
-                        <span className="text-xs font-bold text-muted-foreground uppercase">Donors</span>
+                        <span className="text-xs font-bold text-muted-foreground ">Donors</span>
                     </div>
                     <p className="font-bold text-sm text-foreground">{project.donorCount || 0}</p>
                 </div>

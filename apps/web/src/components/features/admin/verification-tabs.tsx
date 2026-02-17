@@ -73,10 +73,10 @@ export function VerificationTabs({ orgs, evidence }: VerificationTabsProps) {
                             <table className="w-full text-sm text-left border-collapse">
                                 <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                                     <tr>
-                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider">Organization</th>
-                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider">Proposer account</th>
-                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider">Legal docs</th>
-                                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-wider text-right">Decision</th>
+                                        <th className="px-6 py-4 font-bold text-xs  tracking-wider">Organization</th>
+                                        <th className="px-6 py-4 font-bold text-xs  tracking-wider">Proposer account</th>
+                                        <th className="px-6 py-4 font-bold text-xs  tracking-wider">Legal docs</th>
+                                        <th className="px-6 py-4 font-bold text-xs  tracking-wider text-right">Decision</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/40">

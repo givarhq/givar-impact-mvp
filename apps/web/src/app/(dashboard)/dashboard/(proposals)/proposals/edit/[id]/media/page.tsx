@@ -54,7 +54,7 @@ export default function MediaPage() {
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
             <Camera className="h-4 w-4 shrink-0" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Visuals</span>
+            <span className="text-[11px] font-bold  tracking-[0.2em]">Visuals</span>
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Project media</CardTitle>
           <CardDescription className="text-xs font-medium">
@@ -67,7 +67,7 @@ export default function MediaPage() {
           <div className="space-y-4 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Primary hero image</label>
+              <label className="text-[11px] font-bold text-muted-foreground  tracking-widest">Primary hero image</label>
             </div>
             {coverImage ? (
               <div className="relative aspect-video rounded-[28px] overflow-hidden border border-border/40 group shadow-md bg-muted">
@@ -99,7 +99,7 @@ export default function MediaPage() {
           {/* Gallery Section */}
           <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
             <div className="flex justify-between items-center px-1">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Project gallery</label>
+              <label className="text-[11px] font-bold text-muted-foreground  tracking-widest">Project gallery</label>
               <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
             </div>
 

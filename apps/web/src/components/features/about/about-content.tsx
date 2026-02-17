@@ -10,7 +10,7 @@ export function AboutContent() {
         <div className="max-w-4xl mx-auto md:-mt-10 space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Hero Section */}
             <section className="text-center space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-[0.2em] mb-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black  tracking-[0.2em] mb-4">
                     <Heart className="h-3 w-3 fill-current" /> Humanizing Philanthropy
                 </div>
                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground leading-[0.95]">
@@ -55,7 +55,7 @@ export function AboutContent() {
             {/* Values Grid */}
             <section className="space-y-12">
                 <div className="text-center">
-                    <h2 className="text-2xl font-black uppercase tracking-widest text-foreground/20">Our Pillars</h2>
+                    <h2 className="text-2xl font-black  tracking-widest text-foreground/20">Our Pillars</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[

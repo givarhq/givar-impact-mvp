@@ -44,7 +44,7 @@ export default async function PublicDonationPage({ params }: { params: Promise<{
             <div className="space-y-4 px-1 min-w-0">
               <div className="space-y-1 min-w-0">
                 <h2 className="text-xl font-bold tracking-tight text-foreground leading-tight truncate-2-lines">{project.title}</h2>
-                <div className="flex items-center gap-2 text-[11px] font-bold text-primary uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-[11px] font-bold text-primary  tracking-widest">
                   <Target className="h-3.5 w-3.5" />
                   Goal: <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" />
                 </div>

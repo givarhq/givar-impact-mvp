@@ -132,7 +132,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <TabsList className="bg-muted/50 p-1 rounded-3xl h-11 w-full md:w-fit border border-border/50">
-                        <TabsTrigger value="suspense" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                        <TabsTrigger value="suspense" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px]  tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
                             <AlertTriangle className="h-3.5 w-3.5" />
                             Suspense Queue
                             {suspenseItems.length > 0 && (
@@ -141,11 +141,11 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                 </span>
                             )}
                         </TabsTrigger>
-                        <TabsTrigger value="reconcile" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                        <TabsTrigger value="reconcile" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px]  tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
                             <RefreshCcw className="h-3.5 w-3.5" />
                             Manual Sync
                         </TabsTrigger>
-                        <TabsTrigger value="maintenance" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px] uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                        <TabsTrigger value="maintenance" className="rounded-3xl px-6 h-full gap-2.5 font-bold text-[11px]  tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
                             <Wrench className="h-3.5 w-3.5" />
                             Maintenance
                         </TabsTrigger>
@@ -159,7 +159,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                             <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 ring-8 ring-emerald-500/[0.03]">
                                 <CheckCircle2 className="h-10 w-10" />
                             </div>
-                            <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Ledger Balanced</h3>
+                            <h3 className="text-xl font-black text-foreground  tracking-tight">Ledger Balanced</h3>
                             <p className="text-muted-foreground text-xs max-w-sm mx-auto mt-2 font-medium leading-relaxed">
                                 No unallocated transactions detected. All capital inflow is currently synchronized with verified impact nodes.
                             </p>
@@ -175,7 +175,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-3 mb-1.5">
-                                                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-amber-600">Orphaned Capital</span>
+                                                    <span className="text-[11px] font-black  tracking-[0.2em] text-amber-600">Orphaned Capital</span>
                                                     <Badge variant="outline" className="font-mono text-[10px] bg-muted/50 border-border/50 rounded-3xl px-2">REF: {item.reference}</Badge>
                                                 </div>
                                                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -185,7 +185,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-4 mt-2">
-                                                    <p className="text-[11px] text-muted-foreground uppercase font-black tracking-widest flex items-center gap-1.5">
+                                                    <p className="text-[11px] text-muted-foreground  font-black tracking-widest flex items-center gap-1.5">
                                                         <Calendar className="h-3 w-3 opacity-50" /> {formatDate(item.createdAt)}
                                                     </p>
                                                 </div>
@@ -195,7 +195,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                         <div className="flex items-center gap-2 w-full md:w-auto pt-4 md:pt-0 border-t md:border-none border-border/40">
                                             <Button
                                                 variant="outline"
-                                                className="flex-1 md:flex-none rounded-3xl h-11 px-6 border-destructive/20 text-destructive hover:bg-destructive/5 font-black text-[10px] uppercase tracking-widest transition-all"
+                                                className="flex-1 md:flex-none rounded-3xl h-11 px-6 border-destructive/20 text-destructive hover:bg-destructive/5 font-black text-[10px]  tracking-widest transition-all"
                                                 onClick={() => openRefundPrompt(item.id, item.reference)}
                                                 disabled={isProcessing}
                                             >
@@ -203,7 +203,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                             </Button>
                                             <Link href={`/admin/ledger/reallocate/${item.id}`} className="flex-1 md:flex-none">
                                                 <Button
-                                                    className="w-full h-11 px-8 rounded-3xl font-black text-[10px] uppercase tracking-widest shadow-sm gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                                                    className="w-full h-11 px-8 rounded-3xl font-black text-[10px]  tracking-widest shadow-sm gap-2 transition-all hover:scale-[1.02] active:scale-95"
                                                     disabled={isProcessing}
                                                 >
                                                     <ArrowRightLeft className="h-3.5 w-3.5" /> Re-allocate
@@ -233,7 +233,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                             <Button
                                 onClick={handleVerifyRef}
                                 disabled={isVerifying || !refInput}
-                                className="h-12 px-8 rounded-3xl font-black uppercase tracking-widest shadow-lg shadow-primary/20 text-[11px]"
+                                className="h-12 px-8 rounded-3xl font-black  tracking-widest shadow-lg shadow-primary/20 text-[11px]"
                             >
                                 {isVerifying ? <Loader2 className="animate-spin h-4 w-4" /> : 'Search Ledger'}
                             </Button>
@@ -245,25 +245,25 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                             {/* Paystack Node */}
                             <Card className="rounded-3xl bg-card border-border/50 overflow-hidden shadow-sm group hover:border-blue-500/20 transition-all">
                                 <CardHeader className="bg-blue-500/[0.02] border-b border-border/50 p-6">
-                                    <CardTitle className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-blue-500">
+                                    <CardTitle className="text-[11px] font-black  tracking-[0.3em] flex items-center gap-2 text-blue-500">
                                         <Globe className="h-3.5 w-3.5" /> External Gateway
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-6 space-y-4">
                                     <div className="flex justify-between items-center py-2 border-b border-border/40">
-                                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Status</span>
+                                        <span className="text-xs font-black  tracking-widest text-muted-foreground">Status</span>
                                         <BadgeStatus status={reconcileResult.external.status} />
                                     </div>
                                     <div className="flex justify-between items-center py-2 border-b border-border/40">
-                                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Value</span>
+                                        <span className="text-xs font-black  tracking-widest text-muted-foreground">Value</span>
                                         <div className="text-right">
                                             <p className="font-black text-lg text-foreground">₦{(reconcileResult.external.amount / 100).toLocaleString()}</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest mt-0.5">{reconcileResult.external.currency}</p>
+                                            <p className="text-[10px] text-muted-foreground font-mono  tracking-widest mt-0.5">{reconcileResult.external.currency}</p>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center py-2">
-                                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Channel</span>
-                                        <span className="text-[11px] font-black uppercase tracking-widest bg-secondary px-3 py-1 rounded-3xl border border-border/50">{reconcileResult.external.channel}</span>
+                                        <span className="text-xs font-black  tracking-widest text-muted-foreground">Channel</span>
+                                        <span className="text-[11px] font-black  tracking-widest bg-secondary px-3 py-1 rounded-3xl border border-border/50">{reconcileResult.external.channel}</span>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -271,13 +271,13 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                             {/* Givar Node */}
                             <Card className="rounded-3xl bg-card border-border/50 overflow-hidden shadow-sm relative group hover:border-primary/20 transition-all">
                                 <CardHeader className="bg-primary/[0.02] border-b border-border/50 p-6">
-                                    <CardTitle className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-primary">
+                                    <CardTitle className="text-[11px] font-black  tracking-[0.3em] flex items-center gap-2 text-primary">
                                         <Database className="h-3.5 w-3.5" /> Internal Ledger
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-6 h-full flex flex-col justify-center min-h-[200px]">
                                     <div className="flex justify-between items-center mb-8">
-                                        <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Sync Status</span>
+                                        <span className="text-xs font-black  tracking-widest text-muted-foreground">Sync Status</span>
                                         <BadgeStatus status={reconcileResult.internal.status === 'success' ? 'Synchronized' : 'Missing'} />
                                     </div>
 
@@ -285,12 +285,12 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                         <div className="space-y-4">
                                             <div className="p-4 rounded-3xl bg-amber-500/[0.03] border border-amber-500/20 flex gap-3">
                                                 <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-                                                <p className="text-[11px] text-amber-800 leading-relaxed font-bold uppercase tracking-tight">
+                                                <p className="text-[11px] text-amber-800 leading-relaxed font-bold  tracking-tight">
                                                     Discrepancy detected. Payment verified externally but missing internally.
                                                 </p>
                                             </div>
                                             <Button
-                                                className="w-full h-12 rounded-3xl font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-lg text-white gap-2 transition-all hover:scale-[1.01] text-[11px]"
+                                                className="w-full h-12 rounded-3xl font-black  tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-lg text-white gap-2 transition-all hover:scale-[1.01] text-[11px]"
                                                 onClick={handleExecuteReconcile}
                                                 disabled={isProcessing}
                                             >
@@ -303,7 +303,7 @@ export function LedgerOversightClient({ initialSuspense, activeProjects }: Ledge
                                             <div className="h-16 w-16 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-3 ring-4 ring-emerald-500/[0.03]">
                                                 <CheckCircle2 className="h-8 w-8" />
                                             </div>
-                                            <span className="text-[11px] font-black uppercase tracking-[0.3em]">Consensus Achieved</span>
+                                            <span className="text-[11px] font-black  tracking-[0.3em]">Consensus Achieved</span>
                                         </div>
                                     )}
                                 </CardContent>
@@ -376,7 +376,7 @@ function BadgeStatus({ status }: { status: string }) {
     const isSuccess = status.toLowerCase() === 'success' || status.toLowerCase() === 'synchronized';
     return (
         <span className={cn(
-            "px-4 py-1.5 rounded-3xl text-[10px] font-black uppercase tracking-[0.1em] border transition-all",
+            "px-4 py-1.5 rounded-3xl text-[10px] font-black  tracking-[0.1em] border transition-all",
             isSuccess
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                 : "bg-amber-500/10 text-amber-600 border-amber-100/20"

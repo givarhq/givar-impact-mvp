@@ -14,7 +14,7 @@ export default async function AdminDashboard() {
             <div className="h-16 w-16 bg-muted rounded-3xl flex items-center justify-center mb-4 border border-border/40">
                 <Lock className="h-8 w-8 opacity-20" />
             </div>
-            <p className="font-bold text-xs uppercase tracking-[0.2em]">Secure Session Required</p>
+            <p className="font-bold text-xs  tracking-[0.2em]">Secure Session Required</p>
         </div>
     );
 

@@ -48,7 +48,7 @@ export function SystemIntelFeed({ report }: { report: any }) {
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
             <CardHeader className="p-5 md:p-6 pb-2 border-b border-border/40">
-                <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <CardTitle className="text-[11px] font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
                     <Zap className="h-3.5 w-3.5 text-primary" /> Platform intelligence
                 </CardTitle>
             </CardHeader>
@@ -88,7 +88,7 @@ export function SystemIntelFeed({ report }: { report: any }) {
                 </div>
             </CardContent>
             <div className="p-4 bg-muted/20 border-t border-border/40 text-center">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
+                <p className="text-[10px] font-bold text-muted-foreground  tracking-widest flex items-center justify-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Last scan {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>

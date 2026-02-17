@@ -47,7 +47,7 @@ export default function PlanPage() {
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
             <ClipboardList className="h-4 w-4 shrink-0" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Strategy</span>
+            <span className="text-[11px] font-bold  tracking-[0.2em]">Strategy</span>
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Plan your execution</CardTitle>
           <CardDescription className="text-xs font-medium">

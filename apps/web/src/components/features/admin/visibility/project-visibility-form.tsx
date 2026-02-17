@@ -53,13 +53,13 @@ export function ProjectVisibilityForm({ project, globalConfig }: ProjectVisibili
                 <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <CardTitle className="text-sm font-black flex items-center gap-2 uppercase tracking-[0.2em] text-foreground">
+                            <CardTitle className="text-sm font-black flex items-center gap-2  tracking-[0.2em] text-foreground">
                                 <ShieldCheck className="h-4 w-4 text-primary" /> Node Visibility
                             </CardTitle>
-                            <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Discovery Controls</p>
+                            <p className="text-[11px] text-muted-foreground font-bold  tracking-widest">Discovery Controls</p>
                         </div>
                         <Badge variant="outline" className={cn(
-                            "rounded-3xl px-3 py-1 font-bold text-[10px] uppercase tracking-widest border",
+                            "rounded-3xl px-3 py-1 font-bold text-[10px]  tracking-widest border",
                             data.moderationStatus === 'APPROVED' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
                                 data.moderationStatus === 'FLAGGED' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-destructive/5 text-destructive border-destructive/10"
                         )}>
@@ -70,7 +70,7 @@ export function ProjectVisibilityForm({ project, globalConfig }: ProjectVisibili
                 <CardContent className="p-6 md:p-8 space-y-10">
 
                     <div className="space-y-3">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">Safety override</label>
+                        <label className="text-[11px] font-black  tracking-widest text-muted-foreground ml-1">Safety override</label>
                         <Select
                             value={data.moderationStatus}
                             onValueChange={(v: any) => setData(prev => ({ ...prev, moderationStatus: v }))}
@@ -90,7 +90,7 @@ export function ProjectVisibilityForm({ project, globalConfig }: ProjectVisibili
                         <div className="space-y-4 p-5 rounded-3xl bg-muted/20 border border-border/40 group hover:border-primary/20 transition-all">
                             <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-black uppercase tracking-widest text-foreground flex items-center gap-2">
+                                    <label className="text-[11px] font-black  tracking-widest text-foreground flex items-center gap-2">
                                         <Zap className="h-3.5 w-3.5 text-amber-500" /> Admin Weight
                                     </label>
                                     <p className="text-[10px] text-muted-foreground font-bold leading-tight">Direct multiplier for the featured index.</p>
@@ -108,7 +108,7 @@ export function ProjectVisibilityForm({ project, globalConfig }: ProjectVisibili
                         <div className="space-y-4 p-5 rounded-3xl bg-muted/20 border border-border/40 group hover:border-blue-500/20 transition-all">
                             <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-black uppercase tracking-widest text-foreground flex items-center gap-2">
+                                    <label className="text-[11px] font-black  tracking-widest text-foreground flex items-center gap-2">
                                         <TrendingUp className="h-3.5 w-3.5 text-blue-500" /> Scoring Boost
                                     </label>
                                     <p className="text-[10px] text-muted-foreground font-bold leading-tight">Flat additive score bonus for trending.</p>
@@ -126,7 +126,7 @@ export function ProjectVisibilityForm({ project, globalConfig }: ProjectVisibili
 
                     <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-start gap-3">
                         <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                        <p className="text-[11px] text-blue-700 font-bold uppercase tracking-tight leading-relaxed">
+                        <p className="text-[11px] text-blue-700 font-bold  tracking-tight leading-relaxed">
                             Current Formula: (Velocity × Weight) + (Admin × {globalConfig?.adminWeight || '2.0'}) + Boost.
                         </p>
                     </div>
@@ -134,7 +134,7 @@ export function ProjectVisibilityForm({ project, globalConfig }: ProjectVisibili
                     <Button
                         onClick={handleUpdate}
                         disabled={isSaving}
-                        className="w-full h-14 rounded-3xl font-black tracking-[0.2em] uppercase text-xs shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
+                        className="w-full h-14 rounded-3xl font-black tracking-[0.2em]  text-xs shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
                     >
                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                         Sync Discovery Node

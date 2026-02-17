@@ -119,7 +119,7 @@ export function AdminSecuritySection({ user }: { user: any }) {
 
                                 <div className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-2">Manual secret</label>
+                                        <label className="text-[11px] font-bold  tracking-widest text-muted-foreground ml-2">Manual secret</label>
                                         <div className="flex gap-2">
                                             <code className="flex-1 bg-muted/50 p-3 rounded-2xl text-xs font-mono break-all border border-border/40 flex items-center text-foreground font-bold">
                                                 {setupData.secret}
@@ -136,7 +136,7 @@ export function AdminSecuritySection({ user }: { user: any }) {
                                     </div>
 
                                     <div className="space-y-1.5">
-                                        <label className="text-[11px] font-bold uppercase tracking-widest text-primary ml-2">Enter 6-digit code</label>
+                                        <label className="text-[11px] font-bold  tracking-widest text-primary ml-2">Enter 6-digit code</label>
                                         <Input
                                             placeholder="000 000"
                                             value={code}
@@ -152,7 +152,7 @@ export function AdminSecuritySection({ user }: { user: any }) {
                             <Button
                                 onClick={verifyAndEnable}
                                 disabled={isLoading || code.length !== 6}
-                                className="w-full h-12 rounded-3xl font-bold uppercase tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                                className="w-full h-12 rounded-3xl font-bold  tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                             >
                                 {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate protection'}
                             </Button>

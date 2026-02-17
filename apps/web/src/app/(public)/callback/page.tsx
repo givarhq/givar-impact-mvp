@@ -100,10 +100,10 @@ function CallbackContent() {
               We couldn&apos;t confirm this payment instantly. Don&apos;t worry, your funds are safe. Please check your history in a few minutes.
             </p>
           </div>
-          <div className="p-3 bg-muted/50 rounded-2xl border border-border/40 text-[10px] font-mono text-muted-foreground truncate uppercase tracking-tighter">
+          <div className="p-3 bg-muted/50 rounded-2xl border border-border/40 text-[10px] font-mono text-muted-foreground truncate  tracking-tighter">
             Ref: {reference}
           </div>
-          <Button variant="outline" onClick={() => router.push('/dashboard')} className="w-full h-12 rounded-3xl border-border/60 font-bold text-xs uppercase tracking-widest active:scale-[0.98]">Dismiss</Button>
+          <Button variant="outline" onClick={() => router.push('/dashboard')} className="w-full h-12 rounded-3xl border-border/60 font-bold text-xs  tracking-widest active:scale-[0.98]">Dismiss</Button>
         </div>
       )}
     </CardContent>

@@ -110,7 +110,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                             <h1 className="text-lg md:text-xl font-bold tracking-tight text-foreground truncate max-w-full leading-tight">
                                 {proposal.title || 'Untitled Proposal'}
                             </h1>
-                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px] uppercase tracking-wider border shrink-0", statusColor)}>
+                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px]  tracking-wider border shrink-0", statusColor)}>
                                 {proposal.status.replace('_', ' ')}
                             </Badge>
                         </div>
@@ -138,7 +138,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                     <DialogHeader><DialogTitle className="text-lg font-bold">Request Modifications</DialogTitle></DialogHeader>
                                     <div className="space-y-6 pt-4">
                                         <div className="space-y-2">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase">Feedback</label>
+                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 ">Feedback</label>
                                             <textarea
                                                 className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                                                 placeholder="What needs to be fixed before approval?"
@@ -146,7 +146,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                                 onChange={(e) => setFeedback(e.target.value)}
                                             />
                                         </div>
-                                        <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs uppercase tracking-widest">
+                                        <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs  tracking-widest">
                                             Send Feedback
                                         </Button>
                                     </div>
@@ -172,7 +172,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                     <div className="space-y-6 pt-4">
                                         <p className="text-xs text-muted-foreground font-medium">This action is final. The user will be notified and the proposal archived.</p>
                                         <div className="space-y-2">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase">Reason</label>
+                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 ">Reason</label>
                                             <Input
                                                 placeholder="State reason for rejection..."
                                                 value={feedback}
@@ -180,7 +180,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                                 className="h-12 rounded-3xl"
                                             />
                                         </div>
-                                        <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs uppercase tracking-widest">
+                                        <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs  tracking-widest">
                                             Confirm Rejection
                                         </Button>
                                     </div>
@@ -211,7 +211,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     {/* Visuals & Summary */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold  text-muted-foreground flex items-center gap-2">
                                 <ImageIcon className="h-3.5 w-3.5 text-primary" /> Visual Evidence
                             </CardTitle>
                         </CardHeader>
@@ -231,7 +231,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                     </p>
                                     {proposal.gallery && (proposal.gallery as any[]).length > 0 && (
                                         <div className="mt-6">
-                                            <h4 className="text-[11px] font-bold text-muted-foreground uppercase mb-3">Gallery Assets</h4>
+                                            <h4 className="text-[11px] font-bold text-muted-foreground  mb-3">Gallery Assets</h4>
                                             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                                                 {(proposal.gallery as any[]).map((item, i) => (
                                                     <button key={i} onClick={() => window.open(item.url, '_blank')} className="h-12 w-12 rounded-xl bg-muted border border-border/40 overflow-hidden shrink-0 hover:ring-2 ring-primary/20 transition-all">
@@ -249,7 +249,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     {/* Detailed Description */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold  text-muted-foreground flex items-center gap-2">
                                 <FileText className="h-3.5 w-3.5 text-blue-500" /> Full Proposal
                             </CardTitle>
                         </CardHeader>
@@ -261,7 +261,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     {/* Budget */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 flex flex-row items-center justify-between">
-                            <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold  text-muted-foreground flex items-center gap-2">
                                 <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> Budget Ledger
                             </CardTitle>
                             <Badge variant="outline" className="font-mono text-[11px] bg-background border-border/60 px-2 py-0.5 rounded-3xl">
@@ -270,7 +270,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                         </CardHeader>
                         <div className="p-0 overflow-x-auto">
                             <table className="w-full text-left">
-                                <thead className="bg-muted/10 text-[11px] font-bold uppercase text-muted-foreground border-b border-border/40">
+                                <thead className="bg-muted/10 text-[11px] font-bold  text-muted-foreground border-b border-border/40">
                                     <tr>
                                         <th className="px-6 py-3">Item Description</th>
                                         <th className="px-6 py-3 hidden md:table-cell">Category</th>
@@ -282,7 +282,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                     {(proposal.budgetBreakdown as any[])?.map((item, i) => (
                                         <tr key={i} className="hover:bg-muted/20 transition-colors">
                                             <td className="px-6 py-4 font-bold text-foreground">{item.item}</td>
-                                            <td className="px-6 py-4 hidden md:table-cell text-muted-foreground uppercase text-[11px] font-bold tracking-wider">{item.type}</td>
+                                            <td className="px-6 py-4 hidden md:table-cell text-muted-foreground  text-[11px] font-bold tracking-wider">{item.type}</td>
                                             <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.vendor}</td>
                                             <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums">
                                                 {formatCurrency((item.cost * 100).toString(), 'NGN')}
@@ -297,7 +297,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     {/* Timeline */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold  text-muted-foreground flex items-center gap-2">
                                 <Clock className="h-3.5 w-3.5 text-purple-500" /> Execution Roadmap
                             </CardTitle>
                         </CardHeader>
@@ -314,7 +314,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                                 <h5 className="text-sm font-semibold text-foreground">{item.phase}</h5>
                                                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.deliverables}</p>
                                             </div>
-                                            <Badge variant="secondary" className="w-fit mt-2 md:mt-0 text-[11px] font-bold uppercase tracking-wider rounded-3xl bg-muted/50 border-border/40 text-muted-foreground">
+                                            <Badge variant="secondary" className="w-fit mt-2 md:mt-0 text-[11px] font-bold  tracking-wider rounded-3xl bg-muted/50 border-border/40 text-muted-foreground">
                                                 Due: {item.estimatedDate}
                                             </Badge>
                                         </div>
@@ -330,7 +330,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     {/* Proposer Card */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold  text-muted-foreground flex items-center gap-2">
                                 <User className="h-3.5 w-3.5 text-primary" /> Proposer Identity
                             </CardTitle>
                         </CardHeader>
@@ -367,7 +367,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <div className="flex justify-between items-center">
-                                <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                                <CardTitle className="text-[11px] font-bold  text-muted-foreground flex items-center gap-2">
                                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Verification
                                 </CardTitle>
                                 <Badge variant="secondary" className="text-[10px] font-bold rounded-3xl px-2">
@@ -388,7 +388,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                                         </div>
                                         <div className="text-left min-w-0">
                                             <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">Document {i + 1}</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono opacity-60 uppercase truncate">Secure View</p>
+                                            <p className="text-[10px] text-muted-foreground font-mono opacity-60  truncate">Secure View</p>
                                         </div>
                                     </div>
                                     <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
@@ -397,7 +397,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                             {(!proposal.kycDocuments || proposal.kycDocuments.length === 0) && (
                                 <div className="text-center py-6 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                     <AlertCircle className="h-6 w-6 mx-auto text-destructive/40 mb-2" />
-                                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">No KYC Data</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground  tracking-widest">No KYC Data</p>
                                 </div>
                             )}
                         </CardContent>
@@ -406,7 +406,7 @@ export function ProposalReview({ proposal }: ProposalReviewProps) {
                     {/* Risks */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold  text-muted-foreground flex items-center gap-2">
                                 <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Risk Assessment
                             </CardTitle>
                         </CardHeader>

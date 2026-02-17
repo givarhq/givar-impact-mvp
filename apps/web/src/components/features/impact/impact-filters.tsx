@@ -131,7 +131,7 @@ export function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
               <Button
                 variant="outline"
                 onClick={clearFilters}
-                className="w-full h-12 rounded-3xl border-dashed border-border/60 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-all"
+                className="w-full h-12 rounded-3xl border-dashed border-border/60 text-xs font-bold  tracking-widest text-muted-foreground hover:text-primary transition-all"
               >
                 Clear filters
               </Button>

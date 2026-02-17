@@ -69,7 +69,7 @@ export function ProjectSelectorModal({ isOpen, onClose, onSelect, position }: Pr
                         <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
                             <Hash className="h-4 w-4" />
                         </div>
-                        <DialogTitle className="text-sm font-bold truncate uppercase tracking-tight">
+                        <DialogTitle className="text-sm font-bold truncate  tracking-tight">
                             Slot {position + 1} Allocation
                         </DialogTitle>
                     </div>
@@ -90,7 +90,7 @@ export function ProjectSelectorModal({ isOpen, onClose, onSelect, position }: Pr
                         {isLoading ? (
                             <div className="py-10 flex flex-col items-center justify-center gap-2 min-w-0">
                                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Searching Ledger</span>
+                                <span className="text-[10px] font-bold  tracking-widest text-muted-foreground">Searching Ledger</span>
                             </div>
                         ) : projects.length > 0 ? (
                             projects.map((p) => (
@@ -124,7 +124,7 @@ export function ProjectSelectorModal({ isOpen, onClose, onSelect, position }: Pr
                         ) : (
                             <div className="py-12 text-center border-2 border-dashed border-border/40 rounded-2xl bg-muted/5 min-w-0">
                                 <Inbox className="h-6 w-6 mx-auto text-muted-foreground/20 mb-1.5" />
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                <p className="text-[10px] font-bold text-muted-foreground  tracking-widest">
                                     {query.length < 1 ? 'Start typing' : 'No results'}
                                 </p>
                             </div>
@@ -136,7 +136,7 @@ export function ProjectSelectorModal({ isOpen, onClose, onSelect, position }: Pr
                     <Button
                         variant="ghost"
                         onClick={onClose}
-                        className="rounded-xl h-9 px-5 font-bold text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground"
+                        className="rounded-xl h-9 px-5 font-bold text-xs  tracking-widest text-muted-foreground hover:text-foreground"
                     >
                         Cancel
                     </Button>

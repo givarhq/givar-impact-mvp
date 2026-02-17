@@ -93,10 +93,10 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                 <div className="p-1.5 border border-border/40 rounded-3xl bg-muted/20 w-full min-w-0">
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0">
                         <TabsList className="h-10 bg-muted/40 p-1 rounded-2xl w-full border border-border/40 mb-2 shadow-inner">
-                            <TabsTrigger value="upload" className="rounded-xl text-[11px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                            <TabsTrigger value="upload" className="rounded-xl text-[11px] font-bold  tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
                                 <UploadCloud className="h-3.5 w-3.5" /> Upload
                             </TabsTrigger>
-                            <TabsTrigger value="url" className="rounded-xl text-[11px] font-bold uppercase tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                            <TabsTrigger value="url" className="rounded-xl text-[11px] font-bold  tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
                                 <LinkIcon className="h-3.5 w-3.5" /> Remote link
                             </TabsTrigger>
                         </TabsList>
@@ -162,7 +162,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                                 ) : item.type === 'VIDEO' ? (
                                     <div className="flex flex-col items-center gap-0.5">
                                         <Video className="h-5 w-5 text-muted-foreground" />
-                                        <span className="text-[9px] font-black uppercase text-muted-foreground/60">Video</span>
+                                        <span className="text-[9px] font-black  text-muted-foreground/60">Video</span>
                                     </div>
                                 ) : (
                                     <FileText className="h-5 w-5 text-muted-foreground" />
@@ -171,7 +171,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
 
                             <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
                                 <div className="flex justify-between items-center gap-2">
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-widest border border-primary/10 shrink-0">
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary  tracking-widest border border-primary/10 shrink-0">
                                         {item.type}
                                     </span>
                                     {!readOnly && (
@@ -245,7 +245,7 @@ export function ImageUploader({
                         <UploadCloud className="text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors" />
                     </div>
                 )}
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
+                <span className="text-xs font-bold text-muted-foreground  tracking-widest">{label}</span>
             </div>
             <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isLoading} />
         </label>

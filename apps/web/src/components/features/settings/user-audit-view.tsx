@@ -96,7 +96,7 @@ export function UserAuditView() {
                                                 {React.createElement(config.icon, { className: "h-4 w-4" })}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-xs font-bold text-foreground uppercase tracking-tight truncate">
+                                                <p className="text-xs font-bold text-foreground  tracking-tight truncate">
                                                     {log.action.replace(/_/g, ' ')}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground font-medium">{formatDate(log.createdAt)}</p>
@@ -111,11 +111,11 @@ export function UserAuditView() {
                                             </div>
                                             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                                                 <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
-                                                    <p className="text-muted-foreground font-bold uppercase text-[11px]">Origin IP</p>
+                                                    <p className="text-muted-foreground font-bold  text-[11px]">Origin IP</p>
                                                     <p className="font-mono text-foreground truncate">{log.ipAddress}</p>
                                                 </div>
                                                 <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
-                                                    <p className="text-muted-foreground font-bold uppercase text-[11px]">User Agent</p>
+                                                    <p className="text-muted-foreground font-bold  text-[11px]">User Agent</p>
                                                     <p className="truncate text-foreground">{log.userAgent}</p>
                                                 </div>
                                             </div>
@@ -128,7 +128,7 @@ export function UserAuditView() {
 
                     {/* DESKTOP: Traditional Ledger Table */}
                     <table className="hidden md:table w-full text-left">
-                        <thead className="bg-muted/30 text-xs font-bold uppercase tracking-widest text-muted-foreground border-b border-border/40">
+                        <thead className="bg-muted/30 text-xs font-bold  tracking-widest text-muted-foreground border-b border-border/40">
                             <tr>
                                 <th className="px-6 py-4 w-12"></th>
                                 <th className="px-6 py-4">Event</th>
@@ -151,7 +151,7 @@ export function UserAuditView() {
                                                     <div className={cn("h-7 w-7 rounded-3xl flex items-center justify-center border border-border/10", config.bg, config.color)}>
                                                         {React.createElement(config.icon, { className: "h-3.5 w-3.5" })}
                                                     </div>
-                                                    <span className="font-bold text-foreground uppercase tracking-tight">{log.action.replace(/_/g, ' ')}</span>
+                                                    <span className="font-bold text-foreground  tracking-tight">{log.action.replace(/_/g, ' ')}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -169,7 +169,7 @@ export function UserAuditView() {
                                                 <td colSpan={4} className="p-6">
                                                     <div className="grid grid-cols-2 gap-6">
                                                         <div className="space-y-2">
-                                                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                                            <p className="text-xs font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
                                                                 <FileJson2 className="h-3.5 w-3.5" /> Payload Detail
                                                             </p>
                                                             <div className="bg-zinc-950 p-4 rounded-3xl text-xs font-mono text-zinc-300 border border-zinc-800 h-32 overflow-y-auto no-scrollbar">
@@ -178,11 +178,11 @@ export function UserAuditView() {
                                                         </div>
                                                         <div className="space-y-4">
                                                             <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                <p className="text-[11px] font-bold uppercase text-muted-foreground">Identity ID</p>
+                                                                <p className="text-[11px] font-bold  text-muted-foreground">Identity ID</p>
                                                                 <p className="font-mono text-foreground truncate">{log.id}</p>
                                                             </div>
                                                             <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                <p className="text-[11px] font-bold uppercase text-muted-foreground">Node IP</p>
+                                                                <p className="text-[11px] font-bold  text-muted-foreground">Node IP</p>
                                                                 <p className="font-mono text-foreground">{log.ipAddress}</p>
                                                             </div>
                                                         </div>
@@ -199,7 +199,7 @@ export function UserAuditView() {
 
                 {hasMore && logs.length > 0 && (
                     <div className="p-4 border-t border-border/40 text-center">
-                        <Button variant="ghost" onClick={handleLoadMore} disabled={isLoading} className="h-9 px-8 rounded-3xl text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-primary">
+                        <Button variant="ghost" onClick={handleLoadMore} disabled={isLoading} className="h-9 px-8 rounded-3xl text-xs font-bold  tracking-widest text-muted-foreground hover:text-primary">
                             {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : 'Fetch older records'}
                         </Button>
                     </div>

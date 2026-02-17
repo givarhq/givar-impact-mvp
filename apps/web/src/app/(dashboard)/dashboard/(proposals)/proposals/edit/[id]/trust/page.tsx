@@ -81,7 +81,7 @@ export default function TrustPage() {
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
             <ShieldCheck className="h-4 w-4 shrink-0" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Compliance</span>
+            <span className="text-[11px] font-bold  tracking-[0.2em]">Compliance</span>
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Identity Verification</CardTitle>
           <CardDescription className="text-xs font-medium">
@@ -98,7 +98,7 @@ export default function TrustPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-foreground truncate leading-none mb-1.5">Organization Verified</p>
-                  <p className="text-[11px] text-primary font-bold uppercase tracking-widest truncate">{orgProfile?.legalName}</p>
+                  <p className="text-[11px] text-primary font-bold  tracking-widest truncate">{orgProfile?.legalName}</p>
                 </div>
               </div>
 
@@ -146,7 +146,7 @@ export default function TrustPage() {
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
                 <Button
-                  className="h-12 rounded-3xl px-10 font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0"
+                  className="h-12 rounded-3xl px-10 font-bold text-xs  tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0"
                   onClick={handleSubmitForReview}
                   disabled={isSubmitting}
                 >

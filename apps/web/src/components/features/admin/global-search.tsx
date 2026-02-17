@@ -177,7 +177,7 @@ export function GlobalSearch() {
                                         key={f.id}
                                         onClick={() => setActiveFilter(f.id)}
                                         className={cn(
-                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-3xl text-[11px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border shrink-0",
+                                            "flex items-center gap-1.5 px-3 py-1.5 rounded-3xl text-[11px] font-bold  tracking-wider transition-all whitespace-nowrap border shrink-0",
                                             activeFilter === f.id
                                                 ? "bg-primary text-white border-primary shadow-sm"
                                                 : "bg-background border-border/60 text-muted-foreground hover:text-foreground hover:border-border hover:shadow-sm"
@@ -203,7 +203,7 @@ export function GlobalSearch() {
                                 <div className="h-12 w-12 bg-muted/50 rounded-3xl flex items-center justify-center mb-3 border border-border/50">
                                     <Search className="h-6 w-6 opacity-20" />
                                 </div>
-                                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">No matches found</p>
+                                <p className="text-xs font-bold  tracking-widest text-muted-foreground">No matches found</p>
                                 <p className="text-[11px] text-muted-foreground/60 mt-1">Try searching by UUID, Email, or Ref ID</p>
                             </div>
                         ) : displayData ? (
@@ -211,7 +211,7 @@ export function GlobalSearch() {
                                 {/* USERS */}
                                 {displayData.users.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                                        <div className="px-4 py-1 text-[10px] font-black  tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
                                             <User className="h-3 w-3" /> Identities
                                         </div>
                                         {displayData.users.map(user => (
@@ -227,7 +227,7 @@ export function GlobalSearch() {
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-bold text-sm text-foreground">{user.firstName} {user.lastName}</span>
                                                         <span className={cn(
-                                                            "text-[9px] px-1.5 py-0.5 rounded-3xl uppercase font-black tracking-wider",
+                                                            "text-[9px] px-1.5 py-0.5 rounded-3xl  font-black tracking-wider",
                                                             user.role === 'ADMIN' ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"
                                                         )}>{user.role}</span>
                                                     </div>
@@ -244,7 +244,7 @@ export function GlobalSearch() {
                                 {/* PROJECTS */}
                                 {displayData.projects.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black  tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Briefcase className="h-3 w-3" /> Projects
                                         </div>
                                         {displayData.projects.map(project => (
@@ -262,7 +262,7 @@ export function GlobalSearch() {
                                                         <SmartCurrency amount={project.raisedAmount.toString()} currency={project.currency} visible={true} size="small" className="shrink-0" />
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold uppercase tracking-tight rounded-3xl">{project.status}</Badge>
+                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold  tracking-tight rounded-3xl">{project.status}</Badge>
                                                         <span className="text-[10px] text-muted-foreground font-mono truncate opacity-60">ID: {project.slug}</span>
                                                     </div>
                                                 </div>
@@ -274,7 +274,7 @@ export function GlobalSearch() {
                                 {/* PROPOSALS */}
                                 {displayData.proposals.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black  tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <FileText className="h-3 w-3" /> Proposals
                                         </div>
                                         {displayData.proposals.map(prop => (
@@ -289,7 +289,7 @@ export function GlobalSearch() {
                                                 <div className="flex-1 min-w-0">
                                                     <span className="font-bold text-sm text-foreground truncate block">{prop.title}</span>
                                                     <div className="flex items-center gap-2 mt-0.5">
-                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-purple-500/30 text-purple-600 font-bold uppercase rounded-3xl">{prop.status}</Badge>
+                                                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-purple-500/30 text-purple-600 font-bold  rounded-3xl">{prop.status}</Badge>
                                                         <span className="text-[10px] text-muted-foreground font-medium">{prop.category?.name}</span>
                                                     </div>
                                                 </div>
@@ -301,7 +301,7 @@ export function GlobalSearch() {
                                 {/* ORGANIZATIONS */}
                                 {displayData.organizations.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black  tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Building2 className="h-3 w-3" /> Organizations
                                         </div>
                                         {displayData.organizations.map(org => (
@@ -317,7 +317,7 @@ export function GlobalSearch() {
                                                     <span className="font-bold text-sm text-foreground block truncate">{org.legalName}</span>
                                                     <span className="text-[10px] font-mono text-muted-foreground font-medium">{org.registrationNumber || 'No Reg ID'}</span>
                                                 </div>
-                                                <Badge variant="outline" className="text-[9px] font-bold uppercase rounded-3xl">{org.status}</Badge>
+                                                <Badge variant="outline" className="text-[9px] font-bold  rounded-3xl">{org.status}</Badge>
                                             </button>
                                         ))}
                                     </div>
@@ -326,7 +326,7 @@ export function GlobalSearch() {
                                 {/* TRANSACTIONS */}
                                 {displayData.transactions.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black  tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <Database className="h-3 w-3" /> Ledger
                                         </div>
                                         {displayData.transactions.map(tx => (
@@ -356,7 +356,7 @@ export function GlobalSearch() {
                                 {/* AUDIT LOGS */}
                                 {displayData.auditLogs.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
+                                        <div className="px-4 py-1 text-[10px] font-black  tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2 mt-2">
                                             <ShieldAlert className="h-3 w-3" /> Security
                                         </div>
                                         {displayData.auditLogs.map(log => (

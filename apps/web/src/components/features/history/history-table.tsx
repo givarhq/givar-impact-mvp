@@ -123,10 +123,10 @@ export function HistoryTable({
             <table className="w-full border-collapse table-fixed md:table-auto">
                 <thead className="bg-muted/40 border-b border-border/40 hidden md:table-header-group">
                     <tr>
-                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest text-muted-foreground text-left w-1/2">Transaction</th>
-                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest text-muted-foreground text-left w-[200px]">Date</th>
-                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest text-muted-foreground text-right">Amount</th>
-                        <th className="px-6 py-4 font-bold text-xs uppercase tracking-widest text-muted-foreground text-center">Status</th>
+                        <th className="px-6 py-4 font-bold text-xs  tracking-widest text-muted-foreground text-left w-1/2">Transaction</th>
+                        <th className="px-6 py-4 font-bold text-xs  tracking-widest text-muted-foreground text-left w-[200px]">Date</th>
+                        <th className="px-6 py-4 font-bold text-xs  tracking-widest text-muted-foreground text-right">Amount</th>
+                        <th className="px-6 py-4 font-bold text-xs  tracking-widest text-muted-foreground text-center">Status</th>
                         <th className="px-6 py-3 w-[100px]"></th>
                     </tr>
                 </thead>
@@ -153,7 +153,7 @@ export function HistoryTable({
                                                 </p>
                                             </div>
 
-                                            <div className="md:hidden flex items-center gap-2 mt-1 text-xs font-bold text-muted-foreground uppercase tracking-tight">
+                                            <div className="md:hidden flex items-center gap-2 mt-1 text-xs font-bold text-muted-foreground  tracking-tight">
                                                 <span className="flex items-center gap-1 shrink-0">
                                                     <Calendar className="h-3 w-3" /> {formatDate(tx.createdAt).split(',')[0]}
                                                 </span>
@@ -211,7 +211,7 @@ export function HistoryTable({
                             <DialogHeader className="space-y-2">
                                 <div className="flex items-center gap-2 text-primary bg-primary/5 w-fit px-3 py-1 rounded-3xl border border-primary/20">
                                     <ShieldCheck className="h-3.5 w-3.5" />
-                                    <span className="text-xs font-bold uppercase tracking-widest leading-none">Verified Entry</span>
+                                    <span className="text-xs font-bold  tracking-widest leading-none">Verified Entry</span>
                                 </div>
                                 <DialogTitle className="text-xl font-bold tracking-tight leading-none text-foreground">Transaction Detail</DialogTitle>
                             </DialogHeader>
@@ -220,7 +220,7 @@ export function HistoryTable({
                                 <div className="absolute top-0 right-0 p-4 opacity-5">
                                     <FileText className="h-12 w-12" />
                                 </div>
-                                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-1.5">Total Amount</p>
+                                <p className="text-xs text-muted-foreground font-bold  tracking-widest mb-1.5">Total Amount</p>
                                 <div className="max-w-full overflow-hidden leading-none">
                                     <SmartCurrency amount={selectedTx.amount} currency={selectedTx.currency} visible={true} size="large" className="text-foreground" />
                                 </div>
@@ -231,7 +231,7 @@ export function HistoryTable({
                                     <div className="flex justify-between items-start border-b-2 border-emerald-500 pb-10">
                                         <div>
                                             <h1 className="text-4xl font-black tracking-tighter text-emerald-600">Givar.</h1>
-                                            <p className="text-sm text-slate-500 mt-1 uppercase tracking-widest font-bold">Impact Receipt</p>
+                                            <p className="text-sm text-slate-500 mt-1  tracking-widest font-bold">Impact Receipt</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-bold">Reference</p>
@@ -240,25 +240,25 @@ export function HistoryTable({
                                     </div>
                                     <div className="py-12 grid grid-cols-2 gap-10">
                                         <div className="space-y-1">
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Donated By</p>
+                                            <p className="text-xs font-bold text-slate-400 ">Donated By</p>
                                             <p className="text-lg font-bold">
                                                 {selectedTx.user?.firstName || 'Valued'} {selectedTx.user?.lastName || 'Giver'}
                                             </p>
                                             <p className="text-sm text-slate-500">{selectedTx.user?.email}</p>
                                         </div>
                                         <div className="space-y-1 text-right">
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Date</p>
+                                            <p className="text-xs font-bold text-slate-400 ">Date</p>
                                             <p className="text-lg font-bold">{formatDate(selectedTx.createdAt)}</p>
                                         </div>
                                     </div>
                                     <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 mb-10">
                                         <div className="flex justify-between items-center">
                                             <div>
-                                                <p className="text-xs font-bold text-emerald-600 uppercase mb-1">Beneficiary Project</p>
+                                                <p className="text-xs font-bold text-emerald-600  mb-1">Beneficiary Project</p>
                                                 <p className="text-xl font-black">{selectedTx.project?.title || selectedTx.description}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-xs font-bold text-emerald-600 uppercase mb-1">Amount</p>
+                                                <p className="text-xs font-bold text-emerald-600  mb-1">Amount</p>
                                                 <p className="text-3xl font-black text-emerald-700">{formatCurrency(selectedTx.amount, selectedTx.currency)}</p>
                                             </div>
                                         </div>
@@ -274,14 +274,14 @@ export function HistoryTable({
                                         </div>
                                         <div className="text-right">
                                             <div className="h-12 w-32 bg-slate-100 rounded opacity-50 ml-auto mb-2 flex items-center justify-center italic text-xs">Digital Signature</div>
-                                            <p className="text-xs font-bold text-slate-400 uppercase">Authorized by Givar Platform</p>
+                                            <p className="text-xs font-bold text-slate-400 ">Authorized by Givar Platform</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-1.5 min-w-0">
-                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block px-1">Purpose & Reference</span>
+                                <span className="text-xs font-bold text-muted-foreground  tracking-widest block px-1">Purpose & Reference</span>
                                 <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">
                                     {selectedTx.project ? (
                                         <Link
@@ -309,7 +309,7 @@ export function HistoryTable({
 
                                     <div className="pt-3 border-t border-border/40 flex justify-between items-center gap-4">
                                         <div className="min-w-0 flex-1">
-                                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-tighter block mb-0.5">Reference ID</span>
+                                            <span className="text-xs font-bold text-muted-foreground  tracking-tighter block mb-0.5">Reference ID</span>
                                             <p className="font-mono text-xs truncate text-foreground/50">{selectedTx.reference}</p>
                                         </div>
                                         <button
@@ -325,15 +325,15 @@ export function HistoryTable({
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Status</span>
+                                    <span className="text-xs font-bold text-muted-foreground  tracking-widest block mb-1">Status</span>
                                     <div className={cn("flex items-center gap-2 font-bold text-xs md:text-xs truncate", statusStyles[selectedTx.status].text)}>
                                         {React.createElement(statusStyles[selectedTx.status].icon, { className: "h-3.5 w-3.5 shrink-0" })}
                                         <span className="truncate">{selectedTx.status}</span>
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest block mb-1">Gateway</span>
-                                    <p className="text-xs md:text-xs font-bold text-foreground truncate uppercase">
+                                    <span className="text-xs font-bold text-muted-foreground  tracking-widest block mb-1">Gateway</span>
+                                    <p className="text-xs md:text-xs font-bold text-foreground truncate ">
                                         {selectedTx.metadata?.channel || 'Wallet'}
                                     </p>
                                 </div>

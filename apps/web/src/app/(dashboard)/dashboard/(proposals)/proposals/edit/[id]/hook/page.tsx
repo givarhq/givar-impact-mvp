@@ -54,7 +54,7 @@ export default function HookPage() {
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
             <Sparkles className="h-4 w-4 shrink-0" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Storytelling</span>
+            <span className="text-[11px] font-bold  tracking-[0.2em]">Storytelling</span>
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Craft your cause narrative</CardTitle>
           <CardDescription className="text-xs font-medium">

@@ -86,7 +86,7 @@ export function CauseLeaderboard({ performance }: CauseLeaderboardProps) {
                                     <Badge variant="outline" className="text-[10px] rounded-3xl border-primary/20 text-primary bg-primary/5">{sector.avgFundingRate}% rate</Badge>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">Volume</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground  tracking-tighter">Volume</p>
                                     <SmartCurrency amount={sector.volume} currency="NGN" visible={true} size="default" />
                                 </div>
                                 <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
@@ -106,7 +106,7 @@ function PerformanceRow({ project, isPositive }: { project: any, isPositive: boo
         <div className="p-5 hover:bg-muted/20 transition-colors flex items-center justify-between gap-4">
             <div className="min-w-0 flex-1">
                 <p className="text-xs font-bold text-foreground truncate leading-tight mb-1">{project.title}</p>
-                <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground  tracking-widest">
                     <span>{project.category?.name}</span>
                     <span className="text-border">|</span>
                     <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
@@ -119,7 +119,7 @@ function PerformanceRow({ project, isPositive }: { project: any, isPositive: boo
                 )}>
                     {project.fundingRate}%
                 </p>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase">Rate</p>
+                <p className="text-[10px] font-bold text-muted-foreground ">Rate</p>
             </div>
         </div>
     );

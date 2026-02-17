@@ -117,7 +117,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </p>
             </div>
             <div className="inline-flex flex-col items-center p-6 rounded-3xl bg-card border border-primary/10 shadow-sm min-w-[280px]">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Certified node identity</p>
+              <p className="text-[11px] font-bold  tracking-widest text-muted-foreground mb-3">Certified node identity</p>
               <p className="text-lg font-bold text-foreground tracking-tight">{initialProfile?.legalName}</p>
               {initialProfile?.registrationNumber && (
                 <p className="text-xs text-primary font-mono mt-1.5 font-bold">
@@ -150,7 +150,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </p>
             </div>
             <div className="pt-2">
-              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[11px] uppercase tracking-wider">
+              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[11px]  tracking-wider">
                 Under forensic review
               </Badge>
             </div>
@@ -170,7 +170,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
         <div className="p-4 rounded-3xl bg-destructive/5 border border-destructive/10 flex items-start gap-3 shadow-sm">
           <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="text-xs font-bold text-destructive uppercase tracking-wider">Verification rejected</p>
+            <p className="text-xs font-bold text-destructive  tracking-wider">Verification rejected</p>
             <p className="text-xs text-foreground/80 leading-relaxed font-medium italic">
               &quot;{initialProfile?.adminFeedback || "Your documents could not be verified. Please review the requirements and re-submit."}&quot;
             </p>
@@ -246,11 +246,11 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Asset ledger</p>
+                <p className="text-[11px] font-bold  tracking-widest text-muted-foreground ml-1">Asset ledger</p>
                 {docKeys.length === 0 ? (
                   <div className="h-32 rounded-3xl border border-dashed border-border/60 flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/5">
                     <Fingerprint className="h-6 w-6 mb-1.5" />
-                    <span className="text-[11px] font-bold uppercase tracking-widest">No documents</span>
+                    <span className="text-[11px] font-bold  tracking-widest">No documents</span>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-32 overflow-y-auto no-scrollbar">

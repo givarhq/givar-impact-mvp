@@ -124,7 +124,7 @@ export function VerificationReviewRow({ profile }: { profile: any }) {
           ) : (
             <div className="flex items-center gap-2 animate-in slide-in-from-right-2 duration-500">
               <Badge className={cn(
-                "h-7 px-3 rounded-3xl font-bold text-[11px] uppercase tracking-wider border",
+                "h-7 px-3 rounded-3xl font-bold text-[11px]  tracking-wider border",
                 profile.status === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-destructive/10 text-destructive border-destructive/20"
               )}>
                 {profile.status === 'VERIFIED' ? <CheckCircle2 className="h-3 w-3 mr-1.5" /> : <ShieldAlert className="h-3 w-3 mr-1.5" />}

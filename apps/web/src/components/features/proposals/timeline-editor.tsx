@@ -110,7 +110,7 @@ export function TimelineEditor({
             <div key={item.id} className={fieldContainerClass}>
               {/* PHASE TITLE */}
               <div className="md:col-span-4 space-y-1">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-tight ml-1">Phase</label>
+                <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Phase</label>
                 {isLocked ? (
                   <Input value={item.phase} readOnly className={inputStyle} />
                 ) : (
@@ -153,7 +153,7 @@ export function TimelineEditor({
 
               {/* ESTIMATED DATE */}
               <div className="md:col-span-3 space-y-1">
-                <label className="text-xs font-bold text-muted-foreground uppercase tracking-tight ml-1">Due Date</label>
+                <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Due Date</label>
                 <div className="relative">
                   {!isLocked && <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />}
                   <Input
@@ -169,7 +169,7 @@ export function TimelineEditor({
               {/* DELIVERABLES */}
               <div className="md:col-span-5 flex gap-2 items-end relative">
                 <div className="flex-1 space-y-1 min-w-0">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-tight ml-1">Deliverables</label>
+                  <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Deliverables</label>
                   <div className="relative">
                     <Input
                       placeholder="Outcome details..."

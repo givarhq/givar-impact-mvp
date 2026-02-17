@@ -200,7 +200,7 @@ function LoginComponent() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border/60" />
             </div>
-            <div className="relative flex justify-center text-[11px] uppercase tracking-[0.2em] font-black">
+            <div className="relative flex justify-center text-[11px]  tracking-[0.2em] font-black">
               <span className="bg-background px-4 text-muted-foreground/60">Or</span>
             </div>
           </div>

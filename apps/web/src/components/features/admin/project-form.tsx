@@ -176,7 +176,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-3xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
             <ShieldCheck className="h-4 w-4 shrink-0" />
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[11px] font-bold uppercase tracking-widest shrink-0">Verified origin:</span>
+              <span className="text-[11px] font-bold  tracking-widest shrink-0">Verified origin:</span>
               <Link href={`/admin/proposals/${initialData.proposalId}`} className="text-xs font-bold underline hover:text-blue-800 flex items-center gap-1 truncate">
                 Proposal #{initialData.proposalId.split('-')[0]} <ExternalLink className="h-3 w-3 shrink-0" />
               </Link>
@@ -201,7 +201,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           </div>
           <div className="space-y-1.5">
             <div className="flex justify-between items-end px-1">
-              <label className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Amendment narrative</label>
+              <label className="text-[10px] font-bold text-amber-700  tracking-widest">Amendment narrative</label>
               <span className={cn(
                 "text-[10px] font-bold",
                 (reason?.length || 0) < 10 ? "text-destructive" : "text-emerald-600"
@@ -235,11 +235,11 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-sm text-foreground leading-none">Project Identity</h3>
-            <p className="text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Core metadata</p>
+            <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Core metadata</p>
           </div>
         </div>
         <div className="md:col-span-8 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Headline title</label>
+          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Headline title</label>
           <Input
             {...register('title')}
             className={getInputClass()}
@@ -248,7 +248,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           />
         </div>
         <div className="md:col-span-4 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Classification</label>
+          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Classification</label>
           <Controller
             control={control}
             name="categoryId"
@@ -265,7 +265,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           />
         </div>
         <div className="md:col-span-12 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Short narrative</label>
+          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Short narrative</label>
           <Textarea
             className={cn(getAreaClass("min-h-[60px]"), "resize-none rounded-3xl")}
             {...register('shortDesc')}
@@ -274,7 +274,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           />
         </div>
         <div className="md:col-span-12 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Project description</label>
+          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Project description</label>
           <RichTextEditor
             content={description || ''}
             onChange={(val) => setValue('description', val, { shouldDirty: true })}
@@ -283,7 +283,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           {errors.description && <p className="text-xs text-destructive mt-1 font-bold">{errors.description.message}</p>}
         </div>
         <div className="md:col-span-6 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Geographic location</label>
+          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Geographic location</label>
           <div className="relative group">
             <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50 group-focus-within:text-primary transition-colors" />
             <Input
@@ -294,7 +294,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           </div>
         </div>
         <div className="md:col-span-6 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground uppercase ml-1 tracking-tight">Capital goal (NGN)</label>
+          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Capital goal (NGN)</label>
           <Controller
             control={control}
             name="targetAmount"
@@ -324,12 +324,12 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
           </div>
           <div>
             <h3 className="font-bold text-sm text-foreground leading-none">Visual Assets</h3>
-            <p className="text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Proof of impact media</p>
+            <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Proof of impact media</p>
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
           <div className="lg:col-span-5 space-y-3 min-w-0">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Primary hero asset</p>
+            <p className="text-[11px] font-bold text-muted-foreground  ml-1">Primary hero asset</p>
             {coverImage ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-sm group/img bg-muted">
                 <img src={coverImage} className="w-full h-full object-cover" alt="Cover" />
@@ -346,7 +346,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
             )}
           </div>
           <div className="lg:col-span-7 space-y-3 min-w-0">
-            <p className="text-[11px] font-bold text-muted-foreground uppercase ml-1">Project gallery ({gallery.length}/10)</p>
+            <p className="text-[11px] font-bold text-muted-foreground  ml-1">Project gallery ({gallery.length}/10)</p>
             <div className={cn(readOnly && "pointer-events-none opacity-90")}>
               <MediaManager
                 items={gallery as any}
@@ -372,7 +372,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground leading-none">Budget Ledger</h3>
-              <p className="text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Procurement plan</p>
+              <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Procurement plan</p>
             </div>
           </div>
           <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
@@ -387,7 +387,7 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground leading-none">Execution Roadmap</h3>
-              <p className="text-[11px] text-muted-foreground font-bold mt-1 uppercase tracking-tight">Milestone tracking</p>
+              <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Milestone tracking</p>
             </div>
           </div>
           <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />

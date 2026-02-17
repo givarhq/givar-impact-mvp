@@ -74,7 +74,7 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
                       </div>
                       <span
                         className={cn(
-                          "absolute top-9 whitespace-nowrap text-[11px] font-bold uppercase tracking-widest transition-colors",
+                          "absolute top-9 whitespace-nowrap text-[11px] font-bold  tracking-widest transition-colors",
                           isCurrent ? "text-primary" : "text-muted-foreground/60"
                         )}
                       >

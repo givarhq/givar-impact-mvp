@@ -144,7 +144,7 @@ export function AdminHeader({ user }: { user: any }) {
                   {isClient && avatarUrl ? (
                     <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                   ) : isClient && user?.firstName ? (
-                    <span className="font-semibold text-xs uppercase">
+                    <span className="font-semibold text-xs ">
                       {user.firstName[0]}
                     </span>
                   ) : (
