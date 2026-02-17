@@ -10,7 +10,8 @@ import {
     Check,
     ChevronRight,
     Inbox,
-    Zap
+    Zap,
+    Heart
 } from 'lucide-react';
 import {
     DropdownMenu,
@@ -28,8 +29,10 @@ import { cn } from '../../lib/utils/cn';
 const typeConfig: Record<string, { icon: any; color: string; bg: string }> = {
     MESSAGE: { icon: MessageSquare, color: 'text-blue-500', bg: 'bg-blue-50' },
     KYC_STATUS: { icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    PROJECT_STATUS: { icon: ShieldCheck, color: 'text-primary', bg: 'bg-primary/5' },
     PROPOSAL_STATUS: { icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50' },
     MILESTONE_ALERT: { icon: Clock, color: 'text-purple-500', bg: 'bg-purple-50' },
+    DONATION_RECEIVED: { icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50' },
     SYSTEM: { icon: Bell, color: 'text-zinc-500', bg: 'bg-zinc-50' },
 };
 
@@ -76,6 +79,17 @@ export function NotificationBell() {
         if (notification.link) {
             setIsOpen(false);
             router.push(notification.link);
+
+            // Logic: Ensure browser scrolls to precise anchor if navigation happens on the same route
+            if (notification.link.includes('#')) {
+                const hash = notification.link.split('#')[1];
+                setTimeout(() => {
+                    const element = document.getElementById(hash);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
+            }
         }
     };
 

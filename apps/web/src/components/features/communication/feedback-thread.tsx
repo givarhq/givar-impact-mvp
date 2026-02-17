@@ -84,7 +84,7 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
     };
 
     return (
-        <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[500px]">
+        <Card id="communication-thread" className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[500px] scroll-mt-24">
             <CardHeader className="bg-muted/30 border-b border-border/40 p-5 shrink-0">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
                     <MessageSquare className="h-4 w-4 text-primary" /> {title}
