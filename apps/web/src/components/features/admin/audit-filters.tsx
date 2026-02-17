@@ -45,6 +45,75 @@ export function AuditFilters() {
 
   const hasActiveFilters = search || action !== 'all' || startDate || endDate;
 
+  const ActionOptions = () => (
+    <>
+      <SelectItem value="all" className="text-xs">All actions</SelectItem>
+
+      <SelectGroup>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5">Identity and access</SelectLabel>
+        <SelectItem value="USER_LOGIN" className="text-xs">Login</SelectItem>
+        <SelectItem value="USER_LOGIN_FAILED" className="text-xs">Login failed</SelectItem>
+        <SelectItem value="USER_REGISTER" className="text-xs">Registration</SelectItem>
+        <SelectItem value="PASSWORD_CHANGE" className="text-xs">Password change</SelectItem>
+        <SelectItem value="PROFILE_UPDATED" className="text-xs">Profile updated</SelectItem>
+        <SelectItem value="AVATAR_UPDATED" className="text-xs">Avatar updated</SelectItem>
+        <SelectItem value="ACCOUNT_DELETED" className="text-xs">Account deleted</SelectItem>
+        <SelectItem value="USER_LOCKED" className="text-xs">User locked</SelectItem>
+        <SelectItem value="USER_UNLOCKED" className="text-xs">User unlocked</SelectItem>
+        <SelectItem value="USER_ROLE_CHANGED" className="text-xs">Role changed</SelectItem>
+        <SelectItem value="IMPERSONATION_STARTED" className="text-xs">Forensic proxy started</SelectItem>
+      </SelectGroup>
+
+      <SelectGroup>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5">Security (2FA)</SelectLabel>
+        <SelectItem value="TWO_FACTOR_GEN_SECRET" className="text-xs">2FA secret generated</SelectItem>
+        <SelectItem value="TWO_FACTOR_ENABLED" className="text-xs">2FA enabled</SelectItem>
+        <SelectItem value="TWO_FACTOR_DISABLED" className="text-xs">2FA disabled</SelectItem>
+        <SelectItem value="TWO_FACTOR_VERIFY_FAILED" className="text-xs">2FA verify failed</SelectItem>
+      </SelectGroup>
+
+      <SelectGroup>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5">Financial ledger</SelectLabel>
+        <SelectItem value="WALLET_FUND" className="text-xs">Wallet fund init</SelectItem>
+        <SelectItem value="WALLET_FUND_SUCCESS" className="text-xs">Wallet fund success</SelectItem>
+        <SelectItem value="WALLET_DEBIT" className="text-xs">Wallet debit</SelectItem>
+        <SelectItem value="DONATION_CREATED" className="text-xs">Donation created</SelectItem>
+        <SelectItem value="DIRECT_PAYMENT_INITIATED" className="text-xs">Direct pay init</SelectItem>
+        <SelectItem value="DIRECT_PAYMENT_FULFILLED" className="text-xs">Direct pay fulfilled</SelectItem>
+        <SelectItem value="RECONCILIATION_PERFORMED" className="text-xs">Manual reconciliation</SelectItem>
+        <SelectItem value="FUNDS_MOVED_TO_SUSPENSE" className="text-xs">Suspense entry</SelectItem>
+        <SelectItem value="FUNDS_REALLOCATED" className="text-xs">Funds reallocated</SelectItem>
+        <SelectItem value="DISBURSEMENT_RECORDED" className="text-xs">Disbursement recorded</SelectItem>
+        <SelectItem value="TRANSACTION_RESOLVED" className="text-xs">Transaction resolved</SelectItem>
+        <SelectItem value="RECEIPT_VIEWED" className="text-xs">Receipt viewed</SelectItem>
+      </SelectGroup>
+
+      <SelectGroup>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5">Projects and proposals</SelectLabel>
+        <SelectItem value="PROJECT_CREATED" className="text-xs">Project created</SelectItem>
+        <SelectItem value="PROJECT_UPDATED" className="text-xs">Project updated</SelectItem>
+        <SelectItem value="PROJECT_DELETED" className="text-xs">Project deleted</SelectItem>
+        <SelectItem value="PROJECT_SUSPENDED" className="text-xs">Project suspended</SelectItem>
+        <SelectItem value="PROPOSAL_REJECTED" className="text-xs">Proposal rejected</SelectItem>
+        <SelectItem value="MILESTONE_PROOF_SUBMITTED" className="text-xs">Proof submitted</SelectItem>
+        <SelectItem value="USER_VERIFIED" className="text-xs">Org KYC verified</SelectItem>
+        <SelectItem value="USER_REJECTED" className="text-xs">Org KYC rejected</SelectItem>
+        <SelectItem value="MESSAGE_SENT" className="text-xs">Message sent</SelectItem>
+      </SelectGroup>
+
+      <SelectGroup>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5">Discovery and system</SelectLabel>
+        <SelectItem value="RECOMMENDATION_CONFIG_UPDATED" className="text-xs">Algorithm update</SelectItem>
+        <SelectItem value="FEATURED_SLOT_CREATED" className="text-xs">Featured slot set</SelectItem>
+        <SelectItem value="FEATURED_SLOT_DELETED" className="text-xs">Featured slot removed</SelectItem>
+        <SelectItem value="CATEGORY_WEIGHT_UPDATED" className="text-xs">Sector weight update</SelectItem>
+        <SelectItem value="PROJECT_DISCOVERY_WEIGHTS_UPDATED" className="text-xs">Node weight update</SelectItem>
+        <SelectItem value="WEBHOOK_RECEIVED" className="text-xs">Webhook event</SelectItem>
+        <SelectItem value="WEBHOOK_SIGNATURE_FAILED" className="text-xs">Webhook signature failure</SelectItem>
+      </SelectGroup>
+    </>
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 relative min-h-[40px] w-full">
@@ -102,74 +171,11 @@ export function AuditFilters() {
               <SelectTrigger className="w-[180px] h-9 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
                 <div className="flex items-center gap-1.5 truncate">
                   <Filter className="h-3 w-3 shrink-0" />
-                  <SelectValue placeholder="Action Type" />
+                  <SelectValue placeholder="Action type" />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-3xl max-h-[400px]">
-                <SelectItem value="all" className="text-xs">All Actions</SelectItem>
-
-                <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Identity & Access</SelectLabel>
-                  <SelectItem value="USER_LOGIN" className="text-xs">Login</SelectItem>
-                  <SelectItem value="USER_LOGIN_FAILED" className="text-xs">Login Failed</SelectItem>
-                  <SelectItem value="USER_REGISTER" className="text-xs">Registration</SelectItem>
-                  <SelectItem value="PASSWORD_CHANGE" className="text-xs">Password Change</SelectItem>
-                  <SelectItem value="PROFILE_UPDATED" className="text-xs">Profile Updated</SelectItem>
-                  <SelectItem value="AVATAR_UPDATED" className="text-xs">Avatar Updated</SelectItem>
-                  <SelectItem value="ACCOUNT_DELETED" className="text-xs">Account Deleted</SelectItem>
-                  <SelectItem value="USER_LOCKED" className="text-xs">User Locked</SelectItem>
-                  <SelectItem value="USER_UNLOCKED" className="text-xs">User Unlocked</SelectItem>
-                  <SelectItem value="USER_ROLE_CHANGED" className="text-xs">Role Changed</SelectItem>
-                  <SelectItem value="IMPERSONATION_STARTED" className="text-xs">Forensic Proxy Started</SelectItem>
-                </SelectGroup>
-
-                <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Security (2FA)</SelectLabel>
-                  <SelectItem value="TWO_FACTOR_GEN_SECRET" className="text-xs">2FA Secret Generated</SelectItem>
-                  <SelectItem value="TWO_FACTOR_ENABLED" className="text-xs">2FA Enabled</SelectItem>
-                  <SelectItem value="TWO_FACTOR_DISABLED" className="text-xs">2FA Disabled</SelectItem>
-                  <SelectItem value="TWO_FACTOR_VERIFY_FAILED" className="text-xs">2FA Verify Failed</SelectItem>
-                </SelectGroup>
-
-                <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Financial Ledger</SelectLabel>
-                  <SelectItem value="WALLET_FUND" className="text-xs">Wallet Fund Init</SelectItem>
-                  <SelectItem value="WALLET_FUND_SUCCESS" className="text-xs">Wallet Fund Success</SelectItem>
-                  <SelectItem value="WALLET_DEBIT" className="text-xs">Wallet Debit</SelectItem>
-                  <SelectItem value="DONATION_CREATED" className="text-xs">Donation Created</SelectItem>
-                  <SelectItem value="DIRECT_PAYMENT_INITIATED" className="text-xs">Direct Pay Init</SelectItem>
-                  <SelectItem value="DIRECT_PAYMENT_FULFILLED" className="text-xs">Direct Pay Fulfilled</SelectItem>
-                  <SelectItem value="RECONCILIATION_PERFORMED" className="text-xs">Manual Reconciliation</SelectItem>
-                  <SelectItem value="FUNDS_MOVED_TO_SUSPENSE" className="text-xs">Suspense Entry</SelectItem>
-                  <SelectItem value="FUNDS_REALLOCATED" className="text-xs">Funds Reallocated</SelectItem>
-                  <SelectItem value="DISBURSEMENT_RECORDED" className="text-xs">Disbursement Recorded</SelectItem>
-                  <SelectItem value="TRANSACTION_RESOLVED" className="text-xs">Transaction Resolved</SelectItem>
-                  <SelectItem value="RECEIPT_VIEWED" className="text-xs">Receipt Viewed</SelectItem>
-                </SelectGroup>
-
-                <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Projects & Proposals</SelectLabel>
-                  <SelectItem value="PROJECT_CREATED" className="text-xs">Project Created</SelectItem>
-                  <SelectItem value="PROJECT_UPDATED" className="text-xs">Project Updated</SelectItem>
-                  <SelectItem value="PROJECT_DELETED" className="text-xs">Project Deleted</SelectItem>
-                  <SelectItem value="PROJECT_SUSPENDED" className="text-xs">Project Suspended</SelectItem>
-                  <SelectItem value="PROPOSAL_REJECTED" className="text-xs">Proposal Rejected</SelectItem>
-                  <SelectItem value="MILESTONE_PROOF_SUBMITTED" className="text-xs">Proof Submitted</SelectItem>
-                  <SelectItem value="USER_VERIFIED" className="text-xs">Org KYC Verified</SelectItem>
-                  <SelectItem value="USER_REJECTED" className="text-xs">Org KYC Rejected</SelectItem>
-                  <SelectItem value="MESSAGE_SENT" className="text-xs">Message Sent</SelectItem>
-                </SelectGroup>
-
-                <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Discovery & System</SelectLabel>
-                  <SelectItem value="RECOMMENDATION_CONFIG_UPDATED" className="text-xs">Algorithm Update</SelectItem>
-                  <SelectItem value="FEATURED_SLOT_CREATED" className="text-xs">Featured Slot Set</SelectItem>
-                  <SelectItem value="FEATURED_SLOT_DELETED" className="text-xs">Featured Slot Removed</SelectItem>
-                  <SelectItem value="CATEGORY_WEIGHT_UPDATED" className="text-xs">Sector Weight Update</SelectItem>
-                  <SelectItem value="PROJECT_DISCOVERY_WEIGHTS_UPDATED" className="text-xs">Node Weight Update</SelectItem>
-                  <SelectItem value="WEBHOOK_RECEIVED" className="text-xs">Webhook Event</SelectItem>
-                  <SelectItem value="WEBHOOK_SIGNATURE_FAILED" className="text-xs">Webhook Sig Failure</SelectItem>
-                </SelectGroup>
+              <SelectContent className="rounded-3xl max-h-[400px] overflow-y-auto">
+                <ActionOptions />
               </SelectContent>
             </Select>
 
@@ -220,16 +226,10 @@ export function AuditFilters() {
             <div className="flex gap-2">
               <Select value={action} onValueChange={setAction}>
                 <SelectTrigger className="flex-1 h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
-                  <SelectValue placeholder="Action Type" />
+                  <SelectValue placeholder="Action type" />
                 </SelectTrigger>
-                <SelectContent className="rounded-3xl max-h-[300px]">
-                  <SelectItem value="all">All Actions</SelectItem>
-                  {/* Logic: Flat list for mobile to avoid nested scroll complexity */}
-                  <SelectItem value="USER_LOGIN">Login</SelectItem>
-                  <SelectItem value="DONATION_CREATED">Donation</SelectItem>
-                  <SelectItem value="WALLET_FUND_SUCCESS">Wallet Fund</SelectItem>
-                  <SelectItem value="PROJECT_CREATED">Project Creation</SelectItem>
-                  <SelectItem value="USER_LOCKED">Account Lock</SelectItem>
+                <SelectContent className="rounded-3xl max-h-[350px] overflow-y-auto">
+                  <ActionOptions />
                 </SelectContent>
               </Select>
               {hasActiveFilters && (
