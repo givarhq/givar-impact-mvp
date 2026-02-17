@@ -109,7 +109,7 @@ export function AuditFilters() {
                 <SelectItem value="all" className="text-xs">All Actions</SelectItem>
 
                 <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary uppercase px-2 py-1.5">Identity & Access</SelectLabel>
+                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Identity & Access</SelectLabel>
                   <SelectItem value="USER_LOGIN" className="text-xs">Login</SelectItem>
                   <SelectItem value="USER_LOGIN_FAILED" className="text-xs">Login Failed</SelectItem>
                   <SelectItem value="USER_REGISTER" className="text-xs">Registration</SelectItem>
@@ -124,7 +124,7 @@ export function AuditFilters() {
                 </SelectGroup>
 
                 <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary uppercase px-2 py-1.5">Security (2FA)</SelectLabel>
+                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Security (2FA)</SelectLabel>
                   <SelectItem value="TWO_FACTOR_GEN_SECRET" className="text-xs">2FA Secret Generated</SelectItem>
                   <SelectItem value="TWO_FACTOR_ENABLED" className="text-xs">2FA Enabled</SelectItem>
                   <SelectItem value="TWO_FACTOR_DISABLED" className="text-xs">2FA Disabled</SelectItem>
@@ -132,7 +132,7 @@ export function AuditFilters() {
                 </SelectGroup>
 
                 <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary uppercase px-2 py-1.5">Financial Ledger</SelectLabel>
+                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Financial Ledger</SelectLabel>
                   <SelectItem value="WALLET_FUND" className="text-xs">Wallet Fund Init</SelectItem>
                   <SelectItem value="WALLET_FUND_SUCCESS" className="text-xs">Wallet Fund Success</SelectItem>
                   <SelectItem value="WALLET_DEBIT" className="text-xs">Wallet Debit</SelectItem>
@@ -148,7 +148,7 @@ export function AuditFilters() {
                 </SelectGroup>
 
                 <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary uppercase px-2 py-1.5">Projects & Proposals</SelectLabel>
+                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Projects & Proposals</SelectLabel>
                   <SelectItem value="PROJECT_CREATED" className="text-xs">Project Created</SelectItem>
                   <SelectItem value="PROJECT_UPDATED" className="text-xs">Project Updated</SelectItem>
                   <SelectItem value="PROJECT_DELETED" className="text-xs">Project Deleted</SelectItem>
@@ -161,7 +161,7 @@ export function AuditFilters() {
                 </SelectGroup>
 
                 <SelectGroup>
-                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary uppercase px-2 py-1.5">Discovery & System</SelectLabel>
+                  <SelectLabel className="text-[10px] font-black tracking-widest text-primary  px-2 py-1.5">Discovery & System</SelectLabel>
                   <SelectItem value="RECOMMENDATION_CONFIG_UPDATED" className="text-xs">Algorithm Update</SelectItem>
                   <SelectItem value="FEATURED_SLOT_CREATED" className="text-xs">Featured Slot Set</SelectItem>
                   <SelectItem value="FEATURED_SLOT_DELETED" className="text-xs">Featured Slot Removed</SelectItem>
