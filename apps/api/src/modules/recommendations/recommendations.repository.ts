@@ -22,12 +22,13 @@ export class RecommendationsRepository {
         return this.prisma.project.findMany({
             where: {
                 isActive: true,
-                // Accept any status for now to ensure we see data
                 status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] },
             },
             select: {
                 id: true,
                 status: true,
+                raisedAmount: true,
+                targetAmount: true,
                 categoryId: true,
                 createdAt: true,
                 featureWeight: true,

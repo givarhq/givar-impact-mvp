@@ -185,17 +185,23 @@ export class RecommendationsService {
 
         if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
+        // Logic: If toggle is OFF, exclude anything with a final status OR where raised >= target.
         const filteredCandidates = config.showFundedProjects
             ? projects
-            : projects.filter(p => p.status === ProjectStatus.ACTIVE);
+            : projects.filter(p => {
+                const isStatusActive = p.status === ProjectStatus.ACTIVE;
+                const isMathIncomplete = BigInt(p.raisedAmount) < BigInt(p.targetAmount);
+                return isStatusActive && isMathIncomplete;
+            });
 
         if (filteredCandidates.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-        const projectIds = projects.map((p) => p.id);
+        const projectIds = filteredCandidates.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
         const slots = await this.repo.getFeaturedSlots();
 
-        const scored: ScoredItem[] = projects.map((p: any) => ({
+        // Ensure we only use filtered candidates for the scoring map
+        const scored: ScoredItem[] = filteredCandidates.map((p: any) => ({
             id: p.id,
             categoryId: p.categoryId || 'none',
             score: this.ranking.calculateScore({
@@ -213,20 +219,24 @@ export class RecommendationsService {
         if (options.userId) {
             try {
                 const affinity = await this.repo.getUserAffinity(options.userId);
-                processed = this.personalization.apply(scored, affinity, projects);
+                processed = this.personalization.apply(scored, affinity, filteredCandidates);
             } catch (err) {
-                this.logger.error(`Personalization logic failed for user ${options.userId}`, err);
+                this.logger.error(`Personalization failed`, err);
             }
         }
 
         const sorted = [...processed].sort((a, b) => b.score - a.score);
         const diversified = this.diversity.enforce(sorted, config.diversityLimit || 3);
+
+        // Final Security Filter: Ensure manually pinned items are also subject to the global visibility toggle
+        const validSlots = slots.filter(s => filteredCandidates.some(c => c.id === s.projectId));
+
         const finalOrder = this.overrides.apply(
             diversified,
-            slots.map(s => ({ projectId: s.projectId, position: s.position }))
+            validSlots.map(s => ({ projectId: s.projectId, position: s.position }))
         );
 
-        // --- Metadata Calculation ---
+        // --- Hydration ---
         const total = finalOrder.length;
         const lastPage = Math.ceil(total / options.limit);
         const startIndex = (options.page - 1) * options.limit;
@@ -240,6 +250,7 @@ export class RecommendationsService {
             }
         });
 
+        // Use topIds to preserve the ranking order
         const orderedHydrated = topIds
             .map(id => hydratedProjects.find(p => p.id === id))
             .filter((p): p is NonNullable<typeof p> => !!p);
@@ -261,14 +272,7 @@ export class RecommendationsService {
             };
         }));
 
-        return {
-            data,
-            meta: {
-                total,
-                page: options.page,
-                lastPage
-            }
-        };
+        return { data, meta: { total, page: options.page, lastPage } };
     }
 
     private async getInternalConfig() {
