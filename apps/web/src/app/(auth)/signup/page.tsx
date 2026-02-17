@@ -10,7 +10,7 @@ import { setCookie } from 'cookies-next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
-import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, UserPlus } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
 
 const signupSchema = z.object({
@@ -19,7 +19,7 @@ const signupSchema = z.object({
   email: z.string().email('Provide a valid email address'),
   password: z.string()
     .min(8, 'Minimum 8 characters')
-    .regex(/[A-Z]/, 'Require one ')
+    .regex(/[A-Z]/, 'Require one uppercase letter')
     .regex(/[0-9]/, 'Require one digit'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -60,8 +60,11 @@ export default function SignupPage() {
     try {
       const response = await ApiService.auth.signup({ ...data, defaultCurrency: 'NGN' });
       const { accessToken, user } = response;
-      setCookie('givar_token', accessToken, { maxAge: 604800, path: '/' });
-      setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
+
+      const cookieOptions = { maxAge: 604800, path: '/', sameSite: 'lax' as const };
+      setCookie('givar_token', accessToken, cookieOptions);
+      setCookie('givar_user', JSON.stringify(user), cookieOptions);
+
       router.push('/dashboard');
     } catch (error: any) {
       const message = error.response?.data?.message;
@@ -185,7 +188,6 @@ export default function SignupPage() {
       </form>
 
       <div className="space-y-6 min-w-0">
-
         <div className="text-center min-w-0">
           <p className="text-sm font-medium text-muted-foreground">
             Already have an account?{' '}

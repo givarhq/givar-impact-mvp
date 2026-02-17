@@ -79,9 +79,10 @@ export const ApiService = {
       // 2. If no token, it's a client-side call using the instance interceptor
       const res = await apiClient.get('/auth/me');
 
-      // 3. Synchronize fresh profile state to client cookies for real-time UI updates
+      // 3. Synchronize fresh profile state to client cookies with 7-day persistence
       if (typeof window !== 'undefined') {
-        setCookie('givar_user', JSON.stringify(res.data), { maxAge: 604800, path: '/' });
+        const cookieOptions = { maxAge: 604800, path: '/', sameSite: 'lax' as const };
+        setCookie('givar_user', JSON.stringify(res.data), cookieOptions);
       }
 
       return res.data;

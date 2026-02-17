@@ -10,7 +10,7 @@ import { setCookie } from 'cookies-next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
-import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowLeft, Lock } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowLeft } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
 
 const loginSchema = z.object({
@@ -58,8 +58,11 @@ function LoginComponent() {
       }
 
       const { accessToken, user } = response;
-      setCookie('givar_token', accessToken, { maxAge: 604800, path: '/' });
-      setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
+
+      // Persistence logic: 7 days (604800 seconds)
+      const cookieOptions = { maxAge: 604800, path: '/', sameSite: 'lax' as const };
+      setCookie('givar_token', accessToken, cookieOptions);
+      setCookie('givar_user', JSON.stringify(user), cookieOptions);
 
       const redirectPath = searchParams.get('redirect');
       if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
@@ -181,15 +184,14 @@ function LoginComponent() {
           </Button>
 
           {isMfaStep && (
-            <Button
+            <button
               type="button"
-              variant="ghost"
-              className="w-full h-10 rounded-3xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all"
+              className="w-full h-10 rounded-3xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
               onClick={() => { setIsMfaStep(false); setServerError(null); }}
               disabled={isLoading}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" /> Use different account
-            </Button>
+              <ArrowLeft className="h-4 w-4" /> Use different account
+            </button>
           )}
         </div>
       </form>
