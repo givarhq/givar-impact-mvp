@@ -13,7 +13,6 @@ import {
   Building,
   MoreHorizontal,
   BarChart3,
-  Binoculars
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import {
@@ -36,7 +35,6 @@ const ALL_NAV_ITEMS = [
   { title: 'Ledger', href: '/admin/ledger', icon: Database },
   { title: 'Audit', href: '/admin/audit', icon: ShieldAlert },
   { title: 'Treasury', href: '/admin/finances', icon: BarChart3 },
-  { title: 'Visiblity', href: '/admin/visibility', icon: Binoculars },
 ];
 
 export function AdminMobileNav({ user }: { user: any }) {

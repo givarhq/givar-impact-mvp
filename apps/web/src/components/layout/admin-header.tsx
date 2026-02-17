@@ -38,7 +38,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/organizations': 'Organizations',
   '/admin/settings': 'System Settings',
   '/admin/finances': 'Treasury Intelligence',
-  '/admin/visibility': 'Visibility Control'
 };
 
 export function AdminHeader({ user }: { user: any }) {

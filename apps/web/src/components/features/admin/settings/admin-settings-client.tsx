@@ -7,16 +7,21 @@ import {
     Shield,
     Bell,
     ChevronRight,
-    ChevronLeft
+    ChevronLeft,
+    Zap
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../ui/tabs';
 import { ProfileForm } from '../../settings/profile-form';
 import { PreferencesForm } from '../../settings/preferences-form';
 import { AdminSecuritySection } from './admin-security-section';
+import { VisibilityControlClient } from '../visibility/visibility-control-client';
 import { cn } from '../../../../lib/utils/cn';
 
 interface AdminSettingsClientProps {
     user: any;
+    initialConfig: any;
+    initialSlots: any[];
+    categories: any[];
 }
 
 const ADMIN_SETTINGS_OPTIONS = [
@@ -29,6 +34,14 @@ const ADMIN_SETTINGS_OPTIONS = [
         description: 'Update root profile details and avatar.'
     },
     {
+        id: 'discovery',
+        label: 'Discovery Engine',
+        icon: Zap,
+        color: 'text-primary',
+        bg: 'bg-primary/10',
+        description: 'Algorithm weights and carousel pin management.'
+    },
+    {
         id: 'security',
         label: 'Access Control',
         icon: Shield,
@@ -38,7 +51,7 @@ const ADMIN_SETTINGS_OPTIONS = [
     },
     {
         id: 'notifications',
-        label: 'System Alerts',
+        label: 'System Alerts & Preferences',
         icon: Bell,
         color: 'text-amber-500',
         bg: 'bg-amber-500/10',
@@ -46,7 +59,7 @@ const ADMIN_SETTINGS_OPTIONS = [
     }
 ];
 
-export function AdminSettingsClient({ user }: AdminSettingsClientProps) {
+export function AdminSettingsClient({ user, initialConfig, initialSlots, categories }: AdminSettingsClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -67,29 +80,38 @@ export function AdminSettingsClient({ user }: AdminSettingsClientProps) {
 
     return (
         <div className="w-full max-w-full overflow-hidden">
-            {/* Desktop Navigation */}
+            {/* Desktop navigation */}
             <div className="hidden md:block">
                 <Tabs
                     value={effectiveTab}
                     onValueChange={handleTabChange}
                     className="w-full space-y-6"
                 >
-                    <TabsList className="bg-muted/50 p-1 rounded-3xl h-11 w-fit border border-border/40 shadow-inner">
-                        {ADMIN_SETTINGS_OPTIONS.map((opt) => (
-                            <TabsTrigger
-                                key={opt.id}
-                                value={opt.id}
-                                className="rounded-3xl px-6 gap-2.5 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm active:scale-95"
-                            >
-                                <opt.icon className="h-3.5 w-3.5" />
-                                {opt.label}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
+                    <div className="overflow-x-auto no-scrollbar pb-1">
+                        <TabsList className="bg-muted/50 p-1 rounded-3xl h-11 w-fit border border-border/40 shadow-inner inline-flex">
+                            {ADMIN_SETTINGS_OPTIONS.map((opt) => (
+                                <TabsTrigger
+                                    key={opt.id}
+                                    value={opt.id}
+                                    className="rounded-3xl px-6 gap-2.5 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm active:scale-95 whitespace-nowrap"
+                                >
+                                    <opt.icon className="h-3.5 w-3.5" />
+                                    {opt.label}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </div>
 
                     <div className="relative">
                         <TabsContent value="identity" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <ProfileForm user={user} />
+                        </TabsContent>
+                        <TabsContent value="discovery" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+                            <VisibilityControlClient
+                                initialConfig={initialConfig}
+                                initialSlots={initialSlots}
+                                categories={categories}
+                            />
                         </TabsContent>
                         <TabsContent value="security" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <AdminSecuritySection user={user} />
@@ -101,7 +123,7 @@ export function AdminSettingsClient({ user }: AdminSettingsClientProps) {
                 </Tabs>
             </div>
 
-            {/* Mobile Navigation */}
+            {/* Mobile navigation */}
             <div className="md:hidden w-full">
                 {!activeTab ? (
                     <div className="grid gap-2 animate-in fade-in duration-300 w-full">
@@ -141,6 +163,13 @@ export function AdminSettingsClient({ user }: AdminSettingsClientProps) {
 
                         <div className="pt-1 w-full">
                             {activeTab === 'identity' && <ProfileForm user={user} />}
+                            {activeTab === 'discovery' && (
+                                <VisibilityControlClient
+                                    initialConfig={initialConfig}
+                                    initialSlots={initialSlots}
+                                    categories={categories}
+                                />
+                            )}
                             {activeTab === 'security' && <AdminSecuritySection user={user} />}
                             {activeTab === 'notifications' && <PreferencesForm user={user} />}
                         </div>

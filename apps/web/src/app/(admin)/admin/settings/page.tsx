@@ -5,7 +5,7 @@ import { AdminSettingsClient } from '../../../../components/features/admin/setti
 
 export const metadata = {
     title: 'System settings',
-    description: 'Configure administrative identity, security protocols, and system preferences.',
+    description: 'Configure administrative identity, security protocols, and discovery engine weights.',
 };
 
 export default async function AdminSettingsPage() {
@@ -16,21 +16,41 @@ export default async function AdminSettingsPage() {
         redirect('/login');
     }
 
-    const user = await ApiService.auth.getMe(token);
+    // Parallel fetch: Identity + Security + Discovery Engine Data
+    const [user, config, slots, categories] = await Promise.all([
+        ApiService.auth.getMe(token),
+        ApiService.admin.getConfig(token),
+        ApiService.admin.getSlots(token),
+        ApiService.projects.getCategories(token)
+    ]);
 
     if (!user || !['ADMIN', 'SUPERADMIN'].includes(user.role)) {
         redirect('/dashboard');
     }
 
+    const defaultConfig = {
+        id: 'default',
+        recencyWeight: 1.0,
+        velocityWeight: 1.5,
+        engagementWeight: 1.0,
+        adminWeight: 2.0,
+        diversityLimit: 3,
+        showFundedProjects: false
+    };
+
     return (
         <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
-            {/* Mobile page title */}
             <div className="px-1 md:hidden">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Account Settings</h1>
+                <h1 className="text-xl font-bold tracking-tight text-foreground">Account settings</h1>
             </div>
 
             <div className="w-full min-w-0">
-                <AdminSettingsClient user={user} />
+                <AdminSettingsClient
+                    user={user}
+                    initialConfig={config || defaultConfig}
+                    initialSlots={slots || []}
+                    categories={categories || []}
+                />
             </div>
         </div>
     );

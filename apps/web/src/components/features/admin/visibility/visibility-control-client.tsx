@@ -6,7 +6,8 @@ import {
     Zap, Trash2, Plus,
     Loader2, Save, ShieldCheck, RefreshCw,
     SlidersHorizontal, LayoutGrid,
-    TrendingUp
+    TrendingUp,
+    CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Button } from '../../../ui/button';
@@ -45,7 +46,6 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
         setIsSaving(true);
         const toastId = toast.loading("Updating discovery algorithm...");
         try {
-            // Unified Update: Commits both global weights and sector multipliers
             await Promise.all([
                 ApiService.admin.updateConfig(config),
                 ...Object.entries(categoryWeights).map(([id, weight]) =>
@@ -94,45 +94,44 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        <div className="space-y-6 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {/* DISCOVERY CONTROL COLUMN */}
+                {/* Discovery control column */}
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
-                                        <SlidersHorizontal className="h-4 w-4 text-primary" /> Discovery Variables
+                                        <SlidersHorizontal className="h-4 w-4 text-primary" /> Discovery variables
                                     </CardTitle>
-                                    <p className="text-xs text-muted-foreground font-medium">Algorithmic Weights and Scaling</p>
+                                    <p className="text-xs text-muted-foreground font-medium">Algorithmic weights and scaling</p>
                                 </div>
-                                <Badge variant="outline" className="rounded-3xl font-mono text-[10px] bg-background border-border/60">v2.2</Badge>
                             </div>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8 space-y-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
                                 <WeightSlider
-                                    label="Recency Decay"
+                                    label="Recency decay"
                                     desc="Priority for newer causes"
                                     value={config.recencyWeight}
                                     onChange={(v) => setConfig({ ...config, recencyWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
-                                    label="Donation Velocity"
+                                    label="Donation velocity"
                                     desc="Priority for high frequency"
                                     value={config.velocityWeight}
                                     onChange={(v) => setConfig({ ...config, velocityWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
-                                    label="Engagement Signal"
+                                    label="Engagement signal"
                                     desc="Social interaction weight"
                                     value={config.engagementWeight}
                                     onChange={(v) => setConfig({ ...config, engagementWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
-                                    label="Admin Weight"
+                                    label="Admin weight"
                                     desc="Manual priority multiplier"
                                     value={config.adminWeight}
                                     onChange={(v) => setConfig({ ...config, adminWeight: parseFloat(v) })}
@@ -146,7 +145,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                             <ShieldCheck className="h-5 w-5" />
                                         </div>
                                         <div className="space-y-0.5">
-                                            <h4 className="text-sm font-bold text-foreground">Funded Visibility</h4>
+                                            <h4 className="text-sm font-bold text-foreground">Funded visibility</h4>
                                             <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
                                                 Show completed projects in the user discovery feed.
                                             </p>
@@ -174,7 +173,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                             <LayoutGrid className="h-5 w-5" />
                                         </div>
                                         <div className="space-y-0.5">
-                                            <h4 className="text-sm font-bold text-foreground">Diversity Constraint</h4>
+                                            <h4 className="text-sm font-bold text-foreground">Diversity constraint</h4>
                                             <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
                                                 Maximum projects per category in results.
                                             </p>
@@ -200,12 +199,11 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                         </CardContent>
                     </Card>
 
-                    {/* SECTOR PRIORITIZATION */}
                     <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
                             <div className="space-y-0.5">
                                 <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
-                                    <TrendingUp className="h-4 w-4 text-primary" /> Sector Prioritization
+                                    <TrendingUp className="h-4 w-4 text-primary" /> Sector prioritization
                                 </CardTitle>
                                 <p className="text-xs text-muted-foreground font-medium">Global multipliers for impact categories</p>
                             </div>
@@ -217,14 +215,12 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                         key={cat.id}
                                         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-2xl bg-muted/10 border border-border/40 group hover:border-primary/20 transition-all"
                                     >
-                                        {/* Category Name */}
                                         <div className="flex-1">
                                             <p className="text-sm font-bold text-foreground leading-snug break-words">
                                                 {cat.name}
                                             </p>
                                         </div>
 
-                                        {/* Slider + Value */}
                                         <div className="flex items-center gap-4 w-full md:w-56">
                                             <input
                                                 type="range"
@@ -253,7 +249,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                     <div className="p-5 rounded-[32px] bg-primary/5 border border-dashed border-primary/20 flex items-start gap-3 shadow-sm">
                         <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                         <div className="space-y-1">
-                            <p className="text-xs font-bold text-primary  tracking-tight">Consensus Sync</p>
+                            <p className="text-xs font-bold text-primary  tracking-tight">Consensus sync</p>
                             <p className="text-xs text-primary/70 font-medium leading-relaxed">
                                 Committing changes will recalculate the discovery score for all causes. Pinned positions remain locked.
                             </p>
@@ -266,29 +262,27 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                         className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                     >
                         {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                        Commit Discovery Logic
+                        Commit discovery logic
                     </Button>
                 </div>
 
-                {/* CAROUSEL PINS COLUMN */}
+                {/* Carousel pins column */}
                 <div className="lg:col-span-5 space-y-6">
                     <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden h-full flex flex-col">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
                                     <CardTitle className="text-base font-bold flex items-center gap-2 text-foreground">
-                                        <Zap className="h-4 w-4 text-amber-500" /> Carousel Pins
+                                        <Zap className="h-4 w-4 text-amber-500" /> Carousel pins
                                     </CardTitle>
-                                    <p className="text-xs text-muted-foreground font-medium">Manual Position Control</p>
+                                    <p className="text-xs text-muted-foreground font-medium">Manual position control</p>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 rounded-xl"
+                                <button
+                                    className="h-8 w-8 rounded-xl flex items-center justify-center hover:bg-muted transition-all text-muted-foreground"
                                     onClick={() => router.refresh()}
                                 >
-                                    <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
-                                </Button>
+                                    <RefreshCw className="h-3.5 w-3.5" />
+                                </button>
                             </div>
                         </CardHeader>
                         <CardContent className="p-0 flex-1">
@@ -304,7 +298,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                                 <div className="min-w-0 space-y-0.5">
                                                     {slot ? (
                                                         <>
-                                                            <p className="text-sm font-bold text-foreground truncate">{slot.project?.title || 'Unknown Project'}</p>
+                                                            <p className="text-sm font-bold text-foreground truncate">{slot.project?.title || 'Unknown project'}</p>
                                                             <div className="flex items-center gap-2">
                                                                 <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-bold h-4 px-2 rounded-3xl">PINNED</Badge>
                                                                 <span className="text-[10px] text-muted-foreground font-mono">#{slot.projectId.split('-')[0]}</span>
