@@ -1062,9 +1062,6 @@ export class DonationService {
       let resultType: string;
 
       if (userId !== 'GUEST') {
-        // --- CASE A: Registered User ---
-        // We attach the suspense record to their actual wallet.
-        // Ideally, we might just credit them, but for "Suspense" tracking we flag it.
         const wallet = await tx.wallet.upsert({
           where: { userId_currency: { userId, currency } },
           update: {},
@@ -1077,7 +1074,7 @@ export class DonationService {
             amount,
             currency,
             type: TxType.CREDIT,
-            status: TxStatus.SUSPENSE, // Flagged for admin review
+            status: TxStatus.SUSPENSE,
             reference,
             description: `SUSPENSE: Donation for closed project (${projectTitle || 'Unknown'})`,
             metadata: { originalProjectId: projectId, reason: 'PROJECT_CLOSED' }
@@ -1088,13 +1085,8 @@ export class DonationService {
         resultType = 'WalletTransaction';
 
       } else {
-        // --- CASE B: Guest ---
-        // We find/create the GuestDonor identity just like a normal donation,
-        // but mark the specific donation record as SUSPENSE.
-
         const normalizedEmail = guestEmail.toLowerCase().trim();
 
-        // 1. Identity
         const guestDonor = await tx.guestDonor.upsert({
           where: { email: normalizedEmail },
           update: { lastDonated: new Date() },
@@ -1104,7 +1096,6 @@ export class DonationService {
           }
         });
 
-        // 2. Ledger Record (Suspense)
         const guestSuspense = await tx.guestDonation.create({
           data: {
             guestDonorId: guestDonor.id,
@@ -1121,7 +1112,24 @@ export class DonationService {
         resultType = 'GuestDonation';
       }
 
-      // --- Audit Log ---
+      // Logic: Fetch all Administrative Nodes for In-App Notification
+      const admins = await tx.user.findMany({
+        where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+        select: { id: true }
+      });
+
+      if (admins.length > 0) {
+        await tx.notification.createMany({
+          data: admins.map(admin => ({
+            userId: admin.id,
+            type: 'SYSTEM' as NotificationType,
+            title: 'Orphaned funds detected',
+            content: `₦${(Number(amount) / 100).toLocaleString()} hit the suspense ledger (Ref: ${reference.slice(0, 8)}).`,
+            link: '/admin/ledger'
+          }))
+        });
+      }
+
       await this.audit.log({
         userId: userId !== 'GUEST' ? userId : undefined,
         action: AuditAction.FUNDS_MOVED_TO_SUSPENSE,
@@ -1136,6 +1144,16 @@ export class DonationService {
       }, tx);
 
       return { status: 'moved_to_suspense', reference };
+    }).then(async (result) => {
+      // Logic: Trigger External Email Broadcast (Async)
+      this.emailService.sendAdminSuspenseAlert({
+        amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+        currency,
+        reference,
+        reason: projectTitle ? `Donation to closed project: ${projectTitle}` : 'Unknown destination project'
+      }).catch(err => this.logger.error(`Admin Suspense Email Failed: ${err.message}`));
+
+      return result;
     });
   }
 

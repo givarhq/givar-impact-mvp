@@ -416,4 +416,23 @@ export const EmailTemplates = {
       <a href="${data.url}" class="button" style="background-color: #111827;">Reply to Owner</a>
     </div>
   `,
+
+  adminSuspenseAlert: (data: { adminName: string; amount: string; currency: string; reference: string; reason: string; url: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p><strong>CRITICAL:</strong> Orphaned capital has been detected and moved to the Suspense Ledger.</p>
+    
+    <div class="stat-box" style="background-color: #fff7ed; border: 1px solid #ffedd5;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #c2410c; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Unallocated Amount</div>
+      <div style="font-size: 28px; font-weight: 800; color: #9a3412;">${data.currency} ${data.amount}</div>
+      <div style="height: 1px; background-color: #fed7aa; margin: 16px 0;"></div>
+      <p style="margin: 0; font-size: 13px; color: #9a3412;"><strong>Reason:</strong> ${data.reason}</p>
+      <p style="margin: 4px 0 0 0; font-size: 12px; color: #9a3412; font-family: monospace;">Ref: ${data.reference}</p>
+    </div>
+
+    <p>This capital is currently sitting in a non-impact node. Manual intervention is required to either refund the donor or reallocate the funds to an active cause.</p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #c2410c;">Open Suspense Queue</a>
+    </div>
+  `,
 };

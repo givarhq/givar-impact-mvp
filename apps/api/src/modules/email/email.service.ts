@@ -314,4 +314,28 @@ export class EmailService {
       })
     );
   }
+
+  //20. Broadcasts to all admins when funds hit the Suspense Ledger.
+  async sendAdminSuspenseAlert(data: { amount: string; currency: string; reference: string; reason: string }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    const url = `${this.config.get('FRONTEND_URL')}/admin/ledger`;
+
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminSuspenseAlert({
+          adminName: admin.firstName,
+          amount: data.amount,
+          currency: data.currency,
+          reference: data.reference,
+          reason: data.reason,
+          url
+        });
+        return this.send(admin.email, `Ledger Alert: Orphaned Capital Detected`, EmailTemplates.base(content, 'Suspense Ledger Entry'));
+      })
+    );
+  }
 }
