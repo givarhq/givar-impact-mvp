@@ -7,7 +7,7 @@ import { AdminOverrideEngine } from './admin-override.engine';
 import { PrismaService } from '../../common/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { AuditService } from '../audit/audit.service';
-import { AuditAction } from '@givar/database';
+import { AuditAction, ProjectStatus } from '@givar/database';
 
 @Injectable()
 export class RecommendationsService {

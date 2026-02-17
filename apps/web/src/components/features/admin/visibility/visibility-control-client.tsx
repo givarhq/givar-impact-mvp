@@ -148,7 +148,7 @@ export function VisibilityControlClient({ initialConfig, initialSlots, categorie
                                         <div className="space-y-0.5">
                                             <h4 className="text-sm font-bold text-foreground">Funded Visibility</h4>
                                             <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
-                                                Show completed project nodes in the user discovery feed.
+                                                Show completed projects in the user discovery feed.
                                             </p>
                                         </div>
                                     </div>

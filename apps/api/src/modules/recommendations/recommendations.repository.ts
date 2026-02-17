@@ -27,6 +27,7 @@ export class RecommendationsRepository {
             },
             select: {
                 id: true,
+                status: true,
                 categoryId: true,
                 createdAt: true,
                 featureWeight: true,
