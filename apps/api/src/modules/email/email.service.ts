@@ -245,4 +245,73 @@ export class EmailService {
       })
     );
   }
+
+  // 17. Broadcasts to all admins when a new project is proposed.
+  async sendAdminProposalAlert(data: { projectTitle: string; proposerName: string; proposalId: string }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    const url = `${this.config.get('FRONTEND_URL')}/admin/proposals/${data.proposalId}`;
+
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminProposalSubmitted({
+          adminName: admin.firstName,
+          projectTitle: data.projectTitle,
+          proposerName: data.proposerName,
+          url
+        });
+        return this.send(admin.email, `Review Required: ${data.projectTitle}`, EmailTemplates.base(content, 'New Project Proposal'));
+      })
+    );
+  }
+
+  // 18. Broadcasts to all admins when an entity submits KYC for the first time or updates it.
+  async sendAdminKycAlert(data: { orgName: string; proposerName: string }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    const url = `${this.config.get('FRONTEND_URL')}/admin/verifications?tab=orgs`;
+
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminKycSubmitted({
+          adminName: admin.firstName,
+          orgName: data.orgName,
+          proposerName: data.proposerName,
+          url
+        });
+        return this.send(admin.email, `KYC Audit Required: ${data.orgName}`, EmailTemplates.base(content, 'New Organization Verification'));
+      })
+    );
+  }
+
+  // 19. Alerts admins when a project owner replies to a thread.
+  async sendAdminMessageAlert(data: { senderName: string; projectTitle: string; content: string; contextId: string; isProposal: boolean }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    const url = data.isProposal
+      ? `${this.config.get('FRONTEND_URL')}/admin/proposals/${data.contextId}`
+      : `${this.config.get('FRONTEND_URL')}/admin/projects/${data.contextId}/edit`;
+
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminNewMessage({
+          adminName: admin.firstName,
+          senderName: data.senderName,
+          projectTitle: data.projectTitle,
+          content: data.content,
+          url
+        });
+        return this.send(admin.email, `New Message: ${data.projectTitle}`, EmailTemplates.base(content, 'Inquiry from Project Owner'));
+      })
+    );
+  }
 }

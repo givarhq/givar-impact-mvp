@@ -370,4 +370,50 @@ export const EmailTemplates = {
 
     <p style="font-size: 13px; color: #6b7280;">This is an automated administrative alert from the Givar compliance system.</p>
   `,
+
+  adminProposalSubmitted: (data: { adminName: string; projectTitle: string; proposerName: string; url: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p>A new project proposal, <strong>"${data.projectTitle}"</strong>, has been submitted by <strong>${data.proposerName}</strong> and is awaiting technical vetting.</p>
+    
+    <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #0369a1; margin-bottom: 8px; font-weight: 700;">Action Required</p>
+      <p style="font-size: 15px; color: #0c4a6e; line-height: 1.6; margin: 0; font-weight: 600;">
+        Review the budget ledger, execution roadmap, and risk assessment to authorize this cause for the public feed.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #0369a1;">Review Proposal</a>
+    </div>
+    <p style="font-size: 13px; color: #6b7280;">This is an automated administrative alert from the Givar Compliance Node.</p>
+  `,
+
+  adminKycSubmitted: (data: { adminName: string; orgName: string; proposerName: string; url: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p><strong>${data.proposerName}</strong> has submitted legal documentation for the organization: <strong>"${data.orgName}"</strong>.</p>
+    
+    <div class="stat-box" style="background-color: #faf5ff; border: 1px solid #e9d5ff;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #7e22ce; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Compliance Check</div>
+      <p style="font-size: 14px; color: #581c87; margin: 0; font-weight: 600;">Verify incorporation documents and registration IDs to grant ORGANIZER status.</p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #7e22ce;">Open Verification Queue</a>
+    </div>
+  `,
+
+  adminNewMessage: (data: { adminName: string; senderName: string; projectTitle: string; content: string; url: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p>You have a new message from <strong>${data.senderName}</strong> regarding the project: <strong>"${data.projectTitle}"</strong>.</p>
+    
+    <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 13px; color: #111827; line-height: 1.6; margin: 0; font-style: italic;">
+        "${data.content}"
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #111827;">Reply to Owner</a>
+    </div>
+  `,
 };
