@@ -338,4 +338,24 @@ export class EmailService {
       })
     );
   }
+
+  // 21. Broadcasts to all admins when a high-capital transaction is attempted/blocked.
+  async sendAdminHighCapitalAlert(data: { userEmail: string; amount: string; currency: string }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminHighCapitalIntent({
+          adminName: admin.firstName,
+          userEmail: data.userEmail,
+          amount: data.amount,
+          currency: data.currency
+        });
+        return this.send(admin.email, `High-Value Intent: ${data.userEmail}`, EmailTemplates.base(content, 'Institutional Lead Detected'));
+      })
+    );
+  }
 }

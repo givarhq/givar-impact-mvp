@@ -75,6 +75,21 @@ export class WalletService {
       );
     }
 
+    const amountBig = BigInt(amount);
+
+    // Logic: Intercept High-Capital Intent for Admin Notification
+    if (amountBig > this.MAX_AMOUNT_MINOR) {
+      this.emailService.sendAdminHighCapitalAlert({
+        userEmail: email,
+        amount: (Number(amountBig) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+        currency: currency
+      }).catch(err => this.logger.error(`High Capital Alert Failed: ${err.message}`));
+
+      throw new BadRequestException(
+        'Transaction exceeds high-capital threshold (₦100m). Please split the deposit or contact Givar support for institutional onboarding.'
+      );
+    }
+
     const amountInMinor = this.toPaystackAmount(amount);
 
     try {

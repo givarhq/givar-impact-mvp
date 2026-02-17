@@ -435,4 +435,22 @@ export const EmailTemplates = {
       <a href="${data.url}" class="button" style="background-color: #c2410c;">Open Suspense Queue</a>
     </div>
   `,
+
+  adminHighCapitalIntent: (data: { adminName: string; userEmail: string; amount: string; currency: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p><strong>Institutional Intent Detected:</strong> A user has attempted a high-value wallet deposit that exceeds the standard threshold.</p>
+    
+    <div class="stat-box" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #0369a1; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Attempted Amount</div>
+      <div style="font-size: 28px; font-weight: 800; color: #075985;">${data.currency} ${data.amount}</div>
+      <div style="height: 1px; background-color: #e0f2fe; margin: 16px 0;"></div>
+      <p style="margin: 0; font-size: 13px; color: #075985;"><strong>Potential Lead:</strong> ${data.userEmail}</p>
+    </div>
+
+    <p>The transaction was automatically blocked by the ledger safety nodes. This represents a significant opportunity for institutional onboarding and manual verification.</p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="mailto:${data.userEmail}" class="button" style="background-color: #0369a1;">Contact Potential Donor</a>
+    </div>
+  `,
 };
