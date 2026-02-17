@@ -139,7 +139,7 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
             </CardContent>
 
             <div className="p-4 bg-background border-t border-border/40 shrink-0">
-                <div className="flex items-end gap-2">
+                <div className="flex items-center gap-2">
                     <Textarea
                         id="message-input"
                         placeholder="Write a message..."
@@ -159,12 +159,12 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
                         type="button"
                         disabled={!newMessage.trim() || isSending}
                         onClick={handleSend}
-                        className="h-[40px] w-[40px] shrink-0 rounded-xl shadow-md transition-all active:scale-95"
+                        className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all active:scale-95 p-0 flex items-center justify-center"
                     >
                         {isSending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                            <Send className="h-4 w-4" />
+                            <Send className="h-4 w-4 ml-0.5" />
                         )}
                     </Button>
                 </div>
