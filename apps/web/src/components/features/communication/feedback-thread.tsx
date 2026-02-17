@@ -139,11 +139,11 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
             </CardContent>
 
             <div className="p-4 bg-background border-t border-border/40 shrink-0">
-                <div className="relative flex items-end gap-2">
+                <div className="flex items-end gap-2">
                     <Textarea
                         id="message-input"
                         placeholder="Write a message..."
-                        className="min-h-[44px] max-h-[120px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-xs resize-none pr-12 py-3"
+                        className="min-h-[40px] max-h-[140px] text-xs"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         disabled={isSending}
@@ -154,25 +154,28 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
                             }
                         }}
                     />
+
                     <Button
-                        size="icon"
+                        type="button"
                         disabled={!newMessage.trim() || isSending}
                         onClick={handleSend}
-                        className="absolute right-1.5 bottom-1.5 h-8 w-8 rounded-xl shadow-md transition-all active:scale-95"
+                        className="h-[40px] w-[40px] shrink-0 rounded-xl shadow-md transition-all active:scale-95"
                     >
                         {isSending ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                            <Send className="h-3.5 w-3.5" />
+                            <Send className="h-4 w-4" />
                         )}
                     </Button>
                 </div>
+
                 <div className="mt-3 px-1">
                     <p className="text-[9px] text-muted-foreground leading-relaxed italic">
                         Your conversation is saved as part of the permanent project history.
                     </p>
                 </div>
             </div>
+
         </Card>
     );
 }
