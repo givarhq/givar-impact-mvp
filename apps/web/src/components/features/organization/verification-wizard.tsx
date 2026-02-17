@@ -49,7 +49,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
     }
 
     setIsUploading(true);
-    const toastId = toast.loading("Securing document...");
+    const toastId = toast.loading("Saving document...");
     try {
       const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
         fileType: file.type,
@@ -63,7 +63,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
       });
 
       setDocKeys(prev => [...prev, key]);
-      toast.success('Document uploaded', { id: toastId });
+      toast.success('File uploaded', { id: toastId });
     } catch (error) {
       toast.error('File upload failed', { id: toastId });
     } finally {
@@ -77,11 +77,11 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
 
   const handleSubmit = async () => {
     if (!legalName.trim() || docKeys.length === 0) {
-      return toast.error('Entity name and at least one document are required');
+      return toast.error('Organization name and at least one document are required');
     }
 
     setIsLoading(true);
-    const toastId = toast.loading("Updating identity...");
+    const toastId = toast.loading("Sending details...");
     try {
       await ApiService.organizations.submitKyc({
         legalName: legalName.trim(),
@@ -89,7 +89,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
         documentKeys: docKeys,
       });
 
-      toast.success('Identity updated', { id: toastId });
+      toast.success('Details sent', { id: toastId });
       router.refresh();
     } catch (error) {
       toast.error('Update failed', { id: toastId });
@@ -113,11 +113,11 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
             <div className="space-y-1">
               <h2 className="text-xl font-bold tracking-tight text-foreground">Organization verified</h2>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto font-medium">
-                Your account is a recognized high-trust entity. Your causes carry the verified badge to build donor confidence.
+                Your account is a recognized and trusted partner. Your causes carry the verified badge to build donor confidence.
               </p>
             </div>
             <div className="inline-flex flex-col items-center p-6 rounded-3xl bg-card border border-primary/10 shadow-sm min-w-[280px]">
-              <p className="text-[11px] font-bold  tracking-widest text-muted-foreground mb-3">Certified node identity</p>
+              <p className="text-[11px] font-bold  tracking-widest text-muted-foreground mb-3">Verified organization identity</p>
               <p className="text-lg font-bold text-foreground tracking-tight">{initialProfile?.legalName}</p>
               {initialProfile?.registrationNumber && (
                 <p className="text-xs text-primary font-mono mt-1.5 font-bold">
@@ -144,14 +144,14 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               <Clock className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">Audit in progress</h2>
+              <h2 className="text-xl font-bold tracking-tight text-foreground">Review in progress</h2>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed font-medium">
-                Our compliance nodes are currently reviewing your organizational documents. This typically resolves within 24-48 business hours.
+                Our team is currently reviewing your organization's documents. This usually takes about 24 to 48 hours.
               </p>
             </div>
             <div className="pt-2">
               <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[11px]  tracking-wider">
-                Under forensic review
+                Being checked
               </Badge>
             </div>
           </CardContent>
@@ -170,9 +170,9 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
         <div className="p-4 rounded-3xl bg-destructive/5 border border-destructive/10 flex items-start gap-3 shadow-sm">
           <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="text-xs font-bold text-destructive  tracking-wider">Verification rejected</p>
+            <p className="text-xs font-bold text-destructive  tracking-wider">Not approved</p>
             <p className="text-xs text-foreground/80 leading-relaxed font-medium italic">
-              &quot;{initialProfile?.adminFeedback || "Your documents could not be verified. Please review the requirements and re-submit."}&quot;
+              &quot;{initialProfile?.adminFeedback || "Your documents could not be confirmed. Please check the requirements and try again."}&quot;
             </p>
           </div>
         </div>
@@ -186,8 +186,8 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
                 <Building2 className="h-4.5 w-4.5" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-bold text-sm text-foreground">Entity Identification</h3>
-                <p className="text-xs text-muted-foreground font-medium">Core registration data for your organization.</p>
+                <h3 className="font-bold text-sm text-foreground">Organization Information</h3>
+                <p className="text-xs text-muted-foreground font-medium">Basic details for your organization.</p>
               </div>
             </div>
 
@@ -217,15 +217,15 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
                 <FileText className="h-4.5 w-4.5" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-bold text-sm text-foreground">Proof of Incorporation</h3>
-                <p className="text-xs text-muted-foreground font-medium">Upload government-issued identity documents.</p>
+                <h3 className="font-bold text-sm text-foreground">Official Documents</h3>
+                <p className="text-xs text-muted-foreground font-medium">Upload your business or non-profit papers.</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                  Upload official documents like Certificate of Incorporation. These are stored on encrypted forensic paths.
+                  Upload official documents like your Certificate of Incorporation. These are kept safe and private.
                 </p>
                 <label className={cn(
                   "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border/60 rounded-3xl cursor-pointer bg-muted/10 hover:bg-muted/20 transition-all",
@@ -238,7 +238,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
                       <UploadCloud className="h-6 w-6 text-muted-foreground" />
                     )}
                     <p className="mt-2 text-xs font-bold text-muted-foreground">
-                      {isUploading ? 'Securing...' : 'Upload proof'}
+                      {isUploading ? 'Uploading...' : 'Upload file'}
                     </p>
                   </div>
                   <input type="file" className="hidden" accept="application/pdf,image/*" onChange={handleFileUpload} disabled={isUploading || isLoading} />
@@ -246,7 +246,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-bold  tracking-widest text-muted-foreground ml-1">Asset ledger</p>
+                <p className="text-[11px] font-bold  tracking-widest text-muted-foreground ml-1">Your documents</p>
                 {docKeys.length === 0 ? (
                   <div className="h-32 rounded-3xl border border-dashed border-border/60 flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/5">
                     <Fingerprint className="h-6 w-6 mb-1.5" />
@@ -261,7 +261,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
                             <FileText className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
-                            <span className="text-xs font-bold text-foreground truncate block">Proof {i + 1}</span>
+                            <span className="text-xs font-bold text-foreground truncate block">Document {i + 1}</span>
                             <span className="text-[11px] font-mono text-muted-foreground opacity-60">ref: {key.slice(-12)}</span>
                           </div>
                         </div>
@@ -281,7 +281,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
       <div className="p-4 rounded-3xl bg-muted/20 border border-dashed border-border/60 flex items-start gap-3">
         <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-          By submitting, you affirm that the provided details are accurate. Misrepresentation of identity is a violation of the Givar protocol and will lead to permanent node exclusion.
+          By submitting, you confirm that these details are correct. Providing false information goes against Givar guidelines and may result in your account being removed.
         </p>
       </div>
 
@@ -292,7 +292,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
           className="h-12 rounded-3xl px-8 font-bold text-sm tracking-widest shadow-sm active:scale-[0.98] transition-all gap-2"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Request verification
+          Submit for review
         </Button>
       </div>
     </motion.div>
