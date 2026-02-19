@@ -1,14 +1,14 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Search, X, Filter, LayoutGrid } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Button } from '../../ui/button';
 import { cn } from '../../../lib/utils/cn';
 
-export function AdminProposalFilters({ categories }: { categories: any[] }) {
+export const AdminProposalFilters = memo(function AdminProposalFilters({ categories }: { categories: any[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -48,11 +48,10 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
             Proposals
           </h1>
 
-          {/* Desktop Search */}
           <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Search proposer or title..."
+              placeholder="Search Proposer Or Title..."
               className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -82,7 +81,7 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all" className="text-xs">All status</SelectItem>
+                <SelectItem value="all" className="text-xs">All Status</SelectItem>
                 <SelectItem value="SUBMITTED" className="text-xs">Submitted</SelectItem>
                 <SelectItem value="UNDER_REVIEW" className="text-xs">Review</SelectItem>
                 <SelectItem value="CHANGES_REQUESTED" className="text-xs">Edits</SelectItem>
@@ -97,7 +96,7 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all" className="text-xs">All categories</SelectItem>
+                <SelectItem value="all" className="text-xs">All Categories</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat.id} value={cat.slug} className="text-xs">{cat.name}</SelectItem>
                 ))}
@@ -130,7 +129,7 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all">All status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="SUBMITTED">Submitted</SelectItem>
                 <SelectItem value="UNDER_REVIEW">Review</SelectItem>
                 <SelectItem value="CHANGES_REQUESTED">Edits</SelectItem>
@@ -141,7 +140,7 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
                 ))}
@@ -150,11 +149,11 @@ export function AdminProposalFilters({ categories }: { categories: any[] }) {
           </div>
           {(search || status !== 'all' || category !== 'all') && (
             <Button variant="outline" onClick={clearFilters} className="w-full h-9 rounded-3xl border-border/60 text-xs font-bold">
-              Reset filters
+              Reset Filters
             </Button>
           )}
         </div>
       )}
     </div>
   );
-}
+});

@@ -1,14 +1,14 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Search, Filter, X, LayoutGrid } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Button } from '../../ui/button';
 import { cn } from '../../../lib/utils/cn';
 
-export function AdminProjectFilters({ categories, activeTab }: { categories: any[], activeTab: string }) {
+export const AdminProjectFilters = memo(function AdminProjectFilters({ categories, activeTab }: { categories: any[], activeTab: string }) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -55,7 +55,7 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
                     <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
-                            placeholder="Search title or location..."
+                            placeholder="Search Title Or Location..."
                             className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -86,7 +86,7 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent className="rounded-3xl">
-                                    <SelectItem value="all" className="text-xs">All status</SelectItem>
+                                    <SelectItem value="all" className="text-xs">All Status</SelectItem>
                                     {activeTab === 'live' ? (
                                         <>
                                             <SelectItem value="ACTIVE" className="text-xs">Active</SelectItem>
@@ -114,7 +114,7 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
                                 </div>
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all" className="text-xs">All categories</SelectItem>
+                                <SelectItem value="all" className="text-xs">All Categories</SelectItem>
                                 {categories.map(cat => (
                                     <SelectItem key={cat.id} value={cat.id} className="text-xs">{cat.name}</SelectItem>
                                 ))}
@@ -148,7 +148,7 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
                                     <SelectValue placeholder="Status" />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-3xl">
-                                    <SelectItem value="all">All status</SelectItem>
+                                    <SelectItem value="all">All Status</SelectItem>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
                                     <SelectItem value="FUNDED">Funded</SelectItem>
                                 </SelectContent>
@@ -159,7 +159,7 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
                                 <SelectValue placeholder="Category" />
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all">All categories</SelectItem>
+                                <SelectItem value="all">All Categories</SelectItem>
                                 {categories.map(cat => (
                                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                 ))}
@@ -168,11 +168,11 @@ export function AdminProjectFilters({ categories, activeTab }: { categories: any
                     </div>
                     {(search || (showStatusFilter && status !== 'all') || categoryId !== 'all') && (
                         <Button variant="outline" onClick={clearFilters} className="w-full h-9 rounded-3xl border-border/60 text-xs font-bold">
-                            Reset filters
+                            Reset Filters
                         </Button>
                     )}
                 </div>
             )}
         </div>
     );
-}
+});
