@@ -38,7 +38,7 @@ export function AboutContent() {
                         </p>
                     </div>
                 </div>
-                <div className="bg-muted/30 border border-border/50 rounded-[40px] p-8 md:p-12 relative overflow-hidden group">
+                <div className="bg-muted/30 border border-border/50 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-10 -mt-10" />
                     <div className="relative z-10 space-y-6">
                         <div className="h-12 w-12 rounded-2xl bg-background flex items-center justify-center shadow-xl border border-border/50 transition-transform group-hover:scale-110 duration-500">

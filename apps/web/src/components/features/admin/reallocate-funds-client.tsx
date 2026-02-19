@@ -347,7 +347,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {filteredProjects.length === 0 ? (
-                                <div className="col-span-full py-24 text-center border-2 border-dashed border-border/40 rounded-[40px] bg-muted/10">
+                                <div className="col-span-full py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/10">
                                     <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-4" />
                                     <p className="font-black text-muted-foreground tracking-widest text-[11px] ">No Matching Project Nodes Identified</p>
                                 </div>
@@ -396,7 +396,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     </div>
 
                     <div className="hidden lg:block lg:col-span-4 sticky top-24">
-                        <Card className="rounded-[40px] border-border/40 bg-card shadow-2xl overflow-hidden flex flex-col h-[calc(100vh-140px)] border-2">
+                        <Card className="rounded-3xl border-border/40 bg-card shadow-2xl overflow-hidden flex flex-col h-[calc(100vh-140px)] border-2">
                             {LedgerContent}
                         </Card>
                     </div>

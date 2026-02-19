@@ -99,7 +99,7 @@ export const AdminSecuritySection = memo(function AdminSecuritySection({ user }:
             </Card>
 
             <Dialog open={showSetup} onOpenChange={setShowSetup}>
-                <DialogContent className="rounded-[40px] p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md">
+                <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md">
                     <div className="p-8 md:p-10 space-y-8">
                         <div className="text-center space-y-2">
                             <div className="h-14 w-14 bg-primary/10 text-primary rounded-[22px] flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">

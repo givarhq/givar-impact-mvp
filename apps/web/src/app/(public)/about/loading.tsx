@@ -23,7 +23,7 @@ export default function AboutLoading() {
                         <Skeleton className="h-4 w-5/6" />
                     </div>
                 </div>
-                <Skeleton className="h-64 w-full rounded-[40px]" />
+                <Skeleton className="h-64 w-full rounded-3xl" />
             </section>
 
             {/* Values Grid Skeleton */}

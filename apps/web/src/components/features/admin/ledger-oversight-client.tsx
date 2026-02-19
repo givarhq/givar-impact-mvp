@@ -175,7 +175,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                         {suspenseItems.length === 0 ? (
                             <motion.div
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                                className="py-24 text-center border-2 border-dashed border-border/60 rounded-[40px] bg-card/30 backdrop-blur-sm"
+                                className="py-24 text-center border-2 border-dashed border-border/60 rounded-3xl bg-card/30 backdrop-blur-sm"
                             >
                                 <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-[32px] flex items-center justify-center mx-auto mb-6 ring-8 ring-emerald-500/[0.03] shadow-inner">
                                     <CheckCircle2 className="h-10 w-10" />

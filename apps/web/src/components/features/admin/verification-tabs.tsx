@@ -112,7 +112,7 @@ export const VerificationTabs = memo(function VerificationTabs({ orgs, evidence 
 
 function EmptyPlaceholder({ title, subtitle }: { title: string, subtitle: string }) {
     return (
-        <Card className="border-dashed border-2 border-border/40 bg-muted/5 py-24 flex flex-col items-center justify-center text-center rounded-[40px]">
+        <Card className="border-dashed border-2 border-border/40 bg-muted/5 py-24 flex flex-col items-center justify-center text-center rounded-3xl">
             <Inbox className="h-12 w-12 text-muted-foreground opacity-20 mb-4" />
             <h3 className="text-sm font-bold text-foreground opacity-60 tracking-tight ">{title}</h3>
             <p className="text-xs text-muted-foreground mt-1.5 font-medium max-w-[280px]">{subtitle}</p>

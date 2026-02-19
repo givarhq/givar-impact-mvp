@@ -3,7 +3,7 @@ import { Skeleton } from '../../../components/ui/skeleton';
 export default function CallbackLoading() {
     return (
         <div className="min-h-[80vh] flex items-center justify-center p-6">
-            <div className="w-full max-w-[440px] border border-border/40 shadow-2xl rounded-[40px] bg-card/50 backdrop-blur-2xl p-8 md:p-12 space-y-10 text-center">
+            <div className="w-full max-w-[440px] border border-border/40 shadow-2xl rounded-3xl bg-card/50 backdrop-blur-2xl p-8 md:p-12 space-y-10 text-center">
                 <div className="space-y-6 py-10 flex flex-col items-center">
                     <div className="relative h-16 w-16">
                         <Skeleton className="h-16 w-16 rounded-full" />

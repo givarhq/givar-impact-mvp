@@ -41,7 +41,7 @@ export default async function NotFound() {
 
                 {/* 404 Graphic */}
                 <div className="relative inline-block">
-                    <div className="h-32 w-32 bg-muted/50 rounded-[40px] flex items-center justify-center border border-border/50 shadow-inner relative overflow-hidden">
+                    <div className="h-32 w-32 bg-muted/50 rounded-3xl flex items-center justify-center border border-border/50 shadow-inner relative overflow-hidden">
                         <Compass className="h-16 w-16 text-primary/20 animate-[spin_10s_linear_infinite]" />
                         <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-4xl font-black text-foreground tracking-tighter">404</span>

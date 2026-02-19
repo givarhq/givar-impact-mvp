@@ -105,7 +105,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
 
                 {/* Main Settings Column */}
                 <div className="lg:col-span-7 space-y-6">
-                    <Card className="rounded-[40px] border-border/40 bg-card shadow-sm overflow-hidden border-2">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden border-2">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="space-y-1">
                                 <CardTitle className="text-base font-bold flex items-center gap-3 text-foreground tracking-tight">
@@ -203,7 +203,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-[40px] border-border/40 bg-card shadow-sm overflow-hidden">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="space-y-1">
                                 <CardTitle className="text-base font-bold flex items-center gap-3 text-foreground tracking-tight">
@@ -262,7 +262,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
 
                 {/* Highlights Sidebar */}
                 <div className="lg:col-span-5 space-y-6">
-                    <Card className="rounded-[40px] border-border/40 bg-card shadow-sm overflow-hidden h-full flex flex-col border-2">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-full flex flex-col border-2">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">

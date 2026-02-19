@@ -224,7 +224,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
       {/* Identity Section */}
       <section className={cn(
-        "grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-10 bg-card rounded-[40px] border transition-all duration-500 relative group overflow-hidden shadow-sm",
+        "grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-10 bg-card rounded-3xl border transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 ring-4 ring-primary/5"
       )}>
         <div className="md:col-span-12 flex items-center gap-4 mb-4">
@@ -330,7 +330,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
       {/* Visual Assets Section */}
       <section className={cn(
-        "bg-card p-6 md:p-10 rounded-[40px] border shadow-sm space-y-8 transition-all duration-500 relative group overflow-hidden",
+        "bg-card p-6 md:p-10 rounded-3xl border shadow-sm space-y-8 transition-all duration-500 relative group overflow-hidden",
         readOnly ? "border-border/40" : "border-primary/30 ring-4 ring-primary/5"
       )}>
         <div className="flex items-center gap-4">
@@ -384,7 +384,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       {/* Financial and Strategic Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         <Card className={cn(
-          "p-6 md:p-10 bg-card rounded-[40px] border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
+          "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
           readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
         )}>
           <div className="flex items-center gap-4">
@@ -400,7 +400,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </Card>
 
         <Card className={cn(
-          "p-6 md:p-10 bg-card rounded-[40px] border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
+          "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
           readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
         )}>
           <div className="flex items-center gap-4">
