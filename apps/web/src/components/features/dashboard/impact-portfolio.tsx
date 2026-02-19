@@ -1,11 +1,11 @@
 'use client';
 
-import React, { memo } from 'react';
 import Link from 'next/link';
 import { ArrowRight, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { motion, AnimatePresence } from 'framer-motion';
+import { memo } from 'react';
 
 interface PortfolioItem {
     id: string;
@@ -26,7 +26,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
     if (items.length === 0) return null;
 
     return (
-        <Card className="flex flex-col overflow-hidden border-border/40 rounded-3xl bg-card shadow-sm">
+        <Card className="flex flex-col overflow-hidden border-border/40 rounded-3xl bg-card shadow-sm h-full">
             <CardHeader className="p-5 pb-2">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -42,8 +42,8 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                 </div>
             </CardHeader>
 
-            <div className="p-2 space-y-1">
-                <AnimatePresence mode="popLayout">
+            <div className="p-2 space-y-1 overflow-y-auto no-scrollbar max-h-[300px]">
+                <AnimatePresence>
                     {items.map((item, index) => {
                         const raised = Number(item.project.raisedAmount);
                         const target = Number(item.project.targetAmount);
@@ -55,7 +55,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                                 key={item.id}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.2, delay: index * 0.03 }}
+                                transition={{ delay: index * 0.05 }}
                             >
                                 <Link
                                     href={`/dashboard/impact/${item.project.slug}`}
@@ -63,6 +63,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                                 >
                                     <div className="relative overflow-hidden rounded-3xl hover:bg-muted/40 p-3 transition-all duration-200">
                                         <div className="flex items-center gap-4">
+                                            {/* Compact Thumbnail */}
                                             <div className="h-11 w-11 rounded-3xl bg-muted overflow-hidden shrink-0 border border-border/50 relative">
                                                 {item.project.imageUrl ? (
                                                     <img src={item.project.imageUrl} alt="" className="h-full w-full object-cover" />
@@ -76,6 +77,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                                                 )}
                                             </div>
 
+                                            {/* Details */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-center mb-0.5">
                                                     <h4 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
