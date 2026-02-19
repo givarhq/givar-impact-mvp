@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Download, Loader2, Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '../../ui/input';
@@ -17,6 +17,7 @@ import { Pagination } from './pagination';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface HistoryClientProps {
   initialData: {
@@ -29,7 +30,7 @@ interface HistoryClientProps {
   };
 }
 
-export function HistoryClient({ initialData }: HistoryClientProps) {
+export const HistoryClient = memo(function HistoryClient({ initialData }: HistoryClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -102,6 +103,7 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
 
   const handleExport = async () => {
     setIsExporting(true);
+    const toastId = toast.loading('Preparing Your Impact Record Export...');
     try {
       const params = new URLSearchParams(searchParams);
       params.delete('page');
@@ -111,14 +113,14 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `givar-history-${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `Givar-Impact-History-${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-      toast.success('Forensic ledger exported');
+      toast.success('Your History Record Is Ready', { id: toastId });
     } catch (error) {
-      toast.error('Export failed');
+      toast.error('We Couldn\'t Export Your Records At This Time', { id: toastId });
     } finally {
       setIsExporting(false);
     }
@@ -128,18 +130,16 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
 
   return (
     <div className="space-y-6 md:space-y-8 w-full min-w-0 animate-in fade-in duration-500">
-      {/* Header & Global Filters Row */}
       <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <h1 className="md:hidden text-xl font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">
-            History
+            Transaction History
           </h1>
 
-          {/* Desktop Search Integration */}
           <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
             <Input
-              placeholder="Search reference or description..."
+              placeholder="Search Reference Or Description..."
               className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-11 w-full placeholder:text-muted-foreground/50 font-medium"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -163,12 +163,12 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
           <div className="hidden md:flex items-center gap-2">
             <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
               <SelectTrigger className="w-[130px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
-                <SelectValue placeholder="Type" />
+                <SelectValue placeholder="Transaction Type" />
               </SelectTrigger>
               <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All types</SelectItem>
-                <SelectItem value="CREDIT" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Credit</SelectItem>
-                <SelectItem value="DEBIT" className="text-xs font-bold rounded-2xl py-2 text-rose-600">Debit</SelectItem>
+                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All Types</SelectItem>
+                <SelectItem value="CREDIT" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Credit Records</SelectItem>
+                <SelectItem value="DEBIT" className="text-xs font-bold rounded-2xl py-2 text-rose-600">Debit Records</SelectItem>
               </SelectContent>
             </Select>
 
@@ -176,11 +176,11 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
               <SelectTrigger className="w-[140px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
                 <div className="flex items-center gap-2 truncate">
                   <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder="Record Status" />
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All status</SelectItem>
+                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All Status</SelectItem>
                 <SelectItem value="COMPLETED" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Completed</SelectItem>
                 <SelectItem value="PENDING" className="text-xs font-bold rounded-2xl py-2 text-amber-600">Pending</SelectItem>
               </SelectContent>
@@ -191,72 +191,77 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
               size="sm"
               onClick={handleExport}
               disabled={isExporting}
-              className="h-11 px-6 rounded-3xl border-border/60 font-bold text-xs  tracking-widest gap-2 bg-transparent hover:bg-muted transition-all"
+              className="h-11 px-6 rounded-3xl border-border/60 font-bold text-xs tracking-widest gap-2 bg-transparent hover:bg-muted transition-all"
             >
               {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-              Export
+              Export CSV
             </Button>
 
             {hasActiveFilters && (
               <Button variant="ghost" onClick={clearFilters} className="h-11 px-4 rounded-3xl text-muted-foreground text-xs font-bold hover:text-primary transition-colors">
-                Reset
+                Reset Filters
               </Button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Mobile Expanded Filters */}
-      {isMobileSearchVisible && (
-        <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300 w-full min-w-0">
-          <div className="relative group min-w-0">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
-            <Input
-              placeholder="Search history..."
-              className="pl-11 h-12 rounded-3xl bg-muted/30 border-border/40 focus:bg-background focus:border-primary/20 text-sm font-medium"
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-3 min-w-0">
-            <div className="grid grid-cols-2 gap-3">
-              <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
-                <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent className="rounded-3xl">
-                  <SelectItem value="all">All types</SelectItem>
-                  <SelectItem value="CREDIT">Credit</SelectItem>
-                  <SelectItem value="DEBIT">Debit</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
-                <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="rounded-3xl">
-                  <SelectItem value="all">All status</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                </SelectContent>
-              </Select>
+      <AnimatePresence>
+        {isMobileSearchVisible && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden space-y-4 overflow-hidden w-full min-w-0"
+          >
+            <div className="relative group min-w-0">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
+              <Input
+                placeholder="Search Your History..."
+                className="pl-11 h-12 rounded-3xl bg-muted/30 border-border/40 focus:bg-background focus:border-primary/20 text-sm font-medium"
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+              />
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-12 rounded-3xl border-border/60 font-bold text-xs  tracking-widest gap-2 flex-1 bg-background">
-                {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-                CSV export
-              </Button>
-              {hasActiveFilters && (
-                <Button variant="ghost" onClick={clearFilters} className="h-12 rounded-3xl font-bold text-xs  tracking-widest flex-1 border border-transparent">
-                  Reset
+            <div className="flex flex-col gap-3 min-w-0">
+              <div className="grid grid-cols-2 gap-3">
+                <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
+                  <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-3xl">
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="CREDIT">Credit</SelectItem>
+                    <SelectItem value="DEBIT">Debit</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
+                  <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-3xl">
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-12 rounded-3xl border-border/60 font-bold text-xs tracking-widest gap-2 flex-1 bg-background active:scale-95 transition-all">
+                  {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                  Export CSV
                 </Button>
-              )}
+                {hasActiveFilters && (
+                  <Button variant="ghost" onClick={clearFilters} className="h-12 rounded-3xl font-bold text-xs tracking-widest flex-1 border border-transparent active:scale-95 transition-all">
+                    Reset
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Ledger Records Container */}
       <div className="space-y-6 w-full min-w-0 overflow-hidden">
         <HistoryTable
           transactions={initialData.data}
@@ -274,4 +279,4 @@ export function HistoryClient({ initialData }: HistoryClientProps) {
       </div>
     </div>
   );
-}
+});

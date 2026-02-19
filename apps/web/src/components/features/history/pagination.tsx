@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '../../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,7 +10,7 @@ interface PaginationProps {
   totalPages: number;
 }
 
-export function Pagination({ currentPage, totalPages }: PaginationProps) {
+export const Pagination = memo(function Pagination({ currentPage, totalPages }: PaginationProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -27,30 +28,30 @@ export function Pagination({ currentPage, totalPages }: PaginationProps) {
   return (
     <div className="flex items-center justify-between pt-4 border-t border-border/40">
       <div className="text-xs font-medium text-muted-foreground">
-        Page <span className="text-foreground font-bold">{currentPage}</span> of <span className="text-foreground font-bold">{totalPages}</span>
+        Page <span className="text-foreground font-bold tabular-nums">{currentPage}</span> Of <span className="text-foreground font-bold tabular-nums">{totalPages}</span>
       </div>
 
-      <div className="flex gap-1.5">
+      <div className="flex gap-2">
         <Button
           size="sm"
           variant="outline"
-          className="rounded-3xl h-8 px-4 text-xs font-bold border-border/60 bg-transparent hover:bg-muted"
+          className="rounded-3xl h-9 px-5 text-xs font-bold border-border/60 bg-transparent hover:bg-muted transition-all active:scale-95"
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage <= 1}
         >
-          <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Previous
+          <ChevronLeft className="h-4 w-4 mr-1.5" /> Previous
         </Button>
 
         <Button
           size="sm"
           variant="outline"
-          className="rounded-3xl h-8 px-4 text-xs font-bold border-border/60 bg-transparent hover:bg-muted"
+          className="rounded-3xl h-9 px-5 text-xs font-bold border-border/60 bg-transparent hover:bg-muted transition-all active:scale-95"
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage >= totalPages}
         >
-          Next <ChevronRight className="h-3.5 w-3.5 ml-1" />
+          Next <ChevronRight className="h-4 w-4 ml-1.5" />
         </Button>
       </div>
     </div>
   );
-}
+});
