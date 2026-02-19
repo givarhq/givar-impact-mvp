@@ -10,50 +10,45 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const publicPaths = ['/', '/login', '/signup', '/about', '/explore'];
+  // Logic: Strict homepage match to avoid catching subpaths
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path) && (path === '/' ? pathname.length === 1 : true));
 
-  // 1. If user is logged in...
+  // 1. Authenticated Logic
   if (token) {
     let userRole = 'USER';
-    try {
-      if (userCookie) {
-        // Decode to handle potentially URI encoded cookies
+    if (userCookie) {
+      try {
         const user = JSON.parse(decodeURIComponent(userCookie));
         userRole = user.role;
-      }
-    } catch (e) {
-      // Fallback if cookie is malformed
+      } catch (e) { /* ignore malformed */ }
     }
 
-    // Fixed logic: Respect viewMode for both ADMIN and SUPERADMIN roles.
-    // This allows elevated accounts to use the "Giver Mode" perspective.
+    // Logic: Respect viewMode for both ADMIN and SUPERADMIN roles.
     const shouldBeInAdminEnv =
       (userRole === 'ADMIN' || userRole === 'SUPERADMIN') &&
       viewMode !== 'USER' &&
       !isImpersonating;
 
-    // If an admin-level user is on a public page, redirect them to their home panel.
+    // Redirect to respective home panels if on public landing pages
     if (isPublicPath) {
       const target = shouldBeInAdminEnv ? '/admin' : '/dashboard';
       return NextResponse.redirect(new URL(target, request.url));
     }
 
-    // If an admin-level user tries to access the user dashboard while in Admin Mode, force them to Admin.
+    // Forced context switching for Admin vs Giver perspectives
     if (pathname.startsWith('/dashboard') && shouldBeInAdminEnv) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
 
-    // If any user tries to access an admin route while in User Mode or without permissions, redirect to dashboard.
     if (pathname.startsWith('/admin') && !shouldBeInAdminEnv) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
 
-  // 2. If user is NOT logged in...
+  // 2. Unauthenticated Logic
   if (!token) {
     const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin');
     if (isProtectedRoute) {
-      // Redirect to login, but remember where they were trying to go.
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('redirect', pathname);
       return NextResponse.redirect(loginUrl);
@@ -64,7 +59,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Logic: Exclude all static assets and API routes from middleware processing to minimize TTFB
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)',
   ],
 };

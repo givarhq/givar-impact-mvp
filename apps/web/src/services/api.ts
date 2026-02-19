@@ -5,10 +5,15 @@ import { setCookie } from 'cookies-next';
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_V1 = `${BASE_URL}/v1`;
 
+/**
+ * Enhanced Server Fetch
+ * Logic: Implements Next.js Cache Tags and granular revalidation.
+ * This allows "Instant" navigation by serving cached results from the edge.
+ */
 async function serverFetch<T>(
   endpoint: string,
   token?: string,
-  options: RequestInit = {}
+  options: RequestInit & { tags?: string[] } = {}
 ): Promise<T | null> {
   const sanitizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const fullUrl = `${API_V1}${sanitizedEndpoint}`;
@@ -23,10 +28,16 @@ async function serverFetch<T>(
   }
 
   try {
+    const { tags, ...fetchOptions } = options;
+
     const res = await fetch(fullUrl, {
-      ...options,
+      ...fetchOptions,
       headers: baseHeaders,
-      cache: 'no-store',
+      // Logic: Use Next.js Data Cache with specific invalidation tags
+      next: {
+        tags: tags || [],
+        revalidate: options.next?.revalidate ?? 3600 // Default 1 hour for public data
+      },
       signal: AbortSignal.timeout(30000),
     });
 
@@ -43,7 +54,7 @@ async function serverFetch<T>(
 
   } catch (error) {
     if (error instanceof Error && (error as any).name === 'TimeoutError') {
-      console.error(`[ServerFetch] Timeout at ${fullUrl}. Check if API is running at :3001`);
+      console.error(`[ServerFetch] Timeout at ${fullUrl}`);
       return null;
     }
     return null;
@@ -73,13 +84,13 @@ export const ApiService = {
       apiClient.patch('/auth/account-type/organizer').then(r => r.data),
 
     getMe: async (token?: string) => {
-      // 1. If token is provided, it's a server-side call
-      if (token) return serverFetch<any>('/auth/me', token);
+      if (token) return serverFetch<any>('/auth/me', token, {
+        tags: ['user-profile'],
+        next: { revalidate: 0 } // Identity is always fresh
+      });
 
-      // 2. If no token, it's a client-side call using the instance interceptor
       const res = await apiClient.get('/auth/me');
 
-      // 3. Synchronize fresh profile state to client cookies with 7-day persistence
       if (typeof window !== 'undefined') {
         const cookieOptions = { maxAge: 604800, path: '/', sameSite: 'lax' as const };
         setCookie('givar_user', JSON.stringify(res.data), cookieOptions);
@@ -123,7 +134,10 @@ export const ApiService = {
   wallet: {
     get: (token?: string) =>
       token
-        ? serverFetch<Wallet>('/wallet', token)
+        ? serverFetch<Wallet>('/wallet', token, {
+          tags: ['wallet-balance'],
+          next: { revalidate: 0 }
+        })
         : apiClient.get('/wallet').then(r => r.data),
 
     fund: (data: { amount: string; currency: string }) =>
@@ -135,7 +149,8 @@ export const ApiService = {
     getTransactions: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: any[]; meta: any }>(
         `/wallet/transactions?${params.toString()}`,
-        token
+        token,
+        { tags: ['wallet-history'] }
       ),
 
     exportCsv: (params: URLSearchParams) =>
@@ -149,25 +164,20 @@ export const ApiService = {
     create: (data: { title: string; categoryId: string }) =>
       apiClient.post('/proposals', data).then(r => r.data),
 
-    // 2. Get a specific proposal for editing
     get: (id: string, token?: string) =>
       token
-        ? serverFetch<any>(`/proposals/${id}`, token)
+        ? serverFetch<any>(`/proposals/${id}`, token, { tags: [`proposal-${id}`] })
         : apiClient.get(`/proposals/${id}`).then(r => r.data),
 
-    // 3. Update (Auto-save) a draft
     update: (id: string, data: any) =>
       apiClient.patch(`/proposals/${id}`, data).then(r => r.data),
 
-    // 4. Submit a draft for review
     submit: (id: string) =>
       apiClient.patch(`/proposals/${id}/submit`).then(r => r.data),
 
-    // 5. Get all proposals for the logged-in user
     getMyProposals: (token: string) =>
-      serverFetch<any[]>(`/proposals`, token),
+      serverFetch<any[]>(`/proposals`, token, { tags: ['my-proposals'] }),
 
-    // 6. Get a presigned URL for file uploads
     getUploadUrl: (data: { fileType: string; useCase: 'public' | 'kyc' | 'docs' }) =>
       apiClient.post('/proposals/upload-url', data).then(r => r.data),
 
@@ -186,7 +196,8 @@ export const ApiService = {
     list: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: Project[]; meta: any }>(
         `/projects?${params.toString()}`,
-        token
+        token,
+        { tags: ['projects-list'], next: { revalidate: 60 } }
       ),
 
     get: (token: string, slug: string) =>
@@ -196,19 +207,21 @@ export const ApiService = {
           updates: any[];
           donorCount: number;
         }
-      >(`/projects/${slug}`, token),
+      >(`/projects/${slug}`, token, { tags: [`project-${slug}`], next: { revalidate: 30 } }),
 
     getCategories: (token?: string) =>
       token
-        ? serverFetch<any[]>('/projects/categories/list', token)
+        ? serverFetch<any[]>('/projects/categories/list', token, {
+          tags: ['categories'],
+          next: { revalidate: 86400 } // Categories are very stable
+        })
         : apiClient.get('/projects/categories/list').then(r => r.data),
 
-    // Submit Proof of Work for a specific milestone
     submitProof: (projectId: string, data: { milestoneId: string; description: string; imageKeys: string[] }) =>
       apiClient.post(`/projects/${projectId}/proof`, data).then(r => r.data),
 
     getOwnerView: (id: string, token: string) =>
-      serverFetch<any>(`/projects/${id}/manage`, token),
+      serverFetch<any>(`/projects/${id}/manage`, token, { tags: [`project-manage-${id}`] }),
 
     globalSearch: (query: string) =>
       apiClient.get(`/projects/search/global?q=${encodeURIComponent(query)}`).then(r => r.data),
@@ -239,10 +252,10 @@ export const ApiService = {
     }) => apiClient.post('/donations/direct', data).then(r => r.data),
 
     getHistory: (token: string) =>
-      serverFetch<any[]>('/donations/my-history', token),
+      serverFetch<any[]>('/donations/my-history', token, { tags: ['donation-history'] }),
 
     getSubscriptions: (token: string) =>
-      serverFetch<any[]>('/donations/subscriptions', token),
+      serverFetch<any[]>('/donations/subscriptions', token, { tags: ['subscriptions'] }),
 
     updateSubscription: (id: string, status: 'ACTIVE' | 'PAUSED' | 'CANCELLED') =>
       apiClient.patch(`/donations/subscriptions/${id}`, { status }).then(r => r.data),
@@ -262,20 +275,24 @@ export const ApiService = {
     ) =>
       serverFetch<GivingGoal>(
         `/goals/active?interval=${interval}`,
-        token
+        token,
+        { tags: ['giving-goals'] }
       ),
   },
 
   // --- ADMIN ---
   admin: {
     getAnalytics: (token: string) =>
-      serverFetch<any>('/admin/analytics/full-report', token),
+      serverFetch<any>('/admin/analytics/full-report', token, {
+        tags: ['admin-analytics'],
+        next: { revalidate: 300 } // 5 minute freshness for heavy analytics
+      }),
 
     getUsers: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/users?${params.toString()}`, token),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/users?${params.toString()}`, token, { tags: ['admin-users'] }),
 
     getUserDetail: (token: string, id: string) =>
-      serverFetch<any>(`/admin/users/${id}`, token),
+      serverFetch<any>(`/admin/users/${id}`, token, { tags: [`admin-user-${id}`] }),
 
     updateUserStatus: (id: string, action: 'LOCK' | 'UNLOCK') =>
       apiClient.patch(`/admin/users/${id}/status`, { action }).then(r => r.data),
@@ -300,7 +317,8 @@ export const ApiService = {
     getProjects: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: Project[]; meta: any }>(
         `/admin/projects?${params.toString()}`,
-        token
+        token,
+        { tags: ['admin-projects'] }
       ),
 
     approveProject: (id: string) =>
@@ -310,16 +328,16 @@ export const ApiService = {
       apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
 
     getAuditLogs: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token, { tags: ['admin-audit'] }),
 
     getAuditSummary: (token: string) =>
-      serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token),
+      serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token, { next: { revalidate: 60 } }),
 
     getProposals: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/proposals?${params.toString()}`, token),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/proposals?${params.toString()}`, token, { tags: ['admin-proposals'] }),
 
     getProposalDetail: (token: string, id: string) =>
-      serverFetch<any>(`/admin/proposals/${id}`, token),
+      serverFetch<any>(`/admin/proposals/${id}`, token, { tags: [`admin-proposal-${id}`] }),
 
     approveProposal: (id: string) =>
       apiClient.patch(`/admin/proposals/${id}/approve`).then(r => r.data),
@@ -339,21 +357,20 @@ export const ApiService = {
     deleteProject: (id: string) =>
       apiClient.delete(`/admin/projects/${id}`).then(r => r.data),
 
-    // Reuse the public getProject for editing details
     getProjectDetail: (slug: string) =>
       apiClient.get(`/projects/${slug}`).then(r => r.data),
 
     getProjectById: (token: string, id: string) =>
-      serverFetch<any>(`/admin/projects/${id}`, token),
+      serverFetch<any>(`/admin/projects/${id}`, token, { tags: [`admin-project-${id}`] }),
 
     verifyExternalRef: (token: string, ref: string) =>
-      serverFetch<any>(`/admin/reconcile/verify/${ref}`, token),
+      serverFetch<any>(`/admin/reconcile/verify/${ref}`, token, { next: { revalidate: 0 } }),
 
     executeReconcile: (reference: string) =>
       apiClient.post('/admin/reconcile', { reference }).then(r => r.data),
 
     getSuspense: (token: string) =>
-      serverFetch<any[]>('/admin/suspense', token),
+      serverFetch<any[]>('/admin/suspense', token, { tags: ['admin-suspense'], next: { revalidate: 0 } }),
 
     resolveSuspense: (id: string, data: {
       action: 'REFUND' | 'ALLOCATE';
@@ -365,14 +382,14 @@ export const ApiService = {
       apiClient.patch(`/admin/projects/${projectId}/milestones/${milestoneId}`, { status, imageUrl }).then(r => r.data),
 
     getPendingEvidence: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/evidence/pending?${params.toString()}`, token),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/evidence/pending?${params.toString()}`, token, { tags: ['admin-evidence'] }),
 
     reviewEvidence: (id: string, data: { status: 'APPROVED' | 'REJECTED', feedback?: string }) =>
       apiClient.patch(`/admin/evidence/${id}/review`, data).then(r => r.data),
 
     recordDisbursement: (projectId: string, data: {
       milestoneId: string;
-      amount: string; // Minor units string
+      amount: string;
       vendorName: string;
       reference: string;
       receiptKey?: string;
@@ -383,136 +400,90 @@ export const ApiService = {
       apiClient.post(`/admin/users/${userId}/impersonate`).then(r => r.data),
 
     globalSearch: (query: string, token: string) =>
-      serverFetch<{
-        users: any[];
-        projects: any[];
-        proposals: any[];
-        organizations: any[];
-        transactions: any[];
-        auditLogs: any[];
-      }>(`/admin/search?q=${encodeURIComponent(query)}`, token),
+      serverFetch<any>(`/admin/search?q=${encodeURIComponent(query)}`, token, { next: { revalidate: 0 } }),
 
     triggerDustSweep: () =>
       apiClient.post('/admin/ledger/sweep').then(r => r.data),
 
-    /**
-     * Treasury Intelligence Node
-     * Fetches aggregated financial reports based on temporal and sectoral filters.
-     */
     getFinanceReport: (params: URLSearchParams) =>
       apiClient.get(`/admin/finances/report?${params.toString()}`).then(r => r.data),
 
-    /**
-     * Forensic Export Node
-     * Triggers a blob stream of the financial ledger for the specified criteria.
-     */
     exportFinanceCsv: (params: URLSearchParams) =>
       apiClient.get(`/admin/finances/export?${params.toString()}`, {
         responseType: 'blob',
       }),
 
-    /**
-   * Discovery Logic: Fetch current algorithmic weights and diversity limits.
-   */
     getConfig: (token: string) =>
-      serverFetch<any>('/recommendations/admin/config', token),
+      serverFetch<any>('/recommendations/admin/config', token, { tags: ['recommendation-config'] }),
 
-    /**
-     * Discovery Logic: Update global ranking variables.
-     */
     updateConfig: (data: any) =>
       apiClient.patch('/recommendations/admin/config', data).then(r => r.data),
 
-    /**
-     * Discovery Logic: Fetch manually pinned project slots.
-     */
     getSlots: (token: string) =>
-      serverFetch<any[]>('/recommendations/admin/slots', token),
+      serverFetch<any[]>('/recommendations/admin/slots', token, { tags: ['featured-slots'] }),
 
-    /**
-     * Discovery Logic: Pin a project to a specific position in the carousel.
-     */
     createSlot: (data: { projectId: string; position: number; expiresAt?: string }) =>
       apiClient.post('/recommendations/admin/slots', data).then(r => r.data),
 
-    /**
-     * Discovery Logic: Remove a manual pin.
-     */
     deleteSlot: (id: string) =>
       apiClient.delete(`/recommendations/admin/slots/${id}`).then(r => r.data),
 
-    /**
-     * Discovery Logic: Update specific project weights for manual boosts.
-     */
     updateProjectWeights: (id: string, data: { featureWeight?: number; visibilityScore?: number }) =>
       apiClient.patch(`/recommendations/admin/project/${id}/weights`, data).then(r => r.data),
 
-    /**
-     * Discovery Logic: Update visibility multiplier for an entire impact sector.
-     */
     updateCategoryWeight: (id: string, weight: number) =>
       apiClient.patch(`/recommendations/admin/category/${id}/weight`, { weight }).then(r => r.data),
   },
 
   recommendations: {
-    /**
-     * Discovery Logic: Hybrid prioritized carousel.
-     */
     getFeatured: (token?: string) =>
       token
-        ? serverFetch<{ data: Project[]; meta: any }>('/recommendations/featured', token)
+        ? serverFetch<{ data: Project[]; meta: any }>('/recommendations/featured', token, {
+          tags: ['featured-feed'],
+          next: { revalidate: 60 }
+        })
         : apiClient.get('/recommendations/featured').then(r => r.data),
 
-    /**
-     * Discovery Logic: Diversity-enforced discovery feed.
-     * Supports pagination via page and limit parameters.
-     */
     getFeed: (token?: string, page: number = 1, limit: number = 24) => {
       const endpoint = `/recommendations/feed?page=${page}&limit=${limit}`;
       return token
-        ? serverFetch<{ data: Project[]; meta: any }>(endpoint, token)
+        ? serverFetch<{ data: Project[]; meta: any }>(endpoint, token, {
+          tags: ['discovery-feed'],
+          next: { revalidate: 30 }
+        })
         : apiClient.get(endpoint).then(r => r.data);
     },
   },
 
-  // Organization Verification Domain
   organizations: {
     submitKyc: (data: { legalName: string, registrationNumber?: string, documentKeys: string[] }) =>
       apiClient.post('/organizations/verify', data).then(r => r.data),
 
     getMe: (token?: string) =>
       token
-        ? serverFetch<any>('/organizations/me', token)
+        ? serverFetch<any>('/organizations/me', token, { tags: ['org-profile'] })
         : apiClient.get('/organizations/me').then(r => r.data),
 
-    // Admin Methods
     getPending: (token: string) =>
-      serverFetch<any[]>('/organizations/admin/pending', token),
+      serverFetch<any[]>('/organizations/admin/pending', token, { tags: ['admin-kyc-queue'] }),
 
     review: (id: string, data: { status: 'VERIFIED' | 'REJECTED', feedback?: string }) =>
       apiClient.patch(`/organizations/admin/review/${id}`, data).then(r => r.data),
 
-
-
     getOrganizations: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: OrganizationProfile[]; meta: any }>(
         `/organizations/admin/list?${params.toString()}`,
-        token
+        token,
+        { tags: ['admin-orgs-list'] }
       ),
     getOrganizationById: (token: string, id: string) =>
-      serverFetch<any>(`/organizations/admin/${id}`, token),
+      serverFetch<any>(`/organizations/admin/${id}`, token, { tags: [`admin-org-${id}`] }),
   },
 
   communication: {
-    /**
-     * Send a message within a specific context (Proposal or Project).
-     */
     sendMessage: (data: { content: string; proposalId?: string; projectId?: string }) =>
       apiClient.post('/communication', data).then(r => r.data),
 
-    /**
-     * Fetch the complete conversation history for a specific context.
-     */
     getThread: (params: { proposalId?: string; projectId?: string }) => {
       const query = new URLSearchParams();
       if (params.proposalId) query.set('proposalId', params.proposalId);
@@ -522,24 +493,9 @@ export const ApiService = {
   },
 
   notifications: {
-    /**
-     * Retrieve the alert stream for the current session.
-     */
     list: () => apiClient.get('/notifications').then(r => r.data),
-
-    /**
-     * Fetch unread tally for the header badge.
-     */
     unreadCount: () => apiClient.get('/notifications/unread-count').then(r => r.data),
-
-    /**
-     * Synchronize a specific alert to the read state.
-     */
     markRead: (id: string) => apiClient.patch(`/notifications/${id}/read`).then(r => r.data),
-
-    /**
-     * Bulk synchronize all alerts to the read state.
-     */
     markAllRead: () => apiClient.patch('/notifications/read-all').then(r => r.data),
   },
 };
