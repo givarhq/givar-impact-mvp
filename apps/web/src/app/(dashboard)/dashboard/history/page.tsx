@@ -14,7 +14,6 @@ export default async function HistoryPage({
 }) {
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
-
   if (!token) return null;
 
   const resolvedParams = await searchParams;
@@ -30,8 +29,7 @@ export default async function HistoryPage({
   };
 
   return (
-    <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
-
+    <div className="w-full min-w-0 space-y-6 md:space-y-8">
       <div className="w-full min-w-0">
         <HistoryClient initialData={initialData} />
       </div>
