@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project } from '../../../types';
 import { ProjectCard } from '../impact/project-card';
@@ -16,13 +16,12 @@ interface ProjectShowcaseProps {
     onShare: (project: Project) => void;
 }
 
-export function ProjectShowcase({ initialProjects, categories, onDonate, onShare }: ProjectShowcaseProps) {
+export const ProjectShowcase = memo(function ProjectShowcase({ initialProjects, categories, onDonate, onShare }: ProjectShowcaseProps) {
     const [projects, setProjects] = useState(initialProjects);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [isPending, startTransition] = useTransition();
 
     useEffect(() => {
-        // Logic: Dashboard category switching stays compact (Limit 12)
         startTransition(() => {
             const token = getCookie('givar_token') as string;
 
@@ -31,13 +30,10 @@ export function ProjectShowcase({ initialProjects, categories, onDonate, onShare
                 return;
             }
 
-            // Fetch from recommendation feed but filter by category locally 
-            // This ensures we maintain the weighted ranking for that sector
-            ApiService.recommendations.getFeed(token, 1, 50) // Fetch larger sample for local filtering
+            ApiService.recommendations.getFeed(token, 1, 50)
                 .then(response => {
                     const data = response?.data || [];
                     const filtered = data.filter((p: any) => p.categoryId === categories.find(c => c.slug === selectedCategory)?.id);
-                    // Slice to 12 to maintain the "Junior Extension" feel
                     setProjects(filtered.slice(0, 12));
                 })
                 .catch(() => setProjects([]));
@@ -59,7 +55,7 @@ export function ProjectShowcase({ initialProjects, categories, onDonate, onShare
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
                     >
                         {isPending ? (
                             <div className="flex h-40 items-center justify-center">
@@ -81,7 +77,7 @@ export function ProjectShowcase({ initialProjects, categories, onDonate, onShare
                                 <div className="h-10 w-10 rounded-3xl bg-muted flex items-center justify-center mb-3">
                                     <Inbox className="h-5 w-5 text-muted-foreground/50" />
                                 </div>
-                                <p className="text-sm font-bold text-foreground">No causes found</p>
+                                <p className="text-sm font-bold text-foreground">No Causes Found</p>
                                 <p className="text-xs text-muted-foreground mt-1">Try another category or check back later.</p>
                             </div>
                         )}
@@ -90,4 +86,4 @@ export function ProjectShowcase({ initialProjects, categories, onDonate, onShare
             </div>
         </div>
     );
-}
+});
