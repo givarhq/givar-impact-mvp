@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { FileSearch } from 'lucide-react';
@@ -18,13 +18,12 @@ const COLORS = {
     REJECTED: 'hsl(var(--destructive))',
 };
 
-export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
-    const data = metrics.statusDistribution.map(item => ({
+// Logic: Use memoization to avoid redundant Pie calculation during parent re-renders.
+export const EvidenceStatusChart = memo(function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
+    const data = React.useMemo(() => metrics.statusDistribution.map(item => ({
         name: item.status,
         value: item.count
-    }));
-
-    const activeData = data.filter(d => d.value > 0);
+    })).filter(d => d.value > 0), [metrics]);
 
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
@@ -36,13 +35,13 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
             <CardContent className="p-0 flex-1 relative">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-10">
                     <p className="text-2xl font-bold text-foreground leading-none">{metrics.totalSubmitted}</p>
-                    <p className="text-[11px] font-bold text-muted-foreground  tracking-widest mt-1">Total proofs</p>
+                    <p className="text-[11px] font-bold text-muted-foreground tracking-widest mt-1">Total proofs</p>
                 </div>
 
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
-                            data={activeData}
+                            data={data}
                             cx="50%"
                             cy="50%"
                             innerRadius={70}
@@ -51,8 +50,9 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
                             dataKey="value"
                             stroke="none"
                             cornerRadius={4}
+                            animationDuration={800}
                         >
-                            {activeData.map((entry, index) => (
+                            {data.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
                                     fill={COLORS[entry.name as keyof typeof COLORS] || '#94a3b8'}
@@ -74,7 +74,7 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
                     </PieChart>
                 </ResponsiveContainer>
 
-                <div className="absolute bottom-6 w-full px-6 flex justify-center gap-4 text-[11px] font-bold  tracking-wider text-muted-foreground">
+                <div className="absolute bottom-6 w-full px-6 flex justify-center gap-4 text-[11px] font-bold tracking-wider text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Verified
                     </div>
@@ -88,4 +88,4 @@ export function EvidenceStatusChart({ metrics }: EvidenceStatusProps) {
             </CardContent>
         </Card>
     );
-}
+});

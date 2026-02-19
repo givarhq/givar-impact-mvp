@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import { Tabs, TabsList, TabsTrigger } from '../../../ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -16,7 +16,7 @@ const CustomTooltip = ({ active, payload, mode }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-card border border-border/60 p-3 rounded-2xl shadow-xl min-w-[180px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[11px] font-bold  tracking-wider text-muted-foreground mb-1.5">
+                <p className="text-[11px] font-bold tracking-wider text-muted-foreground mb-1.5">
                     {mode === 'funded' ? 'Capital raised' : 'Donation volume'}
                 </p>
                 <p className="text-xs font-bold text-foreground mb-2 line-clamp-2 leading-tight">
@@ -40,10 +40,11 @@ const CustomTooltip = ({ active, payload, mode }: any) => {
     return null;
 };
 
-export function ProjectPerformanceCard({ topFunded, mostActive }: ProjectPerformanceProps) {
+// Logic: Memoize the performance card to prevent re-calculating bar heights on layout shifts.
+export const ProjectPerformanceCard = memo(function ProjectPerformanceCard({ topFunded, mostActive }: ProjectPerformanceProps) {
     const [activeTab, setActiveTab] = useState('funded');
-    const fundedData = topFunded.map(p => ({ ...p, value: Number(p.raised) }));
-    const activeData = mostActive.map(p => ({ ...p, value: p.donationCount }));
+    const fundedData = React.useMemo(() => topFunded.map(p => ({ ...p, value: Number(p.raised) })), [topFunded]);
+    const activeData = React.useMemo(() => mostActive.map(p => ({ ...p, value: p.donationCount })), [mostActive]);
 
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
@@ -55,8 +56,8 @@ export function ProjectPerformanceCard({ topFunded, mostActive }: ProjectPerform
                 </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
                     <TabsList className="bg-muted/50 p-1 rounded-2xl h-9 w-full sm:w-[220px] border border-border/40">
-                        <TabsTrigger value="funded" className="text-[11px] font-bold  tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Top funded</TabsTrigger>
-                        <TabsTrigger value="active" className="text-[11px] font-bold  tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Most active</TabsTrigger>
+                        <TabsTrigger value="funded" className="text-[11px] font-bold tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Top funded</TabsTrigger>
+                        <TabsTrigger value="active" className="text-[11px] font-bold tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Most active</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </CardHeader>
@@ -84,7 +85,7 @@ export function ProjectPerformanceCard({ topFunded, mostActive }: ProjectPerform
                                 cursor={{ fill: 'hsl(var(--muted)/0.3)', radius: 4 }}
                                 isAnimationActive={false}
                             />
-                            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                            <Bar dataKey="value" radius={[0, 4, 4, 0]} animationDuration={600}>
                                 {(activeTab === 'funded' ? fundedData : activeData).map((entry, index) => (
                                     <Cell
                                         key={`cell-${index}`}
@@ -98,4 +99,4 @@ export function ProjectPerformanceCard({ topFunded, mostActive }: ProjectPerform
             </CardContent>
         </Card>
     );
-}
+});

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import {
     ComposedChart, XAxis, YAxis, CartesianGrid,
@@ -22,7 +22,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
         return (
             <div className="bg-card border border-border/60 shadow-xl p-3 rounded-2xl min-w-[160px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[11px] font-bold text-muted-foreground mb-2  tracking-wider">
+                <p className="text-[11px] font-bold text-muted-foreground mb-2 tracking-wider">
                     {label}
                 </p>
                 <div className="space-y-1.5">
@@ -49,12 +49,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
-export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendChartProps) {
-    const chartData = data.map(d => ({
+// Logic: Use React.memo to skip re-renders unless the data array reference changes.
+export const FinancialTrendChart = memo(function FinancialTrendChart({ data, title, subtitle }: FinancialTrendChartProps) {
+    const chartData = React.useMemo(() => data.map(d => ({
         ...d,
         volumeValue: Number(d.volume) / 100,
         dateShort: d.date.split('-').slice(1).join('/')
-    }));
+    })), [data]);
 
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[380px]">
@@ -65,7 +66,7 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
                     </CardTitle>
                     <p className="text-xs text-muted-foreground font-medium">{subtitle}</p>
                 </div>
-                <div className="hidden sm:flex items-center gap-4 text-[11px] font-bold  tracking-wider">
+                <div className="hidden sm:flex items-center gap-4 text-[11px] font-bold tracking-wider">
                     <div className="flex items-center gap-1.5 text-primary">
                         <div className="w-2 h-1 rounded-full bg-primary" /> Liquidity
                     </div>
@@ -119,6 +120,7 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
                                 fill="#3b82f6"
                                 radius={[3, 3, 0, 0]}
                                 opacity={0.2}
+                                animationDuration={800}
                             />
 
                             <Area
@@ -129,6 +131,7 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
                                 strokeWidth={2}
                                 fill="url(#volumeGradient)"
                                 activeDot={{ r: 4, strokeWidth: 0, fill: 'hsl(var(--primary))' }}
+                                animationDuration={1000}
                             />
                         </ComposedChart>
                     </ResponsiveContainer>
@@ -136,4 +139,4 @@ export function FinancialTrendChart({ data, title, subtitle }: FinancialTrendCha
             </CardContent>
         </Card>
     );
-}
+});
