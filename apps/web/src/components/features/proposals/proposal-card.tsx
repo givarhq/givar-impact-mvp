@@ -1,16 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   FileText, Clock, CheckCircle2, AlertCircle,
   MoreHorizontal, Trash2, Edit2, ArrowRight, XCircle,
-  LayoutDashboard, Loader2
+  LayoutDashboard
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,15 +28,15 @@ interface ProposalCardProps {
 
 const statusConfig: Record<string, { color: string, icon: any, label: string }> = {
   DRAFT: { color: 'text-zinc-500 bg-zinc-500/10 border-zinc-500/20', icon: FileText, label: 'Draft' },
-  AWAITING_VERIFICATION: { color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: Clock, label: 'Pending kyc' },
+  AWAITING_VERIFICATION: { color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: Clock, label: 'Pending Kyc' },
   SUBMITTED: { color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: Clock, label: 'Submitted' },
-  UNDER_REVIEW: { color: 'text-blue-600 bg-blue-600/10 border-blue-600/20', icon: Clock, label: 'In review' },
-  CHANGES_REQUESTED: { color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: AlertCircle, label: 'Needs edits' },
+  UNDER_REVIEW: { color: 'text-blue-600 bg-blue-600/10 border-blue-600/20', icon: Clock, label: 'In Review' },
+  CHANGES_REQUESTED: { color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: AlertCircle, label: 'Needs Edits' },
   APPROVED: { color: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20', icon: CheckCircle2, label: 'Live' },
   REJECTED: { color: 'text-destructive bg-destructive/10 border-destructive/20', icon: XCircle, label: 'Rejected' },
 };
 
-export function ProposalCard({ proposal }: ProposalCardProps) {
+export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCardProps) {
   const router = useRouter();
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -52,11 +51,11 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
     setIsDeleting(true);
     try {
       await ApiService.proposals.delete(proposal.id);
-      toast.success('Deleted successfully');
+      toast.success('Deleted Successfully');
       setIsConfirmOpen(false);
       router.refresh();
     } catch (e) {
-      toast.error('Delete failed');
+      toast.error('Delete Failed');
     } finally {
       setIsDeleting(false);
     }
@@ -75,7 +74,7 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
           {/* Card Header: Status & Context */}
           <div className="flex justify-between items-center gap-2 min-w-0 shrink-0">
             <div className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-3xl border text-[11px] font-bold  tracking-wider transition-colors min-w-0 truncate",
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-3xl border text-[11px] font-bold tracking-wider transition-colors min-w-0 truncate",
               config.color
             )}>
               <StatusIcon className="h-3 w-3 shrink-0" />
@@ -91,12 +90,12 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
               <DropdownMenuContent align="end" className="w-48 rounded-3xl p-1 shadow-xl border-border/40 bg-card">
                 {isApproved && (
                   <DropdownMenuItem onClick={() => router.push(linkTarget)} className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5">
-                    <LayoutDashboard className="h-4 w-4" /> Manage impact
+                    <LayoutDashboard className="h-4 w-4" /> Manage Impact
                   </DropdownMenuItem>
                 )}
                 {isEditable && (
                   <DropdownMenuItem onClick={() => router.push(linkTarget)} className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5">
-                    <Edit2 className="h-4 w-4" /> Edit proposal
+                    <Edit2 className="h-4 w-4" /> Edit Proposal
                   </DropdownMenuItem>
                 )}
                 {(proposal.status === 'DRAFT' || proposal.status === 'REJECTED' || proposal.status === 'CHANGES_REQUESTED') && (
@@ -104,7 +103,7 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
                     onClick={() => setIsConfirmOpen(true)}
                     className="gap-2.5 text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer rounded-2xl font-bold text-xs py-2.5"
                   >
-                    <Trash2 className="h-4 w-4" /> Delete draft
+                    <Trash2 className="h-4 w-4" /> Delete Draft
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
@@ -115,18 +114,18 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
           <div className="flex-1 min-w-0">
             <Link href={linkTarget} className={cn("block space-y-1.5 min-w-0", (proposal.status !== 'APPROVED' && !isEditable) && "cursor-default")}>
               <h3 className="font-bold text-sm leading-snug text-foreground line-clamp-2 group-hover:text-primary transition-colors min-w-0">
-                {proposal.title || 'Untitled draft'}
+                {proposal.title || 'Untitled Draft'}
               </h3>
               <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium min-w-0">
-                {proposal.shortDesc || 'Initial proposal draft pending further details.'}
+                {proposal.shortDesc || 'Initial Proposal Draft Pending Further Details.'}
               </p>
             </Link>
 
             <div className="mt-4 flex flex-wrap items-center gap-3 min-w-0">
-              <span className="bg-muted/50 text-muted-foreground px-2.5 py-0.5 rounded-3xl border border-border/40 text-[11px] font-bold  tracking-wider truncate max-w-[120px]">
+              <span className="bg-muted/50 text-muted-foreground px-2.5 py-0.5 rounded-3xl border border-border/40 text-[11px] font-bold tracking-wider truncate max-w-[120px]">
                 {proposal.category?.name || 'Impact'}
               </span>
-              <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground/60  tracking-tight shrink-0">
+              <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground/60 tracking-tight shrink-0">
                 <Clock className="h-3 w-3" /> {formatDate(proposal.updatedAt).split(',')[0]}
               </div>
             </div>
@@ -143,12 +142,12 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
             ) : isEditable ? (
               <Link href={linkTarget} className="block w-full">
                 <Button variant="outline" className="w-full h-10 rounded-3xl bg-muted/30 text-foreground hover:bg-muted font-bold text-xs gap-2 border-border/60 transition-all active:scale-[0.98]">
-                  Continue editing <ArrowRight className="h-3.5 w-3.5" />
+                  Continue Editing <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>
             ) : (
-              <div className="flex items-center justify-center gap-2 h-10 w-full rounded-3xl border border-dashed border-border/60 bg-muted/10 text-xs font-bold text-muted-foreground  tracking-widest">
-                <Clock className="h-3.5 w-3.5" /> In review
+              <div className="flex items-center justify-center gap-2 h-10 w-full rounded-3xl border border-dashed border-border/60 bg-muted/10 text-xs font-bold text-muted-foreground tracking-widest">
+                <Clock className="h-3.5 w-3.5" /> In Review
               </div>
             )}
           </div>
@@ -161,10 +160,10 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
         onConfirm={onConfirmDelete}
         isLoading={isDeleting}
         variant="destructive"
-        title="Delete proposal"
-        description="Permanently remove this cause from the ledger? This action is forensic and irreversible."
-        confirmText="Confirm delete"
+        title="Delete Proposal"
+        description="Permanently Remove This Cause From The Ledger? This Action Is Forensic And Irreversible."
+        confirmText="Confirm Delete"
       />
     </>
   );
-}
+});

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { UploadCloud, Loader2, Link as LinkIcon, X, FileText, Image as ImageIcon, Video, Trash2, Plus, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
@@ -20,7 +20,7 @@ interface MediaManagerProps {
     readOnly?: boolean;
 }
 
-export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = false }: MediaManagerProps) {
+export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = false }: MediaManagerProps) {
     const [activeTab, setActiveTab] = useState('upload');
     const params = useParams();
     const proposalId = params.id as string;
@@ -63,9 +63,9 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                 caption: ''
             });
 
-            toast.success('File added to gallery');
+            toast.success('File Added To Gallery');
         } catch (error) {
-            toast.error('Upload failed');
+            toast.error('Upload Failed');
         } finally {
             setIsLoading(false);
         }
@@ -84,7 +84,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
             caption: ''
         });
         setUrlInput('');
-        toast.success('Link added');
+        toast.success('Link Added');
     };
 
     return (
@@ -93,11 +93,11 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                 <div className="p-1.5 border border-border/40 rounded-3xl bg-muted/20 w-full min-w-0">
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full min-w-0">
                         <TabsList className="h-10 bg-muted/40 p-1 rounded-2xl w-full border border-border/40 mb-2 shadow-inner">
-                            <TabsTrigger value="upload" className="rounded-xl text-[11px] font-bold  tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                            <TabsTrigger value="upload" className="rounded-xl text-[11px] font-bold tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
                                 <UploadCloud className="h-3.5 w-3.5" /> Upload
                             </TabsTrigger>
-                            <TabsTrigger value="url" className="rounded-xl text-[11px] font-bold  tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
-                                <LinkIcon className="h-3.5 w-3.5" /> Remote link
+                            <TabsTrigger value="url" className="rounded-xl text-[11px] font-bold tracking-widest gap-2 h-full data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+                                <LinkIcon className="h-3.5 w-3.5" /> Remote Link
                             </TabsTrigger>
                         </TabsList>
 
@@ -113,7 +113,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                                         ) : (
                                             <Plus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                                         )}
-                                        <p className="mt-1.5 text-xs font-bold text-muted-foreground">Select local file</p>
+                                        <p className="mt-1.5 text-xs font-bold text-muted-foreground">Select Local File</p>
                                     </div>
                                     <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} disabled={isLoading} />
                                 </label>
@@ -122,7 +122,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                             <TabsContent value="url" className="mt-0 outline-none">
                                 <div className="flex gap-2 min-w-0">
                                     <Input
-                                        placeholder="Paste image or video link..."
+                                        placeholder="Paste Image Or Video Link..."
                                         value={urlInput}
                                         onChange={(e) => setUrlInput(e.target.value)}
                                         className="h-11 rounded-2xl bg-background border-border/40 min-w-0 flex-1 shadow-inner text-xs font-medium"
@@ -150,6 +150,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
                             key={item.id}
                             className={cn(
                                 "group relative flex gap-3 p-3 rounded-3xl border transition-all duration-200 min-w-0",
@@ -162,7 +163,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                                 ) : item.type === 'VIDEO' ? (
                                     <div className="flex flex-col items-center gap-0.5">
                                         <Video className="h-5 w-5 text-muted-foreground" />
-                                        <span className="text-[9px] font-black  text-muted-foreground/60">Video</span>
+                                        <span className="text-[9px] font-black text-muted-foreground/60">Video</span>
                                     </div>
                                 ) : (
                                     <FileText className="h-5 w-5 text-muted-foreground" />
@@ -171,13 +172,13 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
 
                             <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5">
                                 <div className="flex justify-between items-center gap-2">
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary  tracking-widest border border-primary/10 shrink-0">
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary tracking-widest border border-primary/10 shrink-0">
                                         {item.type}
                                     </span>
                                     {!readOnly && (
                                         <button
                                             onClick={() => onRemove(item.id)}
-                                            className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 outline-none"
+                                            className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 outline-none active:scale-90"
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </button>
@@ -190,7 +191,7 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
                                         "h-8 text-xs rounded-xl bg-muted/30 border-transparent focus:bg-background shadow-none px-2.5",
                                         readOnly && "font-medium opacity-80"
                                     )}
-                                    placeholder="Add caption..."
+                                    placeholder="Add Caption..."
                                     readOnly={readOnly}
                                 />
                             </div>
@@ -200,9 +201,9 @@ export function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = fals
             </div>
         </div>
     );
-}
+});
 
-export function ImageUploader({
+export const ImageUploader = memo(function ImageUploader({
     onUploadComplete,
     label,
     useCase = 'public'
@@ -224,9 +225,9 @@ export function ImageUploader({
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
             onUploadComplete({ key, previewUrl: viewUrl });
-            toast.success('Uploaded successfully');
+            toast.success('Uploaded Successfully');
         } catch (e) {
-            toast.error('Upload failed');
+            toast.error('Upload Failed');
         } finally {
             setIsLoading(false);
         }
@@ -245,9 +246,9 @@ export function ImageUploader({
                         <UploadCloud className="text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors" />
                     </div>
                 )}
-                <span className="text-xs font-bold text-muted-foreground  tracking-widest">{label}</span>
+                <span className="text-xs font-bold text-muted-foreground tracking-widest">{label}</span>
             </div>
             <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isLoading} />
         </label>
-    )
-}
+    );
+});

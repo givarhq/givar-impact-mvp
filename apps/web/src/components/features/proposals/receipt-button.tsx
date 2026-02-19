@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ExternalLink, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
@@ -13,7 +13,7 @@ interface ReceiptButtonProps {
     className?: string;
 }
 
-export function ReceiptButton({ receiptKey, projectId, className }: ReceiptButtonProps) {
+export const ReceiptButton = memo(function ReceiptButton({ receiptKey, projectId, className }: ReceiptButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleView = async (e: React.MouseEvent) => {
@@ -23,7 +23,7 @@ export function ReceiptButton({ receiptKey, projectId, className }: ReceiptButto
         if (isLoading) return;
         setIsLoading(true);
 
-        const toastId = toast.loading('Opening receipt...');
+        const toastId = toast.loading('Opening Receipt...');
 
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(receiptKey, projectId);
@@ -43,7 +43,7 @@ export function ReceiptButton({ receiptKey, projectId, className }: ReceiptButto
             onClick={handleView}
             disabled={isLoading}
             className={cn(
-                "h-7 rounded-3xl px-3 border-border/60 font-bold text-xs  tracking-wider gap-1.5 bg-background hover:bg-muted",
+                "h-7 rounded-3xl px-3 border-border/60 font-bold text-xs tracking-wider gap-1.5 bg-background hover:bg-muted transition-all active:scale-95",
                 className
             )}
         >
@@ -55,4 +55,4 @@ export function ReceiptButton({ receiptKey, projectId, className }: ReceiptButto
             View Receipt
         </Button>
     );
-}
+});
