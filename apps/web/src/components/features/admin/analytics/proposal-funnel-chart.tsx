@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ClipboardList } from 'lucide-react';
@@ -15,7 +15,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-card border border-border/60 shadow-xl p-3 rounded-2xl min-w-[140px] animate-in fade-in zoom-in-95 duration-100">
-                <p className="text-[11px] font-bold text-muted-foreground mb-1.5  tracking-wider">
+                <p className="text-[11px] font-bold text-muted-foreground mb-1.5 tracking-wider">
                     {label}
                 </p>
                 <div className="flex items-center justify-between gap-4">
@@ -32,17 +32,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
-export function ProposalFunnelChart({ funnel, totalDrafts, approvalRate }: ProposalFunnelProps) {
+export const ProposalFunnelChart = memo(function ProposalFunnelChart({ funnel, totalDrafts, approvalRate }: ProposalFunnelProps) {
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
             <CardHeader className="p-5 md:p-6 pb-2 border-b border-border/30">
                 <div className="flex justify-between items-start">
                     <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                        <ClipboardList className="h-4 w-4 text-blue-500" /> Intake pipeline
+                        <ClipboardList className="h-4 w-4 text-blue-500" /> Intake Pipeline
                     </CardTitle>
                     <div className="text-right">
                         <p className="text-2xl font-bold text-foreground tracking-tight leading-none">{approvalRate}%</p>
-                        <p className="text-[11px] font-bold text-muted-foreground  tracking-widest mt-1">Approval rate</p>
+                        <p className="text-[11px] font-bold text-muted-foreground tracking-widest mt-1">Approval Rate</p>
                     </div>
                 </div>
             </CardHeader>
@@ -84,15 +84,15 @@ export function ProposalFunnelChart({ funnel, totalDrafts, approvalRate }: Propo
 
                 <div className="absolute top-6 left-8 flex gap-8">
                     <div>
-                        <p className="text-[11px] font-bold text-muted-foreground  tracking-wider">Total inflow</p>
+                        <p className="text-[11px] font-bold text-muted-foreground tracking-wider">Total Inflow</p>
                         <p className="text-lg font-bold text-foreground tabular-nums">{totalDrafts}</p>
                     </div>
                     <div>
-                        <p className="text-[11px] font-bold text-muted-foreground  tracking-wider">Conversion</p>
+                        <p className="text-[11px] font-bold text-muted-foreground tracking-wider">Conversion</p>
                         <p className="text-lg font-bold text-foreground tabular-nums">{funnel[funnel.length - 1]?.count || 0}</p>
                     </div>
                 </div>
             </CardContent>
         </Card>
     );
-}
+});

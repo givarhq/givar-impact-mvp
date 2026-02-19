@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import { Zap, ShieldCheck, AlertCircle, ArrowRight, ClipboardList } from 'lucide-react';
@@ -14,14 +14,14 @@ interface IntelItem {
     target: string;
 }
 
-export function SystemIntelFeed({ report }: { report: any }) {
+export const SystemIntelFeed = memo(function SystemIntelFeed({ report }: { report: any }) {
     const router = useRouter();
 
     const insights: IntelItem[] = [
         {
             id: '1',
             type: report.summary.pendingKycCount > 0 ? 'RISK' : 'SUCCESS',
-            title: 'Organization verification',
+            title: 'Organization Verification',
             desc: report.summary.pendingKycCount > 0
                 ? `${report.summary.pendingKycCount} entities are waiting for legal vetting.`
                 : 'All registered entities are fully verified.',
@@ -30,7 +30,7 @@ export function SystemIntelFeed({ report }: { report: any }) {
         {
             id: '2',
             type: report.summary.unresolvedSuspenseCount > 0 ? 'RISK' : 'ACTION',
-            title: 'Ledger integrity',
+            title: 'Ledger Integrity',
             desc: report.summary.unresolvedSuspenseCount > 0
                 ? `There are ${report.summary.unresolvedSuspenseCount} orphaned transactions in suspense.`
                 : 'Ledger is in sync. Perform manual verify check?',
@@ -39,7 +39,7 @@ export function SystemIntelFeed({ report }: { report: any }) {
         {
             id: '3',
             type: 'ACTION',
-            title: 'Proposal pipeline',
+            title: 'Proposal Pipeline',
             desc: `${report.proposalMetrics.totalSubmitted} new causes require technical review.`,
             target: '/admin/projects?tab=proposals'
         }
@@ -48,8 +48,8 @@ export function SystemIntelFeed({ report }: { report: any }) {
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[420px]">
             <CardHeader className="p-5 md:p-6 pb-2 border-b border-border/40">
-                <CardTitle className="text-[11px] font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Zap className="h-3.5 w-3.5 text-primary" /> Platform intelligence
+                <CardTitle className="text-[11px] font-bold tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Zap className="h-3.5 w-3.5 text-primary" /> Platform Intelligence
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-y-auto no-scrollbar">
@@ -88,11 +88,11 @@ export function SystemIntelFeed({ report }: { report: any }) {
                 </div>
             </CardContent>
             <div className="p-4 bg-muted/20 border-t border-border/40 text-center">
-                <p className="text-[10px] font-bold text-muted-foreground  tracking-widest flex items-center justify-center gap-2">
+                <p className="text-[10px] font-bold text-muted-foreground tracking-widest flex items-center justify-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Last scan {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    Last Scan {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
             </div>
         </Card>
     );
-}
+});

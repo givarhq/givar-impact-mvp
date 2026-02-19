@@ -32,7 +32,6 @@ interface AnalyticsStatGridProps {
     avgDonation?: string;
 }
 
-// Logic: Use memoization to prevent re-rendering the entire grid when unrelated dashboard state changes.
 export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatGridProps) {
     const router = useRouter();
 
@@ -74,9 +73,9 @@ export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgD
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <StatCard
-                title="Total entities"
+                title="Total Entities"
                 value={summary.totalUsers}
-                subValue={`${Math.abs(summary.userGrowthPercent)}% growth`}
+                subValue={`${Math.abs(summary.userGrowthPercent)}% Growth`}
                 icon={Users}
                 color="text-blue-500"
                 bg="bg-blue-500/10"
@@ -84,9 +83,9 @@ export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgD
             />
 
             <StatCard
-                title="System liquidity"
+                title="System Liquidity"
                 value={<SmartCurrency amount={summary.totalVolume.NGN} currency="NGN" visible={true} size="default" />}
-                subValue="Processed volume"
+                subValue="Processed Volume"
                 icon={Wallet}
                 color="text-emerald-500"
                 bg="bg-emerald-500/10"
@@ -94,16 +93,16 @@ export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgD
             />
 
             <StatCard
-                title="Avg. contribution"
+                title="Avg. Contribution"
                 value={<SmartCurrency amount={avgDonation} currency="NGN" visible={true} size="default" />}
-                subValue="Per gift"
+                subValue="Per Gift"
                 icon={BarChart3}
                 color="text-purple-500"
                 bg="bg-purple-500/10"
             />
 
             <StatCard
-                title="Risk indicators"
+                title="Risk Indicators"
                 value={summary.riskCount}
                 subValue={summary.riskLabel}
                 icon={risk.icon}

@@ -29,13 +29,13 @@ export const EvidenceStatusChart = memo(function EvidenceStatusChart({ metrics }
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
             <CardHeader className="p-5 md:p-6 pb-2">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <FileSearch className="h-4 w-4 text-primary" /> Evidence audit
+                    <FileSearch className="h-4 w-4 text-primary" /> Evidence Audit
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 relative">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-10">
                     <p className="text-2xl font-bold text-foreground leading-none">{metrics.totalSubmitted}</p>
-                    <p className="text-[11px] font-bold text-muted-foreground tracking-widest mt-1">Total proofs</p>
+                    <p className="text-[11px] font-bold text-muted-foreground tracking-widest mt-1">Total Proofs</p>
                 </div>
 
                 <ResponsiveContainer width="100%" height="100%">
