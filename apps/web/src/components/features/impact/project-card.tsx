@@ -1,5 +1,6 @@
 'use client';
 
+import React, { memo } from 'react';
 import Link from 'next/link';
 import { Heart, Share2, Check, MapPin } from 'lucide-react';
 import { Button } from '../../ui/button';
@@ -7,6 +8,7 @@ import { Badge } from '../../ui/badge';
 import { Project } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
+import { motion } from 'framer-motion';
 
 interface ProjectCardProps {
   project: Project & { categoryName?: string; donorCount?: number };
@@ -15,7 +17,7 @@ interface ProjectCardProps {
   isPublic?: boolean;
 }
 
-export function ProjectCard({ project, onDonate, onShare, isPublic = false }: ProjectCardProps) {
+export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShare, isPublic = false }: ProjectCardProps) {
   const raised = Number(project.raisedAmount || 0);
   const target = Number(project.targetAmount || 0);
   const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
@@ -75,9 +77,11 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
             <span className="text-primary">{percent.toFixed(0)}%</span>
           </div>
           <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-1000"
-              style={{ width: `${percent}%` }}
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${percent}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="h-full bg-primary"
             />
           </div>
         </div>
@@ -90,7 +94,7 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
             </Button>
           ) : (
             <Link href={donateLink} className="flex-1">
-              <Button className="w-full h-9 rounded-3xl text-xs font-bold shadow-sm">
+              <Button className="w-full h-9 rounded-3xl text-xs font-bold shadow-sm active:scale-95 transition-all">
                 Donate
               </Button>
             </Link>
@@ -103,7 +107,7 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
               e.stopPropagation();
               onShare(project);
             }}
-            className="h-9 w-9 rounded-3xl border-border/60 text-muted-foreground hover:text-foreground"
+            className="h-9 w-9 rounded-3xl border-border/60 text-muted-foreground hover:text-foreground active:scale-90 transition-all"
           >
             <Share2 className="h-3.5 w-3.5" />
           </Button>
@@ -111,4 +115,4 @@ export function ProjectCard({ project, onDonate, onShare, isPublic = false }: Pr
       </div>
     </Card>
   );
-}
+});

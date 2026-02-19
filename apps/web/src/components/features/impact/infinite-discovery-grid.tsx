@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Loader2, CheckCircle2, Inbox } from 'lucide-react';
 import { Project } from '../../../types';
 import { ProjectCard } from './project-card';
 import { ShareModal } from './share-modal';
 import { ApiService } from '../../../services/api';
 import { getCookie } from 'cookies-next';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface InfiniteDiscoveryGridProps {
     initialData: Project[];
@@ -16,7 +17,7 @@ interface InfiniteDiscoveryGridProps {
     isPublic?: boolean;
 }
 
-export function InfiniteDiscoveryGrid({
+export const InfiniteDiscoveryGrid = memo(function InfiniteDiscoveryGrid({
     initialData, initialMeta, isSmartDiscovery, searchParams, isPublic = false
 }: InfiniteDiscoveryGridProps) {
     const [projects, setProjects] = useState<Project[]>(initialData);
@@ -42,10 +43,8 @@ export function InfiniteDiscoveryGrid({
         try {
             let response;
             if (isSmartDiscovery) {
-                // Discovery Feed call handles weights, personalization, and sector multipliers
                 response = await ApiService.recommendations.getFeed(token, nextPage, 24);
             } else {
-                // Standard Project List call for explicit searches or filters
                 const params = new URLSearchParams(searchParams);
                 params.set('page', nextPage.toString());
                 params.set('limit', '24');
@@ -84,35 +83,40 @@ export function InfiniteDiscoveryGrid({
     return (
         <div className="w-full min-w-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {projects.map((project, index) => (
-                    <div
-                        key={`${project.id}-${index}`}
-                        style={{
-                            // CSS Native Virtualization: Browser skips rendering off-screen cards
-                            contentVisibility: 'auto',
-                            containIntrinsicSize: '0 400px'
-                        } as React.CSSProperties}
-                    >
-                        <ProjectCard
-                            project={project as any}
-                            onDonate={() => { }}
-                            onShare={(p) => { setShareProject(p); setIsShareOpen(true); }}
-                            isPublic={isPublic}
-                        />
-                    </div>
-                ))}
+                <AnimatePresence mode="popLayout">
+                    {projects.map((project, index) => (
+                        <motion.div
+                            key={`${project.id}-${index}`}
+                            layout
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.2 }}
+                            style={{
+                                contentVisibility: 'auto',
+                                containIntrinsicSize: '0 400px'
+                            } as React.CSSProperties}
+                        >
+                            <ProjectCard
+                                project={project as any}
+                                onDonate={() => { }}
+                                onShare={(p) => { setShareProject(p); setIsShareOpen(true); }}
+                                isPublic={isPublic}
+                            />
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
             </div>
 
             <div ref={observerTarget} className="w-full py-16 flex flex-col items-center justify-center">
                 {isLoading ? (
                     <div className="flex flex-col items-center gap-3">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                        <span className="text-xs font-bold  text-muted-foreground">Loading...</span>
                     </div>
                 ) : meta.page >= meta.lastPage && projects.length > 0 ? (
                     <div className="flex flex-col items-center gap-2 opacity-40">
                         <CheckCircle2 className="h-5 w-5 text-primary" />
-                        <span className="text-xs font-bold  text-muted-foreground">End of results</span>
+                        <span className="text-xs font-bold text-muted-foreground">End of results</span>
                     </div>
                 ) : null}
             </div>
@@ -120,4 +124,4 @@ export function InfiniteDiscoveryGrid({
             <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} projectTitle={shareProject?.title || ''} projectSlug={shareProject?.slug || ''} />
         </div>
     );
-}
+});

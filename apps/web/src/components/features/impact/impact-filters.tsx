@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '../../ui/input';
@@ -8,13 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { CategoryBrowser } from '../dashboard/category-browser';
 import { cn } from '../../../lib/utils/cn';
 import { Button } from '../../ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ImpactFiltersProps {
   categories: any[];
   totalCount: number;
 }
 
-export function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
+export const ImpactFilters = memo(function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -102,43 +103,50 @@ export function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
       </div>
 
       {/* Mobile Expanded Filters Area */}
-      {isMobileSearchVisible && (
-        <div className="md:hidden space-y-4 animate-in slide-in-from-top-2 duration-300 w-full min-w-0">
-          <div className="relative group min-w-0">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
-            <Input
-              placeholder="Search causes..."
-              className="pl-11 h-12 rounded-3xl bg-muted/30 border-border/40 focus:bg-background focus:border-primary/20 text-sm font-medium"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 min-w-0">
-            <Select value={sort} onValueChange={setSort}>
-              <SelectTrigger className="w-full h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
-                <div className="flex items-center gap-2 min-w-0">
-                  <SlidersHorizontal className="h-4 w-4 shrink-0" />
-                  <SelectValue placeholder="Sort by" className="truncate" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                <SelectItem value="newest" className="text-xs font-bold">Newest arrival</SelectItem>
-                <SelectItem value="most_funded" className="text-xs font-bold">Highest funded</SelectItem>
-                <SelectItem value="ending_soon" className="text-xs font-bold">Closing soon</SelectItem>
-              </SelectContent>
-            </Select>
-            {(search || activeCategory !== 'all' || sort !== 'newest') && (
-              <Button
-                variant="outline"
-                onClick={clearFilters}
-                className="w-full h-12 rounded-3xl border-dashed border-border/60 text-xs font-bold  tracking-widest text-muted-foreground hover:text-primary transition-all"
-              >
-                Clear filters
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isMobileSearchVisible && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="md:hidden space-y-4 overflow-hidden w-full min-w-0"
+          >
+            <div className="relative group min-w-0">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
+              <Input
+                placeholder="Search causes..."
+                className="pl-11 h-12 rounded-3xl bg-muted/30 border-border/40 focus:bg-background focus:border-primary/20 text-sm font-medium"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 min-w-0">
+              <Select value={sort} onValueChange={setSort}>
+                <SelectTrigger className="w-full h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <SlidersHorizontal className="h-4 w-4 shrink-0" />
+                    <SelectValue placeholder="Sort by" className="truncate" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                  <SelectItem value="newest" className="text-xs font-bold">Newest arrival</SelectItem>
+                  <SelectItem value="most_funded" className="text-xs font-bold">Highest funded</SelectItem>
+                  <SelectItem value="ending_soon" className="text-xs font-bold">Closing soon</SelectItem>
+                </SelectContent>
+              </Select>
+              {(search || activeCategory !== 'all' || sort !== 'newest') && (
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="w-full h-12 rounded-3xl border-dashed border-border/60 text-xs font-bold tracking-widest text-muted-foreground hover:text-primary transition-all"
+                >
+                  Clear filters
+                </Button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Category Navigation */}
       <div className="pt-2 w-full min-w-0 overflow-hidden">
@@ -150,4 +158,4 @@ export function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
       </div>
     </div>
   );
-}
+});
