@@ -1,12 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    ShieldCheck, Mail, Calendar, Wallet, Heart,
-    Lock, Unlock, ShieldAlert, History, Activity,
-    TrendingUp, ExternalLink, Loader2, Fingerprint,
-    UserCheck, AlertTriangle, UserSearch, Shield, ShieldOff
+    Wallet, Lock, Unlock, ShieldAlert, History, Loader2, Fingerprint,
+    UserCheck, UserSearch, Shield, ShieldOff
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -18,6 +16,7 @@ import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
 import { setCookie, getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 interface UserForensicViewProps {
     user: {
@@ -52,7 +51,7 @@ interface UserForensicViewProps {
     };
 }
 
-export function UserForensicView({ user }: UserForensicViewProps) {
+export const UserForensicView = memo(function UserForensicView({ user }: UserForensicViewProps) {
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -72,6 +71,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
 
     const onConfirmImpersonate = async () => {
         setIsProcessing(true);
+        const toastId = toast.loading("Establishing Forensic Proxy...");
         try {
             const currentToken = getCookie('givar_token');
             const currentUser = getCookie('givar_user');
@@ -85,10 +85,10 @@ export function UserForensicView({ user }: UserForensicViewProps) {
             setCookie('givar_user', JSON.stringify(response.user), { path: '/' });
             setCookie('givar_is_impersonating', 'true', { path: '/' });
 
-            toast.success(`Forensic proxy active`);
+            toast.success(`Forensic Proxy Active`, { id: toastId });
             window.location.href = '/dashboard';
         } catch (e) {
-            toast.error('Forensic session failed');
+            toast.error('Forensic Session Failed', { id: toastId });
             setIsProcessing(false);
             setShowImpersonateConfirm(false);
         }
@@ -101,11 +101,11 @@ export function UserForensicView({ user }: UserForensicViewProps) {
         setIsProcessing(true);
         try {
             await ApiService.admin.updateUserStatus(user.id, action);
-            toast.success(`User status updated`);
+            toast.success(`User Status Updated`);
             setStatusConfirm({ isOpen: false, action: null });
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Action failed");
+            toast.error(e.response?.data?.message || "Action Failed");
         } finally {
             setIsProcessing(false);
         }
@@ -119,11 +119,11 @@ export function UserForensicView({ user }: UserForensicViewProps) {
         try {
             const newRole = action === 'PROMOTE' ? 'ADMIN' : 'USER';
             await ApiService.admin.updateUserRole(user.id, newRole);
-            toast.success(`Role updated`);
+            toast.success(`Role Updated`);
             setRoleConfirm({ isOpen: false, action: null });
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Role change failed");
+            toast.error(e.response?.data?.message || "Role Change Failed");
         } finally {
             setIsProcessing(false);
         }
@@ -131,8 +131,11 @@ export function UserForensicView({ user }: UserForensicViewProps) {
 
     return (
         <>
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 items-start">
-                {/* --- Identity & controls --- */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 items-start"
+            >
                 <div className="lg:col-span-4 space-y-4 md:space-y-6">
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <div className="p-6 text-center space-y-4">
@@ -158,7 +161,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                             <div className="flex flex-wrap justify-center gap-1.5">
                                 <Badge variant="outline" className={cn(
                                     "rounded-3xl px-2 py-0.5 text-xs font-bold border-border/40",
-                                    isAdmin ? "bg-blue-50 text-blue-600 border-blue-100" : "bg-muted/30"
+                                    isAdmin || isSuperAdmin ? "bg-blue-50 text-blue-600 border-blue-100" : "bg-muted/30"
                                 )}>
                                     {user.role}
                                 </Badge>
@@ -181,7 +184,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                                     disabled={isProcessing}
                                 >
                                     {isProcessing ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <UserSearch className="h-3.5 w-3.5" />}
-                                    Forensic perspective
+                                    Forensic Perspective
                                 </Button>
                             )}
 
@@ -217,8 +220,8 @@ export function UserForensicView({ user }: UserForensicViewProps) {
 
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3 px-5">
-                            <CardTitle className="text-xs font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
-                                <Fingerprint className="h-3.5 w-3.5" /> Identity metrics
+                            <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
+                                <Fingerprint className="h-3.5 w-3.5" /> Identity Metrics
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-5 space-y-3">
@@ -227,42 +230,41 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                                 <span className="font-bold text-foreground">{formatDate(user.createdAt).split(',')[0]}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs">
-                                <span className="font-medium text-muted-foreground">Failed logins</span>
+                                <span className="font-medium text-muted-foreground">Failed Logins</span>
                                 <span className={cn("font-bold tabular-nums", user.failedLoginAttempts > 2 ? "text-destructive" : "text-foreground")}>
                                     {user.failedLoginAttempts}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center text-xs">
-                                <span className="font-medium text-muted-foreground">Email status</span>
+                                <span className="font-medium text-muted-foreground">Email Status</span>
                                 <span className="font-bold text-foreground">{user.emailVerified ? 'Verified' : 'Pending'}</span>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
-                {/* --- Financials & audit logs --- */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-3xl">
-                            <p className="text-xs font-bold text-emerald-600  tracking-widest mb-1.5">Total impact</p>
+                            <p className="text-xs font-bold text-emerald-600 tracking-widest mb-1.5">Total Impact</p>
                             <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="default" className="text-emerald-700" />
                         </div>
 
                         <div className="p-4 bg-primary/5 border border-primary/10 rounded-3xl">
-                            <p className="text-xs font-bold text-primary  tracking-widest mb-1.5">Contributions</p>
+                            <p className="text-xs font-bold text-primary tracking-widest mb-1.5">Contributions</p>
                             <h4 className="text-xl font-bold text-foreground tabular-nums">{user._count.donations}</h4>
                         </div>
 
                         <div className="p-4 bg-blue-50 border border-blue-100 rounded-3xl">
-                            <p className="text-xs font-bold text-blue-600  tracking-widest mb-1.5">Live causes</p>
+                            <p className="text-xs font-bold text-blue-600 tracking-widest mb-1.5">Live Causes</p>
                             <h4 className="text-xl font-bold text-foreground tabular-nums">{user._count.projects}</h4>
                         </div>
                     </div>
 
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
-                            <CardTitle className="text-xs font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
-                                <Wallet className="h-3.5 w-3.5" /> Ledger nodes
+                            <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
+                                <Wallet className="h-3.5 w-3.5" /> Ledger Nodes
                             </CardTitle>
                         </CardHeader>
                         <div className="p-0">
@@ -275,12 +277,12 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                                             {w.currency}
                                         </div>
                                         <div className="space-y-0.5">
-                                            <p className="text-[11px] font-bold text-muted-foreground  tracking-widest">Balance</p>
+                                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest">Current Balance</p>
                                             <SmartCurrency amount={w.balance} currency={w.currency} visible={true} size="small" className="text-foreground" />
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[11px] font-bold text-muted-foreground ">Version</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground">Version</p>
                                         <p className="text-xs font-mono font-bold text-foreground">v{w.version}</p>
                                     </div>
                                 </div>
@@ -290,16 +292,16 @@ export function UserForensicView({ user }: UserForensicViewProps) {
 
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
-                            <CardTitle className="text-xs font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
-                                <History className="h-3.5 w-3.5" /> Forensic audit trail
+                            <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
+                                <History className="h-3.5 w-3.5" /> Forensic Audit Trail
                             </CardTitle>
                         </CardHeader>
                         <div className="p-0 overflow-x-auto">
                             <table className="w-full text-left">
-                                <thead className="bg-muted/40 text-[11px] font-bold  tracking-widest text-muted-foreground border-b border-border/40">
+                                <thead className="bg-muted/40 text-[11px] font-bold tracking-widest text-muted-foreground border-b border-border/40">
                                     <tr>
                                         <th className="px-6 py-3">Event</th>
-                                        <th className="px-6 py-3">Source node</th>
+                                        <th className="px-6 py-3">Source Node</th>
                                         <th className="px-6 py-3 text-right">Timestamp</th>
                                     </tr>
                                 </thead>
@@ -326,7 +328,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                         </div>
                     </Card>
                 </div>
-            </div>
+            </motion.div>
 
             <ConfirmModal
                 isOpen={showImpersonateConfirm}
@@ -334,9 +336,9 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                 onConfirm={onConfirmImpersonate}
                 isLoading={isProcessing}
                 variant="warning"
-                title="Initialize forensic proxy"
+                title="Initialize Forensic Proxy"
                 description={`Establish a support session for ${user.email}. You will view the node state exactly as the user does. All actions are audited.`}
-                confirmText="Start session"
+                confirmText="Start Session"
             />
 
             <ConfirmModal
@@ -345,12 +347,12 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                 onConfirm={onConfirmStatusToggle}
                 isLoading={isProcessing}
                 variant={statusConfirm.action === 'LOCK' ? 'destructive' : 'default'}
-                title={statusConfirm.action === 'LOCK' ? 'Restrict access' : 'Restore access'}
+                title={statusConfirm.action === 'LOCK' ? 'Restrict Access' : 'Restore Access'}
                 description={statusConfirm.action === 'LOCK'
                     ? `Terminate active sessions and restrict platform access for ${user.email}?`
                     : `Restore full ledger and identity access for ${user.email}?`
                 }
-                confirmText={statusConfirm.action === 'LOCK' ? 'Lock account' : 'Unlock account'}
+                confirmText={statusConfirm.action === 'LOCK' ? 'Lock Account' : 'Unlock Account'}
             />
 
             <ConfirmModal
@@ -359,7 +361,7 @@ export function UserForensicView({ user }: UserForensicViewProps) {
                 onConfirm={onConfirmRoleChange}
                 isLoading={isProcessing}
                 variant={roleConfirm.action === 'DEMOTE' ? 'destructive' : 'warning'}
-                title={roleConfirm.action === 'PROMOTE' ? 'Grant admin rights' : 'Revoke admin rights'}
+                title={roleConfirm.action === 'PROMOTE' ? 'Grant Admin Rights' : 'Revoke Admin Rights'}
                 description={roleConfirm.action === 'PROMOTE'
                     ? "Elevate this node to administrative status? This provides access to forensic tools and user management."
                     : "Demote this node to standard user status? All administrative permissions will be revoked."
@@ -368,4 +370,4 @@ export function UserForensicView({ user }: UserForensicViewProps) {
             />
         </>
     );
-}
+});
