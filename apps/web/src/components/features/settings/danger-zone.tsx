@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
     Trash2, Loader2,
     ShieldAlert, XCircle, AlertCircle
@@ -12,13 +12,13 @@ import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { deleteCookie } from 'cookies-next';
 
-export function DangerZone() {
+export const DangerZone = memo(function DangerZone() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleDelete = async () => {
-        if (!password) return toast.error("Password required to authorize deletion");
+        if (!password) return toast.error("Password Required To Authorize Deletion");
 
         setIsLoading(true);
         try {
@@ -27,10 +27,10 @@ export function DangerZone() {
             deleteCookie('givar_token');
             deleteCookie('givar_user');
 
-            toast.success("Account successfully deleted");
+            toast.success("Account Successfully Deleted");
             window.location.href = '/';
         } catch (error: any) {
-            const message = error.response?.data?.message || "Deletion failed. Check your credentials.";
+            const message = error.response?.data?.message || "Deletion Failed. Check Your Credentials.";
             toast.error(message);
         } finally {
             setIsLoading(false);
@@ -42,18 +42,18 @@ export function DangerZone() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-3xl bg-destructive/5 border border-destructive/10 shadow-sm">
                 <div className="space-y-0.5">
                     <h3 className="text-sm font-bold text-destructive flex items-center gap-2">
-                        <ShieldAlert className="h-4 w-4" /> Danger zone
+                        <ShieldAlert className="h-4 w-4" /> Danger Zone
                     </h3>
                     <p className="text-xs text-muted-foreground font-medium max-w-lg leading-relaxed">
-                        Permanently remove your account and data. This action is irreversible. Historical donation records are preserved for ledger transparency.
+                        Permanently Remove Your Account And Data. This Action Is Irreversible. Historical Donation Records Are Preserved For Ledger Transparency.
                     </p>
                 </div>
                 <Button
                     variant="destructive"
                     onClick={() => setIsDialogOpen(true)}
-                    className="h-9 rounded-3xl px-6 font-bold text-xs shadow-sm"
+                    className="h-9 rounded-3xl px-6 font-bold text-xs shadow-sm active:scale-95 transition-all"
                 >
-                    <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete account
+                    <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete Account
                 </Button>
             </div>
 
@@ -65,17 +65,17 @@ export function DangerZone() {
                                 <XCircle className="h-6 w-6" />
                             </div>
                             <DialogHeader>
-                                <DialogTitle className="text-lg font-bold tracking-tight text-center">Delete account</DialogTitle>
+                                <DialogTitle className="text-lg font-bold tracking-tight text-center">Delete Account</DialogTitle>
                             </DialogHeader>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                Enter your password to authorize permanent removal from the Givar protocol.
+                                Enter Your Password To Authorize Permanent Removal From The Givar Protocol.
                             </p>
                         </div>
 
                         <div className="space-y-4">
                             <Input
                                 type="password"
-                                label="Confirm password"
+                                label="Confirm Password"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -84,7 +84,7 @@ export function DangerZone() {
 
                             <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed flex gap-2.5">
                                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                                <span>Note: Nodes with active projects are restricted from deletion to maintain donor trust.</span>
+                                <span>Note: Nodes With Active Projects Are Restricted From Deletion To Maintain Donor Trust.</span>
                             </div>
                         </div>
 
@@ -94,9 +94,9 @@ export function DangerZone() {
                                 variant="destructive"
                                 onClick={handleDelete}
                                 disabled={isLoading || !password}
-                                className="rounded-3xl h-10 font-bold text-xs shadow-sm"
+                                className="rounded-3xl h-10 font-bold text-xs shadow-sm active:scale-95 transition-all"
                             >
-                                {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : 'Confirm deletion'}
+                                {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : 'Confirm Deletion'}
                             </Button>
                         </div>
                     </div>
@@ -104,4 +104,4 @@ export function DangerZone() {
             </Dialog>
         </div>
     );
-}
+});

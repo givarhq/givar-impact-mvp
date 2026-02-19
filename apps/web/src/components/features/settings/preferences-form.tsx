@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Bell, Loader2, Info, Moon, Sun, Monitor } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { useTheme } from 'next-themes';
@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 import { ApiService } from '../../../services/api';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 
 interface UserPreferences {
     donationReceipts: boolean;
@@ -25,7 +26,7 @@ interface PreferenceToggleProps {
     icon?: React.ElementType;
 }
 
-const PreferenceToggle = ({ title, description, enabled, onToggle, isUpdating, icon: Icon }: PreferenceToggleProps) => (
+const PreferenceToggle = memo(({ title, description, enabled, onToggle, isUpdating, icon: Icon }: PreferenceToggleProps) => (
     <div className={cn(
         "flex flex-col gap-2 p-4 md:p-5 rounded-3xl border transition-all duration-200",
         isUpdating ? "bg-muted/10 opacity-70 cursor-wait" : "bg-muted/20 border-border/40 hover:bg-muted/30"
@@ -61,9 +62,9 @@ const PreferenceToggle = ({ title, description, enabled, onToggle, isUpdating, i
             {description}
         </p>
     </div>
-);
+));
 
-export function PreferencesForm({ user }: { user: any }) {
+export const PreferencesForm = memo(function PreferencesForm({ user }: { user: any }) {
     const router = useRouter();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
@@ -90,11 +91,11 @@ export function PreferencesForm({ user }: { user: any }) {
 
         try {
             await ApiService.auth.updatePreferences(updatedPrefs);
-            toast.success("Identity preferences updated");
+            toast.success("Identity Preferences Updated");
             router.refresh();
         } catch (error) {
             setPrefs(prefs);
-            toast.error("Sync failed");
+            toast.error("Sync Failed");
         } finally {
             setUpdatingKey(null);
         }
@@ -103,7 +104,12 @@ export function PreferencesForm({ user }: { user: any }) {
     if (!mounted) return null;
 
     return (
-        <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="max-w-5xl mx-auto space-y-4 md:space-y-6"
+        >
             {/* Appearance Section */}
             <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <CardContent className="p-6 md:p-8 space-y-6">
@@ -113,14 +119,14 @@ export function PreferencesForm({ user }: { user: any }) {
                         </div>
                         <div className="space-y-0.5">
                             <h3 className="font-bold text-sm text-foreground">Visual Identity</h3>
-                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Platform interface settings</p>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Platform Interface Settings</p>
                         </div>
                     </div>
 
                     <div className="space-y-3">
                         <PreferenceToggle
                             title="Dark Mode Interface"
-                            description="Toggle high-contrast dark color palette for low-light environments."
+                            description="Toggle High-Contrast Dark Color Palette For Low-Light Environments."
                             enabled={theme === 'dark'}
                             onToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                             icon={theme === 'dark' ? Moon : Sun}
@@ -138,35 +144,35 @@ export function PreferencesForm({ user }: { user: any }) {
                         </div>
                         <div className="space-y-0.5">
                             <h3 className="font-bold text-sm text-foreground">Notification Protocols</h3>
-                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Automated ledger alerts</p>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Automated Ledger Alerts</p>
                         </div>
                     </div>
 
                     <div className="grid gap-3">
                         <PreferenceToggle
                             title="Immutable Receipts"
-                            description="Receive detailed transaction verification via email after every donation."
+                            description="Receive Detailed Transaction Verification Via Email After Every Donation."
                             enabled={prefs.donationReceipts}
                             onToggle={() => togglePref('donationReceipts')}
                             isUpdating={updatingKey === 'donationReceipts'}
                         />
                         <PreferenceToggle
                             title="Impact Milestones"
-                            description="Updates regarding project goals, amendments, and verified proof-of-work."
+                            description="Updates Regarding Project Goals, Amendments, And Verified Proof-Of-Work."
                             enabled={prefs.milestoneUpdates}
                             onToggle={() => togglePref('milestoneUpdates')}
                             isUpdating={updatingKey === 'milestoneUpdates'}
                         />
                         <PreferenceToggle
                             title="Security Watchtower"
-                            description="Critical alerts for login events, credential changes, or account restrictions."
+                            description="Critical Alerts For Login Events, Credential Changes, Or Account Restrictions."
                             enabled={prefs.securityAlerts}
                             onToggle={() => togglePref('securityAlerts')}
                             isUpdating={updatingKey === 'securityAlerts'}
                         />
                         <PreferenceToggle
                             title="Ecosystem Insights"
-                            description="Summaries of trending causes and high-priority sector impacts."
+                            description="Summaries Of Trending Causes And High-Priority Sector Impacts."
                             enabled={prefs.marketing}
                             onToggle={() => togglePref('marketing')}
                             isUpdating={updatingKey === 'marketing'}
@@ -178,9 +184,9 @@ export function PreferencesForm({ user }: { user: any }) {
             <div className="p-5 rounded-3xl bg-muted/20 border border-dashed border-border/60 flex items-start gap-4">
                 <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                    Preference modifications are synced instantly with your node. Ledger-critical security logging remains enforced by system policy.
+                    Preference Modifications Are Synced Instantly With Your Node. Ledger-Critical Security Logging Remains Enforced By System Policy.
                 </p>
             </div>
-        </div>
+        </motion.div>
     );
-}
+});
