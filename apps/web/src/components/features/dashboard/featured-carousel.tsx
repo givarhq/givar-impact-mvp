@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { ArrowRight, MapPin, ShieldCheck } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Project } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { cn } from '../../../lib/utils/cn';
 
-export function FeaturedCarousel({ projects }: { projects: Project[] }) {
+export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { projects: Project[] }) {
     const router = useRouter();
     const [index, setIndex] = useState(0);
 
@@ -20,12 +20,9 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
         return () => clearInterval(timer);
     }, [projects?.length]);
 
-    // Defensive Guard: Handle null, undefined, or empty data
     if (!projects || projects.length === 0) return null;
 
     const current = projects[index];
-
-    // Final Safety: If for some reason the index points to nothing
     if (!current) return null;
 
     const raised = Number(current.raisedAmount || 0);
@@ -53,7 +50,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
                     onDragEnd={handleDragEnd}
@@ -88,7 +85,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                             </h2>
                             <div className="flex items-center gap-2 text-[11px] text-zinc-300">
                                 <span className="flex items-center gap-1 font-medium">
-                                    <MapPin className="h-2.5 w-2.5 text-primary" /> {current.location || 'Global'}
+                                    <MapPin className="h-2.5 w-2.5 text-primary" /> {current.location || 'Global Location'}
                                 </span>
                             </div>
                         </div>
@@ -106,15 +103,17 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-bold text-muted-foreground/60">Goal</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground/60">Target Goal</p>
                                         <SmartCurrency amount={current.targetAmount} currency={current.currency} visible={true} size="small" className="text-foreground/50" />
                                     </div>
                                 </div>
 
                                 <div className="h-1 w-full bg-muted rounded-3xl overflow-hidden border border-border/40">
-                                    <div
-                                        className="h-full bg-primary rounded-3xl transition-all duration-1000 ease-out shadow-sm"
-                                        style={{ width: `${percent}%` }}
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${percent}%` }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
+                                        className="h-full bg-primary rounded-3xl shadow-sm"
                                     />
                                 </div>
                             </div>
@@ -127,7 +126,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                                     }}
                                     className="w-32 h-10 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-0"
                                 >
-                                    Donate
+                                    Donate Now
                                 </button>
 
                                 <button
@@ -137,7 +136,7 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                                     }}
                                     className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-all group"
                                 >
-                                    View all verified causes
+                                    View All Verified Causes
                                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                                 </button>
                             </div>
@@ -159,11 +158,11 @@ export function FeaturedCarousel({ projects }: { projects: Project[] }) {
                                 "h-1 rounded-3xl transition-all duration-500",
                                 i === index ? "w-4 bg-primary" : "w-1.5 bg-white/30 hover:bg-white/50"
                             )}
-                            aria-label={`Go to slide ${i + 1}`}
+                            aria-label={`Go To Slide ${i + 1}`}
                         />
                     ))}
                 </div>
             )}
         </div>
     );
-}
+});

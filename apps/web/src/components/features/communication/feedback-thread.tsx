@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { MessageSquare, Send, Loader2, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -9,6 +9,7 @@ import { ApiService } from '../../../services/api';
 import { formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
     id: string;
@@ -28,7 +29,7 @@ interface FeedbackThreadProps {
     title?: string;
 }
 
-export function FeedbackThread({ proposalId, projectId, title = "Feedback and conversation" }: FeedbackThreadProps) {
+export const FeedbackThread = memo(function FeedbackThread({ proposalId, projectId, title = "Feedback And Conversation" }: FeedbackThreadProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +41,7 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
             const data = await ApiService.communication.getThread({ proposalId, projectId });
             setMessages(data || []);
         } catch (error) {
-            console.error("Could not load conversation history");
+            console.error("Could not load the conversation history");
         } finally {
             setIsLoading(false);
         }
@@ -48,7 +49,6 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
 
     useEffect(() => {
         fetchMessages();
-        // Poll for new messages every 15 seconds
         const interval = setInterval(fetchMessages, 15000);
         return () => clearInterval(interval);
     }, [proposalId, projectId]);
@@ -73,11 +73,10 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
             setMessages(prev => [...prev, sent]);
             setNewMessage('');
 
-            // Focus back on textarea after sending
             const textarea = document.getElementById('message-input');
             textarea?.focus();
         } catch (error) {
-            toast.error("Message could not be sent. Please try again.");
+            toast.error("Your Message Could Not Be Sent. Please Try Again.");
         } finally {
             setIsSending(false);
         }
@@ -104,37 +103,45 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
                         <p className="text-xs font-medium">No messages yet. Start the conversation below.</p>
                     </div>
                 ) : (
-                    messages.map((msg) => (
-                        <div key={msg.id} className={cn(
-                            "flex flex-col max-w-[85%] space-y-1",
-                            msg.isAdmin ? "mr-auto" : "ml-auto items-end"
-                        )}>
-                            <div className="flex items-center gap-2 px-1">
-                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight">
-                                    {msg.author.firstName} {msg.author.lastName}
-                                </span>
-                                {msg.isAdmin && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold bg-primary/10 text-primary border border-primary/20">
-                                        Givar Admin
-                                    </span>
+                    <AnimatePresence initial={false}>
+                        {messages.map((msg) => (
+                            <motion.div
+                                key={msg.id}
+                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className={cn(
+                                    "flex flex-col max-w-[85%] space-y-1",
+                                    msg.isAdmin ? "mr-auto" : "ml-auto items-end"
                                 )}
-                            </div>
-                            <div className={cn(
-                                "p-3.5 rounded-[22px] text-xs leading-relaxed font-medium shadow-sm",
-                                msg.isAdmin
-                                    ? "bg-muted/60 text-foreground rounded-tl-none border border-border/40"
-                                    : "bg-primary text-white rounded-tr-none"
-                            )}>
-                                {msg.content}
-                            </div>
-                            <div className="flex items-center gap-1 px-1 opacity-40">
-                                <Clock className="h-2.5 w-2.5" />
-                                <span className="text-[9px] font-bold">
-                                    {formatDate(msg.createdAt).split(',')[1]}
-                                </span>
-                            </div>
-                        </div>
-                    ))
+                            >
+                                <div className="flex items-center gap-2 px-1">
+                                    <span className="text-[10px] font-bold text-muted-foreground tracking-tight">
+                                        {msg.author.firstName} {msg.author.lastName}
+                                    </span>
+                                    {msg.isAdmin && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                            Givar Admin
+                                        </span>
+                                    )}
+                                </div>
+                                <div className={cn(
+                                    "p-3.5 rounded-[22px] text-xs leading-relaxed font-medium shadow-sm",
+                                    msg.isAdmin
+                                        ? "bg-muted/60 text-foreground rounded-tl-none border border-border/40"
+                                        : "bg-primary text-white rounded-tr-none"
+                                )}>
+                                    {msg.content}
+                                </div>
+                                <div className="flex items-center gap-1 px-1 opacity-40">
+                                    <Clock className="h-2.5 w-2.5" />
+                                    <span className="text-[9px] font-bold">
+                                        {formatDate(msg.createdAt).split(',')[1]}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
                 )}
             </CardContent>
 
@@ -142,7 +149,7 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
                 <div className="flex items-center gap-2">
                     <Textarea
                         id="message-input"
-                        placeholder="Write a message..."
+                        placeholder="Write A Message..."
                         className="min-h-[40px] max-h-[140px] text-xs"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -159,7 +166,7 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
                         type="button"
                         disabled={!newMessage.trim() || isSending}
                         onClick={handleSend}
-                        className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all active:scale-95 p-0 flex items-center justify-center"
+                        className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all active:scale-95 p-0 flex items-center justify-center border-0"
                     >
                         {isSending ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -175,7 +182,6 @@ export function FeedbackThread({ proposalId, projectId, title = "Feedback and co
                     </p>
                 </div>
             </div>
-
         </Card>
     );
-}
+});

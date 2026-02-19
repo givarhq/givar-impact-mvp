@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, memo } from 'react';
 import {
     Compass,
     Droplets,
@@ -17,6 +17,7 @@ import {
     Building
 } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
+import { motion } from 'framer-motion';
 
 const iconMap: Record<string, React.ElementType> = {
     water: Droplets,
@@ -45,13 +46,13 @@ interface CategoryBrowserProps {
     onSelect: (slug: string) => void;
 }
 
-export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrowserProps) {
+export const CategoryBrowser = memo(function CategoryBrowser({ categories, selected, onSelect }: CategoryBrowserProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
 
     const allCategories: Category[] = [
-        { id: 'all', name: 'All causes', slug: 'all' },
+        { id: 'all', name: 'All Causes', slug: 'all' },
         ...categories
     ];
 
@@ -64,7 +65,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
     }, []);
 
-    // Debounced resize handling
     useEffect(() => {
         let timeout: NodeJS.Timeout;
 
@@ -84,7 +84,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
         };
     }, [categories, checkScroll]);
 
-    // Auto-scroll active tab into view
     useEffect(() => {
         const active = scrollRef.current?.querySelector('[data-active="true"]');
         active?.scrollIntoView({
@@ -151,12 +150,11 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
 
     return (
         <div className="relative flex items-center w-full min-w-0 overflow-hidden">
-            {/* Left Arrow */}
             {showLeftArrow && (
                 <div className="absolute left-0 top-0 bottom-0 z-20 hidden md:flex items-center pl-1">
                     <button
                         onClick={() => handleScroll('left')}
-                        aria-label="Scroll left"
+                        aria-label="Scroll Left"
                         className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <ChevronLeft className="h-4 w-4" />
@@ -164,7 +162,6 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                 </div>
             )}
 
-            {/* Scroll Container */}
             <div
                 ref={scrollRef}
                 onScroll={checkScroll}
@@ -186,7 +183,7 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                             onClick={() => onSelect(cat.slug)}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             className={cn(
-                                "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary relative",
                                 isActive
                                     ? "bg-primary/10 text-primary border-primary/50 shadow-sm scale-[1.02]"
                                     : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/50 hover:text-foreground"
@@ -199,17 +196,23 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
                                 )}
                             />
                             <span className="truncate">{cat.name}</span>
+                            {isActive && (
+                                <motion.div
+                                    layoutId="categoryRing"
+                                    className="absolute inset-0 rounded-3xl ring-2 ring-primary/20 pointer-events-none"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
                         </button>
                     );
                 })}
             </div>
 
-            {/* Right Arrow */}
             {showRightArrow && (
                 <div className="absolute right-0 top-0 bottom-0 z-20 hidden md:flex items-center pr-1">
                     <button
                         onClick={() => handleScroll('right')}
-                        aria-label="Scroll right"
+                        aria-label="Scroll Right"
                         className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <ChevronRight className="h-4 w-4" />
@@ -218,4 +221,4 @@ export function CategoryBrowser({ categories, selected, onSelect }: CategoryBrow
             )}
         </div>
     );
-                }
+});
