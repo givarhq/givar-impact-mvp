@@ -1,19 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { SearchX } from 'lucide-react';
 import { getCookie } from 'cookies-next';
 import { Project, Wallet } from '../../../types';
 import { ProjectCard } from './project-card';
 import { ShareModal } from './share-modal';
 import { ApiService } from '../../../services/api';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface ProjectGridProps {
   projects: Project[];
   isPublic?: boolean;
 }
 
-export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
+export const ProjectGrid = memo(function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [shareProject, setShareProject] = useState<Project | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -31,7 +32,6 @@ export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
     }
 
     setSelectedProject(project);
-    // Note: Redirection to donation page is handled within ProjectCard
   };
 
   const handleShareClick = (project: Project) => {
@@ -56,16 +56,26 @@ export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
   return (
     <div className="w-full min-w-0">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 min-w-0">
-        {projects.map((project) => (
-          <div key={project.id} className="min-w-0 flex-1">
-            <ProjectCard
-              project={project}
-              onDonate={handleDonateClick}
-              onShare={handleShareClick}
-              isPublic={isPublic}
-            />
-          </div>
-        ))}
+        <AnimatePresence mode="popLayout">
+          {projects.map((project) => (
+            <motion.div
+              key={project.id}
+              layout
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="min-w-0 flex-1"
+            >
+              <ProjectCard
+                project={project}
+                onDonate={handleDonateClick}
+                onShare={handleShareClick}
+                isPublic={isPublic}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       <ShareModal
@@ -76,4 +86,4 @@ export function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
       />
     </div>
   );
-}
+});

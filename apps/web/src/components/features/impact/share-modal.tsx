@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Copy, Check, Mail } from 'lucide-react';
 import { Modal } from '../../ui/modal';
 import { Button } from '../../ui/button';
@@ -26,7 +26,7 @@ const Icons = {
   ),
 };
 
-export function ShareModal({ isOpen, onClose, projectTitle, projectSlug }: ShareModalProps) {
+export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTitle, projectSlug }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
 
   const shareUrl = typeof window !== 'undefined'
@@ -72,28 +72,28 @@ export function ShareModal({ isOpen, onClose, projectTitle, projectSlug }: Share
       <div className="space-y-5 pt-3">
 
         <div className="grid grid-cols-4 gap-3">
-          <button onClick={() => shareTo('whatsapp')} className="flex flex-col items-center gap-1.5 group outline-none">
+          <button onClick={() => shareTo('whatsapp')} className="flex flex-col items-center gap-1.5 group outline-none active:scale-95 transition-transform">
             <div className="h-11 w-11 rounded-3xl bg-green-500/10 text-green-600 flex items-center justify-center transition-all group-hover:bg-green-500 group-hover:text-white border border-green-500/10 shadow-sm">
               <Icons.WhatsApp className="h-5 w-5" />
             </div>
             <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">WhatsApp</span>
           </button>
 
-          <button onClick={() => shareTo('twitter')} className="flex flex-col items-center gap-1.5 group outline-none">
+          <button onClick={() => shareTo('twitter')} className="flex flex-col items-center gap-1.5 group outline-none active:scale-95 transition-transform">
             <div className="h-11 w-11 rounded-3xl bg-zinc-500/10 text-zinc-700 dark:text-zinc-300 flex items-center justify-center transition-all group-hover:bg-black group-hover:text-white border border-zinc-500/10 shadow-sm">
               <Icons.Twitter className="h-4.5 w-4.5" />
             </div>
             <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">X</span>
           </button>
 
-          <button onClick={() => shareTo('linkedin')} className="flex flex-col items-center gap-1.5 group outline-none">
+          <button onClick={() => shareTo('linkedin')} className="flex flex-col items-center gap-1.5 group outline-none active:scale-95 transition-transform">
             <div className="h-11 w-11 rounded-3xl bg-blue-600/10 text-blue-600 flex items-center justify-center transition-all group-hover:bg-blue-600 group-hover:text-white border border-blue-600/10 shadow-sm">
               <Icons.LinkedIn className="h-4.5 w-4.5" />
             </div>
             <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">LinkedIn</span>
           </button>
 
-          <button onClick={() => shareTo('email')} className="flex flex-col items-center gap-1.5 group outline-none">
+          <button onClick={() => shareTo('email')} className="flex flex-col items-center gap-1.5 group outline-none active:scale-95 transition-transform">
             <div className="h-11 w-11 rounded-3xl bg-purple-500/10 text-purple-600 flex items-center justify-center transition-all group-hover:bg-purple-600 group-hover:text-white border border-purple-500/10 shadow-sm">
               <Mail className="h-5 w-5" />
             </div>
@@ -115,7 +115,7 @@ export function ShareModal({ isOpen, onClose, projectTitle, projectSlug }: Share
             </div>
             <Button
               onClick={copyToClipboard}
-              className="shrink-0 h-10 rounded-3xl px-4 font-bold text-xs shadow-sm"
+              className="shrink-0 h-10 rounded-3xl px-4 font-bold text-xs shadow-sm active:scale-95 transition-transform"
               variant={copied ? "default" : "secondary"}
             >
               {copied ? <Check className="h-3.5 w-3.5 mr-1.5" /> : <Copy className="h-3.5 w-3.5 mr-1.5" />}
@@ -127,4 +127,4 @@ export function ShareModal({ isOpen, onClose, projectTitle, projectSlug }: Share
       </div>
     </Modal>
   );
-}
+});

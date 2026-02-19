@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
     Share2, MapPin, Calendar, Clock,
     BadgeCheck, ShieldCheck, DollarSign, Briefcase,
@@ -17,7 +17,7 @@ import { formatDate, formatCurrency } from '../../../lib/utils/format';
 import { TransparencyCard } from './transparency-card';
 import { ShareModal } from './share-modal';
 import { cn } from '../../../lib/utils/cn';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '../../ui/card';
 
 interface ProjectDetailsClientProps {
@@ -25,7 +25,7 @@ interface ProjectDetailsClientProps {
     isPublic?: boolean;
 }
 
-export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetailsClientProps) {
+export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project, isPublic = false }: ProjectDetailsClientProps) {
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const donateLink = isPublic
@@ -41,7 +41,12 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
     const isFunded = (raised >= target && target > 0) || project.status === 'FUNDED' || project.status === 'COMPLETED';
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-20 animate-in fade-in duration-300">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-20"
+        >
 
             {/* LEFT COLUMN: Content */}
             <div className="lg:col-span-2 space-y-6 md:space-y-8">
@@ -94,7 +99,7 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                                 <button
                                     key={i}
                                     onClick={() => window.open(item.url, '_blank')}
-                                    className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 bg-muted hover:ring-2 hover:ring-primary/40 transition-all group"
+                                    className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 bg-muted hover:ring-2 hover:ring-primary/40 transition-all group active:scale-95"
                                 >
                                     <img src={item.url} alt={item.caption || `Gallery ${i}`} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                                     {item.type === 'VIDEO' && (
@@ -123,180 +128,198 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* TAB: STORY */}
-                    <TabsContent value="story" className="mt-6 outline-none animate-in fade-in slide-in-from-bottom-1 duration-200">
-                        <div className="space-y-6">
-                            {project.shortDesc && (
-                                <p className="text-foreground/90 text-lg font-medium leading-relaxed italic border-l-4 border-primary/30 pl-6 py-1">
-                                    {project.shortDesc}
-                                </p>
-                            )}
-
-                            <div
-                                className={cn(
-                                    "prose prose-sm dark:prose-invert max-w-none",
-                                    "prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground",
-                                    "prose-p:text-foreground/80 prose-p:leading-relaxed",
-                                    "prose-strong:text-foreground prose-strong:font-bold",
-                                    "prose-ul:list-disc prose-ul:pl-5",
-                                    "prose-hr:border-border/40"
+                    <AnimatePresence mode="wait">
+                        <TabsContent value="story" className="mt-6 outline-none">
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="space-y-6"
+                            >
+                                {project.shortDesc && (
+                                    <p className="text-foreground/90 text-lg font-medium leading-relaxed italic border-l-4 border-primary/30 pl-6 py-1">
+                                        {project.shortDesc}
+                                    </p>
                                 )}
-                                dangerouslySetInnerHTML={{ __html: project.description }}
-                            />
-                        </div>
 
-                        {project.riskAnalysis && (
-                            <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
-                                <h4 className="text-xs font-bold tracking-tight text-amber-700 flex items-center gap-2 mb-3">
-                                    <AlertTriangle className="h-4 w-4" /> Risk assessment & mitigation
-                                </h4>
-                                <p className="text-xs text-amber-900/70 leading-relaxed font-medium italic">
-                                    {project.riskAnalysis}
-                                </p>
-                            </div>
-                        )}
-                    </TabsContent>
+                                <div
+                                    className={cn(
+                                        "prose prose-sm dark:prose-invert max-w-none",
+                                        "prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground",
+                                        "prose-p:text-foreground/80 prose-p:leading-relaxed",
+                                        "prose-strong:text-foreground prose-strong:font-bold",
+                                        "prose-ul:list-disc prose-ul:pl-5",
+                                        "prose-hr:border-border/40"
+                                    )}
+                                    dangerouslySetInnerHTML={{ __html: project.description }}
+                                />
 
-                    {/* TAB: PLAN */}
-                    <TabsContent value="plan" className="mt-6 outline-none animate-in fade-in slide-in-from-bottom-1 duration-200 space-y-10">
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3 px-1">
-                                <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-                                    <DollarSign className="h-4 w-4" />
-                                </div>
-                                <h4 className="text-xs font-bold tracking-widest text-foreground ">Financial breakdown</h4>
-                            </div>
-                            <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground  tracking-wider">
-                                        <tr>
-                                            <th className="px-6 py-4">Item</th>
-                                            <th className="px-6 py-4 hidden md:table-cell">Type</th>
-                                            <th className="px-6 py-4 text-right">Allocation</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-border/40 text-xs">
-                                        {budget.map((item: any, i: number) => (
-                                            <tr key={i} className="hover:bg-muted/10 transition-colors">
-                                                <td className="px-6 py-4 font-bold text-foreground">
-                                                    {item.item}
-                                                    <div className="md:hidden text-[11px] text-muted-foreground font-medium  mt-0.5">{item.type}</div>
-                                                </td>
-                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium  text-[11px]">{item.type}</td>
-                                                <td className="px-6 py-4 text-right font-bold tabular-nums text-foreground">
-                                                    {new Intl.NumberFormat('en-NG', { style: 'currency', currency: project.currency }).format(item.cost)}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                                {project.riskAnalysis && (
+                                    <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
+                                        <h4 className="text-xs font-bold tracking-tight text-amber-700 flex items-center gap-2 mb-3">
+                                            <AlertTriangle className="h-4 w-4" /> Risk assessment & mitigation
+                                        </h4>
+                                        <p className="text-xs text-amber-900/70 leading-relaxed font-medium italic">
+                                            {project.riskAnalysis}
+                                        </p>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </TabsContent>
 
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3 px-1">
-                                <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-                                    <Briefcase className="h-4 w-4" />
-                                </div>
-                                <h4 className="text-xs font-bold tracking-widest text-foreground ">Implementation roadmap</h4>
-                            </div>
-                            <div className="grid gap-3">
-                                {timeline.map((phase: any, i: number) => {
-                                    const isCompleted = phase.status === 'COMPLETED';
-                                    const isInProgress = phase.status === 'IN_PROGRESS';
-
-                                    return (
-                                        <div key={i} className="flex gap-4 group relative">
-                                            <div className="flex flex-col items-center shrink-0">
-                                                <div className={cn(
-                                                    "h-7 w-7 rounded-3xl border-2 flex items-center justify-center transition-all duration-300 z-10 bg-background",
-                                                    isCompleted ? "bg-primary border-primary text-primary-foreground shadow-sm" :
-                                                        isInProgress ? "border-primary text-primary animate-pulse" :
-                                                            "border-border text-muted-foreground"
-                                                )}>
-                                                    {isCompleted ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
-                                                </div>
-                                                <div className={cn(
-                                                    "flex-1 w-0.5 group-last:hidden mt-2 mb-0.5 transition-colors",
-                                                    isCompleted ? "bg-primary" : "bg-border/40"
-                                                )} />
-                                            </div>
-                                            <div className="flex-1 pb-6 space-y-1 min-w-0">
-                                                <div className="flex justify-between items-baseline gap-4">
-                                                    <h5 className={cn("font-bold text-sm", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
-                                                        {phase.phase}
-                                                    </h5>
-                                                    <div className="flex flex-col items-end shrink-0">
-                                                        <span className={cn(
-                                                            "text-[11px] font-bold px-2 py-0.5 rounded-3xl  border",
-                                                            isCompleted ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
-                                                        )}>
-                                                            {isCompleted ? 'Complete' : phase.estimatedDate}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                                                    {phase.deliverables}
-                                                </p>
-                                            </div>
+                        <TabsContent value="plan" className="mt-6 outline-none space-y-10">
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <div className="space-y-4 mb-10">
+                                    <div className="flex items-center gap-3 px-1">
+                                        <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+                                            <DollarSign className="h-4 w-4" />
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </TabsContent>
-
-                    {/* TAB: UPDATES */}
-                    <TabsContent value="updates" className="mt-6 outline-none animate-in fade-in slide-in-from-bottom-1 duration-200">
-                        <div className="space-y-4">
-                            {project.updates && project.updates.length > 0 ? (
-                                project.updates.map((update, idx) => {
-                                    const isAdjustment = update.title === 'Financial Goal Adjusted';
-                                    return (
-                                        <Card
-                                            key={idx}
-                                            className={cn(
-                                                "relative flex flex-col gap-4 p-5 md:p-6 rounded-3xl border shadow-sm transition-all",
-                                                isAdjustment ? "bg-amber-50 border-amber-100" : "bg-card border-border/40"
-                                            )}
-                                        >
-                                            {update.imageUrl && (
-                                                <div className="w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted border border-border/10">
-                                                    <img src={update.imageUrl} className="w-full h-full object-cover" alt="" />
-                                                </div>
-                                            )}
-
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="space-y-1">
-                                                    <div className="flex items-center gap-3">
-                                                        <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold  tracking-wider border-none", isAdjustment ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary")}>
-                                                            {isAdjustment ? 'Amendment' : update.type.replace('_', ' ')}
-                                                        </Badge>
-                                                        <span className="text-[11px] font-bold text-muted-foreground  flex items-center gap-1">
-                                                            <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
-                                                        </span>
-                                                    </div>
-                                                    <h4 className={cn("text-lg font-bold tracking-tight", isAdjustment ? "text-amber-800" : "text-foreground")}>{update.title}</h4>
-                                                </div>
-                                                {isAdjustment && <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />}
-                                            </div>
-
-                                            <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/70" : "text-muted-foreground")}>{update.content}</p>
-
-                                            <div className="pt-4 border-t border-border/40 text-[10px] font-bold  tracking-widest text-muted-foreground flex items-center gap-1.5">
-                                                <ShieldCheck className="h-3 w-3 text-primary" /> Verified entry
-                                            </div>
-                                        </Card>
-                                    );
-                                })
-                            ) : (
-                                <div className="text-center py-16 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
-                                    <Clock className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
-                                    <p className="text-xs font-bold text-muted-foreground  tracking-widest">No activity logged</p>
+                                        <h4 className="text-xs font-bold tracking-widest text-foreground ">Financial breakdown</h4>
+                                    </div>
+                                    <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground  tracking-wider">
+                                                <tr>
+                                                    <th className="px-6 py-4">Item</th>
+                                                    <th className="px-6 py-4 hidden md:table-cell">Type</th>
+                                                    <th className="px-6 py-4 text-right">Allocation</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border/40 text-xs">
+                                                {budget.map((item: any, i: number) => (
+                                                    <tr key={i} className="hover:bg-muted/10 transition-colors">
+                                                        <td className="px-6 py-4 font-bold text-foreground">
+                                                            {item.item}
+                                                            <div className="md:hidden text-[11px] text-muted-foreground font-medium  mt-0.5">{item.type}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium  text-[11px]">{item.type}</td>
+                                                        <td className="px-6 py-4 text-right font-bold tabular-nums text-foreground">
+                                                            {new Intl.NumberFormat('en-NG', { style: 'currency', currency: project.currency }).format(item.cost)}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-                    </TabsContent>
+
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 px-1">
+                                        <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+                                            <Briefcase className="h-4 w-4" />
+                                        </div>
+                                        <h4 className="text-xs font-bold tracking-widest text-foreground ">Implementation roadmap</h4>
+                                    </div>
+                                    <div className="grid gap-3">
+                                        {timeline.map((phase: any, i: number) => {
+                                            const isCompleted = phase.status === 'COMPLETED';
+                                            const isInProgress = phase.status === 'IN_PROGRESS';
+
+                                            return (
+                                                <div key={i} className="flex gap-4 group relative">
+                                                    <div className="flex flex-col items-center shrink-0">
+                                                        <div className={cn(
+                                                            "h-7 w-7 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 bg-background",
+                                                            isCompleted ? "bg-primary border-primary text-primary-foreground shadow-sm" :
+                                                                isInProgress ? "border-primary text-primary animate-pulse" :
+                                                                    "border-border text-muted-foreground"
+                                                        )}>
+                                                            {isCompleted ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
+                                                        </div>
+                                                        <div className={cn(
+                                                            "flex-1 w-0.5 group-last:hidden mt-2 mb-0.5 transition-colors",
+                                                            isCompleted ? "bg-primary" : "bg-border/40"
+                                                        )} />
+                                                    </div>
+                                                    <div className="flex-1 pb-6 space-y-1 min-w-0">
+                                                        <div className="flex justify-between items-baseline gap-4">
+                                                            <h5 className={cn("font-bold text-sm", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
+                                                                {phase.phase}
+                                                            </h5>
+                                                            <div className="flex flex-col items-end shrink-0">
+                                                                <span className={cn(
+                                                                    "text-[11px] font-bold px-2 py-0.5 rounded-3xl  border",
+                                                                    isCompleted ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
+                                                                )}>
+                                                                    {isCompleted ? 'Complete' : phase.estimatedDate}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                                                            {phase.deliverables}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </TabsContent>
+
+                        <TabsContent value="updates" className="mt-6 outline-none">
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                                className="space-y-4"
+                            >
+                                {project.updates && project.updates.length > 0 ? (
+                                    project.updates.map((update, idx) => {
+                                        const isAdjustment = update.title === 'Financial Goal Adjusted';
+                                        return (
+                                            <Card
+                                                key={idx}
+                                                className={cn(
+                                                    "relative flex flex-col gap-4 p-5 md:p-6 rounded-3xl border shadow-sm transition-all",
+                                                    isAdjustment ? "bg-amber-50 border-amber-100" : "bg-card border-border/40"
+                                                )}
+                                            >
+                                                {update.imageUrl && (
+                                                    <div className="w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted border border-border/10">
+                                                        <img src={update.imageUrl} className="w-full h-full object-cover" alt="" />
+                                                    </div>
+                                                )}
+
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-3">
+                                                            <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold  tracking-wider border-none", isAdjustment ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary")}>
+                                                                {isAdjustment ? 'Amendment' : update.type.replace('_', ' ')}
+                                                            </Badge>
+                                                            <span className="text-[11px] font-bold text-muted-foreground  flex items-center gap-1">
+                                                                <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className={cn("text-lg font-bold tracking-tight", isAdjustment ? "text-amber-800" : "text-foreground")}>{update.title}</h4>
+                                                    </div>
+                                                    {isAdjustment && <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />}
+                                                </div>
+
+                                                <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/70" : "text-muted-foreground")}>{update.content}</p>
+
+                                                <div className="pt-4 border-t border-border/40 text-[10px] font-bold  tracking-widest text-muted-foreground flex items-center gap-1.5">
+                                                    <ShieldCheck className="h-3 w-3 text-primary" /> Verified entry
+                                                </div>
+                                            </Card>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="text-center py-16 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
+                                        <Clock className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
+                                        <p className="text-xs font-bold text-muted-foreground  tracking-widest">No activity logged</p>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </TabsContent>
+                    </AnimatePresence>
                 </Tabs>
             </div>
 
@@ -369,6 +392,6 @@ export function ProjectDetailsClient({ project, isPublic = false }: ProjectDetai
             </div>
 
             <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} />
-        </div>
+        </motion.div>
     );
-}
+});
