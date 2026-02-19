@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Wallet, ShieldCheck, Activity, PlayCircle, CreditCard } from 'lucide-react';
+import { ArrowRight, Wallet, ShieldCheck, Activity, CreditCard } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
+import { motion } from 'framer-motion';
+import { memo } from 'react';
 
 interface PlatformStats {
     totalVolume: string;
@@ -16,7 +18,7 @@ interface PlatformStats {
     } | null;
 }
 
-export function HeroSection({ stats }: { stats: PlatformStats }) {
+export const HeroSection = memo(function HeroSection({ stats }: { stats: PlatformStats }) {
     return (
         <div className="relative min-h-screen w-full flex flex-col justify-start md:justify-end overflow-hidden bg-black">
             {/* BACKGROUND LAYER */}
@@ -34,7 +36,12 @@ export function HeroSection({ stats }: { stats: PlatformStats }) {
 
             {/* CONTENT LAYER */}
             <div className="relative z-10 container mx-auto px-6 pb-20 md:pb-32 pt-32">
-                <div className="max-w-3xl space-y-8 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-100">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.1 }}
+                    className="max-w-3xl space-y-8"
+                >
 
                     <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-white leading-[0.95]">
                         Transparency is <br />
@@ -58,16 +65,21 @@ export function HeroSection({ stats }: { stats: PlatformStats }) {
                             </Button>
                         </Link>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* DASHBOARD SNIPPET AFFIX */}
-                <div className="mt-16 md:mt-24 relative w-full animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
+                <motion.div
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    className="mt-16 md:mt-24 relative w-full"
+                >
                     {/* Desktop Snippet */}
                     <div className="hidden lg:block w-full max-w-5xl">
                         <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
-                            <Image 
-                                src="/Givar-desk.png" 
-                                alt="Givar Dashboard Desktop" 
+                            <Image
+                                src="/Givar-desk.png"
+                                alt="Givar Dashboard Desktop"
                                 width={1920}
                                 height={1080}
                                 quality={100}
@@ -81,9 +93,9 @@ export function HeroSection({ stats }: { stats: PlatformStats }) {
                     {/* Mobile Snippet */}
                     <div className="lg:hidden w-full max-w-[320px] mx-auto">
                         <div className="relative rounded-[22px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
-                            <Image 
-                                src="/Givar-mob.png" 
-                                alt="Givar Dashboard Mobile" 
+                            <Image
+                                src="/Givar-mob.png"
+                                alt="Givar Dashboard Mobile"
                                 width={640}
                                 height={1386}
                                 quality={100}
@@ -93,10 +105,15 @@ export function HeroSection({ stats }: { stats: PlatformStats }) {
                             />
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* FLOATING GLASS STATS - REAL DATA */}
-                <div className="absolute right-6 bottom-10 hidden lg:block animate-in fade-in slide-in-from-right-10 duration-1000 delay-300">
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.5 }}
+                    className="absolute right-6 bottom-10 hidden lg:block"
+                >
                     <Card className="w-80 border-white/10 bg-black/40 backdrop-blur-xl p-5 text-white shadow-2xl rounded-2xl">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
@@ -141,11 +158,11 @@ export function HeroSection({ stats }: { stats: PlatformStats }) {
                             <div className="text-xs text-zinc-500">Waiting for first donation...</div>
                         )}
                     </Card>
-                </div>
+                </motion.div>
             </div>
         </div>
     );
-}
+});
 
 export function FeatureSection() {
     const features = [

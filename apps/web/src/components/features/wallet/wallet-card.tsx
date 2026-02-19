@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Plus, Wallet, ArrowUpRight } from 'lucide-react';
 import { Button } from '../../ui/button';
@@ -12,7 +12,7 @@ interface WalletCardProps {
   currency: string;
 }
 
-export function WalletCard({ balance, currency }: WalletCardProps) {
+export const WalletCard = memo(function WalletCard({ balance, currency }: WalletCardProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   return (
@@ -31,7 +31,7 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
 
         <button
           onClick={() => setIsVisible(!isVisible)}
-          className="h-8 w-8 flex items-center justify-center rounded-3xl bg-muted/50 text-muted-foreground hover:text-primary transition-colors border border-border/50"
+          className="h-8 w-8 flex items-center justify-center rounded-3xl bg-muted/50 text-muted-foreground hover:text-primary transition-colors border border-border/50 outline-none active:scale-95"
         >
           {isVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
         </button>
@@ -57,10 +57,10 @@ export function WalletCard({ balance, currency }: WalletCardProps) {
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Funds
           </Button>
         </Link>
-        <Button variant="outline" className="flex-1 h-10 rounded-3xl border-border bg-background text-muted-foreground hover:text-foreground font-bold text-xs transition-all">
+        <Button variant="outline" className="flex-1 h-10 rounded-3xl border-border bg-background text-muted-foreground hover:text-foreground font-bold text-xs transition-all active:scale-95">
           <ArrowUpRight className="mr-1.5 h-3.5 w-3.5" /> Withdraw
         </Button>
       </div>
     </Card>
   );
-}
+});

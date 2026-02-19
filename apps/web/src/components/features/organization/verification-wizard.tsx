@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ShieldCheck,
@@ -23,13 +23,13 @@ import { OrganizationProfile } from '../../../types';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 import { Badge } from '../../ui/badge';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface VerificationWizardProps {
   initialProfile: OrganizationProfile | null;
 }
 
-export function VerificationWizard({ initialProfile }: VerificationWizardProps) {
+export const VerificationWizard = memo(function VerificationWizard({ initialProfile }: VerificationWizardProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -101,8 +101,9 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
   if (status === 'VERIFIED') {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 4 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
         className="max-w-5xl mx-auto"
       >
         <Card className="rounded-3xl border-primary/20 bg-primary/5 shadow-sm overflow-hidden">
@@ -117,7 +118,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </p>
             </div>
             <div className="inline-flex flex-col items-center p-6 rounded-3xl bg-card border border-primary/10 shadow-sm min-w-[280px]">
-              <p className="text-[11px] font-bold  tracking-widest text-muted-foreground mb-3">Verified organization identity</p>
+              <p className="text-[11px] font-bold tracking-widest text-muted-foreground mb-3">Verified organization identity</p>
               <p className="text-lg font-bold text-foreground tracking-tight">{initialProfile?.legalName}</p>
               {initialProfile?.registrationNumber && (
                 <p className="text-xs text-primary font-mono mt-1.5 font-bold">
@@ -134,8 +135,9 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
   if (status === 'PENDING') {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 4 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
         className="max-w-5xl mx-auto"
       >
         <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 shadow-sm overflow-hidden">
@@ -150,7 +152,7 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </p>
             </div>
             <div className="pt-2">
-              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[11px]  tracking-wider">
+              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[11px] tracking-wider">
                 Being checked
               </Badge>
             </div>
@@ -162,15 +164,16 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 4 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
       className="max-w-5xl mx-auto space-y-4 md:space-y-6"
     >
       {status === 'REJECTED' && (
         <div className="p-4 rounded-3xl bg-destructive/5 border border-destructive/10 flex items-start gap-3 shadow-sm">
           <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="text-xs font-bold text-destructive  tracking-wider">Not approved</p>
+            <p className="text-xs font-bold text-destructive tracking-wider">Not approved</p>
             <p className="text-xs text-foreground/80 leading-relaxed font-medium italic">
               &quot;{initialProfile?.adminFeedback || "Your documents could not be confirmed. Please check the requirements and try again."}&quot;
             </p>
@@ -246,30 +249,39 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-bold  tracking-widest text-muted-foreground ml-1">Your documents</p>
+                <p className="text-[11px] font-bold tracking-widest text-muted-foreground ml-1">Your documents</p>
                 {docKeys.length === 0 ? (
                   <div className="h-32 rounded-3xl border border-dashed border-border/60 flex flex-col items-center justify-center text-muted-foreground/30 bg-muted/5">
                     <Fingerprint className="h-6 w-6 mb-1.5" />
-                    <span className="text-[11px] font-bold  tracking-widest">No documents</span>
+                    <span className="text-[11px] font-bold tracking-widest">No documents</span>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-32 overflow-y-auto no-scrollbar">
-                    {docKeys.map((key, i) => (
-                      <div key={key} className="flex items-center justify-between p-2.5 bg-muted/30 border border-border/40 rounded-3xl animate-in slide-in-from-right-1">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="h-8 w-8 rounded-3xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0">
-                            <FileText className="h-4 w-4" />
+                    <AnimatePresence mode="popLayout">
+                      {docKeys.map((key, i) => (
+                        <motion.div
+                          key={key}
+                          layout
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          className="flex items-center justify-between p-2.5 bg-muted/30 border border-border/40 rounded-3xl"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-8 w-8 rounded-3xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0">
+                              <FileText className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-xs font-bold text-foreground truncate block">Document {i + 1}</span>
+                              <span className="text-[11px] font-mono text-muted-foreground opacity-60">ref: {key.slice(-12)}</span>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <span className="text-xs font-bold text-foreground truncate block">Document {i + 1}</span>
-                            <span className="text-[11px] font-mono text-muted-foreground opacity-60">ref: {key.slice(-12)}</span>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-3xl transition-all" onClick={() => handleRemoveDoc(key)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    ))}
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-3xl transition-all" onClick={() => handleRemoveDoc(key)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
@@ -297,4 +309,4 @@ export function VerificationWizard({ initialProfile }: VerificationWizardProps) 
       </div>
     </motion.div>
   );
-}
+});
