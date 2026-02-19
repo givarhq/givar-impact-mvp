@@ -1,29 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { GivingGoal } from '../../../types';
 import { GoalProgressCard } from './goal-progress-card';
 import { GoalSetupModal } from './goal-setup-modal';
 
-interface DashboardGoalClientProps {
-  initialGoal: GivingGoal | null;
-}
-
-export function DashboardGoalClient({ initialGoal }: DashboardGoalClientProps) {
+export const DashboardGoalClient = memo(function DashboardGoalClient({ initialGoal }: { initialGoal: GivingGoal | null }) {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
 
   return (
     <>
-      <GoalProgressCard 
-        goal={initialGoal} 
+      <GoalProgressCard
+        goal={initialGoal}
         onEditGoal={() => setIsGoalModalOpen(true)}
       />
 
-      <GoalSetupModal 
+      <GoalSetupModal
         isOpen={isGoalModalOpen}
         onClose={() => setIsGoalModalOpen(false)}
         goal={initialGoal}
       />
     </>
   );
-}
+});
