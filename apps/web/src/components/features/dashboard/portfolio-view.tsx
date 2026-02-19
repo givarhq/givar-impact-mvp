@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { OverviewCards } from './overview-cards';
 import { ImpactPortfolio } from './impact-portfolio';
@@ -13,7 +13,7 @@ interface PortfolioViewProps {
     activeGoal: GivingGoal | null;
 }
 
-export function PortfolioView({ wallet, history, activeGoal }: PortfolioViewProps) {
+export const PortfolioView = memo(function PortfolioView({ wallet, history, activeGoal }: PortfolioViewProps) {
     const totalImpactBigInt = (history || []).reduce((acc: bigint, tx: any) => {
         return acc + BigInt(tx.amount || 0);
     }, 0n);
@@ -22,7 +22,7 @@ export function PortfolioView({ wallet, history, activeGoal }: PortfolioViewProp
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="space-y-6 md:space-y-8"
         >
             <OverviewCards
@@ -41,4 +41,4 @@ export function PortfolioView({ wallet, history, activeGoal }: PortfolioViewProp
             </div>
         </motion.div>
     );
-}
+});
