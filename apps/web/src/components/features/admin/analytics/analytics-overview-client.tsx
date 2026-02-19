@@ -1,13 +1,26 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { AnalyticsStatGrid } from './analytics-stat-grid';
-import { FinancialTrendChart } from './financial-trend-chart';
-import { ProjectPerformanceCard } from './project-performance-card';
 import { SystemIntelFeed } from './system-intel-feed';
 import { EvidenceStatusChart } from './evidence-status-chart';
 import { OrganizationHealthCard } from './organization-health-card';
 import { SectorAllocationCard, EntityCompositionCard } from './metric-cards';
+import { ChartSkeleton } from './chart-skeleton';
+
+// Logic: Dynamically import heavy chart components to split the JS bundle.
+// This allows the "Platform Intelligence" and "Stat Grid" to be interactive instantly
+// while the data-heavy visualizations hydrate in the background.
+const FinancialTrendChart = dynamic(
+    () => import('./financial-trend-chart').then((mod) => mod.FinancialTrendChart),
+    { loading: () => <ChartSkeleton height="380px" /> }
+);
+
+const ProjectPerformanceCard = dynamic(
+    () => import('./project-performance-card').then((mod) => mod.ProjectPerformanceCard),
+    { loading: () => <ChartSkeleton height="420px" /> }
+);
 
 interface AnalyticsOverviewClientProps {
     report: any;
@@ -18,7 +31,7 @@ export function AnalyticsOverviewClient({ report }: AnalyticsOverviewClientProps
 
     return (
         <div className="space-y-6 md:space-y-8 pb-20 animate-in fade-in duration-500">
-            {/* KPI Stat Grid */}
+            {/* High-priority immediate metrics */}
             <AnalyticsStatGrid
                 summary={report.summary}
                 avgDonation={report.financials?.avgDonationAmount}
