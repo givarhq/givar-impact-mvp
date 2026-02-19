@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+
+import React, { useState, memo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -7,7 +8,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import toast from 'react-hot-toast';
 import {
-  Loader2, Save, X,
+  Loader2,
+  Save,
+  X,
   Image as ImageIcon,
   Briefcase,
   Clock,
@@ -31,6 +34,7 @@ import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/form
 import { cn } from '../../../lib/utils/cn';
 import { Textarea } from '../../ui/textarea';
 import { Card } from '../../ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const mediaItemSchema = z.object({
   id: z.string(),
@@ -57,14 +61,14 @@ const timelineItemSchema = z.object({
 });
 
 const projectSchema = z.object({
-  title: z.string().min(5, "Title is too short"),
-  description: z.string().min(10, "Description is too short"),
+  title: z.string().min(5, "The Title Is A Bit Too Short"),
+  description: z.string().min(10, "Please Provide A More Detailed Description"),
   shortDesc: z.string().optional(),
-  categoryId: z.string().uuid("Category is required"),
-  location: z.string().min(2, "Location is required"),
-  targetAmount: z.number().min(100, "Min 100"),
+  categoryId: z.string().uuid("Please Select A Category"),
+  location: z.string().min(2, "A Location Is Required"),
+  targetAmount: z.number().min(100, "Minimum Goal Amount Is 100"),
   currency: z.enum(['NGN', 'USD', 'GBP']),
-  coverImage: z.string().url("Cover image required"),
+  coverImage: z.string().url("A Primary Image Is Required"),
   gallery: z.array(mediaItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
@@ -78,10 +82,11 @@ interface ProjectFormProps {
   categories: any[];
 }
 
-export function AdminProjectForm({ initialData, categories }: ProjectFormProps) {
+export const AdminProjectForm = memo(function AdminProjectForm({ initialData, categories }: ProjectFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
   const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
   const readOnly = initialData ? !isEditing : false;
   const isAdjustmentMode = isLive && isEditing;
@@ -115,24 +120,21 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
 
   const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
     setIsSubmitting(true);
+    const toastId = toast.loading(status === 'DRAFT' ? "Saving Your Progress..." : "Publishing Cause To The Ledger...");
     try {
       const payload = { ...data, targetAmount: data.targetAmount * 100, status };
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
-        toast.success(status === 'DRAFT' ? 'Draft saved' : 'Project published');
+        toast.success(status === 'DRAFT' ? 'Changes Saved As Draft' : 'Project Successfully Published', { id: toastId });
         setIsEditing(false);
       } else {
         await ApiService.admin.createProject(payload);
-        toast.success(status === 'DRAFT' ? 'Project saved as draft' : 'Project launched successfully');
-        if (status === 'DRAFT') {
-          router.push('/admin/projects?tab=drafts');
-        } else {
-          router.push('/admin/projects?tab=live');
-        }
+        toast.success(status === 'DRAFT' ? 'New Cause Saved As Draft' : 'New Cause Launched Successfully', { id: toastId });
+        router.push(status === 'DRAFT' ? '/admin/projects?tab=drafts' : '/admin/projects?tab=live');
       }
       router.refresh();
     } catch (error) {
-      toast.error('Commit failed');
+      toast.error('We Could Not Save These Changes At This Time', { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -146,165 +148,178 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
   };
 
   const handleStartEditing = () => {
-    const scrollPosition = window.scrollY;
     setIsEditing(true);
-    requestAnimationFrame(() => {
-      window.scrollTo(0, scrollPosition);
-    });
   };
 
   const getInputClass = () => cn(
-    "transition-all duration-300 rounded-3xl h-11 text-sm pr-10",
+    "transition-all duration-300 rounded-3xl h-12 text-sm pr-10",
     readOnly
       ? "bg-muted/10 border-transparent shadow-none cursor-default focus-visible:ring-0 text-foreground font-bold"
-      : "bg-background border-border/60 shadow-sm focus-visible:ring-primary/20"
+      : "bg-background border-border/60 shadow-inner focus:bg-white focus-visible:ring-primary/10"
   );
 
   const getAreaClass = (minHeight: string = "min-h-[180px]") => cn(
-    "flex w-full rounded-3xl border px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 transition-all duration-300 text-foreground",
+    "flex w-full rounded-3xl border px-5 py-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10 transition-all duration-300 text-foreground font-medium",
     minHeight,
     readOnly
-      ? "bg-muted/10 border-transparent shadow-none cursor-default resize-none font-medium"
-      : "bg-background border-border/60 focus-visible:border-primary"
+      ? "bg-muted/10 border-transparent shadow-none cursor-default resize-none opacity-80"
+      : "bg-background border-border/60 shadow-inner focus:border-primary"
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 pb-40 animate-in fade-in duration-300 w-full overflow-hidden">
-      {/* Verified origin badge – compact and standalone */}
+    <div className="max-w-6xl mx-auto space-y-8 pb-40 animate-in fade-in duration-500 w-full overflow-hidden">
+
       {initialData?.proposalId && (
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 p-2 pl-3 pr-4 rounded-3xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 w-fit">
-            <ShieldCheck className="h-4 w-4 shrink-0" />
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[11px] font-bold  tracking-widest shrink-0">Verified origin:</span>
-              <Link href={`/admin/proposals/${initialData.proposalId}`} className="text-xs font-bold underline hover:text-blue-800 flex items-center gap-1 truncate">
-                Proposal #{initialData.proposalId.split('-')[0]} <ExternalLink className="h-3 w-3 shrink-0" />
+        <div className="flex animate-in slide-in-from-left-2">
+          <div className="flex items-center gap-3 p-2.5 pl-4 pr-5 rounded-3xl bg-primary/5 border border-primary/20 text-primary shadow-sm">
+            <ShieldCheck className="h-4.5 w-4.5 shrink-0" />
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold tracking-widest">Verified Origin:</span>
+              <Link href={`/admin/proposals/${initialData.proposalId}`} className="text-xs font-black underline hover:text-primary/80 flex items-center gap-1.5 transition-colors">
+                Proposal #{initialData.proposalId.split('-')[0]} <ExternalLink className="h-3 w-3" />
               </Link>
             </div>
           </div>
         </div>
       )}
 
-      {/* Ledger amendment warning */}
-      {isAdjustmentMode && (
-        <div className="bg-amber-500/5 border border-amber-500/20 p-6 rounded-3xl space-y-4 shadow-sm animate-in slide-in-from-top-4 duration-300">
-          <div className="flex items-start gap-4">
-            <div className="h-10 w-10 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
-              <Fingerprint className="h-5 w-5" />
+      <AnimatePresence>
+        {isAdjustmentMode && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-amber-50 border border-amber-200 p-6 rounded-[32px] space-y-5 shadow-sm overflow-hidden"
+          >
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
+                <Fingerprint className="h-6 w-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-amber-900 tracking-tight">Ledger Amendment Protocol</h3>
+                <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                  You are editing a live project. Any changes to the financial goal, budget, or roadmap require a brief explanation for our donors.
+                </p>
+              </div>
             </div>
-            <div className="space-y-0.5 min-w-0">
-              <h3 className="text-sm font-bold text-amber-800 tracking-tight">Ledger Amendment Protocol</h3>
-              <p className="text-xs text-amber-700 font-medium leading-relaxed">
-                This project is live. Changes to goal, timeline, or budget require an audit-traceable narrative for donors.
-              </p>
+            <div className="space-y-2">
+              <div className="flex justify-between items-end px-1">
+                <label className="text-[10px] font-black text-amber-800 tracking-widest">Amendment Narrative</label>
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                  (reason?.length || 0) < 10 ? "text-destructive bg-destructive/5" : "text-emerald-600 bg-emerald-50"
+                )}>
+                  {reason?.length || 0} / 10 Characters Minimum
+                </span>
+              </div>
+              <Textarea
+                {...register('reasonForGoalAdjustment')}
+                placeholder="Please describe why this change is necessary..."
+                className="min-h-[100px] bg-white border-amber-200 focus-visible:ring-amber-500/20 text-sm rounded-2xl p-5 shadow-inner resize-none"
+              />
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-end px-1">
-              <label className="text-[10px] font-bold text-amber-700  tracking-widest">Amendment narrative</label>
-              <span className={cn(
-                "text-[10px] font-bold",
-                (reason?.length || 0) < 10 ? "text-destructive" : "text-emerald-600"
-              )}>
-                {reason?.length || 0} / 10 min
-              </span>
-            </div>
-            <Textarea
-              {...register('reasonForGoalAdjustment')}
-              placeholder="State the reason for this change..."
-              className={cn(
-                "min-h-[80px] bg-background border-amber-200 focus-visible:ring-amber-500/20 text-xs rounded-3xl p-4 shadow-inner resize-none",
-                (reason?.length || 0) < 10 && (reason?.length || 0) > 0 && "border-destructive/50"
-              )}
-            />
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Project Identity Section */}
+      {/* Identity Section */}
       <section className={cn(
-        "grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-8 bg-card rounded-3xl border transition-all duration-300 relative group overflow-hidden",
-        readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md ring-1 ring-primary/5"
+        "grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-10 bg-card rounded-[40px] border transition-all duration-500 relative group overflow-hidden shadow-sm",
+        readOnly ? "border-border/40" : "border-primary/30 ring-4 ring-primary/5"
       )}>
-        <div className="md:col-span-12 flex items-center gap-3 mb-2 min-w-0">
+        <div className="md:col-span-12 flex items-center gap-4 mb-4">
           <div className={cn(
-            "h-10 w-10 rounded-3xl flex items-center justify-center transition-all shadow-inner shrink-0",
-            readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
+            "h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-inner shrink-0",
+            readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary border border-primary/20"
           )}>
-            {readOnly ? <ShieldCheck className="h-5 w-5" /> : <LockOpen className="h-5 w-5" />}
+            {readOnly ? <ShieldCheck className="h-6 w-6" /> : <LockOpen className="h-6 w-6" />}
           </div>
           <div className="min-w-0">
-            <h3 className="font-bold text-sm text-foreground leading-none">Project Identity</h3>
-            <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Core metadata</p>
+            <h3 className="font-bold text-base text-foreground leading-none">Project Identity</h3>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Essential project metadata and classification</p>
           </div>
         </div>
-        <div className="md:col-span-8 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Headline title</label>
+
+        <div className="md:col-span-8 space-y-1.5">
+          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Cause Headline</label>
           <Input
             {...register('title')}
             className={getInputClass()}
             readOnly={readOnly}
+            placeholder="Enter A Compelling Title..."
             error={errors.title?.message}
           />
         </div>
-        <div className="md:col-span-4 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Classification</label>
+
+        <div className="md:col-span-4 space-y-1.5">
+          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Sector Classification</label>
           <Controller
             control={control}
             name="categoryId"
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
-                <SelectTrigger className={cn(getInputClass(), "bg-muted/20")}>
-                  <SelectValue placeholder="Select category" />
+                <SelectTrigger className={cn(getInputClass(), "bg-muted/10")}>
+                  <SelectValue placeholder="Select A Sector" />
                 </SelectTrigger>
-                <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                  {categories.map((c: any) => <SelectItem key={c.id} value={c.id} className="rounded-3xl text-xs font-medium py-2.5">{c.name}</SelectItem>)}
+                <SelectContent className="rounded-[28px] shadow-2xl border-border/40 p-2">
+                  {categories.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id} className="rounded-2xl text-xs font-bold py-3">
+                      {c.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
           />
         </div>
-        <div className="md:col-span-12 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Short narrative</label>
+
+        <div className="md:col-span-12 space-y-1.5">
+          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Short Elevator Pitch</label>
           <Textarea
-            className={cn(getAreaClass("min-h-[60px]"), "resize-none rounded-3xl")}
+            className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-[28px]")}
             {...register('shortDesc')}
             readOnly={readOnly}
+            placeholder="A brief summary for donor lists..."
             maxLength={140}
           />
         </div>
-        <div className="md:col-span-12 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Project description</label>
+
+        <div className="md:col-span-12 space-y-1.5">
+          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Project Mission Narrative</label>
           <RichTextEditor
             content={description || ''}
             onChange={(val) => setValue('description', val, { shouldDirty: true })}
             readOnly={readOnly}
           />
-          {errors.description && <p className="text-xs text-destructive mt-1 font-bold">{errors.description.message}</p>}
+          {errors.description && <p className="text-xs text-destructive mt-2 font-bold px-2">{errors.description.message}</p>}
         </div>
-        <div className="md:col-span-6 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Geographic location</label>
+
+        <div className="md:col-span-6 space-y-1.5">
+          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Primary Location</label>
           <div className="relative group">
-            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-50 group-focus-within:text-primary transition-colors" />
+            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input
               {...register('location')}
-              className={cn(getInputClass(), "pl-10")}
+              placeholder="e.g. Lagos, Nigeria"
+              className={cn(getInputClass(), "pl-11")}
               readOnly={readOnly}
             />
           </div>
         </div>
-        <div className="md:col-span-6 space-y-1 relative min-w-0">
-          <label className="text-[11px] font-bold text-muted-foreground  ml-1 tracking-tight">Capital goal (NGN)</label>
+
+        <div className="md:col-span-6 space-y-1.5">
+          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Capital Funding Goal (Ngn)</label>
           <Controller
             control={control}
             name="targetAmount"
             render={({ field }) => (
               <div className="relative group">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-xs">₦</span>
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-sm">₦</span>
                 <Input
                   value={formatNumberInput(String(field.value || ''))}
                   onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                  className={cn(getInputClass(), "pl-10 font-bold tabular-nums")}
+                  className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg")}
+                  placeholder="0.00"
                   readOnly={readOnly}
                 />
               </div>
@@ -315,39 +330,45 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
 
       {/* Visual Assets Section */}
       <section className={cn(
-        "bg-card p-6 md:p-8 rounded-3xl border shadow-sm space-y-6 transition-all duration-300 relative group overflow-hidden",
-        readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md ring-1 ring-primary/5"
+        "bg-card p-6 md:p-10 rounded-[40px] border shadow-sm space-y-8 transition-all duration-500 relative group overflow-hidden",
+        readOnly ? "border-border/40" : "border-primary/30 ring-4 ring-primary/5"
       )}>
-        <div className="flex items-center gap-3">
-          <div className={cn("h-10 w-10 rounded-3xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary")}>
-            <ImageIcon className="h-5 w-5" />
+        <div className="flex items-center gap-4">
+          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary border border-primary/20")}>
+            <ImageIcon className="h-6 w-6" />
           </div>
-          <div>
-            <h3 className="font-bold text-sm text-foreground leading-none">Visual Assets</h3>
-            <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Proof of impact media</p>
+          <div className="min-w-0">
+            <h3 className="font-bold text-base text-foreground leading-none">Visual Assets</h3>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Photos and documents for proof of impact</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-          <div className="lg:col-span-5 space-y-3 min-w-0">
-            <p className="text-[11px] font-bold text-muted-foreground  ml-1">Primary hero asset</p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-5 space-y-3">
+            <p className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Primary Showcase Image</p>
             {coverImage ? (
-              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-sm group/img bg-muted">
-                <img src={coverImage} className="w-full h-full object-cover" alt="Cover" />
+              <div className="relative aspect-video rounded-[32px] overflow-hidden border border-border/40 shadow-md group/img bg-muted">
+                <img src={coverImage} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" alt="Project Hero" />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-9 px-5 font-bold text-xs" onClick={() => setValue('coverImage', '')}>
-                      <X className="h-3.5 w-3.5 mr-1.5" /> Remove
+                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => setValue('coverImage', '')}>
+                      <X className="h-4 w-4 mr-2" /> Remove Image
                     </Button>
                   </div>
                 )}
               </div>
             ) : (
-              <ImageUploader label="Upload Hero Asset" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
+              <div className="h-56">
+                <ImageUploader label="Upload A Beautiful Project Image" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
+              </div>
             )}
           </div>
-          <div className="lg:col-span-7 space-y-3 min-w-0">
-            <p className="text-[11px] font-bold text-muted-foreground  ml-1">Project gallery ({gallery.length}/10)</p>
-            <div className={cn(readOnly && "pointer-events-none opacity-90")}>
+
+          <div className="lg:col-span-7 space-y-3">
+            <div className="flex justify-between items-center px-1">
+              <p className="text-[11px] font-black text-muted-foreground tracking-widest">Supporting Gallery ({gallery.length}/10)</p>
+            </div>
+            <div className={cn("transition-opacity duration-500", readOnly && "pointer-events-none opacity-90")}>
               <MediaManager
                 items={gallery as any}
                 onAdd={(item) => !readOnly && setValue('gallery', [...gallery, item])}
@@ -360,60 +381,58 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
         </div>
       </section>
 
-      {/* Budget and Timeline Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      {/* Financial and Strategic Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         <Card className={cn(
-          "p-6 md:p-8 bg-card rounded-3xl border space-y-6 transition-all duration-300 relative group overflow-hidden",
-          readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md"
+          "p-6 md:p-10 bg-card rounded-[40px] border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
+          readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
         )}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className={cn("h-9 w-9 rounded-3xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
-              <Briefcase className="h-4.5 w-4.5" />
+          <div className="flex items-center gap-4">
+            <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary border border-primary/20")}>
+              <Briefcase className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-foreground leading-none">Budget Ledger</h3>
-              <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Procurement plan</p>
+              <h3 className="font-bold text-base text-foreground leading-none">Financial Ledger</h3>
+              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed procurement and budget items</p>
             </div>
           </div>
           <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
         </Card>
+
         <Card className={cn(
-          "p-6 md:p-8 bg-card rounded-3xl border space-y-6 transition-all duration-300 relative group overflow-hidden",
-          readOnly ? "border-border/40 shadow-sm" : "border-primary/30 shadow-md"
+          "p-6 md:p-10 bg-card rounded-[40px] border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
+          readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
         )}>
-          <div className="flex items-center gap-3 mb-2">
-            <div className={cn("h-9 w-9 rounded-3xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary")}>
-              <Clock className="h-4.5 w-4.5" />
+          <div className="flex items-center gap-4">
+            <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary border border-primary/20")}>
+              <Clock className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-foreground leading-none">Execution Roadmap</h3>
-              <p className="text-[11px] text-muted-foreground font-bold mt-1  tracking-tight">Milestone tracking</p>
+              <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
+              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Key milestones and delivery schedule</p>
             </div>
           </div>
           <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
         </Card>
       </div>
 
-      {/* Persistent sticky action bar – always visible, content adapts to current mode */}
-      <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-4 bg-background/90 backdrop-blur-xl border-t border-border/40 z-50">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Left side: Cancel / Discard changes (shown only when creating or editing) */}
+      {/* Control Terminal Bar */}
+      <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-5 bg-background/90 backdrop-blur-2xl border-t border-border/40 z-50 shadow-2xl">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             {(isEditing || !initialData) && (
               <Button
                 type="button"
                 variant="ghost"
                 onClick={handleCancel}
-                className="rounded-3xl h-10 px-6 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto"
+                className="rounded-3xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto transition-all"
               >
-                {initialData ? 'Discard changes' : 'Cancel'}
+                {initialData ? 'Discard Changes' : 'Cancel Setup'}
               </Button>
             )}
           </div>
 
-          {/* Right side: Primary actions */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* Draft + Publish/Launch buttons (shown when creating new or editing existing) */}
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             {(isEditing || !initialData) && (
               <>
                 <Button
@@ -421,22 +440,22 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
                   disabled={isSubmitting}
                   onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
                   variant="secondary"
-                  className="flex-1 sm:flex-none rounded-3xl h-10 px-5 font-bold text-xs border border-border/40 shadow-none bg-muted/40"
+                  className="flex-1 sm:flex-none rounded-3xl h-12 px-6 font-bold text-xs border border-border/60 bg-muted/40 shadow-none hover:bg-muted"
                 >
-                  {isSubmitting ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
-                  Draft
+                  {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <FileText className="mr-2 h-4 w-4" />}
+                  Save Draft
                 </Button>
                 <Button
                   type="button"
                   disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
                   onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
-                  className="flex-[2] sm:flex-none rounded-3xl h-10 px-8 font-bold text-xs shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                  className="flex-[2] sm:flex-none rounded-3xl h-12 px-10 font-bold text-xs shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0"
                 >
                   {isSubmitting ? (
-                    <Loader2 className="animate-spin h-4 w-4" />
+                    <Loader2 className="animate-spin h-5 w-5" />
                   ) : (
-                    <div className="flex items-center gap-2">
-                      {initialData ? <Save className="h-3.5 w-3.5" /> : <Send className="h-3.5 w-3.5" />}
+                    <div className="flex items-center gap-2.5">
+                      {initialData ? <Save className="h-4.5 w-4.5" /> : <Send className="h-4.5 w-4.5" />}
                       {initialData ? 'Publish Updates' : 'Launch Project'}
                     </div>
                   )}
@@ -444,16 +463,15 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
               </>
             )}
 
-            {/* Unlock for editing button (shown only when viewing existing project in read-only mode) */}
             {initialData && !isEditing && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleStartEditing}
-                className="rounded-3xl h-10 px-6 font-bold gap-2 text-xs border-border/60 text-primary hover:bg-muted shadow-sm"
+                className="rounded-3xl h-12 px-8 font-bold gap-3 text-xs border-border/60 text-primary hover:bg-muted shadow-lg bg-background transition-all active:scale-[0.98]"
               >
-                <LockOpen className="h-3.5 w-3.5" />
-                Unlock for editing
+                <LockOpen className="h-4 w-4" />
+                Unlock For Modification
               </Button>
             )}
           </div>
@@ -461,4 +479,4 @@ export function AdminProjectForm({ initialData, categories }: ProjectFormProps) 
       </div>
     </div>
   );
-}
+});
