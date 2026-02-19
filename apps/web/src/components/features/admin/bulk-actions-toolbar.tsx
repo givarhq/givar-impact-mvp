@@ -1,9 +1,17 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
-    Lock, Unlock, Shield, X, Loader2, ShieldOff,
-    PlayCircle, Ban, Trash2, CheckCircle2
+    Lock,
+    Unlock,
+    Shield,
+    X,
+    Loader2,
+    ShieldOff,
+    PlayCircle,
+    Ban,
+    Trash2,
+    CheckCircle2
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { ConfirmModal } from '../../ui/confirm-modal';
@@ -11,6 +19,7 @@ import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { getCookie } from 'cookies-next';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BulkActionsToolbarProps {
     selectedIds: string[];
@@ -18,7 +27,11 @@ interface BulkActionsToolbarProps {
     context?: 'USER' | 'PROJECT' | 'PROPOSAL';
 }
 
-export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: BulkActionsToolbarProps) {
+export const BulkActionsToolbar = memo(function BulkActionsToolbar({
+    selectedIds,
+    onClear,
+    context = 'USER'
+}: BulkActionsToolbarProps) {
     const router = useRouter();
     const [isBusy, setIsBusy] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
@@ -53,6 +66,7 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
         if (!action) return;
 
         setIsBusy(true);
+        const toastId = toast.loading('Executing Batch Operation...');
         try {
             if (context === 'USER') {
                 await ApiService.admin.bulkUpdateUsers({
@@ -71,12 +85,12 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
                 });
             }
 
-            toast.success(`Batch operation successful`);
+            toast.success('Batch Operation Successful', { id: toastId });
             setConfirmConfig({ isOpen: false, action: null });
             onClear();
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || 'Batch failure');
+            toast.error(e.response?.data?.message || 'Batch Protocol Failure', { id: toastId });
         } finally {
             setIsBusy(false);
         }
@@ -89,14 +103,14 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
         const count = selectedIds.length;
 
         if (context === 'USER') {
-            const label = action.replace('SET_', '').replace('_', ' ').toLowerCase();
+            const label = action.replace('SET_', '').replace('_', ' ');
             let variant: 'default' | 'destructive' | 'warning' = 'default';
             if (action === 'LOCK') variant = 'destructive';
             if (action === 'SET_ADMIN') variant = 'warning';
             if (action === 'SET_USER') variant = 'destructive';
             return {
-                title: `Confirm batch ${label}`,
-                desc: `Apply ${label} status to ${count} selected accounts?`,
+                title: `Confirm Batch ${label}`,
+                desc: `Apply ${label} status to ${count} selected account nodes?`,
                 variant,
             };
         }
@@ -106,8 +120,8 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             if (action === 'DELETE') variant = 'destructive';
             if (action === 'SUSPEND') variant = 'warning';
             return {
-                title: `Batch ${action.toLowerCase()}`,
-                desc: `Apply ${action.toLowerCase()} to ${count} projects? This is recorded in the audit trail.`,
+                title: `Confirm Batch ${action}`,
+                desc: `Apply ${action.toLowerCase()} to ${count} project nodes? This is recorded in the forensic audit trail.`,
                 variant,
             };
         }
@@ -116,21 +130,21 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
             let variant: 'default' | 'destructive' | 'warning' = 'default';
             if (action === 'REJECT') variant = 'destructive';
             return {
-                title: `Batch ${action.toLowerCase()}`,
-                desc: `Perform bulk ${action.toLowerCase()} on ${count} proposals?`,
+                title: `Confirm Batch ${action}`,
+                desc: `Perform bulk ${action.toLowerCase()} protocol on ${count} project proposals?`,
                 variant,
             };
         }
 
         return {
-            title: 'Confirm Action',
-            desc: `Proceed with ${action} for ${count} items?`,
+            title: 'Confirm Batch Action',
+            desc: `Proceed with ${action} for ${count} identified items?`,
             variant: 'default',
         };
     };
 
     const baseBtn =
-        'flex-1 h-10 sm:h-9 rounded-3xl text-white font-bold text-xs  tracking-wider px-3 sm:px-3.5 snap-start';
+        'flex-1 h-10 sm:h-9 rounded-3xl text-white font-bold text-xs tracking-wider px-3 sm:px-3.5 snap-start transition-all duration-200 active:scale-95';
 
     const renderActions = () => {
         if (context === 'USER') {
@@ -261,46 +275,54 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
 
     return (
         <>
-            <div className="fixed bottom-4 sm:bottom-20 left-1/2 -translate-x-1/2 z-[60] w-[95vw] sm:w-fit max-w-[95vw] animate-in slide-in-from-bottom-8 duration-300">
-                <div className="bg-zinc-950 text-white rounded-3xl shadow-2xl p-1 sm:p-1.5 flex items-center border border-white/10 backdrop-blur-2xl sm:backdrop-blur-xl">
+            <AnimatePresence>
+                <motion.div
+                    initial={{ y: 100, x: '-50%', opacity: 0 }}
+                    animate={{ y: 0, x: '-50%', opacity: 1 }}
+                    exit={{ y: 100, x: '-50%', opacity: 0 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+                    className="fixed bottom-4 sm:bottom-20 left-1/2 z-[60] w-[95vw] sm:w-fit max-w-[95vw]"
+                >
+                    <div className="bg-zinc-950 text-white rounded-3xl shadow-2xl p-1 sm:p-1.5 flex items-center border border-white/10 backdrop-blur-2xl">
 
-                    {/* LEFT */}
-                    <div className="flex items-center gap-2 sm:gap-3 border-r border-white/10 pl-3 sm:pl-4 pr-2 sm:pr-3 shrink-0">
-                        <div className="h-8 w-8 rounded-3xl bg-primary flex items-center justify-center text-xs font-bold text-black">
-                            {selectedIds.length}
+                        {/* LEFT SECTION: COUNTER */}
+                        <div className="flex items-center gap-2 sm:gap-3 border-r border-white/10 pl-3 sm:pl-4 pr-2 sm:pr-3 shrink-0">
+                            <div className="h-8 w-8 rounded-3xl bg-primary flex items-center justify-center text-xs font-black text-black">
+                                {selectedIds.length}
+                            </div>
+
+                            <div className="hidden sm:flex flex-col leading-tight">
+                                <span className="text-[10px] font-black tracking-[0.1em] text-zinc-300 uppercase">
+                                    Batch
+                                </span>
+                                <span className="text-[10px] font-bold text-zinc-500">
+                                    Selected
+                                </span>
+                            </div>
                         </div>
 
-                        <div className="hidden sm:flex flex-col leading-tight">
-                            <span className="text-[11px] font-bold  tracking-wider text-zinc-300">
-                                Batch
-                            </span>
-                            <span className="text-xs font-medium text-zinc-500">
-                                selected
-                            </span>
+                        {/* MIDDLE SECTION: ACTIONS */}
+                        <div className="flex-1 min-w-0 flex items-center px-2 sm:gap-1 overflow-x-auto no-scrollbar justify-between">
+                            {renderActions()}
+                        </div>
+
+                        {/* RIGHT SECTION: DISMISS */}
+                        <div className="shrink-0 pl-0.5 sm:pl-1 border-l border-white/10">
+                            <button
+                                onClick={onClear}
+                                className="h-9 w-9 sm:h-8 sm:w-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-zinc-400 hover:text-white"
+                                title="Discard Selection"
+                            >
+                                {isBusy ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <X className="h-4 w-4" />
+                                )}
+                            </button>
                         </div>
                     </div>
-
-                    {/* MIDDLE (flex-grow area) */}
-                    <div className="flex-1 min-w-0 flex items-center px-2 sm:gap-1 overflow-x-auto no-scrollbar sm:snap-x sm:snap-mandatory justify-between">
-                        {renderActions()}
-                    </div>
-
-                    {/* RIGHT (compact close) */}
-                    <div className="shrink-0 pl-0.5 sm:pl-1 border-l border-white/10">
-                        <button
-                            onClick={onClear}
-                            className="h-9 w-9 sm:h-8 sm:w-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-all text-zinc-400 hover:text-white"
-                            title="Discard"
-                        >
-                            {isBusy ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <X className="h-4 w-4" />
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </div>
+                </motion.div>
+            </AnimatePresence>
 
             <ConfirmModal
                 isOpen={confirmConfig.isOpen}
@@ -310,8 +332,9 @@ export function BulkActionsToolbar({ selectedIds, onClear, context = 'USER' }: B
                 variant={meta.variant}
                 title={meta.title}
                 description={meta.desc}
-                confirmText="Execute"
+                confirmText="Confirm Action"
+                cancelText="Cancel"
             />
         </>
     );
-}
+});
