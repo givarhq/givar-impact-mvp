@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { UploadCloud, Loader2, FileText, Trash2, CheckCircle2, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
@@ -9,7 +9,7 @@ import { Button } from '../../ui/button';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function DocumentUploader() {
+export const DocumentUploader = memo(function DocumentUploader() {
   const { kycDocuments, addKycDocument, removeKycDocument } = useProposalStore();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,11 +18,12 @@ export function DocumentUploader() {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size limit exceeded (max 10MB)');
+      toast.error('File Size Limit Exceeded (Max 10mb)');
       return;
     }
 
     setIsLoading(true);
+    const toastId = toast.loading('Encrypting And Uploading...');
     try {
       const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
         fileType: file.type,
@@ -36,9 +37,9 @@ export function DocumentUploader() {
       });
 
       addKycDocument(key);
-      toast.success('Document secured on ledger');
+      toast.success('Document Secured On Ledger', { id: toastId });
     } catch (error) {
-      toast.error('Secure upload failed');
+      toast.error('Secure Upload Failed', { id: toastId });
     } finally {
       setIsLoading(false);
     }
@@ -63,8 +64,8 @@ export function DocumentUploader() {
             </div>
           )}
           <div className="space-y-1">
-            <p className="text-sm font-bold text-foreground">Click to upload documents</p>
-            <p className="text-[11px] text-muted-foreground  tracking-[0.15em] font-medium">PDF, DOCX, PNG up to 10MB</p>
+            <p className="text-sm font-bold text-foreground">Click To Upload Documents</p>
+            <p className="text-[11px] text-muted-foreground tracking-[0.15em] font-medium">PDF, DOCX, PNG Up To 10mb</p>
           </div>
           <input
             id="doc-upload"
@@ -84,9 +85,10 @@ export function DocumentUploader() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="px-1"
             >
-              <p className="text-[11px] font-bold text-muted-foreground  tracking-widest mb-3">Identity asset vault</p>
+              <p className="text-[11px] font-bold text-muted-foreground tracking-widest mb-3">Identity Asset Vault</p>
             </motion.div>
           )}
           {kycDocuments.map((key, index) => (
@@ -104,18 +106,18 @@ export function DocumentUploader() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="text-xs font-bold text-foreground truncate block">{key.split('/').pop()}</span>
-                  <div className="flex items-center gap-1.5 text-emerald-600 text-[11px] font-bold  tracking-tight mt-0.5">
-                    <CheckCircle2 className="h-3 w-3" /> Encrypted path
+                  <div className="flex items-center gap-1.5 text-emerald-600 text-[11px] font-bold tracking-tight mt-0.5">
+                    <CheckCircle2 className="h-3 w-3" /> Encrypted Path
                   </div>
                 </div>
               </div>
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 outline-none"
+                className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 outline-none active:scale-90"
                 onClick={() => {
                   removeKycDocument(key);
-                  toast.success('Document detached');
+                  toast.success('Document Detached');
                 }}
               >
                 <Trash2 className="h-4 w-4" />
@@ -126,4 +128,4 @@ export function DocumentUploader() {
       </div>
     </div>
   );
-}
+});

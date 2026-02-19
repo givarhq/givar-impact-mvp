@@ -6,9 +6,10 @@ import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import { useProposalStore } from '../../../stores/proposal-store';
 import { cn } from '../../../lib/utils/cn';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BudgetEditorProps {
   items?: BudgetItem[];
@@ -18,7 +19,7 @@ interface BudgetEditorProps {
   isAdjustmentMode?: boolean;
 }
 
-export function BudgetEditor({
+export const BudgetEditor = memo(function BudgetEditor({
   items,
   onChange,
   readOnly = false,
@@ -75,7 +76,7 @@ export function BudgetEditor({
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
 
   const fieldContainerClass = cn(
-    "py-2.5 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start animate-in fade-in duration-200",
+    "py-2.5 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
     isLocked && "border-border/60"
   );
 
@@ -89,77 +90,87 @@ export function BudgetEditor({
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        {budgetBreakdown.map((item) => (
-          <div key={item.id} className={fieldContainerClass}>
-            {/* ITEM DESCRIPTION */}
-            <div className="md:col-span-4 space-y-1">
-              <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Item</label>
-              <Input
-                placeholder="Description..."
-                value={item.item}
-                onChange={(e) => handleUpdate(item.id, 'item', e.target.value)}
-                readOnly={isLocked}
-                className={inputStyle}
-              />
-            </div>
-
-            {/* UNIT COST */}
-            <div className="md:col-span-2 space-y-1">
-              <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Cost</label>
-              <div className="relative">
-                {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
+        <AnimatePresence initial={false} mode="popLayout">
+          {budgetBreakdown.map((item) => (
+            <motion.div
+              key={item.id}
+              layout
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+              transition={{ duration: 0.2 }}
+              className={fieldContainerClass}
+            >
+              {/* ITEM DESCRIPTION */}
+              <div className="md:col-span-4 space-y-1">
+                <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Item</label>
                 <Input
-                  placeholder="0"
-                  className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums")}
-                  value={item.cost === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.cost))}` : formatNumberInput(String(item.cost)))}
-                  onChange={(e) => handleUpdate(item.id, 'cost', e.target.value)}
+                  placeholder="Description..."
+                  value={item.item}
+                  onChange={(e) => handleUpdate(item.id, 'item', e.target.value)}
                   readOnly={isLocked}
+                  className={inputStyle}
                 />
               </div>
-            </div>
 
-            {/* VENDOR */}
-            <div className="md:col-span-3 space-y-1">
-              <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Vendor</label>
-              <Input
-                placeholder="Payee..."
-                value={item.vendor}
-                onChange={(e) => handleUpdate(item.id, 'vendor', e.target.value)}
-                readOnly={isLocked}
-                className={inputStyle}
-              />
-            </div>
-
-            {/* CATEGORY & DELETE */}
-            <div className="md:col-span-3 flex gap-2 items-end">
-              <div className="flex-1 space-y-1">
-                <label className="text-xs font-bold text-muted-foreground  tracking-tight ml-1">Category</label>
-                <Select value={item.type} onValueChange={(v) => handleUpdate(item.id, 'type', v)} disabled={isLocked}>
-                  <SelectTrigger className={cn(inputStyle, "text-xs  font-bold", isLocked && "text-primary")}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-3xl shadow-xl">
-                    <SelectItem value="GOODS" className="rounded-3xl text-xs">Goods</SelectItem>
-                    <SelectItem value="SERVICE" className="rounded-3xl text-xs">Service</SelectItem>
-                    <SelectItem value="LOGISTICS" className="rounded-3xl text-xs">Logistics</SelectItem>
-                    <SelectItem value="OTHER" className="rounded-3xl text-xs">Other</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* UNIT COST */}
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Cost</label>
+                <div className="relative">
+                  {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
+                  <Input
+                    placeholder="0"
+                    className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums")}
+                    value={item.cost === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.cost))}` : formatNumberInput(String(item.cost)))}
+                    onChange={(e) => handleUpdate(item.id, 'cost', e.target.value)}
+                    readOnly={isLocked}
+                  />
+                </div>
               </div>
-              {!isLocked && (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => removeItem(item.id)}
-                  className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
+
+              {/* VENDOR */}
+              <div className="md:col-span-3 space-y-1">
+                <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Vendor</label>
+                <Input
+                  placeholder="Payee..."
+                  value={item.vendor}
+                  onChange={(e) => handleUpdate(item.id, 'vendor', e.target.value)}
+                  readOnly={isLocked}
+                  className={inputStyle}
+                />
+              </div>
+
+              {/* CATEGORY & DELETE */}
+              <div className="md:col-span-3 flex gap-2 items-end">
+                <div className="flex-1 space-y-1">
+                  <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Category</label>
+                  <Select value={item.type} onValueChange={(v) => handleUpdate(item.id, 'type', v)} disabled={isLocked}>
+                    <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-3xl shadow-xl">
+                      <SelectItem value="GOODS" className="rounded-3xl text-xs">Goods</SelectItem>
+                      <SelectItem value="SERVICE" className="rounded-3xl text-xs">Service</SelectItem>
+                      <SelectItem value="LOGISTICS" className="rounded-3xl text-xs">Logistics</SelectItem>
+                      <SelectItem value="OTHER" className="rounded-3xl text-xs">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {!isLocked && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => removeItem(item.id)}
+                    className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors active:scale-90"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {!isLocked && (
@@ -167,7 +178,7 @@ export function BudgetEditor({
           type="button"
           variant="outline"
           onClick={addItem}
-          className="w-full border-dashed rounded-3xl h-10 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all"
+          className="w-full border-dashed rounded-3xl h-10 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98]"
         >
           <PlusCircle className="h-3.5 w-3.5" /> Add Budget Item
         </Button>
@@ -177,9 +188,9 @@ export function BudgetEditor({
         "flex justify-between items-center px-5 py-3 rounded-3xl border transition-all",
         isLocked ? "bg-primary/5 border-primary/20" : "bg-muted/10 border-border/40"
       )}>
-        <span className="text-xs font-bold  tracking-widest text-primary">Budget Total</span>
+        <span className="text-xs font-bold tracking-widest text-primary">Budget Total</span>
         <span className="text-xl font-bold text-foreground tabular-nums">₦ {formatNumberInput(String(totalCost))}</span>
       </div>
     </div>
   );
-}
+});

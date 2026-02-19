@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Camera,
@@ -17,6 +17,7 @@ import { ImageUploader } from './media-uploader';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface EvidenceSubmissionProps {
     projectId: string;
@@ -32,7 +33,7 @@ interface UploadedMedia {
     previewUrl: string;
 }
 
-export function EvidenceSubmission({ projectId, milestone, onSuccess }: EvidenceSubmissionProps) {
+export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, milestone, onSuccess }: EvidenceSubmissionProps) {
     const router = useRouter();
     const [description, setDescription] = useState('');
     const [media, setMedia] = useState<UploadedMedia[]>([]);
@@ -40,7 +41,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
 
     const handleUploadComplete = (data: { key: string; previewUrl: string }) => {
         if (media.length >= 6) {
-            toast.error('Maximum 6 images allowed');
+            toast.error('Maximum 6 Images Allowed');
             return;
         }
         setMedia((prev) => [...prev, data]);
@@ -52,17 +53,17 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
 
     const handleSubmit = async () => {
         if (description.trim().length < 20) {
-            toast.error('Detailed narrative required (min 20 chars)');
+            toast.error('Detailed Narrative Required (Min 20 Chars)');
             return;
         }
 
         if (media.length === 0) {
-            toast.error('Visual proof is required');
+            toast.error('Visual Proof Is Required');
             return;
         }
 
         setIsSubmitting(true);
-        const toastId = toast.loading('Syncing with ledger...');
+        const toastId = toast.loading('Syncing With Ledger...');
 
         try {
             await ApiService.projects.submitProof(projectId, {
@@ -71,13 +72,13 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                 imageKeys: media.map((m) => m.key),
             });
 
-            toast.success('Evidence submitted', { id: toastId });
+            toast.success('Evidence Submitted', { id: toastId });
             setDescription('');
             setMedia([]);
             if (onSuccess) onSuccess();
             router.refresh();
         } catch (error: any) {
-            toast.error('Submission failed', { id: toastId });
+            toast.error('Submission Failed', { id: toastId });
         } finally {
             setIsSubmitting(false);
         }
@@ -90,8 +91,8 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                     <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-foreground">Submit progress proof</h3>
-                    <p className="text-xs text-muted-foreground font-medium truncate  tracking-wider">
+                    <h3 className="text-sm font-bold text-foreground">Submit Progress Proof</h3>
+                    <p className="text-xs text-muted-foreground font-medium truncate tracking-wider">
                         Phase: <span className="text-primary font-bold">{milestone.phase}</span>
                     </p>
                 </div>
@@ -101,8 +102,8 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                 {/* Narrative Input Section */}
                 <div className="space-y-2 min-w-0">
                     <div className="flex justify-between items-center px-1">
-                        <label className="text-[11px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5">
-                            <FileText className="h-3.5 w-3.5" /> Narrative update
+                        <label className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5">
+                            <FileText className="h-3.5 w-3.5" /> Narrative Update
                         </label>
                         <span className={cn(
                             "text-[11px] font-bold px-2 py-0.5 rounded-3xl transition-colors",
@@ -113,7 +114,7 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                     </div>
                     <textarea
                         className="w-full rounded-3xl border border-border/60 bg-muted/20 p-4 text-xs font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary/40 outline-none min-h-[110px] transition-all placeholder:text-muted-foreground/40 resize-none font-sans"
-                        placeholder={`Describe work completed for "${milestone.phase}"...`}
+                        placeholder={`Describe Work Completed For "${milestone.phase}"...`}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         disabled={isSubmitting}
@@ -122,35 +123,44 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
 
                 {/* Visual Media Section */}
                 <div className="space-y-3 min-w-0">
-                    <label className="text-[11px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5 px-1">
-                        <Camera className="h-3.5 w-3.5" /> Visual evidence
+                    <label className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5 px-1">
+                        <Camera className="h-3.5 w-3.5" /> Visual Evidence
                     </label>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 min-w-0">
-                        {media.map((item) => (
-                            <div key={item.key} className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 group bg-muted shadow-sm">
-                                <img
-                                    src={item.previewUrl}
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    alt="Proof"
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                                    <Button
-                                        variant="destructive"
-                                        size="icon"
-                                        className="h-8 w-8 rounded-2xl active:scale-95"
-                                        onClick={() => removeMedia(item.key)}
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
+                        <AnimatePresence mode="popLayout">
+                            {media.map((item) => (
+                                <motion.div
+                                    key={item.key}
+                                    layout
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 group bg-muted shadow-sm"
+                                >
+                                    <img
+                                        src={item.previewUrl}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        alt="Proof"
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                                        <Button
+                                            variant="destructive"
+                                            size="icon"
+                                            className="h-8 w-8 rounded-2xl active:scale-95 transition-transform"
+                                            onClick={() => removeMedia(item.key)}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
 
                         {media.length < 6 && (
                             <div className="h-full min-h-[100px]">
                                 <ImageUploader
-                                    label="Add photo"
+                                    label="Add Photo"
                                     onUploadComplete={handleUploadComplete}
                                     useCase="public"
                                 />
@@ -172,17 +182,17 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting || description.length < 20 || media.length === 0}
-                        className="w-full h-12 rounded-3xl font-bold text-xs  tracking-widest shadow-lg shadow-primary/10 transition-all active:scale-[0.98] gap-2 border-0"
+                        className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/10 transition-all active:scale-[0.98] gap-2 border-0"
                     >
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                Syncing with ledger
+                                Syncing With Ledger
                             </>
                         ) : (
                             <>
                                 <Send className="h-3.5 w-3.5" />
-                                Post impact update
+                                Post Impact Update
                             </>
                         )}
                     </Button>
@@ -190,4 +200,4 @@ export function EvidenceSubmission({ projectId, milestone, onSuccess }: Evidence
             </div>
         </div>
     );
-}
+});
