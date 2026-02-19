@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Calendar, Download, X,
-    Loader2, Search, ChevronDown, Check,
+    Loader2, Search, Check,
     Plus, ArrowRight
 } from 'lucide-react';
 import { Input } from '../../../ui/input';
@@ -19,7 +19,7 @@ interface FinanceFilterBarProps {
     categories: any[];
 }
 
-export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
+export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -50,20 +50,20 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
 
     const handleExport = async () => {
         setIsExporting(true);
-        const toastId = toast.loading('Generating forensic ledger...');
+        const toastId = toast.loading('Preparing Your Forensic Treasury Report...');
         try {
             const params = new URLSearchParams(searchParams.toString());
             const response = await ApiService.admin.exportFinanceCsv(params);
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `givar-treasury-audit-${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `Givar-Treasury-Audit-${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             link.remove();
-            toast.success('Forensic report ready', { id: toastId });
+            toast.success('Your Forensic Report Is Ready For Download', { id: toastId });
         } catch (e) {
-            toast.error('Export protocol failed', { id: toastId });
+            toast.error('We Could Not Complete The Export Request', { id: toastId });
         } finally {
             setIsExporting(false);
         }
@@ -93,25 +93,24 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
         <div className="space-y-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
 
-                {/* Unified Temporal Command Block */}
-                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-sm w-full lg:w-auto">
+                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-inner w-full lg:w-auto">
                     <div className="flex items-center px-3 gap-2">
-                        <span className="text-[10px] font-black  text-muted-foreground/60 tracking-tighter">From</span>
+                        <span className="text-[10px] font-bold text-muted-foreground/60 tracking-tight">From</span>
                         <input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="bg-transparent h-9 text-[11px] font-bold  text-foreground outline-none border-none cursor-pointer"
+                            className="bg-transparent h-9 text-[11px] font-bold text-foreground outline-none border-none cursor-pointer"
                         />
                     </div>
                     <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
                     <div className="flex items-center px-3 gap-2">
-                        <span className="text-[10px] font-black  text-muted-foreground/60 tracking-tighter">To</span>
+                        <span className="text-[10px] font-bold text-muted-foreground/60 tracking-tight">To</span>
                         <input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-transparent h-9 text-[11px] font-bold  text-foreground outline-none border-none cursor-pointer"
+                            className="bg-transparent h-9 text-[11px] font-bold text-foreground outline-none border-none cursor-pointer"
                         />
                     </div>
                 </div>
@@ -119,29 +118,29 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
                 <div className="flex items-center gap-3 w-full lg:w-auto">
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="outline" className="rounded-3xl h-11 px-5 font-bold text-xs gap-2 border-border/60 bg-background hover:bg-muted transition-all">
+                            <Button variant="outline" className="rounded-3xl h-11 px-5 font-bold text-xs gap-2 border-border/60 bg-background hover:bg-muted transition-all active:scale-95">
                                 <Plus className="h-4 w-4" />
-                                <span>Sectors</span>
+                                <span>Filter By Sectors</span>
                                 {selectedCategories.length > 0 && (
-                                    <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center rounded-full bg-primary text-white border-0 text-[10px]">
+                                    <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center rounded-full bg-primary text-white border-0 text-[10px] font-black">
                                         {selectedCategories.length}
                                     </Badge>
                                 )}
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="rounded-[32px] p-0 overflow-hidden border-none shadow-2xl max-w-md h-[550px] flex flex-col z-[110]">
+                        <DialogContent className="rounded-[32px] p-0 overflow-hidden border-none shadow-2xl max-w-md h-[550px] flex flex-col z-[110] bg-card">
                             <DialogHeader className="p-6 pb-4 border-b border-border/40 shrink-0">
-                                <DialogTitle className="text-lg font-bold">Filter by Sectors</DialogTitle>
+                                <DialogTitle className="text-lg font-bold">Select Impact Sectors</DialogTitle>
                             </DialogHeader>
 
                             <div className="p-4 shrink-0">
                                 <div className="relative group">
-                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                     <Input
-                                        placeholder="Search sectors..."
+                                        placeholder="Search Sectors..."
                                         value={catQuery}
                                         onChange={(e) => setCatQuery(e.target.value)}
-                                        className="pl-10 h-11 rounded-2xl bg-muted/20 border-border/40 focus:bg-background"
+                                        className="pl-11 h-12 rounded-2xl bg-muted/20 border-border/40 focus:bg-background shadow-inner"
                                     />
                                 </div>
                             </div>
@@ -155,8 +154,8 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
                                                 key={cat.id}
                                                 onClick={() => toggleCategory(cat.id)}
                                                 className={cn(
-                                                    "flex items-center justify-between p-3 rounded-2xl transition-all text-left",
-                                                    isSelected ? "bg-primary/5 text-primary" : "hover:bg-muted"
+                                                    "flex items-center justify-between p-4 rounded-2xl transition-all text-left group",
+                                                    isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted"
                                                 )}
                                             >
                                                 <span className="text-sm font-bold">{cat.name}</span>
@@ -169,7 +168,7 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
 
                             <div className="p-4 border-t border-border/40 bg-muted/10 shrink-0">
                                 <Button
-                                    className="w-full h-12 rounded-3xl font-bold shadow-lg shadow-primary/20"
+                                    className="w-full h-12 rounded-3xl font-bold shadow-lg shadow-primary/20 border-0 active:scale-95"
                                     onClick={() => setIsDialogOpen(false)}
                                 >
                                     Confirm Selection
@@ -181,36 +180,35 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
                     <Button
                         onClick={handleExport}
                         disabled={isExporting}
-                        className="flex-1 lg:flex-none h-11 px-8 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 gap-2 border-0"
+                        className="flex-1 lg:flex-none h-11 px-8 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 gap-2 border-0 transition-all active:scale-95"
                     >
                         {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                        Generate CSV
+                        Generate CSV Report
                     </Button>
                 </div>
             </div>
 
-            {/* Active Sector Display Row */}
             {activeCategoryObjects.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                    <span className="text-[10px] font-black  tracking-widest text-muted-foreground mr-1">Active:</span>
+                    <span className="text-[10px] font-bold text-muted-foreground mr-1 tracking-tight">Active Filters:</span>
                     {activeCategoryObjects.map((cat) => (
                         <Badge
                             key={cat.id}
                             variant="secondary"
-                            className="rounded-3xl pl-3 pr-1 py-1 gap-1.5 font-bold text-[10px]  tracking-wider bg-primary/5 text-primary border border-primary/10"
+                            className="rounded-3xl pl-3 pr-1.5 py-1 gap-2 font-bold text-[10px] bg-primary/10 text-primary border border-primary/20 shadow-sm"
                         >
                             {cat.name}
                             <button
                                 onClick={() => toggleCategory(cat.id)}
                                 className="h-4 w-4 rounded-full hover:bg-primary/20 flex items-center justify-center transition-colors"
                             >
-                                <X className="h-2.5 w-2.5" />
+                                <X className="h-3 w-3" />
                             </button>
                         </Badge>
                     ))}
                     <button
                         onClick={() => setSelectedCategories([])}
-                        className="text-[10px] font-bold text-muted-foreground hover:text-destructive transition-colors ml-2  tracking-widest"
+                        className="text-[10px] font-bold text-muted-foreground hover:text-destructive transition-colors ml-2"
                     >
                         Clear All
                     </button>
@@ -218,4 +216,4 @@ export function FinanceFilterBar({ categories }: FinanceFilterBarProps) {
             )}
         </div>
     );
-}
+});
