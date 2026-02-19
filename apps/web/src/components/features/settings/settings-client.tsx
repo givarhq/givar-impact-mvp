@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
     User,
@@ -21,6 +21,7 @@ import { UserAuditView } from './user-audit-view';
 import { VerificationWizard } from '../organization/verification-wizard';
 import { SubscriptionCard } from '../subscriptions/subscription-card';
 import { cn } from '../../../lib/utils/cn';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SettingsClientProps {
     user: any;
@@ -79,7 +80,7 @@ const SETTINGS_OPTIONS = [
     },
 ];
 
-export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClientProps) {
+export const SettingsClient = memo(function SettingsClient({ user, orgProfile, subscriptions }: SettingsClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const activeTab = searchParams.get('tab');
@@ -126,20 +127,33 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
                         <TabsContent value="profile" className="mt-0 outline-none"><ProfileForm user={user} /></TabsContent>
                         {user.accountType === 'ORGANIZER' && <TabsContent value="org" className="mt-0 outline-none"><VerificationWizard initialProfile={orgProfile} /></TabsContent>}
                         <TabsContent value="recurring" className="mt-0 outline-none">
-                            <div className="max-w-5xl mx-auto space-y-4">
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="max-w-5xl mx-auto space-y-4"
+                            >
                                 {subscriptions.length === 0 ? (
                                     <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                         <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                                        <p className="text-xs font-bold text-muted-foreground  tracking-widest">No recurring plans</p>
+                                        <p className="text-xs font-bold text-muted-foreground tracking-widest">No Recurring Plans</p>
                                     </div>
                                 ) : (
                                     <div className="grid gap-4">
-                                        {subscriptions.map(sub => (
-                                            <SubscriptionCard key={sub.id} subscription={sub} />
-                                        ))}
+                                        <AnimatePresence>
+                                            {subscriptions.map((sub, i) => (
+                                                <motion.div
+                                                    key={sub.id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: i * 0.05 }}
+                                                >
+                                                    <SubscriptionCard subscription={sub} />
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
                                     </div>
                                 )}
-                            </div>
+                            </motion.div>
                         </TabsContent>
                         <TabsContent value="security" className="mt-0 outline-none"><SecurityForm user={user} /></TabsContent>
                         <TabsContent value="activity" className="mt-0 outline-none"><UserAuditView /></TabsContent>
@@ -173,7 +187,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
                 ) : (
                     <div className="space-y-4 animate-in slide-in-from-right-2 duration-300">
                         <button onClick={clearTab} className="flex items-center gap-2 text-xs font-bold text-muted-foreground px-1">
-                            <ChevronLeft className="h-4 w-4" /> Back to Settings
+                            <ChevronLeft className="h-4 w-4" /> Back To Settings
                         </button>
                         <div>
                             {activeTab === 'profile' && <ProfileForm user={user} />}
@@ -182,7 +196,7 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
                                 <div className="space-y-3">
                                     {subscriptions.length === 0 ? (
                                         <div className="py-12 text-center bg-muted/20 rounded-3xl border-2 border-dashed border-border/40">
-                                            <p className="text-xs font-bold text-muted-foreground  tracking-widest">No plans</p>
+                                            <p className="text-xs font-bold text-muted-foreground tracking-widest">No Plans</p>
                                         </div>
                                     ) : (
                                         subscriptions.map(sub => <SubscriptionCard key={sub.id} subscription={sub} />)
@@ -198,4 +212,4 @@ export function SettingsClient({ user, orgProfile, subscriptions }: SettingsClie
             </div>
         </div>
     );
-}
+});

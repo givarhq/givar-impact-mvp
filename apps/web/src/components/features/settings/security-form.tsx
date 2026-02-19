@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,23 +16,24 @@ import { ApiService } from '../../../services/api';
 import { TwoFactorSetup } from './two-factor-setup';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const securitySchema = z.object({
     currentPassword: z.string().min(1, "Required"),
     newPassword: z.string()
         .min(8, "Min 8 characters")
-        .regex(/[A-Z]/, "Requires ")
-        .regex(/[0-9]/, "Requires a digit")
-        .regex(/[^A-Za-z0-9]/, "Requires a symbol"),
+        .regex(/[A-Z]/, "Requires Uppercase")
+        .regex(/[0-9]/, "Requires A Digit")
+        .regex(/[^A-Za-z0-9]/, "Requires A Symbol"),
     confirmPassword: z.string()
 }).refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Mismatch",
+    message: "Passwords Do Not Match",
     path: ["confirmPassword"],
 });
 
 type SecurityFormValues = z.infer<typeof securitySchema>;
 
-export function SecurityForm({ user }: { user: any }) {
+export const SecurityForm = memo(function SecurityForm({ user }: { user: any }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [showPasswords, setShowPasswords] = useState(false);
@@ -63,18 +64,23 @@ export function SecurityForm({ user }: { user: any }) {
                 currentPassword: data.currentPassword,
                 newPassword: data.newPassword
             });
-            toast.success("Security credentials updated");
+            toast.success("Security Credentials Updated");
             setIsEditing(false);
             reset();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Verification failed");
+            toast.error(error.response?.data?.message || "Verification Failed");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 focus-visible:outline-none outline-none">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="max-w-5xl mx-auto space-y-4 md:space-y-6 focus-visible:outline-none outline-none"
+        >
             <TwoFactorSetup isEnabled={user.twoFactorEnabled} />
 
             <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden focus-visible:outline-none outline-none">
@@ -96,70 +102,80 @@ export function SecurityForm({ user }: { user: any }) {
                                 </div>
                                 <div className="space-y-0.5">
                                     <h3 className="font-bold text-sm text-foreground">Password Management</h3>
-                                    {!isEditing && <p className="text-xs text-muted-foreground font-medium tracking-tight">Update security credentials</p>}
+                                    {!isEditing && <p className="text-xs text-muted-foreground font-medium tracking-tight">Update Security Credentials</p>}
                                 </div>
                             </div>
                             {!isEditing && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/30 group-hover:opacity-100 transition-all" />}
                         </div>
 
-                        {isEditing && (
-                            <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6 animate-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-4">
-                                        <Input
-                                            label="Current Password"
-                                            type={showPasswords ? "text" : "password"}
-                                            {...register('currentPassword')}
-                                            error={errors.currentPassword?.message}
-                                            placeholder="Verify identity"
-                                            className="h-10 rounded-3xl"
-                                            rightElement={
-                                                <button type="button" onClick={() => setShowPasswords(!showPasswords)} className="text-muted-foreground hover:text-foreground outline-none">
-                                                    {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </button>
-                                            }
-                                        />
-                                        <Input label="New Password" type={showPasswords ? "text" : "password"} {...register('newPassword')} error={errors.newPassword?.message} placeholder="Min. 8 characters" className="h-10 rounded-3xl" />
-                                        <Input label="Confirm New Password" type={showPasswords ? "text" : "password"} {...register('confirmPassword')} error={errors.confirmPassword?.message} placeholder="Repeat new password" className="h-10 rounded-3xl" />
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="p-5 rounded-3xl bg-muted/20 border border-border/50 space-y-3">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-xs font-bold  tracking-widest text-muted-foreground">Security Strength</span>
-                                                <span className={cn("text-xs font-bold ", strengthScore < 4 ? "text-destructive" : "text-emerald-600")}>
-                                                    {strengthScore < 4 ? 'Insufficient' : 'Secure'}
-                                                </span>
-                                            </div>
-                                            <div className="flex gap-1 h-1">
-                                                {[1, 2, 3, 4].map(s => (
-                                                    <div key={s} className={cn("flex-1 rounded-3xl transition-all duration-500", s <= strengthScore ? (strengthScore < 4 ? "bg-destructive" : "bg-primary") : "bg-muted-foreground/10")} />
-                                                ))}
-                                            </div>
-                                            <div className="pt-2">
-                                                <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-2 italic">
-                                                    <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 opacity-50" />
-                                                    Note: Password rotation will terminate all other active ledger sessions.
-                                                </p>
-                                            </div>
+                        <AnimatePresence>
+                            {isEditing && (
+                                <motion.form
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                    onSubmit={handleSubmit(onSubmit)}
+                                    className="mt-8 space-y-6 overflow-hidden"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <Input
+                                                label="Current Password"
+                                                type={showPasswords ? "text" : "password"}
+                                                {...register('currentPassword')}
+                                                error={errors.currentPassword?.message}
+                                                placeholder="Verify Identity"
+                                                className="h-10 rounded-3xl"
+                                                rightElement={
+                                                    <button type="button" onClick={() => setShowPasswords(!showPasswords)} className="text-muted-foreground hover:text-foreground outline-none">
+                                                        {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </button>
+                                                }
+                                            />
+                                            <Input label="New Password" type={showPasswords ? "text" : "password"} {...register('newPassword')} error={errors.newPassword?.message} placeholder="Min. 8 Characters" className="h-10 rounded-3xl" />
+                                            <Input label="Confirm New Password" type={showPasswords ? "text" : "password"} {...register('confirmPassword')} error={errors.confirmPassword?.message} placeholder="Repeat New Password" className="h-10 rounded-3xl" />
                                         </div>
 
-                                        <div className="flex gap-2 pt-2">
-                                            <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-11 rounded-3xl font-bold text-xs  tracking-widest gap-2 shadow-sm border-0">
-                                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                                                Update Credentials
-                                            </Button>
-                                            <Button type="button" variant="outline" className="h-11 w-11 rounded-3xl border-border/60 shrink-0" onClick={() => { setIsEditing(false); reset(); }}>
-                                                <X className="h-4 w-4" />
-                                            </Button>
+                                        <div className="space-y-4">
+                                            <div className="p-5 rounded-3xl bg-muted/20 border border-border/50 space-y-3">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-bold tracking-widest text-muted-foreground">Security Strength</span>
+                                                    <span className={cn("text-xs font-bold ", strengthScore < 4 ? "text-destructive" : "text-emerald-600")}>
+                                                        {strengthScore < 4 ? 'Insufficient' : 'Secure'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex gap-1 h-1">
+                                                    {[1, 2, 3, 4].map(s => (
+                                                        <div key={s} className={cn("flex-1 rounded-3xl transition-all duration-500", s <= strengthScore ? (strengthScore < 4 ? "bg-destructive" : "bg-primary") : "bg-muted-foreground/10")} />
+                                                    ))}
+                                                </div>
+                                                <div className="pt-2">
+                                                    <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-2 italic">
+                                                        <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 opacity-50" />
+                                                        Note: Password Rotation Will Terminate All Other Active Ledger Sessions.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 pt-2">
+                                                <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-11 rounded-3xl font-bold text-xs tracking-widest gap-2 shadow-sm border-0 active:scale-95 transition-transform">
+                                                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                                                    Update Credentials
+                                                </Button>
+                                                <Button type="button" variant="outline" className="h-11 w-11 rounded-3xl border-border/60 shrink-0 active:scale-90 transition-transform" onClick={() => { setIsEditing(false); reset(); }}>
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </form>
-                        )}
+                                </motion.form>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </CardContent>
             </Card>
-        </div>
+        </motion.div>
     );
-}
+});

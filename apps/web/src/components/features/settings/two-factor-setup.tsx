@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import {
     Smartphone,
     Loader2,
@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialo
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 
-export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boolean }) {
+export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boolean }) {
     const [isEnabled, setIsEnabled] = useState(initialEnabled);
     const [isLoading, setIsLoading] = useState(false);
     const [showSetup, setShowSetup] = useState(false);
@@ -33,7 +33,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
             setSetupData(data);
             setShowSetup(true);
         } catch (e) {
-            toast.error("Failed to initialize 2FA setup");
+            toast.error("Failed To Initialize Security Protocol");
         } finally {
             setIsLoading(false);
         }
@@ -48,9 +48,9 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
             setShowSetup(false);
             setSetupData(null);
             setVerificationCode('');
-            toast.success("Two-Factor Authentication is now active");
+            toast.success("Two-Factor Authentication Is Now Active");
         } catch (e) {
-            toast.error("Invalid verification code. Please try again.");
+            toast.error("Invalid Verification Code. Please Try Again.");
         } finally {
             setIsLoading(false);
         }
@@ -63,9 +63,9 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
             setIsEnabled(false);
             setShowDisable(false);
             setPassword('');
-            toast.success("Two-Factor Authentication disabled");
+            toast.success("Two-Factor Authentication Disabled");
         } catch (e) {
-            toast.error("Incorrect password");
+            toast.error("Incorrect Password");
         } finally {
             setIsLoading(false);
         }
@@ -88,7 +88,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                         <div className="space-y-0.5">
                             <h3 className="font-bold text-sm text-foreground">Two-Factor Authentication</h3>
                             <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-sm">
-                                Protect your impact node with an additional layer of hardware-based security.
+                                Protect Your Impact Node With An Additional Layer Of Hardware-Based Security.
                             </p>
                         </div>
                     </div>
@@ -97,9 +97,9 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                         variant={isEnabled ? "outline" : "default"}
                         onClick={() => isEnabled ? setShowDisable(true) : initSetup()}
                         disabled={isLoading}
-                        className="rounded-3xl h-10 px-6 font-bold text-xs w-full md:w-auto"
+                        className="rounded-3xl h-10 px-6 font-bold text-xs w-full md:w-auto active:scale-95 transition-transform"
                     >
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : isEnabled ? 'Disable 2FA' : 'Enable 2FA'}
+                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : isEnabled ? 'Disable Protection' : 'Enable Protection'}
                     </Button>
                 </CardContent>
             </Card>
@@ -111,7 +111,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                             <DialogHeader>
                                 <DialogTitle className="text-xl font-bold tracking-tight text-center">Secure Your Node</DialogTitle>
                             </DialogHeader>
-                            <p className="text-xs text-muted-foreground">Scan this cryptographic key with your authenticator app.</p>
+                            <p className="text-xs text-muted-foreground">Scan This Cryptographic Key With Your Authenticator App.</p>
                         </div>
 
                         {setupData && (
@@ -125,9 +125,9 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                                         <label className="text-xs font-bold tracking-widest text-muted-foreground ml-1">Manual Key</label>
                                         <div className="flex gap-2">
                                             <code className="flex-1 bg-muted p-3 rounded-3xl text-xs font-mono break-all border border-border/40 flex items-center">{setupData.secret}</code>
-                                            <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-3xl" onClick={() => {
+                                            <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-3xl active:scale-95 transition-transform" onClick={() => {
                                                 navigator.clipboard.writeText(setupData.secret);
-                                                toast.success("Secret copied");
+                                                toast.success("Secret Copied");
                                             }}>
                                                 <Copy className="h-3.5 w-3.5" />
                                             </Button>
@@ -150,7 +150,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                         <Button
                             onClick={handleEnable}
                             disabled={isLoading || verificationCode.length !== 6}
-                            className="w-full h-12 rounded-3xl font-bold text-sm tracking-widest shadow-sm"
+                            className="w-full h-12 rounded-3xl font-bold text-sm tracking-widest shadow-sm active:scale-95 transition-transform"
                         >
                             {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Activate Protection'}
                         </Button>
@@ -165,9 +165,9 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                             <Lock className="h-6 w-6" />
                         </div>
                         <DialogHeader>
-                            <DialogTitle className="text-lg font-bold text-center">Disable 2FA?</DialogTitle>
+                            <DialogTitle className="text-lg font-bold text-center">Disable Protection?</DialogTitle>
                         </DialogHeader>
-                        <p className="text-xs text-muted-foreground text-center">Enter your password to authorize security deactivation.</p>
+                        <p className="text-xs text-muted-foreground text-center">Enter Your Password To Authorize Security Deactivation.</p>
                     </div>
 
                     <div className="space-y-4 pt-4">
@@ -182,7 +182,7 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
                             variant="destructive"
                             onClick={handleDisable}
                             disabled={isLoading || !password}
-                            className="w-full h-11 rounded-3xl font-bold text-xs"
+                            className="w-full h-11 rounded-3xl font-bold text-xs active:scale-95 transition-transform"
                         >
                             {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm Deactivation'}
                         </Button>
@@ -191,4 +191,4 @@ export function TwoFactorSetup({ isEnabled: initialEnabled }: { isEnabled: boole
             </Dialog>
         </div>
     );
-}
+});

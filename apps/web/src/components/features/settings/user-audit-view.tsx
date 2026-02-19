@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import {
     History, ShieldCheck, Clock,
     Smartphone, Monitor, Fingerprint,
@@ -12,6 +12,7 @@ import { ApiService } from '../../../services/api';
 import { formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Button } from '../../ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const actionConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
     USER_LOGIN: { icon: User, color: "text-blue-600", bg: "bg-blue-50" },
@@ -26,7 +27,7 @@ const actionConfig: Record<string, { icon: React.ElementType; color: string; bg:
     default: { icon: Fingerprint, color: "text-muted-foreground", bg: "bg-muted" }
 };
 
-export function UserAuditView() {
+export const UserAuditView = memo(function UserAuditView() {
     const [logs, setLogs] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -68,7 +69,12 @@ export function UserAuditView() {
     };
 
     return (
-        <div className="space-y-4 md:space-y-6">
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4 md:space-y-6"
+        >
             <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <CardHeader className="p-5 md:p-6 border-b border-border/40 bg-muted/10">
                     <div className="flex items-center gap-4">
@@ -77,7 +83,7 @@ export function UserAuditView() {
                         </div>
                         <div>
                             <CardTitle className="text-base font-bold">Activity Logs</CardTitle>
-                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Account history</p>
+                            <p className="text-xs text-muted-foreground font-medium tracking-tight">Account History</p>
                         </div>
                     </div>
                 </CardHeader>
@@ -96,7 +102,7 @@ export function UserAuditView() {
                                                 {React.createElement(config.icon, { className: "h-4 w-4" })}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-xs font-bold text-foreground  tracking-tight truncate">
+                                                <p className="text-xs font-bold text-foreground tracking-tight truncate">
                                                     {log.action.replace(/_/g, ' ')}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground font-medium">{formatDate(log.createdAt)}</p>
@@ -104,23 +110,30 @@ export function UserAuditView() {
                                         </div>
                                         <ChevronRight className={cn("h-4 w-4 text-muted-foreground/30 transition-transform", isExpanded && "rotate-90")} />
                                     </div>
-                                    {isExpanded && (
-                                        <div className="pt-2 animate-in fade-in duration-200">
-                                            <div className="bg-zinc-950 p-4 rounded-3xl text-xs font-mono text-zinc-300 overflow-x-auto border border-zinc-800">
-                                                <pre className="whitespace-pre-wrap">{JSON.stringify(log.metadata || {}, null, 2)}</pre>
-                                            </div>
-                                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                                                <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
-                                                    <p className="text-muted-foreground font-bold  text-[11px]">Origin IP</p>
-                                                    <p className="font-mono text-foreground truncate">{log.ipAddress}</p>
+                                    <AnimatePresence>
+                                        {isExpanded && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="pt-2 overflow-hidden"
+                                            >
+                                                <div className="bg-zinc-950 p-4 rounded-3xl text-xs font-mono text-zinc-300 overflow-x-auto border border-zinc-800">
+                                                    <pre className="whitespace-pre-wrap">{JSON.stringify(log.metadata || {}, null, 2)}</pre>
                                                 </div>
-                                                <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
-                                                    <p className="text-muted-foreground font-bold  text-[11px]">User Agent</p>
-                                                    <p className="truncate text-foreground">{log.userAgent}</p>
+                                                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                                                    <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
+                                                        <p className="text-muted-foreground font-bold text-[11px]">Origin Ip</p>
+                                                        <p className="font-mono text-foreground truncate">{log.ipAddress}</p>
+                                                    </div>
+                                                    <div className="p-2.5 rounded-3xl bg-muted/30 border border-border/40">
+                                                        <p className="text-muted-foreground font-bold text-[11px]">User Agent</p>
+                                                        <p className="truncate text-foreground">{log.userAgent}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             );
                         })}
@@ -128,7 +141,7 @@ export function UserAuditView() {
 
                     {/* DESKTOP: Traditional Ledger Table */}
                     <table className="hidden md:table w-full text-left">
-                        <thead className="bg-muted/30 text-xs font-bold  tracking-widest text-muted-foreground border-b border-border/40">
+                        <thead className="bg-muted/30 text-xs font-bold tracking-widest text-muted-foreground border-b border-border/40">
                             <tr>
                                 <th className="px-6 py-4 w-12"></th>
                                 <th className="px-6 py-4">Event</th>
@@ -151,7 +164,7 @@ export function UserAuditView() {
                                                     <div className={cn("h-7 w-7 rounded-3xl flex items-center justify-center border border-border/10", config.bg, config.color)}>
                                                         {React.createElement(config.icon, { className: "h-3.5 w-3.5" })}
                                                     </div>
-                                                    <span className="font-bold text-foreground  tracking-tight">{log.action.replace(/_/g, ' ')}</span>
+                                                    <span className="font-bold text-foreground tracking-tight">{log.action.replace(/_/g, ' ')}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -164,32 +177,39 @@ export function UserAuditView() {
                                                 {formatDate(log.createdAt)}
                                             </td>
                                         </tr>
-                                        {isExpanded && (
-                                            <tr className="bg-muted/10">
-                                                <td colSpan={4} className="p-6">
-                                                    <div className="grid grid-cols-2 gap-6">
-                                                        <div className="space-y-2">
-                                                            <p className="text-xs font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
-                                                                <FileJson2 className="h-3.5 w-3.5" /> Payload Detail
-                                                            </p>
-                                                            <div className="bg-zinc-950 p-4 rounded-3xl text-xs font-mono text-zinc-300 border border-zinc-800 h-32 overflow-y-auto no-scrollbar">
-                                                                <pre>{JSON.stringify(log.metadata || {}, null, 2)}</pre>
+                                        <AnimatePresence>
+                                            {isExpanded && (
+                                                <motion.tr
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    exit={{ opacity: 0 }}
+                                                    className="bg-muted/10"
+                                                >
+                                                    <td colSpan={4} className="p-6">
+                                                        <div className="grid grid-cols-2 gap-6">
+                                                            <div className="space-y-2">
+                                                                <p className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
+                                                                    <FileJson2 className="h-3.5 w-3.5" /> Payload Detail
+                                                                </p>
+                                                                <div className="bg-zinc-950 p-4 rounded-3xl text-xs font-mono text-zinc-300 border border-zinc-800 h-32 overflow-y-auto no-scrollbar">
+                                                                    <pre>{JSON.stringify(log.metadata || {}, null, 2)}</pre>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <div className="p-3 rounded-3xl border border-border/40 bg-card">
+                                                                    <p className="text-[11px] font-bold text-muted-foreground">Identity Id</p>
+                                                                    <p className="font-mono text-foreground truncate">{log.id}</p>
+                                                                </div>
+                                                                <div className="p-3 rounded-3xl border border-border/40 bg-card">
+                                                                    <p className="text-[11px] font-bold text-muted-foreground">Node Ip</p>
+                                                                    <p className="font-mono text-foreground">{log.ipAddress}</p>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="space-y-4">
-                                                            <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                <p className="text-[11px] font-bold  text-muted-foreground">Identity ID</p>
-                                                                <p className="font-mono text-foreground truncate">{log.id}</p>
-                                                            </div>
-                                                            <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                <p className="text-[11px] font-bold  text-muted-foreground">Node IP</p>
-                                                                <p className="font-mono text-foreground">{log.ipAddress}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
+                                                    </td>
+                                                </motion.tr>
+                                            )}
+                                        </AnimatePresence>
                                     </React.Fragment>
                                 );
                             })}
@@ -199,12 +219,12 @@ export function UserAuditView() {
 
                 {hasMore && logs.length > 0 && (
                     <div className="p-4 border-t border-border/40 text-center">
-                        <Button variant="ghost" onClick={handleLoadMore} disabled={isLoading} className="h-9 px-8 rounded-3xl text-xs font-bold  tracking-widest text-muted-foreground hover:text-primary">
-                            {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : 'Fetch older records'}
+                        <Button variant="ghost" onClick={handleLoadMore} disabled={isLoading} className="h-9 px-8 rounded-3xl text-xs font-bold tracking-widest text-muted-foreground hover:text-primary active:scale-95 transition-transform">
+                            {isLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : 'Fetch Older Records'}
                         </Button>
                     </div>
                 )}
             </Card>
-        </div>
+        </motion.div>
     );
-}
+});
