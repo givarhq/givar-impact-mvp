@@ -38,7 +38,7 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-dashed border-border/40 bg-muted/5">
                 <ShieldAlert className="h-10 w-10 mb-3 text-muted-foreground/30" />
-                <p className="text-sm font-bold text-muted-foreground tracking-widest uppercase">No Audit Logs Found</p>
+                <p className="text-sm font-bold text-muted-foreground tracking-widest ">No Audit Logs Found</p>
             </div>
         );
     }
@@ -88,15 +88,15 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
                                             className="px-4 pb-4 space-y-3 overflow-hidden"
                                         >
                                             <div className="pt-3 border-t border-border/40 space-y-2">
-                                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground ">
                                                     <span>Actor Node</span>
                                                     <span className="text-foreground normal-case font-bold">{log.user?.email || 'System Identity'}</span>
                                                 </div>
-                                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground ">
                                                     <span>Target Entity</span>
                                                     <span className="text-foreground normal-case font-bold">{log.entityType}</span>
                                                 </div>
-                                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground uppercase">
+                                                <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground ">
                                                     <span>IP Address</span>
                                                     <span className="text-foreground font-mono font-bold">{log.ipAddress}</span>
                                                 </div>
@@ -121,10 +121,10 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
                     <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                         <tr>
                             <th className="px-6 py-4 w-12"></th>
-                            <th className="px-6 py-4 font-bold text-xs tracking-widest uppercase">Actor Identity</th>
-                            <th className="px-6 py-4 font-bold text-xs tracking-widest uppercase">Action Event</th>
-                            <th className="px-6 py-4 font-bold text-xs tracking-widest uppercase">Target Node</th>
-                            <th className="px-6 py-4 font-bold text-xs tracking-widest text-right uppercase">Timestamp</th>
+                            <th className="px-6 py-4 font-bold text-xs tracking-widest ">Actor Identity</th>
+                            <th className="px-6 py-4 font-bold text-xs tracking-widest ">Action Event</th>
+                            <th className="px-6 py-4 font-bold text-xs tracking-widest ">Target Node</th>
+                            <th className="px-6 py-4 font-bold text-xs tracking-widest text-right ">Timestamp</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40">
@@ -196,7 +196,7 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
                                                         <div className="px-12 py-8 border-t border-border/20">
                                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                                                 <div className="space-y-3">
-                                                                    <h4 className="text-[11px] font-bold tracking-widest text-muted-foreground flex items-center gap-2 uppercase">
+                                                                    <h4 className="text-[11px] font-bold tracking-widest text-muted-foreground flex items-center gap-2 ">
                                                                         <FileJson className="h-3.5 w-3.5" /> Event Metadata
                                                                     </h4>
                                                                     <div className="bg-zinc-950 text-zinc-400 p-5 rounded-3xl text-xs font-mono border border-zinc-800 shadow-2xl h-[200px] overflow-y-auto no-scrollbar">
@@ -206,16 +206,16 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
                                                                 <div className="space-y-6">
                                                                     <div className="grid grid-cols-2 gap-4">
                                                                         <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm">
-                                                                            <p className="text-[10px] font-bold text-muted-foreground mb-1 tracking-widest uppercase">Audit ID</p>
+                                                                            <p className="text-[10px] font-bold text-muted-foreground mb-1 tracking-widest ">Audit ID</p>
                                                                             <p className="text-[11px] font-mono font-bold truncate select-all">{log.id}</p>
                                                                         </div>
                                                                         <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm">
-                                                                            <p className="text-[10px] font-bold text-muted-foreground mb-1 tracking-widest uppercase">Entity Reference</p>
+                                                                            <p className="text-[10px] font-bold text-muted-foreground mb-1 tracking-widest ">Entity Reference</p>
                                                                             <p className="text-[11px] font-mono font-bold truncate select-all">{log.entityId}</p>
                                                                         </div>
                                                                     </div>
                                                                     <div className="p-5 rounded-3xl bg-card border border-border/40 shadow-sm space-y-2">
-                                                                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase flex items-center gap-2">
+                                                                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest  flex items-center gap-2">
                                                                             <Monitor className="h-3.5 w-3.5" /> User Agent Trace
                                                                         </p>
                                                                         <p className="text-[11px] font-medium text-foreground leading-relaxed break-all font-mono opacity-80">{log.userAgent}</p>

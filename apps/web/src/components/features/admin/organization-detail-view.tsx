@@ -81,7 +81,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                     <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
                             <h1 className="text-xl font-bold tracking-tight text-foreground truncate max-w-full">{profile.legalName}</h1>
-                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[10px] tracking-widest border uppercase shrink-0", statusColor)}>
+                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[10px] tracking-widest border  shrink-0", statusColor)}>
                                 {profile.status}
                             </Badge>
                         </div>
@@ -151,11 +151,11 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center shadow-sm">
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Node Joined</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Node Joined</p>
                                     <p className="text-xs font-bold mt-1 tabular-nums">{formatDate(profile.user.createdAt).split(',')[0]}</p>
                                 </div>
                                 <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center shadow-sm">
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Cause Count</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Cause Count</p>
                                     <p className="text-xs font-bold mt-1 tabular-nums">{profile.user._count.projects}</p>
                                 </div>
                             </div>
@@ -203,7 +203,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                         {profile.user.projects?.length === 0 ? (
                             <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/10">
                                 <FileText className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-3" />
-                                <p className="text-xs font-bold text-muted-foreground tracking-widest uppercase">No Historic Projects Recorded</p>
+                                <p className="text-xs font-bold text-muted-foreground tracking-widest ">No Historic Projects Recorded</p>
                             </div>
                         ) : profile.user.projects.map((p: any) => {
                             const percent = Math.min(100, Math.round((Number(p.raisedAmount) / Number(p.targetAmount)) * 100)) || 0;
@@ -212,7 +212,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 min-w-0">
                                         <div className="space-y-2 flex-1 min-w-0 w-full">
                                             <div className="flex items-center gap-3">
-                                                <Badge variant="outline" className="text-[9px] font-bold rounded-3xl px-2.5 bg-primary/5 text-primary border-primary/10 shadow-none uppercase">{p.status}</Badge>
+                                                <Badge variant="outline" className="text-[9px] font-bold rounded-3xl px-2.5 bg-primary/5 text-primary border-primary/10 shadow-none ">{p.status}</Badge>
                                                 <span className="text-[10px] font-mono text-muted-foreground opacity-50 truncate">Id: {p.id.split('-')[0]}</span>
                                             </div>
                                             <h4 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">{p.title}</h4>
@@ -221,11 +221,11 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                             </div>
                                         </div>
                                         <div className="text-left md:text-right shrink-0">
-                                            <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-1 uppercase">Total Raised</p>
+                                            <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-1 ">Total Raised</p>
                                             <div className="font-bold text-foreground text-sm tabular-nums">
                                                 <SmartCurrency amount={p.raisedAmount} currency={p.currency} visible={true} size="default" />
                                             </div>
-                                            <p className="text-[10px] font-black text-primary mt-1 uppercase">{percent}% Of Goal</p>
+                                            <p className="text-[10px] font-black text-primary mt-1 ">{percent}% Of Goal</p>
                                         </div>
                                     </div>
                                 </Card>

@@ -62,13 +62,13 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                 <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <CardTitle className="text-sm font-bold flex items-center gap-2 tracking-widest text-foreground uppercase">
+                            <CardTitle className="text-sm font-bold flex items-center gap-2 tracking-widest text-foreground ">
                                 <ShieldCheck className="h-4 w-4 text-primary" /> Discovery Visibility
                             </CardTitle>
-                            <p className="text-[11px] text-muted-foreground font-bold tracking-widest uppercase">Visibility Controls</p>
+                            <p className="text-[11px] text-muted-foreground font-bold tracking-widest ">Visibility Controls</p>
                         </div>
                         <Badge variant="outline" className={cn(
-                            "rounded-3xl px-3 py-1 font-bold text-[10px] tracking-widest border uppercase",
+                            "rounded-3xl px-3 py-1 font-bold text-[10px] tracking-widest border ",
                             data.moderationStatus === 'APPROVED' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
                                 data.moderationStatus === 'FLAGGED' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-destructive/5 text-destructive border-destructive/10"
                         )}>
@@ -79,7 +79,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                 <CardContent className="p-6 md:p-8 space-y-10">
 
                     <div className="space-y-3">
-                        <label className="text-[11px] font-bold tracking-widest text-muted-foreground ml-1 uppercase">Safety Settings</label>
+                        <label className="text-[11px] font-bold tracking-widest text-muted-foreground ml-1 ">Safety Settings</label>
                         <Select
                             value={data.moderationStatus}
                             onValueChange={(v: any) => setData(prev => ({ ...prev, moderationStatus: v }))}
@@ -99,7 +99,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                         <div className="space-y-4 p-6 rounded-3xl bg-muted/20 border border-border/40 group hover:border-primary/30 transition-all shadow-inner">
                             <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold tracking-widest text-foreground flex items-center gap-2 uppercase">
+                                    <label className="text-[11px] font-bold tracking-widest text-foreground flex items-center gap-2 ">
                                         <Zap className="h-3.5 w-3.5 text-amber-500" /> Featured Weight
                                     </label>
                                     <p className="text-[10px] text-muted-foreground font-medium leading-tight">Priority boost for the featured carousel.</p>
@@ -117,7 +117,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                         <div className="space-y-4 p-6 rounded-3xl bg-muted/20 border border-border/40 group hover:border-blue-500/30 transition-all shadow-inner">
                             <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold tracking-widest text-foreground flex items-center gap-2 uppercase">
+                                    <label className="text-[11px] font-bold tracking-widest text-foreground flex items-center gap-2 ">
                                         <TrendingUp className="h-3.5 w-3.5 text-blue-500" /> Priority Boost
                                     </label>
                                     <p className="text-[10px] text-muted-foreground font-medium leading-tight">Manual scoring bonus for trending lists.</p>

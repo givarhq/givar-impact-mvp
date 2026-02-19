@@ -56,9 +56,9 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                             </Link>
                         </CardTitle>
                         <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-[11px] font-black tracking-widest text-primary uppercase">Phase: {proof.phaseName}</span>
+                            <span className="text-[11px] font-black tracking-widest text-primary ">Phase: {proof.phaseName}</span>
                             <div className="h-1 w-1 rounded-full bg-border" />
-                            <span className="text-[11px] text-muted-foreground font-bold flex items-center gap-1.5 uppercase">
+                            <span className="text-[11px] text-muted-foreground font-bold flex items-center gap-1.5 ">
                                 <Clock className="h-3.5 w-3.5 opacity-50" /> {new Date(proof.submittedAt).toLocaleDateString()}
                             </span>
                         </div>
@@ -73,7 +73,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
                     <div className="lg:col-span-3 space-y-8">
                         <div className="space-y-2">
-                            <h4 className="text-[11px] font-black text-muted-foreground tracking-widest flex items-center gap-2 uppercase ml-1">
+                            <h4 className="text-[11px] font-black text-muted-foreground tracking-widest flex items-center gap-2  ml-1">
                                 <FileText className="h-3.5 w-3.5" /> Narrative Update
                             </h4>
                             <p className="text-sm md:text-base text-foreground leading-relaxed font-medium italic border-l-4 border-primary/30 pl-6 py-2">
@@ -82,7 +82,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                         </div>
 
                         <div className="space-y-3">
-                            <h4 className="text-[11px] font-black text-muted-foreground tracking-widest uppercase ml-1">Evidence Assets</h4>
+                            <h4 className="text-[11px] font-black text-muted-foreground tracking-widest  ml-1">Evidence Assets</h4>
                             <div className="flex flex-wrap gap-3">
                                 {proof.imageUrls?.map((url: string, i: number) => (
                                     <button
@@ -110,13 +110,13 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                                         className="absolute inset-0 bg-background/80 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center text-emerald-600"
                                     >
                                         <CheckCircle2 className="h-12 w-12 mb-2" />
-                                        <span className="text-[11px] font-black tracking-widest uppercase">Audit Protocol Finalized</span>
+                                        <span className="text-[11px] font-black tracking-widest ">Audit Protocol Finalized</span>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
                             <div className="text-center space-y-1">
-                                <h4 className="text-[11px] font-black text-muted-foreground tracking-widest uppercase">Administrative Decision</h4>
+                                <h4 className="text-[11px] font-black text-muted-foreground tracking-widest ">Administrative Decision</h4>
                                 <p className="text-xs text-muted-foreground font-medium">Verify against phase requirements</p>
                             </div>
 

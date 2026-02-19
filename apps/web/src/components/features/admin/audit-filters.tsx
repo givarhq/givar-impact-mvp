@@ -50,7 +50,7 @@ export const AuditFilters = memo(function AuditFilters() {
       <SelectItem value="all" className="text-xs">All Actions</SelectItem>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5 uppercase tracking-widest">Identity And Access</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Identity And Access</SelectLabel>
         <SelectItem value="USER_LOGIN" className="text-xs">User Login</SelectItem>
         <SelectItem value="USER_LOGIN_FAILED" className="text-xs">Login Failed</SelectItem>
         <SelectItem value="USER_REGISTER" className="text-xs">User Registration</SelectItem>
@@ -65,7 +65,7 @@ export const AuditFilters = memo(function AuditFilters() {
       </SelectGroup>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5 uppercase tracking-widest">Hardware Security</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Hardware Security</SelectLabel>
         <SelectItem value="TWO_FACTOR_GEN_SECRET" className="text-xs">2FA Secret Generated</SelectItem>
         <SelectItem value="TWO_FACTOR_ENABLED" className="text-xs">2FA Enabled</SelectItem>
         <SelectItem value="TWO_FACTOR_DISABLED" className="text-xs">2FA Disabled</SelectItem>
@@ -73,7 +73,7 @@ export const AuditFilters = memo(function AuditFilters() {
       </SelectGroup>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5 uppercase tracking-widest">Financial Ledger</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Financial Ledger</SelectLabel>
         <SelectItem value="WALLET_FUND" className="text-xs">Wallet Funding Initiated</SelectItem>
         <SelectItem value="WALLET_FUND_SUCCESS" className="text-xs">Wallet Funding Success</SelectItem>
         <SelectItem value="WALLET_DEBIT" className="text-xs">Wallet Debit Recorded</SelectItem>
@@ -89,7 +89,7 @@ export const AuditFilters = memo(function AuditFilters() {
       </SelectGroup>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5 uppercase tracking-widest">Causes And Proposals</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Causes And Proposals</SelectLabel>
         <SelectItem value="PROJECT_CREATED" className="text-xs">Project Created</SelectItem>
         <SelectItem value="PROJECT_UPDATED" className="text-xs">Project Updated</SelectItem>
         <SelectItem value="PROJECT_DELETED" className="text-xs">Project Deleted</SelectItem>
@@ -102,7 +102,7 @@ export const AuditFilters = memo(function AuditFilters() {
       </SelectGroup>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5 uppercase tracking-widest">Discovery And Protocol</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Discovery And Protocol</SelectLabel>
         <SelectItem value="RECOMMENDATION_CONFIG_UPDATED" className="text-xs">Algorithm Configuration Updated</SelectItem>
         <SelectItem value="FEATURED_SLOT_CREATED" className="text-xs">Featured Slot Assigned</SelectItem>
         <SelectItem value="FEATURED_SLOT_DELETED" className="text-xs">Featured Slot Removed</SelectItem>
@@ -147,7 +147,7 @@ export const AuditFilters = memo(function AuditFilters() {
           <div className="hidden md:flex items-center gap-2">
             <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-sm">
               <div className="flex items-center px-3 gap-2">
-                <span className="text-[10px] font-black text-muted-foreground/60 tracking-tighter uppercase">From</span>
+                <span className="text-[10px] font-black text-muted-foreground/60 tracking-tighter ">From</span>
                 <input
                   type="date"
                   value={startDate}
@@ -157,7 +157,7 @@ export const AuditFilters = memo(function AuditFilters() {
               </div>
               <ArrowRight className="h-3 w-3 text-muted-foreground/30" />
               <div className="flex items-center px-3 gap-2">
-                <span className="text-[10px] font-black text-muted-foreground/60 tracking-tighter uppercase">To</span>
+                <span className="text-[10px] font-black text-muted-foreground/60 tracking-tighter ">To</span>
                 <input
                   type="date"
                   value={endDate}
@@ -203,7 +203,7 @@ export const AuditFilters = memo(function AuditFilters() {
           <div className="grid gap-2">
             <div className="flex items-center justify-between bg-muted/40 p-1 rounded-[22px] border border-border/40 shadow-sm">
               <div className="flex items-center px-3 gap-2 flex-1">
-                <span className="text-[9px] font-black text-muted-foreground/60 tracking-tighter uppercase">From</span>
+                <span className="text-[9px] font-black text-muted-foreground/60 tracking-tighter ">From</span>
                 <input
                   type="date"
                   value={startDate}
@@ -213,7 +213,7 @@ export const AuditFilters = memo(function AuditFilters() {
               </div>
               <ArrowRight className="h-3 w-3 text-muted-foreground/30 shrink-0" />
               <div className="flex items-center px-3 gap-2 flex-1">
-                <span className="text-[9px] font-black text-muted-foreground/60 tracking-tighter uppercase">To</span>
+                <span className="text-[9px] font-black text-muted-foreground/60 tracking-tighter ">To</span>
                 <input
                   type="date"
                   value={endDate}

@@ -63,7 +63,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
         return (
             <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/5">
                 <Camera className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-bold text-foreground opacity-60 tracking-widest uppercase">No Pending Evidence</h3>
+                <h3 className="text-sm font-bold text-foreground opacity-60 tracking-widest ">No Pending Evidence</h3>
             </div>
         );
     }
@@ -95,11 +95,11 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-sm font-bold text-foreground truncate">{proof.project.title}</p>
                                                 <div className="flex items-center gap-2 mt-2">
-                                                    <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none uppercase">
+                                                    <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none ">
                                                         Phase: {proof.phaseName}
                                                     </Badge>
                                                     {isHandled && (
-                                                        <span className={cn("text-[10px] font-black italic uppercase", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
+                                                        <span className={cn("text-[10px] font-black italic ", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
                                                             {proof.status}
                                                         </span >
                                                     )}
@@ -119,7 +119,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                 >
                                                     <div className="pt-4 border-t border-border/40 space-y-4">
                                                         <div className="space-y-1.5">
-                                                            <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">Owner Statement</p>
+                                                            <p className="text-[10px] font-black text-muted-foreground tracking-widest ">Owner Statement</p>
                                                             <p className="text-xs font-medium leading-relaxed italic text-foreground/80">&quot;{proof.description}&quot;</p>
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2">
@@ -154,9 +154,9 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                             <tr>
                                 <th className="px-7 py-4 w-12"></th>
-                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] uppercase">Cause And Execution Phase</th>
-                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] uppercase text-center">Date Submitted</th>
-                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] uppercase text-right">Visual Assets</th>
+                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] ">Cause And Execution Phase</th>
+                                <th className="px-7 py-4 font-bold tracking-widest text-[10px]  text-center">Date Submitted</th>
+                                <th className="px-7 py-4 font-bold tracking-widest text-[10px]  text-right">Visual Assets</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40">
@@ -182,11 +182,11 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                 <div className="space-y-1">
                                                     <p className="font-bold text-foreground text-sm leading-tight">{proof.project.title}</p>
                                                     <div className="flex items-center gap-2.5">
-                                                        <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none uppercase">
+                                                        <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none ">
                                                             Phase: {proof.phaseName}
                                                         </Badge>
                                                         {isHandled && (
-                                                            <span className={cn("text-[10px] font-black italic uppercase", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
+                                                            <span className={cn("text-[10px] font-black italic ", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
                                                                 {proof.status}
                                                             </span>
                                                         )}
@@ -197,7 +197,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                 <p className="text-xs font-bold text-foreground tabular-nums">{formatDate(proof.submittedAt).split(',')[0]}</p>
                                             </td>
                                             <td className="px-7 py-5 text-right">
-                                                <Badge variant="secondary" className="rounded-3xl font-black text-[9px] px-3 py-1 bg-muted/60 border-border/40 shadow-inner uppercase tracking-wider">
+                                                <Badge variant="secondary" className="rounded-3xl font-black text-[9px] px-3 py-1 bg-muted/60 border-border/40 shadow-inner  tracking-wider">
                                                     {proof.imageKeys.length} Files Attached
                                                 </Badge>
                                             </td>
@@ -217,7 +217,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                                                                     <div className="lg:col-span-8 space-y-8">
                                                                         <div className="space-y-3">
-                                                                            <h4 className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-2 uppercase">
+                                                                            <h4 className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-2 ">
                                                                                 <FileText className="h-3.5 w-3.5" /> Narrative Update
                                                                             </h4>
                                                                             <p className="text-sm md:text-base text-foreground/90 leading-relaxed font-medium italic border-l-4 border-primary/30 pl-6 py-2">
@@ -225,7 +225,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                             </p>
                                                                         </div>
                                                                         <div className="space-y-4">
-                                                                            <h4 className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Evidence Media</h4>
+                                                                            <h4 className="text-[11px] font-bold text-muted-foreground tracking-widest ">Evidence Media</h4>
                                                                             <div className="flex flex-wrap gap-3">
                                                                                 {proof.imageUrls?.map((url: string, i: number) => (
                                                                                     <button key={i} onClick={() => window.open(url, '_blank')} className="relative h-24 w-24 rounded-[22px] overflow-hidden border border-border/40 bg-muted hover:ring-4 ring-primary/10 transition-all shadow-md group">
@@ -243,7 +243,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                             {!isHandled ? (
                                                                                 <div className="space-y-6 relative z-10">
                                                                                     <div className="text-center space-y-1">
-                                                                                        <p className="text-[11px] font-black text-primary tracking-widest uppercase">Audit Decision</p>
+                                                                                        <p className="text-[11px] font-black text-primary tracking-widest ">Audit Decision</p>
                                                                                         <p className="text-xs text-muted-foreground font-medium">Evaluate against phase criteria</p>
                                                                                     </div>
                                                                                     <div className="space-y-3">
@@ -278,13 +278,13 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                                         <CheckCircle2 className="h-7 w-7" />
                                                                                     </div>
                                                                                     <div className="space-y-1">
-                                                                                        <p className="text-xs font-black tracking-widest uppercase">{proof.status}</p>
+                                                                                        <p className="text-xs font-black tracking-widest ">{proof.status}</p>
                                                                                         <p className="text-[11px] text-muted-foreground font-medium">Decision recorded on {formatDate(proof.updatedAt || proof.submittedAt)}</p>
                                                                                     </div>
                                                                                 </div>
                                                                             )}
                                                                             <div className="pt-6 border-t border-border/40 text-center">
-                                                                                <span className="text-[10px] font-black text-emerald-600 flex items-center justify-center gap-1.5 tracking-[0.2em] uppercase">
+                                                                                <span className="text-[10px] font-black text-emerald-600 flex items-center justify-center gap-1.5 tracking-[0.2em] ">
                                                                                     <Check className="h-3.5 w-3.5 stroke-[4px]" /> Ledger Synchronized
                                                                                 </span>
                                                                             </div>

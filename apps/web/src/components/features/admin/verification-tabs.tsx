@@ -81,10 +81,10 @@ export const VerificationTabs = memo(function VerificationTabs({ orgs, evidence 
                                     <table className="w-full text-sm text-left border-collapse">
                                         <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                                             <tr>
-                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest uppercase">Organization</th>
-                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest uppercase">Account Profile</th>
-                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest uppercase">Legal Assets</th>
-                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest text-right uppercase">Review Decision</th>
+                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest ">Organization</th>
+                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest ">Account Profile</th>
+                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest ">Legal Assets</th>
+                                                <th className="px-6 py-4 font-bold text-[10px] tracking-widest text-right ">Review Decision</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/40">
@@ -114,7 +114,7 @@ function EmptyPlaceholder({ title, subtitle }: { title: string, subtitle: string
     return (
         <Card className="border-dashed border-2 border-border/40 bg-muted/5 py-24 flex flex-col items-center justify-center text-center rounded-[40px]">
             <Inbox className="h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-            <h3 className="text-sm font-bold text-foreground opacity-60 tracking-tight uppercase">{title}</h3>
+            <h3 className="text-sm font-bold text-foreground opacity-60 tracking-tight ">{title}</h3>
             <p className="text-xs text-muted-foreground mt-1.5 font-medium max-w-[280px]">{subtitle}</p>
         </Card>
     );

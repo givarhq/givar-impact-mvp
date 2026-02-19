@@ -203,7 +203,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-3 mb-1.5">
-                                                            <span className="text-[11px] font-black tracking-[0.2em] text-amber-600 uppercase">Orphaned Capital</span>
+                                                            <span className="text-[11px] font-black tracking-[0.2em] text-amber-600 ">Orphaned Capital</span>
                                                             <Badge variant="outline" className="font-mono text-[10px] bg-muted/50 border-border/50 rounded-3xl px-2">Ref: {item.reference}</Badge>
                                                         </div>
                                                         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -213,7 +213,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                             </span>
                                                         </div>
                                                         <div className="flex items-center gap-4 mt-2">
-                                                            <p className="text-[10px] text-muted-foreground font-black tracking-widest flex items-center gap-1.5 uppercase">
+                                                            <p className="text-[10px] text-muted-foreground font-black tracking-widest flex items-center gap-1.5 ">
                                                                 <Calendar className="h-3 w-3 opacity-50" /> Recorded On {formatDate(item.createdAt).split(',')[0]}
                                                             </p>
                                                         </div>
@@ -262,7 +262,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                             <Button
                                 onClick={handleVerifyRef}
                                 disabled={isVerifying || !refInput}
-                                className="h-14 px-10 rounded-3xl font-black tracking-widest shadow-xl shadow-primary/20 text-[11px] uppercase transition-all active:scale-95 border-0"
+                                className="h-14 px-10 rounded-3xl font-black tracking-widest shadow-xl shadow-primary/20 text-[11px]  transition-all active:scale-95 border-0"
                             >
                                 {isVerifying ? <Loader2 className="animate-spin h-5 w-5" /> : 'Search Ledger'}
                             </Button>
@@ -273,38 +273,38 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-500">
                             <Card className="rounded-[32px] bg-card border-border/50 overflow-hidden shadow-sm hover:border-blue-500/30 transition-all group">
                                 <CardHeader className="bg-blue-500/[0.02] border-b border-border/50 p-6">
-                                    <CardTitle className="text-[10px] font-black tracking-[0.3em] flex items-center gap-2 text-blue-500 uppercase">
+                                    <CardTitle className="text-[10px] font-black tracking-[0.3em] flex items-center gap-2 text-blue-500 ">
                                         <Globe className="h-3.5 w-3.5" /> External Gateway
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-6 space-y-4">
                                     <div className="flex justify-between items-center py-3 border-b border-border/40">
-                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground uppercase">Status</span>
+                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground ">Status</span>
                                         <BadgeStatus status={reconcileResult.external.status} />
                                     </div>
                                     <div className="flex justify-between items-center py-3 border-b border-border/40">
-                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground uppercase">Value</span>
+                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground ">Value</span>
                                         <div className="text-right">
                                             <p className="font-black text-xl text-foreground">₦{(reconcileResult.external.amount / 100).toLocaleString()}</p>
                                             <p className="text-[10px] text-muted-foreground font-mono tracking-widest mt-0.5">{reconcileResult.external.currency}</p>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center py-3">
-                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground uppercase">Channel</span>
-                                        <span className="text-[10px] font-black tracking-widest bg-secondary px-4 py-1 rounded-3xl border border-border/50 uppercase">{reconcileResult.external.channel}</span>
+                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground ">Channel</span>
+                                        <span className="text-[10px] font-black tracking-widest bg-secondary px-4 py-1 rounded-3xl border border-border/50 ">{reconcileResult.external.channel}</span>
                                     </div>
                                 </CardContent>
                             </Card>
 
                             <Card className="rounded-[32px] bg-card border-border/50 overflow-hidden shadow-sm relative hover:border-primary/30 transition-all group">
                                 <CardHeader className="bg-primary/[0.02] border-b border-border/50 p-6">
-                                    <CardTitle className="text-[10px] font-black tracking-[0.3em] flex items-center gap-2 text-primary uppercase">
+                                    <CardTitle className="text-[10px] font-black tracking-[0.3em] flex items-center gap-2 text-primary ">
                                         <Database className="h-3.5 w-3.5" /> Internal Ledger
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-6 h-full flex flex-col justify-center min-h-[220px]">
                                     <div className="flex justify-between items-center mb-8">
-                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground uppercase">Sync Status</span>
+                                        <span className="text-[11px] font-black tracking-widest text-muted-foreground ">Sync Status</span>
                                         <BadgeStatus status={reconcileResult.internal.status === 'success' ? 'Synchronized' : 'Missing'} />
                                     </div>
 
@@ -317,7 +317,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                 </p>
                                             </div>
                                             <Button
-                                                className="w-full h-12 rounded-3xl font-black tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-lg text-white gap-2 transition-all hover:scale-[1.01] text-[10px] uppercase border-0"
+                                                className="w-full h-12 rounded-3xl font-black tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-lg text-white gap-2 transition-all hover:scale-[1.01] text-[10px]  border-0"
                                                 onClick={handleExecuteReconcile}
                                                 disabled={isProcessing}
                                             >
@@ -330,7 +330,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                             <div className="h-20 w-20 bg-emerald-500/10 rounded-[32px] flex items-center justify-center mb-4 ring-4 ring-emerald-500/[0.03] shadow-inner">
                                                 <CheckCircle2 className="h-10 w-10" />
                                             </div>
-                                            <span className="text-[11px] font-black tracking-[0.3em] uppercase">Consensus Achieved</span>
+                                            <span className="text-[11px] font-black tracking-[0.3em] ">Consensus Achieved</span>
                                         </div>
                                     )}
                                 </CardContent>
@@ -401,7 +401,7 @@ function BadgeStatus({ status }: { status: string }) {
     const isSuccess = status.toLowerCase() === 'success' || status.toLowerCase() === 'synchronized';
     return (
         <span className={cn(
-            "px-5 py-1.5 rounded-3xl text-[10px] font-black tracking-[0.1em] border transition-all uppercase",
+            "px-5 py-1.5 rounded-3xl text-[10px] font-black tracking-[0.1em] border transition-all ",
             isSuccess
                 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
                 : "bg-amber-500/10 text-amber-600 border-amber-500/20"

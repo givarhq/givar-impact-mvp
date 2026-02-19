@@ -31,7 +31,7 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
         return (
             <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/5">
                 <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-bold text-foreground opacity-60 tracking-widest uppercase">No Organizations Found</h3>
+                <h3 className="text-sm font-bold text-foreground opacity-60 tracking-widest ">No Organizations Found</h3>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">Try adjusting your active filters.</p>
             </div>
         );
@@ -83,7 +83,7 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
                                                     {profile.user.firstName} {profile.user.lastName}
                                                 </p>
                                             </div>
-                                            <Badge className={cn("gap-1.5 px-3 py-1 rounded-3xl border text-[9px] font-black tracking-widest shadow-none uppercase", config.color)}>
+                                            <Badge className={cn("gap-1.5 px-3 py-1 rounded-3xl border text-[9px] font-black tracking-widest shadow-none ", config.color)}>
                                                 <StatusIcon className="h-3 w-3" />
                                                 {config.label}
                                             </Badge>
@@ -102,10 +102,10 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                             <tr>
-                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest uppercase">Legal Entity</th>
-                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest uppercase">Proposer Identity</th>
-                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest uppercase text-center">Project Count</th>
-                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest uppercase">Verification State</th>
+                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest ">Legal Entity</th>
+                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest ">Proposer Identity</th>
+                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest  text-center">Project Count</th>
+                                <th className="px-7 py-4 font-bold text-[10px] tracking-widest ">Verification State</th>
                                 <th className="px-7 py-4"></th>
                             </tr>
                         </thead>
@@ -156,13 +156,13 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
                                             </div>
                                         </td>
                                         <td className="px-7 py-4">
-                                            <Badge variant="outline" className={cn("gap-1.5 pl-2 pr-3 py-1 rounded-3xl border font-bold text-[9px] tracking-widest shadow-none uppercase transition-all", config.color)}>
+                                            <Badge variant="outline" className={cn("gap-1.5 pl-2 pr-3 py-1 rounded-3xl border font-bold text-[9px] tracking-widest shadow-none  transition-all", config.color)}>
                                                 <StatusIcon className="h-3 w-3" />
                                                 {config.label}
                                             </Badge>
                                         </td>
                                         <td className="px-7 py-4 text-right">
-                                            <Button variant="ghost" size="sm" className="rounded-3xl h-8 text-[10px] font-black tracking-widest uppercase gap-2 hover:bg-background border border-transparent hover:border-border/40 transition-all active:scale-95">
+                                            <Button variant="ghost" size="sm" className="rounded-3xl h-8 text-[10px] font-black tracking-widest  gap-2 hover:bg-background border border-transparent hover:border-border/40 transition-all active:scale-95">
                                                 Forensic Detail <ArrowUpRight className="h-3.5 w-3.5" />
                                             </Button>
                                         </td>

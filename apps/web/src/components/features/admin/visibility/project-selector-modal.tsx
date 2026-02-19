@@ -100,7 +100,7 @@ export const ProjectSelectorModal = memo(function ProjectSelectorModal({
                         {isLoading ? (
                             <div className="py-12 flex flex-col items-center justify-center gap-3 min-w-0">
                                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                <span className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">Searching Ledger Database</span>
+                                <span className="text-[11px] font-bold tracking-widest text-muted-foreground ">Searching Ledger Database</span>
                             </div>
                         ) : projects.length > 0 ? (
                             <AnimatePresence mode="popLayout">
@@ -139,7 +139,7 @@ export const ProjectSelectorModal = memo(function ProjectSelectorModal({
                         ) : (
                             <div className="py-16 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/5 min-w-0">
                                 <Inbox className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                                <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
+                                <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">
                                     {query.length < 1 ? 'Start Typing To Explore' : 'No Matching Causes Identified'}
                                 </p>
                             </div>

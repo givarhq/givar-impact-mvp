@@ -292,7 +292,7 @@ export const BulkActionsToolbar = memo(function BulkActionsToolbar({
                             </div>
 
                             <div className="hidden sm:flex flex-col leading-tight">
-                                <span className="text-[10px] font-black tracking-[0.1em] text-zinc-300 uppercase">
+                                <span className="text-[10px] font-black tracking-[0.1em] text-zinc-300 ">
                                     Batch
                                 </span>
                                 <span className="text-[10px] font-bold text-zinc-500">

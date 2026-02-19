@@ -147,7 +147,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         }
     };
 
-    const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    const initials = `${user.firstName[0]}${user.lastName[0]}`.to();
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">

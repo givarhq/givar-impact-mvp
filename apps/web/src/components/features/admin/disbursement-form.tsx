@@ -136,7 +136,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                     </div>
                     <div>
                         <h3 className="text-base font-bold text-foreground">Record Disbursement</h3>
-                        <p className="text-[11px] text-muted-foreground font-bold tracking-widest uppercase">Treasury Outflow</p>
+                        <p className="text-[11px] text-muted-foreground font-bold tracking-widest ">Treasury Outflow</p>
                     </div>
                 </div>
 
@@ -263,13 +263,13 @@ export const DisbursementForm = memo(function DisbursementForm({
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                                 <tr>
-                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px] uppercase cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('vendorName')}>
+                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px]  cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('vendorName')}>
                                         <div className="flex items-center">Payee Vendor <SortIcon column="vendorName" /></div>
                                     </th>
-                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px] uppercase cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('createdAt')}>
+                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px]  cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('createdAt')}>
                                         <div className="flex items-center">Execution Date <SortIcon column="createdAt" /></div>
                                     </th>
-                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px] uppercase text-right cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('amount')}>
+                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px]  text-right cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('amount')}>
                                         <div className="flex items-center justify-end">Capital Value <SortIcon column="amount" /></div>
                                     </th>
                                     <th className="px-6 py-3 w-20"></th>

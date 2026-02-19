@@ -289,7 +289,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardHeader>
                         <div className="p-0 overflow-x-auto no-scrollbar">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-muted/10 text-[10px] font-bold text-muted-foreground border-b border-border/40 tracking-widest uppercase">
+                                <thead className="bg-muted/10 text-[10px] font-bold text-muted-foreground border-b border-border/40 tracking-widest ">
                                     <tr>
                                         <th className="px-6 py-4">Item Description</th>
                                         <th className="px-6 py-4 hidden md:table-cell">Asset Category</th>
@@ -338,7 +338,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                     <h5 className="text-sm font-bold text-foreground">{item.phase}</h5>
                                                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium">{item.deliverables}</p>
                                                 </div>
-                                                <Badge variant="secondary" className="w-fit h-fit mt-2 md:mt-0 text-[10px] font-bold tracking-widest rounded-3xl bg-muted/50 border-border/40 text-muted-foreground uppercase">
+                                                <Badge variant="secondary" className="w-fit h-fit mt-2 md:mt-0 text-[10px] font-bold tracking-widest rounded-3xl bg-muted/50 border-border/40 text-muted-foreground ">
                                                     Due: {item.estimatedDate}
                                                 </Badge>
                                             </div>
@@ -422,7 +422,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             ) : (
                                 <div className="text-center py-10 border-2 border-dashed border-border/40 rounded-[28px] bg-muted/5">
                                     <AlertCircle className="h-7 w-7 mx-auto text-destructive/40 mb-2" />
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Vault Empty</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Vault Empty</p>
                                 </div>
                             )}
                         </CardContent>

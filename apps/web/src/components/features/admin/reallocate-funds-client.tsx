@@ -137,7 +137,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                 </div>
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-[11px] font-black tracking-widest text-foreground flex items-center gap-2 uppercase">
+                        <h3 className="text-[11px] font-black tracking-widest text-foreground flex items-center gap-2 ">
                             <Calculator className="h-3.5 w-3.5 text-primary" /> Reconciliation Ledger
                         </h3>
                         <div className="flex items-center gap-3">
@@ -158,7 +158,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                             <div className="h-12 w-12 bg-background rounded-2xl bg-card flex items-center justify-center mx-auto shadow-sm border border-border/50">
                                 <Plus className="h-5 w-5 text-muted-foreground/40" />
                             </div>
-                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest max-w-[180px] mx-auto uppercase">
+                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest max-w-[180px] mx-auto ">
                                 Tap project nodes to populate the split ledger.
                             </p>
                         </motion.div>
@@ -175,7 +175,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                 >
                                     <div className="flex justify-between items-start gap-2">
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-[9px] font-black text-primary tracking-widest uppercase mb-0.5">Target Cause</p>
+                                            <p className="text-[9px] font-black text-primary tracking-widest  mb-0.5">Target Cause</p>
                                             <p className="text-xs font-bold text-foreground truncate">{s.title}</p>
                                         </div>
                                         <button
@@ -203,14 +203,14 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
             <div className="p-6 pb-[max(2rem,env(safe-area-inset-bottom))] bg-card border-t border-border/40 space-y-4 shrink-0 mt-auto">
                 <div className="flex justify-between items-center px-1">
-                    <span className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">Original Allocation</span>
+                    <span className="text-[11px] font-bold tracking-widest text-muted-foreground ">Original Allocation</span>
                     <span className="font-bold text-foreground tabular-nums text-sm">
                         <SmartCurrency amount={transaction.amount} currency={transaction.currency} visible={true} size="small" />
                     </span>
                 </div>
                 <div className="p-5 rounded-[28px] bg-zinc-950 text-white shadow-xl relative overflow-hidden">
                     <div className="relative z-10 flex justify-between items-center">
-                        <span className="text-[10px] font-black tracking-[0.2em] text-zinc-500 uppercase">Ledger Balance</span>
+                        <span className="text-[10px] font-black tracking-[0.2em] text-zinc-500 ">Ledger Balance</span>
                         <span className={cn(
                             "text-xl font-black tabular-nums tracking-tight transition-colors duration-300",
                             remainingMinor === 0n ? "text-emerald-500" : remainingMinor < 0n ? "text-destructive" : "text-amber-500"
@@ -247,7 +247,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     <div className="space-y-2">
                         <button
                             onClick={() => router.back()}
-                            className="group flex items-center text-[10px] font-black tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-2 uppercase"
+                            className="group flex items-center text-[10px] font-black tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-2 "
                         >
                             <ArrowLeft className="h-3 w-3 mr-2 transition-transform group-hover:-translate-x-1" /> Back To Ledger
                         </button>
@@ -257,20 +257,20 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                 Ref: {transaction.reference}
                             </Badge>
                             <div className="h-1 w-1 rounded-full bg-border" />
-                            <p className="text-[11px] text-muted-foreground font-bold tracking-widest flex items-center gap-2 uppercase">
+                            <p className="text-[11px] text-muted-foreground font-bold tracking-widest flex items-center gap-2 ">
                                 <Database className="h-3.5 w-3.5 text-amber-500" /> Source: Suspense Node
                             </p>
                         </div>
                     </div>
                     <div className="bg-primary/5 border border-primary/20 rounded-[32px] p-6 flex items-center gap-8 shadow-sm w-full md:w-auto relative overflow-hidden">
                         <div className="space-y-1 relative z-10">
-                            <p className="text-[10px] font-black text-primary tracking-widest uppercase">Transaction Value</p>
+                            <p className="text-[10px] font-black text-primary tracking-widest ">Transaction Value</p>
                             <SmartCurrency amount={transaction.amount} currency={transaction.currency} visible={true} size="large" className="text-foreground font-black" />
                         </div>
                         <div className="h-10 w-px bg-primary/20 relative z-10" />
                         <div className="text-right space-y-1 relative z-10">
-                            <p className="text-[10px] font-black text-muted-foreground tracking-widest uppercase">Current State</p>
-                            <div className="flex items-center justify-end gap-2 text-amber-600 font-black text-[11px] tracking-widest uppercase italic">
+                            <p className="text-[10px] font-black text-muted-foreground tracking-widest ">Current State</p>
+                            <div className="flex items-center justify-end gap-2 text-amber-600 font-black text-[11px] tracking-widest  italic">
                                 <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                                 Unresolved
                             </div>
@@ -310,7 +310,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                 <button
                                     onClick={() => setActiveCategory('all')}
                                     className={cn(
-                                        "px-6 py-2.5 rounded-3xl text-[11px] font-black tracking-widest transition-all whitespace-nowrap border uppercase",
+                                        "px-6 py-2.5 rounded-3xl text-[11px] font-black tracking-widest transition-all whitespace-nowrap border ",
                                         activeCategory === 'all'
                                             ? "bg-primary text-white border-primary shadow-lg"
                                             : "bg-card text-muted-foreground border-border/40 hover:border-border hover:text-foreground shadow-sm"
@@ -323,7 +323,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                         key={cat.id}
                                         onClick={() => setActiveCategory(cat.id)}
                                         className={cn(
-                                            "px-6 py-2.5 rounded-3xl text-[11px] font-black tracking-widest transition-all whitespace-nowrap border uppercase",
+                                            "px-6 py-2.5 rounded-3xl text-[11px] font-black tracking-widest transition-all whitespace-nowrap border ",
                                             activeCategory === cat.id
                                                 ? "bg-primary text-white border-primary shadow-lg"
                                                 : "bg-card text-muted-foreground border-border/40 hover:border-border hover:text-foreground shadow-sm"
@@ -349,7 +349,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                             {filteredProjects.length === 0 ? (
                                 <div className="col-span-full py-24 text-center border-2 border-dashed border-border/40 rounded-[40px] bg-muted/10">
                                     <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-4" />
-                                    <p className="font-black text-muted-foreground tracking-widest text-[11px] uppercase">No Matching Project Nodes Identified</p>
+                                    <p className="font-black text-muted-foreground tracking-widest text-[11px] ">No Matching Project Nodes Identified</p>
                                 </div>
                             ) : filteredProjects.map(p => {
                                 const isSelected = selectedSplits.some(s => s.id === p.id);
@@ -375,7 +375,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-[9px] font-black text-primary tracking-widest uppercase mb-1">{p.categoryName}</p>
+                                                    <p className="text-[9px] font-black text-primary tracking-widest  mb-1">{p.categoryName}</p>
                                                     <h4 className="font-bold text-sm text-foreground truncate leading-tight">{p.title}</h4>
                                                     <p className="text-[11px] text-muted-foreground font-bold mt-1.5 flex items-center gap-2">
                                                         <Target className="h-3.5 w-3.5 text-muted-foreground/60" /> Goal: {formatCurrency(p.targetAmount, p.currency)}
@@ -415,7 +415,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                 className="bg-zinc-950/95 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-7 pr-2 shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-between cursor-pointer active:scale-95 transition-all"
                             >
                                 <div className="flex flex-col">
-                                    <span className="text-[9px] font-black tracking-[0.2em] text-zinc-500 uppercase">Ledger Balance</span>
+                                    <span className="text-[9px] font-black tracking-[0.2em] text-zinc-500 ">Ledger Balance</span>
                                     <span className={cn(
                                         "text-sm font-black tabular-nums",
                                         remainingMinor === 0n ? "text-emerald-500" : "text-amber-500"

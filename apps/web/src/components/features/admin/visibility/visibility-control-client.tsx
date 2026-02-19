@@ -300,7 +300,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                                             <>
                                                                 <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{slot.project?.title || 'Identifying Project...'}</p>
                                                                 <div className="flex items-center gap-2">
-                                                                    <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black h-4 px-2 rounded-3xl tracking-widest uppercase shadow-none">Pinned</Badge>
+                                                                    <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black h-4 px-2 rounded-3xl tracking-widest  shadow-none">Pinned</Badge>
                                                                     <span className="text-[10px] text-muted-foreground font-mono opacity-50">Ref: {slot.projectId.split('-')[0]}</span>
                                                                 </div>
                                                             </>
