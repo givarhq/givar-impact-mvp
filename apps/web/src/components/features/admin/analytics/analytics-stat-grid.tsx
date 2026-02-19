@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '../../../ui/card';
 import { SmartCurrency } from '../../../ui/smart-currency';
@@ -32,7 +32,8 @@ interface AnalyticsStatGridProps {
     avgDonation?: string;
 }
 
-export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatGridProps) {
+// Logic: Use memoization to prevent re-rendering the entire grid when unrelated dashboard state changes.
+export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatGridProps) {
     const router = useRouter();
 
     const getRiskConfig = () => {
@@ -73,7 +74,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <StatCard
-                title="Total Entities"
+                title="Total entities"
                 value={summary.totalUsers}
                 subValue={`${Math.abs(summary.userGrowthPercent)}% growth`}
                 icon={Users}
@@ -83,7 +84,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="System Liquidity"
+                title="System liquidity"
                 value={<SmartCurrency amount={summary.totalVolume.NGN} currency="NGN" visible={true} size="default" />}
                 subValue="Processed volume"
                 icon={Wallet}
@@ -93,7 +94,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="Avg. Contribution"
+                title="Avg. contribution"
                 value={<SmartCurrency amount={avgDonation} currency="NGN" visible={true} size="default" />}
                 subValue="Per gift"
                 icon={BarChart3}
@@ -102,7 +103,7 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
 
             <StatCard
-                title="Risk Indicators"
+                title="Risk indicators"
                 value={summary.riskCount}
                 subValue={summary.riskLabel}
                 icon={risk.icon}
@@ -113,12 +114,14 @@ export function AnalyticsStatGrid({ summary, avgDonation = '0' }: AnalyticsStatG
             />
         </div>
     );
-}
+});
 
 function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, onClick }: any) {
     return (
         <motion.div
-            whileHover={onClick ? { y: -1 } : {}}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={onClick ? { y: -2, transition: { duration: 0.2 } } : {}}
             whileTap={onClick ? { scale: 0.98 } : {}}
             className="h-full"
         >

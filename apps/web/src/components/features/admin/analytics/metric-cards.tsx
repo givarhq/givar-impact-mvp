@@ -1,14 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import { Zap, Users2, TrendingUp } from 'lucide-react';
 import { SmartCurrency } from '../../../ui/smart-currency';
 import { cn } from '../../../../lib/utils/cn';
 
-export function SectorAllocationCard({ data }: { data: Array<{ category: string; count: number; volume: string }> }) {
-    const sortedData = [...data].sort((a, b) => Number(b.volume) - Number(a.volume)).slice(0, 5);
-    const maxVolume = Math.max(...data.map(d => Number(d.volume)), 1);
+export const SectorAllocationCard = memo(function SectorAllocationCard({ data }: { data: Array<{ category: string; count: number; volume: string }> }) {
+    const sortedData = React.useMemo(() =>
+        [...data].sort((a, b) => Number(b.volume) - Number(a.volume)).slice(0, 5),
+        [data]);
+
+    const maxVolume = React.useMemo(() =>
+        Math.max(...data.map(d => Number(d.volume)), 1),
+        [data]);
 
     return (
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
@@ -54,17 +59,17 @@ export function SectorAllocationCard({ data }: { data: Array<{ category: string;
                 </div>
             </CardContent>
             <div className="p-4 bg-muted/20 border-t border-border/40 mt-auto">
-                <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground  tracking-wider px-2">
+                <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground tracking-wider px-2">
                     <span>Ranked by liquidity</span>
                     <TrendingUp className="h-3 w-3" />
                 </div>
             </div>
         </Card>
     );
-}
+});
 
-export function EntityCompositionCard({ data }: { data: Array<{ type: string; count: number }> }) {
-    const total = data.reduce((acc, curr) => acc + curr.count, 0);
+export const EntityCompositionCard = memo(function EntityCompositionCard({ data }: { data: Array<{ type: string; count: number }> }) {
+    const total = React.useMemo(() => data.reduce((acc, curr) => acc + curr.count, 0), [data]);
     const organizers = data.find(d => d.type === 'ORGANIZER')?.count || 0;
     const individuals = data.find(d => d.type === 'INDIVIDUAL')?.count || 0;
 
@@ -81,7 +86,7 @@ export function EntityCompositionCard({ data }: { data: Array<{ type: string; co
                 <div className="space-y-6">
                     <div className="text-center space-y-1">
                         <p className="text-3xl font-bold text-foreground tracking-tight leading-none">{total}</p>
-                        <p className="text-[11px] font-bold text-muted-foreground  tracking-widest">Registered entities</p>
+                        <p className="text-[11px] font-bold text-muted-foreground tracking-widest">Registered entities</p>
                     </div>
 
                     <div className="space-y-4">
@@ -117,4 +122,4 @@ export function EntityCompositionCard({ data }: { data: Array<{ type: string; co
             </CardContent>
         </Card>
     );
-}
+});

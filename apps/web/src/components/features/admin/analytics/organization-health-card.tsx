@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../../ui/card';
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from 'recharts';
 import { Building2 } from 'lucide-react';
@@ -15,7 +15,8 @@ interface OrganizationHealthProps {
     };
 }
 
-export function OrganizationHealthCard({ metrics }: OrganizationHealthProps) {
+// Logic: Use React.memo to ensure complex radial calculations only happen when metrics update.
+export const OrganizationHealthCard = memo(function OrganizationHealthCard({ metrics }: OrganizationHealthProps) {
     const verifiedPercent = metrics.totalEntities > 0 ? (metrics.verifiedCount / metrics.totalEntities) * 100 : 0;
     const activePercent = metrics.totalEntities > 0 ? (metrics.activeOrganizers / metrics.totalEntities) * 100 : 0;
 
@@ -44,13 +45,19 @@ export function OrganizationHealthCard({ metrics }: OrganizationHealthProps) {
                             endAngle={-270}
                         >
                             <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-                            <RadialBar background dataKey="value" cornerRadius={10} />
+                            <RadialBar
+                                background
+                                dataKey="value"
+                                cornerRadius={10}
+                                animationDuration={1000}
+                                animationEasing="ease-out"
+                            />
                         </RadialBarChart>
                     </ResponsiveContainer>
 
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
                         <p className="text-2xl font-bold text-foreground leading-none">{metrics.totalEntities}</p>
-                        <p className="text-[11px] font-bold text-muted-foreground  tracking-widest mt-1">Entities</p>
+                        <p className="text-[11px] font-bold text-muted-foreground tracking-widest mt-1">Entities</p>
                     </div>
                 </div>
 
@@ -80,4 +87,4 @@ export function OrganizationHealthCard({ metrics }: OrganizationHealthProps) {
             </CardContent>
         </Card>
     );
-}
+});
