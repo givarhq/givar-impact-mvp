@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, TrendingUp, Zap } from 'lucide-react';
 import { TabsList, TabsTrigger } from '../../ui/tabs';
@@ -12,17 +12,15 @@ interface DashboardHeroProps {
     donationCount: number;
 }
 
-export function DashboardHero({ firstName, totalImpact, donationCount }: DashboardHeroProps) {
+export const DashboardHero = memo(function DashboardHero({ firstName, totalImpact, donationCount }: DashboardHeroProps) {
     return (
         <div className="flex flex-col gap-4 md:gap-6 py-2">
-
             <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
                 className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
             >
-                {/* User Stats Summary */}
                 <div className="space-y-0.5">
                     <p className="text-sm font-medium text-muted-foreground">
                         Welcome, <span className="text-foreground font-bold">{firstName}</span>
@@ -35,11 +33,10 @@ export function DashboardHero({ firstName, totalImpact, donationCount }: Dashboa
                             </span>
                         </span>
                         <div className="h-1 w-1 rounded-full bg-border" />
-                        <span>{donationCount} donations</span>
+                        <span>{donationCount} Donations</span>
                     </div>
                 </div>
 
-                {/* Unified Tab Switcher Design */}
                 <div className="w-full md:w-auto">
                     <TabsList className="h-11 bg-muted/50 p-1 rounded-3xl w-full md:w-[280px] border border-border/40 shadow-inner">
                         <TabsTrigger
@@ -61,4 +58,4 @@ export function DashboardHero({ firstName, totalImpact, donationCount }: Dashboa
             </motion.div>
         </div>
     );
-}
+});
