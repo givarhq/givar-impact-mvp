@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
-import { motion, AnimatePresence } from 'framer-motion';
 import { memo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PortfolioItem {
     id: string;
@@ -26,7 +27,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
     if (items.length === 0) return null;
 
     return (
-        <Card className="flex flex-col overflow-hidden border-border/40 rounded-3xl bg-card shadow-sm h-full">
+        <Card className="flex flex-col overflow-hidden border-border/40 rounded-3xl bg-card shadow-sm">
             <CardHeader className="p-5 pb-2">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
@@ -42,7 +43,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                 </div>
             </CardHeader>
 
-            <div className="p-2 space-y-1 overflow-y-auto no-scrollbar max-h-[300px]">
+            <div className="p-2 space-y-1">
                 <AnimatePresence>
                     {items.map((item, index) => {
                         const raised = Number(item.project.raisedAmount);
@@ -66,7 +67,13 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                                             {/* Compact Thumbnail */}
                                             <div className="h-11 w-11 rounded-3xl bg-muted overflow-hidden shrink-0 border border-border/50 relative">
                                                 {item.project.imageUrl ? (
-                                                    <img src={item.project.imageUrl} alt="" className="h-full w-full object-cover" />
+                                                    <Image
+                                                        src={item.project.imageUrl}
+                                                        alt=""
+                                                        fill
+                                                        sizes="44px"
+                                                        className="object-cover"
+                                                    />
                                                 ) : (
                                                     <div className="h-full w-full bg-primary/5" />
                                                 )}

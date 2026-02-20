@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
     Camera,
@@ -17,7 +18,7 @@ import { ImageUploader } from './media-uploader';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface EvidenceSubmissionProps {
     projectId: string;
@@ -41,7 +42,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
 
     const handleUploadComplete = (data: { key: string; previewUrl: string }) => {
         if (media.length >= 6) {
-            toast.error('Maximum 6 Images Allowed');
+            toast.error('Maximum 6 images allowed');
             return;
         }
         setMedia((prev) => [...prev, data]);
@@ -53,17 +54,17 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
 
     const handleSubmit = async () => {
         if (description.trim().length < 20) {
-            toast.error('Detailed Narrative Required (Min 20 Chars)');
+            toast.error('Detailed narrative required (min 20 chars)');
             return;
         }
 
         if (media.length === 0) {
-            toast.error('Visual Proof Is Required');
+            toast.error('Visual proof is required');
             return;
         }
 
         setIsSubmitting(true);
-        const toastId = toast.loading('Syncing With Ledger...');
+        const toastId = toast.loading('Syncing with ledger...');
 
         try {
             await ApiService.projects.submitProof(projectId, {
@@ -72,13 +73,13 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                 imageKeys: media.map((m) => m.key),
             });
 
-            toast.success('Evidence Submitted', { id: toastId });
+            toast.success('Evidence submitted', { id: toastId });
             setDescription('');
             setMedia([]);
             if (onSuccess) onSuccess();
             router.refresh();
         } catch (error: any) {
-            toast.error('Submission Failed', { id: toastId });
+            toast.error('Submission failed', { id: toastId });
         } finally {
             setIsSubmitting(false);
         }
@@ -91,7 +92,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                     <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-bold text-foreground">Submit Progress Proof</h3>
+                    <h3 className="text-sm font-bold text-foreground">Submit progress proof</h3>
                     <p className="text-xs text-muted-foreground font-medium truncate tracking-wider">
                         Phase: <span className="text-primary font-bold">{milestone.phase}</span>
                     </p>
@@ -103,7 +104,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                 <div className="space-y-2 min-w-0">
                     <div className="flex justify-between items-center px-1">
                         <label className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5">
-                            <FileText className="h-3.5 w-3.5" /> Narrative Update
+                            <FileText className="h-3.5 w-3.5" /> Narrative update
                         </label>
                         <span className={cn(
                             "text-[11px] font-bold px-2 py-0.5 rounded-3xl transition-colors",
@@ -114,7 +115,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                     </div>
                     <textarea
                         className="w-full rounded-3xl border border-border/60 bg-muted/20 p-4 text-xs font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary/40 outline-none min-h-[110px] transition-all placeholder:text-muted-foreground/40 resize-none font-sans"
-                        placeholder={`Describe Work Completed For "${milestone.phase}"...`}
+                        placeholder={`Describe work completed for "${milestone.phase}"...`}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         disabled={isSubmitting}
@@ -124,7 +125,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                 {/* Visual Media Section */}
                 <div className="space-y-3 min-w-0">
                     <label className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5 px-1">
-                        <Camera className="h-3.5 w-3.5" /> Visual Evidence
+                        <Camera className="h-3.5 w-3.5" /> Visual evidence
                     </label>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 min-w-0">
@@ -138,16 +139,18 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                                     exit={{ opacity: 0, scale: 0.8 }}
                                     className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 group bg-muted shadow-sm"
                                 >
-                                    <img
+                                    <Image
                                         src={item.previewUrl}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        fill
+                                        sizes="(max-width: 768px) 50vw, 16vw"
+                                        className="object-cover transition-transform duration-500 group-hover:scale-110"
                                         alt="Proof"
                                     />
                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
                                         <Button
                                             variant="destructive"
                                             size="icon"
-                                            className="h-8 w-8 rounded-2xl active:scale-95 transition-transform"
+                                            className="h-8 w-8 rounded-2xl active:scale-95"
                                             onClick={() => removeMedia(item.key)}
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
@@ -160,7 +163,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                         {media.length < 6 && (
                             <div className="h-full min-h-[100px]">
                                 <ImageUploader
-                                    label="Add Photo"
+                                    label="Add photo"
                                     onUploadComplete={handleUploadComplete}
                                     useCase="public"
                                 />
@@ -187,12 +190,12 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                Syncing With Ledger
+                                Syncing with ledger
                             </>
                         ) : (
                             <>
                                 <Send className="h-3.5 w-3.5" />
-                                Post Impact Update
+                                Post impact update
                             </>
                         )}
                     </Button>
