@@ -100,7 +100,7 @@ export const VerificationReviewRow = memo(function VerificationReviewRow({ profi
                     <X className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="rounded-[32px] p-8 border-none shadow-2xl bg-card">
+                <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
                   <DialogHeader>
                     <DialogTitle className="text-lg font-bold">Decline Verification</DialogTitle>
                   </DialogHeader>

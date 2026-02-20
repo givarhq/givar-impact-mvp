@@ -76,7 +76,7 @@ export const HeroSection = memo(function HeroSection({ stats }: { stats: Platfor
                 >
                     {/* Desktop Snippet */}
                     <div className="hidden lg:block w-full max-w-5xl">
-                        <div className="relative rounded-[32px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
+                        <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
                             <Image
                                 src="/Givar-desk.png"
                                 alt="Givar Dashboard Desktop"

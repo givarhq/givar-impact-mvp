@@ -18,7 +18,7 @@ export default function ProjectConsoleLoading() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
                 {/* Action & Roadmap Skeleton */}
                 <div className="lg:col-span-8 space-y-6 md:space-y-8">
-                    <div className="rounded-[32px] border border-border/40 bg-card overflow-hidden shadow-sm">
+                    <div className="rounded-3xl border border-border/40 bg-card overflow-hidden shadow-sm">
                         <div className="p-6 md:p-8 border-b border-border/40 bg-muted/10 flex justify-between items-center">
                             <Skeleton className="h-6 w-48" />
                             <Skeleton className="h-6 w-32 rounded-3xl" />
@@ -33,13 +33,13 @@ export default function ProjectConsoleLoading() {
                             <Skeleton className="h-12 w-full rounded-3xl" />
                         </div>
                     </div>
-                    <Skeleton className="h-[400px] w-full rounded-[32px]" />
+                    <Skeleton className="h-[400px] w-full rounded-3xl" />
                 </div>
 
                 {/* Financials Skeleton */}
                 <div className="lg:col-span-4 space-y-6">
-                    <Skeleton className="h-32 w-full rounded-[32px]" />
-                    <div className="rounded-[32px] border border-border/40 bg-card overflow-hidden shadow-sm">
+                    <Skeleton className="h-32 w-full rounded-3xl" />
+                    <div className="rounded-3xl border border-border/40 bg-card overflow-hidden shadow-sm">
                         <div className="p-4 bg-muted/30 border-b border-border/40">
                             <Skeleton className="h-4 w-36" />
                         </div>

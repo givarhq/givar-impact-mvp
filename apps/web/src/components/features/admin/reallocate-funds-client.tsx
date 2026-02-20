@@ -153,7 +153,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     {selectedSplits.length === 0 ? (
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                            className="py-12 text-center space-y-3 border-2 border-dashed border-border/40 rounded-[32px] bg-muted/10"
+                            className="py-12 text-center space-y-3 border-2 border-dashed border-border/40 rounded-3xl bg-muted/10"
                         >
                             <div className="h-12 w-12 bg-background rounded-2xl bg-card flex items-center justify-center mx-auto shadow-sm border border-border/50">
                                 <Plus className="h-5 w-5 text-muted-foreground/40" />
@@ -262,7 +262,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                             </p>
                         </div>
                     </div>
-                    <div className="bg-primary/5 border border-primary/20 rounded-[32px] p-6 flex items-center gap-8 shadow-sm w-full md:w-auto relative overflow-hidden">
+                    <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 flex items-center gap-8 shadow-sm w-full md:w-auto relative overflow-hidden">
                         <div className="space-y-1 relative z-10">
                             <p className="text-[10px] font-black text-primary tracking-widest ">Transaction Value</p>
                             <SmartCurrency amount={transaction.amount} currency={transaction.currency} visible={true} size="large" className="text-foreground font-black" />

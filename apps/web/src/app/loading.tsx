@@ -19,7 +19,7 @@ export default function RootLandingLoading() {
 
                 {/* Dashboard Snippet Placeholder */}
                 <div className="mt-16 md:mt-24 w-full max-w-5xl">
-                    <Skeleton className="aspect-video w-full rounded-[32px] bg-white/5 border border-white/10" />
+                    <Skeleton className="aspect-video w-full rounded-3xl bg-white/5 border border-white/10" />
                 </div>
 
                 {/* Floating Stat Card Placeholder */}

@@ -13,7 +13,7 @@ export default function StartProposalLoading() {
             </div>
 
             {/* Main Setup Card Skeleton */}
-            <div className="rounded-[32px] border border-border/40 bg-card overflow-hidden shadow-sm">
+            <div className="rounded-3xl border border-border/40 bg-card overflow-hidden shadow-sm">
                 <div className="p-6 md:p-8 border-b border-border/40 bg-muted/10 space-y-2">
                     <Skeleton className="h-6 w-40" />
                     <Skeleton className="h-3 w-56" />

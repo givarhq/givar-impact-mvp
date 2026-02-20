@@ -101,7 +101,7 @@ export default function FundWalletPage() {
         </Button>
       </div>
 
-      <Card className="border-border/40 shadow-xl overflow-hidden rounded-[32px] relative min-w-0 bg-card">
+      <Card className="border-border/40 shadow-xl overflow-hidden rounded-3xl relative min-w-0 bg-card">
         {isUnverified && (
           <div className="absolute inset-0 z-20 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
             <div className="h-16 w-16 rounded-[24px] bg-rose-500/10 text-rose-600 flex items-center justify-center mb-6 shadow-xl border border-rose-500/20">

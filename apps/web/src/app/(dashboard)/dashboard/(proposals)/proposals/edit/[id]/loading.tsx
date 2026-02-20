@@ -4,7 +4,7 @@ export default function ProposalEditStepLoading() {
     return (
         <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {/* Container Card Skeleton - Used by Hook, Media, Plan, and Trust steps */}
-            <div className="border border-border/40 bg-card rounded-[32px] overflow-hidden shadow-sm">
+            <div className="border border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm">
                 <div className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
                     <div className="flex items-center gap-2 mb-2">
                         <Skeleton className="h-4 w-4 rounded-full" />
@@ -39,7 +39,7 @@ export default function ProposalEditStepLoading() {
             </div>
 
             {/* Discussion Thread Placeholder */}
-            <div className="rounded-[32px] border border-border/40 h-48 bg-muted/5 border-dashed flex items-center justify-center">
+            <div className="rounded-3xl border border-border/40 h-48 bg-muted/5 border-dashed flex items-center justify-center">
                 <Skeleton className="h-4 w-48 rounded-3xl" />
             </div>
         </div>

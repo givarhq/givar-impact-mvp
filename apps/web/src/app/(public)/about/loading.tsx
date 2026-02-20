@@ -31,7 +31,7 @@ export default function AboutLoading() {
                 <Skeleton className="h-8 w-40 mx-auto rounded-3xl" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[1, 2, 3].map((i) => (
-                        <Skeleton key={i} className="h-64 w-full rounded-[32px]" />
+                        <Skeleton key={i} className="h-64 w-full rounded-3xl" />
                     ))}
                 </div>
             </section>

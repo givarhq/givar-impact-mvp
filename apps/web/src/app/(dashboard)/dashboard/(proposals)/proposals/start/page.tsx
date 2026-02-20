@@ -177,7 +177,7 @@ export default function StartProposalPage() {
     // --- CASE 3: Authorized (Organizer & Verified) ---
     return (
         <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2">
-            <Card className="border-border/40 bg-card rounded-[32px] shadow-sm overflow-hidden min-w-0">
+            <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                 <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
                     <CardTitle className="text-lg md:text-xl font-bold">Start a new cause</CardTitle>
                     <CardDescription className="text-xs font-medium">

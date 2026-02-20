@@ -128,7 +128,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
                                 )}
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="rounded-[32px] p-0 overflow-hidden border-none shadow-2xl max-w-md h-[550px] flex flex-col z-[110] bg-card">
+                        <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl max-w-md h-[550px] flex flex-col z-[110] bg-card">
                             <DialogHeader className="p-6 pb-4 border-b border-border/40 shrink-0">
                                 <DialogTitle className="text-lg font-bold">Select Impact Sectors</DialogTitle>
                             </DialogHeader>

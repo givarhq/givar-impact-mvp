@@ -96,7 +96,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
               >
                 <Card
                   className={cn(
-                    "rounded-[32px] border-border/40 shadow-sm transition-all duration-300 relative overflow-hidden group",
+                    "rounded-3xl border-border/40 shadow-sm transition-all duration-300 relative overflow-hidden group",
                     status === 'COMPLETED' ? "bg-emerald-500/[0.02] border-emerald-500/20" : "bg-card"
                   )}
                 >
@@ -185,7 +185,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
         </AnimatePresence>
 
         <Dialog open={!!activeMilestone} onOpenChange={(open) => !open && setActiveMilestone(null)}>
-          <DialogContent className="rounded-[32px] border-none shadow-2xl p-8 bg-card max-w-md">
+          <DialogContent className="rounded-3xl border-none shadow-2xl p-8 bg-card max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold tracking-tight text-foreground flex items-center gap-3">
                 <CheckCircle2 className="h-6 w-6 text-primary" /> Confirm Phase Completion

@@ -63,7 +63,7 @@ export function AboutContent() {
                         { icon: Globe, title: "Transparent", desc: "Verifiable proof of work for every project. See photos, receipts, and location data for the work you fund." },
                         { icon: Users, title: "Impact-Driven", desc: "We focus on real-world outcomes. From clean water to education, we support causes that move the needle." }
                     ].map((v, i) => (
-                        <div key={i} className="p-8 rounded-[32px] border border-border/50 bg-card hover:border-primary/30 transition-all duration-300">
+                        <div key={i} className="p-8 rounded-3xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300">
                             <v.icon className="h-8 w-8 text-primary mb-6" />
                             <h4 className="text-lg font-bold mb-2">{v.title}</h4>
                             <p className="text-sm text-muted-foreground leading-relaxed">{v.desc}</p>

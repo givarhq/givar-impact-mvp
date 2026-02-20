@@ -58,7 +58,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
             transition={{ duration: 0.2 }}
             className="space-y-6 md:space-y-8 max-w-4xl"
         >
-            <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden border-2">
+            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden border-2">
                 <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">

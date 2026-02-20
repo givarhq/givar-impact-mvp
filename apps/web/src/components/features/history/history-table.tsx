@@ -214,7 +214,7 @@ export const HistoryTable = memo(function HistoryTable({
             </table>
 
             <Dialog open={!!selectedTx} onOpenChange={(open) => !open && setSelectedTx(null)}>
-                <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md rounded-[32px] p-0 overflow-hidden border-none shadow-2xl bg-card">
+                <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card">
                     {selectedTx && (
                         <div className="p-5 md:p-6 space-y-4 overflow-hidden">
                             <DialogHeader className="space-y-2">
@@ -225,7 +225,7 @@ export const HistoryTable = memo(function HistoryTable({
                                 <DialogTitle className="text-xl font-bold tracking-tight leading-none text-foreground">Transaction Details</DialogTitle>
                             </DialogHeader>
 
-                            <div className="text-center p-6 rounded-[32px] bg-muted/30 border border-border/40 relative overflow-hidden shadow-inner">
+                            <div className="text-center p-6 rounded-3xl bg-muted/30 border border-border/40 relative overflow-hidden shadow-inner">
                                 <div className="absolute top-0 right-0 p-4 opacity-5">
                                     <FileText className="h-12 w-12" />
                                 </div>

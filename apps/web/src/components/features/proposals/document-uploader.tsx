@@ -52,7 +52,7 @@ export const DocumentUploader = memo(function DocumentUploader() {
         <label
           htmlFor="doc-upload"
           className={cn(
-            "flex flex-col items-center justify-center p-8 rounded-[32px] bg-muted/10 border-2 border-dashed border-border/60 hover:bg-muted/20 hover:border-primary/30 transition-all cursor-pointer group text-center shadow-sm",
+            "flex flex-col items-center justify-center p-8 rounded-3xl bg-muted/10 border-2 border-dashed border-border/60 hover:bg-muted/20 hover:border-primary/30 transition-all cursor-pointer group text-center shadow-sm",
             isLoading && "opacity-50 cursor-wait pointer-events-none"
           )}
         >

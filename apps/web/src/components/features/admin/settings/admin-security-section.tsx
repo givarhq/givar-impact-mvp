@@ -61,7 +61,7 @@ export const AdminSecuritySection = memo(function AdminSecuritySection({ user }:
     return (
         <div className="max-w-4xl space-y-6">
             <Card className={cn(
-                "rounded-[32px] border transition-all duration-300 shadow-sm",
+                "rounded-3xl border transition-all duration-300 shadow-sm",
                 isEnabled ? "border-emerald-500/20 bg-emerald-500/[0.01]" : "border-border/40 bg-card"
             )}>
                 <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -115,7 +115,7 @@ export const AdminSecuritySection = memo(function AdminSecuritySection({ user }:
 
                         {setupData && (
                             <div className="space-y-8">
-                                <div className="flex justify-center p-6 bg-white rounded-[32px] border border-muted shadow-inner group">
+                                <div className="flex justify-center p-6 bg-white rounded-3xl border border-muted shadow-inner group">
                                     <motion.img
                                         initial={{ scale: 0.9, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}

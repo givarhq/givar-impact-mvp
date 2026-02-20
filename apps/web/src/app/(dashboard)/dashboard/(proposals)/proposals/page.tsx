@@ -45,7 +45,7 @@ export default async function MyProposalsPage() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 md:py-32 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/5 min-w-0">
+        <div className="flex flex-col items-center justify-center py-20 md:py-32 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5 min-w-0">
           <div className="h-16 w-16 bg-muted/50 rounded-[24px] flex items-center justify-center mb-6 border border-border/40 shadow-inner">
             <Rocket className="h-7 w-7 text-muted-foreground/40" />
           </div>

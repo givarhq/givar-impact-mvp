@@ -158,7 +158,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8, scale: 0.99 }}
                         transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute top-full mt-2 left-0 right-0 bg-card border border-border/60 rounded-[32px] shadow-2xl overflow-hidden max-h-[60vh] flex flex-col origin-top min-w-0"
+                        className="absolute top-full mt-2 left-0 right-0 bg-card border border-border/60 rounded-3xl shadow-2xl overflow-hidden max-h-[60vh] flex flex-col origin-top min-w-0"
                     >
                         {hasResults && (
                             <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border/40 bg-muted/60 shrink-0 px-4">

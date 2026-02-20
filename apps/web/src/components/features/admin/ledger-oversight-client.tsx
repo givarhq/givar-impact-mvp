@@ -177,7 +177,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                 className="py-24 text-center border-2 border-dashed border-border/60 rounded-3xl bg-card/30 backdrop-blur-sm"
                             >
-                                <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-[32px] flex items-center justify-center mx-auto mb-6 ring-8 ring-emerald-500/[0.03] shadow-inner">
+                                <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center mx-auto mb-6 ring-8 ring-emerald-500/[0.03] shadow-inner">
                                     <CheckCircle2 className="h-10 w-10" />
                                 </div>
                                 <h3 className="text-xl font-black text-foreground tracking-tight">Ledger Balanced</h3>
@@ -195,7 +195,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
                                     >
-                                        <Card className="rounded-[32px] border-border/50 bg-card overflow-hidden group hover:shadow-lg transition-all duration-300">
+                                        <Card className="rounded-3xl border-border/50 bg-card overflow-hidden group hover:shadow-lg transition-all duration-300">
                                             <div className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                                                 <div className="flex items-center gap-5 flex-1 min-w-0">
                                                     <div className="h-14 w-14 rounded-[22px] bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 border border-amber-500/20 shadow-inner group-hover:scale-105 transition-transform">
@@ -248,7 +248,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 </TabsContent>
 
                 <TabsContent value="reconcile" className="space-y-6 pt-2 outline-none">
-                    <Card className="rounded-[32px] p-2 border-border/50 bg-card shadow-sm overflow-hidden">
+                    <Card className="rounded-3xl p-2 border-border/50 bg-card shadow-sm overflow-hidden">
                         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
                             <div className="relative flex-1 group">
                                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -271,7 +271,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
 
                     {reconcileResult && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-bottom-4 duration-500">
-                            <Card className="rounded-[32px] bg-card border-border/50 overflow-hidden shadow-sm hover:border-blue-500/30 transition-all group">
+                            <Card className="rounded-3xl bg-card border-border/50 overflow-hidden shadow-sm hover:border-blue-500/30 transition-all group">
                                 <CardHeader className="bg-blue-500/[0.02] border-b border-border/50 p-6">
                                     <CardTitle className="text-[10px] font-black tracking-[0.3em] flex items-center gap-2 text-blue-500 ">
                                         <Globe className="h-3.5 w-3.5" /> External Gateway
@@ -296,7 +296,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                 </CardContent>
                             </Card>
 
-                            <Card className="rounded-[32px] bg-card border-border/50 overflow-hidden shadow-sm relative hover:border-primary/30 transition-all group">
+                            <Card className="rounded-3xl bg-card border-border/50 overflow-hidden shadow-sm relative hover:border-primary/30 transition-all group">
                                 <CardHeader className="bg-primary/[0.02] border-b border-border/50 p-6">
                                     <CardTitle className="text-[10px] font-black tracking-[0.3em] flex items-center gap-2 text-primary ">
                                         <Database className="h-3.5 w-3.5" /> Internal Ledger
@@ -327,7 +327,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center py-4 text-emerald-500 animate-in zoom-in duration-500">
-                                            <div className="h-20 w-20 bg-emerald-500/10 rounded-[32px] flex items-center justify-center mb-4 ring-4 ring-emerald-500/[0.03] shadow-inner">
+                                            <div className="h-20 w-20 bg-emerald-500/10 rounded-3xl flex items-center justify-center mb-4 ring-4 ring-emerald-500/[0.03] shadow-inner">
                                                 <CheckCircle2 className="h-10 w-10" />
                                             </div>
                                             <span className="text-[11px] font-black tracking-[0.3em] ">Consensus Achieved</span>
@@ -341,7 +341,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
 
                 <TabsContent value="maintenance" className="space-y-6 outline-none pt-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="rounded-[32px] border-border/40 bg-card overflow-hidden group hover:border-primary/20 transition-all">
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden group hover:border-primary/20 transition-all">
                             <CardHeader className="bg-primary/[0.02] border-b border-border/40 p-6">
                                 <CardTitle className="text-sm font-bold flex items-center gap-3 text-foreground">
                                     <Sparkles className="h-5 w-5 text-primary" /> Dust Sweep Protocol

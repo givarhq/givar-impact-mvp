@@ -7,7 +7,7 @@ export default function FundWalletLoading() {
             <Skeleton className="h-9 w-32 rounded-3xl" />
 
             {/* Main Funding Card Skeleton */}
-            <div className="border border-border/40 shadow-xl overflow-hidden rounded-[32px] bg-card">
+            <div className="border border-border/40 shadow-xl overflow-hidden rounded-3xl bg-card">
                 <div className="pt-8 px-6 md:px-8 border-b border-border/40 bg-muted/10 pb-6 space-y-3">
                     <div className="flex items-center gap-4">
                         <Skeleton className="h-11 w-11 rounded-2xl shrink-0" />

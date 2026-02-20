@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
   if (isSubmitted) {
     return (
       <div className="w-full min-w-0 space-y-8 text-center animate-in fade-in zoom-in-95 duration-500">
-        <div className="mx-auto h-20 w-20 bg-primary/10 text-primary rounded-[32px] flex items-center justify-center border border-primary/20 shadow-inner">
+        <div className="mx-auto h-20 w-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center border border-primary/20 shadow-inner">
           <CheckCircle2 className="h-10 w-10" />
         </div>
         <div className="space-y-2 min-w-0">

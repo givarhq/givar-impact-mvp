@@ -94,7 +94,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
 
             {isLoading && !report ? (
                 <div className="flex flex-col items-center justify-center py-32 space-y-4 animate-in fade-in duration-500">
-                    <div className="h-16 w-16 bg-primary/10 rounded-[32px] flex items-center justify-center mb-2">
+                    <div className="h-16 w-16 bg-primary/10 rounded-3xl flex items-center justify-center mb-2">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                     <p className="text-sm font-bold text-muted-foreground tracking-tight">

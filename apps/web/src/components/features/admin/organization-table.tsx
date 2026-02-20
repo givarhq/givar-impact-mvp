@@ -29,7 +29,7 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
 
     if (profiles.length === 0) {
         return (
-            <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/5">
+            <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
                 <h3 className="text-sm font-bold text-foreground opacity-60 tracking-widest ">No Organizations Found</h3>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">Try adjusting your active filters.</p>
@@ -97,7 +97,7 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
             </div>
 
             {/* DESKTOP: Forensic Directory Table */}
-            <Card className="hidden md:block rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden">
+            <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">

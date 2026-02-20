@@ -41,7 +41,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
 
     return (
         <Card className={cn(
-            "relative rounded-[32px] border-border/40 bg-card overflow-hidden shadow-sm transition-all duration-500",
+            "relative rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm transition-all duration-500",
             isProcessed && "opacity-60 grayscale-[0.5]"
         )}>
             <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
@@ -102,7 +102,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                     </div>
 
                     <div className="lg:col-span-2">
-                        <div className="bg-muted/30 border border-border/40 p-7 rounded-[32px] space-y-6 relative overflow-hidden shadow-inner">
+                        <div className="bg-muted/30 border border-border/40 p-7 rounded-3xl space-y-6 relative overflow-hidden shadow-inner">
                             <AnimatePresence>
                                 {isProcessed && (
                                     <motion.div
@@ -141,7 +141,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                                             Decline Proof
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="rounded-[32px] p-8 shadow-2xl border-none bg-card">
+                                    <DialogContent className="rounded-3xl p-8 shadow-2xl border-none bg-card">
                                         <DialogHeader>
                                             <DialogTitle className="text-xl font-bold tracking-tight">Reject Evidence</DialogTitle>
                                         </DialogHeader>

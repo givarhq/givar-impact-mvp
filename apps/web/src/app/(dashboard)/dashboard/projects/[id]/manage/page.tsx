@@ -109,7 +109,7 @@ export default async function ProjectManagePage({
                     )}
 
                     {!isFullyCompleted && currentMilestone ? (
-                        <Card className="rounded-[32px] border-border/40 bg-card overflow-hidden shadow-sm min-w-0">
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm min-w-0">
                             <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10">
                                 <div className="flex items-center justify-between gap-4 min-w-0">
                                     <CardTitle className="text-base font-bold flex items-center gap-3 truncate">
@@ -130,7 +130,7 @@ export default async function ProjectManagePage({
                             </CardContent>
                         </Card>
                     ) : isFullyCompleted ? (
-                        <Card className="rounded-[32px] border-emerald-500/20 bg-emerald-500/[0.02] p-10 text-center border-2 border-dashed min-w-0">
+                        <Card className="rounded-3xl border-emerald-500/20 bg-emerald-500/[0.02] p-10 text-center border-2 border-dashed min-w-0">
                             <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                                 <CheckCircle2 className="h-10 w-10" />
                             </div>
@@ -142,7 +142,7 @@ export default async function ProjectManagePage({
                     ) : null}
 
                     {/* Implementation Roadmap */}
-                    <Card className="rounded-[32px] border-border/40 bg-card/30 shadow-sm overflow-hidden min-w-0">
+                    <Card className="rounded-3xl border-border/40 bg-card/30 shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 pb-2">
                             <CardTitle className="text-sm font-bold flex items-center gap-2 tracking-widest text-muted-foreground">
                                 <TrendingUp className="h-4 w-4 text-primary" />
@@ -199,7 +199,7 @@ export default async function ProjectManagePage({
 
                 {/* RIGHT: Financials */}
                 <div className="lg:col-span-4 space-y-6 min-w-0">
-                    <Card className="rounded-[32px] border-border/40 bg-primary/5 p-6 border-2 border-dashed min-w-0">
+                    <Card className="rounded-3xl border-border/40 bg-primary/5 p-6 border-2 border-dashed min-w-0">
                         <div className="flex items-start gap-4">
                             <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-inner">
                                 <ShieldCheck className="h-6 w-6" />
@@ -213,7 +213,7 @@ export default async function ProjectManagePage({
                         </div>
                     </Card>
 
-                    <Card className="rounded-[32px] border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
+                    <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <CardTitle className="text-[11px] font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
                                 <Database className="h-3.5 w-3.5" /> Disbursement history
@@ -298,7 +298,7 @@ export default async function ProjectManagePage({
                         </CardContent>
                     </Card>
 
-                    <div className="p-5 rounded-[32px] bg-muted/10 border border-dashed border-border/60 flex items-start gap-3 min-w-0">
+                    <div className="p-5 rounded-3xl bg-muted/10 border border-dashed border-border/60 flex items-start gap-3 min-w-0">
                         <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                             Vendor coordination issues? Contact Givar Compliance nodes directly via the support terminal.

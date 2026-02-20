@@ -73,7 +73,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
             className="space-y-6 md:space-y-8 pb-20 w-full overflow-hidden"
         >
             {/* Hero Action Bar */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-6 rounded-[32px] border border-border/40 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-5 relative z-10 w-full lg:w-auto min-w-0">
                     <div className="h-16 w-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
                         <Building2 className="h-8 w-8" />
@@ -108,7 +108,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                 Audit Actions
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="rounded-[32px] p-8 border-none shadow-2xl bg-card">
+                        <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
                             <DialogHeader><DialogTitle className="text-lg font-bold">Administrative Decision</DialogTitle></DialogHeader>
                             <div className="space-y-6 pt-4">
                                 <div className="space-y-2">
@@ -201,7 +201,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
 
                     <div className="grid gap-3 min-w-0">
                         {profile.user.projects?.length === 0 ? (
-                            <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/10">
+                            <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/10">
                                 <FileText className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-3" />
                                 <p className="text-xs font-bold text-muted-foreground tracking-widest ">No Historic Projects Recorded</p>
                             </div>

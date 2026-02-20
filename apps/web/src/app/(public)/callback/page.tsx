@@ -64,7 +64,7 @@ function CallbackContent() {
       {status === 'success' && (
         <div className="space-y-8 py-4 animate-in zoom-in-95 duration-500 text-center min-w-0">
           <div className="relative inline-block">
-            <div className="h-24 w-24 bg-primary/10 text-primary rounded-[32px] flex items-center justify-center mx-auto ring-8 ring-primary/5 border border-primary/20 shadow-inner">
+            <div className="h-24 w-24 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto ring-8 ring-primary/5 border border-primary/20 shadow-inner">
               <CheckCircle2 className="h-12 w-12" />
             </div>
             <div className="absolute -top-1 -right-1 h-9 w-9 bg-background rounded-2xl border border-border/40 flex items-center justify-center shadow-md">
@@ -91,7 +91,7 @@ function CallbackContent() {
 
       {status === 'error' && (
         <div className="space-y-8 py-4 animate-in zoom-in-95 duration-500 text-center min-w-0">
-          <div className="h-20 w-20 bg-destructive/10 text-destructive rounded-[32px] flex items-center justify-center mx-auto border border-destructive/20 shadow-inner">
+          <div className="h-20 w-20 bg-destructive/10 text-destructive rounded-3xl flex items-center justify-center mx-auto border border-destructive/20 shadow-inner">
             <XCircle className="h-10 w-10" />
           </div>
           <div className="space-y-2 min-w-0">

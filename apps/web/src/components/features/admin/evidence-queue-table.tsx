@@ -62,7 +62,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
 
     if (proofs.length === 0) {
         return (
-            <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/5">
+            <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Camera className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
                 <h3 className="text-sm font-bold text-foreground opacity-60 tracking-widest ">No Pending Evidence</h3>
             </div>
@@ -149,7 +149,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
             </div>
 
             {/* DESKTOP: Forensic Queue Table */}
-            <Card className="hidden md:block rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden">
+            <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-sm text-left border-collapse">
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
@@ -240,7 +240,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                         </div>
                                                                     </div>
                                                                     <div className="lg:col-span-4">
-                                                                        <div className="p-8 rounded-[32px] border border-border/40 bg-card shadow-xl space-y-6 relative overflow-hidden">
+                                                                        <div className="p-8 rounded-3xl border border-border/40 bg-card shadow-xl space-y-6 relative overflow-hidden">
                                                                             {!isHandled ? (
                                                                                 <div className="space-y-6 relative z-10">
                                                                                     <div className="text-center space-y-1">
@@ -256,7 +256,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                                             <DialogTrigger asChild>
                                                                                                 <Button variant="outline" disabled={isBusy} className="w-full h-12 rounded-3xl border-destructive/20 text-destructive hover:bg-destructive/5 font-bold text-xs transition-all active:scale-[0.98]">Decline Proof</Button>
                                                                                             </DialogTrigger>
-                                                                                            <DialogContent className="rounded-[32px] p-8 border-none shadow-2xl bg-card">
+                                                                                            <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
                                                                                                 <DialogHeader>
                                                                                                     <DialogTitle className="text-xl font-bold tracking-tight">Decline Evidence</DialogTitle>
                                                                                                 </DialogHeader>

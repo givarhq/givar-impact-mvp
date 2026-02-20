@@ -59,7 +59,7 @@ export const CauseLeaderboard = memo(function CauseLeaderboard({ performance }: 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Top Performing Causes */}
-            <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[480px]">
+            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[480px]">
                 <CardHeader className="bg-primary/[0.02] border-b border-border/40 p-5">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-primary" /> Most Performing Causes
@@ -88,7 +88,7 @@ export const CauseLeaderboard = memo(function CauseLeaderboard({ performance }: 
             </Card>
 
             {/* Least Performing Causes */}
-            <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[480px]">
+            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[480px]">
                 <CardHeader className="bg-rose-500/[0.02] border-b border-border/40 p-5">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
                         <AlertCircle className="h-4 w-4 text-rose-500" /> Least Performing Causes
@@ -117,7 +117,7 @@ export const CauseLeaderboard = memo(function CauseLeaderboard({ performance }: 
             </Card>
 
             {/* Sector Performance */}
-            <Card className="rounded-[32px] border-border/40 bg-card shadow-sm overflow-hidden lg:col-span-2">
+            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden lg:col-span-2">
                 <CardHeader className="bg-muted/30 border-b border-border/40 p-5">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
                         <PieChart className="h-4 w-4 text-blue-500" /> Sector Funding Velocity

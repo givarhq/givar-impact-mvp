@@ -62,7 +62,7 @@ export default function VerifyEmailPage({
 
       {status === 'success' && (
         <div className="py-4 space-y-8 min-w-0">
-          <div className="mx-auto h-20 w-20 bg-primary/10 text-primary rounded-[32px] flex items-center justify-center border border-primary/20 shadow-inner">
+          <div className="mx-auto h-20 w-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center border border-primary/20 shadow-inner">
             <CheckCircle2 className="h-10 w-10" />
           </div>
           <div className="space-y-2 min-w-0">
@@ -79,7 +79,7 @@ export default function VerifyEmailPage({
 
       {status === 'error' && (
         <div className="py-4 space-y-8 min-w-0">
-          <div className="mx-auto h-20 w-20 bg-destructive/10 text-destructive rounded-[32px] flex items-center justify-center border border-destructive/20 shadow-inner">
+          <div className="mx-auto h-20 w-20 bg-destructive/10 text-destructive rounded-3xl flex items-center justify-center border border-destructive/20 shadow-inner">
             <XCircle className="h-10 w-10" />
           </div>
           <div className="space-y-2 min-w-0">

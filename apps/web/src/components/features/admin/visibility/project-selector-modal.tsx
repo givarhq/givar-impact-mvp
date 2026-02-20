@@ -73,7 +73,7 @@ export const ProjectSelectorModal = memo(function ProjectSelectorModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-[95vw] sm:max-w-lg w-full rounded-[32px] p-0 overflow-hidden border-none shadow-2xl bg-card min-w-0">
+            <DialogContent className="max-w-[95vw] sm:max-w-lg w-full rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card min-w-0">
                 <DialogHeader className="px-6 pt-6 pb-2 border-none min-w-0">
                     <div className="flex items-center gap-3 min-w-0">
                         <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-inner">
@@ -137,7 +137,7 @@ export const ProjectSelectorModal = memo(function ProjectSelectorModal({
                                 ))}
                             </AnimatePresence>
                         ) : (
-                            <div className="py-16 text-center border-2 border-dashed border-border/40 rounded-[32px] bg-muted/5 min-w-0">
+                            <div className="py-16 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5 min-w-0">
                                 <Inbox className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
                                 <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">
                                     {query.length < 1 ? 'Start Typing To Explore' : 'No Matching Causes Identified'}

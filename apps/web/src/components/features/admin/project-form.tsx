@@ -189,7 +189,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="bg-amber-50 border border-amber-200 p-6 rounded-[32px] space-y-5 shadow-sm overflow-hidden"
+            className="bg-amber-50 border border-amber-200 p-6 rounded-3xl space-y-5 shadow-sm overflow-hidden"
           >
             <div className="flex items-start gap-4">
               <div className="h-12 w-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
@@ -347,7 +347,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <div className="lg:col-span-5 space-y-3">
             <p className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Primary Showcase Image</p>
             {coverImage ? (
-              <div className="relative aspect-video rounded-[32px] overflow-hidden border border-border/40 shadow-md group/img bg-muted">
+              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-md group/img bg-muted">
                 <img src={coverImage} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" alt="Project Hero" />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">

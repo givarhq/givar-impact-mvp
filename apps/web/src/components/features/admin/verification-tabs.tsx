@@ -76,7 +76,7 @@ export const VerificationTabs = memo(function VerificationTabs({ orgs, evidence 
                         </TabsContent>
 
                         <TabsContent value="orgs" className="mt-0 outline-none">
-                            <Card className="rounded-[32px] border border-border/40 bg-card shadow-sm overflow-hidden">
+                            <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
                                 <div className="overflow-x-auto no-scrollbar">
                                     <table className="w-full text-sm text-left border-collapse">
                                         <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">

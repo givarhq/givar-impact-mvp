@@ -145,7 +145,7 @@ function LoginComponent() {
           </div>
         ) : (
           <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
-            <div className="flex flex-col items-center justify-center p-6 bg-primary/5 rounded-[32px] border border-primary/20 shadow-inner min-w-0">
+            <div className="flex flex-col items-center justify-center p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner min-w-0">
               <div className="h-14 w-14 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-4 border border-primary/10">
                 <ShieldCheck className="h-7 w-7" />
               </div>

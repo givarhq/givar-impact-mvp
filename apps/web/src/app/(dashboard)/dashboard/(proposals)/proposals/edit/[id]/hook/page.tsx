@@ -50,7 +50,7 @@ export default function HookPage() {
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
-      <Card className="border-border/40 bg-card rounded-[32px] overflow-hidden shadow-sm min-w-0">
+      <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
             <Sparkles className="h-4 w-4 shrink-0" />
