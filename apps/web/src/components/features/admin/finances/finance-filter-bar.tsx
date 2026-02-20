@@ -183,7 +183,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
                         className="flex-1 lg:flex-none h-11 px-8 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 gap-2 border-0 transition-all active:scale-95"
                     >
                         {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                        Generate CSV Report
+                        Generate CSV
                     </Button>
                 </div>
             </div>
