@@ -32,7 +32,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/impact': 'Explore Causes',
   '/dashboard/history': 'Transaction History',
   '/dashboard/subscriptions': 'Recurring Donations',
-  '/dashboard/settings': 'Account Settings',
+  '/dashboard/settings': 'Settings',
 };
 
 export function Header({ user }: { user: any }) {
