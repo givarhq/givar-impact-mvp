@@ -84,7 +84,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
                             >
-                                <Card className="rounded-[28px] border-border/40 shadow-sm overflow-hidden bg-card">
+                                <Card className="rounded-3xl border-border/40 shadow-sm overflow-hidden bg-card">
                                     <CardContent className="p-0">
                                         <button
                                             onClick={() => toggleExpand(proof.id)}

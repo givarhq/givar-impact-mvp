@@ -15,7 +15,7 @@ export default function FinancesLoading() {
             {/* KPI Card Grid Skeleton */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} className="h-32 w-full rounded-[28px]" />
+                    <Skeleton key={i} className="h-32 w-full rounded-3xl" />
                 ))}
             </div>
 

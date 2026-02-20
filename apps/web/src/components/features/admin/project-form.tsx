@@ -2,6 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -261,7 +262,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 <SelectTrigger className={cn(getInputClass(), "bg-muted/10")}>
                   <SelectValue placeholder="Select A Sector" />
                 </SelectTrigger>
-                <SelectContent className="rounded-[28px] shadow-2xl border-border/40 p-2">
+                <SelectContent className="rounded-3xl shadow-2xl border-border/40 p-2">
                   {categories.map((c: any) => (
                     <SelectItem key={c.id} value={c.id} className="rounded-2xl text-xs font-bold py-3">
                       {c.name}
@@ -276,7 +277,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Short Elevator Pitch</label>
           <Textarea
-            className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-[28px]")}
+            className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")}
             {...register('shortDesc')}
             readOnly={readOnly}
             placeholder="A brief summary for donor lists..."
@@ -348,7 +349,13 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             <p className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Primary Showcase Image</p>
             {coverImage ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-md group/img bg-muted">
-                <img src={coverImage} className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" alt="Project Hero" />
+                <Image
+                  src={coverImage}
+                  alt="Project Hero"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  className="object-cover transition-transform duration-700 group-hover/img:scale-105"
+                />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
                     <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => setValue('coverImage', '')}>

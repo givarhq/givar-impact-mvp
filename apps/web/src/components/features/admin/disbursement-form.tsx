@@ -14,6 +14,7 @@ import {
     ArrowDown,
     Calendar
 } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Badge } from '../../ui/badge';
@@ -190,7 +191,13 @@ export const DisbursementForm = memo(function DisbursementForm({
                                 <label className="text-xs font-bold text-muted-foreground ml-1">Compliance Receipt</label>
                                 {receipt ? (
                                     <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-sm bg-muted">
-                                        <img src={receipt.previewUrl} className="object-cover w-full h-full transition-transform group-hover:scale-105 duration-700" alt="Receipt" />
+                                        <Image
+                                            src={receipt.previewUrl}
+                                            alt="Receipt"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 400px"
+                                            className="object-cover transition-transform group-hover:scale-105 duration-700"
+                                        />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
                                             <Button variant="destructive" size="sm" className="rounded-3xl font-bold h-8 text-[11px] px-4 shadow-lg active:scale-95" onClick={() => setReceipt(null)}>
                                                 <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove Asset

@@ -29,7 +29,7 @@ const KPICard = memo(function KPICard({ title, value, subValue, icon: Icon, colo
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay }}
         >
-            <Card className="rounded-[28px] border-border/40 bg-card shadow-sm overflow-hidden p-5 flex flex-col justify-between group hover:shadow-md transition-all h-full">
+            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden p-5 flex flex-col justify-between group hover:shadow-md transition-all h-full">
                 <div className="flex items-center gap-3 mb-4">
                     <div className={cn(
                         "h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner shrink-0 transition-transform group-hover:scale-110",

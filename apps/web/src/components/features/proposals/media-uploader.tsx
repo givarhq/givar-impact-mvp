@@ -236,7 +236,7 @@ export const ImageUploader = memo(function ImageUploader({
 
     return (
         <label className={cn(
-            "flex flex-col items-center justify-center w-full h-full min-h-[120px] border-2 border-dashed border-border/60 rounded-[28px] cursor-pointer bg-muted/10 hover:bg-muted/20 hover:border-primary/30 transition-all shadow-sm group",
+            "flex flex-col items-center justify-center w-full h-full min-h-[120px] border-2 border-dashed border-border/60 rounded-3xl cursor-pointer bg-muted/10 hover:bg-muted/20 hover:border-primary/30 transition-all shadow-sm group",
             isLoading && "opacity-50 cursor-wait pointer-events-none"
         )}>
             <div className="flex flex-col items-center justify-center px-4 text-center">

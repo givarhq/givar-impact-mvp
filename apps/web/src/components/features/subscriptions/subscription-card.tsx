@@ -2,6 +2,7 @@
 
 import { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Calendar, Repeat, PauseCircle, PlayCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '../../../lib/utils/cn';
@@ -49,12 +50,14 @@ export const SubscriptionCard = memo(function SubscriptionCard({ subscription }:
                 <CardContent className="p-4 md:p-5 flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6 min-w-0">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                         <Link href={`/dashboard/impact/${subscription.project.slug}`} className="shrink-0">
-                            <div className="h-14 w-14 rounded-2xl bg-muted overflow-hidden relative border border-border/40 shadow-inner group-hover:scale-105 transition-transform">
+                            <div className="relative h-14 w-14 rounded-2xl bg-muted overflow-hidden border border-border/40 shadow-inner group-hover:scale-105 transition-transform">
                                 {subscription.project.imageUrl ? (
-                                    <img
+                                    <Image
                                         src={subscription.project.imageUrl}
                                         alt={subscription.project.title}
-                                        className="h-full w-full object-cover"
+                                        fill
+                                        sizes="56px"
+                                        className="object-cover"
                                     />
                                 ) : (
                                     <div className="h-full w-full bg-primary/5 flex items-center justify-center text-primary/30">

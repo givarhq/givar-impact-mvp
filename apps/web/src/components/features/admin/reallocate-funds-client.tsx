@@ -11,6 +11,7 @@ import {
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Card, CardContent } from '../../ui/card';
+import Image from 'next/image';
 import { Badge } from '../../ui/badge';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { ConfirmModal } from '../../ui/confirm-modal';
@@ -208,7 +209,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         <SmartCurrency amount={transaction.amount} currency={transaction.currency} visible={true} size="small" />
                     </span>
                 </div>
-                <div className="p-5 rounded-[28px] bg-zinc-950 text-white shadow-xl relative overflow-hidden">
+                <div className="p-5 rounded-3xl bg-zinc-950 text-white shadow-xl relative overflow-hidden">
                     <div className="relative z-10 flex justify-between items-center">
                         <span className="text-[10px] font-black tracking-[0.2em] text-zinc-500 ">Ledger Balance</span>
                         <span className={cn(
@@ -358,16 +359,22 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                         <Card
                                             onClick={() => toggleProject(p)}
                                             className={cn(
-                                                "rounded-[28px] border cursor-pointer transition-all duration-300 group relative overflow-hidden h-full",
+                                                "rounded-3xl border cursor-pointer transition-all duration-300 group relative overflow-hidden h-full",
                                                 isSelected
                                                     ? "border-primary bg-primary/[0.03] shadow-lg ring-2 ring-primary/10"
                                                     : "border-border/40 bg-card hover:border-primary/30 hover:shadow-md"
                                             )}
                                         >
                                             <div className="p-5 flex items-center gap-5">
-                                                <div className="h-14 w-14 rounded-2xl overflow-hidden shrink-0 border border-border/40 bg-muted shadow-inner">
+                                                <div className="relative h-14 w-14 rounded-2xl overflow-hidden shrink-0 border border-border/40 bg-muted shadow-inner">
                                                     {p.imageUrl ? (
-                                                        <img src={p.imageUrl} className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-500" alt="" />
+                                                        <Image
+                                                            src={p.imageUrl}
+                                                            alt=""
+                                                            fill
+                                                            sizes="56px"
+                                                            className="object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-500"
+                                                        />
                                                     ) : (
                                                         <div className="flex items-center justify-center h-full w-full bg-secondary/50">
                                                             <Briefcase className="h-6 w-6 text-muted-foreground/40" />

@@ -56,7 +56,7 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
                             >
                                 <Card
                                     onClick={() => router.push(`/admin/organizations/${profile.id}`)}
-                                    className="rounded-[28px] border-border/40 shadow-sm active:scale-[0.98] transition-all cursor-pointer overflow-hidden bg-card"
+                                    className="rounded-3xl border-border/40 shadow-sm active:scale-[0.98] transition-all cursor-pointer overflow-hidden bg-card"
                                 >
                                     <CardContent className="p-4 space-y-4">
                                         <div className="flex justify-between items-start gap-4">

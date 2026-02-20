@@ -15,6 +15,7 @@ import {
     DialogHeader,
     DialogTitle
 } from '../../../ui/dialog';
+import Image from 'next/image';
 import { Input } from '../../../ui/input';
 import { Button } from '../../../ui/button';
 import { ApiService } from '../../../../services/api';
@@ -114,9 +115,15 @@ export const ProjectSelectorModal = memo(function ProjectSelectorModal({
                                         className="w-full flex items-center justify-between p-3.5 rounded-[22px] border border-transparent hover:border-primary/20 hover:bg-primary/[0.02] transition-all group text-left min-w-0 active:scale-[0.98]"
                                     >
                                         <div className="flex items-center gap-4 min-w-0 flex-1">
-                                            <div className="h-14 w-14 rounded-xl bg-muted overflow-hidden border border-border/40 shrink-0 shadow-sm">
+                                            <div className="relative h-14 w-14 rounded-xl bg-muted overflow-hidden border border-border/40 shrink-0 shadow-sm">
                                                 {p.imageUrl && (
-                                                    <img src={p.imageUrl} alt="" className="h-full w-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500" />
+                                                    <Image
+                                                        src={p.imageUrl}
+                                                        alt=""
+                                                        fill
+                                                        sizes="56px"
+                                                        className="object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500"
+                                                    />
                                                 )}
                                             </div>
                                             <div className="min-w-0 flex-1 space-y-1">

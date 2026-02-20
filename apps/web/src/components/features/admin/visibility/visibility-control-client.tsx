@@ -354,7 +354,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
 
 function WeightSlider({ label, desc, value, onChange }: { label: string, desc: string, value: number, onChange: (v: string) => void }) {
     return (
-        <div className="space-y-4 p-6 rounded-[28px] bg-muted/20 border border-border/40 group hover:border-primary/40 transition-all shadow-inner">
+        <div className="space-y-4 p-6 rounded-3xl bg-muted/20 border border-border/40 group hover:border-primary/40 transition-all shadow-inner">
             <div className="flex justify-between items-start gap-4">
                 <div className="space-y-1">
                     <label className="text-xs font-bold text-foreground group-hover:text-primary transition-colors block leading-none">

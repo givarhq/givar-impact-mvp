@@ -111,7 +111,7 @@ export function NotificationBell() {
 
             <DropdownMenuContent align="end" className={cn(
                 "p-0 overflow-hidden border-border/40 shadow-2xl bg-card/95 backdrop-blur-xl",
-                "w-80 rounded-[28px]",
+                "w-80 rounded-3xl",
                 "sm:w-80",
                 "max-sm:w-screen max-sm:rounded-none"
             )}>

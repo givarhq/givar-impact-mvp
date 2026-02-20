@@ -95,7 +95,7 @@ export default async function ProjectManagePage({
                     <div id="submit-evidence" className="scroll-mt-32" />
 
                     {isRejected && (
-                        <div className="p-5 rounded-[28px] bg-destructive/5 border border-destructive/10 flex items-start gap-4 animate-in slide-in-from-top-2">
+                        <div className="p-5 rounded-3xl bg-destructive/5 border border-destructive/10 flex items-start gap-4 animate-in slide-in-from-top-2">
                             <div className="h-10 w-10 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive shrink-0 shadow-inner">
                                 <FileX className="h-5 w-5" />
                             </div>

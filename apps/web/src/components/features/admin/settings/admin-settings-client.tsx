@@ -153,7 +153,7 @@ export const AdminSettingsClient = memo(function AdminSettingsClient({
                                 <button
                                     key={opt.id}
                                     onClick={() => handleTabChange(opt.id)}
-                                    className="flex items-center justify-between p-5 bg-card border border-border/40 rounded-[28px] active:bg-muted transition-all group text-left shadow-sm w-full min-w-0 overflow-hidden"
+                                    className="flex items-center justify-between p-5 bg-card border border-border/40 rounded-3xl active:bg-muted transition-all group text-left shadow-sm w-full min-w-0 overflow-hidden"
                                 >
                                     <div className="flex items-center gap-4 min-w-0 flex-1">
                                         <div className={cn(

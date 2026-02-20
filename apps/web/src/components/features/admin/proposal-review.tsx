@@ -2,6 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 import {
     Check,
@@ -233,9 +234,15 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="grid grid-cols-1 md:grid-cols-2">
-                                <div className="aspect-video bg-muted relative group overflow-hidden md:border-r border-border/40">
+                                <div className="relative aspect-video bg-muted group overflow-hidden md:border-r border-border/40">
                                     {proposal.coverImage ? (
-                                        <img src={proposal.coverImage} alt="Hero" className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-700" />
+                                        <Image
+                                            src={proposal.coverImage}
+                                            alt="Hero"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 600px"
+                                            className="object-cover transition-transform group-hover:scale-105 duration-700"
+                                        />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-muted-foreground/30 text-xs font-bold tracking-widest">Pending Media</div>
                                     )}
@@ -250,8 +257,14 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             <h4 className="text-[11px] font-bold text-muted-foreground tracking-widest mb-3">Supporting Gallery</h4>
                                             <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2">
                                                 {(proposal.gallery as any[]).map((item, i) => (
-                                                    <button key={i} onClick={() => window.open(item.url, '_blank')} className="h-14 w-14 rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 hover:ring-2 ring-primary/20 transition-all shadow-sm active:scale-95">
-                                                        <img src={item.url} className="w-full h-full object-cover" alt="" />
+                                                    <button key={i} onClick={() => window.open(item.url, '_blank')} className="relative h-14 w-14 rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 hover:ring-2 ring-primary/20 transition-all shadow-sm active:scale-95">
+                                                        <Image
+                                                            src={item.url}
+                                                            alt={`Gallery ${i}`}
+                                                            fill
+                                                            sizes="56px"
+                                                            className="object-cover"
+                                                        />
                                                     </button>
                                                 ))}
                                             </div>
@@ -420,7 +433,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     </button>
                                 ))
                             ) : (
-                                <div className="text-center py-10 border-2 border-dashed border-border/40 rounded-[28px] bg-muted/5">
+                                <div className="text-center py-10 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                     <AlertCircle className="h-7 w-7 mx-auto text-destructive/40 mb-2" />
                                     <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Vault Empty</p>
                                 </div>

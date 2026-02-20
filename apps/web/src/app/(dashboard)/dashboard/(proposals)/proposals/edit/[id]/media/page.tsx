@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useProposalStore } from '../../../../../../../../stores/proposal-store';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
@@ -70,8 +71,14 @@ export default function MediaPage() {
               <label className="text-[11px] font-bold text-muted-foreground  tracking-widest">Primary hero image</label>
             </div>
             {coverImage ? (
-              <div className="relative aspect-video rounded-[28px] overflow-hidden border border-border/40 group shadow-md bg-muted">
-                <img src={coverImage} alt="Cover" className="object-cover w-full h-full transition-transform group-hover:scale-105 duration-700" />
+              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted">
+                <Image
+                  src={coverImage}
+                  alt="Cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  className="object-cover transition-transform group-hover:scale-105 duration-700"
+                />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
                   <Button
                     variant="destructive"
