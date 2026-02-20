@@ -10,29 +10,36 @@ export interface ScoredItem {
 export class DiversityEngine {
     /**
      * Re-ranks items to ensure category diversity while maintaining score integrity.
-     * Items exceeding the diversityLimit per category are pushed to the end.
+     * Logic: Instead of a hard limit that banishes items to the end of the feed,
+     * we apply a progressive decay penalty to scatter them naturally.
      */
     enforce(items: ScoredItem[], diversityLimit: number): ScoredItem[] {
         if (diversityLimit <= 0) return items;
 
-        const result: ScoredItem[] = [];
-        const overflow: ScoredItem[] = [];
         const categoryCounts = new Map<string, number>();
 
-        // Single pass selection
-        for (const item of items) {
+        const penalizedItems = items.map((item) => {
             const currentCount = categoryCounts.get(item.categoryId) || 0;
+            categoryCounts.set(item.categoryId, currentCount + 1);
 
-            if (currentCount < diversityLimit) {
-                result.push(item);
-                categoryCounts.set(item.categoryId, currentCount + 1);
-            } else {
-                // Push to overflow to be appended at the end
-                overflow.push(item);
+            if (currentCount >= diversityLimit) {
+                // Logic: Apply a 50% score penalty for each item beyond the diversity limit.
+                // This forces over-represented sectors to scatter further down the page 
+                // instead of grouping in a strict block at the bottom.
+                const overageCount = currentCount - diversityLimit + 1;
+                const penaltyMultiplier = Math.pow(0.5, overageCount);
+
+                return {
+                    ...item,
+                    score: item.score * penaltyMultiplier
+                };
             }
-        }
 
-        return [...result, ...overflow];
+            return item;
+        });
+
+        // Logic: Re-sort the array based on the new penalized scores to scatter them organically
+        return penalizedItems.sort((a, b) => b.score - a.score);
     }
 
     /**

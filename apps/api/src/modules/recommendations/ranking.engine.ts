@@ -5,9 +5,9 @@ export interface RankingCandidate {
     createdAt: Date;
     featureWeight: number;
     visibilityScore: number;
-    donationVelocity: number; // Count of donations in last 7 days
-    engagementScore: number;  // Placeholder for future metrics
-    categoryWeight: number;   // Global multiplier for the project's sector
+    donationVelocity: number;
+    engagementScore: number;
+    categoryWeight: number;
 }
 
 export interface RankingWeights {
@@ -22,11 +22,6 @@ export class RankingEngine {
     /**
      * Computes hybrid score using logarithmic recency decay and weighted velocity,
      * then applies a high-sensitivity category multiplier for sector-wide prioritization.
-     * 
-     * logic: we add a constant base (10.0) and square the category weight to ensure 
-     * that administrative sector boosts provide a significant vertical lift.
-     * 
-     * score = (baseScore + 10.0) * (categoryWeight ^ 2)
      */
     calculateScore(candidate: RankingCandidate, weights: RankingWeights): number {
         const recencyScore = this.calculateRecencyScore(candidate.createdAt);
@@ -44,14 +39,16 @@ export class RankingEngine {
             candidate.visibilityScore
         );
 
-        // Sensitivity Logic: 
-        // 1. Add +10 to the base so the multiplier has a meaningful 'sum' to act on.
-        // 2. Square the weight so that 2.0x is 4x more powerful than 1.0x, 
-        //    creating a more responsive administrative lever.
-        const sensitivityConstant = 10.0;
-        const exponentialWeight = Math.pow(candidate.categoryWeight, 2);
+        // Logic: Scattering Algorithm
+        // Apply a randomized jitter (between 0.4 and 1.0) to the sector multiplier. 
+        // This ensures that highly prioritized sectors don't clump together in a solid block, 
+        // but instead scatter frequently across the feed based on probability.
+        const jitter = 0.4 + (Math.random() * 0.6);
+        const exponentialWeight = Math.pow(candidate.categoryWeight, 1.5);
+        const dynamicMultiplier = exponentialWeight * jitter;
 
-        return (baseScore + sensitivityConstant) * exponentialWeight;
+        // Base constant ensures even 0-velocity projects can be multiplied
+        return (baseScore + 10.0) * dynamicMultiplier;
     }
 
     private calculateRecencyScore(createdAt: Date): number {
