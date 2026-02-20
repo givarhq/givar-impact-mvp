@@ -220,7 +220,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 rounded-[22px] bg-muted/20 border border-border/40 group hover:border-primary/30 transition-all shadow-sm"
                                     >
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-bold text-foreground leading-tight truncate">
+                                            <p className="text-xs font-bold text-foreground leading-tight truncate">
                                                 {cat.name}
                                             </p>
                                         </div>
