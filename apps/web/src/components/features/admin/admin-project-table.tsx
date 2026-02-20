@@ -94,15 +94,16 @@ export const AdminProjectTable = memo(function AdminProjectTable({
         return (
             <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-semibold text-foreground opacity-60 tracking-widest">No projects identified</h3>
+                <h3 className="text-sm font-semibold text-foreground opacity-60 tracking-widest">No Projects Identified</h3>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">Try adjusting your active filters.</p>
             </div>
         );
     }
 
     return (
-        <div className="w-full overflow-hidden">
-            <div className="grid gap-2 md:hidden">
+        <div className="w-full min-w-0 overflow-hidden">
+            {/* MOBILE: High-Density Card List */}
+            <div className="grid gap-2 md:hidden min-w-0">
                 <div className={cn(
                     "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
                     isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -113,7 +114,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                         checked={isAllSelected}
                         onChange={(e) => onSelectAll(e.target.checked)}
                     />
-                    <span className="text-xs font-semibold text-muted-foreground tracking-widest">Select all</span>
+                    <span className="text-xs font-semibold text-muted-foreground tracking-widest">Select All</span>
                 </div>
                 <AnimatePresence mode="popLayout">
                     {projects.map((project) => {
@@ -124,10 +125,12 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                 layout
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.2 }}
+                                className="min-w-0"
                             >
                                 <Card
                                     className={cn(
-                                        "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden md:overflow-visible",
+                                        "rounded-3xl border shadow-sm transition-all cursor-pointer overflow-hidden",
                                         "touch-pan-y select-none",
                                         isSelected ? "border-primary bg-primary/[0.02]" : "border-border/40 bg-card"
                                     )}
@@ -158,9 +161,9 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                     <p className="text-sm font-semibold text-foreground truncate leading-tight">{project.title}</p>
                                                     <div className="flex items-center gap-2 mt-1.5">
                                                         <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                            id: {project.id.split('-')[0]}
+                                                            ID: {project.id.split('-')[0]}
                                                         </span>
-                                                        <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold tracking-tight border-primary/20 bg-primary/5 text-primary">
+                                                        <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold tracking-tight border-primary/20 bg-primary/5 text-primary shadow-none">
                                                             {project.status}
                                                         </Badge>
                                                     </div>
@@ -175,7 +178,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                 <p className="text-[11px] font-semibold text-muted-foreground tracking-widest">Raised / Target</p>
                                                 <div className="flex items-center gap-1.5 flex-wrap">
                                                     <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
-                                                    <span className="text-muted-foreground/50 text-[11px]">of</span>
+                                                    <span className="text-muted-foreground/50 text-[11px]">Of</span>
                                                     <span className="text-xs font-semibold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
                                                 </div>
                                             </div>
@@ -191,9 +194,10 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                 </AnimatePresence>
             </div>
 
-            <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left border-collapse">
+            {/* DESKTOP: Forensic Table */}
+            <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden w-full">
+                <div className="overflow-x-auto no-scrollbar w-full">
+                    <table className="w-full text-sm text-left border-collapse min-w-full">
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground group">
                             <tr>
                                 <th className="px-5 py-3 w-[50px]">
@@ -209,9 +213,9 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                         />
                                     </div>
                                 </th>
-                                <SortHeader title="Cause details" column="title" />
+                                <SortHeader title="Cause Details" column="title" />
                                 <SortHeader title="Status" column="status" />
-                                <SortHeader title="Launched" column="createdAt" />
+                                <SortHeader title="Launched Date" column="createdAt" />
                                 <th className="px-5 py-3 font-semibold tracking-wider text-xs text-right">
                                     <div className="flex items-center justify-end gap-1.5">
                                         <TrendingUp className="h-3 w-3" /> Financials
@@ -252,7 +256,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[11px] font-mono bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                        id: {project.id.split('-')[0]}
+                                                        ID: {project.id.split('-')[0]}
                                                     </span>
                                                     {project.categoryName && (
                                                         <span className="text-[11px] font-semibold text-primary/70 tracking-tight">
@@ -265,7 +269,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                         <td className="px-5 py-4">
                                             <Badge
                                                 variant={project.status === 'ACTIVE' ? 'success' : 'outline'}
-                                                className="text-[11px] font-semibold px-2 py-0 rounded-3xl"
+                                                className="text-[11px] font-semibold px-2 py-0 rounded-3xl shadow-none"
                                             >
                                                 {project.status}
                                             </Badge>

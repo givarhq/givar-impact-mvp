@@ -1,8 +1,5 @@
 import { cookies } from 'next/headers';
-import Link from 'next/link';
-import { Plus } from 'lucide-react';
 import { ApiService } from '../../../../services/api';
-import { Button } from '../../../../components/ui/button';
 import { AdminProjectFilters } from '../../../../components/features/admin/admin-project-filters';
 import { ProjectsPageClient } from './projects-page-client';
 
@@ -63,21 +60,13 @@ export default async function AdminProjectsPage({
                 <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
             </div>
 
-            <div className="w-full space-y-6 min-w-0">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
-                    <ProjectsPageClient
-                        activeTab={activeTab}
-                        projectData={projectData}
-                        proposalData={proposalData}
-                        searchParams={resolvedParams}
-                    />
-
-                    <Link href="/admin/projects/new" className="shrink-0 w-full md:w-auto">
-                        <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
-                            <Plus className="mr-2 h-4 w-4" /> New Project
-                        </Button>
-                    </Link>
-                </div>
+            <div className="w-full min-w-0">
+                <ProjectsPageClient
+                    activeTab={activeTab}
+                    projectData={projectData}
+                    proposalData={proposalData}
+                    searchParams={resolvedParams}
+                />
             </div>
         </div>
     );

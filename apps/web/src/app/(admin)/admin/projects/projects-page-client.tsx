@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, memo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Plus, ClipboardList, TrendingUp, FileBox } from 'lucide-react';
 import { AdminProjectTable } from '../../../../components/features/admin/admin-project-table';
 import { AdminProposalTable } from '../../../../components/features/admin/admin-proposal-table';
 import { Pagination } from '../../../../components/features/history/pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs';
 import { BulkActionsToolbar } from '../../../../components/features/admin/bulk-actions-toolbar';
-import { TrendingUp, FileBox, ClipboardList } from 'lucide-react';
+import { Button } from '../../../../components/ui/button';
 
 interface ProjectsPageClientProps {
     activeTab: string;
@@ -47,8 +49,8 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
     const activeMeta = activeTab === 'proposals' ? proposalData.meta : projectData.meta;
 
     return (
-        <div className="w-full space-y-6">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6 min-w-0">
+        <div className="w-full min-w-0">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
                     <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 w-full md:w-auto border border-border/40 shadow-inner shrink-0 overflow-x-auto no-scrollbar justify-start">
                         <TabsTrigger value="live" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
@@ -61,6 +63,12 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
                             <ClipboardList className="h-3.5 w-3.5" /> Proposals
                         </TabsTrigger>
                     </TabsList>
+
+                    <Link href="/admin/projects/new" className="shrink-0 w-full md:w-auto">
+                        <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
+                            <Plus className="mr-2 h-4 w-4" /> New Project
+                        </Button>
+                    </Link>
                 </div>
 
                 <div className="w-full min-w-0 overflow-hidden">
