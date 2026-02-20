@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, memo } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { ArrowRight, MapPin, ShieldCheck } from 'lucide-react';
@@ -60,10 +61,13 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                     <div className="relative flex flex-col h-[160px] lg:h-full group/col">
                         <div className="absolute inset-0 overflow-hidden bg-muted">
                             {current.imageUrl && (
-                                <img
+                                <Image
                                     src={current.imageUrl}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover/col:scale-105"
-                                    alt=""
+                                    alt={current.title}
+                                    fill
+                                    sizes="(max-width: 1024px) 100vw, 50vw"
+                                    className="object-cover transition-transform duration-700 group-hover/col:scale-105"
+                                    priority
                                 />
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/20 to-transparent" />

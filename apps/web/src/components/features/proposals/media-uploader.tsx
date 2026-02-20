@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, memo } from 'react';
+import Image from 'next/image';
 import { UploadCloud, Loader2, Link as LinkIcon, X, FileText, Image as ImageIcon, Video, Trash2, Plus, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ApiService } from '../../../services/api';
@@ -131,7 +132,7 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
                                     <Button
                                         onClick={handleUrlAdd}
                                         disabled={!urlInput}
-                                        className="h-11 rounded-2xl px-6 text-xs font-bold shrink-0 shadow-sm"
+                                        className="h-11 rounded-2xl px-6 text-xs font-bold shrink-0 shadow-sm active:scale-95 transition-transform"
                                     >
                                         Add
                                     </Button>
@@ -157,9 +158,9 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
                                 readOnly ? "bg-transparent border-border/20" : "bg-card border-border/40 shadow-sm"
                             )}
                         >
-                            <div className="h-14 w-14 shrink-0 rounded-2xl overflow-hidden bg-muted flex items-center justify-center border border-border/40 shadow-inner relative">
+                            <div className="relative h-14 w-14 shrink-0 rounded-2xl overflow-hidden bg-muted flex items-center justify-center border border-border/40 shadow-inner">
                                 {item.type === 'IMAGE' ? (
-                                    <img src={item.url} alt="" className="h-full w-full object-cover" />
+                                    <Image src={item.url} alt="" fill sizes="56px" className="object-cover" />
                                 ) : item.type === 'VIDEO' ? (
                                     <div className="flex flex-col items-center gap-0.5">
                                         <Video className="h-5 w-5 text-muted-foreground" />

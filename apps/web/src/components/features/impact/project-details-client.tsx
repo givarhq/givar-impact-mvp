@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
+import Image from 'next/image';
 import {
     Share2, MapPin, Calendar, Clock,
     BadgeCheck, ShieldCheck, DollarSign, Briefcase,
@@ -85,7 +86,14 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="space-y-3">
                     <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-muted shadow-sm">
                         {project.imageUrl ? (
-                            <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                            <Image
+                                src={project.imageUrl}
+                                alt={project.title}
+                                fill
+                                sizes="(max-width: 1024px) 100vw, 66vw"
+                                className="object-cover"
+                                priority
+                            />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10">
                                 <span className="text-xs font-bold tracking-widest opacity-40 ">Pending visuals</span>
@@ -101,7 +109,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     onClick={() => window.open(item.url, '_blank')}
                                     className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 bg-muted hover:ring-2 hover:ring-primary/40 transition-all group active:scale-95"
                                 >
-                                    <img src={item.url} alt={item.caption || `Gallery ${i}`} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                    <Image
+                                        src={item.url}
+                                        alt={item.caption || `Gallery ${i}`}
+                                        fill
+                                        sizes="(max-width: 768px) 25vw, 16vw"
+                                        className="object-cover transition-transform group-hover:scale-110"
+                                    />
                                     {item.type === 'VIDEO' && (
                                         <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                                             <div className="h-6 w-6 rounded-3xl bg-white/90 flex items-center justify-center text-primary shadow-sm">
@@ -283,8 +297,14 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 )}
                                             >
                                                 {update.imageUrl && (
-                                                    <div className="w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted border border-border/10">
-                                                        <img src={update.imageUrl} className="w-full h-full object-cover" alt="" />
+                                                    <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted border border-border/10">
+                                                        <Image
+                                                            src={update.imageUrl}
+                                                            alt=""
+                                                            fill
+                                                            sizes="(max-width: 1024px) 100vw, 66vw"
+                                                            className="object-cover"
+                                                        />
                                                     </div>
                                                 )}
 
