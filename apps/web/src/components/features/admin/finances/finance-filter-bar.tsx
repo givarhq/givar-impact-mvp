@@ -90,10 +90,10 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
     const activeCategoryObjects = categories.filter(c => selectedCategories.includes(c.id));
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div className="space-y-6 min-w-0">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 min-w-0">
 
-                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-inner w-full lg:w-auto">
+                <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-[24px] border border-border/40 shadow-inner w-full lg:w-auto min-w-0">
                     <div className="flex items-center px-3 gap-2">
                         <span className="text-[10px] font-bold text-muted-foreground/60 tracking-tight">From</span>
                         <input
@@ -115,7 +115,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full lg:w-auto">
+                <div className="flex items-center gap-3 w-full lg:w-auto min-w-0">
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
                             <Button variant="outline" className="rounded-3xl h-11 px-5 font-bold text-xs gap-2 border-border/60 bg-background hover:bg-muted transition-all active:scale-95">
@@ -189,7 +189,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
             </div>
 
             {activeCategoryObjects.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-300 min-w-0">
                     <span className="text-[10px] font-bold text-muted-foreground mr-1 tracking-tight">Active Filters:</span>
                     {activeCategoryObjects.map((cat) => (
                         <Badge
