@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
+import Image from 'next/image';
 import {
     ChevronDown,
     ChevronRight,
@@ -124,8 +125,8 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2">
                                                             {proof.imageUrls?.map((url: string, i: number) => (
-                                                                <button key={i} onClick={() => window.open(url, '_blank')} className="aspect-square rounded-2xl overflow-hidden border border-border/40 bg-muted shadow-inner active:scale-95 transition-transform">
-                                                                    <img src={url} className="w-full h-full object-cover" alt="Impact Proof" />
+                                                                <button key={i} onClick={() => window.open(url, '_blank')} className="aspect-square rounded-2xl overflow-hidden border border-border/40 bg-muted shadow-inner active:scale-95 transition-transform relative">
+                                                                    <Image src={url} fill sizes="(max-width: 768px) 33vw, 20vw" className="object-cover" alt="Impact Proof" />
                                                                 </button>
                                                             ))}
                                                         </div>
@@ -229,7 +230,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                             <div className="flex flex-wrap gap-3">
                                                                                 {proof.imageUrls?.map((url: string, i: number) => (
                                                                                     <button key={i} onClick={() => window.open(url, '_blank')} className="relative h-24 w-24 rounded-[22px] overflow-hidden border border-border/40 bg-muted hover:ring-4 ring-primary/10 transition-all shadow-md group">
-                                                                                        <img src={url} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" alt="Proof" />
+                                                                                        <Image src={url} fill sizes="96px" className="object-cover transition-transform group-hover:scale-110 duration-500" alt="Proof" />
                                                                                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                                                             <ExternalLink className="h-5 w-5 text-white" />
                                                                                         </div>

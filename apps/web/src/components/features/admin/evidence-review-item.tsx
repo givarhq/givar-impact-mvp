@@ -2,6 +2,7 @@
 
 import { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Check, X, Loader2, Camera, Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
@@ -90,7 +91,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                                         onClick={() => window.open(url, '_blank')}
                                         className="relative h-20 w-20 md:h-24 md:w-24 rounded-[22px] overflow-hidden border border-border/40 bg-muted hover:ring-4 ring-primary/10 transition-all shadow-md group active:scale-95"
                                     >
-                                        <img src={url} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" alt="Proof" />
+                                        <Image src={url} fill sizes="(max-width: 768px) 80px, 96px" className="object-cover transition-transform group-hover:scale-110 duration-700" alt="Proof" />
                                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                             <ExternalLink className="h-5 w-5 text-white" />
                                         </div>
