@@ -115,7 +115,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full lg:w-auto min-w-0">
+                <div className="flex items-center gap-3 w-full lg:w-auto min-w-0 flex-nowrap">
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
                             <Button variant="outline" className="rounded-3xl h-11 px-5 font-bold text-xs gap-2 border-border/60 bg-background hover:bg-muted transition-all active:scale-95">
@@ -180,7 +180,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
                     <Button
                         onClick={handleExport}
                         disabled={isExporting}
-                        className="flex-1 lg:flex-none h-11 px-8 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 gap-2 border-0 transition-all active:scale-95"
+                        className="flex-shrink min-w-0 lg:flex-none h-11 px-4 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 gap-2 border-0 transition-all active:scale-95"
                     >
                         {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                         Generate CSV
