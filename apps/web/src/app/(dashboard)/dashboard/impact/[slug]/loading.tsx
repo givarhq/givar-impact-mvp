@@ -2,12 +2,12 @@ import { Skeleton } from '../../../../../components/ui/skeleton';
 
 export default function ProjectDetailsLoading() {
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500">
             {/* Breadcrumb Skeleton */}
             <Skeleton className="h-8 w-32 rounded-3xl" />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-20">
-                <div className="lg:col-span-2 space-y-6 md:space-y-8">
+                <div className="lg:col-span-2 space-y-4 md:space-y-6">
                     {/* Header Metadata Skeleton */}
                     <div className="space-y-3">
                         <div className="flex gap-2">

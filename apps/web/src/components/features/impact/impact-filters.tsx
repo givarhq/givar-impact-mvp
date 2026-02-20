@@ -49,7 +49,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
   };
 
   return (
-    <div className="space-y-6 md:space-y-8 w-full min-w-0">
+    <div className="space-y-4 md:space-y-6 w-full min-w-0">
       {/* Header Row */}
       <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
         <div className="flex items-center gap-6 flex-1 min-w-0">

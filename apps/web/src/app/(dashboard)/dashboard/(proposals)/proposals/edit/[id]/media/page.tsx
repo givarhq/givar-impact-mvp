@@ -59,7 +59,7 @@ export default function MediaPage() {
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Project media</CardTitle>
           <CardDescription className="text-xs font-medium">
-            High-quality visuals build trust and help donors connect with your cause mission.
+            High-quality visuals build trust & help donors connect with your cause mission.
           </CardDescription>
         </CardHeader>
 

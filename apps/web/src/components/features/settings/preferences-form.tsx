@@ -158,7 +158,7 @@ export const PreferencesForm = memo(function PreferencesForm({ user }: { user: a
                         />
                         <PreferenceToggle
                             title="Impact Milestones"
-                            description="Updates Regarding Project Goals, Amendments, And Verified Proof-Of-Work."
+                            description="Updates Regarding Project Goals, Amendments, & Verified Proof-Of-Work."
                             enabled={prefs.milestoneUpdates}
                             onToggle={() => togglePref('milestoneUpdates')}
                             isUpdating={updatingKey === 'milestoneUpdates'}
@@ -172,7 +172,7 @@ export const PreferencesForm = memo(function PreferencesForm({ user }: { user: a
                         />
                         <PreferenceToggle
                             title="Ecosystem Insights"
-                            description="Summaries Of Trending Causes And High-Priority Sector Impacts."
+                            description="Summaries Of Trending Causes & High-Priority Sector Impacts."
                             enabled={prefs.marketing}
                             onToggle={() => togglePref('marketing')}
                             isUpdating={updatingKey === 'marketing'}

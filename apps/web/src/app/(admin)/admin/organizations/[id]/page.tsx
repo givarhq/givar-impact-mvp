@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export const metadata = {
     title: 'Organization detail',
-    description: 'Forensic view of legal entity registration and impact history.',
+    description: 'Forensic view of legal entity registration & impact history.',
 };
 
 export default async function AdminOrganizationDetailPage({
@@ -32,7 +32,7 @@ export default async function AdminOrganizationDetailPage({
         }
 
         return (
-            <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+            <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500">
                 <div className="flex flex-col gap-4 px-1">
                     <Link href="/admin/organizations" className="w-fit">
                         <Button
@@ -44,10 +44,6 @@ export default async function AdminOrganizationDetailPage({
                             Back to directory
                         </Button>
                     </Link>
-
-                    <div className="md:hidden">
-                        <h1 className="text-xl font-bold tracking-tight text-foreground">Organization detail</h1>
-                    </div>
                 </div>
 
                 <div className="w-full min-w-0">

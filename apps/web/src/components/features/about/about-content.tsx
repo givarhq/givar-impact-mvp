@@ -18,7 +18,7 @@ export function AboutContent() {
                     <span className="text-primary italic">human again.</span>
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto font-medium">
-                    Givar is building a new way for people and organisations to give — one that’s simple, transparent, and genuinely impact-driven.
+                    Givar is building a new way for people & organisations to give — one that’s simple, transparent, & genuinely impact-driven.
                 </p>
             </section>
 
@@ -28,13 +28,13 @@ export function AboutContent() {
                     <h2 className="text-2xl font-bold tracking-tight text-foreground">The Givar Impact Philosophy</h2>
                     <div className="space-y-4 text-muted-foreground leading-relaxed">
                         <p>
-                            Traditional giving has become a black box. You send money, but the connection to the result often fades into annual reports and opaque spreadsheets.
+                            Traditional giving has become a black box. You send money, but the connection to the result often fades into annual reports & opaque spreadsheets.
                         </p>
                         <p className="text-foreground font-semibold">
-                            We’re starting with Givar Impact: a collective fund that allows people to pool their giving and support real-world causes together.
+                            We’re starting with Givar Impact: a collective fund that allows people to pool their giving & support real-world causes together.
                         </p>
                         <p>
-                            This MVP is about proving that giving can feel human again — not transactional, and never opaque. By verifying every milestone on our ledger, we ensure that your generosity translates directly into action.
+                            This MVP is about proving that giving can feel human again — not transactional, & never opaque. By verifying every milestone on our ledger, we ensure that your generosity translates directly into action.
                         </p>
                     </div>
                 </div>
@@ -59,8 +59,8 @@ export function AboutContent() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                        { icon: Zap, title: "Simple", desc: "One-click donations, automated recurring support, and an intuitive dashboard to manage your giving portfolio." },
-                        { icon: Globe, title: "Transparent", desc: "Verifiable proof of work for every project. See photos, receipts, and location data for the work you fund." },
+                        { icon: Zap, title: "Simple", desc: "One-click donations, automated recurring support, & an intuitive dashboard to manage your giving portfolio." },
+                        { icon: Globe, title: "Transparent", desc: "Verifiable proof of work for every project. See photos, receipts, & location data for the work you fund." },
                         { icon: Users, title: "Impact-Driven", desc: "We focus on real-world outcomes. From clean water to education, we support causes that move the needle." }
                     ].map((v, i) => (
                         <div key={i} className="p-8 rounded-3xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300">
@@ -78,7 +78,7 @@ export function AboutContent() {
                 <div className="relative z-10 space-y-4">
                     <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Ready to humanize your giving?</h2>
                     <p className="text-zinc-400 max-w-lg mx-auto">
-                        Join the Givar network and start supporting verified causes with 100% transparency.
+                        Join the Givar network & start supporting verified causes with 100% transparency.
                     </p>
                     <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Link href="/signup">

@@ -100,7 +100,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
     };
 
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto pb-20">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                 {/* Main Settings Column */}

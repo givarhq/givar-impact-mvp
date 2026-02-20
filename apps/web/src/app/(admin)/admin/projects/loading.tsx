@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../components/ui/skeleton';
 
 export default function AdminProjectsLoading() {
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Filter Bar Skeleton */}
             <div className="flex items-center justify-between gap-3 h-10 w-full">
                 <div className="flex items-center gap-4 flex-1">
@@ -19,7 +19,7 @@ export default function AdminProjectsLoading() {
             </div>
 
             <div className="space-y-6 w-full">
-                {/* Tab and Action Bar Skeleton */}
+                {/* Tab & Action Bar Skeleton */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <Skeleton className="h-12 w-full md:w-[380px]" />
                     <Skeleton className="h-12 w-full md:w-[160px]" />

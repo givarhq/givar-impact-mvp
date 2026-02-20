@@ -2,8 +2,8 @@ import { Skeleton } from '../../../../components/ui/skeleton';
 
 export default function HistoryLoading() {
     return (
-        <div className="space-y-6 md:space-y-8 w-full min-w-0 animate-in fade-in duration-500">
-            {/* Search and Filters Bar Skeleton */}
+        <div className="space-y-4 md:space-y-6 w-full min-w-0 animate-in fade-in duration-500">
+            {/* Search & Filters Bar Skeleton */}
             <div className="flex items-center justify-between gap-4 h-11 w-full">
                 <div className="flex items-center gap-6 flex-1">
                     <Skeleton className="md:hidden h-7 w-24 shrink-0" />

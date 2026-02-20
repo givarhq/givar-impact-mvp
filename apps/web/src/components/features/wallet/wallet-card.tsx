@@ -13,7 +13,7 @@ interface WalletCardProps {
 }
 
 export const WalletCard = memo(function WalletCard({ balance, currency }: WalletCardProps) {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
 
   return (
     <Card className="relative h-full overflow-hidden bg-card border-border/40 rounded-3xl p-5 flex flex-col justify-between shadow-sm group">
@@ -54,7 +54,7 @@ export const WalletCard = memo(function WalletCard({ balance, currency }: Wallet
       <div className="relative z-10 flex items-center gap-2 mt-auto">
         <Link href="/dashboard/wallet/fund" className="flex-1">
           <Button className="w-full h-10 rounded-3xl bg-primary hover:bg-primary/90 text-white font-bold text-xs border-0 shadow-sm transition-all active:scale-95">
-            <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Funds
+            <Plus className="mr-1.5 h-3.5 w-3.5" /> Add funds
           </Button>
         </Link>
         <Button variant="outline" className="flex-1 h-10 rounded-3xl border-border bg-background text-muted-foreground hover:text-foreground font-bold text-xs transition-all active:scale-95">

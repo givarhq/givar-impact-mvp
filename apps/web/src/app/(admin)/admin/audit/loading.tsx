@@ -2,8 +2,8 @@ import { Skeleton } from '../../../../components/ui/skeleton';
 
 export default function AuditLoading() {
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
-            {/* Search and Filters Skeleton */}
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
+            {/* Search & Filters Skeleton */}
             <div className="flex items-center justify-between gap-3 h-10 w-full">
                 <Skeleton className="hidden md:block h-10 max-w-md flex-1" />
                 <div className="flex items-center gap-2">

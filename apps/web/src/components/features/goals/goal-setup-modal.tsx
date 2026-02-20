@@ -96,7 +96,7 @@ export const GoalSetupModal = memo(function GoalSetupModal({ isOpen, onClose, go
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-bold text-muted-foreground tracking-wider ml-1">Target Amount (Ngn)</label>
+          <label className="text-xs font-bold text-muted-foreground tracking-wider ml-1">Target Amount (NGN)</label>
           <div className="relative group">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm transition-colors group-focus-within:text-primary">₦</span>
             <Input

@@ -10,7 +10,7 @@ import { SectorAllocationCard, EntityCompositionCard } from './metric-cards';
 import { ChartSkeleton } from './chart-skeleton';
 
 // Logic: Dynamically import heavy chart components to split the JS bundle.
-// This allows the "Platform Intelligence" and "Stat Grid" to be interactive instantly
+// This allows the "Platform Intelligence" & "Stat Grid" to be interactive instantly
 // while the data-heavy visualizations hydrate in the background.
 const FinancialTrendChart = dynamic(
     () => import('./financial-trend-chart').then((mod) => mod.FinancialTrendChart),
@@ -30,7 +30,7 @@ export function AnalyticsOverviewClient({ report }: AnalyticsOverviewClientProps
     if (!report) return null;
 
     return (
-        <div className="space-y-6 md:space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="space-y-4 md:space-y-6 pb-20 animate-in fade-in duration-500">
             {/* High-priority immediate metrics */}
             <AnalyticsStatGrid
                 summary={report.summary}
@@ -42,8 +42,8 @@ export function AnalyticsOverviewClient({ report }: AnalyticsOverviewClientProps
                 <div className="lg:col-span-8">
                     <FinancialTrendChart
                         data={report.financials.recentTrends}
-                        title="Liquidity velocity"
-                        subtitle="Volume vs frequency (30 day trend)"
+                        title="Liquidity Velocity"
+                        subtitle="Volume vs Frequency (30 day trend)"
                     />
                 </div>
                 <div className="lg:col-span-4">

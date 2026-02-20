@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../../../components/ui/skeleton';
 
 export default function ReallocateLoading() {
     return (
-        <div className="max-w-[1600px] mx-auto space-y-6 md:space-y-8 pb-32 md:pb-20 animate-in fade-in duration-500">
+        <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 pb-32 md:pb-20 animate-in fade-in duration-500">
             {/* Header Context Skeleton */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div className="space-y-3">

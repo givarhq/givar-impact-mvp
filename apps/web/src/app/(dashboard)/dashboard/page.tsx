@@ -59,7 +59,7 @@ export default async function DashboardPage({
           donationCount={history?.length || 0}
         />
 
-        <TabsContent value="discovery" className="space-y-6 md:space-y-8 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <TabsContent value="discovery" className="space-y-4 md:space-y-6 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
           {/* Main Hero discovery */}
           <FeaturedCarousel projects={featuredProjects} />
 

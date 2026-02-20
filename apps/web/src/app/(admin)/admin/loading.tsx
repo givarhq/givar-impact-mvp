@@ -2,7 +2,7 @@ import { Skeleton } from '../../../components/ui/skeleton';
 
 export default function AdminLoading() {
     return (
-        <div className="space-y-6 md:space-y-8 pb-20 animate-in fade-in duration-500">
+        <div className="space-y-4 md:space-y-6 pb-20 animate-in fade-in duration-500">
             {/* Header Stat Grid Skeleton */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {[1, 2, 3, 4].map((i) => (

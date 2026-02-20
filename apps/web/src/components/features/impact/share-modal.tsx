@@ -33,7 +33,7 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
     ? `${window.location.origin}/dashboard/impact/${projectSlug}`
     : '';
 
-  const shareText = `Join me in supporting ${projectTitle} on Givar. It's transparent and impactful.`;
+  const shareText = `Join me in supporting ${projectTitle} on Givar. It's transparent & impactful.`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);

@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../../components/ui/skeleton';
 
 export default function OrganizationDetailLoading() {
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20 w-full overflow-hidden">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20 w-full overflow-hidden">
             {/* Hero & Action Bar Skeleton */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-6 rounded-3xl border border-border/40 shadow-sm">
                 <div className="flex items-center gap-5 w-full lg:w-auto">

@@ -56,7 +56,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="space-y-6 md:space-y-8 max-w-4xl"
+            className="space-y-4 md:space-y-6 max-w-4xl"
         >
             <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden border-2">
                 <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">

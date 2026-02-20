@@ -109,7 +109,7 @@ export const AdminSecuritySection = memo(function AdminSecuritySection({ user }:
                                 <DialogTitle className="text-2xl font-bold tracking-tight text-center leading-none">Scan Your Key</DialogTitle>
                             </DialogHeader>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                Open your preferred authenticator app and scan this QR code to link your device.
+                                Open your preferred authenticator app & scan this QR code to link your device.
                             </p>
                         </div>
 

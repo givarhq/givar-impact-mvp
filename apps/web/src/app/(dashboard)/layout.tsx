@@ -21,7 +21,7 @@ export default async function DashboardLayout({
   const dbUser = await ApiService.auth.getMe(token);
 
   if (!dbUser) {
-    // This clears the invalid session and redirects correctly.
+    // This clears the invalid session & redirects correctly.
     redirect('/api/auth/clear-session');
   }
 

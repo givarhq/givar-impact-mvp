@@ -5,7 +5,7 @@ import { UsersPageClient } from './users-page-client';
 
 export const metadata = {
     title: 'User Management',
-    description: 'Manage platform identities, roles, and forensic status.',
+    description: 'Manage platform identities, roles, & forensic status.',
 };
 
 export default async function AdminUsersPage({
@@ -42,7 +42,7 @@ export default async function AdminUsersPage({
     const initialData = userResult || { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             <div className="w-full min-w-0">
                 <UserFilters />
             </div>

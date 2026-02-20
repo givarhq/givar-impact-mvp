@@ -50,7 +50,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         >
 
             {/* LEFT COLUMN: Content */}
-            <div className="lg:col-span-2 space-y-6 md:space-y-8">
+            <div className="lg:col-span-2 space-y-4 md:space-y-6">
 
                 {/* Header Metadata */}
                 <div className="space-y-2.5 text-left">

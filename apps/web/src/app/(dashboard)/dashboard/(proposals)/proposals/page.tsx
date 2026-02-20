@@ -7,7 +7,7 @@ import { ProposalCard } from '../../../../../components/features/proposals/propo
 
 export const metadata = {
   title: 'My causes',
-  description: 'Manage your project proposals and track live impact.',
+  description: 'Manage your project proposals & track live impact.',
 };
 
 export default async function MyProposalsPage() {
@@ -18,15 +18,15 @@ export default async function MyProposalsPage() {
   const proposals = (await ApiService.proposals.getMyProposals(token)) || [];
 
   return (
-    <div className="space-y-6 md:space-y-8 w-full min-w-0 animate-in fade-in duration-500">
+    <div className="space-y-4 md:space-y-6 w-full min-w-0 animate-in fade-in duration-500">
       {/* Mobile Title */}
       <div className="md:hidden px-1">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">My causes</h1>
+        <h1 className="text-xl font-bold tracking-tight text-foreground">My Causes</h1>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
         <div className="hidden md:block min-w-0">
-          <p className="text-sm text-muted-foreground font-medium">Manage project proposals and track live platform impact.</p>
+          <p className="text-sm text-muted-foreground font-medium">Manage project proposals & track live platform impact.</p>
         </div>
 
         <Link href="/dashboard/proposals/start" className="w-full md:w-auto shrink-0">

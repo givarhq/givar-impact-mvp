@@ -29,7 +29,7 @@ interface FeedbackThreadProps {
     title?: string;
 }
 
-export const FeedbackThread = memo(function FeedbackThread({ proposalId, projectId, title = "Feedback And Conversation" }: FeedbackThreadProps) {
+export const FeedbackThread = memo(function FeedbackThread({ proposalId, projectId, title = "Feedback & Conversation" }: FeedbackThreadProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);

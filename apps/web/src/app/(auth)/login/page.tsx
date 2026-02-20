@@ -89,7 +89,7 @@ function LoginComponent() {
         <p className="text-sm text-muted-foreground font-medium leading-relaxed">
           {isMfaStep
             ? 'Enter the 6-digit code from your authenticator app'
-            : 'Sign in to manage your campaigns and donations.'
+            : 'Sign in to manage your campaigns & donations.'
           }
         </p>
       </div>

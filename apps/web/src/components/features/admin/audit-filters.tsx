@@ -50,7 +50,7 @@ export const AuditFilters = memo(function AuditFilters() {
       <SelectItem value="all" className="text-xs">All Actions</SelectItem>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Identity And Access</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Identity & Access</SelectLabel>
         <SelectItem value="USER_LOGIN" className="text-xs">User Login</SelectItem>
         <SelectItem value="USER_LOGIN_FAILED" className="text-xs">Login Failed</SelectItem>
         <SelectItem value="USER_REGISTER" className="text-xs">User Registration</SelectItem>
@@ -89,7 +89,7 @@ export const AuditFilters = memo(function AuditFilters() {
       </SelectGroup>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Causes And Proposals</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Causes & Proposals</SelectLabel>
         <SelectItem value="PROJECT_CREATED" className="text-xs">Project Created</SelectItem>
         <SelectItem value="PROJECT_UPDATED" className="text-xs">Project Updated</SelectItem>
         <SelectItem value="PROJECT_DELETED" className="text-xs">Project Deleted</SelectItem>
@@ -102,7 +102,7 @@ export const AuditFilters = memo(function AuditFilters() {
       </SelectGroup>
 
       <SelectGroup>
-        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Discovery And Protocol</SelectLabel>
+        <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Discovery & Protocol</SelectLabel>
         <SelectItem value="RECOMMENDATION_CONFIG_UPDATED" className="text-xs">Algorithm Configuration Updated</SelectItem>
         <SelectItem value="FEATURED_SLOT_CREATED" className="text-xs">Featured Slot Assigned</SelectItem>
         <SelectItem value="FEATURED_SLOT_DELETED" className="text-xs">Featured Slot Removed</SelectItem>

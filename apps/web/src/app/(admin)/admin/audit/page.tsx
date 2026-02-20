@@ -20,7 +20,7 @@ export default async function AdminAuditPage({
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', '20');
-  
+
   if (resolvedParams.search) params.set('search', String(resolvedParams.search));
   if (resolvedParams.action) params.set('action', String(resolvedParams.action));
   if (resolvedParams.startDate) params.set('startDate', String(resolvedParams.startDate));
@@ -40,7 +40,7 @@ export default async function AdminAuditPage({
   } : null;
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
       <AuditFilters />
 
       {enhancedSummary && <AuditSummary stats={enhancedSummary} />}

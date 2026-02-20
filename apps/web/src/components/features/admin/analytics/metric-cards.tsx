@@ -19,7 +19,7 @@ export const SectorAllocationCard = memo(function SectorAllocationCard({ data }:
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
             <CardHeader className="p-5 md:p-6 pb-2">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-amber-500" /> Sector allocation
+                    <Zap className="h-4 w-4 text-amber-500" /> Sector Allocation
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-5 md:p-6 pt-2 flex-1 overflow-y-auto no-scrollbar">
@@ -79,7 +79,7 @@ export const EntityCompositionCard = memo(function EntityCompositionCard({ data 
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
             <CardHeader className="p-5 md:p-6 pb-2">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Users2 className="h-4 w-4 text-primary" /> Account types
+                    <Users2 className="h-4 w-4 text-primary" /> Account Types
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-6 flex-1 flex flex-col justify-center">

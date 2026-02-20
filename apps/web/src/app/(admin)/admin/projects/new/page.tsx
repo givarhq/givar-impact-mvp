@@ -18,9 +18,9 @@ export default async function NewProjectPage() {
   const categories = await ApiService.projects.getCategories(token);
 
   return (
-    <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
 
-      {/* Header and Navigation */}
+      {/* Header & Navigation */}
       <div className="flex flex-col gap-4 px-1 min-w-0">
         <Link href="/admin/projects" className="w-fit">
           <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">

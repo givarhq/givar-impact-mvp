@@ -38,7 +38,7 @@ export default async function AdminVerificationPage({
     const activeMeta = activeTab === 'evidence' ? evidenceData.meta : orgsData.meta;
 
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500">
             <VerificationTabs orgs={orgsData} evidence={evidenceData} />
 
             <div className="pt-4 border-t border-border/40">

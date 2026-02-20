@@ -30,7 +30,7 @@ export default async function AdminDashboard() {
     }
 
     return (
-        <div className="space-y-6 md:space-y-8">
+        <div className="space-y-4 md:space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1 px-1">
                     <h1 className="text-xl md:hidden font-bold tracking-tight text-foreground flex items-center gap-3">

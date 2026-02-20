@@ -180,7 +180,7 @@ export const HistoryTable = memo(function HistoryTable({
                                                 onClick={() => setSelectedTx(tx)}
                                                 className="rounded-3xl h-9 w-full text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
                                             >
-                                                View Detailed Record
+                                                View details
                                             </Button>
                                         </div>
                                     </td>
@@ -218,11 +218,7 @@ export const HistoryTable = memo(function HistoryTable({
                     {selectedTx && (
                         <div className="p-5 md:p-6 space-y-4 overflow-hidden">
                             <DialogHeader className="space-y-2">
-                                <div className="flex items-center gap-2 text-primary bg-primary/5 w-fit px-3 py-1 rounded-3xl border border-primary/20">
-                                    <ShieldCheck className="h-3.5 w-3.5" />
-                                    <span className="text-xs font-bold tracking-widest leading-none">Verified Ledger Entry</span>
-                                </div>
-                                <DialogTitle className="text-xl font-bold tracking-tight leading-none text-foreground">Transaction Details</DialogTitle>
+                                <DialogTitle className="text-lg font-bold tracking-tight leading-none text-foreground">Transaction Details</DialogTitle>
                             </DialogHeader>
 
                             <div className="text-center p-6 rounded-3xl bg-muted/30 border border-border/40 relative overflow-hidden shadow-inner">
@@ -290,7 +286,7 @@ export const HistoryTable = memo(function HistoryTable({
                             </div>
 
                             <div className="space-y-1.5 min-w-0">
-                                <span className="text-xs font-bold text-muted-foreground tracking-widest block px-1">Purpose And Identification</span>
+                                <span className="text-xs font-bold text-muted-foreground tracking-widest block px-1">Purpose & Identification</span>
                                 <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">
                                     {selectedTx.project ? (
                                         <Link
@@ -355,7 +351,7 @@ export const HistoryTable = memo(function HistoryTable({
                                     className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg shadow-primary/20 border-0 active:scale-95 transition-all"
                                 >
                                     {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                                    Download Impact Receipt
+                                    Download Receipt
                                 </Button>
                             </div>
                         </div>

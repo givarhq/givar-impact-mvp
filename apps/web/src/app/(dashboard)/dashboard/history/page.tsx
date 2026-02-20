@@ -4,7 +4,7 @@ import { ApiService } from '../../../../services/api';
 
 export const metadata = {
   title: 'Transaction History',
-  description: 'View your complete impact ledger, download receipts, and track capital flow.',
+  description: 'View your complete impact ledger, download receipts, & track capital flow.',
 };
 
 export default async function HistoryPage({
@@ -29,7 +29,7 @@ export default async function HistoryPage({
   };
 
   return (
-    <div className="w-full min-w-0 space-y-6 md:space-y-8">
+    <div className="w-full min-w-0 space-y-4 md:space-y-6">
       <div className="w-full min-w-0">
         <HistoryClient initialData={initialData} />
       </div>

@@ -3,7 +3,7 @@ import { Skeleton } from '../../../../components/ui/skeleton';
 export default function ImpactFeedLoading() {
     return (
         <div className="space-y-4 md:space-y-6 animate-in fade-in duration-300 pb-20">
-            {/* Search and Filters Skeleton */}
+            {/* Search & Filters Skeleton */}
             <div className="space-y-6">
                 <div className="flex items-center justify-between gap-4 h-[44px]">
                     <Skeleton className="hidden md:block h-11 max-w-md flex-1" />

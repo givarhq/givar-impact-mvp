@@ -3,7 +3,7 @@ import { Skeleton } from '../../../../../../../components/ui/skeleton';
 export default function ProposalEditStepLoading() {
     return (
         <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            {/* Container Card Skeleton - Used by Hook, Media, Plan, and Trust steps */}
+            {/* Container Card Skeleton - Used by Hook, Media, Plan, & Trust steps */}
             <div className="border border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm">
                 <div className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
                     <div className="flex items-center gap-2 mb-2">

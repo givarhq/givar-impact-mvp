@@ -122,7 +122,7 @@ export default function TrustPage() {
                 <div className="md:col-span-2 min-w-0">
                   <Input
                     label="Local community contact"
-                    placeholder="Name and phone of a local beneficiary or leader"
+                    placeholder="Name & phone of a local beneficiary or leader"
                     value={beneficiaryContact || ''}
                     onChange={(e) => updateField('beneficiaryContact', e.target.value)}
                     disabled={isSubmitting}

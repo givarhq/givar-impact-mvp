@@ -119,7 +119,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: "circOut" }}
-            className="space-y-6 md:space-y-8 pb-20 w-full overflow-hidden"
+            className="space-y-4 md:space-y-6 pb-20 w-full overflow-hidden"
         >
             {/* 1. CORE IDENTITY HEADER */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
@@ -193,7 +193,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     <div className="space-y-6 pt-4">
                                         <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3">
                                             <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
-                                            <p className="text-xs text-destructive font-medium leading-relaxed">This action is forensic and final. The proposal node will be archived and the owner notified.</p>
+                                            <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived & the owner notified.</p>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[11px] font-bold text-muted-foreground ml-1 tracking-widest">Rejection Reason</label>
@@ -224,7 +224,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
 
                 {/* LEFT: DETAILED DOCUMENTATION */}
-                <div className="lg:col-span-8 space-y-6 md:space-y-8">
+                <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     {/* Visual Media Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
@@ -462,8 +462,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 onConfirm={handleApprove}
                 isLoading={isProcessing}
                 variant="default"
-                title="Initialize Impact Node"
-                description={`Promote the proposal "${proposal.title}" to a live platform project? This action migrates all narrative and financial data to the public discovery feed and creates an immutable ledger entry. This procedure is irreversible.`}
+                title="Approve Impact"
+                description={`Promote the proposal "${proposal.title}" to a live platform project? This action migrates all narrative & financial data to the public discovery feed & creates an immutable ledger entry. This procedure is irreversible.`}
                 confirmText="Authorize Project"
             />
         </motion.div>

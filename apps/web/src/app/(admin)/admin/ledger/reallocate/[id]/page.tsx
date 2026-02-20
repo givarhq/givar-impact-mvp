@@ -32,7 +32,7 @@ export default async function ReallocateFundsPage({
     }
 
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500">
 
             <div className="w-full min-w-0">
                 <ReallocateFundsClient

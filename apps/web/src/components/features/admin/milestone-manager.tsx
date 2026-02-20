@@ -72,7 +72,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-base font-bold text-foreground tracking-tight">Execution Timeline Tracking</h3>
+        <h3 className="text-base font-bold text-foreground tracking-tight">Execution Tracking</h3>
         <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] tracking-widest px-3 py-1 shadow-none">
           {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Completed
         </Badge>
@@ -232,7 +232,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                   onClick={() => updateMilestone(activeMilestone!.id, 'COMPLETED', proofImageUrl || undefined)}
                   disabled={processingId === activeMilestone?.id}
                 >
-                  {processingId === activeMilestone?.id ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm And Finalize Phase'}
+                  {processingId === activeMilestone?.id ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm & Finalize Phase'}
                 </Button>
                 <Button
                   variant="ghost"

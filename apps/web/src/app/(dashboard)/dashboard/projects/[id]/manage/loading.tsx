@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../../../components/ui/skeleton';
 
 export default function ProjectConsoleLoading() {
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-24">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-24">
             {/* Header Identity Skeleton */}
             <div className="flex flex-col gap-4 px-1 min-w-0">
                 <Skeleton className="h-8 w-44 rounded-3xl" />
@@ -17,7 +17,7 @@ export default function ProjectConsoleLoading() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
                 {/* Action & Roadmap Skeleton */}
-                <div className="lg:col-span-8 space-y-6 md:space-y-8">
+                <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     <div className="rounded-3xl border border-border/40 bg-card overflow-hidden shadow-sm">
                         <div className="p-6 md:p-8 border-b border-border/40 bg-muted/10 flex justify-between items-center">
                             <Skeleton className="h-6 w-48" />

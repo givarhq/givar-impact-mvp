@@ -45,7 +45,7 @@ export const DangerZone = memo(function DangerZone() {
                         <ShieldAlert className="h-4 w-4" /> Danger Zone
                     </h3>
                     <p className="text-xs text-muted-foreground font-medium max-w-lg leading-relaxed">
-                        Permanently Remove Your Account And Data. This Action Is Irreversible. Historical Donation Records Are Preserved For Ledger Transparency.
+                        Permanently Remove Your Account & Data. This Action Is Irreversible. Historical Donation Records Are Preserved For Ledger Transparency.
                     </p>
                 </div>
                 <Button

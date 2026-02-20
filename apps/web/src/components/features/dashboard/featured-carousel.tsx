@@ -107,7 +107,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-bold text-muted-foreground/60">Target Goal</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground/60">Target</p>
                                         <SmartCurrency amount={current.targetAmount} currency={current.currency} visible={true} size="small" className="text-foreground/50" />
                                     </div>
                                 </div>

@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 
 export const metadata = {
   title: 'Cause Details',
-  description: 'Learn about the mission, execution roadmap, and real-time updates for this verified project.',
+  description: 'Learn about the mission, execution roadmap, & real-time updates for this verified project.',
 };
 
 async function getProject(slug: string) {
@@ -34,7 +34,7 @@ export default async function PublicProjectPage({
 
   return (
     <PublicLayout>
-      <div className="container mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-8 min-w-0 overflow-hidden animate-in fade-in duration-500">
+      <div className="container mx-auto px-4 py-6 md:py-10 space-y-4 md:space-y-6 min-w-0 overflow-hidden animate-in fade-in duration-500">
         {/* Navigation Header */}
         <div className="flex flex-col gap-4 px-1 min-w-0">
           <Link href="/explore" className="w-fit">
@@ -43,10 +43,6 @@ export default async function PublicProjectPage({
               Back to Explore
             </Button>
           </Link>
-
-          <div className="md:hidden">
-            <h1 className="text-xl font-bold tracking-tight text-foreground truncate">Cause Details</h1>
-          </div>
         </div>
 
         <div className="w-full min-w-0">

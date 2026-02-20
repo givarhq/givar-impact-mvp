@@ -134,14 +134,14 @@ export default function StartProposalPage() {
                     </div>
                     <h2 className="text-2xl font-bold tracking-tight text-foreground">Launch your cause</h2>
                     <p className="text-sm text-muted-foreground max-w-[350px] mx-auto font-medium leading-relaxed">
-                        Activate organizer mode to propose projects and raise verified impact capital.
+                        Activate organizer mode to propose projects & raise verified impact capital.
                     </p>
                 </div>
 
                 <div className="grid gap-3 min-w-0">
                     {[
                         { icon: ShieldCheck, title: 'Verified trust', desc: 'Complete identity vetting for donor confidence.', color: 'text-primary' },
-                        { icon: Sparkles, title: 'Direct funding', desc: 'Automated procurement and ledger tracking.', color: 'text-blue-500' }
+                        { icon: Sparkles, title: 'Direct funding', desc: 'Automated procurement & ledger tracking.', color: 'text-blue-500' }
                     ].map((item, i) => (
                         <div key={i} className="flex items-center gap-4 p-4 rounded-3xl border border-border/40 bg-card shadow-sm min-w-0 group hover:border-primary/20 transition-all">
                             <div className={cn("h-11 w-11 rounded-2xl bg-muted flex items-center justify-center shrink-0 shadow-inner", item.color)}>
@@ -181,7 +181,7 @@ export default function StartProposalPage() {
                 <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
                     <CardTitle className="text-lg md:text-xl font-bold">Start a new cause</CardTitle>
                     <CardDescription className="text-xs font-medium">
-                        Begin with a compelling title and industry category.
+                        Begin with a compelling title & industry category.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6 md:p-8 pt-6 min-w-0">

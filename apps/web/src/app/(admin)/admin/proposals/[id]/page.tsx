@@ -8,7 +8,7 @@ import { Button } from '../../../../../components/ui/button';
 
 export const metadata = {
   title: 'Review proposal',
-  description: 'Technical and legal vetting of project proposals before platform launch.',
+  description: 'Technical & legal vetting of project proposals before platform launch.',
 };
 
 export default async function AdminProposalDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,9 +28,9 @@ export default async function AdminProposalDetailPage({ params }: { params: Prom
     }
 
     return (
-      <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+      <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
 
-        {/* Header and Breadcrumbs */}
+        {/* Header & Breadcrumbs */}
         <div className="flex flex-col gap-4 px-1 min-w-0">
           <Link href="/admin/projects?tab=proposals" className="w-fit">
             <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">

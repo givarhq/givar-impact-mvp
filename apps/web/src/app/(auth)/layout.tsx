@@ -62,11 +62,11 @@ export default function AuthLayout({
             <div className="flex-1 flex flex-col justify-center items-center">
               <div className="max-w-md w-full">
                 <h2 className="text-3xl font-bold leading-tight mb-4 tracking-tight text-foreground text-justify">
-                  Making generosity simple, transparent, and impactful.
+                  Making generosity simple, transparent, & impactful.
                 </h2>
                 <p className="text-muted-foreground text-lg leading-relaxed text-justify">
                   Join thousands of givers changing the world one transaction at a time.
-                  Real-time tracking, zero-friction donations, and verified causes.
+                  Real-time tracking, zero-friction donations, & verified causes.
                 </p>
 
                 {/* Footer Tags */}
@@ -84,7 +84,7 @@ export default function AuthLayout({
 
         {/* 
           RIGHT COLUMN 
-          FIX: Added 'pt-24' here (and adjusted mobile padding).
+          FIX: Added 'pt-24' here (& adjusted mobile padding).
           This ensures form doesn't go under header, but scroll is smooth.
         */}
         <div className="flex items-center justify-center p-6 lg:p-12 pt-24 lg:pt-24 relative">
@@ -96,7 +96,7 @@ export default function AuthLayout({
               <Link href="#" className="underline hover:text-primary">
                 Terms
               </Link>{' '}
-              and{' '}
+              &{' '}
               <Link href="#" className="underline hover:text-primary">
                 Privacy Policy
               </Link>.

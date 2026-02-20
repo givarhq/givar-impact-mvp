@@ -140,7 +140,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <div className="p-6 text-center space-y-4">
                             <div className="relative inline-block">
-                                <div className="h-20 w-20 rounded-3xl bg-primary/5 flex items-center justify-center text-primary text-2xl font-bold border border-primary/10 mx-auto">
+                                <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center text-primary text-2xl font-bold border border-primary/10 mx-auto">
                                     {user.firstName[0]}{user.lastName[0]}
                                 </div>
                                 <div className={cn(
@@ -178,14 +178,18 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
 
                         <CardContent className="p-5 pt-0 space-y-2">
                             {!isSuperAdmin && (
-                                <Button
-                                    className="w-full h-10 rounded-3xl font-bold text-xs gap-2"
-                                    onClick={() => setShowImpersonateConfirm(true)}
-                                    disabled={isProcessing}
-                                >
-                                    {isProcessing ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <UserSearch className="h-3.5 w-3.5" />}
-                                    Forensic Perspective
-                                </Button>
+                                <div className="flex justify-center">
+                                    <Button
+                                        className="w-full max-w-[48rem] h-10 rounded-3xl font-bold text-xs gap-2"
+                                        onClick={() => setShowImpersonateConfirm(true)}
+                                        disabled={isProcessing}
+                                    >
+                                        {isProcessing
+                                            ? <Loader2 className="animate-spin h-3.5 w-3.5" />
+                                            : <UserSearch className="h-3.5 w-3.5" />}
+                                        View Perspective
+                                    </Button>
+                                </div>
                             )}
 
                             <div className="grid grid-cols-2 gap-2">
@@ -221,7 +225,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3 px-5">
                             <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
-                                <Fingerprint className="h-3.5 w-3.5" /> Identity Metrics
+                                <Fingerprint className="h-3.5 w-3.5" /> Account Information
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-5 space-y-3">
@@ -264,7 +268,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
                             <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
-                                <Wallet className="h-3.5 w-3.5" /> Ledger Nodes
+                                <Wallet className="h-3.5 w-3.5" /> Ledger Info
                             </CardTitle>
                         </CardHeader>
                         <div className="p-0">
@@ -293,7 +297,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
                             <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
-                                <History className="h-3.5 w-3.5" /> Forensic Audit Trail
+                                <History className="h-3.5 w-3.5" /> Audit Trail
                             </CardTitle>
                         </CardHeader>
                         <div className="p-0 overflow-x-auto">
@@ -301,7 +305,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                                 <thead className="bg-muted/40 text-[11px] font-bold tracking-widest text-muted-foreground border-b border-border/40">
                                     <tr>
                                         <th className="px-6 py-3">Event</th>
-                                        <th className="px-6 py-3">Source Node</th>
+                                        <th className="px-6 py-3">IP Address</th>
                                         <th className="px-6 py-3 text-right">Timestamp</th>
                                     </tr>
                                 </thead>
@@ -336,8 +340,8 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 onConfirm={onConfirmImpersonate}
                 isLoading={isProcessing}
                 variant="warning"
-                title="Initialize Forensic Proxy"
-                description={`Establish a support session for ${user.email}. You will view the node state exactly as the user does. All actions are audited.`}
+                title="Initialize Proxy"
+                description={`Establish a support session for ${user.email}. You will view the account state exactly as the user does. All actions are audited.`}
                 confirmText="Start Session"
             />
 
@@ -349,8 +353,8 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 variant={statusConfirm.action === 'LOCK' ? 'destructive' : 'default'}
                 title={statusConfirm.action === 'LOCK' ? 'Restrict Access' : 'Restore Access'}
                 description={statusConfirm.action === 'LOCK'
-                    ? `Terminate active sessions and restrict platform access for ${user.email}?`
-                    : `Restore full ledger and identity access for ${user.email}?`
+                    ? `Terminate active sessions & restrict platform access for ${user.email}?`
+                    : `Restore full ledger & identity access for ${user.email}?`
                 }
                 confirmText={statusConfirm.action === 'LOCK' ? 'Lock Account' : 'Unlock Account'}
             />
@@ -363,7 +367,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 variant={roleConfirm.action === 'DEMOTE' ? 'destructive' : 'warning'}
                 title={roleConfirm.action === 'PROMOTE' ? 'Grant Admin Rights' : 'Revoke Admin Rights'}
                 description={roleConfirm.action === 'PROMOTE'
-                    ? "Elevate this node to administrative status? This provides access to forensic tools and user management."
+                    ? "Elevate this node to administrative status? This provides access to forensic tools & user management."
                     : "Demote this node to standard user status? All administrative permissions will be revoked."
                 }
                 confirmText={roleConfirm.action === 'PROMOTE' ? 'Promote' : 'Demote'}

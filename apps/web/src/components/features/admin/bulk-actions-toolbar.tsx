@@ -121,7 +121,7 @@ export const BulkActionsToolbar = memo(function BulkActionsToolbar({
             if (action === 'SUSPEND') variant = 'warning';
             return {
                 title: `Confirm Batch ${action}`,
-                desc: `Apply ${action.toLowerCase()} to ${count} project nodes? This is recorded in the forensic audit trail.`,
+                desc: `Apply ${action.toLowerCase()} to ${count} project nodes? This is recorded in the Audit Trail.`,
                 variant,
             };
         }

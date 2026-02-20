@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../../components/ui/skeleton';
 
 export default function ProposalsLoading() {
     return (
-        <div className="space-y-6 md:space-y-8 w-full min-w-0 animate-in fade-in duration-500">
+        <div className="space-y-4 md:space-y-6 w-full min-w-0 animate-in fade-in duration-500">
             {/* Mobile Title Skeleton */}
             <Skeleton className="md:hidden h-7 w-32 ml-1" />
 

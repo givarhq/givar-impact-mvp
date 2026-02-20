@@ -79,7 +79,7 @@ export default function SignupPage() {
       <div className="space-y-2 text-center min-w-0">
         <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">Create an Account</h1>
         <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-          Join Givar and start making an impact today.
+          Join Givar & start making an impact today.
         </p>
       </div>
 

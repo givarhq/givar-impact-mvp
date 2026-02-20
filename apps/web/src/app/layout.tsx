@@ -29,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: isAdmin ? 'Admin Panel | Givar' : '%s | Givar',
       default: isAdmin ? 'Givar - Admin Panel' : 'Givar - Transparent Giving',
     },
-    description: 'Simple, transparent, and impact-driven giving for everyone.',
+    description: 'Simple, transparent, & impact-driven giving for everyone.',
     icons: {
       icon: '/Givar1.png',
     },

@@ -29,7 +29,7 @@ export const OrganizationHealthCard = memo(function OrganizationHealthCard({ met
         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-[380px] flex flex-col">
             <CardHeader className="p-5 md:p-6 pb-2">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-blue-500" /> Partner health
+                    <Building2 className="h-4 w-4 text-blue-500" /> Partner Health
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 relative flex flex-col items-center justify-center">
@@ -65,21 +65,21 @@ export const OrganizationHealthCard = memo(function OrganizationHealthCard({ met
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                            <span className="text-xs font-medium text-muted-foreground">Verified nodes</span>
+                            <span className="text-xs font-medium text-muted-foreground">Verified Organizations</span>
                         </div>
                         <span className="text-xs font-bold text-foreground tabular-nums">{metrics.verifiedCount}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                            <span className="text-xs font-medium text-muted-foreground">Active projects</span>
+                            <span className="text-xs font-medium text-muted-foreground">Active Projects</span>
                         </div>
                         <span className="text-xs font-bold text-foreground tabular-nums">{metrics.activeOrganizers}</span>
                     </div>
                     <div className="flex justify-between items-center opacity-50">
                         <div className="flex items-center gap-2">
                             <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                            <span className="text-xs font-medium text-muted-foreground">Pending review</span>
+                            <span className="text-xs font-medium text-muted-foreground">Pending Review</span>
                         </div>
                         <span className="text-xs font-bold text-foreground tabular-nums">{metrics.pendingCount}</span>
                     </div>

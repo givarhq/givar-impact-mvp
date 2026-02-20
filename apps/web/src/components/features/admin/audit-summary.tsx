@@ -46,7 +46,7 @@ export const AuditSummary = memo(function AuditSummary({ stats }: AuditSummaryPr
         delay={0.2}
       />
       <SummaryCard
-        label="Unique Nodes"
+        label="Actors"
         value={stats.uniqueActors24h || 0}
         subValue="Active Identities"
         icon={Globe}

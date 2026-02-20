@@ -2,7 +2,7 @@ import { Skeleton } from '../../../components/ui/skeleton';
 
 export default function DashboardLoading() {
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500">
             {/* Hero Section Skeleton */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 py-2">
                 <div className="space-y-2">

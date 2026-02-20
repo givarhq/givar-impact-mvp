@@ -5,7 +5,7 @@ import { ProjectsPageClient } from './projects-page-client';
 
 export const metadata = {
     title: 'Cause Management',
-    description: 'Oversee project lifecycles, approvals, and compliance.',
+    description: 'Oversee project lifecycles, approvals, & compliance.',
 };
 
 export default async function AdminProjectsPage({
@@ -55,7 +55,7 @@ export default async function AdminProjectsPage({
     ]);
 
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             <div className="w-full min-w-0">
                 <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
             </div>

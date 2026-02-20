@@ -165,7 +165,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-muted-foreground ml-1">Disbursement Amount (Ngn)</label>
+                                    <label className="text-xs font-bold text-muted-foreground ml-1">Disbursement Amount (NGN)</label>
                                     <div className="relative group">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">₦</span>
                                         <Input
@@ -181,12 +181,12 @@ export const DisbursementForm = memo(function DisbursementForm({
                             <div className="p-4 rounded-3xl bg-blue-50/50 border border-blue-100 flex items-start gap-3">
                                 <ShieldCheck className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
                                 <p className="text-xs text-blue-700 font-medium leading-relaxed">
-                                    Disbursement logs notify project owners and donors instantly. Please ensure all data points match the bank statement for audit compliance.
+                                    Disbursement logs notify project owners & donors instantly. Please ensure all data points match the bank statement for audit compliance.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="lg:col-span-5 flex flex-col gap-5">
+                        <div className="lg:col-span-5 space-y-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-muted-foreground ml-1">Compliance Receipt</label>
                                 {receipt ? (
@@ -209,9 +209,9 @@ export const DisbursementForm = memo(function DisbursementForm({
                                 )}
                             </div>
 
-                            <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="mt-auto w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0 transition-all active:scale-95">
+                            <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0 transition-all active:scale-95">
                                 {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                                Commit Funds To Ledger
+                                Commit disbursement
                             </Button>
                         </div>
                     </div>
@@ -251,7 +251,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                                             <p className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">{new Date(d.createdAt).toLocaleDateString()}</p>
                                         </div>
                                         <div className="flex justify-between items-end border-t border-border/40 pt-3">
-                                            <div className="text-sm font-bold tabular-nums text-foreground">{formatCurrency(d.amount, 'Ngn')}</div>
+                                            <div className="text-sm font-bold tabular-nums text-foreground">{formatCurrency(d.amount, 'NGN')}</div>
                                             {d.receiptKey && (
                                                 <Button variant="ghost" size="sm" className="h-7 rounded-3xl text-[11px] font-bold text-primary hover:bg-primary/5 transition-all" onClick={() => viewSecureReceipt(d.receiptKey)}>
                                                     <ExternalLink className="h-3 w-3 mr-1" /> View Receipt
@@ -301,7 +301,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-right font-bold tabular-nums text-foreground">
-                                                {formatCurrency(d.amount, 'Ngn')}
+                                                {formatCurrency(d.amount, 'NGN')}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 {d.receiptKey && (

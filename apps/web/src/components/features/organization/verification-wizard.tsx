@@ -77,7 +77,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
 
   const handleSubmit = async () => {
     if (!legalName.trim() || docKeys.length === 0) {
-      return toast.error('Organization name and at least one document are required');
+      return toast.error('Organization name & at least one document are required');
     }
 
     setIsLoading(true);
@@ -114,7 +114,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
             <div className="space-y-1">
               <h2 className="text-xl font-bold tracking-tight text-foreground">Organization verified</h2>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto font-medium">
-                Your account is a recognized and trusted partner. Your causes carry the verified badge to build donor confidence.
+                Your account is a recognized & trusted partner. Your causes carry the verified badge to build donor confidence.
               </p>
             </div>
             <div className="inline-flex flex-col items-center p-6 rounded-3xl bg-card border border-primary/10 shadow-sm min-w-[280px]">
@@ -175,7 +175,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
           <div className="space-y-0.5">
             <p className="text-xs font-bold text-destructive tracking-wider">Not approved</p>
             <p className="text-xs text-foreground/80 leading-relaxed font-medium italic">
-              &quot;{initialProfile?.adminFeedback || "Your documents could not be confirmed. Please check the requirements and try again."}&quot;
+              &quot;{initialProfile?.adminFeedback || "Your documents could not be confirmed. Please check the requirements & try again."}&quot;
             </p>
           </div>
         </div>
@@ -228,7 +228,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                  Upload official documents like your Certificate of Incorporation. These are kept safe and private.
+                  Upload official documents like your Certificate of Incorporation. These are kept safe & private.
                 </p>
                 <label className={cn(
                   "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border/60 rounded-3xl cursor-pointer bg-muted/10 hover:bg-muted/20 transition-all",
@@ -293,7 +293,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
       <div className="p-4 rounded-3xl bg-muted/20 border border-dashed border-border/60 flex items-start gap-3">
         <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-          By submitting, you confirm that these details are correct. Providing false information goes against Givar guidelines and may result in your account being removed.
+          By submitting, you confirm that these details are correct. Providing false information goes against Givar guidelines & may result in your account being removed.
         </p>
       </div>
 

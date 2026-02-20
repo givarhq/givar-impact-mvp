@@ -44,7 +44,7 @@ const SETTINGS_OPTIONS = [
         icon: Building2,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
-        description: 'Verification and trust docs.'
+        description: 'Verification & trust docs.'
     },
     {
         id: 'recurring',
@@ -60,7 +60,7 @@ const SETTINGS_OPTIONS = [
         icon: Shield,
         color: 'text-amber-500',
         bg: 'bg-amber-500/10',
-        description: 'Password and 2FA protocols.'
+        description: 'Password & 2FA protocols.'
     },
     {
         id: 'activity',
@@ -76,7 +76,7 @@ const SETTINGS_OPTIONS = [
         icon: Bell,
         color: 'text-rose-500',
         bg: 'bg-rose-500/10',
-        description: 'Notification and theme settings.'
+        description: 'Notification & theme settings.'
     },
 ];
 

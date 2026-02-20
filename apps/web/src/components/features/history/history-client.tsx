@@ -129,7 +129,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
   const hasActiveFilters = filters.search || filters.type !== 'all' || filters.status !== 'all';
 
   return (
-    <div className="space-y-6 md:space-y-8 w-full min-w-0 animate-in fade-in duration-500">
+    <div className="space-y-4 md:space-y-6 w-full min-w-0 animate-in fade-in duration-500">
       <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <h1 className="md:hidden text-xl font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">

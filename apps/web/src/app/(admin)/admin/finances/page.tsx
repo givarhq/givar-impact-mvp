@@ -4,7 +4,7 @@ import { FinanceReportClient } from '../../../../components/features/admin/finan
 
 export const metadata = {
     title: 'Treasury Intelligence',
-    description: 'Forensic financial monitoring, capital distribution, and institutional reporting.',
+    description: 'Forensic financial monitoring, capital distribution, & institutional reporting.',
 };
 
 export default async function AdminFinancesPage({
@@ -23,7 +23,7 @@ export default async function AdminFinancesPage({
     const categories = await ApiService.projects.getCategories(token);
 
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Page Identity (Mobile Only) */}
             <div className="md:hidden px-1">
                 <h1 className="text-xl font-bold tracking-tight text-foreground">Treasury Intelligence</h1>

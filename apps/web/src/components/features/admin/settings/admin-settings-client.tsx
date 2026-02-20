@@ -32,7 +32,7 @@ const ADMIN_SETTINGS_OPTIONS = [
         icon: UserCircle,
         color: 'text-blue-500',
         bg: 'bg-blue-500/10',
-        description: 'Manage your personal profile and account identity.'
+        description: 'Manage your personal profile & account identity.'
     },
     {
         id: 'discovery',
@@ -40,7 +40,7 @@ const ADMIN_SETTINGS_OPTIONS = [
         icon: Zap,
         color: 'text-primary',
         bg: 'bg-primary/10',
-        description: 'Manage recommendation weights and featured causes.'
+        description: 'Manage recommendation weights & featured causes.'
     },
     {
         id: 'security',
@@ -48,11 +48,11 @@ const ADMIN_SETTINGS_OPTIONS = [
         icon: Shield,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
-        description: 'Secure your account with passwords and verification codes.'
+        description: 'Secure your account with passwords & verification codes.'
     },
     {
         id: 'notifications',
-        label: 'System Alerts And Preferences',
+        label: 'System Alerts & Preferences',
         icon: Bell,
         color: 'text-amber-500',
         bg: 'bg-amber-500/10',

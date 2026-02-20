@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../../components/ui/skeleton';
 
 export default function FundWalletLoading() {
     return (
-        <div className="max-w-2xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="max-w-2xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Back Button Skeleton */}
             <Skeleton className="h-9 w-32 rounded-3xl" />
 

@@ -10,7 +10,7 @@ import { SmartCurrency } from '../../../../../components/ui/smart-currency';
 
 export const metadata = {
   title: 'Support this cause',
-  description: 'Contribute to this verified mission and track your impact on the transparent ledger.',
+  description: 'Contribute to this verified mission & track your impact on the transparent ledger.',
 };
 
 export default async function PublicDonationPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -22,7 +22,7 @@ export default async function PublicDonationPage({ params }: { params: Promise<{
 
   return (
     <PublicLayout>
-      <div className="max-w-5xl mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-8 pb-24 min-w-0 overflow-hidden animate-in fade-in duration-500">
+      <div className="max-w-5xl mx-auto px-4 py-6 md:py-10 space-y-4 md:space-y-6 pb-24 min-w-0 overflow-hidden animate-in fade-in duration-500">
 
         {/* Navigation Header */}
         <div className="flex flex-col gap-4 px-1 min-w-0">

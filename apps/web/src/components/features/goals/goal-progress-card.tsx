@@ -88,7 +88,7 @@ export const GoalProgressCard = memo(function GoalProgressCard({ goal, onEditGoa
             </div>
             <p className="text-sm font-bold text-foreground">Track Your Impact</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-[1600px] leading-relaxed">
-              Set a regular giving goal to stay consistent and track your community support over time.
+              Set a regular giving goal to stay consistent & track your community support over time.
             </p>
           </div>
         )}

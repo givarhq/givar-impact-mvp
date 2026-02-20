@@ -58,7 +58,7 @@ export default function HookPage() {
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Craft your cause narrative</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Define your mission and impact goals. This is the first thing donors will see.
+            Define your mission & impact goals. This is the first thing donors will see.
           </CardDescription>
         </CardHeader>
 
@@ -86,7 +86,7 @@ export default function HookPage() {
               <RichTextEditor
                 content={description || ''}
                 onChange={(content) => updateField('description', content)}
-                placeholder="Tell the full story. Who are the beneficiaries and what is the solution?"
+                placeholder="Tell the full story. Who are the beneficiaries & what is the solution?"
               />
             </div>
 

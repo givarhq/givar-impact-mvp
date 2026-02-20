@@ -70,7 +70,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className="space-y-6 md:space-y-8 pb-20 w-full overflow-hidden"
+            className="space-y-4 md:space-y-6 pb-20 w-full overflow-hidden"
         >
             {/* Hero Action Bar */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
@@ -242,7 +242,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                 isLoading={isProcessing}
                 variant="default"
                 title="Verify Organization"
-                description={`Establish ${profile.legalName} as a verified platform partner? This upgrades the owner account to Organizer mode and enables cause promotion on the discovery feed.`}
+                description={`Establish ${profile.legalName} as a verified platform partner? This upgrades the owner account to Organizer mode & enables cause promotion on the discovery feed.`}
                 confirmText="Confirm Verification"
                 cancelText="Cancel Audit"
             />

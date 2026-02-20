@@ -13,7 +13,7 @@ import { FeedbackThread } from '../../../../../../components/features/communicat
 
 export const metadata = {
   title: 'Edit project',
-  description: 'Manage project details, disbursements, and discovery visibility.',
+  description: 'Manage project details, disbursements, & discovery visibility.',
 };
 
 export default async function EditProjectPage({
@@ -29,7 +29,7 @@ export default async function EditProjectPage({
 
   try {
     // 1. Parallel Data Ingestion
-    // We fetch the project, global discovery config (for formula transparency), and categories.
+    // We fetch the project, global discovery config (for formula transparency), & categories.
     const [project, categories, globalConfig] = await Promise.all([
       ApiService.admin.getProjectById(token, id),
       ApiService.projects.getCategories(token),
@@ -39,7 +39,7 @@ export default async function EditProjectPage({
     if (!project) notFound();
 
     return (
-      <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+      <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
 
         {/* --- PAGE NAVIGATION --- */}
         <div className="flex flex-col gap-4 px-1 min-w-0">
@@ -73,7 +73,7 @@ export default async function EditProjectPage({
                 value="details"
                 className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs  tracking-widest text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
-                <Settings className="mr-2 h-3.5 w-3.5" /> Project details
+                <Settings className="mr-2 h-3.5 w-3.5" /> Project Details
               </TabsTrigger>
 
               <TabsTrigger

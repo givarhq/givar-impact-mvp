@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../../components/ui/skeleton';
 
 export default function PublicDonationLoading() {
     return (
-        <div className="max-w-5xl mx-auto px-4 py-6 md:py-10 space-y-6 md:space-y-8 pb-24 animate-in fade-in duration-500">
+        <div className="max-w-5xl mx-auto px-4 py-6 md:py-10 space-y-4 md:space-y-6 pb-24 animate-in fade-in duration-500">
             {/* Navigation Header Skeleton */}
             <div className="flex flex-col gap-4 px-1">
                 <Skeleton className="h-10 w-32 rounded-3xl" />

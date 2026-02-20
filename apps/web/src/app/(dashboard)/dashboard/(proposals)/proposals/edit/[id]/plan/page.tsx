@@ -51,7 +51,7 @@ export default function PlanPage() {
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Plan your execution</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Define your ledger and roadmap. Precision here is critical for administrative audit approval.
+            Define your ledger & roadmap. Precision here is critical for administrative audit approval.
           </CardDescription>
         </CardHeader>
 
@@ -77,7 +77,7 @@ export default function PlanPage() {
                 <ClipboardList className="h-4 w-4 text-primary" />
                 Implementation roadmap
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Define key phases and verifiable deliverables.</p>
+              <p className="text-xs text-muted-foreground font-medium">Define key phases & verifiable deliverables.</p>
             </div>
             <div className="min-w-0">
               <TimelineEditor />
@@ -91,7 +91,7 @@ export default function PlanPage() {
                 <ShieldCheck className="h-4 w-4 text-primary" />
                 Risk assessment
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks and mitigation protocols.</p>
+              <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks & mitigation protocols.</p>
             </div>
             <Textarea
               placeholder="e.g. Potential weather delays, vendor availability, logistical bottlenecks..."

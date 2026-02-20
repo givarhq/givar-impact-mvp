@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../../components/ui/skeleton';
 
 export default function ProposalReviewLoading() {
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Header Context Skeleton */}
             <div className="flex flex-col gap-4 px-1">
                 <Skeleton className="h-8 w-32 rounded-3xl" />

@@ -4,7 +4,7 @@ import { LedgerOversightClient } from '../../../../components/features/admin/led
 
 export const metadata = {
   title: 'Ledger oversight',
-  description: 'Forensic financial monitoring and manual reconciliation tools.',
+  description: 'Forensic financial monitoring & manual reconciliation tools.',
 };
 
 export default async function LedgerOversightPage() {
@@ -20,7 +20,7 @@ export default async function LedgerOversightPage() {
   ]);
 
   return (
-    <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+    <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500">
 
       <div className="w-full min-w-0">
         <LedgerOversightClient

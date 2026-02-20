@@ -68,7 +68,7 @@ export default function VerifyEmailPage({
           <div className="space-y-2 min-w-0">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Email Verified</h1>
             <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-[280px] mx-auto">
-              Your account is now fully active. You can now sign in and start your impact journey.
+              Your account is now fully active. You can now sign in & start your impact journey.
             </p>
           </div>
           <Button className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] border-0 gap-2" onClick={() => router.push('/login')}>

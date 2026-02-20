@@ -6,7 +6,7 @@ import { Pagination } from '../../../../components/features/history/pagination';
 
 export const metadata = {
     title: 'Organizations',
-    description: 'Directory of legal entities and verified project organizers.',
+    description: 'Directory of legal entities & verified project organizers.',
 };
 
 export default async function AdminOrganizationsPage({
@@ -28,8 +28,8 @@ export default async function AdminOrganizationsPage({
     const meta = result?.meta || { total: 0, page: 1, lastPage: 1 };
 
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 pb-20 animate-in fade-in duration-500">
-            {/* Standardized search and title row */}
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 pb-20 animate-in fade-in duration-500">
+            {/* Standardized search & title row */}
             <div className="w-full min-w-0">
                 <OrganizationFilters />
             </div>

@@ -23,7 +23,7 @@ export const PortfolioView = memo(function PortfolioView({ wallet, history, acti
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="space-y-6 md:space-y-8"
+            className="space-y-4 md:space-y-6"
         >
             <OverviewCards
                 wallet={wallet || { balance: '0', currency: 'NGN' }}

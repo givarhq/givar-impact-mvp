@@ -5,7 +5,7 @@ import { AdminSettingsClient } from '../../../../components/features/admin/setti
 
 export const metadata = {
     title: 'System settings',
-    description: 'Configure administrative identity, security protocols, and discovery engine weights.',
+    description: 'Configure administrative identity, security protocols, & discovery engine weights.',
 };
 
 export default async function AdminSettingsPage() {
@@ -39,7 +39,7 @@ export default async function AdminSettingsPage() {
     };
 
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             <div className="px-1 md:hidden">
                 <h1 className="text-xl font-bold tracking-tight text-foreground">Account settings</h1>
             </div>

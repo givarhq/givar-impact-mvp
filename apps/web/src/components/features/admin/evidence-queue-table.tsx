@@ -155,7 +155,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                             <tr>
                                 <th className="px-7 py-4 w-12"></th>
-                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] ">Cause And Execution Phase</th>
+                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] ">Cause & Execution Phase</th>
                                 <th className="px-7 py-4 font-bold tracking-widest text-[10px]  text-center">Date Submitted</th>
                                 <th className="px-7 py-4 font-bold tracking-widest text-[10px]  text-right">Visual Assets</th>
                             </tr>

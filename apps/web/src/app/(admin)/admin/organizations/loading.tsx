@@ -2,8 +2,8 @@ import { Skeleton } from '../../../../components/ui/skeleton';
 
 export default function AdminOrganizationsLoading() {
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 pb-20 animate-in fade-in duration-500">
-            {/* Search and Filters Row Skeleton */}
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 pb-20 animate-in fade-in duration-500">
+            {/* Search & Filters Row Skeleton */}
             <div className="flex items-center justify-between gap-3 h-10 w-full">
                 <div className="flex items-center gap-4 flex-1">
                     <Skeleton className="md:hidden h-7 w-24 shrink-0" />

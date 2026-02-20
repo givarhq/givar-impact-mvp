@@ -23,7 +23,7 @@ export const DocumentUploader = memo(function DocumentUploader() {
     }
 
     setIsLoading(true);
-    const toastId = toast.loading('Encrypting And Uploading...');
+    const toastId = toast.loading('Encrypting & Uploading...');
     try {
       const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
         fileType: file.type,

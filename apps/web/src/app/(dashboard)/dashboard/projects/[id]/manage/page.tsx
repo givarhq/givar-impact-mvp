@@ -27,7 +27,7 @@ import { FeedbackThread } from '../../../../../../components/features/communicat
 
 export const metadata = {
     title: 'Project Console',
-    description: 'Track project execution, verify vendor disbursements, and upload impact evidence.',
+    description: 'Track project execution, verify vendor disbursements, & upload impact evidence.',
 };
 
 export default async function ProjectManagePage({
@@ -60,7 +60,7 @@ export default async function ProjectManagePage({
     const isRejected = latestProof?.status === 'REJECTED';
 
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-24">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-24">
 
             {/* Header Identity */}
             <div className="flex flex-col gap-4 px-1 min-w-0">
@@ -91,7 +91,7 @@ export default async function ProjectManagePage({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start min-w-0">
 
                 {/* LEFT: Action & Roadmap */}
-                <div className="lg:col-span-8 space-y-6 md:space-y-8 min-w-0">
+                <div className="lg:col-span-8 space-y-4 md:space-y-6 min-w-0">
                     <div id="submit-evidence" className="scroll-mt-32" />
 
                     {isRejected && (
@@ -136,7 +136,7 @@ export default async function ProjectManagePage({
                             </div>
                             <h3 className="text-xl font-bold text-foreground tracking-tight">Mission Accomplished</h3>
                             <p className="text-xs text-muted-foreground mt-2 max-w-xs mx-auto leading-relaxed font-medium">
-                                Every phase of this cause has been executed and verified. Thank you for your work on the ground.
+                                Every phase of this cause has been executed & verified. Thank you for your work on the ground.
                             </p>
                         </Card>
                     ) : null}

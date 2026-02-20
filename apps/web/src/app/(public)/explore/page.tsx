@@ -20,7 +20,7 @@ export default async function ExplorePage({
   let projects: any[] = [];
   let meta = { total: 0, page: 1, lastPage: 1 };
 
-  // Initial Server-Side Fetch for SEO and Instant Interaction
+  // Initial Server-Side Fetch for SEO & Instant Interaction
   if (isSmartDiscovery) {
     const response = await ApiService.recommendations.getFeed(token, 1, 24);
     projects = response?.data || [];

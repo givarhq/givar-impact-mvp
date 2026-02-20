@@ -145,7 +145,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                             <Badge variant="outline" className="rounded-3xl bg-background font-bold text-[10px] shadow-sm">{selectedSplits.length} Target Splits</Badge>
                         </div>
                     </div>
-                    <p className="text-[11px] text-muted-foreground font-medium">Assign orphaned capital to selected nodes.</p>
+                    <p className="text-[11px] text-muted-foreground font-medium">Assign orphaned capital to selected projects.</p>
                 </div>
             </div>
 
@@ -222,7 +222,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     {remainingMinor !== 0n && selectedSplits.length > 0 && (
                         <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-zinc-400 animate-pulse">
                             <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                            <span>Entry Must Balance To Zero For Commitment</span>
+                            <span>Entry must balance to zero for commitment</span>
                         </div>
                     )}
                     <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -235,7 +235,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     onClick={() => setShowConfirm(true)}
                 >
                     {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                    Execute Forensic Transfer
+                    Execute Transfer
                 </Button>
             </div>
         </div>
@@ -243,7 +243,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
     return (
         <LayoutGroup>
-            <div className="max-w-[1600px] mx-auto space-y-6 md:space-y-8 pb-32 md:pb-20 animate-in fade-in duration-500">
+            <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 pb-32 md:pb-20 animate-in fade-in duration-500">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1">
                     <div className="space-y-2">
                         <button
@@ -252,31 +252,44 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         >
                             <ArrowLeft className="h-3 w-3 mr-2 transition-transform group-hover:-translate-x-1" /> Back To Ledger
                         </button>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Reallocate Orphaned Funds</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-foreground">Reallocate Orphaned Funds</h1>
                         <div className="flex items-center gap-4">
                             <Badge variant="outline" className="font-mono text-[10px] py-1 px-3 rounded-3xl border-border/50 bg-muted/20 shadow-inner">
                                 Ref: {transaction.reference}
                             </Badge>
                             <div className="h-1 w-1 rounded-full bg-border" />
-                            <p className="text-[11px] text-muted-foreground font-bold tracking-widest flex items-center gap-2 ">
-                                <Database className="h-3.5 w-3.5 text-amber-500" /> Source: Suspense Node
-                            </p>
                         </div>
                     </div>
-                    <div className="bg-primary/5 border border-primary/20 rounded-3xl p-6 flex items-center gap-8 shadow-sm w-full md:w-auto relative overflow-hidden">
+                    <div className="bg-primary/5 border border-primary/20 rounded-3xl 
+    p-6 flex flex-col md:flex-row md:items-center gap-6 md:gap-8 
+    shadow-sm w-full md:w-auto relative">
+
                         <div className="space-y-1 relative z-10">
-                            <p className="text-[10px] font-black text-primary tracking-widest ">Transaction Value</p>
-                            <SmartCurrency amount={transaction.amount} currency={transaction.currency} visible={true} size="large" className="text-foreground font-black" />
+                            <p className="text-[10px] font-black text-primary tracking-widest">
+                                Transaction Value
+                            </p>
+                            <SmartCurrency
+                                amount={transaction.amount}
+                                currency={transaction.currency}
+                                visible={true}
+                                size="large"
+                                className="text-foreground font-black break-words"
+                            />
                         </div>
-                        <div className="h-10 w-px bg-primary/20 relative z-10" />
-                        <div className="text-right space-y-1 relative z-10">
-                            <p className="text-[10px] font-black text-muted-foreground tracking-widest ">Current State</p>
-                            <div className="flex items-center justify-end gap-2 text-amber-600 font-black text-[11px] tracking-widest  italic">
+
+                        <div className="hidden md:block h-10 w-px bg-primary/20 relative z-10" />
+
+                        <div className="space-y-1 relative z-10 md:text-right">
+                            <p className="text-[10px] font-black text-muted-foreground tracking-widest">
+                                Current State
+                            </p>
+                            <div className="flex items-center md:justify-end gap-2 text-amber-600 font-black text-[11px] tracking-widest italic">
                                 <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                                 Unresolved
                             </div>
                         </div>
-                        <Database className="absolute -right-4 -bottom-4 h-24 w-24 text-primary/5 rotate-12" />
+
+                        <Database className="absolute -right-4 -bottom-4 h-24 w-24 text-primary/5 rotate-12 hidden md:block" />
                     </div>
                 </div>
 
@@ -456,7 +469,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     isLoading={isProcessing}
                     variant="warning"
                     title="Authorize Ledger Commitment"
-                    description={`Forensic Protocol: You are about to re-distribute ₦${(Number(transaction.amount) / 100).toLocaleString()} from the Suspense Node across ${selectedSplits.length} target causes. This transaction is immutable and will be recorded in the forensic audit trail.`}
+                    description={`Forensic Protocol: You are about to re-distribute ₦${(Number(transaction.amount) / 100).toLocaleString()} from the Suspense Node across ${selectedSplits.length} target causes. This transaction is immutable & will be recorded in the Audit Trail.`}
                     confirmText="Commit Changes"
                     cancelText="Return To Ledger"
                 />

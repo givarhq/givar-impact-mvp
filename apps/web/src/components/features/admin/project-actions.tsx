@@ -89,7 +89,7 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         isLoading={isLoading}
         variant="warning"
         title="Suspend Project"
-        description="Are you sure you want to suspend this project? It will be hidden from the discovery feed and will no longer be able to receive donations. You can reactivate it later."
+        description="Are you sure you want to suspend this project? It will be hidden from the discovery feed & will no longer be able to receive donations. You can reactivate it later."
         confirmText="Suspend Now"
       />
 
@@ -101,7 +101,7 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         isLoading={isLoading}
         variant="default"
         title="Reactivate Project"
-        description="This will restore the project to the active discovery feed and allow it to resume receiving donations."
+        description="This will restore the project to the active discovery feed & allow it to resume receiving donations."
         confirmText="Reactivate"
       />
 

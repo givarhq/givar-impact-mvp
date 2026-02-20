@@ -11,7 +11,7 @@ import { SmartCurrency } from '../../../../../../components/ui/smart-currency';
 
 export const metadata = {
   title: 'Support this cause',
-  description: 'Contribute to a verified project and track your impact on the ledger.',
+  description: 'Contribute to a verified project & track your impact on the ledger.',
 };
 
 export default async function DonationPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -38,7 +38,7 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
     : `/explore/${slug}`;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 pb-24 animate-in fade-in duration-500 min-w-0 overflow-hidden">
+    <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 pb-24 animate-in fade-in duration-500 min-w-0 overflow-hidden">
 
       {/* Header Context */}
       <div className="flex flex-col gap-4 px-1 min-w-0">
@@ -48,10 +48,6 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
             Back to details
           </Button>
         </Link>
-
-        <div className="md:hidden">
-          <h1 className="text-xl font-bold tracking-tight text-foreground">Support Cause</h1>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-w-0">

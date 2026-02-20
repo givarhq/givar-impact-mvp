@@ -28,7 +28,7 @@ interface ProposalCardProps {
 
 const statusConfig: Record<string, { color: string, icon: any, label: string }> = {
   DRAFT: { color: 'text-zinc-500 bg-zinc-500/10 border-zinc-500/20', icon: FileText, label: 'Draft' },
-  AWAITING_VERIFICATION: { color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: Clock, label: 'Pending Kyc' },
+  AWAITING_VERIFICATION: { color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: Clock, label: 'Pending KYC' },
   SUBMITTED: { color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: Clock, label: 'Submitted' },
   UNDER_REVIEW: { color: 'text-blue-600 bg-blue-600/10 border-blue-600/20', icon: Clock, label: 'In Review' },
   CHANGES_REQUESTED: { color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: AlertCircle, label: 'Needs Edits' },
@@ -161,7 +161,7 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
         isLoading={isDeleting}
         variant="destructive"
         title="Delete Proposal"
-        description="Permanently Remove This Cause From The Ledger? This Action Is Forensic And Irreversible."
+        description="Permanently Remove This Cause From The Ledger? This Action Is Forensic & Irreversible."
         confirmText="Confirm Delete"
       />
     </>

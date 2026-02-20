@@ -56,8 +56,8 @@ export const ProjectPerformanceCard = memo(function ProjectPerformanceCard({ top
                 </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
                     <TabsList className="bg-muted/50 p-1 rounded-2xl h-9 w-full sm:w-[220px] border border-border/40">
-                        <TabsTrigger value="funded" className="text-[11px] font-bold tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Top funded</TabsTrigger>
-                        <TabsTrigger value="active" className="text-[11px] font-bold tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Most active</TabsTrigger>
+                        <TabsTrigger value="funded" className="text-[11px] font-bold tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Top Funded</TabsTrigger>
+                        <TabsTrigger value="active" className="text-[11px] font-bold tracking-wider rounded-xl h-7 flex-1 data-[state=active]:bg-background data-[state=active]:shadow-sm">Most Active</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </CardHeader>

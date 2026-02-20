@@ -2,7 +2,7 @@ import { Skeleton } from '../../../../components/ui/skeleton';
 
 export default function FinancesLoading() {
     return (
-        <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Filter Bar Skeleton */}
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <Skeleton className="h-11 w-full lg:w-[320px] rounded-3xl" />

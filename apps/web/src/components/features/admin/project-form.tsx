@@ -172,7 +172,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
       {initialData?.proposalId && (
         <div className="flex animate-in slide-in-from-left-2">
-          <div className="flex items-center gap-3 p-2.5 pl-4 pr-5 rounded-3xl bg-primary/5 border border-primary/20 text-primary shadow-sm">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/20 text-primary shadow-sm">
             <ShieldCheck className="h-4.5 w-4.5 shrink-0" />
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold tracking-widest">Verified Origin:</span>
@@ -237,19 +237,30 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-base text-foreground leading-none">Project Identity</h3>
-            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Essential project metadata and classification</p>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Essential project metadata & classification</p>
           </div>
         </div>
 
         <div className="md:col-span-8 space-y-1.5">
           <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Cause Headline</label>
-          <Input
-            {...register('title')}
-            className={getInputClass()}
-            readOnly={readOnly}
-            placeholder="Enter A Compelling Title..."
-            error={errors.title?.message}
-          />
+          {readOnly ? (
+            <div
+              className="h-12 flex items-center px-5 rounded-3xl 
+               bg-muted/10 text-foreground font-bold text-sm
+               border-transparent shadow-none
+               truncate"
+              title={watch('title')}
+            >
+              {watch('title')}
+            </div>
+          ) : (
+            <Input
+              {...register('title')}
+              className={getInputClass()}
+              placeholder="Enter A Compelling Title..."
+              error={errors.title?.message}
+            />
+          )}
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
@@ -309,7 +320,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-6 space-y-1.5">
-          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Capital Funding Goal (Ngn)</label>
+          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Capital Funding Goal (NGN)</label>
           <Controller
             control={control}
             name="targetAmount"
@@ -340,7 +351,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-base text-foreground leading-none">Visual Assets</h3>
-            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Photos and documents for proof of impact</p>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Photos & documents for proof of impact</p>
           </div>
         </div>
 
@@ -366,7 +377,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               </div>
             ) : (
               <div className="h-56">
-                <ImageUploader label="Upload A Beautiful Project Image" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
+                <ImageUploader label="Upload image" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
               </div>
             )}
           </div>
@@ -388,7 +399,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       </section>
 
-      {/* Financial and Strategic Sections */}
+      {/* Financial & Strategic Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         <Card className={cn(
           "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
@@ -400,7 +411,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             <div>
               <h3 className="font-bold text-base text-foreground leading-none">Financial Ledger</h3>
-              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed procurement and budget items</p>
+              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed procurement & budget items</p>
             </div>
           </div>
           <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
@@ -416,7 +427,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             <div>
               <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
-              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Key milestones and delivery schedule</p>
+              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Key milestones & delivery schedule</p>
             </div>
           </div>
           <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
@@ -439,7 +450,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             )}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
             {(isEditing || !initialData) && (
               <>
                 <Button
@@ -447,23 +458,40 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   disabled={isSubmitting}
                   onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
                   variant="secondary"
-                  className="flex-1 sm:flex-none rounded-3xl h-12 px-6 font-bold text-xs border border-border/60 bg-muted/40 shadow-none hover:bg-muted"
+                  className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px]
+               border border-border/60 bg-muted/40 shadow-none 
+               hover:bg-muted truncate"
                 >
-                  {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <FileText className="mr-2 h-4 w-4" />}
-                  Save Draft
+                  {isSubmitting ? (
+                    <Loader2 className="animate-spin h-4 w-4" />
+                  ) : (
+                    <div className="flex items-center justify-center gap-2 min-w-0">
+                      <FileText className="h-4 w-4 shrink-0" />
+                      <span className="truncate">Save Draft</span>
+                    </div>
+                  )}
                 </Button>
+
                 <Button
                   type="button"
                   disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
                   onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
-                  className="flex-[2] sm:flex-none rounded-3xl h-12 px-10 font-bold text-xs shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0"
+                  className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px]
+               shadow-xl shadow-primary/30 active:scale-[0.98] 
+               transition-all bg-primary text-white border-0 truncate"
                 >
                   {isSubmitting ? (
                     <Loader2 className="animate-spin h-5 w-5" />
                   ) : (
-                    <div className="flex items-center gap-2.5">
-                      {initialData ? <Save className="h-4.5 w-4.5" /> : <Send className="h-4.5 w-4.5" />}
-                      {initialData ? 'Publish Updates' : 'Launch Project'}
+                    <div className="flex items-center justify-center gap-2 min-w-0">
+                      {initialData ? (
+                        <Save className="h-4 w-4 shrink-0" />
+                      ) : (
+                        <Send className="h-4 w-4 shrink-0" />
+                      )}
+                      <span className="truncate">
+                        {initialData ? 'Publish Updates' : 'Launch Project'}
+                      </span>
                     </div>
                   )}
                 </Button>
@@ -471,15 +499,19 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             )}
 
             {initialData && !isEditing && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleStartEditing}
-                className="rounded-3xl h-12 px-8 font-bold gap-3 text-xs border-border/60 text-primary hover:bg-muted shadow-lg bg-background transition-all active:scale-[0.98]"
-              >
-                <LockOpen className="h-4 w-4" />
-                Unlock For Modification
-              </Button>
+              <div className="w-full flex justify-center sm:justify-start">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleStartEditing}
+                  className="rounded-3xl h-11 px-8 font-bold gap-3 text-xs 
+                 border-border/60 text-primary hover:bg-muted 
+                 shadow-lg bg-background transition-all active:scale-[0.98]"
+                >
+                  <LockOpen className="h-4 w-4" />
+                  Unlock For Modification
+                </Button>
+              </div>
             )}
           </div>
         </div>

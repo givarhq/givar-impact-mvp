@@ -8,7 +8,7 @@ import { ApiService } from '../../../../../services/api';
 
 export const metadata = {
   title: 'Cause Details',
-  description: 'View project narrative, execution plans, and real-time impact updates.',
+  description: 'View project narrative, execution plans, & real-time impact updates.',
 };
 
 async function getProject(slug: string) {
@@ -38,7 +38,7 @@ export default async function ProjectDetailsPage({
   }
 
   return (
-    <div className="w-full min-w-0 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+    <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500">
       {/* Navigation Header */}
       <div className="flex flex-col gap-4 px-1 min-w-0">
         <Link href="/dashboard/impact" className="w-fit">

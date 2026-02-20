@@ -131,7 +131,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
         const toastId = toast.loading('Triggering External Refund...');
         try {
             await ApiService.admin.resolveSuspense(refundModal.txId, { action: 'REFUND' });
-            toast.success('Refund Triggered And Ledger Marked Reversed', { id: toastId });
+            toast.success('Refund Triggered & Ledger Marked Reversed', { id: toastId });
             setRefundModal({ ...refundModal, isOpen: false });
             await refreshSuspense();
         } catch (e: any) {
@@ -142,7 +142,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
     };
 
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
             <div className="md:hidden">
                 <h1 className="text-xl font-bold tracking-tight text-foreground">Ledger Oversight</h1>
             </div>
@@ -379,7 +379,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 isLoading={isProcessing}
                 variant="warning"
                 title="Execute Dust Sweep"
-                description="This protocol will align the goals and finalize all stagnant project nodes with balances under ₦100. This action is audited and irreversible."
+                description="This protocol will align the goals & finalize all stagnant project nodes with balances under ₦100. This action is audited & irreversible."
                 confirmText="Execute Protocol"
             />
 
@@ -390,7 +390,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 isLoading={isProcessing}
                 variant="destructive"
                 title="Trigger Audit Refund"
-                description={`Initialize an automated external refund for ${refundModal.reference}? This procedure is forensic and irreversible.`}
+                description={`Initialize an automated external refund for ${refundModal.reference}? This procedure is forensic & irreversible.`}
                 confirmText="Confirm Refund"
             />
         </div>
