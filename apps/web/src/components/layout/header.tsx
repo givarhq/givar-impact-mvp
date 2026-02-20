@@ -25,6 +25,7 @@ import { ViewModeToggle } from './view-mode-toggle';
 import { WalletWidget } from './wallet-widget';
 import { UserGlobalSearch } from '../features/dashboard/user-global-search';
 import { NotificationBell } from './notification-bell';
+import { Skeleton } from '../ui/skeleton';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
@@ -68,9 +69,8 @@ export function Header({ user }: { user: any }) {
   const currentTitle = PAGE_TITLES[pathname] || 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center justify-between gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-border/40">
+    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center justify-between gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40">
 
-      {/* 1. Left Section: Title & Mobile Brand */}
       <div className="flex items-center flex-1 min-w-0">
         <div className="flex items-center gap-4">
           <div className="md:hidden flex items-center gap-3 shrink-0">
@@ -95,26 +95,29 @@ export function Header({ user }: { user: any }) {
         </div>
       </div>
 
-      {/* 2. Middle Section: Wide Centered Search Bar */}
       <div className="hidden md:flex flex-[3] justify-center px-8">
         <div className="w-full max-w-6xl">
           <UserGlobalSearch />
         </div>
       </div>
 
-      {/* 3. Right Section: User Actions & Profile */}
       <div className="flex items-center justify-end flex-1 gap-2 md:gap-3 shrink-0">
-        {isClient && ['ADMIN', 'SUPERADMIN'].includes(user?.role) && !isImpersonating && (
-          <ViewModeToggle currentRole={user.role} />
+        {!isClient ? (
+          <Skeleton className="hidden lg:flex h-8 w-24 rounded-3xl" />
+        ) : (
+          ['ADMIN', 'SUPERADMIN'].includes(user?.role) && !isImpersonating && (
+            <ViewModeToggle currentRole={user.role} />
+          )
         )}
 
         <div className="hidden lg:flex">
-          <WalletWidget />
+          {!isClient ? <Skeleton className="h-10 w-44 rounded-[22px]" /> : <WalletWidget />}
         </div>
 
-        {/* Logic: Bell integrated and visible on all screen sizes */}
-        {isClient && user && (
-          <NotificationBell />
+        {!isClient ? (
+          <Skeleton className="h-9 w-9 rounded-xl" />
+        ) : (
+          user && <NotificationBell />
         )}
 
         <div className="hidden md:block h-6 w-px bg-border/40 mx-1" />
@@ -123,9 +126,11 @@ export function Header({ user }: { user: any }) {
           <DropdownMenuTrigger asChild>
             <button className="group flex items-center gap-2.5 rounded-3xl pl-1 pr-1 md:pr-3 py-1 hover:bg-muted transition-all outline-none">
               <div className="relative h-8 w-8 md:h-9 md:w-9 overflow-hidden rounded-3xl border border-border/40 shadow-sm bg-primary/5 flex items-center justify-center text-primary shrink-0">
-                {isClient && avatarUrl ? (
-                  <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                ) : isClient && user?.firstName ? (
+                {!isClient ? (
+                  <Skeleton className="h-full w-full" />
+                ) : avatarUrl ? (
+                  <Image src={avatarUrl} alt="" fill className="object-cover" sizes="36px" />
+                ) : user?.firstName ? (
                   <span className="font-bold text-xs ">
                     {user.firstName[0]}
                   </span>
@@ -172,7 +177,7 @@ export function Header({ user }: { user: any }) {
 
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-3xl cursor-pointer py-2.5 gap-3">
               <LogOut className="h-4 w-4 ml-2" />
-              <span className="font-semibold text-sm">Sign out</span>
+              <span className="font-semibold text-sm">Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

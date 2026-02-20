@@ -27,6 +27,7 @@ import {
 } from '../ui/dropdown-menu';
 import { GlobalSearch } from '../features/admin/global-search';
 import { NotificationBell } from './notification-bell';
+import { Skeleton } from '../ui/skeleton';
 
 const PAGE_TITLES: Record<string, string> = {
   '/admin': 'Platform Overview',
@@ -67,7 +68,7 @@ export function AdminHeader({ user }: { user: any }) {
       deleteCookie('givar_admin_backup_user');
 
       router.push('/login');
-      toast.success("Session terminated securely");
+      toast.success("Session Terminated Securely");
     } catch (error) {
       deleteCookie('givar_token');
       deleteCookie('givar_user');
@@ -76,10 +77,9 @@ export function AdminHeader({ user }: { user: any }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-border/40 md:border-none">
+    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
       <div className="flex items-center justify-between w-full gap-4">
 
-        {/* Left Section: Title (Desktop) and Brand (Mobile) */}
         <div className="flex items-center min-w-0">
           <h1 className="text-lg md:text-xl font-semibold text-foreground hidden md:block truncate">
             {currentTitle}
@@ -117,20 +117,21 @@ export function AdminHeader({ user }: { user: any }) {
           </div>
         </div>
 
-        {/* Center Section: Search Bar (Desktop Only) */}
         <div className="hidden lg:flex items-center justify-center flex-1 max-w-lg">
           <GlobalSearch />
         </div>
 
-        {/* Right Section: Actions and Profile */}
         <div className="flex items-center gap-2 shrink-0">
-          {isClient && (
+          {!isClient ? (
+            <Skeleton className="hidden lg:flex h-8 w-32 rounded-3xl" />
+          ) : (
             <ViewModeToggle currentRole={user.role} />
           )}
 
-          {/* Logic: Bell is visible on all screens within the actions flexbox */}
-          {isClient && user && (
-            <NotificationBell />
+          {!isClient ? (
+            <Skeleton className="h-9 w-9 rounded-xl" />
+          ) : (
+            user && <NotificationBell />
           )}
 
           <DropdownMenu>
@@ -140,9 +141,11 @@ export function AdminHeader({ user }: { user: any }) {
                   "relative h-8 w-8 md:h-9 md:w-9 overflow-hidden rounded-3xl border border-border/40 shadow-sm flex items-center justify-center shrink-0",
                   isSuperAdmin ? "bg-purple-500/10 text-purple-600" : "bg-primary/5 text-primary"
                 )}>
-                  {isClient && avatarUrl ? (
-                    <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-                  ) : isClient && user?.firstName ? (
+                  {!isClient ? (
+                    <Skeleton className="h-full w-full" />
+                  ) : avatarUrl ? (
+                    <Image src={avatarUrl} alt="" fill className="object-cover" sizes="36px" />
+                  ) : user?.firstName ? (
                     <span className="font-semibold text-xs ">
                       {user.firstName[0]}
                     </span>

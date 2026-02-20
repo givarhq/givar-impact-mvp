@@ -2,6 +2,7 @@
 
 import React, { memo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Heart, Share2, Check, MapPin } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
@@ -29,15 +30,17 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
   return (
     <Card className="group flex flex-col rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       {/* Visual Header */}
-      <Link href={detailsLink} className="relative aspect-video overflow-hidden">
+      <Link href={detailsLink} className="relative aspect-video overflow-hidden bg-muted">
         {project.imageUrl ? (
-          <img
+          <Image
             src={project.imageUrl}
             alt={project.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="h-full w-full bg-muted flex items-center justify-center text-muted-foreground/20">
+          <div className="h-full w-full flex items-center justify-center text-muted-foreground/20">
             <Heart className="h-10 w-10 fill-current" />
           </div>
         )}
