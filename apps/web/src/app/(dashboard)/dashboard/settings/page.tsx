@@ -4,7 +4,7 @@ import { ApiService } from '../../../../services/api';
 import { SettingsClient } from '../../../../components/features/settings/settings-client';
 
 export const metadata = {
-    title: 'Account Settings',
+    title: 'Settings',
     description: 'Manage your profile, identity documents, security, & notification preferences.',
 };
 
