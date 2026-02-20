@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminProjectTable } from '../../../../components/features/admin/admin-project-table';
 import { AdminProposalTable } from '../../../../components/features/admin/admin-proposal-table';
 import { Pagination } from '../../../../components/features/history/pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs';
 import { BulkActionsToolbar } from '../../../../components/features/admin/bulk-actions-toolbar';
-import { ClipboardList, TrendingUp, FileBox } from 'lucide-react';
+import { TrendingUp, FileBox, ClipboardList } from 'lucide-react';
 
 interface ProjectsPageClientProps {
     activeTab: string;
@@ -16,7 +16,7 @@ interface ProjectsPageClientProps {
     searchParams: any;
 }
 
-export function ProjectsPageClient({
+export const ProjectsPageClient = memo(function ProjectsPageClient({
     activeTab,
     projectData,
     proposalData,
@@ -47,19 +47,21 @@ export function ProjectsPageClient({
     const activeMeta = activeTab === 'proposals' ? proposalData.meta : projectData.meta;
 
     return (
-        <div className="w-full min-w-0 flex-1">
+        <div className="w-full space-y-6">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6 min-w-0">
-                <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 w-full md:w-auto border border-border/40 shadow-inner shrink-0 overflow-x-auto no-scrollbar justify-start">
-                    <TabsTrigger value="live" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
-                        <TrendingUp className="h-3.5 w-3.5" /> Live
-                    </TabsTrigger>
-                    <TabsTrigger value="drafts" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
-                        <FileBox className="h-3.5 w-3.5" /> Drafts
-                    </TabsTrigger>
-                    <TabsTrigger value="proposals" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
-                        <ClipboardList className="h-3.5 w-3.5" /> Proposals
-                    </TabsTrigger>
-                </TabsList>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+                    <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 w-full md:w-auto border border-border/40 shadow-inner shrink-0 overflow-x-auto no-scrollbar justify-start">
+                        <TabsTrigger value="live" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                            <TrendingUp className="h-3.5 w-3.5" /> Live
+                        </TabsTrigger>
+                        <TabsTrigger value="drafts" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                            <FileBox className="h-3.5 w-3.5" /> Drafts
+                        </TabsTrigger>
+                        <TabsTrigger value="proposals" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                            <ClipboardList className="h-3.5 w-3.5" /> Proposals
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <div className="w-full min-w-0 overflow-hidden">
                     <TabsContent value="live" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -106,4 +108,4 @@ export function ProjectsPageClient({
             />
         </div>
     );
-}
+});
