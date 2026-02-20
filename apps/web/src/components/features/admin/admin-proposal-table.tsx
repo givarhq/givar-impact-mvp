@@ -56,7 +56,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
         return (
             <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-semibold text-foreground opacity-60 tracking-widest">Pipeline empty</h3>
+                <h3 className="text-sm font-semibold text-foreground opacity-60 tracking-widest">Pipeline Empty</h3>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">No proposals currently match your criteria.</p>
             </div>
         );
@@ -64,6 +64,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
 
     return (
         <div className="w-full overflow-hidden">
+            {/* MOBILE: High-Density Card List */}
             <div className="grid gap-2 md:hidden">
                 <div className={cn(
                     "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
@@ -75,7 +76,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                         checked={isAllSelected}
                         onChange={(e) => onSelectAll(e.target.checked)}
                     />
-                    <span className="text-xs font-semibold text-muted-foreground tracking-widest">Select all</span>
+                    <span className="text-xs font-semibold text-muted-foreground tracking-widest">Select All</span>
                 </div>
                 <AnimatePresence mode="popLayout">
                     {proposals.map((p) => {
@@ -86,6 +87,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                 layout
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.2 }}
                             >
                                 <Card
                                     className={cn(
@@ -122,7 +124,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                     </p>
                                                     <div className="flex items-center gap-2 mt-1.5">
                                                         <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                            id: {p.id.split('-')[0]}
+                                                            ID: {p.id.split('-')[0]}
                                                         </span>
                                                         <Badge
                                                             variant="outline"
@@ -165,6 +167,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                 </AnimatePresence>
             </div>
 
+            {/* DESKTOP: Forensic Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left border-collapse">
@@ -183,11 +186,11 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                         />
                                     </div>
                                 </th>
-                                <th className="px-5 py-3 font-semibold tracking-wider text-xs">Proposal details</th>
+                                <th className="px-5 py-3 font-semibold tracking-wider text-xs">Proposal Details</th>
                                 <th className="px-5 py-3 font-semibold tracking-wider text-xs">Proposer</th>
-                                <th className="px-5 py-3 font-semibold tracking-wider text-xs">Requested</th>
-                                <th className="px-5 py-3 font-semibold tracking-wider text-xs">Status</th>
-                                <th className="px-5 py-3 font-semibold tracking-wider text-xs text-right">Submitted</th>
+                                <th className="px-5 py-3 font-semibold tracking-wider text-xs">Requested Amount</th>
+                                <th className="px-5 py-3 font-semibold tracking-wider text-xs">Review Status</th>
+                                <th className="px-5 py-3 font-semibold tracking-wider text-xs text-right">Submitted Date</th>
                                 <th className="px-5 py-3"></th>
                             </tr>
                         </thead>
@@ -223,7 +226,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[11px] font-mono bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                        id: {p.id.split('-')[0]}
+                                                        ID: {p.id.split('-')[0]}
                                                     </span>
                                                     <span className="text-[11px] font-semibold text-primary/70 tracking-tight">
                                                         {p.category?.name}
