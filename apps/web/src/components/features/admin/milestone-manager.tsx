@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2,
@@ -200,9 +201,15 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="aspect-video rounded-[24px] overflow-hidden border border-border/40 bg-muted shadow-inner relative group"
+                    className="relative aspect-video rounded-[24px] overflow-hidden border border-border/40 bg-muted shadow-inner group"
                   >
-                    <img src={proofImageUrl} className="w-full h-full object-cover" alt="Phase Proof" />
+                    <Image
+                      src={proofImageUrl}
+                      alt="Phase Proof"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 400px"
+                      className="object-cover"
+                    />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Button variant="destructive" size="sm" className="rounded-full h-9 px-4" onClick={() => setProofImageUrl(null)}>
                         Change Image
