@@ -213,7 +213,7 @@ export const ApiService = {
       token
         ? serverFetch<any[]>('/projects/categories/list', token, {
           tags: ['categories'],
-          next: { revalidate: 86400 } // Categories are very stable
+          next: { revalidate: 0 } // Logic: Bypass cache so admin edits reflect instantly
         })
         : apiClient.get('/projects/categories/list').then(r => r.data),
 
@@ -414,13 +414,19 @@ export const ApiService = {
       }),
 
     getConfig: (token: string) =>
-      serverFetch<any>('/recommendations/admin/config', token, { tags: ['recommendation-config'] }),
+      serverFetch<any>('/recommendations/admin/config', token, {
+        tags: ['recommendation-config'],
+        next: { revalidate: 0 } // Logic: Ensure global config loads instantly upon save
+      }),
 
     updateConfig: (data: any) =>
       apiClient.patch('/recommendations/admin/config', data).then(r => r.data),
 
     getSlots: (token: string) =>
-      serverFetch<any[]>('/recommendations/admin/slots', token, { tags: ['featured-slots'] }),
+      serverFetch<any[]>('/recommendations/admin/slots', token, {
+        tags: ['featured-slots'],
+        next: { revalidate: 0 } // Logic: Ensure slots load instantly upon pin
+      }),
 
     createSlot: (data: { projectId: string; position: number; expiresAt?: string }) =>
       apiClient.post('/recommendations/admin/slots', data).then(r => r.data),
