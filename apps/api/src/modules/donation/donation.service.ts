@@ -309,9 +309,10 @@ export class DonationService {
   }
 
   async initiateDirectDonation(user: any | undefined, dto: InitiateDirectDonationDto) {
-    if (user && !user.emailVerified) {
-      throw new ForbiddenException('EMAIL_NOT_VERIFIED');
+    if (user && user.emailVerified === false) {
+      throw new ForbiddenException('Please verify your email address to use direct payments.');
     }
+
 
     const amountBig = BigInt(dto.amount);
 
@@ -332,8 +333,6 @@ export class DonationService {
       throw new BadRequestException('Project is not active or does not exist');
     }
 
-    // Note: We no longer check "amount > remainingNeeded" here to allow Paystack 
-    // to process the payment. The capping will happen in fulfillDirectDonation.
     if (project.status !== ProjectStatus.ACTIVE) {
       throw new BadRequestException(`Project is currently ${project.status.toLowerCase()} and cannot accept donations.`);
     }
