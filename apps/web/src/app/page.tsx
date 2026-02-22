@@ -1,9 +1,9 @@
 import { LandingHeader } from '../components/layout/landing-header';
-import { HeroSection, FeatureSection } from '../components/features/landing/hero-section';
-import { ArrowRight, Github, Twitter, Linkedin, CreditCard } from 'lucide-react';
+import { HeroSection } from '../components/features/landing/hero-section';
+import { Github, Twitter, Linkedin } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Button } from '../components/ui/button';
+import { ApiService } from '../services/api';
 
 async function getLandingStats() {
     try {
@@ -18,42 +18,28 @@ async function getLandingStats() {
 }
 
 export default async function LandingPage() {
+    // Logic: Retrieve real featured projects from the discovery engine to pass into the Hero section
+    let featuredProjects = [];
+    try {
+        const response = await ApiService.recommendations.getFeatured();
+        featuredProjects = response?.data || [];
+    } catch (error) {
+        console.error("Discovery Engine Unavailable For Landing Hydration");
+    }
+
     const stats = await getLandingStats();
 
     return (
-        <div className="min-h-screen bg-background text-foreground font-sans">
+        <div className="min-h-screen bg-[#fafafa] text-foreground font-sans selection:bg-primary/20">
 
             <LandingHeader />
 
-            <main>
-                <HeroSection stats={stats} />
-                <FeatureSection />
-
-                <section className="py-32 relative overflow-hidden bg-black text-white">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.15),transparent_70%)]" />
-
-                    <div className="container mx-auto px-6 relative z-10 text-center">
-                        <h2 className="text-4xl md:text-6xl font-bold mb-8 tracking-tight max-w-3xl mx-auto leading-tight">
-                            Ready to deploy your <br />
-                            <span className="text-primary">philanthropic capital?</span>
-                        </h2>
-                        <p className="text-zinc-400 text-lg md:text-xl max-w-xl mx-auto mb-12">
-                            Join the network of modern givers. Zero friction. 100% Transparency. Real-time Impact.
-                        </p>
-
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link href="/signup">
-                                <Button size="lg" className="h-16 px-12 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg shadow-[0_0_40px_hsl(var(--primary)/0.4)] transition-all hover:scale-105">
-                                    <CreditCard className="mr-2 h-6 w-6" /> Start Giving Now <ArrowRight className="ml-2 h-6 w-6" />
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </section>
+            <main className="overflow-hidden">
+                <HeroSection featuredProjects={featuredProjects} stats={stats} />
             </main>
 
-            <footer className="bg-zinc-50 border-t border-zinc-200 py-16">
-                <div className="container mx-auto px-6">
+            <footer className="bg-white border-t border-border/40 py-16">
+                <div className="container mx-auto px-6 max-w-6xl">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12">
                         <div className="space-y-6 max-w-sm">
                             <div className="flex items-center gap-2">
@@ -65,36 +51,34 @@ export default async function LandingPage() {
                                         className="object-contain"
                                     />
                                 </div>
-                                <span className="text-xl font-bold text-zinc-900">Givar.</span>
+                                <span className="text-xl font-bold text-foreground">Givar.</span>
                             </div>
-                            <p className="text-sm text-zinc-500 leading-relaxed">
-                                The operating system for modern philanthropy. We provide the infrastructure for transparent, verifiable, & frictionless giving.
+                            <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                                The Operating System For Modern Philanthropy. We Provide The Infrastructure For Transparent, Verifiable, And Frictionless Giving.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
                             <div>
-                                <h4 className="font-bold text-zinc-900 mb-4">Product</h4>
-                                <ul className="space-y-3 text-sm text-zinc-500">
-                                    <li><Link href="#" className="hover:text-primary transition-colors">Wallets</Link></li>
-                                    <li><Link href="#" className="hover:text-primary transition-colors">Ledger</Link></li>
-                                    <li><Link href="#" className="hover:text-primary transition-colors">API</Link></li>
+                                <h4 className="font-bold text-foreground mb-4">Product</h4>
+                                <ul className="space-y-3 text-sm font-medium text-muted-foreground">
+                                    <li><Link href="/signup" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
+                                    <li><Link href="/explore" className="hover:text-primary transition-colors">Public Ledger</Link></li>
                                 </ul>
                             </div>
 
                             <div>
-                                <h4 className="font-bold text-zinc-900 mb-4">Company</h4>
-                                <ul className="space-y-3 text-sm text-zinc-500">
-                                    <li><Link href="#" className="hover:text-primary transition-colors">Manifesto</Link></li>
-                                    <li><Link href="#" className="hover:text-primary transition-colors">Careers</Link></li>
-                                    <li><Link href="#" className="hover:text-primary transition-colors">Contact</Link></li>
+                                <h4 className="font-bold text-foreground mb-4">Company</h4>
+                                <ul className="space-y-3 text-sm font-medium text-muted-foreground">
+                                    <li><Link href="/about" className="hover:text-primary transition-colors">Our Manifesto</Link></li>
+                                    <li><Link href="#" className="hover:text-primary transition-colors">Contact Support</Link></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div className="border-t border-zinc-200 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-zinc-400">
-                        <div>&copy; {new Date().getFullYear()} Givar Inc.</div>
+                    <div className="border-t border-border/40 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-medium text-muted-foreground">
+                        <div>&copy; {new Date().getFullYear()} Givar Inc. All Rights Reserved.</div>
                         <div className="flex gap-6">
                             <Github className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
                             <Twitter className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />

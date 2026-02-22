@@ -1,13 +1,15 @@
 'use client';
 
+import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Wallet, ShieldCheck, Activity, CreditCard } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Wallet, Activity, Heart, ArrowRightCircle } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
-import { motion } from 'framer-motion';
-import { memo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ProjectCard } from '../impact/project-card';
+import { Project } from '../../../types';
 
 interface PlatformStats {
     totalVolume: string;
@@ -18,116 +20,114 @@ interface PlatformStats {
     } | null;
 }
 
-export const HeroSection = memo(function HeroSection({ stats }: { stats: PlatformStats }) {
+interface HeroSectionProps {
+    featuredProjects: Project[];
+    stats: PlatformStats;
+}
+
+export const HeroSection = memo(function HeroSection({ featuredProjects, stats }: HeroSectionProps) {
+    const displayProjects = featuredProjects.slice(0, 4);
+
     return (
-        <div className="relative min-h-screen w-full flex flex-col justify-start md:justify-end overflow-hidden bg-black">
-            {/* BACKGROUND LAYER */}
-            <div className="absolute inset-0 z-0">
-                <Image
-                    src="/Givar3.png"
-                    alt="Givar Impact"
-                    fill
-                    className="object-cover opacity-90 scale-105 animate-in fade-in duration-1000"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-            </div>
+        <div className="w-full flex flex-col items-center">
 
-            {/* CONTENT LAYER */}
-            <div className="relative z-10 container mx-auto px-6 pb-20 md:pb-32 pt-32">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.1 }}
-                    className="max-w-3xl space-y-8"
-                >
+            {/* HERO SECTION */}
+            <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 pt-32 md:pt-14 pb-12 md:pb-16">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-center">
 
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-white leading-[0.95]">
-                        Transparency is <br />
-                        the new <span className="text-primary">currency.</span>
-                    </h1>
+                    {/* Left Copy */}
+                    <div className="flex flex-col space-y-8 z-10">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="space-y-8"
+                        >
+                            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-emerald-950 leading-[1.1] md:leading-[1.05]">
+                                Give With <br />
+                                <span className="text-primary">Confidence</span>
+                            </h1>
 
-                    <p className="text-lg md:text-xl text-zinc-300 max-w-xl leading-relaxed font-light">
-                        Don't just give. Invest in impact. The first philanthropy protocol that tracks every cent from your wallet to the project's execution.
-                    </p>
+                            <div className="space-y-6 max-w-lg">
+                                <p className="text-lg sm:text-xl text-muted-foreground font-medium leading-relaxed tracking-tight">
+                                    Ever wanted to give, but weren't sure where your money would go?
+                                </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                        <Link href="/explore">
-                            {/* Guest Giving CTA */}
-                            <Button className="h-14 px-8 rounded-full bg-white text-black hover:bg-zinc-200 font-bold text-base transition-transform hover:scale-105 active:scale-95">
-                                <CreditCard className="mr-2 h-5 w-5" /> Explore Causes
-                            </Button>
-                        </Link>
-                        <Link href="/signup">
-                            <Button variant="ghost" className="h-14 px-8 rounded-full text-white hover:bg-white/10 border border-white/20 backdrop-blur-sm gap-2">
-                                Create Wallet
-                            </Button>
-                        </Link>
-                    </div>
-                </motion.div>
+                                <div className="space-y-2">
+                                    <p className="text-md font-bold text-primary tracking-[0.02em]">
+                                        With Givar, every donation is
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+                                        {['Traceable', 'Transparent', 'Impactful'].map((text) => (
+                                            <div key={text} className="flex items-center gap-2.5 group">
+                                                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner transition-transform group-hover:scale-110">
+                                                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                                                </div>
+                                                <span className="text-sm sm:text-base font-bold text-emerald-950 tracking-tight">{text}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
 
-                {/* DASHBOARD SNIPPET AFFIX */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="mt-16 md:mt-24 relative w-full"
-                >
-                    {/* Desktop Snippet */}
-                    <div className="hidden lg:block w-full max-w-5xl">
-                        <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
-                            <Image
-                                src="/Givar-desk.png"
-                                alt="Givar Dashboard Desktop"
-                                width={1920}
-                                height={1080}
-                                quality={100}
-                                unoptimized
-                                className="w-full h-auto object-contain"
-                                priority
-                            />
-                        </div>
+                            <div className="flex flex-row gap-4 pt-2">
+                                <Link href="/explore" className="flex-1">
+                                    <Button className="w-full h-12 sm:h-14 px-2 sm:px-6 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-sm sm:text-base shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                                        Explore Causes <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                                    </Button>
+                                </Link>
+
+                                <Link href="/signup" className="flex-1">
+                                    <Button
+                                        variant="outline"
+                                        className="w-full h-12 sm:h-14 px-2 sm:px-6 rounded-full bg-white text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
+                                    >
+                                        Create Account
+                                    </Button>
+                                </Link>
+                            </div>
+                        </motion.div>
                     </div>
 
-                    {/* Mobile Snippet */}
-                    <div className="lg:hidden w-full max-w-[320px] mx-auto">
-                        <div className="relative rounded-[22px] overflow-hidden border border-white/10 shadow-2xl shadow-primary/10">
-                            <Image
-                                src="/Givar-mob.png"
-                                alt="Givar Dashboard Mobile"
-                                width={640}
-                                height={1386}
-                                quality={100}
-                                unoptimized
-                                className="w-full h-auto object-contain"
-                                priority
-                            />
-                        </div>
-                    </div>
-                </motion.div>
+                    {/* Right Image Asset - Comes before mobile card in DOM for ordering */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                        className="relative w-full aspect-square lg:aspect-auto lg:h-[600px] flex items-center justify-center -mt-8 lg:mt-0"
+                    >
+                        <Image
+                            src="/Land.jpg"
+                            alt="Givar Impact Visualization"
+                            fill
+                            priority
+                            sizes="(max-width: 1024px) 100vw, 50vw"
+                            className="object-contain mix-blend-multiply"
+                        />
+                    </motion.div>
+                </div>
 
-                {/* FLOATING GLASS STATS - REAL DATA */}
+                {/* Mobile Specific Data Card - Positioned after Land.jpg in flow */}
                 <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.8, delay: 0.5 }}
-                    className="absolute right-6 bottom-10 hidden lg:block"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="lg:hidden w-full pt-8"
                 >
-                    <Card className="w-80 border-white/10 bg-black/40 backdrop-blur-xl p-5 text-white shadow-2xl rounded-2xl">
+                    <Card className="w-full border-white/40 bg-white/60 backdrop-blur-xl p-5 text-emerald-950 shadow-[0_10px_30px_rgba(0,0,0,0.05)] rounded-3xl">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                            <div className="h-10 w-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
                                 <Activity className="h-5 w-5" />
                             </div>
-                            <div>
-                                <p className="text-xs text-zinc-400 font-medium">Real-time Volume</p>
-                                <div className="text-lg font-bold font-mono">
+                            <div className="min-w-0">
+                                <p className="text-xs text-emerald-900/60 font-bold">Real-Time Volume</p>
+                                <div className="text-lg font-black font-mono truncate">
                                     <SmartCurrency
                                         amount={stats.totalVolume}
                                         currency="NGN"
                                         visible={true}
                                         size="default"
-                                        className="text-white"
+                                        className="text-emerald-950"
                                     />
                                 </div>
                             </div>
@@ -135,9 +135,9 @@ export const HeroSection = memo(function HeroSection({ stats }: { stats: Platfor
 
                         {stats.latestDonation ? (
                             <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                    <span className="text-zinc-400 truncate max-w-[120px]">{stats.latestDonation.projectTitle}</span>
-                                    <span className="text-primary font-mono">
+                                <div className="flex justify-between items-center text-[11px] font-bold">
+                                    <span className="text-emerald-900/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
+                                    <span className="text-primary font-mono shrink-0">
                                         + <SmartCurrency
                                             amount={stats.latestDonation.amount}
                                             currency="NGN"
@@ -146,72 +146,241 @@ export const HeroSection = memo(function HeroSection({ stats }: { stats: Platfor
                                         />
                                     </span>
                                 </div>
-                                <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-1 w-full bg-emerald-900/5 rounded-full overflow-hidden">
                                     <div className="h-full bg-primary w-full animate-pulse" />
-                                </div>
-                                <div className="flex justify-between text-xs text-zinc-500 pt-1">
-                                    <span>Just now</span>
-                                    <span>Verified on-chain</span>
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-xs text-zinc-500">Waiting for first donation...</div>
+                            <div className="text-xs text-emerald-900/30 font-bold italic">Waiting For First Donation...</div>
                         )}
                     </Card>
                 </motion.div>
-            </div>
-        </div>
-    );
-});
 
-export function FeatureSection() {
-    const features = [
-        {
-            icon: Wallet,
-            title: "Smart Wallets",
-            desc: "Segregate your funds. Automate recurring donations. Manage giving like a portfolio."
-        },
-        {
-            icon: ShieldCheck,
-            title: "Zero-Knowledge Trust",
-            desc: "Projects prove impact without exposing sensitive beneficiary data. Security meets transparency."
-        },
-        {
-            icon: Activity,
-            title: "Direct Routing",
-            desc: "No middlemen. Funds move from your wallet to the project's verified account instantly."
-        }
-    ];
+                {/* Desktop Floating Glass Card */}
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, delay: 0.5 }}
+                    className="absolute right-6 bottom-10 hidden lg:block z-20"
+                >
+                    <Card className="w-80 border-white/40 bg-white/60 backdrop-blur-xl p-5 text-emerald-950 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                                <Activity className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-emerald-900/60 font-bold">Real-Time Volume</p>
+                                <div className="text-lg font-black font-mono">
+                                    <SmartCurrency
+                                        amount={stats.totalVolume}
+                                        currency="NGN"
+                                        visible={true}
+                                        size="default"
+                                        className="text-emerald-950"
+                                    />
+                                </div>
+                            </div>
+                        </div>
 
-    return (
-        <div id="features" className="py-24 bg-zinc-50 relative">
-            <div className="container mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-                    <div className="max-w-2xl">
-                        <h2 className="text-4xl font-bold tracking-tight text-zinc-900 mb-4">Why Givar?</h2>
-                        <p className="text-zinc-500 text-lg">Traditional charity is a black box. We built a glass house.</p>
-                    </div>
-                    <Link href="/signup">
-                        <Button variant="link" className="text-primary font-semibold p-0 h-auto hover:no-underline group">
-                            Explore the tech <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                        </Button>
+                        {stats.latestDonation ? (
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center text-xs font-bold">
+                                    <span className="text-emerald-900/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
+                                    <span className="text-primary font-mono shrink-0">
+                                        + <SmartCurrency
+                                            amount={stats.latestDonation.amount}
+                                            currency="NGN"
+                                            visible={true}
+                                            className="text-primary"
+                                        />
+                                    </span>
+                                </div>
+                                <div className="h-1 w-full bg-emerald-900/5 rounded-full overflow-hidden">
+                                    <div className="h-full bg-primary w-full animate-pulse" />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-emerald-900/30 font-bold pt-1 tracking-widest">
+                                    <span>Just Now</span>
+                                    <span>Verified On-Chain</span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-emerald-900/30 font-bold italic">Waiting For First Donation...</div>
+                        )}
+                    </Card>
+                </motion.div>
+            </section>
+
+            {/* HOW IT WORKS (COMPACT VERSION) */}
+            <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See Real-Time Impact</h2>
+                    <p className="text-muted-foreground font-medium mt-4 max-w-xl mx-auto">Follow Your Capital From The Moment It Leaves Your Wallet To The Exact Moment It Changes A Life.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
+                    <div className="hidden md:block absolute top-1/2 left-[10%] right-[10%] h-px bg-gradient-to-r from-transparent via-border to-transparent -translate-y-1/2 z-0" />
+
+                    {/* Step 1 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="relative z-10 bg-white rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                    >
+                        <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-base shadow-lg shadow-primary/20 transition-transform group-hover:scale-110">1</div>
+                        <div className="h-12 w-12 bg-primary/5 rounded-2xl flex items-center justify-center mb-4 border border-primary/10">
+                            <Wallet className="h-6 w-6 text-primary" />
+                        </div>
+                        <h3 className="text-lg font-bold text-foreground mb-2">You Contribute</h3>
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support A Verified Community Cause Instantly Through Your Dedicated Smart Wallet.</p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-xl border border-border/60 text-[10px] font-bold text-foreground w-fit">
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Capital Deployed
+                        </div>
+                    </motion.div>
+
+                    {/* Step 2 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 }}
+                        className="relative z-10 bg-white rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                    >
+                        <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-110">2</div>
+                        <div className="h-12 w-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 border border-blue-100">
+                            <Activity className="h-6 w-6 text-blue-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-foreground mb-2">Impact Happens</h3>
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Treasury Funds Are Released Directly To Verified Vendors To Execute The Mission.</p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-xl border border-blue-100 text-[10px] font-bold text-blue-700 w-fit">
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Milestone Achieved
+                        </div>
+                    </motion.div>
+
+                    {/* Step 3 */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2 }}
+                        className="relative z-10 bg-white rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                    >
+                        <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-base shadow-lg shadow-amber-500/20 transition-transform group-hover:scale-110">3</div>
+                        <div className="h-12 w-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 border border-amber-100">
+                            <Heart className="h-6 w-6 text-amber-500 fill-current" />
+                        </div>
+                        <h3 className="text-lg font-bold text-foreground mb-2">You Get Proof</h3>
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Photographic Evidence And Project Receipts Are Uploaded To The Public Ledger.</p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-xl border border-border/10 text-[10px] font-bold text-emerald-700 w-fit">
+                            <ShieldCheck className="h-3 w-3" /> Ledger Verified
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* FEATURED CAUSES */}
+            <section className="w-full max-w-6xl mx-auto px-6 py-20 border-t border-border/40">
+                <div className="flex items-center justify-between mb-10">
+                    <h2 className="text-3xl font-extrabold text-foreground tracking-tight">Featured Causes</h2>
+                    <Link
+                        href="/explore"
+                        className="flex items-center text-sm font-bold text-primary hover:underline underline-offset-4 hidden sm:flex"
+                    >
+                        <span>View all causes</span>
+                        <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8">
-                    {features.map((f, i) => (
-                        <div key={i} className="group p-8 rounded-3xl bg-white border border-zinc-100 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-2 transition-all duration-300">
-                            <div className="h-14 w-14 rounded-2xl bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-900 mb-6 group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-colors">
-                                <f.icon className="h-7 w-7" />
-                            </div>
-                            <h3 className="text-xl font-bold mb-3 text-zinc-900">{f.title}</h3>
-                            <p className="text-zinc-500 leading-relaxed">
-                                {f.desc}
-                            </p>
-                        </div>
-                    ))}
+                {displayProjects.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {displayProjects.map((project, index) => (
+                            <motion.div
+                                key={project.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <ProjectCard
+                                    project={project as any}
+                                    onDonate={() => { }}
+                                    onShare={() => { }}
+                                    isPublic={true}
+                                />
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="p-16 text-center bg-white rounded-[32px] border border-border/40 shadow-sm">
+                        <Activity className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
+                        <p className="font-bold text-muted-foreground text-sm">Discovering Platform Causes...</p>
+                    </div>
+                )}
+
+                <div className="mt-10 text-center sm:hidden">
+                    <Link href="/explore">
+                        <Button variant="outline" className="w-full h-12 rounded-3xl font-bold border-border/60">View all causes  <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                    </Link>
                 </div>
-            </div>
+            </section>
+
+            {/* TRUST SECTION */}
+            <section className="w-full max-w-5xl mx-auto px-6 py-20 border-t border-border/40 text-center">
+                <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-12">
+                    Why People <span className="text-primary">Trust</span> Givar
+                </h2>
+
+                <div className="flex flex-wrap justify-center gap-4 mb-10">
+                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
+                        <div className="h-10 w-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shrink-0">
+                            <ShieldCheck className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                            <h4 className="font-bold text-sm text-foreground">Verified Causes</h4>
+                            <p className="text-[11px] text-muted-foreground font-medium">Every Campaign Vetted</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
+                        <div className="h-10 w-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 shrink-0">
+                            <Wallet className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                            <h4 className="font-bold text-sm text-foreground">Direct Payments</h4>
+                            <p className="text-[11px] text-muted-foreground font-medium">No Middlemen</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
+                        <div className="h-10 w-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 shrink-0">
+                            <Activity className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                            <h4 className="font-bold text-sm text-foreground">Transparent Tracking</h4>
+                            <p className="text-[11px] text-muted-foreground font-medium">See Every Update</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
+                        <div className="h-10 w-10 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 shrink-0">
+                            <Heart className="h-5 w-5" />
+                        </div>
+                        <div className="text-left">
+                            <h4 className="font-bold text-sm text-foreground">Real Impact</h4>
+                            <p className="text-[11px] text-muted-foreground font-medium">Proof Delivered</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap justify-center items-center gap-3 text-xs font-bold text-muted-foreground">
+                    <span>Instant Setup</span>
+                    <span>•</span>
+                    <span>Secure & Private</span>
+                    <span>•</span>
+                    <span>No Platform Fees</span>
+                </div>
+            </section>
+
         </div>
     );
-}
+});
