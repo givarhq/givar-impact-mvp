@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle2, XCircle, ArrowRight, Loader2, ShieldCheck, Wallet } from 'lucide-react';
+import { CheckCircle2, XCircle, ArrowRight, Loader2, ShieldCheck, Wallet, Heart } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent } from '../../../components/ui/card';
 import { ApiService } from '../../../services/api';
@@ -13,6 +13,7 @@ function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [result, setResult] = useState<any>(null);
   const reference = searchParams.get('reference');
   const attempts = useRef(0);
   const MAX_ATTEMPTS = 5;
@@ -27,6 +28,7 @@ function CallbackContent() {
       try {
         const res = await ApiService.wallet.verifyTransaction(reference);
         if (res.status === 'success') {
+          setResult(res);
           setStatus('success');
         } else if (attempts.current < MAX_ATTEMPTS) {
           attempts.current++;
@@ -55,7 +57,7 @@ function CallbackContent() {
           <div className="space-y-2 min-w-0">
             <h2 className="text-2xl font-bold tracking-tight text-foreground">Confirming Payment</h2>
             <p className="text-muted-foreground text-sm max-w-[240px] font-medium leading-relaxed">
-              Updating your personal ledger with the latest transaction data.
+              Updating the ledger with the latest transaction data.
             </p>
           </div>
         </div>
@@ -68,23 +70,39 @@ function CallbackContent() {
               <CheckCircle2 className="h-12 w-12" />
             </div>
             <div className="absolute -top-1 -right-1 h-9 w-9 bg-background rounded-2xl border border-border/40 flex items-center justify-center shadow-md">
-              <Wallet className="h-4 w-4 text-primary" />
+              {result?.type === 'DIRECT_DONATION' ? (
+                <Heart className="h-4 w-4 text-primary fill-current" />
+              ) : (
+                <Wallet className="h-4 w-4 text-primary" />
+              )}
             </div>
           </div>
 
           <div className="space-y-3 min-w-0">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Wallet Funded</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              {result?.type === 'DIRECT_DONATION' ? 'Impact Secured' : 'Wallet Funded'}
+            </h2>
             <p className="text-muted-foreground leading-relaxed text-sm max-w-xs mx-auto font-medium">
-              Your transfer was successful. The funds are now available in your wallet to support any cause.
+              {result?.type === 'DIRECT_DONATION'
+                ? `Your contribution to "${result.project?.title || 'this cause'}" has been verified on the ledger.`
+                : 'Your transfer was successful. The funds are now available in your wallet.'}
             </p>
           </div>
 
           <div className="pt-4 w-full min-w-0">
-            <Link href="/dashboard" className="block w-full">
-              <Button className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform border-0">
-                Go to Dashboard <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
+            {result?.type === 'DIRECT_DONATION' && result?.project?.slug ? (
+              <Link href={`/explore/${result.project.slug}`} className="block w-full">
+                <Button className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform border-0">
+                  Return to Cause <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/dashboard" className="block w-full">
+                <Button className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform border-0">
+                  Go to Dashboard <ArrowRight className="ml-1 h-4 w-4" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}

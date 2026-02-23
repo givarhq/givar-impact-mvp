@@ -197,40 +197,6 @@ export class WalletService {
     return true;
   }
 
-  private async processDirectDonation(data: any) {
-    const { reference, amount, currency, metadata } = data;
-    const { userId, projectId, guestEmail, guestName } = metadata;
-
-    if (!userId || !projectId) {
-      this.logger.warn(`Direct donation webhook missing required metadata`, { reference });
-      return;
-    }
-
-    try {
-      await this.donationService.fulfillDirectDonation({
-        userId,
-        projectId,
-        amount: BigInt(amount),
-        currency: currency as Currency,
-        reference,
-        guestEmail,
-        guestName,
-        channel: data.channel
-      });
-
-      this.logger.log(`Direct donation successfully fulfilled: ${amount} ${currency}`);
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        this.logger.log(`Idempotent skip: duplicate direct donation webhook`, { reference });
-      } else {
-        this.logger.error('Failed to process direct donation webhook', {
-          error: error instanceof Error ? error.message : String(error),
-          reference,
-        });
-      }
-    }
-  }
-
   private async processSuccessfulFunding(data: any) {
     const { reference, amount, currency, metadata } = data;
     const userId = metadata?.userId;
@@ -249,6 +215,7 @@ export class WalletService {
         reference,
         status: TxStatus.COMPLETED,
         description: 'Wallet funding via Paystack',
+        metadata: { channel: data.channel }
       });
 
       const user = await this.prisma.user.findUnique({
@@ -414,25 +381,61 @@ export class WalletService {
   /**
    * Unified Verification
    * Checks WalletTransactions, Donations, and GuestDonations for a reference.
+   * Returns context about the transaction for frontend customization.
    */
   async verifyAnyTransaction(reference: string) {
-    // Check for standard Wallet Funding or User Direct Donation
+    // 1. Check Wallet Transaction (Registered User)
     const walletTx = await this.prisma.walletTransaction.findUnique({
       where: { reference },
-      select: { status: true }
+      include: {
+        donation: {
+          include: {
+            project: {
+              select: { title: true, slug: true }
+            }
+          }
+        }
+      }
     });
 
-    if (walletTx?.status === 'COMPLETED') return { status: 'success' };
+    if (walletTx) {
+      if (walletTx.status === 'COMPLETED') {
+        // If it has a donation linked, it's a direct donation (User)
+        if (walletTx.donation) {
+          return {
+            status: 'success',
+            type: 'DIRECT_DONATION',
+            project: walletTx.donation.project
+          };
+        }
+        // Otherwise it's wallet funding
+        return { status: 'success', type: 'WALLET_FUNDING' };
+      }
+      return { status: walletTx.status.toLowerCase() }; // pending, failed
+    }
 
-    // Check for Guest Donation
+    // 2. Check Guest Donation
     const guestDonation = await this.prisma.guestDonation.findUnique({
       where: { reference },
-      select: { status: true }
+      include: {
+        project: {
+          select: { title: true, slug: true }
+        }
+      }
     });
 
-    if (guestDonation?.status === 'COMPLETED') return { status: 'success' };
+    if (guestDonation) {
+      if (guestDonation.status === 'COMPLETED') {
+        return {
+          status: 'success',
+          type: 'DIRECT_DONATION',
+          project: guestDonation.project
+        };
+      }
+      return { status: guestDonation.status.toLowerCase() };
+    }
 
-    // If not found yet, return pending to trigger frontend retry
+    // Not found yet
     return { status: 'pending' };
   }
 

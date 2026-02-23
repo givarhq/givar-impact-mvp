@@ -73,6 +73,7 @@ export class WalletRepository {
       reference: string;
       description?: string;
       status?: TxStatus;
+      metadata?: Prisma.InputJsonValue;
     },
     externalTx?: Prisma.TransactionClient,
   ): Promise<{
@@ -106,12 +107,13 @@ export class WalletRepository {
       reference: string;
       description?: string;
       status?: TxStatus;
+      metadata?: Prisma.InputJsonValue;
     },
   ): Promise<{
     transaction: Prisma.WalletTransactionGetPayload<{}>;
     newBalance: bigint;
   }> {
-    const { userId, amount, currency, type, reference, description, status } = params;
+    const { userId, amount, currency, type, reference, description, status, metadata } = params;
 
     if (amount <= 0n) {
       throw new BadRequestException('Transaction amount must be positive');
@@ -156,6 +158,7 @@ export class WalletRepository {
           status: status || TxStatus.COMPLETED,
           reference,
           description,
+          metadata: metadata || Prisma.JsonNull,
         },
       });
 
