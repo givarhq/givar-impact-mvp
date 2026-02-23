@@ -51,11 +51,19 @@ export default function TrustPage() {
 
   const handleSubmitForReview = async () => {
     setIsSubmitting(true);
+
+    // Logic: Optimistically set the status to SUBMITTED instantly.
+    // This immediately kills the auto-save hook timer in the background 
+    // to prevent the 403 Forbidden race condition.
+    updateField('status', 'SUBMITTED');
+
     try {
       await ApiService.proposals.submit(proposalId);
       toast.success('Submitted for formal review');
       router.push('/dashboard/proposals');
     } catch (error: any) {
+      // Rollback status if network fails so the user can keep editing
+      updateField('status', 'DRAFT');
       const message = error.response?.data?.message || 'Please verify all required fields.';
       toast.error(message);
     } finally {

@@ -28,6 +28,7 @@ export interface MediaItem {
 
 interface ProposalState {
   id: string | null;
+  status: string | null; // Added to track lock state
   title: string;
   shortDesc: string | null;
   description: string | null;
@@ -40,7 +41,7 @@ interface ProposalState {
   coverImageKey: string | null;
   gallery: MediaItem[];
   videoUrl: string | null;
-  
+
   budgetBreakdown: BudgetItem[];
   executionTimeline: TimelineItem[];
   riskAnalysis: string | null;
@@ -52,12 +53,12 @@ interface ProposalState {
 
   setProposal: (proposal: any) => void;
   updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem'>>(
-    field: K, 
+    field: K,
     value: ProposalState[K]
   ) => void;
-  
+
   saveDraft: () => Promise<void>;
-  
+
   addGalleryItem: (item: MediaItem) => void;
   removeGalleryItem: (id: string) => void;
   updateGalleryItem: (id: string, updates: Partial<MediaItem>) => void;
@@ -70,6 +71,7 @@ export const useProposalStore = create<ProposalState>()(
   devtools((set, get) => ({
     // Initial State
     id: null,
+    status: null,
     title: '',
     shortDesc: null,
     description: null,
@@ -93,49 +95,50 @@ export const useProposalStore = create<ProposalState>()(
     beneficiaryContact: null,
 
     setProposal: (proposal) => set(state => {
-        const gallery = Array.isArray(proposal.gallery) 
-            ? proposal.gallery.map((item: any) => ({
-                ...item,
-                key: item.url,
-                url: '',
-            })) 
-            : [];
-        const budget = proposal.budgetBreakdown && typeof proposal.budgetBreakdown === 'object' ? proposal.budgetBreakdown : [];
-        const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object' ? proposal.executionTimeline : [];
-        
-        return { 
-            ...state, 
-            ...proposal,
-            targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
-            coverImageKey: proposal.coverImage,
-            gallery,
-            budgetBreakdown: budget,
-            executionTimeline: timeline,
-        };
+      const gallery = Array.isArray(proposal.gallery)
+        ? proposal.gallery.map((item: any) => ({
+          ...item,
+          key: item.url,
+          url: '',
+        }))
+        : [];
+      const budget = proposal.budgetBreakdown && typeof proposal.budgetBreakdown === 'object' ? proposal.budgetBreakdown : [];
+      const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object' ? proposal.executionTimeline : [];
+
+      return {
+        ...state,
+        ...proposal,
+        status: proposal.status || null,
+        targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
+        coverImageKey: proposal.coverImage,
+        gallery,
+        budgetBreakdown: budget,
+        executionTimeline: timeline,
+      };
     }),
 
     updateField: (field, value) => {
-        set({ [field]: value });
-        get().saveDraft();
+      set({ [field]: value });
+      get().saveDraft();
     },
-    
+
     saveDraft: async () => {
-        // The useProposalAutoSave hook handles the actual network request.
+      // The useProposalAutoSave hook handles the actual network request.
     },
 
     addGalleryItem: (item) => {
-        set(state => ({ gallery: [...state.gallery, item] }));
-        get().saveDraft();
+      set(state => ({ gallery: [...state.gallery, item] }));
+      get().saveDraft();
     },
     removeGalleryItem: (id) => {
-        set(state => ({ gallery: state.gallery.filter(item => item.id !== id) }));
-        get().saveDraft();
+      set(state => ({ gallery: state.gallery.filter(item => item.id !== id) }));
+      get().saveDraft();
     },
     updateGalleryItem: (id, updates) => {
-        set(state => ({
-            gallery: state.gallery.map(item => item.id === id ? { ...item, ...updates } : item)
-        }));
-        get().saveDraft();
+      set(state => ({
+        gallery: state.gallery.map(item => item.id === id ? { ...item, ...updates } : item)
+      }));
+      get().saveDraft();
     },
 
     addKycDocument: (key) => set(state => ({ kycDocuments: [...state.kycDocuments, key] })),
