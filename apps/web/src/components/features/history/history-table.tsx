@@ -15,7 +15,9 @@ import {
     ExternalLink,
     ArrowUp,
     Download,
-    Loader2
+    Loader2,
+    CreditCard,
+    Wallet
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -41,36 +43,6 @@ const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> 
     REVERSED: { icon: XCircle, text: 'text-muted-foreground' },
 };
 
-const SortableHeader = ({
-    column,
-    title,
-    sortBy,
-    sortOrder,
-    onSort,
-    className = ''
-}: {
-    column: string;
-    title: string;
-    sortBy: string;
-    sortOrder: string;
-    onSort: (column: any) => void;
-    className?: string;
-}) => {
-    const isActive = sortBy === column;
-    return (
-        <th className={cn("px-6 py-4 font-semibold text-muted-foreground transition-colors hover:text-foreground", className)}>
-            <button className="flex items-center gap-2 group outline-none" onClick={() => onSort(column)}>
-                {title}
-                {isActive ? (
-                    <ArrowUp className="h-3.5 w-3.5 text-primary" />
-                ) : (
-                    <ArrowUp className="h-3.5 w-3.5 opacity-0 group-hover:opacity-50 transition-opacity" />
-                )}
-            </button>
-        </th>
-    );
-};
-
 export const HistoryTable = memo(function HistoryTable({
     transactions,
     sortBy,
@@ -87,20 +59,44 @@ export const HistoryTable = memo(function HistoryTable({
 
     const copyReference = (ref: string) => {
         navigator.clipboard.writeText(ref);
-        toast.success('Reference Copied To Clipboard');
+        toast.success('Reference copied to clipboard');
     };
 
     const handleDownloadReceipt = async (tx: Transaction) => {
         setIsGenerating(true);
-        const loadToast = toast.loading('Preparing Your Official Impact Receipt...');
+        const loadToast = toast.loading('Preparing your impact receipt...');
         try {
             await generateImpactReceipt(tx);
-            toast.success('Receipt Successfully Downloaded', { id: loadToast });
+            toast.success('Receipt successfully downloaded', { id: loadToast });
         } catch (err) {
-            toast.error('We Could Not Generate Your Receipt Right Now', { id: loadToast });
+            toast.error('We could not generate your receipt right now', { id: loadToast });
         } finally {
             setIsGenerating(false);
         }
+    };
+
+    const getPaymentContext = (tx: Transaction) => {
+        // 1. Direct Donations (Debit via Paystack)
+        if (tx.type === 'DEBIT' && tx.reference.startsWith('DON-')) {
+            return { label: 'Givar Wallet', method: 'Wallet Balance' };
+        }
+        if (tx.type === 'DEBIT' && !tx.reference.startsWith('DON-')) {
+            return { label: 'Direct Payment', method: `Paystack • ${tx.metadata?.channel || 'Card'}` };
+        }
+
+        // 2. Wallet Funding (Credit via Paystack)
+        if (tx.type === 'CREDIT' && tx.metadata?.channel) {
+            const method = tx.metadata.channel.charAt(0).toUpperCase() + tx.metadata.channel.slice(1).replace('_', ' ');
+            return { label: 'Payment Gateway', method: `Paystack • ${method}` };
+        }
+
+        // 3. System Credits (Refunds, etc)
+        if (tx.type === 'CREDIT') {
+            return { label: 'Source', method: 'System Transfer' };
+        }
+
+        // Fallback
+        return { label: 'Payment Method', method: 'Wallet Balance' };
     };
 
     if (transactions.length === 0) {
@@ -218,28 +214,33 @@ export const HistoryTable = memo(function HistoryTable({
                     {selectedTx && (
                         <div className="p-5 md:p-6 space-y-4 overflow-hidden">
                             <DialogHeader className="space-y-2">
-                                <DialogTitle className="text-lg font-bold tracking-tight leading-none text-foreground">Transaction Details</DialogTitle>
+                                <DialogTitle className="text-lg font-bold tracking-tight leading-none text-foreground">
+                                    {selectedTx.type === 'CREDIT' ? 'Funding Details' : 'Contribution Details'}
+                                </DialogTitle>
                             </DialogHeader>
 
                             <div className="text-center p-6 rounded-3xl bg-muted/30 border border-border/40 relative overflow-hidden shadow-inner">
                                 <div className="absolute top-0 right-0 p-4 opacity-5">
                                     <FileText className="h-12 w-12" />
                                 </div>
-                                <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5">Total Contribution Value</p>
+                                <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5">
+                                    {selectedTx.type === 'CREDIT' ? 'Amount Received' : 'Impact Value'}
+                                </p>
                                 <div className="max-w-full overflow-hidden leading-none">
                                     <SmartCurrency amount={selectedTx.amount} currency={selectedTx.currency} visible={true} size="large" className="text-foreground" />
                                 </div>
                             </div>
 
+                            {/* --- HIDDEN RECEIPT GENERATION DOM --- */}
                             <div className="absolute left-[-9999px] top-[-9999px]">
                                 <div id={`receipt-${selectedTx.id}`} className="w-[800px] p-16 bg-white text-slate-900 font-sans">
                                     <div className="flex justify-between items-start border-b-2 border-emerald-500 pb-10">
                                         <div>
                                             <h1 className="text-4xl font-black tracking-tighter text-emerald-600">Givar.</h1>
-                                            <p className="text-sm text-slate-500 mt-1 tracking-widest font-bold">Official Impact Receipt</p>
+                                            <p className="text-sm text-slate-500 mt-1 tracking-widest font-bold">Impact Receipt</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-bold">Ledger Reference</p>
+                                            <p className="text-sm font-bold">Transaction Reference</p>
                                             <p className="text-xs font-mono text-slate-500">{selectedTx.reference}</p>
                                         </div>
                                     </div>
@@ -254,12 +255,15 @@ export const HistoryTable = memo(function HistoryTable({
                                         <div className="space-y-1 text-right">
                                             <p className="text-xs font-bold text-slate-400 ">Verification Date</p>
                                             <p className="text-lg font-bold">{formatDate(selectedTx.createdAt)}</p>
+                                            <p className="text-sm text-slate-500 pt-2">
+                                                Method: {getPaymentContext(selectedTx).method}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 mb-10">
                                         <div className="flex justify-between items-center">
                                             <div>
-                                                <p className="text-xs font-bold text-emerald-600 mb-1">Beneficiary Impact Cause</p>
+                                                <p className="text-xs font-bold text-emerald-600 mb-1">Beneficiary Cause</p>
                                                 <p className="text-xl font-black">{selectedTx.project?.title || selectedTx.description}</p>
                                             </div>
                                             <div className="text-right">
@@ -279,11 +283,12 @@ export const HistoryTable = memo(function HistoryTable({
                                         </div>
                                         <div className="text-right">
                                             <div className="h-12 w-32 bg-slate-100 rounded opacity-50 ml-auto mb-2 flex items-center justify-center italic text-xs">Digital Verification Signature</div>
-                                            <p className="text-xs font-bold text-slate-400 ">Authorized By Givar Platform</p>
+                                            <p className="text-xs font-bold text-slate-400 ">Authorized by Givar Platform</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            {/* ------------------------------------- */}
 
                             <div className="space-y-1.5 min-w-0">
                                 <span className="text-xs font-bold text-muted-foreground tracking-widest block px-1">Purpose & Identification</span>
@@ -337,10 +342,17 @@ export const HistoryTable = memo(function HistoryTable({
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">Payment Gateway</span>
-                                    <p className="text-xs md:text-xs font-bold text-foreground truncate ">
-                                        {selectedTx.metadata?.channel || 'Wallet Balance'}
-                                    </p>
+                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">{getPaymentContext(selectedTx).label}</span>
+                                    <div className="flex items-center gap-2">
+                                        {selectedTx.type === 'DEBIT' && !selectedTx.reference.startsWith('DON-') ? (
+                                            <CreditCard className="h-3.5 w-3.5 text-primary" />
+                                        ) : (
+                                            <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                                        )}
+                                        <p className="text-xs md:text-xs font-bold text-foreground truncate ">
+                                            {getPaymentContext(selectedTx).method}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
