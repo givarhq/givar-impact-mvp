@@ -12,7 +12,8 @@ import {
     SlidersHorizontal,
     LayoutGrid,
     TrendingUp,
-    CheckCircle2
+    CheckCircle2,
+    Info
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Button } from '../../../ui/button';
@@ -37,6 +38,22 @@ interface VisibilityControlProps {
     initialSlots: any[];
     categories: any[];
 }
+
+const SettingTooltip = ({ content }: { content: string }) => (
+    <div className="relative group inline-flex items-center ml-2 align-middle">
+        <button
+            type="button"
+            className="text-muted-foreground/50 hover:text-primary transition-colors focus:outline-none focus:text-primary"
+            aria-label="More information"
+        >
+            <Info className="h-3.5 w-3.5" />
+        </button>
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-56 p-3 bg-zinc-950 text-white text-[11px] font-medium leading-relaxed rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 pointer-events-none text-center normal-case tracking-normal">
+            {content}
+            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-zinc-950" />
+        </div>
+    </div>
+);
 
 export const VisibilityControlClient = memo(function VisibilityControlClient({ initialConfig, initialSlots, categories }: VisibilityControlProps) {
     const router = useRouter();
@@ -119,24 +136,28 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                 <WeightSlider
                                     label="New Project Priority"
                                     desc="Boost for recently launched causes"
+                                    tooltip="Gives newly launched causes a temporary head start so they don't get buried under older, more popular projects."
                                     value={config.recencyWeight}
                                     onChange={(v) => setConfig({ ...config, recencyWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
                                     label="Donation Momentum"
                                     desc="Boost for high-frequency giving"
+                                    tooltip="Boosts causes that are currently receiving a lot of donations, highlighting what the community cares about right now."
                                     value={config.velocityWeight}
                                     onChange={(v) => setConfig({ ...config, velocityWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
                                     label="Community Interest"
                                     desc="Boost based on page engagement"
+                                    tooltip="Pushes projects higher based on how close they are to reaching their final funding goal."
                                     value={config.engagementWeight}
                                     onChange={(v) => setConfig({ ...config, engagementWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
                                     label="Staff Priority"
                                     desc="Boost for hand-picked initiatives"
+                                    tooltip="Controls the strength of the manual 'Priority Boost' slider found on individual projects."
                                     value={config.adminWeight}
                                     onChange={(v) => setConfig({ ...config, adminWeight: parseFloat(v) })}
                                 />
@@ -149,7 +170,10 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                             <CheckCircle2 className="h-6 w-6" />
                                         </div>
                                         <div className="space-y-0.5 min-w-0">
-                                            <h4 className="text-sm font-bold text-foreground truncate">Show Completed Projects</h4>
+                                            <div className="flex items-center">
+                                                <h4 className="text-sm font-bold text-foreground truncate">Show Completed Projects</h4>
+                                                <SettingTooltip content="Choose whether fully funded projects should still appear in the public feed or be hidden to make room for active needs." />
+                                            </div>
                                             <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
                                                 Display successfully funded projects in the public discovery feed.
                                             </p>
@@ -177,7 +201,10 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                             <LayoutGrid className="h-6 w-6" />
                                         </div>
                                         <div className="space-y-0.5 min-w-0">
-                                            <h4 className="text-sm font-bold text-foreground truncate">Cause Variety Limit</h4>
+                                            <div className="flex items-center">
+                                                <h4 className="text-sm font-bold text-foreground truncate">Cause Variety Limit</h4>
+                                                <SettingTooltip content="Limits how many projects from the same category can appear back-to-back, keeping the feed diverse." />
+                                            </div>
                                             <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
                                                 Maximum projects shown per sector to maintain a diverse feed.
                                             </p>
@@ -206,8 +233,10 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                     <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="space-y-1">
-                                <CardTitle className="text-base font-bold flex items-center gap-3 text-foreground tracking-tight">
-                                    <TrendingUp className="h-5 w-5 text-primary" /> Sector Boosting
+                                <CardTitle className="text-base font-bold flex items-center text-foreground tracking-tight">
+                                    <TrendingUp className="h-5 w-5 text-primary mr-3" />
+                                    Sector Boosting
+                                    <SettingTooltip content="Permanently boosts all projects within a specific category, making them more likely to be seen first." />
                                 </CardTitle>
                                 <p className="text-xs text-muted-foreground font-medium">Prioritize entire impact categories globally.</p>
                             </div>
@@ -266,8 +295,10 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <CardTitle className="text-base font-bold flex items-center gap-3 text-foreground tracking-tight">
-                                        <Zap className="h-5 w-5 text-amber-500" /> Featured Highlights
+                                    <CardTitle className="text-base font-bold flex items-center text-foreground tracking-tight">
+                                        <Zap className="h-5 w-5 text-amber-500 mr-3" />
+                                        Featured Highlights
+                                        <SettingTooltip content="Manually pin specific causes to the scrolling banner at the very top of the homepage." />
                                     </CardTitle>
                                     <p className="text-xs text-muted-foreground font-medium">Manage the homepage highlights.</p>
                                 </div>
@@ -352,13 +383,14 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
     );
 });
 
-function WeightSlider({ label, desc, value, onChange }: { label: string, desc: string, value: number, onChange: (v: string) => void }) {
+function WeightSlider({ label, desc, tooltip, value, onChange }: { label: string, desc: string, tooltip: string, value: number, onChange: (v: string) => void }) {
     return (
         <div className="space-y-4 p-6 rounded-3xl bg-muted/20 border border-border/40 group hover:border-primary/40 transition-all shadow-inner">
             <div className="flex justify-between items-start gap-4">
                 <div className="space-y-1">
-                    <label className="text-xs font-bold text-foreground group-hover:text-primary transition-colors block leading-none">
+                    <label className="text-xs font-bold text-foreground group-hover:text-primary transition-colors flex items-center leading-none">
                         {label}
+                        <SettingTooltip content={tooltip} />
                     </label>
                     <p className="text-[10px] text-muted-foreground font-medium leading-tight">{desc}</p>
                 </div>
