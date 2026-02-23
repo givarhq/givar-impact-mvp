@@ -122,7 +122,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
 
                 {/* Main Settings Column */}
                 <div className="lg:col-span-7 space-y-6">
-                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden border-2">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-visible border-2">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="space-y-1">
                                 <CardTitle className="text-base font-bold flex items-center gap-3 text-foreground tracking-tight">
@@ -230,7 +230,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-visible">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="space-y-1">
                                 <CardTitle className="text-base font-bold flex items-center text-foreground tracking-tight">
@@ -279,19 +279,25 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                         </CardContent>
                     </Card>
 
-                    <Button
-                        onClick={handleUpdateConfig}
-                        disabled={isSaving}
-                        className="w-full h-14 rounded-3xl font-bold text-sm tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
-                    >
-                        {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />}
-                        Commit Algorithm Updates
-                    </Button>
+                    <div className="flex justify-center">
+                        <Button
+                            onClick={handleUpdateConfig}
+                            disabled={isSaving}
+                            className="h-12 px-8 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
+                        >
+                            {isSaving ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                                <Save className="h-5 w-5 mr-2" />
+                            )}
+                            Save Updates
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Highlights Sidebar */}
                 <div className="lg:col-span-5 space-y-6">
-                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden h-full flex flex-col border-2">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-visible h-full flex flex-col border-2">
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
