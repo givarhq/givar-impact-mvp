@@ -61,7 +61,8 @@ export default function SignupPage() {
       const response = await ApiService.auth.signup({ ...data, defaultCurrency: 'NGN' });
       const { accessToken, user } = response;
 
-      const cookieOptions = { maxAge: 604800, path: '/', sameSite: 'lax' as const };
+      // Persistence Logic: Session limited to 24 hours (86400s)
+      const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
 
