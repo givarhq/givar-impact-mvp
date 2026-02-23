@@ -33,10 +33,11 @@ async function serverFetch<T>(
     const res = await fetch(fullUrl, {
       ...fetchOptions,
       headers: baseHeaders,
+      cache: options.next?.revalidate === 0 ? 'no-store' : (options.cache as any),
       // Logic: Use Next.js Data Cache with specific invalidation tags
       next: {
         tags: tags || [],
-        revalidate: options.next?.revalidate ?? 3600 // Default 1 hour for public data
+        ...(options.next?.revalidate !== undefined && { revalidate: options.next.revalidate })
       },
       signal: AbortSignal.timeout(30000),
     });

@@ -7,6 +7,8 @@ import { DiscoveryFeed } from '../../../components/features/dashboard/discovery-
 import { PortfolioView } from '../../../components/features/dashboard/portfolio-view';
 import { Tabs, TabsContent } from '../../../components/ui/tabs';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardPage({
   searchParams,
 }: {

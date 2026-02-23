@@ -10,9 +10,11 @@ import { Button } from '../../../../../../components/ui/button';
 import { SmartCurrency } from '../../../../../../components/ui/smart-currency';
 
 export const metadata = {
-  title: 'Support this cause',
-  description: 'Contribute to a verified project & track your impact on the ledger.',
+  title: 'Support this Cause',
+  description: 'Contribute to a verified project & track your impact.',
 };
+
+export const dynamic = 'force-dynamic';
 
 export default async function DonationPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
