@@ -6,6 +6,7 @@ import { cn } from '../lib/utils/cn';
 import { ThemeProvider } from '../components/themeprovider';
 import { cookies } from 'next/headers';
 import { ImpersonationBanner } from '../components/layout/impersonation-banner';
+import { ActivityMonitor } from '../components/layout/activity-monitor';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -51,6 +52,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
 
+          <ActivityMonitor />
           <ImpersonationBanner />
 
           {children}
