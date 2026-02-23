@@ -23,11 +23,11 @@ export class DiversityEngine {
             categoryCounts.set(item.categoryId, currentCount + 1);
 
             if (currentCount >= diversityLimit) {
-                // Logic: Apply a 50% score penalty for each item beyond the diversity limit.
-                // This forces over-represented sectors to scatter further down the page 
-                // instead of grouping in a strict block at the bottom.
+                // Logic: Apply a 40% score penalty (0.6 multiplier) for each item beyond the diversity limit.
+                // This ensures viral projects from over-represented sectors still appear moderately high 
+                // but prevents them from monopolizing the very top of the feed block.
                 const overageCount = currentCount - diversityLimit + 1;
-                const penaltyMultiplier = Math.pow(0.5, overageCount);
+                const penaltyMultiplier = Math.pow(0.6, overageCount);
 
                 return {
                     ...item,
