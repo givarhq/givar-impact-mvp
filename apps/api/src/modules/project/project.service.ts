@@ -60,11 +60,21 @@ export class ProjectService {
     const { page = 1, limit = 9, search, category, status, sort } = query;
     const skip = (page - 1) * limit;
 
+    // Logic: Fetch the global recommendation config to respect the "showFundedProjects" toggle
+    // even when users bypass the smart feed using manual search/filters.
+    const config = await this.prisma.recommendationConfig.findUnique({ where: { id: 'default' } });
+    const showFunded = config?.showFundedProjects ?? false;
+
+    // Determine allowed statuses based on the admin config
+    const baseStatuses = showFunded
+      ? [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED]
+      : [ProjectStatus.ACTIVE];
+
     // 1. Dynamic Filter Construction
     const where: Prisma.ProjectWhereInput = {
-      status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] },
+      status: { in: baseStatuses },
       isActive: true,
-      ...(status && { status }),
+      ...(status && { status }), // If user explicitly passes a status, it overrides
       ...(category && { category: { slug: category } }),
       ...(search && {
         OR: [
