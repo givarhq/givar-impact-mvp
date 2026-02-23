@@ -468,8 +468,26 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Risk Assessment
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-5 text-xs text-muted-foreground leading-relaxed whitespace-pre-line font-medium bg-amber-500/[0.02]">
-                            {proposal.riskAnalysis || "No specific implementation risks identified by the proposer."}
+                        <CardContent className="p-5 bg-amber-500/[0.02]">
+                            {proposal.riskAnalysis ? (
+                                <div
+                                    className={cn(
+                                        "text-xs text-muted-foreground leading-relaxed break-words",
+                                        "[&_p]:mb-2 [&_p]:last:mb-0",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
+                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
+                                        "[&_li]:pl-1",
+                                        "[&_strong]:font-bold [&_strong]:text-foreground",
+                                        "[&_em]:italic",
+                                        "[&_a]:text-primary [&_a]:underline"
+                                    )}
+                                    dangerouslySetInnerHTML={{ __html: proposal.riskAnalysis }}
+                                />
+                            ) : (
+                                <p className="text-xs text-muted-foreground font-medium italic">
+                                    No specific implementation risks identified by the proposer.
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
