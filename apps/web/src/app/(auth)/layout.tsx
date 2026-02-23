@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -15,22 +14,58 @@ export default function AuthLayout({
     <div className="min-h-screen w-full bg-[#fafafa]">
       {/* Global Landing Header */}
       <LandingHeader hideAuthButtons={true} variant="auth" />
-
       <div className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
-
         {/* LEFT PANEL: Visual Impact Flow */}
         <div className="relative hidden h-full flex-col bg-[#fafafa] lg:flex border-r border-border overflow-hidden p-12 pt-24">
-
           {/* Background Decorative Elements */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.03] pointer-events-none">
-            <Image src="/Givar2.png" alt="" fill className="object-cover" />
-          </div>
           <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+
+          {/* Green Glassmorphic Graphics – More Obvious, Faster Animations, No Borders */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* Large Green Glass Orb – Top Left */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 0.88, scale: 1 }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
+              className="absolute -top-32 -left-48 w-[620px] h-[620px] bg-gradient-to-br from-emerald-500/28 via-teal-400/22 to-transparent backdrop-blur-[120px] rounded-[160px] shadow-[0_0_80px_-10px] shadow-emerald-500/40"
+            />
+
+            {/* Medium Floating Glass Circle – Bottom Right */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.75 }}
+              animate={{ opacity: 0.82, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="absolute bottom-8 -right-16 w-[420px] h-[420px] bg-gradient-to-br from-emerald-400/26 to-teal-500/18 backdrop-blur-[110px] rounded-full shadow-[0_40px_90px_-20px] shadow-emerald-600/35"
+            />
+
+            {/* Angled Glass Panel – Middle Left */}
+            <motion.div
+              initial={{ opacity: 0, x: -50, rotate: -18 }}
+              animate={{ opacity: 0.91, x: 0, rotate: -7 }}
+              transition={{ duration: 0.7, delay: 0.4 }}
+              className="absolute top-[38%] -left-8 w-52 h-[310px] bg-white/75 backdrop-blur-[48px] rounded-3xl shadow-2xl shadow-emerald-500/30"
+            />
+
+            {/* Small Accent Glass Element – Lower Middle */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.65 }}
+              animate={{ opacity: 0.95, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+              className="absolute top-[66%] left-[18%] w-36 h-36 bg-gradient-to-br from-emerald-400/35 to-green-500/25 backdrop-blur-[60px] rounded-3xl shadow-xl shadow-emerald-500/25"
+            />
+
+            {/* Extra Small Glass Accent – Upper Right */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 0.78, scale: 1 }}
+              transition={{ duration: 0.85, delay: 0.8 }}
+              className="absolute top-[22%] right-[12%] w-24 h-24 bg-emerald-500/20 backdrop-blur-[50px] rounded-2xl"
+            />
+          </div>
 
           <div className="relative z-10 flex flex-col h-full justify-center items-center">
             {/* Compact Container: Height reduced from 500px to 400px */}
             <div className="relative w-full max-w-md h-[400px]">
-
               {/* Connectors SVG - Recalibrated for tighter spacing */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 400" fill="none">
                 <motion.path
@@ -58,7 +93,6 @@ export default function AuthLayout({
                   </linearGradient>
                 </defs>
               </svg>
-
               {/* Step 1: You Give */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -72,7 +106,6 @@ export default function AuthLayout({
                   <p className="text-xs text-muted-foreground font-medium">Securely & instantly</p>
                 </div>
               </motion.div>
-
               {/* Step 2: Impact Happens - Positioned closer to top */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -92,7 +125,6 @@ export default function AuthLayout({
                   <span className="text-[10px] font-bold text-amber-700">In Progress</span>
                 </div>
               </motion.div>
-
               {/* Step 3: You Get Proof - Positioned closer to middle */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -115,7 +147,6 @@ export default function AuthLayout({
                 </div>
               </motion.div>
             </div>
-
             {/* Bottom Value Props */}
             <div className="mt-8 flex items-center gap-8">
               <div className="flex items-center gap-2 text-xs font-semibold tracking-widest text-muted-foreground tracking-tight">
@@ -130,7 +161,6 @@ export default function AuthLayout({
             </div>
           </div>
         </div>
-
         {/* RIGHT PANEL: Authentication Form Wrapper */}
         <div className="flex items-center justify-center p-6 lg:p-12 relative pt-24 lg:pt-16">
           <div className="mx-auto flex w-full flex-col justify-center sm:w-[420px]">
