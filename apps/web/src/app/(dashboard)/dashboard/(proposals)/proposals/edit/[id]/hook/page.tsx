@@ -101,10 +101,10 @@ export default function HookPage() {
 
           <div className="flex justify-end pt-6 border-t border-border/40 min-w-0">
             <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0"
+              className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
             >
-              Next: Media <ArrowRight className="h-4 w-4" />
+              <span className="truncate">Next: Media</span> <ArrowRight className="h-4 w-4 shrink-0" />
             </Button>
           </div>
         </CardContent>
