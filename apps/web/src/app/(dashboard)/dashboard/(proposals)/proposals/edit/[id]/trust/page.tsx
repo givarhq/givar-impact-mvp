@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../../../../../../../components/ui/button';
 import { Input } from '../../../../../../../../components/ui/input';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, Send, Loader2, ShieldCheck, Lock, ShieldAlert, Clock, Info, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, ShieldCheck, Lock, Clock, CheckCircle2 } from 'lucide-react';
 import { DocumentUploader } from '../../../../../../../../components/features/proposals/document-uploader';
 import { OrganizationProfile } from '../../../../../../../../types';
 import toast from 'react-hot-toast';
@@ -142,16 +142,16 @@ export default function TrustPage() {
               </div>
 
               <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
-                <Button variant="outline" className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)} disabled={isSubmitting}>
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                <Button variant="outline" className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)} disabled={isSubmitting}>
+                  <ArrowLeft className="mr-2 h-4 w-4 shrink-0" /> <span className="truncate">Back</span>
                 </Button>
                 <Button
-                  className="h-12 rounded-3xl px-10 font-bold text-xs  tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0"
+                  className="h-12 rounded-3xl px-10 font-bold text-xs tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
                   onClick={handleSubmitForReview}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Submit for Review
+                  {isSubmitting ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Send className="h-4 w-4 shrink-0" />}
+                  <span className="truncate">Submit for Review</span>
                 </Button>
               </div>
             </div>
@@ -184,7 +184,7 @@ export default function TrustPage() {
                 </p>
               </div>
               <Link href="/dashboard/settings?tab=org" className="block">
-                <Button className="rounded-3xl h-12 px-10 font-bold text-xs shadow-lg shadow-primary/20 transition-all active:scale-95">
+                <Button className="rounded-3xl h-12 px-10 font-bold text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
                   Complete Verification
                 </Button>
               </Link>
