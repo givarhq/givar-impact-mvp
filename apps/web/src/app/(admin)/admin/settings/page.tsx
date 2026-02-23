@@ -30,10 +30,10 @@ export default async function AdminSettingsPage() {
 
     const defaultConfig = {
         id: 'default',
-        recencyWeight: 1.0,
-        velocityWeight: 1.5,
-        engagementWeight: 1.0,
-        adminWeight: 2.0,
+        recencyWeight: 5.0,
+        velocityWeight: 7.0,
+        engagementWeight: 3.0,
+        adminWeight: 4.0,
         diversityLimit: 3,
         showFundedProjects: false
     };
