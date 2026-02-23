@@ -181,9 +181,18 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         <h4 className="text-sm font-bold tracking-tight text-amber-700 flex items-center gap-2 mb-3">
                                             <AlertTriangle className="h-4 w-4" /> Risk Assessment & Mitigation
                                         </h4>
-                                        <div className="text-sm text-amber-900/80 leading-relaxed whitespace-pre-line font-medium">
-                                            {project.riskAnalysis}
-                                        </div>
+                                        <div
+                                            className={cn(
+                                                "text-xs text-amber-900/80 leading-relaxed break-words font-medium",
+                                                "[&_p]:mb-2 [&_p]:last:mb-0",
+                                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
+                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
+                                                "[&_li]:pl-1",
+                                                "[&_strong]:font-bold [&_strong]:text-amber-950",
+                                                "[&_em]:italic"
+                                            )}
+                                            dangerouslySetInnerHTML={{ __html: project.riskAnalysis }}
+                                        />
                                     </div>
                                 )}
                             </motion.div>
