@@ -152,19 +152,25 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 className="space-y-6"
                             >
                                 {project.shortDesc && (
-                                    <p className="text-foreground/90 text-lg font-medium leading-relaxed italic border-l-4 border-primary/30 pl-6 py-1">
+                                    <p className="text-foreground/90 text-md font-medium leading-relaxed italic border-l-4 border-primary/30 pl-6 py-1">
                                         {project.shortDesc}
                                     </p>
                                 )}
 
                                 <div
                                     className={cn(
-                                        "prose prose-sm dark:prose-invert max-w-none",
-                                        "prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground",
-                                        "prose-p:text-foreground/80 prose-p:leading-relaxed",
-                                        "prose-strong:text-foreground prose-strong:font-bold",
-                                        "prose-ul:list-disc prose-ul:pl-5",
-                                        "prose-hr:border-border/40"
+                                        "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
+                                        "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
+                                        "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_p]:mb-4 [&_p]:last:mb-0",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
+                                        "[&_li]:pl-1",
+                                        "[&_strong]:font-bold [&_strong]:text-foreground",
+                                        "[&_em]:italic",
+                                        "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
+                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: project.description }}
                                 />
@@ -392,7 +398,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         <div className="pt-4 border-t border-border/40 flex items-center justify-between">
                             <div className="flex items-center gap-1.5 text-primary font-bold text-[11px]  tracking-wider">
                                 <ShieldCheck className="h-3.5 w-3.5" />
-                                {project.organizerName === 'Givar' ? 'Platform node' : 'Verified node'}
+                                {project.organizerName === 'Givar' ? 'Platform Organization' : 'Verified Organization'}
                             </div>
                             {project.organizerName !== 'Givar' && (
                                 <button className="text-[11px] font-bold  text-muted-foreground hover:text-primary transition-colors">
@@ -405,7 +411,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     <div className="p-5 bg-muted/20 rounded-3xl border border-border/40 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                            <strong className="text-foreground">Givar Protocol:</strong> funds are released in tranches only after audit nodes verify proof of work.
+                            <strong className="text-foreground">Givar Protocol:</strong> Funds are released in tranches only after audit exercise verify proof of work.
                         </p>
                     </div>
                 </div>
