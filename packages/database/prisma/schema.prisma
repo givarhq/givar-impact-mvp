@@ -616,14 +616,14 @@ model MilestoneProof {
 }
 
 model RecommendationConfig {
-  id               String   @id @default("default")
-  recencyWeight    Float    @default(1.0)
-  velocityWeight   Float    @default(1.5)
-  engagementWeight Float    @default(1.0)
-  adminWeight      Float    @default(2.0)
-  diversityLimit   Int      @default(3)
+  id                 String   @id @default("default")
+  recencyWeight      Float    @default(5.0)
+  velocityWeight     Float    @default(7.0)
+  engagementWeight   Float    @default(3.0)
+  adminWeight        Float    @default(4.0)
+  diversityLimit     Int      @default(3)
   showFundedProjects Boolean  @default(false)
-  updatedAt        DateTime @updatedAt
+  updatedAt          DateTime @updatedAt
 
   @@map("recommendation_configs")
 }

@@ -201,19 +201,25 @@ export class RecommendationsService {
         const slots = await this.repo.getFeaturedSlots();
 
         // Ensure we only use filtered candidates for the scoring map
-        const scored: ScoredItem[] = filteredCandidates.map((p: any) => ({
-            id: p.id,
-            categoryId: p.categoryId || 'none',
-            score: this.ranking.calculateScore({
+        const scored: ScoredItem[] = filteredCandidates.map((p: any) => {
+            const raised = Number(p.raisedAmount);
+            const target = Number(p.targetAmount);
+            const percentFunded = target > 0 ? (raised / target) * 100 : 0;
+
+            return {
                 id: p.id,
-                createdAt: p.createdAt,
-                featureWeight: p.featureWeight || 0,
-                visibilityScore: p.visibilityScore || 0,
-                donationVelocity: velocityMap.get(p.id) || 0,
-                engagementScore: 0,
-                categoryWeight: p.category?.visibilityWeight ?? 1.0,
-            }, config),
-        }));
+                categoryId: p.categoryId || 'none',
+                score: this.ranking.calculateScore({
+                    id: p.id,
+                    createdAt: p.createdAt,
+                    featureWeight: p.featureWeight || 0,
+                    visibilityScore: p.visibilityScore || 0,
+                    donationVelocity: velocityMap.get(p.id) || 0,
+                    engagementScore: percentFunded,
+                    categoryWeight: p.category?.visibilityWeight ?? 1.0,
+                }, config),
+            }
+        });
 
         let processed = scored;
         if (options.userId) {
@@ -282,10 +288,10 @@ export class RecommendationsService {
             if (!config) {
                 config = {
                     id: 'default',
-                    recencyWeight: 1,
-                    velocityWeight: 1.5,
-                    engagementWeight: 1,
-                    adminWeight: 2,
+                    recencyWeight: 5.0, // Tuned for high modern crowd-fund elasticity
+                    velocityWeight: 7.0, // Highly sensitive trending boost
+                    engagementWeight: 3.0,
+                    adminWeight: 4.0,
                     diversityLimit: 3,
                     showFundedProjects: false,
                     updatedAt: new Date()
