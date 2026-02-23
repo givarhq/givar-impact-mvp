@@ -3,10 +3,11 @@
 import React, { useState, memo } from 'react';
 import Image from 'next/image';
 import {
-    Share2, MapPin, Calendar, Clock,
+    Share2, MapPin, Calendar,
     BadgeCheck, ShieldCheck, DollarSign, Briefcase,
     AlertTriangle, ChevronRight, Target,
-    Heart, Check, RefreshCcw
+    Heart, Check, RefreshCcw,
+    Clock
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -177,12 +178,12 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                                 {project.riskAnalysis && (
                                     <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
-                                        <h4 className="text-xs font-bold tracking-tight text-amber-700 flex items-center gap-2 mb-3">
-                                            <AlertTriangle className="h-4 w-4" /> Risk assessment & mitigation
+                                        <h4 className="text-sm font-bold tracking-tight text-amber-700 flex items-center gap-2 mb-3">
+                                            <AlertTriangle className="h-4 w-4" /> Risk Assessment & Mitigation
                                         </h4>
-                                        <p className="text-xs text-amber-900/70 leading-relaxed font-medium italic">
+                                        <div className="text-sm text-amber-900/80 leading-relaxed whitespace-pre-line font-medium">
                                             {project.riskAnalysis}
-                                        </p>
+                                        </div>
                                     </div>
                                 )}
                             </motion.div>
@@ -271,7 +272,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                                                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium">
                                                             {phase.deliverables}
                                                         </p>
                                                     </div>
@@ -398,7 +399,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         <div className="pt-4 border-t border-border/40 flex items-center justify-between">
                             <div className="flex items-center gap-1.5 text-primary font-bold text-[11px]  tracking-wider">
                                 <ShieldCheck className="h-3.5 w-3.5" />
-                                {project.organizerName === 'Givar' ? 'Platform Organization' : 'Verified Organization'}
+                                {project.organizerName === 'Givar' ? 'Platform node' : 'Verified node'}
                             </div>
                             {project.organizerName !== 'Givar' && (
                                 <button className="text-[11px] font-bold  text-muted-foreground hover:text-primary transition-colors">
@@ -411,7 +412,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     <div className="p-5 bg-muted/20 rounded-3xl border border-border/40 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                            <strong className="text-foreground">Givar Protocol:</strong> Funds are released in tranches only after audit exercise verify proof of work.
+                            <strong className="text-foreground">Givar Protocol:</strong> funds are released in tranches only after audit nodes verify proof of work.
                         </p>
                     </div>
                 </div>
