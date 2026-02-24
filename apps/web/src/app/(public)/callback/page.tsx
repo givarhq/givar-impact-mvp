@@ -7,6 +7,7 @@ import { Button } from '../../../components/ui/button';
 import { Card, CardContent } from '../../../components/ui/card';
 import { ApiService } from '../../../services/api';
 import { PublicLayout } from '../../../components/layout/public-layout';
+import { getCookie } from 'cookies-next';
 import Link from 'next/link';
 
 function CallbackContent() {
@@ -43,6 +44,10 @@ function CallbackContent() {
 
     verify();
   }, [reference]);
+
+  // Logic: Identify authentication status to prevent middleware redirection loops
+  const token = getCookie('givar_token');
+  const isAuthenticated = !!token;
 
   return (
     <CardContent className="p-8 md:p-12 space-y-10 min-w-0">
@@ -91,15 +96,18 @@ function CallbackContent() {
 
           <div className="pt-4 w-full min-w-0">
             {result?.type === 'DIRECT_DONATION' && result?.project?.slug ? (
-              <Link href={`/explore/${result.project.slug}`} className="block w-full">
+              <Link
+                href={isAuthenticated ? `/dashboard/impact/${result.project.slug}` : `/explore/${result.project.slug}`}
+                className="block w-full"
+              >
                 <Button className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform border-0">
                   Return to Cause <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             ) : (
-              <Link href="/dashboard" className="block w-full">
+              <Link href={isAuthenticated ? "/dashboard" : "/login"} className="block w-full">
                 <Button className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform border-0">
-                  Go to Dashboard <ArrowRight className="ml-1 h-4 w-4" />
+                  {isAuthenticated ? "Go to Dashboard" : "Sign In"} <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
             )}
@@ -121,7 +129,7 @@ function CallbackContent() {
           <div className="p-3 bg-muted/50 rounded-2xl border border-border/40 text-[10px] font-mono text-muted-foreground truncate  tracking-tighter">
             Ref: {reference}
           </div>
-          <Button variant="outline" onClick={() => router.push('/dashboard')} className="w-full h-12 rounded-3xl border-border/60 font-bold text-xs  tracking-widest active:scale-[0.98]">Dismiss</Button>
+          <Button variant="outline" onClick={() => router.push(isAuthenticated ? '/dashboard' : '/')} className="w-full h-12 rounded-3xl border-border/60 font-bold text-xs  tracking-widest active:scale-[0.98]">Dismiss</Button>
         </div>
       )}
     </CardContent>
