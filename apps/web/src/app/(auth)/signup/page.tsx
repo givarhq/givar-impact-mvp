@@ -61,16 +61,16 @@ export default function SignupPage() {
       const response = await ApiService.auth.signup({ ...data, defaultCurrency: 'NGN' });
       const { accessToken, user } = response;
 
-      // Persistence Logic: Session limited to 24 hours (86400s)
       const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
 
-      router.push('/dashboard');
+      // Logic: Use hard location change for auth transitions to avoid 
+      // React hydration race conditions in the current layout.
+      window.location.href = '/dashboard';
     } catch (error: any) {
       const message = error.response?.data?.message;
       setServerError(Array.isArray(message) ? message[0] : message || 'Something went wrong. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   }
@@ -189,6 +189,15 @@ export default function SignupPage() {
       </form>
 
       <div className="space-y-6 min-w-0">
+        <div className="relative min-w-0">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border/60" />
+          </div>
+          <div className="relative flex justify-center text-[11px]  tracking-[0.2em] font-black">
+            <span className="bg-background dark:bg-card px-4 text-muted-foreground/60">Or</span>
+          </div>
+        </div>
+
         <div className="text-center min-w-0">
           <p className="text-sm font-medium text-muted-foreground">
             Already have an account?{' '}

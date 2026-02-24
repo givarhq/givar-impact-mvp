@@ -59,23 +59,23 @@ function LoginComponent() {
 
       const { accessToken, user } = response;
 
-      // Persistence Logic: Session limited to 24 hours (86400s)
       const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
 
+      // Logic: Hard redirect to target to prevent layout hydration flashes 
+      // during the auth state transition.
       const redirectPath = searchParams.get('redirect');
       if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
-        router.push(redirectPath || '/admin');
+        window.location.href = redirectPath || '/admin';
       } else {
-        router.push(redirectPath || '/dashboard');
+        window.location.href = redirectPath || '/dashboard';
       }
     } catch (error: any) {
       let message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
       if (Array.isArray(message)) message = message[0];
       setServerError(message);
       if (isMfaStep) setValue('twoFactorCode', '');
-    } finally {
       setIsLoading(false);
     }
   }
@@ -176,7 +176,7 @@ function LoginComponent() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {isMfaStep ? 'Verifying...' : 'Signing you in...'}
+                {isMfaStep ? 'Verifying...' : 'Signing in...'}
               </>
             ) : (
               isMfaStep ? 'Verify Authentication' : 'Sign In'
@@ -203,7 +203,7 @@ function LoginComponent() {
               <span className="w-full border-t border-border/60" />
             </div>
             <div className="relative flex justify-center text-[11px]  tracking-[0.2em] font-black">
-              <span className="bg-background px-4 text-muted-foreground/60">Or</span>
+              <span className="bg-background dark:bg-card px-4 text-muted-foreground/60">Or</span>
             </div>
           </div>
 
