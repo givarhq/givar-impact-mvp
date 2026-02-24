@@ -84,7 +84,7 @@ function CallbackContent() {
             </h2>
             <p className="text-muted-foreground leading-relaxed text-sm max-w-xs mx-auto font-medium">
               {result?.type === 'DIRECT_DONATION'
-                ? `Your contribution to "${result.project?.title || 'this cause'}" has been verified on the ledger.`
+                ? `Your contribution to "${result.project?.title || 'this cause'}" has been verified! Thank you for your generosity.`
                 : 'Your transfer was successful. The funds are now available in your wallet.'}
             </p>
           </div>
