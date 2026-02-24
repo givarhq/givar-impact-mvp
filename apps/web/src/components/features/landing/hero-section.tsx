@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, ShieldCheck, Wallet, Activity, Heart, ArrowRightCircle } from 'lucide-react';
@@ -9,7 +9,9 @@ import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProjectCard } from '../impact/project-card';
+import { ShareModal } from '../impact/share-modal';
 import { Project } from '../../../types';
+import { cn } from 'apps/web/src/lib/utils/cn';
 
 interface PlatformStats {
     totalVolume: string;
@@ -27,6 +29,10 @@ interface HeroSectionProps {
 
 export const HeroSection = memo(function HeroSection({ featuredProjects, stats }: HeroSectionProps) {
     const displayProjects = featuredProjects.slice(0, 4);
+
+    // State for Share Modal
+    const [isShareOpen, setIsShareOpen] = useState(false);
+    const [shareProject, setShareProject] = useState<Project | null>(null);
 
     return (
         <div className="w-full flex flex-col items-center">
@@ -210,7 +216,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </motion.div>
             </section>
 
-            {/* HOW IT WORKS (COMPACT VERSION) */}
+            {/* HOW IT WORKS */}
             <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See Real-Time Impact</h2>
@@ -263,7 +269,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                        className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
                     >
                         <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-base shadow-lg shadow-amber-500/20 transition-transform group-hover:scale-110">3</div>
                         <div className="h-12 w-12 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex items-center justify-center mb-4 border border-amber-100 dark:border-amber-900/20">
@@ -304,7 +310,10 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                 <ProjectCard
                                     project={project as any}
                                     onDonate={() => { }}
-                                    onShare={() => { }}
+                                    onShare={(p) => {
+                                        setShareProject(p as Project);
+                                        setIsShareOpen(true);
+                                    }}
                                     isPublic={true}
                                 />
                             </motion.div>
@@ -331,45 +340,22 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
-                        <div className="h-10 w-10 bg-emerald-50 dark:bg-emerald-900/10 rounded-full flex items-center justify-center text-emerald-500 shrink-0">
-                            <ShieldCheck className="h-5 w-5" />
+                    {[
+                        { icon: ShieldCheck, title: 'Verified Causes', desc: 'Every campaign vetted', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/10' },
+                        { icon: Wallet, title: 'Direct Payments', desc: 'No middlemen', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/10' },
+                        { icon: Activity, title: 'Transparent Tracking', desc: 'See every update', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/10' },
+                        { icon: Heart, title: 'Real Impact', desc: 'Proof delivered', color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/10' }
+                    ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
+                            <div className={cn("h-10 w-10 rounded-full flex items-center justify-center shrink-0", item.bg, item.color)}>
+                                <item.icon className="h-5 w-5" />
+                            </div>
+                            <div className="text-left">
+                                <h4 className="font-bold text-sm text-foreground">{item.title}</h4>
+                                <p className="text-[11px] text-muted-foreground font-medium">{item.desc}</p>
+                            </div>
                         </div>
-                        <div className="text-left">
-                            <h4 className="font-bold text-sm text-foreground">Verified Causes</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">Every campaign vetted</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
-                        <div className="h-10 w-10 bg-amber-50 dark:bg-amber-900/10 rounded-full flex items-center justify-center text-amber-500 shrink-0">
-                            <Wallet className="h-5 w-5" />
-                        </div>
-                        <div className="text-left">
-                            <h4 className="font-bold text-sm text-foreground">Direct Payments</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">No middlemen</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
-                        <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/10 rounded-full flex items-center justify-center text-blue-500 shrink-0">
-                            <Activity className="h-5 w-5" />
-                        </div>
-                        <div className="text-left">
-                            <h4 className="font-bold text-sm text-foreground">Transparent Tracking</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">See every update</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
-                        <div className="h-10 w-10 bg-rose-50 dark:bg-rose-900/10 rounded-full flex items-center justify-center text-rose-500 shrink-0">
-                            <Heart className="h-5 w-5" />
-                        </div>
-                        <div className="text-left">
-                            <h4 className="font-bold text-sm text-foreground">Real Impact</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">Proof delivered</p>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
                 <div className="flex flex-wrap justify-center items-center gap-3 text-xs font-bold text-muted-foreground">
@@ -381,6 +367,13 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </div>
             </section>
 
+            {/* Share Modal Integration */}
+            <ShareModal
+                isOpen={isShareOpen}
+                onClose={() => setIsShareOpen(false)}
+                projectTitle={shareProject?.title || ''}
+                projectSlug={shareProject?.slug || ''}
+            />
         </div>
     );
 });
