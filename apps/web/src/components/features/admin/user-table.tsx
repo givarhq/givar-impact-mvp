@@ -98,101 +98,102 @@ export const UserTable = memo(function UserTable({
 
     return (
         <div className="w-full">
-            {/* MOBILE: High-Density Card List */}
-            <div className="grid gap-2 md:hidden">
-                <div className={cn(
-                    "flex items-center justify-between px-2 mb-1 transition-opacity duration-200",
-                    isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
-                )}>
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20"
-                            checked={isAllSelected}
-                            onChange={(e) => onSelectAll(e.target.checked)}
-                        />
-                        <span className="text-xs font-semibold text-muted-foreground tracking-widest">Select All</span>
-                    </div>
-                    {isAnySelected && (
-                        <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-3xl">{selectedIds.length} Selected</span>
-                    )}
-                </div>
+  {/* MOBILE: High-Density Card List */}
+<div className="grid gap-2 md:hidden min-w-0">
+    <div className={cn(
+        "flex items-center justify-between px-2 mb-1 transition-opacity duration-200 min-w-0",
+        isSelectionMode ? "opacity-100" : "opacity-0 pointer-events-none"
+    )}>
+        <div className="flex items-center gap-2 min-w-0">
+            <input
+                type="checkbox"
+                className="h-4 w-4 rounded-3xl border-border/40 text-primary focus:ring-primary/20 shrink-0"
+                checked={isAllSelected}
+                onChange={(e) => onSelectAll(e.target.checked)}
+            />
+            <span className="text-xs font-semibold text-muted-foreground tracking-widest truncate">Select All</span>
+        </div>
+        {isAnySelected && (
+            <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-3xl shrink-0">{selectedIds.length} Selected</span>
+        )}
+    </div>
 
-                <AnimatePresence mode="popLayout">
-                    {users.map((user) => {
-                        const isSelected = selectedIds.includes(user.id);
-                        const isLocked = user.isLocked;
+    <AnimatePresence mode="popLayout">
+        {users.map((user) => {
+            const isSelected = selectedIds.includes(user.id);
+            const isLocked = user.isLocked;
 
-                        return (
-                            <motion.div
-                                key={user.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                <Card
-                                    className={cn(
-                                        "rounded-3xl border-border/40 shadow-sm transition-all active:scale-[0.98]",
-                                        "touch-pan-y select-none",
-                                        isSelected ? "ring-2 ring-primary/20 bg-primary/[0.02]" : "bg-card"
-                                    )}
-                                    onPointerDown={() => startLongPress(user.id)}
-                                    onPointerUp={clearLongPress}
-                                    onPointerLeave={clearLongPress}
-                                    onClick={() => {
-                                        if (isSelectionMode) onSelectRow(user.id, !isSelected);
-                                        else router.push(`/admin/users/${user.id}`);
-                                    }}
-                                >
-                                    <CardContent className="p-4 flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <div className={cn(
-                                                    "transition-all duration-200",
-                                                    isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
-                                                )}>
-                                                    <input
-                                                        type="checkbox"
-                                                        className="h-4 w-4 rounded-3xl border-border/40 text-primary"
-                                                        checked={isSelected}
-                                                        onChange={(e) => onSelectRow(user.id, e.target.checked)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                </div>
-                                                <div className={cn(
-                                                    "h-10 w-10 rounded-3xl flex items-center justify-center font-semibold text-xs border border-border/10 shrink-0",
-                                                    user.role === 'ADMIN' || user.role === 'SUPERADMIN' ? "bg-destructive/5 text-destructive" : "bg-primary/5 text-primary"
-                                                )}>
-                                                    {user.firstName[0]}{user.lastName[0]}
-                                                </div>
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-1.5">
-                                                    <p className="text-sm font-semibold text-foreground truncate">{user.firstName} {user.lastName}</p>
-                                                    {isLocked && <Lock className="h-3 w-3 text-destructive shrink-0" />}
-                                                </div>
-                                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                            <div className="font-semibold text-xs">
-                                                <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="small" />
-                                            </div>
-                                            <Badge variant="outline" className={cn(
-                                                "text-[11px] px-1.5 py-0 rounded-3xl mt-1 font-semibold",
-                                                user.emailVerified ? "text-emerald-600 border-emerald-100" : "text-amber-600 border-amber-100"
-                                            )}>
-                                                {user.accountType}
-                                            </Badge>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        );
-                    })}
-                </AnimatePresence>
-            </div>
+            return (
+                <motion.div
+                    key={user.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="min-w-0"
+                >
+                    <Card
+                        className={cn(
+                            "rounded-3xl border-border/40 shadow-sm transition-all active:scale-[0.98]",
+                            "touch-pan-y select-none min-w-0",
+                            isSelected ? "ring-2 ring-primary/20 bg-primary/[0.02]" : "bg-card"
+                        )}
+                        onPointerDown={() => startLongPress(user.id)}
+                        onPointerUp={clearLongPress}
+                        onPointerLeave={clearLongPress}
+                        onClick={() => {
+                            if (isSelectionMode) onSelectRow(user.id, !isSelected);
+                            else router.push(`/admin/users/${user.id}`);
+                        }}
+                    >
+                        <CardContent className="p-4 flex items-center justify-between gap-4 min-w-0">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <div className={cn(
+                                        "transition-all duration-200",
+                                        isSelectionMode ? "w-4 opacity-100" : "w-0 opacity-0"
+                                    )}>
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded-3xl border-border/40 text-primary shrink-0"
+                                            checked={isSelected}
+                                            onChange={(e) => onSelectRow(user.id, e.target.checked)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </div>
+                                    <div className={cn(
+                                        "h-10 w-10 rounded-3xl flex items-center justify-center font-semibold text-xs border border-border/10 shrink-0",
+                                        user.role === 'ADMIN' || user.role === 'SUPERADMIN' ? "bg-destructive/5 text-destructive" : "bg-primary/5 text-primary"
+                                    )}>
+                                        {user.firstName[0]}{user.lastName[0]}
+                                    </div>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                        <p className="text-sm font-semibold text-foreground truncate">{user.firstName} {user.lastName}</p>
+                                        {isLocked && <Lock className="h-3 w-3 text-destructive shrink-0" />}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                                </div>
+                            </div>
+                            <div className="text-right shrink-0 min-w-fit">
+                                <div className="font-semibold text-xs whitespace-nowrap">
+                                    <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="small" />
+                                </div>
+                                <Badge variant="outline" className={cn(
+                                    "text-[11px] px-1.5 py-0 rounded-3xl mt-1 font-semibold whitespace-nowrap",
+                                    user.emailVerified ? "text-emerald-600 border-emerald-100" : "text-amber-600 border-amber-100"
+                                )}>
+                                    {user.accountType}
+                                </Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            );
+        })}
+    </AnimatePresence>
+</div>
 
             {/* DESKTOP: Forensic Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 shadow-sm overflow-hidden bg-card">
