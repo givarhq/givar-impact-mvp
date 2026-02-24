@@ -119,7 +119,6 @@ export class WalletRepository {
       throw new BadRequestException('Transaction amount must be positive');
     }
 
-    // 1. Idempotency check (stronger for both CREDIT and DEBIT)
     const existingTx = await tx.walletTransaction.findUnique({
       where: { reference },
       select: { id: true, type: true, amount: true, status: true },
@@ -132,23 +131,20 @@ export class WalletRepository {
         );
       }
 
-      // Already processed - return existing result
       const wallet = await tx.wallet.findUniqueOrThrow({
         where: { userId_currency: { userId, currency } },
         select: { balance: true },
       });
 
       return {
-        transaction: existingTx as any, // minimal fields
+        transaction: existingTx as any,
         newBalance: wallet.balance,
       };
     }
 
     try {
-      // 2. Ensure wallet exists (race-condition safe)
       const wallet = await this.getOrCreateWallet(userId, currency, tx);
 
-      // 3. Create transaction record
       const walletTx = await tx.walletTransaction.create({
         data: {
           walletId: wallet.id,
@@ -162,7 +158,6 @@ export class WalletRepository {
         },
       });
 
-      // 4. Update balance atomically
       let updatedWallet;
 
       if (type === TxType.CREDIT) {
@@ -172,7 +167,6 @@ export class WalletRepository {
           select: { balance: true },
         });
       } else {
-        // DEBIT - atomic check + update
         const result = await tx.wallet.updateMany({
           where: {
             id: wallet.id,

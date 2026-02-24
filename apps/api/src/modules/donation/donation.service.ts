@@ -424,6 +424,7 @@ export class DonationService {
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Idempotency Guard
       const existingUserDonation = await tx.donation.findFirst({
         where: { transaction: { reference } },
         select: { id: true }
@@ -443,8 +444,13 @@ export class DonationService {
 
       if (!project) throw new NotFoundException('Project node missing on ledger');
 
+      // 2. Refined Spillover Logic
+      // Logic: Identify if project is effectively closed to new capital.
+      const isClosed = [ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED].includes(project.status);
+
       const currentRemaining = project.targetAmount - project.raisedAmount;
-      const actualRemaining = (project.status !== ProjectStatus.ACTIVE || currentRemaining <= 0n) ? 0n : currentRemaining;
+      // If the project is closed, it accepts zero. If open, it accepts up to the remaining gap.
+      const actualRemaining = isClosed ? 0n : (currentRemaining <= 0n ? 0n : currentRemaining);
 
       const amountToProject = amount > actualRemaining ? actualRemaining : amount;
       const surplus = amount - amountToProject;
@@ -464,6 +470,7 @@ export class DonationService {
           reference: `IN-${reference}`,
           description: `Direct Pay Inflow`,
           status: TxStatus.COMPLETED,
+          metadata: { channel }
         }, tx);
 
         // 2. Process Outflow: Atomically decrement wallet balance
@@ -475,6 +482,7 @@ export class DonationService {
           reference,
           description: `Direct donation: ${project.title}`,
           status: TxStatus.COMPLETED,
+          metadata: { channel }
         }, tx);
 
         if (amountToProject > 0n) {
@@ -483,7 +491,7 @@ export class DonationService {
               userId,
               projectId,
               transactionId: donationTx.id,
-              amount: amount,
+              amount: amount, // Capture total contributed impact
               currency,
               message: 'Direct payment fulfillment',
             },
@@ -514,15 +522,17 @@ export class DonationService {
           data: {
             guestDonorId: guestDonor.id,
             projectId,
-            amount: amountToProject,
+            amount: amount, // Capture total impact
             currency,
             reference,
-            status: TxStatus.COMPLETED
+            status: TxStatus.COMPLETED,
+            metadata: { channel } as any
           }
         });
         processedDonationId = guestDonation.id;
       }
 
+      // 3. Ledger Sync: Update Project State
       if (amountToProject > 0n) {
         const updatedProject = await tx.project.update({
           where: { id: projectId },
@@ -531,7 +541,8 @@ export class DonationService {
 
         isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
 
-        if (isGoalMet) {
+        // Logic: Only flip status to Funded if it was previously Active.
+        if (isGoalMet && updatedProject.status === ProjectStatus.ACTIVE) {
           await tx.project.update({
             where: { id: projectId },
             data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
@@ -562,6 +573,7 @@ export class DonationService {
         }
       }
 
+      // 4. Surplus Routing: Move only the true excess to the Suspense Ledger
       if (surplus > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -581,7 +593,8 @@ export class DonationService {
               metadata: {
                 originalProjectId: project.id,
                 email: guestEmail || userId,
-                reason: actualRemaining === 0n ? 'PROJECT_ALREADY_FUNDED' : 'GOAL_THRESHOLD_EXCEEDED'
+                reason: actualRemaining === 0n ? 'PROJECT_ALREADY_FUNDED' : 'GOAL_THRESHOLD_EXCEEDED',
+                channel
               }
             }
           });
@@ -599,7 +612,8 @@ export class DonationService {
           applied: amountToProject.toString(),
           surplus: surplus.toString(),
           isGoalMet,
-          reference
+          reference,
+          channel
         }
       }, tx);
 
@@ -609,7 +623,8 @@ export class DonationService {
         projectTitle: project.title,
         projectSlug: project.slug,
         projectUserId: project.userId,
-        surplus // Pass surplus to triggerReceipt logic
+        surplus,
+        type: 'DIRECT_DONATION'
       };
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
