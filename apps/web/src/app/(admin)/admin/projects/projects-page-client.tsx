@@ -50,7 +50,7 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
 
     return (
         <div className="w-full min-w-0">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-2 md:space-y-6">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-0 md:space-y-6">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
                     <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 w-full md:w-auto border border-border/40 shadow-inner shrink-0 overflow-x-auto no-scrollbar justify-start">
                         <TabsTrigger value="live" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
