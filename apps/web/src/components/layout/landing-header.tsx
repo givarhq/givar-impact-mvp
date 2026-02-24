@@ -28,7 +28,7 @@ export const LandingHeader = memo(function LandingHeader({
         isAuth
           ? 'bg-background border-b border-border/40 py-4'
           : scrolled
-            ? 'bg-white/80 backdrop-blur-xl border-b border-border/40 py-3 shadow-sm'
+            ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-border/40 py-3 shadow-sm'
             : 'bg-transparent py-6'
       )}
     >
@@ -49,8 +49,8 @@ export const LandingHeader = memo(function LandingHeader({
           </span>
         </Link>
 
-        {/* Centered Nav - Light Theme Default */}
-        <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-bold text-muted-foreground">
+        {/* Centered Nav */}
+        <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold text-muted-foreground">
           <Link href="/explore" className="hover:text-primary transition-colors">
             Explore Causes
           </Link>

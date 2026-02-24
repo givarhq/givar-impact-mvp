@@ -43,7 +43,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                             transition={{ duration: 0.5 }}
                             className="space-y-8"
                         >
-                            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-emerald-950 leading-[1.1] md:leading-[1.05]">
+                            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-emerald-950 dark:text-white leading-[1.1] md:leading-[1.05]">
                                 Give With <br />
                                 <span className="text-primary">Confidence</span>
                             </h1>
@@ -63,7 +63,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                                 <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner transition-transform group-hover:scale-110">
                                                     <ShieldCheck className="h-3.5 w-3.5 text-primary" />
                                                 </div>
-                                                <span className="text-sm sm:text-base font-bold text-emerald-950 tracking-tight">{text}</span>
+                                                <span className="text-sm sm:text-base font-bold text-emerald-950 dark:text-emerald-50 tracking-tight">{text}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -80,7 +80,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                 <Link href="/signup" className="flex-1">
                                     <Button
                                         variant="outline"
-                                        className="w-full h-12 sm:h-14 px-2 sm:px-6 rounded-full bg-white text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
+                                        className="w-full h-12 sm:h-14 px-2 sm:px-6 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
                                     >
                                         Create Account
                                     </Button>
@@ -89,7 +89,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         </motion.div>
                     </div>
 
-                    {/* Right Image Asset - Comes before mobile card in DOM for ordering */}
+                    {/* Right Image Asset */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -102,32 +102,32 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                             fill
                             priority
                             sizes="(max-width: 1024px) 100vw, 50vw"
-                            className="object-contain mix-blend-multiply"
+                            className="object-contain mix-blend-multiply dark:mix-blend-normal dark:opacity-100"
                         />
                     </motion.div>
                 </div>
 
-                {/* Mobile Specific Data Card - Positioned after Land.jpg in flow */}
+                {/* Mobile Specific Data Card */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="lg:hidden w-full pt-8"
                 >
-                    <Card className="w-full border-white/40 bg-white/60 backdrop-blur-xl p-5 text-emerald-950 shadow-[0_10px_30px_rgba(0,0,0,0.05)] rounded-3xl">
+                    <Card className="w-full border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] rounded-3xl">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="h-10 w-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
                                 <Activity className="h-5 w-5" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs text-emerald-900/60 font-bold">Real-Time Volume</p>
+                                <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
                                 <div className="text-lg font-black font-mono truncate">
                                     <SmartCurrency
                                         amount={stats.totalVolume}
                                         currency="NGN"
                                         visible={true}
                                         size="default"
-                                        className="text-emerald-950"
+                                        className="text-emerald-950 dark:text-white"
                                     />
                                 </div>
                             </div>
@@ -136,7 +136,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         {stats.latestDonation ? (
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-[11px] font-bold">
-                                    <span className="text-emerald-900/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
+                                    <span className="text-emerald-900/40 dark:text-white/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
                                     <span className="text-primary font-mono shrink-0">
                                         + <SmartCurrency
                                             amount={stats.latestDonation.amount}
@@ -146,12 +146,12 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                         />
                                     </span>
                                 </div>
-                                <div className="h-1 w-full bg-emerald-900/5 rounded-full overflow-hidden">
+                                <div className="h-1 w-full bg-emerald-900/5 dark:bg-white/5 rounded-full overflow-hidden">
                                     <div className="h-full bg-primary w-full animate-pulse" />
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-xs text-emerald-900/30 font-bold italic">Waiting For First Donation...</div>
+                            <div className="text-xs text-emerald-900/30 dark:text-white/30 font-bold italic">Waiting For First Donation...</div>
                         )}
                     </Card>
                 </motion.div>
@@ -163,20 +163,20 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     transition={{ duration: 0.8, delay: 0.5 }}
                     className="absolute right-6 bottom-10 hidden lg:block z-20"
                 >
-                    <Card className="w-80 border-white/40 bg-white/60 backdrop-blur-xl p-5 text-emerald-950 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl">
+                    <Card className="w-80 border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                                 <Activity className="h-5 w-5" />
                             </div>
                             <div>
-                                <p className="text-xs text-emerald-900/60 font-bold">Real-Time Volume</p>
+                                <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
                                 <div className="text-lg font-black font-mono">
                                     <SmartCurrency
                                         amount={stats.totalVolume}
                                         currency="NGN"
                                         visible={true}
                                         size="default"
-                                        className="text-emerald-950"
+                                        className="text-emerald-950 dark:text-white"
                                     />
                                 </div>
                             </div>
@@ -185,7 +185,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         {stats.latestDonation ? (
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center text-xs font-bold">
-                                    <span className="text-emerald-900/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
+                                    <span className="text-emerald-900/40 dark:text-white/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
                                     <span className="text-primary font-mono shrink-0">
                                         + <SmartCurrency
                                             amount={stats.latestDonation.amount}
@@ -195,16 +195,16 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                         />
                                     </span>
                                 </div>
-                                <div className="h-1 w-full bg-emerald-900/5 rounded-full overflow-hidden">
+                                <div className="h-1 w-full bg-emerald-900/5 dark:bg-white/5 rounded-full overflow-hidden">
                                     <div className="h-full bg-primary w-full animate-pulse" />
                                 </div>
-                                <div className="flex justify-between text-[10px] text-emerald-900/30 font-bold pt-1 tracking-widest">
+                                <div className="flex justify-between text-[10px] text-emerald-900/30 dark:text-white/30 font-bold pt-1 tracking-widest">
                                     <span>Just Now</span>
                                     <span>Verified On-Chain</span>
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-xs text-emerald-900/30 font-bold italic">Waiting For First Donation...</div>
+                            <div className="text-xs text-emerald-900/30 dark:text-white/30 font-bold italic">Waiting For First Donation...</div>
                         )}
                     </Card>
                 </motion.div>
@@ -214,7 +214,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
             <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See Real-Time Impact</h2>
-                    <p className="text-muted-foreground font-medium mt-4 max-w-xl mx-auto">Follow Your Capital From The Moment It Leaves Your Wallet To The Exact Moment It Changes A Life.</p>
+                    <p className="text-muted-foreground font-medium mt-4 max-w-xl mx-auto">Follow your donation from the moment it leaves your wallet to the exact moment it changes a life.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
@@ -225,15 +225,15 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="relative z-10 bg-white rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                        className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
                     >
                         <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-base shadow-lg shadow-primary/20 transition-transform group-hover:scale-110">1</div>
-                        <div className="h-12 w-12 bg-primary/5 rounded-2xl flex items-center justify-center mb-4 border border-primary/10">
+                        <div className="h-12 w-12 bg-primary/5 dark:bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/10">
                             <Wallet className="h-6 w-6 text-primary" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground mb-2">You Contribute</h3>
-                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support A Verified Community Cause Instantly Through Your Dedicated Smart Wallet.</p>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-xl border border-border/60 text-[10px] font-bold text-foreground w-fit">
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified community cause instantly through your dedicated smart wallet.</p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 dark:bg-zinc-800 rounded-xl border border-border/60 dark:border-white/10 text-[10px] font-bold text-foreground w-fit">
                             <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Capital Deployed
                         </div>
                     </motion.div>
@@ -244,15 +244,15 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="relative z-10 bg-white rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                        className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
                     >
                         <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-110">2</div>
-                        <div className="h-12 w-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 border border-blue-100">
+                        <div className="h-12 w-12 bg-blue-50 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center mb-4 border border-blue-100 dark:border-blue-900/20">
                             <Activity className="h-6 w-6 text-blue-500" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground mb-2">Impact Happens</h3>
-                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Treasury Funds Are Released Directly To Verified Vendors To Execute The Mission.</p>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-xl border border-blue-100 text-[10px] font-bold text-blue-700 w-fit">
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Treasury funds are released directly to verified vendors to execute the mission.</p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20 text-[10px] font-bold text-blue-700 dark:text-blue-400 w-fit">
                             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Milestone Achieved
                         </div>
                     </motion.div>
@@ -263,15 +263,15 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="relative z-10 bg-white rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                        className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
                     >
                         <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-base shadow-lg shadow-amber-500/20 transition-transform group-hover:scale-110">3</div>
-                        <div className="h-12 w-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 border border-amber-100">
+                        <div className="h-12 w-12 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex items-center justify-center mb-4 border border-amber-100 dark:border-amber-900/20">
                             <Heart className="h-6 w-6 text-amber-500 fill-current" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground mb-2">You Get Proof</h3>
-                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Photographic Evidence And Project Receipts Are Uploaded To The Public Ledger.</p>
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-xl border border-border/10 text-[10px] font-bold text-emerald-700 w-fit">
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Photographic evidence and project receipts are uploaded to the public records.</p>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-border/10 dark:border-emerald-900/20 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 w-fit">
                             <ShieldCheck className="h-3 w-3" /> Ledger Verified
                         </div>
                     </motion.div>
@@ -311,15 +311,15 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         ))}
                     </div>
                 ) : (
-                    <div className="p-16 text-center bg-white rounded-[32px] border border-border/40 shadow-sm">
+                    <div className="p-16 text-center bg-white dark:bg-zinc-900 rounded-[32px] border border-border/40 shadow-sm">
                         <Activity className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
-                        <p className="font-bold text-muted-foreground text-sm">Discovering Platform Causes...</p>
+                        <p className="font-bold text-muted-foreground text-sm">Discovering platform causes...</p>
                     </div>
                 )}
 
                 <div className="mt-10 text-center sm:hidden">
                     <Link href="/explore">
-                        <Button variant="outline" className="w-full h-12 rounded-3xl font-bold border-border/60">View all causes  <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                        <Button variant="outline" className="w-full h-12 rounded-3xl font-bold border-border/60 dark:border-white/10 dark:bg-zinc-900">View all causes  <ArrowRight className="ml-2 h-4 w-4" /></Button>
                     </Link>
                 </div>
             </section>
@@ -330,54 +330,54 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     Why People <span className="text-primary">Trust</span> Givar
                 </h2>
 
-                <div className="flex flex-wrap justify-center gap-4 mb-10">
-                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
-                        <div className="h-10 w-10 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shrink-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
+                        <div className="h-10 w-10 bg-emerald-50 dark:bg-emerald-900/10 rounded-full flex items-center justify-center text-emerald-500 shrink-0">
                             <ShieldCheck className="h-5 w-5" />
                         </div>
                         <div className="text-left">
                             <h4 className="font-bold text-sm text-foreground">Verified Causes</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">Every Campaign Vetted</p>
+                            <p className="text-[11px] text-muted-foreground font-medium">Every campaign vetted</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
-                        <div className="h-10 w-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 shrink-0">
+                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
+                        <div className="h-10 w-10 bg-amber-50 dark:bg-amber-900/10 rounded-full flex items-center justify-center text-amber-500 shrink-0">
                             <Wallet className="h-5 w-5" />
                         </div>
                         <div className="text-left">
                             <h4 className="font-bold text-sm text-foreground">Direct Payments</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">No Middlemen</p>
+                            <p className="text-[11px] text-muted-foreground font-medium">No middlemen</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
-                        <div className="h-10 w-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-500 shrink-0">
+                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
+                        <div className="h-10 w-10 bg-blue-50 dark:bg-blue-900/10 rounded-full flex items-center justify-center text-blue-500 shrink-0">
                             <Activity className="h-5 w-5" />
                         </div>
                         <div className="text-left">
                             <h4 className="font-bold text-sm text-foreground">Transparent Tracking</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">See Every Update</p>
+                            <p className="text-[11px] text-muted-foreground font-medium">See every update</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-white rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60">
-                        <div className="h-10 w-10 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 shrink-0">
+                    <div className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
+                        <div className="h-10 w-10 bg-rose-50 dark:bg-rose-900/10 rounded-full flex items-center justify-center text-rose-500 shrink-0">
                             <Heart className="h-5 w-5" />
                         </div>
                         <div className="text-left">
                             <h4 className="font-bold text-sm text-foreground">Real Impact</h4>
-                            <p className="text-[11px] text-muted-foreground font-medium">Proof Delivered</p>
+                            <p className="text-[11px] text-muted-foreground font-medium">Proof delivered</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex flex-wrap justify-center items-center gap-3 text-xs font-bold text-muted-foreground">
-                    <span>Instant Setup</span>
+                    <span>Fast Setup</span>
                     <span>•</span>
-                    <span>Secure & Private</span>
+                    <span>Secure Access</span>
                     <span>•</span>
-                    <span>No Platform Fees</span>
+                    <span>Transparent by Design</span>
                 </div>
             </section>
 

@@ -24,13 +24,13 @@ export default async function LandingPage() {
         const response = await ApiService.recommendations.getFeatured();
         featuredProjects = response?.data || [];
     } catch (error) {
-        console.error("Discovery Engine Unavailable For Landing Hydration");
+        console.error("Discovery engine unavailable for landing hydration");
     }
 
     const stats = await getLandingStats();
 
     return (
-        <div className="min-h-screen bg-[#fafafa] text-foreground font-sans selection:bg-primary/20">
+        <div className="min-h-screen bg-[#fafafa] dark:bg-background text-foreground font-sans selection:bg-primary/20 transition-colors duration-300">
 
             <LandingHeader />
 
@@ -38,7 +38,7 @@ export default async function LandingPage() {
                 <HeroSection featuredProjects={featuredProjects} stats={stats} />
             </main>
 
-            <footer className="bg-white border-t border-border/40 py-16">
+            <footer className="bg-white dark:bg-zinc-950 border-t border-border/40 py-16 transition-colors duration-300">
                 <div className="container mx-auto px-6 max-w-6xl">
                     <div className="flex flex-col md:flex-row justify-between items-start gap-12">
                         <div className="space-y-6 max-w-sm">
@@ -54,7 +54,7 @@ export default async function LandingPage() {
                                 <span className="text-xl font-bold text-foreground">Givar.</span>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                                The Operating System For Modern Philanthropy. We Provide The Infrastructure For Transparent, Verifiable, And Frictionless Giving.
+                                The operating system for modern philanthropy. We provide the infrastructure for transparent, verifiable, and frictionless giving.
                             </p>
                         </div>
 
@@ -63,7 +63,7 @@ export default async function LandingPage() {
                                 <h4 className="font-bold text-foreground mb-4">Product</h4>
                                 <ul className="space-y-3 text-sm font-medium text-muted-foreground">
                                     <li><Link href="/signup" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
-                                    <li><Link href="/explore" className="hover:text-primary transition-colors">Public Ledger</Link></li>
+                                    <li><Link href="/explore" className="hover:text-primary transition-colors">Public Records</Link></li>
                                 </ul>
                             </div>
 
@@ -78,7 +78,7 @@ export default async function LandingPage() {
                     </div>
 
                     <div className="border-t border-border/40 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-medium text-muted-foreground">
-                        <div>&copy; {new Date().getFullYear()} Givar Inc. All Rights Reserved.</div>
+                        <div>&copy; {new Date().getFullYear()} Givar Inc. All rights reserved.</div>
                         <div className="flex gap-6">
                             <Github className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
                             <Twitter className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
