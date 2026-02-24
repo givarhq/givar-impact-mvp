@@ -446,7 +446,7 @@ export class DonationService {
 
       // 2. Refined Spillover Logic
       // Logic: Identify if project is effectively closed to new capital.
-      const isClosed = [ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED].includes(project.status);
+      const isClosed = ([ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED] as ProjectStatus[]).includes(project.status);
 
       const currentRemaining = project.targetAmount - project.raisedAmount;
       // If the project is closed, it accepts zero. If open, it accepts up to the remaining gap.
@@ -526,7 +526,7 @@ export class DonationService {
             currency,
             reference,
             status: TxStatus.COMPLETED,
-            metadata: { channel } as any
+            // Note: GuestDonation model does not support a metadata field in current schema
           }
         });
         processedDonationId = guestDonation.id;
