@@ -46,7 +46,7 @@ export function UsersPageClient({ initialData, activeTab, searchParams }: UsersP
 
     return (
         <>
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6 min-w-0">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-2 md:space-y-6 min-w-0">
                 <div className="w-full min-w-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 w-full md:w-fit border border-border/40 shadow-inner inline-flex">
                         <TabsTrigger
