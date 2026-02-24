@@ -65,10 +65,11 @@ export default function RootLayout({
                 fontWeight: 'bold',
                 fontSize: '12px',
                 padding: '12px 20px',
-                background: 'var(--card)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
+                background: 'hsl(var(--card))', // Explicit opaque background via HSL variable
+                color: 'hsl(var(--foreground))',
+                border: '1px solid hsl(var(--border))',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', // Solid shadow for depth
+                opacity: 1, // Force absolute opacity
               },
               success: {
                 iconTheme: {
