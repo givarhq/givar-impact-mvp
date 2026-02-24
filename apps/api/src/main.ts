@@ -1,7 +1,9 @@
+import './instrument'; // MUST BE THE VERY FIRST IMPORT
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
+import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
 
 // MONKEY PATCH: BigInt Serialization
 // Critical for financial math. Converts BigInt to string in JSON responses.
@@ -29,6 +31,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Apply Sentry Interceptor globally to catch unhandled backend panics
+  app.useGlobalInterceptors(new SentryInterceptor());
 
   app.enableVersioning({
     type: VersioningType.URI,
