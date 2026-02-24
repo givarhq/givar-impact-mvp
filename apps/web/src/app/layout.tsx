@@ -56,7 +56,28 @@ export default function RootLayout({
           <ImpersonationBanner />
 
           {children}
-          <Toaster position="top-center" />
+
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              style: {
+                borderRadius: '24px',
+                fontWeight: 'bold',
+                fontSize: '12px',
+                padding: '12px 20px',
+                background: 'var(--card)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
+              },
+              success: {
+                iconTheme: {
+                  primary: 'hsl(var(--primary))',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>
