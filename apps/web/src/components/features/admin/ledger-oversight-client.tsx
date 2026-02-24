@@ -359,13 +359,19 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                     </p>
                 </div>
 
-                <Button
-                    onClick={() => setShowSweepConfirm(true)}
-                    disabled={isProcessing}
-                    className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/20 border-0 transition-all active:scale-95"
-                >
-                    {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Run Sweep"}
-                </Button>
+                <div className="flex justify-center">
+  <Button
+    onClick={() => setShowSweepConfirm(true)}
+    disabled={isProcessing}
+    className="h-12 px-8 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/20 border-0 transition-all active:scale-95"
+  >
+    {isProcessing ? (
+      <Loader2 className="h-4 w-4 animate-spin" />
+    ) : (
+      "Run Sweep"
+    )}
+  </Button>
+</div>
             </CardContent>
         </Card>
     </div>
