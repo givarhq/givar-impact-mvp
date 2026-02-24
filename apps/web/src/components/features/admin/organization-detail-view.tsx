@@ -151,7 +151,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center shadow-sm">
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Node Joined</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Joined</p>
                                     <p className="text-xs font-bold mt-1 tabular-nums">{formatDate(profile.user.createdAt).split(',')[0]}</p>
                                 </div>
                                 <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center shadow-sm">

@@ -97,7 +97,7 @@ export default function FundWalletPage() {
           className="w-fit pl-0 text-muted-foreground hover:text-foreground group rounded-3xl"
         >
           <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          Back to Wallet
+          Go Back
         </Button>
       </div>
 
@@ -131,9 +131,9 @@ export default function FundWalletPage() {
               <CreditCard className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <CardTitle className="text-lg md:text-xl font-bold">Top up wallet</CardTitle>
+              <CardTitle className="text-lg md:text-xl font-bold">Top Up Wallet</CardTitle>
               <CardDescription className="text-xs font-medium">
-                Securely fund your Givar node via Paystack gateway.
+                Securely fund your Givar Wallet via Paystack gateway.
               </CardDescription>
             </div>
           </div>

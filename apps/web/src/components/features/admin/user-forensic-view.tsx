@@ -367,8 +367,8 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 variant={roleConfirm.action === 'DEMOTE' ? 'destructive' : 'warning'}
                 title={roleConfirm.action === 'PROMOTE' ? 'Grant Admin Rights' : 'Revoke Admin Rights'}
                 description={roleConfirm.action === 'PROMOTE'
-                    ? "Elevate this node to administrative status? This provides access to forensic tools & user management."
-                    : "Demote this node to standard user status? All administrative permissions will be revoked."
+                    ? "Elevate this account to administrative status? This provides access to forensic tools & user management."
+                    : "Demote this account to standard user status? All administrative permissions will be revoked."
                 }
                 confirmText={roleConfirm.action === 'PROMOTE' ? 'Promote' : 'Demote'}
             />

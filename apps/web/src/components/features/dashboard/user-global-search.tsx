@@ -63,7 +63,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                     setResults(data);
                     setIsOpen(true);
                 } catch (error) {
-                    console.error("The Search Failed To Execute Properly");
+                    console.error("The search failed to execute properly");
                 } finally {
                     setIsLoading(false);
                 }
@@ -131,7 +131,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                 <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Search For Causes, Receipts, Or Recent Activity..."
+                    placeholder="Search anything..."
                     className="w-full bg-secondary/50 hover:bg-secondary focus:bg-background border border-transparent focus:border-primary/30 rounded-3xl py-2.5 pl-11 pr-12 text-sm outline-none transition-all placeholder:text-muted-foreground/70 text-foreground font-medium shadow-sm"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}

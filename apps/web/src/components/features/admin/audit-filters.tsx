@@ -107,7 +107,7 @@ export const AuditFilters = memo(function AuditFilters() {
         <SelectItem value="FEATURED_SLOT_CREATED" className="text-xs">Featured Slot Assigned</SelectItem>
         <SelectItem value="FEATURED_SLOT_DELETED" className="text-xs">Featured Slot Removed</SelectItem>
         <SelectItem value="CATEGORY_WEIGHT_UPDATED" className="text-xs">Sector Weight Updated</SelectItem>
-        <SelectItem value="PROJECT_DISCOVERY_WEIGHTS_UPDATED" className="text-xs">Node Discovery Weights Updated</SelectItem>
+        <SelectItem value="PROJECT_DISCOVERY_WEIGHTS_UPDATED" className="text-xs">Discovery Weights Updated</SelectItem>
         <SelectItem value="WEBHOOK_RECEIVED" className="text-xs">Gateway Webhook Event</SelectItem>
         <SelectItem value="WEBHOOK_SIGNATURE_FAILED" className="text-xs">Webhook Signature Failure</SelectItem>
       </SelectGroup>

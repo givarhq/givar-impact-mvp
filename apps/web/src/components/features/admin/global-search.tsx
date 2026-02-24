@@ -134,7 +134,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                 <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Find People, Projects, Or Receipts..."
+                    placeholder="Find people, projects, or receipts..."
                     className="w-full bg-secondary/50 hover:bg-secondary focus:bg-background border border-transparent focus:border-primary/30 rounded-3xl py-2.5 pl-11 pr-12 text-sm outline-none transition-all placeholder:text-muted-foreground/70 text-foreground font-medium shadow-sm focus:shadow-md"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}

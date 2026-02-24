@@ -75,20 +75,20 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
     }
 
     return (
-        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 sm:py-2.5 animate-in slide-in-from-top duration-500 z-40">
+        <div className="w-full bg-amber-500/10 dark:bg-amber-500/5 border-b border-amber-500/20 dark:border-amber-500/10 px-4 py-2 sm:py-2.5 animate-in slide-in-from-top duration-500 z-40 transition-colors">
             <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
 
                 {/* Left Section */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl sm:rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
+                    <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl sm:rounded-2xl bg-amber-500/20 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-500 shrink-0 shadow-inner">
                         <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
 
                     <div className="min-w-0 space-y-0 sm:space-y-0.5">
-                        <p className="text-sm font-bold text-amber-900 leading-snug">
+                        <p className="text-sm font-bold text-amber-900 dark:text-amber-100 leading-snug">
                             {title}
                         </p>
-                        <p className="text-xs text-amber-800/80 font-medium leading-snug sm:truncate">
+                        <p className="text-xs text-amber-800/80 dark:text-amber-400/80 font-medium leading-snug sm:truncate">
                             {description}
                         </p>
                     </div>
@@ -102,7 +102,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
                             <button
                                 onClick={handleResendEmail}
                                 disabled={isLoading}
-                                className="h-8 sm:h-8 px-4 rounded-3xl text-xs font-bold text-amber-700 hover:bg-amber-500/10 transition-colors disabled:opacity-50 w-full sm:w-auto flex items-center justify-center"
+                                className="h-8 sm:h-8 px-4 rounded-3xl text-xs font-bold text-amber-700 dark:text-amber-500 hover:bg-amber-500/10 transition-colors disabled:opacity-50 w-full sm:w-auto flex items-center justify-center"
                             >
                                 {isLoading ? (
                                     <Loader2 className="h-3 w-3 animate-spin mr-2" />
@@ -117,7 +117,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
                         >
                             <Button
                                 size="sm"
-                                className="h-8 sm:h-8 w-full sm:w-auto rounded-3xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-0 px-5 shadow-sm active:scale-95 transition-all"
+                                className="h-8 sm:h-8 w-full sm:w-auto rounded-3xl text-xs font-bold bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600 text-white border-0 px-5 shadow-sm active:scale-95 transition-all"
                             >
                                 {buttonText}
                                 <ArrowRight className="ml-1.5 h-3 w-3" />
@@ -127,7 +127,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
 
                     <button
                         onClick={() => setIsDismissed(true)}
-                        className="p-1 hover:bg-amber-500/10 rounded-full text-amber-700/50 transition-colors"
+                        className="p-1 hover:bg-amber-500/10 rounded-full text-amber-700/50 dark:text-amber-500/30 transition-colors"
                     >
                         <X className="h-4 w-4" />
                     </button>

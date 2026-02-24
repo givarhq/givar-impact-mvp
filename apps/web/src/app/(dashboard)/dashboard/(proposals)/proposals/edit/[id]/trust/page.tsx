@@ -171,7 +171,7 @@ export default function TrustPage() {
               <div className="space-y-2 max-w-xs mx-auto min-w-0">
                 <h3 className="text-lg font-bold tracking-tight">Identity Audit in Progress</h3>
                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                  Your organization documents are being verified. You can submit this cause once your identity node is confirmed.
+                  Your organization documents are being verified. You can submit this cause once your account is confirmed.
                 </p>
               </div>
               <Link href="/dashboard/settings?tab=org" className="block">

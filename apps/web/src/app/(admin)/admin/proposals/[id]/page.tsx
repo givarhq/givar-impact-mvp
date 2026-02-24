@@ -41,7 +41,6 @@ export default async function AdminProposalDetailPage({ params }: { params: Prom
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-bold tracking-tight text-foreground md:hidden truncate">Review proposal</h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-3xl bg-muted border border-border/40 text-[11px] font-mono text-muted-foreground shrink-0">
                   <Fingerprint className="h-3 w-3" />

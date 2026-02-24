@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
-    Loader2, Wallet, CreditCard, CheckCircle, Mail,
-    Lock, AlertCircle, Eye, MailCheck, Plus, RefreshCw
+    Loader2, Wallet, CreditCard, CheckCircle2, Mail,
+    Lock, Eye, MailCheck, Plus, RefreshCw
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -23,8 +23,10 @@ export interface DonationFormProps {
     isAuthenticated: boolean;
 }
 
-export function DonationForm({ project, wallet, isAuthenticated }: DonationFormProps) {
+export function DonationForm({ project, wallet: initialWallet, isAuthenticated }: DonationFormProps) {
     const router = useRouter();
+
+    // State
     const [amount, setAmount] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -32,9 +34,14 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const [interval, setInterval] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
     const [selectedMethod, setSelectedMethod] = useState<'wallet' | 'direct' | null>(null);
 
+    // Wallet State (Client-side freshness)
+    const [currentWallet, setCurrentWallet] = useState<WalletType | null>(initialWallet);
+
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isUnverified, setIsUnverified] = useState(false);
+    const [guestEmail, setGuestEmail] = useState('');
 
+    // Verification Check
     const checkVerification = () => {
         const userCookie = getCookie('givar_user');
         if (userCookie) {
@@ -47,6 +54,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
         }
     };
 
+    // Initial Setup & Wallet Refresh
     useEffect(() => {
         const impersonating = getCookie('givar_is_impersonating') === 'true';
         setIsReadOnly(impersonating);
@@ -54,12 +62,24 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
 
         setAmount('');
         setIsLoading(false);
+
         if (!isAuthenticated) {
             setSelectedMethod('direct');
         } else {
             setSelectedMethod(null);
+            // Refresh wallet on mount to ensure balance is up-to-date after returning from Fund page
+            refreshWallet();
         }
     }, [project, isAuthenticated]);
+
+    const refreshWallet = async () => {
+        try {
+            const freshWallet = await ApiService.wallet.get();
+            setCurrentWallet(freshWallet);
+        } catch (error) {
+            console.error("Wallet sync failed", error);
+        }
+    };
 
     const handleRefreshStatus = async () => {
         setIsRefreshing(true);
@@ -78,11 +98,10 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
         }
     };
 
+    // Financial Logic
     const isGuest = !isAuthenticated;
-    const [guestEmail, setGuestEmail] = useState('');
-
     const donationAmountMinor = BigInt(parseFormattedNumber(amount) || '0') * 100n;
-    const walletBalanceMinor = BigInt(wallet?.balance || '0');
+    const walletBalanceMinor = BigInt(currentWallet?.balance || '0');
 
     const isWalletMethod = selectedMethod === 'wallet';
     const hasSufficientFunds = !isGuest && walletBalanceMinor >= donationAmountMinor;
@@ -91,7 +110,6 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
     const targetAmountMinor = BigInt(project?.targetAmount || '0');
     const raisedAmountMinor = BigInt(project?.raisedAmount || '0');
     const remainingNeededMinor = targetAmountMinor - raisedAmountMinor;
-
     const isCompletingProject = donationAmountMinor >= remainingNeededMinor && remainingNeededMinor > 0n;
 
     if (!project) return null;
@@ -121,6 +139,8 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
         try {
             const minorAmount = donationAmountMinor.toString();
             const projectSlug = project.slug;
+
+            // Determine redirect path
             const redirectPath = isAuthenticated
                 ? `/dashboard/impact/${projectSlug}`
                 : `/explore/${projectSlug}`;
@@ -141,8 +161,10 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                     });
                 }
                 toast.success(donationType === 'one-time' ? `Successfully donated!` : `Subscription active!`);
-                router.push(redirectPath);
-                router.refresh();
+
+                // Force a hard navigation/refresh to update project stats immediately
+                window.location.href = redirectPath;
+
             } else if (selectedMethod === 'direct') {
                 const payload: any = {
                     projectId: project.id,
@@ -340,10 +362,10 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                                     <div className="text-left flex-1 min-w-0">
                                                         <p className="font-bold text-sm text-foreground truncate">Givar wallet</p>
                                                         <p className={cn("text-xs font-medium truncate", !hasSufficientFunds && donationAmountMinor > 0n ? "text-destructive" : "text-muted-foreground")}>
-                                                            Balance: {formatCurrency(wallet?.balance || '0', project.currency)}
+                                                            Balance: {formatCurrency(currentWallet?.balance || '0', project.currency)}
                                                         </p>
                                                     </div>
-                                                    {selectedMethod === 'wallet' && <CheckCircle className="ml-2 h-5 w-5 text-primary shrink-0" />}
+                                                    {selectedMethod === 'wallet' && <CheckCircle2 className="ml-2 h-5 w-5 text-primary shrink-0" />}
                                                 </button>
 
                                                 <button
@@ -355,7 +377,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                                                 >
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-muted mr-3 text-muted-foreground border border-border/40 shrink-0"><CreditCard className="h-4.5 w-4.5" /></div>
                                                     <div className="text-left flex-1 min-w-0"><p className="font-bold text-sm text-foreground truncate">Direct pay</p><p className="text-xs font-medium text-muted-foreground truncate">Card, bank transfer</p></div>
-                                                    {selectedMethod === 'direct' && <CheckCircle className="ml-2 h-5 w-5 text-primary shrink-0" />}
+                                                    {selectedMethod === 'direct' && <CheckCircle2 className="ml-2 h-5 w-5 text-primary shrink-0" />}
                                                 </button>
                                             </motion.div>
                                         )}
@@ -374,7 +396,7 @@ export function DonationForm({ project, wallet, isAuthenticated }: DonationFormP
                             exit={{ opacity: 0, height: 0 }}
                             className="flex items-start gap-2.5 p-3 rounded-3xl bg-primary/5 border border-primary/10 text-primary overflow-hidden"
                         >
-                            <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                            <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
                             <div className="text-xs space-y-0.5">
                                 <p className="font-bold">Final contribution</p>
                                 <p className="font-medium">

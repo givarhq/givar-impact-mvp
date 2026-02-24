@@ -140,7 +140,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                     }}
                                     className="flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-all group"
                                 >
-                                    View All Verified Causes
+                                    View all causes
                                     <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                                 </button>
                             </div>

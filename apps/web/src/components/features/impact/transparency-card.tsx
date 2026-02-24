@@ -170,7 +170,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             {/* Ledger Navigation */}
             <Link href={`/dashboard/history?search=${encodeURIComponent(project.title)}`}>
                 <Button variant="outline" className="w-full rounded-3xl border-border/60 hover:bg-muted text-xs h-10 font-bold gap-2 active:scale-95 transition-all">
-                    View public ledger <ArrowRight className="h-3.5 w-3.5" />
+                    View public records <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
             </Link>
         </Card>

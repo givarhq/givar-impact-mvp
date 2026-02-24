@@ -6,7 +6,6 @@ import {
     Loader2,
     Lock,
     Copy,
-    CheckCircle2
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -33,7 +32,7 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
             setSetupData(data);
             setShowSetup(true);
         } catch (e) {
-            toast.error("Failed To Initialize Security Protocol");
+            toast.error("Something went wrong. Please try again");
         } finally {
             setIsLoading(false);
         }
@@ -48,9 +47,9 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
             setShowSetup(false);
             setSetupData(null);
             setVerificationCode('');
-            toast.success("Two-Factor Authentication Is Now Active");
+            toast.success("Two-factor authentication is now active");
         } catch (e) {
-            toast.error("Invalid Verification Code. Please Try Again.");
+            toast.error("Invalid verification code. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -63,9 +62,9 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
             setIsEnabled(false);
             setShowDisable(false);
             setPassword('');
-            toast.success("Two-Factor Authentication Disabled");
+            toast.success("Two-factor authentication disabled");
         } catch (e) {
-            toast.error("Incorrect Password");
+            toast.error("Incorrect password");
         } finally {
             setIsLoading(false);
         }
@@ -88,7 +87,7 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
                         <div className="space-y-0.5">
                             <h3 className="font-bold text-sm text-foreground">Two-Factor Authentication</h3>
                             <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-sm">
-                                Protect Your Impact Node With An Additional Layer Of Hardware-Based Security.
+                                Protect your account with an additional layer of security.
                             </p>
                         </div>
                     </div>
@@ -109,9 +108,9 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
                     <div className="p-6 md:p-8 space-y-6">
                         <div className="text-center space-y-1">
                             <DialogHeader>
-                                <DialogTitle className="text-xl font-bold tracking-tight text-center">Secure Your Node</DialogTitle>
+                                <DialogTitle className="text-xl font-bold tracking-tight text-center">Enable 2FA</DialogTitle>
                             </DialogHeader>
-                            <p className="text-xs text-muted-foreground">Scan This Cryptographic Key With Your Authenticator App.</p>
+                            <p className="text-xs text-muted-foreground">Scan this cryptographic key with your authenticator app.</p>
                         </div>
 
                         {setupData && (
@@ -167,7 +166,7 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
                         <DialogHeader>
                             <DialogTitle className="text-lg font-bold text-center">Disable Protection?</DialogTitle>
                         </DialogHeader>
-                        <p className="text-xs text-muted-foreground text-center">Enter Your Password To Authorize Security Deactivation.</p>
+                        <p className="text-xs text-muted-foreground text-center">Enter your password to authorize security deactivation.</p>
                     </div>
 
                     <div className="space-y-4 pt-4">

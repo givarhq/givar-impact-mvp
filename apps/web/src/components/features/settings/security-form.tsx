@@ -64,11 +64,11 @@ export const SecurityForm = memo(function SecurityForm({ user }: { user: any }) 
                 currentPassword: data.currentPassword,
                 newPassword: data.newPassword
             });
-            toast.success("Security Credentials Updated");
+            toast.success("Security credentials updated");
             setIsEditing(false);
             reset();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || "Verification Failed");
+            toast.error(error.response?.data?.message || "Verification failed");
         } finally {
             setIsLoading(false);
         }
@@ -102,7 +102,7 @@ export const SecurityForm = memo(function SecurityForm({ user }: { user: any }) 
                                 </div>
                                 <div className="space-y-0.5">
                                     <h3 className="font-bold text-sm text-foreground">Password Management</h3>
-                                    {!isEditing && <p className="text-xs text-muted-foreground font-medium tracking-tight">Update Security Credentials</p>}
+                                    {!isEditing && <p className="text-xs text-muted-foreground font-medium tracking-tight">Update security credentials</p>}
                                 </div>
                             </div>
                             {!isEditing && <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/30 group-hover:opacity-100 transition-all" />}
@@ -154,7 +154,7 @@ export const SecurityForm = memo(function SecurityForm({ user }: { user: any }) 
                                                 <div className="pt-2">
                                                     <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-2 italic">
                                                         <AlertCircle className="h-3 w-3 mt-0.5 shrink-0 opacity-50" />
-                                                        Note: Password Rotation Will Terminate All Other Active Ledger Sessions.
+                                                        Note: Password rotation will terminate all other active sessions.
                                                     </p>
                                                 </div>
                                             </div>

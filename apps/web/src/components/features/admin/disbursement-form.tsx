@@ -284,7 +284,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                             </thead>
                             <tbody className="divide-y divide-border/40">
                                 {sortedDisbursements.length === 0 ? (
-                                    <tr><td colSpan={4} className="p-12 text-center text-xs text-muted-foreground italic font-medium">No disbursement records identified for this node.</td></tr>
+                                    <tr><td colSpan={4} className="p-12 text-center text-xs text-muted-foreground italic font-medium">No disbursement records identified for this project.</td></tr>
                                 ) : (
                                     sortedDisbursements.map((d: any) => (
                                         <tr key={d.id} className="hover:bg-muted/20 transition-all text-xs group">

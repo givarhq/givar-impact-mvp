@@ -469,7 +469,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     isLoading={isProcessing}
                     variant="warning"
                     title="Authorize Ledger Commitment"
-                    description={`Forensic Protocol: You are about to re-distribute ₦${(Number(transaction.amount) / 100).toLocaleString()} from the Suspense Node across ${selectedSplits.length} target causes. This transaction is immutable & will be recorded in the Audit Trail.`}
+                    description={`Forensic Protocol: You are about to re-distribute ₦${(Number(transaction.amount) / 100).toLocaleString()} from the Suspense System across ${selectedSplits.length} target causes. This transaction is immutable & will be recorded in the Audit Trail.`}
                     confirmText="Commit Changes"
                     cancelText="Return To Ledger"
                 />

@@ -164,7 +164,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                             </div>
 
                             <div className="pt-8 border-t border-border/40 space-y-8">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div className="flex flex-row flex-wrap items-center justify-between gap-6">
                                     <div className="flex items-start gap-4 min-w-0">
                                         <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-inner">
                                             <CheckCircle2 className="h-6 w-6" />
@@ -335,7 +335,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                                     <div className="min-w-0 space-y-1">
                                                         {slot ? (
                                                             <>
-                                                                <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{slot.project?.title || 'Identifying Project...'}</p>
+                                                                <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">{slot.project?.title || 'Identifying Project...'}</p>
                                                                 <div className="flex items-center gap-2">
                                                                     <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black h-4 px-2 rounded-3xl tracking-widest  shadow-none">Pinned</Badge>
                                                                     <span className="text-[10px] text-muted-foreground font-mono opacity-50">Ref: {slot.projectId.split('-')[0]}</span>

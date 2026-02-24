@@ -197,11 +197,11 @@ export const UserAuditView = memo(function UserAuditView() {
                                                             </div>
                                                             <div className="space-y-4">
                                                                 <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                    <p className="text-[11px] font-bold text-muted-foreground">Identity Id</p>
+                                                                    <p className="text-[11px] font-bold text-muted-foreground">ID</p>
                                                                     <p className="font-mono text-foreground truncate">{log.id}</p>
                                                                 </div>
                                                                 <div className="p-3 rounded-3xl border border-border/40 bg-card">
-                                                                    <p className="text-[11px] font-bold text-muted-foreground">Node Ip</p>
+                                                                    <p className="text-[11px] font-bold text-muted-foreground">IP Address</p>
                                                                     <p className="font-mono text-foreground">{log.ipAddress}</p>
                                                                 </div>
                                                             </div>

@@ -18,7 +18,7 @@ export const DangerZone = memo(function DangerZone() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleDelete = async () => {
-        if (!password) return toast.error("Password Required To Authorize Deletion");
+        if (!password) return toast.error("Password required to authorize deletion");
 
         setIsLoading(true);
         try {
@@ -27,10 +27,10 @@ export const DangerZone = memo(function DangerZone() {
             deleteCookie('givar_token');
             deleteCookie('givar_user');
 
-            toast.success("Account Successfully Deleted");
+            toast.success("Account successfully deleted");
             window.location.href = '/';
         } catch (error: any) {
-            const message = error.response?.data?.message || "Deletion Failed. Check Your Credentials.";
+            const message = error.response?.data?.message || "Deletion failed. Check your credentials.";
             toast.error(message);
         } finally {
             setIsLoading(false);
@@ -45,7 +45,7 @@ export const DangerZone = memo(function DangerZone() {
                         <ShieldAlert className="h-4 w-4" /> Danger Zone
                     </h3>
                     <p className="text-xs text-muted-foreground font-medium max-w-lg leading-relaxed">
-                        Permanently Remove Your Account & Data. This Action Is Irreversible. Historical Donation Records Are Preserved For Ledger Transparency.
+                        Permanently remove your account & data. This action is irreversible. Historical donation records are preserved for ledger transparency.
                     </p>
                 </div>
                 <Button
@@ -68,7 +68,7 @@ export const DangerZone = memo(function DangerZone() {
                                 <DialogTitle className="text-lg font-bold tracking-tight text-center">Delete Account</DialogTitle>
                             </DialogHeader>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                Enter Your Password To Authorize Permanent Removal From The Givar Protocol.
+                                Enter your password to authorize permanent removal from Givar.
                             </p>
                         </div>
 
@@ -84,7 +84,7 @@ export const DangerZone = memo(function DangerZone() {
 
                             <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed flex gap-2.5">
                                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                                <span>Note: Nodes With Active Projects Are Restricted From Deletion To Maintain Donor Trust.</span>
+                                <span>Note: Accounts with active projects are restricted from deletion to maintain donor trust.</span>
                             </div>
                         </div>
 

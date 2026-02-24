@@ -205,7 +205,7 @@ export default async function ProjectManagePage({
                                 <ShieldCheck className="h-6 w-6" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <p className="text-[11px] font-bold text-primary  tracking-widest leading-none">Procurement Node</p>
+                                <p className="text-[11px] font-bold text-primary  tracking-widest leading-none">Procurement</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                                     Givar Management handles all vendor payments directly to maintain financial integrity.
                                 </p>

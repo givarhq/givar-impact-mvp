@@ -9,7 +9,7 @@ import { ApiService } from '../../../../../../../../services/api';
 import { ArrowLeft, ArrowRight, ClipboardList, Loader2, ShieldCheck, Target } from 'lucide-react';
 import { BudgetEditor } from '../../../../../../../../components/features/proposals/budget-editor';
 import { TimelineEditor } from '../../../../../../../../components/features/proposals/timeline-editor';
-import { Textarea } from '../../../../../../../../components/ui/textarea';
+import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import toast from 'react-hot-toast';
 
 export default function PlanPage() {
@@ -93,11 +93,10 @@ export default function PlanPage() {
               </h3>
               <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks & mitigation protocols.</p>
             </div>
-            <Textarea
+            <RichTextEditor
               placeholder="e.g. Potential weather delays, vendor availability, logistical bottlenecks..."
-              value={riskAnalysis || ''}
-              onChange={(e) => updateField('riskAnalysis', e.target.value)}
-              className="min-h-[120px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background transition-all font-medium text-xs"
+              content={riskAnalysis || ''}
+              onChange={(content) => updateField('riskAnalysis', content)}
             />
           </div>
 

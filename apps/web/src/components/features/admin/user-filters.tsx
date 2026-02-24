@@ -108,8 +108,8 @@ export const UserFilters = memo(function UserFilters() {
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
                                 <SelectItem value="all" className="text-xs">All Statuses</SelectItem>
-                                <SelectItem value="ACTIVE" className="text-xs">Active Mode</SelectItem>
-                                <SelectItem value="LOCKED" className="text-xs">Locked Node</SelectItem>
+                                <SelectItem value="ACTIVE" className="text-xs">Active</SelectItem>
+                                <SelectItem value="LOCKED" className="text-xs">Locked</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -162,8 +162,8 @@ export const UserFilters = memo(function UserFilters() {
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
                                 <SelectItem value="all">All Statuses</SelectItem>
-                                <SelectItem value="ACTIVE">Active Mode</SelectItem>
-                                <SelectItem value="LOCKED">Locked Node</SelectItem>
+                                <SelectItem value="ACTIVE">Active</SelectItem>
+                                <SelectItem value="LOCKED">Locked</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select value={type} onValueChange={setType}>

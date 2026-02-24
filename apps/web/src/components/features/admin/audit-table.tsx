@@ -89,11 +89,11 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
                                         >
                                             <div className="pt-3 border-t border-border/40 space-y-2">
                                                 <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground ">
-                                                    <span>Actor Node</span>
+                                                    <span>User ID</span>
                                                     <span className="text-foreground normal-case font-bold">{log.user?.email || 'System Identity'}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground ">
-                                                    <span>Target Entity</span>
+                                                    <span>Target System</span>
                                                     <span className="text-foreground normal-case font-bold">{log.entityType}</span>
                                                 </div>
                                                 <div className="flex items-center justify-between text-[11px] font-bold tracking-wider text-muted-foreground ">
@@ -123,7 +123,7 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
                             <th className="px-6 py-4 w-12"></th>
                             <th className="px-6 py-4 font-bold text-xs tracking-widest ">Actor Identity</th>
                             <th className="px-6 py-4 font-bold text-xs tracking-widest ">Action Event</th>
-                            <th className="px-6 py-4 font-bold text-xs tracking-widest ">Target Node</th>
+                            <th className="px-6 py-4 font-bold text-xs tracking-widest ">Target System</th>
                             <th className="px-6 py-4 font-bold text-xs tracking-widest text-right ">Timestamp</th>
                         </tr>
                     </thead>

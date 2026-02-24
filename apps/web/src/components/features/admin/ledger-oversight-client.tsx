@@ -79,10 +79,10 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
             const data = await ApiService.admin.verifyExternalRef(token, refInput.trim());
             setReconcileResult(data);
             if (data.canReconcile) {
-                toast.success("Transaction Discrepancy Detected");
+                toast.success("Transaction discrepancy detected");
             }
         } catch (e) {
-            toast.error('Failed To Verify Reference With External Node');
+            toast.error('Failed to verify reference with external node');
         } finally {
             setIsVerifying(false);
         }
@@ -90,14 +90,14 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
 
     const handleExecuteReconcile = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading('Initializing Forensic Repair...');
+        const toastId = toast.loading('Initializing reconciliation...');
         try {
             await ApiService.admin.executeReconcile(refInput.trim());
-            toast.success('Internal Ledger Synchronized Successfully', { id: toastId });
+            toast.success('Internal ledger synchronized successfully', { id: toastId });
             handleVerifyRef();
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Sync Protocol Failure", { id: toastId });
+            toast.error(e.response?.data?.message || "Sync protocol failure", { id: toastId });
         } finally {
             setIsProcessing(false);
         }
@@ -109,14 +109,14 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
         try {
             const result = await ApiService.admin.triggerDustSweep();
             if (result.swept > 0) {
-                toast.success(`Aligned ${result.swept} Stagnant Project Nodes`, { id: toastId });
+                toast.success(`Aligned ${result.swept} stagnant projects`, { id: toastId });
             } else {
-                toast.error("No Stagnant Nodes Identified", { id: toastId });
+                toast.error("No stagnant projects identified", { id: toastId });
             }
             setShowSweepConfirm(false);
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Protocol Execution Failed", { id: toastId });
+            toast.error(e.response?.data?.message || "Protocol execution failed", { id: toastId });
         } finally {
             setIsProcessing(false);
         }
@@ -128,14 +128,14 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
 
     const handleRefund = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading('Triggering External Refund...');
+        const toastId = toast.loading('Triggering external refund...');
         try {
             await ApiService.admin.resolveSuspense(refundModal.txId, { action: 'REFUND' });
-            toast.success('Refund Triggered & Ledger Marked Reversed', { id: toastId });
+            toast.success('Refund triggered & ledger marked reversed', { id: toastId });
             setRefundModal({ ...refundModal, isOpen: false });
             await refreshSuspense();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || 'Refund Protocol Failed', { id: toastId });
+            toast.error(e.response?.data?.message || 'Refund failed', { id: toastId });
         } finally {
             setIsProcessing(false);
         }
@@ -349,13 +349,13 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                             </CardHeader>
                             <CardContent className="p-6 md:p-8 space-y-6">
                                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                                    Finalizes project nodes that are mathematically stagnant (balance &lt; ₦100.00) for over 30 days.
+                                    Cleans up project accounts with very small balances (less than ₦100) that haven’t been active for over 30 days.
                                 </p>
 
                                 <div className="p-5 rounded-3xl bg-muted/20 border border-border/40 flex items-start gap-4">
                                     <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                                     <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-                                        Goal targets will be aligned to actual capital raised. Affected project owners will receive an automated transparency notice regarding the ledger finalization.
+                                        Project goals will be updated to match actual funds raised. Owners of affected projects will get an automatic notice about the changes.
                                     </p>
                                 </div>
 
@@ -364,7 +364,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                     disabled={isProcessing}
                                     className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/20 border-0 transition-all active:scale-95"
                                 >
-                                    {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Run Sweep Protocol"}
+                                    {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Run Sweep"}
                                 </Button>
                             </CardContent>
                         </Card>
