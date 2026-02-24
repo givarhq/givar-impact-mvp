@@ -1,3 +1,5 @@
+const { withSentryConfig } = require("@sentry/nextjs");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
@@ -33,4 +35,19 @@ const nextConfig = {
     },
 };
 
-module.exports = nextConfig;
+// Logic: Inject Sentry Webpack plugins for sourcemap uploads and telemetry tracking
+module.exports = withSentryConfig(
+    nextConfig,
+    {
+        silent: true,
+        org: "givar",
+        project: "givar-web",
+    },
+    {
+        widenClientFileUpload: true,
+        transpileClientSDK: true,
+        hideSourceMaps: true,
+        disableLogger: true,
+        automaticVercelMonitors: true,
+    }
+);
