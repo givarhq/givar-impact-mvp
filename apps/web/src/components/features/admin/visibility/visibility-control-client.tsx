@@ -164,37 +164,36 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                             </div>
 
                             <div className="pt-8 border-t border-border/40 space-y-8">
-                                <div className="flex flex-row flex-wrap items-center justify-between gap-6">
-                                    <div className="flex items-start gap-4 min-w-0">
-                                        <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-inner">
-                                            <CheckCircle2 className="h-6 w-6" />
-                                        </div>
-                                        <div className="space-y-0.5 min-w-0">
-                                            <div className="flex items-center">
-                                                <h4 className="text-sm font-bold text-foreground truncate">Show Completed Projects</h4>
-                                                <SettingTooltip content="Choose whether fully funded projects should still appear in the public feed or be hidden to make room for active needs." />
-                                            </div>
-                                            <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
-                                                Display successfully funded projects in the public discovery feed.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setConfig({ ...config, showFundedProjects: !config.showFundedProjects })}
-                                        className={cn(
-                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2",
-                                            config.showFundedProjects ? "bg-primary" : "bg-muted-foreground/20"
-                                        )}
-                                    >
-                                        <span
-                                            className={cn(
-                                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
-                                                config.showFundedProjects ? "translate-x-5" : "translate-x-0"
-                                            )}
-                                        />
-                                    </button>
-                                </div>
-
+                                <div className="flex flex-row items-center justify-between gap-4">
+    <div className="flex items-start gap-4 min-w-0 flex-1">
+        <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-inner">
+            <CheckCircle2 className="h-6 w-6" />
+        </div>
+        <div className="space-y-0.5 min-w-0 flex-1">
+            <div className="flex items-center">
+                <h4 className="text-sm font-bold text-foreground truncate">Show Completed Projects</h4>
+                <SettingTooltip content="Choose whether fully funded projects should still appear in the public feed or be hidden to make room for active needs." />
+            </div>
+            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                Display successfully funded projects in the public discovery feed.
+            </p>
+        </div>
+    </div>
+    <button
+        onClick={() => setConfig({ ...config, showFundedProjects: !config.showFundedProjects })}
+        className={cn(
+            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2",
+            config.showFundedProjects ? "bg-primary" : "bg-muted-foreground/20"
+        )}
+    >
+        <span
+            className={cn(
+                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
+                config.showFundedProjects ? "translate-x-5" : "translate-x-0"
+            )}
+        />
+    </button>
+</div>
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-8 border-t border-border/10">
                                     <div className="flex items-start gap-4 min-w-0">
                                         <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-inner">
