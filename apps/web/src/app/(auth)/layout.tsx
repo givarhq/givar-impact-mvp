@@ -11,54 +11,102 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full bg-[#fafafa]">
+    <div className="min-h-screen w-full bg-[#fafafa] dark:bg-background transition-colors duration-300">
       {/* Global Landing Header */}
       <LandingHeader hideAuthButtons={true} variant="auth" />
       <div className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
         {/* LEFT PANEL: Visual Impact Flow */}
-        <div className="relative hidden h-full flex-col bg-[#fafafa] lg:flex border-r border-border overflow-hidden p-12 pt-24">
+        <div className="relative hidden h-full flex-col bg-[#fafafa] dark:bg-zinc-950 lg:flex border-r border-border dark:border-white/10 overflow-hidden p-12 pt-24 transition-colors duration-300">
           {/* Background Decorative Elements */}
           <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
-          {/* Green Glassmorphic Graphics – More Obvious, Faster Animations, No Borders */}
+          {/* Green Glassmorphic Graphics – Floating Variants */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             {/* Large Green Glass Orb – Top Left */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 0.88, scale: 1 }}
-              transition={{ duration: 0.9, ease: "easeOut" }}
-              className="absolute -top-32 -left-48 w-[620px] h-[620px] bg-gradient-to-br from-emerald-500/28 via-teal-400/22 to-transparent backdrop-blur-[120px] rounded-[160px] shadow-[0_0_80px_-10px] shadow-emerald-500/40"
+              initial={{ opacity: 0, scale: 0.85, y: 0 }}
+              animate={{
+                opacity: 0.88,
+                scale: 1,
+                y: [0, -30, 0],
+                x: [0, 15, 0]
+              }}
+              transition={{
+                opacity: { duration: 0.9 },
+                scale: { duration: 0.9 },
+                y: { duration: 12, repeat: Infinity, ease: "easeInOut" },
+                x: { duration: 10, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="absolute -top-32 -left-48 w-[620px] h-[620px] bg-gradient-to-br from-emerald-500/28 via-teal-400/22 to-transparent backdrop-blur-[120px] rounded-[160px] shadow-[0_0_80px_-10px] shadow-emerald-500/40 dark:shadow-emerald-500/20"
             />
 
             {/* Medium Floating Glass Circle – Bottom Right */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.75 }}
-              animate={{ opacity: 0.82, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="absolute bottom-8 -right-16 w-[420px] h-[420px] bg-gradient-to-br from-emerald-400/26 to-teal-500/18 backdrop-blur-[110px] rounded-full shadow-[0_40px_90px_-20px] shadow-emerald-600/35"
+              initial={{ opacity: 0, scale: 0.75, y: 0 }}
+              animate={{
+                opacity: 0.82,
+                scale: 1,
+                y: [0, 40, 0],
+                x: [0, -20, 0]
+              }}
+              transition={{
+                opacity: { duration: 0.8, delay: 0.2 },
+                scale: { duration: 0.8, delay: 0.2 },
+                y: { duration: 15, repeat: Infinity, ease: "easeInOut" },
+                x: { duration: 12, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="absolute bottom-8 -right-16 w-[420px] h-[420px] bg-gradient-to-br from-emerald-400/26 to-teal-500/18 backdrop-blur-[110px] rounded-full shadow-[0_40px_90px_-20px] shadow-emerald-600/35 dark:shadow-emerald-600/15"
             />
 
             {/* Angled Glass Panel – Middle Left */}
             <motion.div
               initial={{ opacity: 0, x: -50, rotate: -18 }}
-              animate={{ opacity: 0.91, x: 0, rotate: -7 }}
-              transition={{ duration: 0.7, delay: 0.4 }}
-              className="absolute top-[38%] -left-8 w-52 h-[310px] bg-white/75 backdrop-blur-[48px] rounded-3xl shadow-2xl shadow-emerald-500/30"
+              animate={{
+                opacity: 0.91,
+                x: 0,
+                rotate: [-7, -9, -7],
+                y: [0, 15, 0]
+              }}
+              transition={{
+                opacity: { duration: 0.7, delay: 0.4 },
+                x: { duration: 0.7, delay: 0.4 },
+                rotate: { duration: 8, repeat: Infinity, ease: "easeInOut" },
+                y: { duration: 10, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="absolute top-[38%] -left-8 w-52 h-[310px] bg-white/75 dark:bg-white/5 backdrop-blur-[48px] rounded-3xl shadow-2xl shadow-emerald-500/30 dark:shadow-none"
             />
 
             {/* Small Accent Glass Element – Lower Middle */}
             <motion.div
               initial={{ opacity: 0, scale: 0.65 }}
-              animate={{ opacity: 0.95, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-              className="absolute top-[66%] left-[18%] w-36 h-36 bg-gradient-to-br from-emerald-400/35 to-green-500/25 backdrop-blur-[60px] rounded-3xl shadow-xl shadow-emerald-500/25"
+              animate={{
+                opacity: 0.95,
+                scale: 1,
+                y: [0, -20, 0],
+                rotate: [0, 5, 0]
+              }}
+              transition={{
+                opacity: { duration: 0.6, delay: 0.6 },
+                scale: { duration: 0.6, delay: 0.6 },
+                y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+                rotate: { duration: 9, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="absolute top-[66%] left-[18%] w-36 h-36 bg-gradient-to-br from-emerald-400/35 to-green-500/25 backdrop-blur-[60px] rounded-3xl shadow-xl shadow-emerald-500/25 dark:shadow-none"
             />
 
             {/* Extra Small Glass Accent – Upper Right */}
             <motion.div
               initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 0.78, scale: 1 }}
-              transition={{ duration: 0.85, delay: 0.8 }}
+              animate={{
+                opacity: 0.78,
+                scale: 1,
+                y: [0, 10, 0]
+              }}
+              transition={{
+                opacity: { duration: 0.85, delay: 0.8 },
+                scale: { duration: 0.85, delay: 0.8 },
+                y: { duration: 5, repeat: Infinity, ease: "easeInOut" }
+              }}
               className="absolute top-[22%] right-[12%] w-24 h-24 bg-emerald-500/20 backdrop-blur-[50px] rounded-2xl"
             />
           </div>
@@ -98,11 +146,11 @@ export default function AuthLayout({
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4 }}
-                className="absolute top-0 left-4 bg-white rounded-2xl shadow-xl border border-border/50 p-4 flex items-center gap-4 w-[220px]"
+                className="absolute top-0 left-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-border/50 dark:border-white/10 p-4 flex items-center gap-4 w-[220px]"
               >
                 <Image src="/hand.png" alt="" width={32} height={32} className="object-contain" />
                 <div className="min-w-0">
-                  <p className="font-bold text-sm text-foreground">You Give</p>
+                  <p className="font-bold text-sm text-foreground dark:text-white">You Give</p>
                   <p className="text-xs text-muted-foreground font-medium">Securely & instantly</p>
                 </div>
               </motion.div>
@@ -111,18 +159,18 @@ export default function AuthLayout({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, delay: 0.15 }}
-                className="absolute top-[130px] right-4 bg-white rounded-2xl shadow-2xl border border-border/50 p-4 flex flex-col gap-2.5 w-[240px]"
+                className="absolute top-[130px] right-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-border/50 dark:border-white/10 p-4 flex flex-col gap-2.5 w-[240px]"
               >
                 <div className="flex items-center gap-4">
                   <Image src="/globe.png" alt="" width={36} height={36} className="object-contain" />
                   <div className="min-w-0">
-                    <p className="font-bold text-sm text-foreground">Impact Happens</p>
+                    <p className="font-bold text-sm text-foreground dark:text-white">Impact Happens</p>
                     <p className="text-xs text-muted-foreground font-medium">Track your donation</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-2 py-1 bg-amber-50 rounded-lg border border-amber-100 w-fit">
+                <div className="flex items-center gap-2 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30 w-fit">
                   <div className="h-1 w-1 rounded-full bg-amber-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-amber-700">In Progress</span>
+                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">In Progress</span>
                 </div>
               </motion.div>
               {/* Step 3: You Get Proof - Positioned closer to middle */}
@@ -130,18 +178,18 @@ export default function AuthLayout({
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.3 }}
-                className="absolute top-[280px] left-10 bg-white rounded-2xl shadow-xl border border-border/50 p-4 flex items-center gap-4 w-[220px]"
+                className="absolute top-[280px] left-10 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-border/50 dark:border-white/10 p-4 flex items-center gap-4 w-[220px]"
               >
                 <Image src="/phone.png" alt="" width={28} height={28} className="object-contain" />
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-sm text-foreground">You Get Proof</p>
+                  <p className="font-bold text-sm text-foreground dark:text-white">You Get Proof</p>
                   <p className="text-xs text-muted-foreground font-medium mb-1.5">Updates & receipts</p>
                   <div className="flex gap-2">
-                    <div className="flex items-center gap-1 text-[8px] font-bold text-emerald-600">
-                      <CheckCircle2 size={8} /> Verified
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 size={11} /> Verified
                     </div>
-                    <div className="flex items-center gap-1 text-[8px] font-bold text-primary">
-                      <CheckCircle2 size={8} /> Delivered
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-primary">
+                      <CheckCircle2 size={11} /> Delivered
                     </div>
                   </div>
                 </div>
@@ -162,7 +210,7 @@ export default function AuthLayout({
           </div>
         </div>
         {/* RIGHT PANEL: Authentication Form Wrapper */}
-        <div className="flex items-center justify-center p-6 lg:p-12 relative pt-24 lg:pt-16">
+        <div className="flex items-center justify-center p-6 lg:p-12 relative pt-24 lg:pt-16 dark:bg-background">
           <div className="mx-auto flex w-full flex-col justify-center sm:w-[420px]">
             {/* Form Card: Desktop styling with reduced padding */}
             <div className="lg:bg-card lg:border lg:border-border/40 lg:rounded-3xl lg:p-6 lg:shadow-sm">
