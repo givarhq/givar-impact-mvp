@@ -130,11 +130,18 @@ export class ProposalService {
       // Logic: Explicitly fetch user details to provide proposer context to admins
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
+      // BROADCAST TO ADMINS
       this.emailService.sendAdminProposalAlert({
         projectTitle: proposal.title || 'Untitled',
         proposerName: `${user.firstName} ${user.lastName}`,
         proposalId: result.id
       }).catch(err => this.logger.error(`Admin Proposal Alert Failed: ${err.message}`));
+
+      // DISPATCH TO PROPOSER
+      this.emailService.sendProposalSubmittedConfirmation(user.email, {
+        name: user.firstName,
+        projectTitle: proposal.title || 'Untitled'
+      }).catch(err => this.logger.error(`Proposer Confirmation Email Failed: ${err.message}`));
 
       return result;
     });

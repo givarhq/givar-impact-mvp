@@ -358,4 +358,12 @@ export class EmailService {
       })
     );
   }
+
+  // 22. Dispatches a confirmation to the proposer upon successful submission.
+  async sendProposalSubmittedConfirmation(email: string, data: { name: string; projectTitle: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
+    const content = EmailTemplates.proposalSubmitted({ ...data, url });
+    const html = EmailTemplates.base(content, 'Proposal Received');
+    return this.send(email, `Givar Confirmation: ${data.projectTitle} Submitted`, html);
+  }
 }

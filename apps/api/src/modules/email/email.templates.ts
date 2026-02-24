@@ -453,4 +453,21 @@ export const EmailTemplates = {
       <a href="mailto:${data.userEmail}" class="button" style="background-color: #0369a1;">Contact Potential Donor</a>
     </div>
   `,
+
+  proposalSubmitted: (data: { name: string; projectTitle: string; url: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>Your project proposal, <strong>"${data.projectTitle}"</strong>, has been successfully submitted for review.</p>
+    
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Status: Under Review</p>
+      <p style="font-size: 15px; color: #064e3b; line-height: 1.6; margin: 0; font-weight: 600;">
+        Our compliance team will now audit your implementation roadmap, budget, and impact goals. You will receive an update once the vetting process is complete.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button">Track Proposal Status</a>
+    </div>
+    <p style="font-size: 13px; color: #6b7280;">You can reply to this email if you have any questions regarding the review timeline.</p>
+  `,
 };
