@@ -30,6 +30,7 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
 
     useEffect(() => {
         items.forEach(async (item) => {
+            // Only try to sign if it's a raw key (not an HTTP URL)
             if (item.key && !item.key.includes('://') && (!item.url || item.url === item.key)) {
                 try {
                     const { viewUrl } = await ApiService.proposals.getPreviewUrl(item.key, proposalId);
@@ -48,18 +49,24 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
         setIsLoading(true);
         try {
             const type = file.type.startsWith('image/') ? 'IMAGE' : 'DOCUMENT';
-            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
+            const { uploadUrl, key, publicUrl } = await ApiService.proposals.getUploadUrl({
                 fileType: file.type,
                 useCase: 'public',
             });
 
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-            const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+
+            // JIT Fallback logic: If publicUrl is null (pending setup), sign it. Otherwise, use publicUrl.
+            let finalUrl = publicUrl;
+            if (!finalUrl) {
+                const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+                finalUrl = viewUrl;
+            }
 
             onAdd({
                 id: crypto.randomUUID(),
-                url: viewUrl,
-                key: key,
+                url: finalUrl,
+                key: publicUrl || key, // STORE THE PERMANENT PUBLIC URL AS THE KEY FOR DB PERSISTENCE
                 type,
                 caption: ''
             });
@@ -222,10 +229,16 @@ export const ImageUploader = memo(function ImageUploader({
         if (!file) return;
         setIsLoading(true);
         try {
-            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase });
+            const { uploadUrl, key, publicUrl } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase });
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-            const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
-            onUploadComplete({ key, previewUrl: viewUrl });
+
+            let finalPreview = publicUrl;
+            if (!finalPreview) {
+                const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+                finalPreview = viewUrl;
+            }
+
+            onUploadComplete({ key: publicUrl || key, previewUrl: finalPreview });
             toast.success('Uploaded Successfully');
         } catch (e) {
             toast.error('Upload Failed');

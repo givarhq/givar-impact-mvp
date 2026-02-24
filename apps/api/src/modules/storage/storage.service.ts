@@ -15,13 +15,15 @@ interface Hydratable {
 export class StorageService {
   private s3Client: S3Client;
   private bucket: string;
+  private publicBucket: string;
   private readonly logger = new Logger(StorageService.name);
 
   constructor(private config: ConfigService) {
     const region = this.config.get('IDRIVE_REGION') || 'us-east-1';
     const endpoint = this.config.get('IDRIVE_ENDPOINT');
 
-    this.bucket = this.config.getOrThrow('IDRIVE_BUCKET');
+    this.bucket = this.config.getOrThrow('IDRIVE_BUCKET'); // Strict private/forensic bucket
+    this.publicBucket = this.config.get('IDRIVE_PUBLIC_BUCKET') || this.bucket; // Fallback to private if public is pending
 
     this.s3Client = new S3Client({
       region,
@@ -36,38 +38,46 @@ export class StorageService {
 
   /**
   * Global Media Hydrator
-  * Recursively signs S3 keys within an entity to make them browser-viewable.
+  * Recursively signs S3 keys. Safely ignores permanent public URLs to save compute.
   */
   async hydrateEntityMedia<T extends Record<string, any>>(entity: T): Promise<T> {
     if (!entity) return entity;
 
     const item = entity as Hydratable;
     const endpoint = this.config.get('IDRIVE_ENDPOINT');
+    const isPublicModeActive = this.bucket !== this.publicBucket;
 
     // INTERNAL HELPER: Extracts the permanent Key from any string (URL or Key)
     const getCleanKey = (value: any): string | null => {
       if (typeof value !== 'string' || !value) return null;
 
-      // If it's already a key (doesn't start with http), return it
+      // If it's already a raw key (doesn't start with http), return it for JIT signing
       if (!value.startsWith('http')) return value;
 
       // If it's a URL, check if it belongs to our specific iDrive endpoint
-      if (value.includes(endpoint)) {
+      if (endpoint && value.includes(endpoint)) {
         try {
           const url = new URL(value);
-          // Path is usually /bucket-name/proposals/...
-          // We remove the leading slash and the bucket name prefix to get the raw key
-          const bucketPrefix = `/${this.bucket}/`;
-          if (url.pathname.startsWith(bucketPrefix)) {
-            return url.pathname.replace(bucketPrefix, '');
+          const privatePrefix = `/${this.bucket}/`;
+          const publicPrefix = `/${this.publicBucket}/`;
+
+          // ARCHITECTURE WIN: If it's already pointing to the public bucket, DO NOT sign it.
+          // Let the browser load the permanent public URL directly.
+          if (isPublicModeActive && url.pathname.startsWith(publicPrefix)) {
+            return null;
           }
-          return url.pathname.substring(1); // Fallback to just removing leading slash
+
+          if (url.pathname.startsWith(privatePrefix)) {
+            return url.pathname.replace(privatePrefix, '');
+          }
+
+          return url.pathname.substring(1);
         } catch (e) {
           return null;
         }
       }
 
-      // If it's an external URL (YouTube/Vimeo), it's not a "key", so return null
+      // If it's an external URL (YouTube/Vimeo) or public CDN, ignore it.
       return null;
     };
 
@@ -122,22 +132,27 @@ export class StorageService {
       const extension = fileType.split('/')[1] || 'bin';
       const filename = `${randomUUID()}.${extension}`;
 
+      // Routing Logic: Divert to Public Bucket if applicable
+      const targetBucket = useCase === 'public' ? this.publicBucket : this.bucket;
       const visibilityFolder = useCase === 'public' ? 'public' : 'private';
       const key = `proposals/${userId}/${visibilityFolder}/${useCase}/${filename}`;
 
       const command = new PutObjectCommand({
-        Bucket: this.bucket,
+        Bucket: targetBucket,
         Key: key,
         ContentType: fileType,
       });
 
       const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
 
+      const isPublicModeActive = this.bucket !== this.publicBucket;
+
       return {
         uploadUrl,
         key,
-        publicUrl: useCase === 'public'
-          ? `${this.config.get('IDRIVE_ENDPOINT')}/${this.bucket}/${key}`
+        // If we have a dedicated public bucket, return the absolute permanent URL for DB storage
+        publicUrl: (useCase === 'public' && isPublicModeActive)
+          ? `${this.config.get('IDRIVE_ENDPOINT')}/${this.publicBucket}/${key}`
           : null
       };
 
@@ -147,11 +162,10 @@ export class StorageService {
     }
   }
 
-  // Generate temporary VIEW URLs for private files
   async getPresignedViewUrl(key: string, expiresIn = 3600) {
     try {
       const command = new GetObjectCommand({
-        Bucket: this.bucket,
+        Bucket: this.bucket, // View URLs are only ever used for Private/Forensic files
         Key: key,
       });
 
@@ -163,22 +177,50 @@ export class StorageService {
       throw new InternalServerErrorException('Could not grant view permission');
     }
   }
+
+  /**
+   * Dual-Bucket Deletion Router
+   */
   async deleteFiles(keys: string[]) {
     if (!keys || keys.length === 0) return;
 
-    try {
-      const command = new DeleteObjectsCommand({
-        Bucket: this.bucket,
-        Delete: {
-          Objects: keys.map(key => ({ Key: key })),
-          Quiet: true,
-        },
-      });
+    const privateKeys: string[] = [];
+    const publicKeys: string[] = [];
+    const endpoint = this.config.get('IDRIVE_ENDPOINT');
 
-      await this.s3Client.send(command);
-      this.logger.log(`Successfully purged ${keys.length} files from S3`);
-    } catch (error: any) {
-      this.logger.error(`Failed to purge files from S3: ${error.message}`);
-    }
+    keys.forEach(k => {
+      if (k.startsWith('http')) {
+        if (endpoint && k.includes(endpoint)) {
+          try {
+            const url = new URL(k);
+            if (this.publicBucket !== this.bucket && url.pathname.startsWith(`/${this.publicBucket}/`)) {
+              publicKeys.push(url.pathname.replace(`/${this.publicBucket}/`, ''));
+            } else {
+              privateKeys.push(url.pathname.replace(`/${this.bucket}/`, ''));
+            }
+          } catch (e) { }
+        }
+      } else {
+        privateKeys.push(k);
+      }
+    });
+
+    const deleteFrom = async (bucketName: string, objectKeys: string[]) => {
+      if (objectKeys.length === 0) return;
+      try {
+        const command = new DeleteObjectsCommand({
+          Bucket: bucketName,
+          Delete: { Objects: objectKeys.map(Key => ({ Key })), Quiet: true },
+        });
+        await this.s3Client.send(command);
+      } catch (e: any) {
+        this.logger.error(`Purge failed in ${bucketName}: ${e.message}`);
+      }
+    };
+
+    await Promise.all([
+      deleteFrom(this.bucket, privateKeys),
+      deleteFrom(this.publicBucket, publicKeys)
+    ]);
   }
 }

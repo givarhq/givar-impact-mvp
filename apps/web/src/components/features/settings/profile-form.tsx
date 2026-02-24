@@ -74,9 +74,12 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
         const toastId = toast.loading("Updating profile picture...");
 
         try {
-            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase: 'public' });
+            const { uploadUrl, key, publicUrl } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase: 'public' });
             await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-            await ApiService.auth.updateAvatar(key);
+
+            // Assign publicUrl directly if available, else fallback to raw key for JIT preview
+            await ApiService.auth.updateAvatar(publicUrl || key);
+
             toast.success("Profile picture updated", { id: toastId });
             window.location.reload();
         } catch (error) {
