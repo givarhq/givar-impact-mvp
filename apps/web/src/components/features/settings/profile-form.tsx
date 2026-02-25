@@ -97,7 +97,6 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                 await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
             }
 
-            // Assign publicUrl directly if available, else fallback to raw key for JIT preview
             await ApiService.auth.updateAvatar(finalUrl || finalKey);
 
             toast.success("Profile picture updated", { id: toastId });
@@ -160,7 +159,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
             await ApiService.auth.switchAccountType(switchModal.type);
             const fullUser = { ...user, accountType: switchModal.type };
             setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 604800, path: '/' });
-            toast.success(`Switched to ${switchModal.type.toLowerCase()} account`);
+            toast.success(`Switched to ${switchModal.type === 'ORGANIZER' ? 'Organization' : 'Personal'} Account`);
             setSwitchModal({ isOpen: false, type: null });
             window.location.reload();
         } catch (e: any) {
@@ -171,6 +170,9 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
     };
 
     const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+
+    // Mapping for UI Display
+    const accountTypeLabel = user.accountType === 'INDIVIDUAL' ? 'Personal Account' : 'Organization Account';
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -225,8 +227,10 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardContent className="p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-muted-foreground">Account Type</span>
-                                <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-3xl">{user.accountType}</span>
+                                <span className="text-xs font-bold text-muted-foreground">Account Mode</span>
+                                <span className="text-xs font-bold text-foreground bg-muted px-2 py-0.5 rounded-3xl">
+                                    {accountTypeLabel}
+                                </span>
                             </div>
                             <Button
                                 variant="outline"
@@ -236,7 +240,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                                     type: user.accountType === 'INDIVIDUAL' ? 'ORGANIZER' : 'INDIVIDUAL'
                                 })}
                             >
-                                <RefreshCcw className="h-3.5 w-3.5" /> Switch to {user.accountType === 'INDIVIDUAL' ? 'Organizer' : 'Individual'}
+                                <RefreshCcw className="h-3.5 w-3.5" /> Switch to {user.accountType === 'INDIVIDUAL' ? 'Organization Account' : 'Personal Account'}
                             </Button>
                         </CardContent>
                     </Card>
@@ -314,8 +318,8 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                 onClose={() => setSwitchModal({ isOpen: false, type: null })}
                 onConfirm={executeAccountSwitch}
                 isLoading={isLoading}
-                title={`Switch Account Mode`}
-                description={`Switch your account to ${switchModal.type === 'ORGANIZER' ? 'Organizer' : 'Individual'}? Upgrading allows cause launches, while downgrading restricts them.`}
+                title={`Switch Workspace Mode`}
+                description={`Switch your account to ${switchModal.type === 'ORGANIZER' ? 'Organization Account' : 'Personal Account'}? Organization mode is for managing verified entities, while Personal mode is for individual impact.`}
                 confirmText="Confirm Switch"
             />
         </div>

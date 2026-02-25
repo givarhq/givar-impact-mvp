@@ -99,10 +99,18 @@ export class OrganizationService {
       // 2. State Convergence logic
       if (status === VerificationStatus.VERIFIED) {
         // --- PATH: APPROVAL ---
-        await tx.user.update({
-          where: { id: updated.userId },
-          data: { accountType: AccountType.ORGANIZER },
-        });
+
+        // HYBRID LOGIC: 
+        // If KYC Type is ORGANIZATION, upgrade AccountType to ORGANIZER.
+        // If KYC Type is INDIVIDUAL, keep AccountType as INDIVIDUAL (Personal Account).
+        if (updated.kycType === 'ORGANIZATION') {
+          await tx.user.update({
+            where: { id: updated.userId },
+            data: { accountType: AccountType.ORGANIZER },
+          });
+        }
+        // Note: For Individual KYC, we do NOT change the accountType. 
+        // They remain 'INDIVIDUAL' but now have a verified profile to launch projects.
 
         const result = await tx.projectProposal.updateMany({
           where: {
@@ -131,11 +139,14 @@ export class OrganizationService {
         });
       } else if (status === VerificationStatus.REJECTED) {
         // --- PATH: REJECTION ---
-        // Downgrade account type to prevent further organizer actions until re-verified
-        await tx.user.update({
-          where: { id: updated.userId },
-          data: { accountType: AccountType.INDIVIDUAL },
-        });
+        // Downgrade account type ONLY if they were previously an Organizer. 
+        // If they were Individual, they stay Individual (just unverified).
+        if (profile.kycType === 'ORGANIZATION') {
+          await tx.user.update({
+            where: { id: updated.userId },
+            data: { accountType: AccountType.INDIVIDUAL },
+          });
+        }
 
         // Move "waiting" proposals back to DRAFT so user can see feedback and edit
         await tx.projectProposal.updateMany({
