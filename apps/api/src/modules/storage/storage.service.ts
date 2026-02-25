@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
+import { v2 as cloudinary } from 'cloudinary';
 
 interface Hydratable {
   imageUrl?: string;
@@ -34,6 +35,13 @@ export class StorageService {
       },
       forcePathStyle: true,
     });
+
+    // Initialize Cloudinary for public asset offloading
+    cloudinary.config({
+      cloud_name: this.config.get('CLOUDINARY_CLOUD_NAME'),
+      api_key: this.config.get('CLOUDINARY_API_KEY'),
+      api_secret: this.config.get('CLOUDINARY_API_SECRET'),
+    });
   }
 
   /**
@@ -51,6 +59,9 @@ export class StorageService {
     const getCleanKey = (value: any): string | null => {
       if (typeof value !== 'string' || !value) return null;
 
+      // Cloudinary URLs are strictly public and permanent. Ignore signing.
+      if (value.includes('cloudinary.com')) return null;
+
       // If it's already a raw key (doesn't start with http), return it for JIT signing
       if (!value.startsWith('http')) return value;
 
@@ -61,8 +72,6 @@ export class StorageService {
           const privatePrefix = `/${this.bucket}/`;
           const publicPrefix = `/${this.publicBucket}/`;
 
-          // ARCHITECTURE WIN: If it's already pointing to the public bucket, DO NOT sign it.
-          // Let the browser load the permanent public URL directly.
           if (isPublicModeActive && url.pathname.startsWith(publicPrefix)) {
             return null;
           }
@@ -77,11 +86,9 @@ export class StorageService {
         }
       }
 
-      // If it's an external URL (YouTube/Vimeo) or public CDN, ignore it.
       return null;
     };
 
-    // 1. Handle primary image fields
     const coverField = item.imageUrl ? 'imageUrl' : (item.coverImage ? 'coverImage' : null);
 
     if (coverField) {
@@ -92,7 +99,6 @@ export class StorageService {
       }
     }
 
-    // 2. Handle rich Gallery JSON arrays
     if (item.gallery && Array.isArray(item.gallery)) {
       item.gallery = await Promise.all(
         item.gallery.map(async (g: any) => {
@@ -106,7 +112,6 @@ export class StorageService {
       );
     }
 
-    // 3. Handle specific ImageUrls in nested Update arrays
     if (item.updates && Array.isArray(item.updates)) {
       item.updates = await Promise.all(
         item.updates.map(async (u: any) => {
@@ -129,10 +134,37 @@ export class StorageService {
     useCase: 'public' | 'kyc' | 'docs'
   ) {
     try {
+      // Logic: Intercept public uploads and route to Cloudinary if configured
+      if (useCase === 'public') {
+        const cloudName = this.config.get('CLOUDINARY_CLOUD_NAME');
+        const apiKey = this.config.get('CLOUDINARY_API_KEY');
+        const apiSecret = this.config.get('CLOUDINARY_API_SECRET');
+
+        if (cloudName && apiKey && apiSecret) {
+          const timestamp = Math.round(new Date().getTime() / 1000);
+          const folder = `givar/public/${userId}`;
+          const signature = cloudinary.utils.api_sign_request(
+            { timestamp, folder },
+            apiSecret
+          );
+
+          return {
+            provider: 'cloudinary',
+            uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+            uploadData: {
+              apiKey,
+              timestamp,
+              signature,
+              folder,
+            }
+          };
+        }
+      }
+
+      // Fallback & Private logic: Route to iDrive e2 S3
       const extension = fileType.split('/')[1] || 'bin';
       const filename = `${randomUUID()}.${extension}`;
 
-      // Routing Logic: Divert to Public Bucket if applicable
       const targetBucket = useCase === 'public' ? this.publicBucket : this.bucket;
       const visibilityFolder = useCase === 'public' ? 'public' : 'private';
       const key = `proposals/${userId}/${visibilityFolder}/${useCase}/${filename}`;
@@ -144,28 +176,33 @@ export class StorageService {
       });
 
       const uploadUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
-
       const isPublicModeActive = this.bucket !== this.publicBucket;
 
       return {
+        provider: 's3',
         uploadUrl,
         key,
-        // If we have a dedicated public bucket, return the absolute permanent URL for DB storage
         publicUrl: (useCase === 'public' && isPublicModeActive)
           ? `${this.config.get('IDRIVE_ENDPOINT')}/${this.publicBucket}/${key}`
           : null
       };
 
     } catch (error: any) {
-      this.logger.error(`Failed to generate presigned URL: ${error.message}`);
+      this.logger.error(`Failed to generate upload instruction: ${error.message}`);
       throw new InternalServerErrorException('Could not generate upload permission');
     }
   }
 
   async getPresignedViewUrl(key: string, expiresIn = 3600) {
+    // SECURITY/ROBUSTNESS: If the key is already a fully qualified public URL (e.g. Cloudinary),
+    // return it immediately. Do not attempt to sign it with the AWS SDK.
+    if (key.startsWith('http')) {
+      return { viewUrl: key };
+    }
+
     try {
       const command = new GetObjectCommand({
-        Bucket: this.bucket, // View URLs are only ever used for Private/Forensic files
+        Bucket: this.bucket,
         Key: key,
       });
 
@@ -179,17 +216,27 @@ export class StorageService {
   }
 
   /**
-   * Dual-Bucket Deletion Router
+   * Dual-Cloud Deletion Router
    */
   async deleteFiles(keys: string[]) {
     if (!keys || keys.length === 0) return;
 
     const privateKeys: string[] = [];
     const publicKeys: string[] = [];
+    const cloudinaryPublicIds: string[] = [];
     const endpoint = this.config.get('IDRIVE_ENDPOINT');
 
     keys.forEach(k => {
-      if (k.startsWith('http')) {
+      if (k.includes('cloudinary.com')) {
+        try {
+          const parts = k.split('/upload/');
+          if (parts.length > 1) {
+            const idWithExt = parts[1].split('/').slice(1).join('/');
+            const publicId = idWithExt.substring(0, idWithExt.lastIndexOf('.'));
+            if (publicId) cloudinaryPublicIds.push(publicId);
+          }
+        } catch (e) { }
+      } else if (k.startsWith('http')) {
         if (endpoint && k.includes(endpoint)) {
           try {
             const url = new URL(k);
@@ -205,7 +252,7 @@ export class StorageService {
       }
     });
 
-    const deleteFrom = async (bucketName: string, objectKeys: string[]) => {
+    const deleteFromS3 = async (bucketName: string, objectKeys: string[]) => {
       if (objectKeys.length === 0) return;
       try {
         const command = new DeleteObjectsCommand({
@@ -214,13 +261,23 @@ export class StorageService {
         });
         await this.s3Client.send(command);
       } catch (e: any) {
-        this.logger.error(`Purge failed in ${bucketName}: ${e.message}`);
+        this.logger.error(`S3 Purge failed in ${bucketName}: ${e.message}`);
+      }
+    };
+
+    const deleteFromCloudinary = async () => {
+      if (cloudinaryPublicIds.length === 0 || !this.config.get('CLOUDINARY_API_KEY')) return;
+      try {
+        await cloudinary.api.delete_resources(cloudinaryPublicIds);
+      } catch (e: any) {
+        this.logger.error(`Cloudinary Purge failed: ${e.message}`);
       }
     };
 
     await Promise.all([
-      deleteFrom(this.bucket, privateKeys),
-      deleteFrom(this.publicBucket, publicKeys)
+      deleteFromS3(this.bucket, privateKeys),
+      deleteFromS3(this.publicBucket, publicKeys),
+      deleteFromCloudinary()
     ]);
   }
 }

@@ -74,11 +74,31 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
         const toastId = toast.loading("Updating profile picture...");
 
         try {
-            const { uploadUrl, key, publicUrl } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase: 'public' });
-            await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+            const { uploadUrl, key, publicUrl, provider, uploadData } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase: 'public' });
+
+            let finalKey = key;
+            let finalUrl = publicUrl;
+
+            if (provider === 'cloudinary') {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', uploadData.apiKey);
+                formData.append('timestamp', uploadData.timestamp.toString());
+                formData.append('signature', uploadData.signature);
+                formData.append('folder', uploadData.folder);
+
+                const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+                if (!res.ok) throw new Error('Cloudinary upload failed');
+                const data = await res.json();
+
+                finalKey = data.secure_url;
+                finalUrl = data.secure_url;
+            } else {
+                await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+            }
 
             // Assign publicUrl directly if available, else fallback to raw key for JIT preview
-            await ApiService.auth.updateAvatar(publicUrl || key);
+            await ApiService.auth.updateAvatar(finalUrl || finalKey);
 
             toast.success("Profile picture updated", { id: toastId });
             window.location.reload();
@@ -224,7 +244,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
 
                 <div className="lg:col-span-8 space-y-4">
                     {!user.emailVerified && (
-                        <div className="p-4 rounded-3xl bg-amber-50 border border-amber-100 space-y-3 shadow-sm animate-in slide-in-from-top-2">
+                        <div className="p-4 rounded-3xl bg-amber-50 border-amber-100 space-y-3 shadow-sm animate-in slide-in-from-top-2">
                             <div className="flex items-center gap-3">
                                 <MailCheck className="h-5 w-5 text-amber-600 shrink-0" />
                                 <div className="flex-1 min-w-0">

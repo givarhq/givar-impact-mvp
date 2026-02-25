@@ -49,24 +49,41 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
         setIsLoading(true);
         try {
             const type = file.type.startsWith('image/') ? 'IMAGE' : 'DOCUMENT';
-            const { uploadUrl, key, publicUrl } = await ApiService.proposals.getUploadUrl({
+            const { uploadUrl, key, publicUrl, provider, uploadData } = await ApiService.proposals.getUploadUrl({
                 fileType: file.type,
                 useCase: 'public',
             });
 
-            await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-
-            // JIT Fallback logic: If publicUrl is null (pending setup), sign it. Otherwise, use publicUrl.
             let finalUrl = publicUrl;
-            if (!finalUrl) {
-                const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
-                finalUrl = viewUrl;
+            let finalKey = key;
+
+            if (provider === 'cloudinary') {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', uploadData.apiKey);
+                formData.append('timestamp', uploadData.timestamp.toString());
+                formData.append('signature', uploadData.signature);
+                formData.append('folder', uploadData.folder);
+
+                const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+                if (!res.ok) throw new Error('Cloudinary upload failed');
+                const data = await res.json();
+
+                finalUrl = data.secure_url;
+                finalKey = data.secure_url; // Use permanent URL as the DB key for public assets
+            } else {
+                await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+
+                if (!finalUrl) {
+                    const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+                    finalUrl = viewUrl;
+                }
             }
 
             onAdd({
                 id: crypto.randomUUID(),
                 url: finalUrl,
-                key: publicUrl || key, // STORE THE PERMANENT PUBLIC URL AS THE KEY FOR DB PERSISTENCE
+                key: finalKey,
                 type,
                 caption: ''
             });
@@ -229,16 +246,35 @@ export const ImageUploader = memo(function ImageUploader({
         if (!file) return;
         setIsLoading(true);
         try {
-            const { uploadUrl, key, publicUrl } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase });
-            await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+            const { uploadUrl, key, publicUrl, provider, uploadData } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase });
 
             let finalPreview = publicUrl;
-            if (!finalPreview) {
-                const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
-                finalPreview = viewUrl;
+            let finalKey = key;
+
+            if (provider === 'cloudinary') {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', uploadData.apiKey);
+                formData.append('timestamp', uploadData.timestamp.toString());
+                formData.append('signature', uploadData.signature);
+                formData.append('folder', uploadData.folder);
+
+                const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+                if (!res.ok) throw new Error('Cloudinary upload failed');
+                const data = await res.json();
+
+                finalPreview = data.secure_url;
+                finalKey = data.secure_url;
+            } else {
+                await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+
+                if (!finalPreview) {
+                    const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+                    finalPreview = viewUrl;
+                }
             }
 
-            onUploadComplete({ key: publicUrl || key, previewUrl: finalPreview });
+            onUploadComplete({ key: finalKey, previewUrl: finalPreview });
             toast.success('Uploaded Successfully');
         } catch (e) {
             toast.error('Upload Failed');
