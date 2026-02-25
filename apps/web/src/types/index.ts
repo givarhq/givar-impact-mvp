@@ -35,6 +35,7 @@ export interface Project {
   riskAnalysis?: string;
   isVerifiedOrganizer: boolean;
   organizerName: string;
+  organizerType?: 'INDIVIDUAL' | 'ORGANIZATION' | 'SYSTEM';
   categoryName?: string;
   donorCount?: number;
 }
@@ -211,6 +212,7 @@ export interface OrganizationProfile {
   verifiedAt?: string;
   createdAt: string;
   updatedAt: string;
+  kycType?: 'INDIVIDUAL' | 'ORGANIZATION';
 }
 
 export interface OverviewCardsProps {

@@ -6,7 +6,8 @@ import {
     Share2, MapPin, Calendar,
     BadgeCheck, ShieldCheck, DollarSign, Briefcase,
     AlertTriangle, ChevronRight, Target,
-    Heart, Check, RefreshCcw,
+    Heart, Check, UserCheck,
+    RefreshCcw,
     Clock
 } from 'lucide-react';
 import Link from 'next/link';
@@ -42,6 +43,20 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const target = Number(project.targetAmount || 0);
     const isFunded = (raised >= target && target > 0) || project.status === 'FUNDED' || project.status === 'COMPLETED';
 
+    // Hybrid Badge Logic
+    const getVerificationMeta = () => {
+        if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') {
+            return { label: 'Platform Organizer', icon: BadgeCheck, color: 'text-primary', badgeStyle: 'bg-primary/10 text-primary border-primary/20' };
+        }
+        if (project.organizerType === 'ORGANIZATION') {
+            return { label: 'Verified Organization', icon: ShieldCheck, color: 'text-blue-600', badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200' };
+        }
+        return { label: 'Verified Advocate', icon: UserCheck, color: 'text-emerald-600', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    };
+
+    const verMeta = getVerificationMeta();
+    const VerIcon = verMeta.icon;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -59,6 +74,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         <Badge variant="secondary" className="rounded-3xl font-bold text-xs tracking-tight px-3 py-1 border-none bg-muted">
                             {project.category?.name || 'General impact'}
                         </Badge>
+
+                        {project.isVerifiedOrganizer && (
+                            <Badge variant="outline" className={cn("rounded-3xl font-bold text-xs tracking-tight px-3 py-1 border gap-1.5", verMeta.badgeStyle)}>
+                                <VerIcon className="h-3 w-3" /> {verMeta.label}
+                            </Badge>
+                        )}
+
                         {project.tags?.map(tag => (
                             <Badge key={tag} variant="outline" className="rounded-3xl bg-background/50 text-xs font-medium border-border/60">
                                 {tag}
@@ -406,11 +428,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </div>
 
                         <div className="pt-4 border-t border-border/40 flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-primary font-bold text-[11px]  tracking-wider">
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                                {project.organizerName === 'Givar' ? 'Platform Organizer' : 'Verified Organizer'}
+                            <div className={cn("flex items-center gap-1.5 font-bold text-[11px]  tracking-wider", verMeta.color)}>
+                                <VerIcon className="h-3.5 w-3.5" />
+                                {verMeta.label}
                             </div>
-                            {project.organizerName !== 'Givar' && (
+                            {project.organizerType !== 'SYSTEM' && (
                                 <button className="text-[11px] font-bold  text-muted-foreground hover:text-primary transition-colors">
                                     Profile
                                 </button>

@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Share2, Check, MapPin } from 'lucide-react';
+import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { Project } from '../../../types';
@@ -27,6 +27,16 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
   const donateLink = `${detailsLink}/donate`;
 
+  // Badge Logic
+  const getBadgeConfig = () => {
+    if (project.organizerType === 'SYSTEM') return { icon: BadgeCheck, text: 'Givar Official', color: 'bg-primary/90 text-white' };
+    if (project.organizerType === 'ORGANIZATION') return { icon: ShieldCheck, text: 'Verified Org', color: 'bg-blue-600 text-white' };
+    return { icon: UserCheck, text: 'Verified Individual', color: 'bg-emerald-600 text-white' }; // Default to Individual
+  };
+
+  const badge = getBadgeConfig();
+  const BadgeIcon = badge.icon;
+
   return (
     <Card className="group flex flex-col rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
       {/* Visual Header */}
@@ -44,11 +54,20 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
             <Heart className="h-10 w-10 fill-current" />
           </div>
         )}
+
+        {/* Category Badge */}
         <div className="absolute top-3 left-3">
-          <Badge className="bg-background/90 backdrop-blur-md text-foreground border-none text-xs font-bold px-2 py-0.5 rounded-3xl">
+          <Badge className="bg-background/90 backdrop-blur-md text-foreground border-none text-xs font-bold px-2 py-0.5 rounded-3xl shadow-sm">
             {project.categoryName || 'Impact'}
           </Badge>
         </div>
+
+        {/* Verification Badge (Bottom Right Overlay) */}
+        {project.isVerifiedOrganizer && (
+          <div className={`absolute bottom-3 right-3 flex items-center gap-1.5 px-2 py-0.5 rounded-3xl text-[10px] font-bold shadow-sm backdrop-blur-sm ${badge.color}`}>
+            <BadgeIcon className="h-3 w-3" /> {badge.text}
+          </div>
+        )}
       </Link>
 
       {/* Content Body */}
@@ -60,9 +79,9 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
             </h3>
           </Link>
           <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground tracking-wider">
-            <span className="text-foreground font-bold">{project.organizerName}</span>
+            <span className="text-foreground font-bold truncate max-w-[120px]">{project.organizerName}</span>
             <span>•</span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 truncate">
               <MapPin className="h-2.5 w-2.5" /> {project.location || 'Global'}
             </span>
           </div>
