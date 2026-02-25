@@ -40,11 +40,11 @@ const SETTINGS_OPTIONS = [
     },
     {
         id: 'org',
-        label: 'Organization',
+        label: 'Verification', // Logic: Renamed from 'Organization' to reflect Hybrid Model
         icon: Building2,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
-        description: 'Verification & trust docs.'
+        description: 'Identity & trust documents.'
     },
     {
         id: 'recurring',
@@ -110,7 +110,8 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
                 <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full space-y-6">
                     <div className="overflow-x-auto no-scrollbar pb-1">
                         <TabsList className="h-11 bg-muted/50 p-1 rounded-3xl w-fit border border-border/40 shadow-inner inline-flex">
-                            {SETTINGS_OPTIONS.filter(o => o.id !== 'org' || user.accountType === 'ORGANIZER').map((opt) => (
+                            {/* Logic: Removed the filter that hid 'org' tab for Individuals. Everyone can verify now. */}
+                            {SETTINGS_OPTIONS.map((opt) => (
                                 <TabsTrigger
                                     key={opt.id}
                                     value={opt.id}
@@ -125,7 +126,8 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
 
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <TabsContent value="profile" className="mt-0 outline-none"><ProfileForm user={user} /></TabsContent>
-                        {user.accountType === 'ORGANIZER' && <TabsContent value="org" className="mt-0 outline-none"><VerificationWizard initialProfile={orgProfile} /></TabsContent>}
+                        {/* Logic: Enabled Verification Wizard for everyone */}
+                        <TabsContent value="org" className="mt-0 outline-none"><VerificationWizard initialProfile={orgProfile} /></TabsContent>
                         <TabsContent value="recurring" className="mt-0 outline-none">
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
@@ -165,7 +167,8 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
             <div className="md:hidden">
                 {!activeTab ? (
                     <div className="grid gap-2 animate-in fade-in duration-200">
-                        {SETTINGS_OPTIONS.filter(o => o.id !== 'org' || user.accountType === 'ORGANIZER').map((opt) => (
+                        {/* Logic: Removed filter here too */}
+                        {SETTINGS_OPTIONS.map((opt) => (
                             <button
                                 key={opt.id}
                                 onClick={() => handleTabChange(opt.id)}
@@ -191,7 +194,7 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
                         </button>
                         <div>
                             {activeTab === 'profile' && <ProfileForm user={user} />}
-                            {activeTab === 'org' && user.accountType === 'ORGANIZER' && <VerificationWizard initialProfile={orgProfile} />}
+                            {activeTab === 'org' && <VerificationWizard initialProfile={orgProfile} />}
                             {activeTab === 'recurring' && (
                                 <div className="space-y-3">
                                     {subscriptions.length === 0 ? (

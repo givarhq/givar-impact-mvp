@@ -44,12 +44,12 @@ export default function StartProposalPage() {
             setIsUnverified(user.emailVerified === false);
         }
 
-        if (isOrganizer) {
-            ApiService.projects.getCategories()
-                .then(setCategories)
-                .catch(() => toast.error('Categories offline'));
-        }
-    }, [isOrganizer]);
+        // Logic: Allow category fetching for all users since we now support Hybrid Impact
+        ApiService.projects.getCategories()
+            .then(setCategories)
+            .catch(() => toast.error('Categories offline'));
+
+    }, []);
 
     const {
         register,
@@ -64,6 +64,8 @@ export default function StartProposalPage() {
         if (isUnverified) return;
         setIsUpgrading(true);
         try {
+            // Logic: This action is less critical now but kept for legacy "Organization" upgrades
+            // if we want to force full org status later.
             await ApiService.auth.upgradeToOrganizer();
             const updatedUser = { ...user, accountType: 'ORGANIZER' };
             setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 604800, path: '/' });
@@ -124,57 +126,10 @@ export default function StartProposalPage() {
         );
     }
 
-    // --- CASE 2: Mode Block (Individual needs to switch/verify Org) ---
-    if (!isOrganizer) {
-        return (
-            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2">
-                <div className="text-center space-y-2 py-2 min-w-0">
-                    <div className="h-14 w-14 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">
-                        <Rocket className="h-7 w-7" />
-                    </div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">Launch your cause</h2>
-                    <p className="text-sm text-muted-foreground max-w-[350px] mx-auto font-medium leading-relaxed">
-                        Activate organizer mode to propose projects & raise verified impact capital.
-                    </p>
-                </div>
+    // Logic: The "Mode Block" is REMOVED. Both INDIVIDUAL and ORGANIZER can now proceed.
+    // CASE 2 is merged into CASE 3.
 
-                <div className="grid gap-3 min-w-0">
-                    {[
-                        { icon: ShieldCheck, title: 'Verified trust', desc: 'Complete identity vetting for donor confidence.', color: 'text-primary' },
-                        { icon: Sparkles, title: 'Direct funding', desc: 'Automated procurement & ledger tracking.', color: 'text-blue-500' }
-                    ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-4 p-4 rounded-3xl border border-border/40 bg-card shadow-sm min-w-0 group hover:border-primary/20 transition-all">
-                            <div className={cn("h-11 w-11 rounded-2xl bg-muted flex items-center justify-center shrink-0 shadow-inner", item.color)}>
-                                <item.icon className="h-5 w-5" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                                <h4 className="font-bold text-sm text-foreground leading-none mb-1">{item.title}</h4>
-                                <p className="text-xs text-muted-foreground truncate font-medium">{item.desc}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="space-y-4 flex flex-col items-center pt-2">
-                    <Button
-                        onClick={onUpgrade}
-                        disabled={isUpgrading}
-                        className="w-[12rem] h-12 rounded-3xl font-bold text-xs  tracking-widest shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2"
-                    >
-                        {isUpgrading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Activate Mode'}
-                    </Button>
-
-                    <Link href="/dashboard/settings?tab=org" className="block text-center">
-                        <p className="text-[11px] font-bold text-muted-foreground  tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                            Complete Organization Verification <ExternalLink className="h-3 w-3" />
-                        </p>
-                    </Link>
-                </div>
-            </div>
-        );
-    }
-
-    // --- CASE 3: Authorized (Organizer & Verified) ---
+    // --- CASE 3: Authorized (Any Verified User) ---
     return (
         <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2">
             <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
