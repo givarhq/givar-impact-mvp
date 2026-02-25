@@ -10,8 +10,9 @@ import { cn } from '../../lib/utils/cn';
 export function Sidebar({ user }: { user: any }) {
   const pathname = usePathname();
 
-  // Logic: Removed accountType filtering to allow all users (Hybrid model) to access full navigation
-  const filteredNav = dashboardNav;
+  // Logic: All users have access to the full dashboard suite in the hybrid model.
+  // Verification gates are handled at the page/action level rather than hiding nav items.
+  const navItems = dashboardNav;
 
   return (
     <div className="sticky top-0 h-screen w-full p-3 hidden md:block">
@@ -41,7 +42,7 @@ export function Sidebar({ user }: { user: any }) {
         {/* Navigation */}
         <div className="flex-1 px-2 py-2 overflow-y-auto no-scrollbar">
           <nav className="grid items-start gap-1 text-sm font-medium">
-            {filteredNav.map((item, index) => {
+            {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = item.href === '/dashboard'
                 ? pathname === item.href
@@ -73,7 +74,7 @@ export function Sidebar({ user }: { user: any }) {
           </nav>
         </div>
 
-        {/* Start a Cause - High Density Card */}
+        {/* Action Card: Start a Cause */}
         <div className="p-2 mt-auto shrink-0 border-t border-border/40">
           <Link href="/dashboard/proposals/start" className="block group">
             <div className="relative overflow-hidden rounded-3xl bg-muted/30 border border-border/50 p-4 transition-all hover:bg-muted/50">
