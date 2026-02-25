@@ -41,6 +41,11 @@ enum AccountType {
   ORGANIZER
 }
 
+enum KycType {
+  INDIVIDUAL
+  ORGANIZATION
+}
+
 enum SubscriptionStatus {
   ACTIVE
   PAUSED
@@ -563,6 +568,8 @@ model OrganizationProfile {
   id                 String             @id @default(uuid())
   userId             String             @unique
   user               User               @relation(fields: [userId], references: [id])
+
+  kycType            KycType            @default(ORGANIZATION)
   
   legalName          String
   registrationNumber String?            // e.g., RC Number

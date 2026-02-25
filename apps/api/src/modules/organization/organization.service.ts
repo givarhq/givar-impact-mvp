@@ -17,7 +17,7 @@ export class OrganizationService {
   ) { }
 
   // 1. User: Submit KYC
-  async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[] }) {
+  async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[], kycType: 'INDIVIDUAL' | 'ORGANIZATION' }) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Update or Create the Organization Profile
       const profile = await tx.organizationProfile.upsert({
@@ -48,7 +48,7 @@ export class OrganizationService {
             userId: admin.id,
             type: 'KYC_STATUS' as NotificationType,
             title: 'KYC Review Required',
-            content: `${profile.user.firstName} ${profile.user.lastName} submitted documents for "${data.legalName}".`,
+            content: `${profile.user.firstName} ${profile.user.lastName} submitted documents for "${data.legalName}" (${data.kycType}).`,
             link: '/admin/verifications?tab=orgs'
           }))
         });
@@ -124,8 +124,8 @@ export class OrganizationService {
           data: {
             userId: updated.userId,
             type: 'KYC_STATUS',
-            title: 'Organization verified',
-            content: `Your entity "${profile.legalName}" has been successfully verified. You can now launch public causes.`,
+            title: 'Identity verified',
+            content: `Your profile "${profile.legalName}" has been successfully verified. You can now launch public causes.`,
             link: '/dashboard/settings?tab=org'
           }
         });
@@ -154,7 +154,7 @@ export class OrganizationService {
             userId: updated.userId,
             type: 'KYC_STATUS',
             title: 'Verification rejected',
-            content: `We could not verify your organization at this time. Feedback: ${feedback || 'Please review your documents.'}`,
+            content: `We could not verify your identity at this time. Feedback: ${feedback || 'Please review your documents.'}`,
             link: '/dashboard/settings?tab=org'
           }
         });
@@ -166,7 +166,7 @@ export class OrganizationService {
         action: status === VerificationStatus.VERIFIED ? AuditAction.USER_VERIFIED : AuditAction.USER_REJECTED,
         entityId: profile.userId,
         entityType: 'UserOrganization',
-        metadata: { status, feedback, legalName: profile.legalName }
+        metadata: { status, feedback, legalName: profile.legalName, kycType: profile.kycType }
       }, tx);
 
       return updated;

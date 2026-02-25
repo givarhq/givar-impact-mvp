@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Fingerprint,
-  Info
+  Info,
+  UserCheck
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -34,6 +35,8 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Hybrid State: Read kycType dynamically or default to INDIVIDUAL
+  const [kycType, setKycType] = useState<'INDIVIDUAL' | 'ORGANIZATION'>((initialProfile as any)?.kycType || 'INDIVIDUAL');
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
   const [regNumber, setRegNumber] = useState(initialProfile?.registrationNumber || '');
   const [docKeys, setDocKeys] = useState<string[]>(initialProfile?.documentKeys || []);
@@ -77,7 +80,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
 
   const handleSubmit = async () => {
     if (!legalName.trim() || docKeys.length === 0) {
-      return toast.error('Organization name & at least one document are required');
+      return toast.error(kycType === 'INDIVIDUAL' ? 'Legal name & at least one document are required' : 'Organization name & at least one document are required');
     }
 
     setIsLoading(true);
@@ -87,6 +90,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
         legalName: legalName.trim(),
         registrationNumber: regNumber.trim(),
         documentKeys: docKeys,
+        kycType: kycType,
       });
 
       toast.success('Details sent', { id: toastId });
@@ -112,17 +116,24 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
               <ShieldCheck className="h-8 w-8" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight text-foreground">Organization verified</h2>
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
+                {kycType === 'INDIVIDUAL' ? 'Identity verified' : 'Organization verified'}
+              </h2>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto font-medium">
                 Your account is a recognized & trusted partner. Your causes carry the verified badge to build donor confidence.
               </p>
             </div>
             <div className="inline-flex flex-col items-center p-6 rounded-3xl bg-card border border-primary/10 shadow-sm min-w-[280px]">
-              <p className="text-[11px] font-bold tracking-widest text-muted-foreground mb-3">Verified organization identity</p>
+              <div className="flex items-center gap-2 mb-3">
+                {kycType === 'INDIVIDUAL' ? <UserCheck className="h-3.5 w-3.5 text-muted-foreground" /> : <Building2 className="h-3.5 w-3.5 text-muted-foreground" />}
+                <p className="text-[11px] font-bold tracking-widest text-muted-foreground">
+                  Verified {kycType === 'INDIVIDUAL' ? 'individual identity' : 'organization identity'}
+                </p>
+              </div>
               <p className="text-lg font-bold text-foreground tracking-tight">{initialProfile?.legalName}</p>
               {initialProfile?.registrationNumber && (
                 <p className="text-xs text-primary font-mono mt-1.5 font-bold">
-                  reg: {initialProfile.registrationNumber}
+                  {kycType === 'INDIVIDUAL' ? 'id:' : 'reg:'} {initialProfile.registrationNumber}
                 </p>
               )}
             </div>
@@ -148,7 +159,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
             <div className="space-y-1">
               <h2 className="text-xl font-bold tracking-tight text-foreground">Review in progress</h2>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed font-medium">
-                Our team is currently reviewing your organization's documents. This usually takes about 24 to 48 hours.
+                Our team is currently reviewing your documents. This usually takes about 24 to 48 hours.
               </p>
             </div>
             <div className="pt-2">
@@ -183,29 +194,62 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
 
       <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
         <CardContent className="p-5 md:p-8 space-y-8">
+
+          {/* Identity Type Selector */}
+          <div className="space-y-4 border-b border-border/40 pb-6">
+            <div className="space-y-0.5">
+              <h3 className="font-bold text-sm text-foreground">Verification Route</h3>
+              <p className="text-xs text-muted-foreground font-medium">Are you verifying as an individual advocate or a registered entity?</p>
+            </div>
+            <div className="flex bg-muted/30 p-1.5 rounded-3xl border border-border/40 w-full md:w-fit shadow-inner">
+              <button
+                onClick={() => setKycType('INDIVIDUAL')}
+                className={cn(
+                  "flex-1 md:flex-none px-6 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                  kycType === 'INDIVIDUAL' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <UserCheck className="h-4 w-4" /> Individual
+              </button>
+              <button
+                onClick={() => setKycType('ORGANIZATION')}
+                className={cn(
+                  "flex-1 md:flex-none px-6 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+                  kycType === 'ORGANIZATION' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                <Building2 className="h-4 w-4" /> Organization
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-6">
             <div className="flex items-center gap-3 border-b border-border/40 pb-4">
               <div className="h-9 w-9 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
-                <Building2 className="h-4.5 w-4.5" />
+                {kycType === 'INDIVIDUAL' ? <Fingerprint className="h-4.5 w-4.5" /> : <Building2 className="h-4.5 w-4.5" />}
               </div>
               <div className="space-y-0.5">
-                <h3 className="font-bold text-sm text-foreground">Organization Information</h3>
-                <p className="text-xs text-muted-foreground font-medium">Basic details for your organization.</p>
+                <h3 className="font-bold text-sm text-foreground">
+                  {kycType === 'INDIVIDUAL' ? 'Identity Information' : 'Organization Information'}
+                </h3>
+                <p className="text-xs text-muted-foreground font-medium">
+                  {kycType === 'INDIVIDUAL' ? 'Basic details matching your official ID.' : 'Basic details for your organization.'}
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Legal organization name"
-                placeholder="e.g. Global Relief Foundation"
+                label={kycType === 'INDIVIDUAL' ? "Full legal name" : "Legal organization name"}
+                placeholder={kycType === 'INDIVIDUAL' ? "e.g. Jane Doe" : "e.g. Global Relief Foundation"}
                 value={legalName}
                 onChange={(e) => setLegalName(e.target.value)}
                 disabled={isLoading}
                 className="h-10 rounded-3xl"
               />
               <Input
-                label="Registration number (RC / TIN)"
-                placeholder="e.g. RC-1234567"
+                label={kycType === 'INDIVIDUAL' ? "Government ID number (Optional)" : "Registration number (RC / TIN)"}
+                placeholder={kycType === 'INDIVIDUAL' ? "e.g. NIN or Passport No." : "e.g. RC-1234567"}
                 value={regNumber}
                 onChange={(e) => setRegNumber(e.target.value)}
                 disabled={isLoading}
@@ -221,14 +265,20 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
               </div>
               <div className="space-y-0.5">
                 <h3 className="font-bold text-sm text-foreground">Official Documents</h3>
-                <p className="text-xs text-muted-foreground font-medium">Upload your business or non-profit papers.</p>
+                <p className="text-xs text-muted-foreground font-medium">
+                  {kycType === 'INDIVIDUAL'
+                    ? 'Upload your Government ID and a recent utility bill.'
+                    : 'Upload your business or non-profit papers.'}
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                  Upload official documents like your Certificate of Incorporation. These are kept safe & private.
+                  {kycType === 'INDIVIDUAL'
+                    ? 'Upload your official identity documents. These are kept safe & private.'
+                    : 'Upload official documents like your Certificate of Incorporation. These are kept safe & private.'}
                 </p>
                 <label className={cn(
                   "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border/60 rounded-3xl cursor-pointer bg-muted/10 hover:bg-muted/20 transition-all",
