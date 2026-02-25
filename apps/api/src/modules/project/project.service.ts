@@ -107,7 +107,7 @@ export class ProjectService {
           user: {
             select: {
               role: true,
-              organization: { select: { status: true, legalName: true } }
+              organization: { select: { status: true, legalName: true, kycType: true } }
             }
           }
         }
@@ -132,6 +132,7 @@ export class ProjectService {
         categorySlug: hydrated.category?.slug,
         isVerifiedOrganizer: isSystemProject ? true : p.user?.organization?.status === 'VERIFIED',
         organizerName: isSystemProject ? 'Givar' : (p.user?.organization?.legalName || 'Individual'),
+        organizerType: isSystemProject ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
         isGivarOfficial: isSystemProject
       };
     }));
@@ -156,7 +157,7 @@ export class ProjectService {
         user: {
           select: {
             role: true,
-            organization: { select: { status: true, legalName: true, verifiedAt: true } }
+            organization: { select: { status: true, legalName: true, verifiedAt: true, kycType: true } }
           }
         }
       }
@@ -183,6 +184,7 @@ export class ProjectService {
       donorCount,
       isVerifiedOrganizer: isSystemProject ? true : hydrated.user?.organization?.status === 'VERIFIED',
       organizerName: isSystemProject ? 'Givar' : (hydrated.user?.organization?.legalName || 'Individual'),
+      organizerType: isSystemProject ? 'SYSTEM' : (hydrated.user?.organization?.kycType || 'INDIVIDUAL'),
       isGivarOfficial: isSystemProject
     };
   }
