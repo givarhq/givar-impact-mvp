@@ -10,7 +10,9 @@ import {
     ExternalLink,
     Calendar,
     LayoutGrid,
-    Loader2
+    Loader2,
+    UserCheck,
+    Fingerprint
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -30,6 +32,8 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
     const [feedback, setFeedback] = useState('');
     const [showVerifyConfirm, setShowVerifyConfirm] = useState(false);
 
+    const isIndividual = profile.kycType === 'INDIVIDUAL';
+
     const handleReview = async (status: 'VERIFIED' | 'REJECTED') => {
         if (status === 'REJECTED' && !feedback.trim()) return toast.error("Please Provide Rejection Feedback.");
 
@@ -37,7 +41,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
         const toastId = toast.loading(`Processing ${status === 'VERIFIED' ? 'Verification' : 'Rejection'}...`);
         try {
             await ApiService.organizations.review(profile.id, { status, feedback });
-            toast.success(`Entity status successfully updated to ${status.toLowerCase()}`, { id: toastId });
+            toast.success(`Identity status successfully updated to ${status.toLowerCase()}`, { id: toastId });
             setShowVerifyConfirm(false);
             router.refresh();
         } catch (e) {
@@ -75,8 +79,11 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
             {/* Hero Action Bar */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-5 relative z-10 w-full lg:w-auto min-w-0">
-                    <div className="h-16 w-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
-                        <Building2 className="h-8 w-8" />
+                    <div className={cn(
+                        "h-16 w-16 rounded-3xl flex items-center justify-center shrink-0 border shadow-inner",
+                        isIndividual ? "bg-blue-500/10 border-blue-500/20 text-blue-600" : "bg-purple-500/10 border-purple-500/20 text-purple-600"
+                    )}>
+                        {isIndividual ? <UserCheck className="h-8 w-8" /> : <Building2 className="h-8 w-8" />}
                     </div>
                     <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
@@ -87,7 +94,10 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                         </div>
                         <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
                             <span className="flex items-center gap-1.5 shrink-0"><Calendar className="h-3.5 w-3.5" /> Registered On {formatDate(profile.createdAt).split(',')[0]}</span>
-                            <span className="flex items-center gap-1.5 shrink-0"><ShieldCheck className="h-3.5 w-3.5 text-primary" /> Reg Id: {profile.registrationNumber || 'Not Provided'}</span>
+                            <span className="flex items-center gap-1.5 shrink-0"><Fingerprint className="h-3.5 w-3.5 text-primary" /> {isIndividual ? 'Gov ID' : 'Reg ID'}: {profile.registrationNumber || 'Not Provided'}</span>
+                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-3xl bg-muted/50 border border-border/40", isIndividual ? "text-blue-600" : "text-purple-600")}>
+                                {isIndividual ? 'Individual Account' : 'Corporate Entity'}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -99,7 +109,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                             disabled={isProcessing}
                             className="flex-1 lg:flex-none h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs tracking-wider border-0 transition-all active:scale-95"
                         >
-                            Verify Entity
+                            Verify Identity
                         </Button>
                     )}
                     <Dialog>
@@ -241,8 +251,8 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                 onConfirm={() => handleReview('VERIFIED')}
                 isLoading={isProcessing}
                 variant="default"
-                title="Verify Organization"
-                description={`Establish ${profile.legalName} as a verified platform partner? This upgrades the owner account to Organizer mode & enables cause promotion on the discovery feed.`}
+                title={`Verify ${isIndividual ? 'Identity' : 'Organization'}`}
+                description={`Establish ${profile.legalName} as a verified ${isIndividual ? 'individual advocate' : 'registered partner'}? This grants permission to launch public causes on the discovery feed.`}
                 confirmText="Confirm Verification"
                 cancelText="Cancel Audit"
             />

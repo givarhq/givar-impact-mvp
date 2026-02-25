@@ -10,12 +10,8 @@ import { cn } from '../../lib/utils/cn';
 export function Sidebar({ user }: { user: any }) {
   const pathname = usePathname();
 
-  const filteredNav = dashboardNav.filter(item => {
-    if (item.href === '/dashboard/verify' && user?.accountType !== 'ORGANIZER') {
-      return false;
-    }
-    return true;
-  });
+  // Logic: Removed accountType filtering to allow all users (Hybrid model) to access full navigation
+  const filteredNav = dashboardNav;
 
   return (
     <div className="sticky top-0 h-screen w-full p-3 hidden md:block">
