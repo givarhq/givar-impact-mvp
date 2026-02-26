@@ -1131,6 +1131,12 @@ export class AdminService {
       amount: BigInt(amount),
       currency: currency as any,
       reference,
+      // Ensure manual reconciliations perfectly mirror the original mathematical intent
+      baseAmount: metadata?.baseAmount ? BigInt(metadata.baseAmount) : undefined,
+      feeAmount: metadata?.feeAmount ? BigInt(metadata.feeAmount) : undefined,
+      tipAmount: metadata?.tipAmount ? BigInt(metadata.tipAmount) : undefined,
+      feePercentageUsed: metadata?.feePercentage !== undefined ? Number(metadata.feePercentage) : undefined,
+      feeRuleId: metadata?.feeRuleId,
     });
 
     const serializedResult: any = { ...result };

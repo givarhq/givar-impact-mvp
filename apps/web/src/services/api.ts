@@ -510,4 +510,19 @@ export const ApiService = {
     markRead: (id: string) => apiClient.patch(`/notifications/${id}/read`).then(r => r.data),
     markAllRead: () => apiClient.patch('/notifications/read-all').then(r => r.data),
   },
+
+  // --- FEES ---
+  fees: {
+    getPublicCurrent: () =>
+      apiClient.get('/fees/current').then(r => r.data),
+
+    getAdminCurrent: (token: string) =>
+      serverFetch<any>('/admin/fees/current', token, { tags: ['admin-fees'], next: { revalidate: 0 } }),
+
+    getHistory: (token: string) =>
+      serverFetch<any[]>('/admin/fees/history', token, { tags: ['admin-fees-history'], next: { revalidate: 0 } }),
+
+    updateGlobalRule: (data: any) =>
+      apiClient.post('/admin/fees/update', data).then(r => r.data),
+  },
 };

@@ -190,7 +190,13 @@ export class WalletService {
           amount: BigInt(data.amount),
           currency: data.currency as Currency,
           reference: data.reference,
-          channel: data.channel
+          channel: data.channel,
+          // Forward frozen intent metadata for financial splits
+          baseAmount: data.metadata.baseAmount ? BigInt(data.metadata.baseAmount) : undefined,
+          feeAmount: data.metadata.feeAmount ? BigInt(data.metadata.feeAmount) : undefined,
+          tipAmount: data.metadata.tipAmount ? BigInt(data.metadata.tipAmount) : undefined,
+          feePercentageUsed: data.metadata.feePercentage !== undefined ? Number(data.metadata.feePercentage) : undefined,
+          feeRuleId: data.metadata.feeRuleId,
         });
       }
     }
@@ -455,6 +461,11 @@ export class WalletService {
     amount: bigint;
     currency: Currency;
     reference: string;
+    baseAmount?: bigint;
+    feeAmount?: bigint;
+    tipAmount?: bigint;
+    feePercentageUsed?: number;
+    feeRuleId?: string;
   }) {
 
     this.logger.log(`[RECONCILIATION] Manually fulfilling reference: ${data.reference}`);
