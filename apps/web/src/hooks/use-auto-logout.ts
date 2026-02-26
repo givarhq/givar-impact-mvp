@@ -28,7 +28,7 @@ export function useAutoLogout() {
         deleteCookie('givar_is_impersonating');
         localStorage.removeItem(ACTIVITY_STORAGE_KEY);
 
-        toast('Session expired due to inactivity', {
+        toast('Session expired', {
             icon: '🕒',
             style: { borderRadius: '24px', fontWeight: 'bold', fontSize: '12px' }
         });
