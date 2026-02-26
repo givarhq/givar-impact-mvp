@@ -8,13 +8,15 @@ import {
     Bell,
     ChevronRight,
     ChevronLeft,
-    Zap
+    Zap,
+    Landmark
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../ui/tabs';
 import { ProfileForm } from '../../settings/profile-form';
 import { PreferencesForm } from '../../settings/preferences-form';
 import { AdminSecuritySection } from './admin-security-section';
 import { VisibilityControlClient } from '../visibility/visibility-control-client';
+import { FinancialGovernance } from './financial-governance';
 import { cn } from '../../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,6 +25,8 @@ interface AdminSettingsClientProps {
     initialConfig: any;
     initialSlots: any[];
     categories: any[];
+    initialFeeRule?: any;
+    initialFeeHistory?: any[];
 }
 
 const ADMIN_SETTINGS_OPTIONS = [
@@ -41,6 +45,14 @@ const ADMIN_SETTINGS_OPTIONS = [
         color: 'text-primary',
         bg: 'bg-primary/10',
         description: 'Manage recommendation weights & featured causes.'
+    },
+    {
+        id: 'governance',
+        label: 'Financial Governance',
+        icon: Landmark,
+        color: 'text-purple-500',
+        bg: 'bg-purple-500/10',
+        description: 'Manage platform transaction fees & tipping rules.'
     },
     {
         id: 'security',
@@ -64,7 +76,9 @@ export const AdminSettingsClient = memo(function AdminSettingsClient({
     user,
     initialConfig,
     initialSlots,
-    categories
+    categories,
+    initialFeeRule,
+    initialFeeHistory
 }: AdminSettingsClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -125,6 +139,12 @@ export const AdminSettingsClient = memo(function AdminSettingsClient({
                                     initialConfig={initialConfig}
                                     initialSlots={initialSlots}
                                     categories={categories}
+                                />
+                            </TabsContent>
+                            <TabsContent value="governance" className="mt-0 outline-none">
+                                <FinancialGovernance
+                                    initialFeeRule={initialFeeRule}
+                                    initialFeeHistory={initialFeeHistory || []}
                                 />
                             </TabsContent>
                             <TabsContent value="security" className="mt-0 outline-none">
@@ -196,6 +216,12 @@ export const AdminSettingsClient = memo(function AdminSettingsClient({
                                         initialConfig={initialConfig}
                                         initialSlots={initialSlots}
                                         categories={categories}
+                                    />
+                                )}
+                                {activeTab === 'governance' && (
+                                    <FinancialGovernance
+                                        initialFeeRule={initialFeeRule}
+                                        initialFeeHistory={initialFeeHistory || []}
                                     />
                                 )}
                                 {activeTab === 'security' && <AdminSecuritySection user={user} />}
