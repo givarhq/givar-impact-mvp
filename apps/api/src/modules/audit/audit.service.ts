@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import { AuditAction, Prisma } from '@givar/database';
 import { Request } from 'express';
 import { subHours, startOfDay, endOfDay } from 'date-fns';
+import { json2csv } from 'json-2-csv';
 
 interface CreateLogParams {
   userId?: string;
