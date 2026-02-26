@@ -54,7 +54,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                     onClick={copyIdToClipboard}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium hover:text-foreground transition-colors group/copy outline-none"
                 >
-                    <span>id: {project.slug.slice(0, 8)}...</span>
+                    <span>ID: {project.slug.slice(0, 15)}...</span>
                     {copied ? (
                         <Check className="h-3 w-3 text-emerald-500 animate-in zoom-in" />
                     ) : (
@@ -79,8 +79,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                     <span className="text-primary">{percent}% funded</span>
                     <span className="text-muted-foreground">Target</span>
                 </div>
-                {/* Fixed: Increased height to h-3 (12px) to prevent layout collapse with p-0.5 border padding */}
-                <div className="h-3 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
+                <div className="h-2 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
                     <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${barWidth}%` }}
