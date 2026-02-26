@@ -91,7 +91,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
                             <CardTitle className="text-sm font-bold flex items-center gap-2 tracking-widest text-foreground ">
-                                <Landmark className="h-4 w-4 text-primary" /> Active Fee Configuration
+                                <Landmark className="h-4 w-4 text-primary" /> Fee Configuration
                             </CardTitle>
                             <p className="text-[11px] text-muted-foreground font-bold tracking-widest ">Global Platform Rate</p>
                         </div>
