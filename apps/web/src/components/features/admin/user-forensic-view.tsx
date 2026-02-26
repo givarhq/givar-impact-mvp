@@ -2,6 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
     Wallet, Lock, Unlock, ShieldAlert, History, Loader2, Fingerprint,
     UserCheck, UserSearch, Shield, ShieldOff
@@ -31,6 +32,7 @@ interface UserForensicViewProps {
         accountLockedUntil: string | null;
         failedLoginAttempts: number;
         lifetimeImpact: string;
+        avatarUrl?: string;
         wallets: Array<{
             id: string;
             currency: string;
@@ -71,7 +73,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
 
     const onConfirmImpersonate = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading("Establishing Forensic Proxy...");
+        const toastId = toast.loading("Establishing proxy...");
         try {
             const currentToken = getCookie('givar_token');
             const currentUser = getCookie('givar_user');
@@ -85,10 +87,10 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
             setCookie('givar_user', JSON.stringify(response.user), { path: '/' });
             setCookie('givar_is_impersonating', 'true', { path: '/' });
 
-            toast.success(`Forensic Proxy Active`, { id: toastId });
+            toast.success(`Proxy active`, { id: toastId });
             window.location.href = '/dashboard';
         } catch (e) {
-            toast.error('Forensic Session Failed', { id: toastId });
+            toast.error('Session failed', { id: toastId });
             setIsProcessing(false);
             setShowImpersonateConfirm(false);
         }
@@ -101,11 +103,11 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         setIsProcessing(true);
         try {
             await ApiService.admin.updateUserStatus(user.id, action);
-            toast.success(`User Status Updated`);
+            toast.success(`User status updated`);
             setStatusConfirm({ isOpen: false, action: null });
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Action Failed");
+            toast.error(e.response?.data?.message || "Action failed");
         } finally {
             setIsProcessing(false);
         }
@@ -119,11 +121,11 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         try {
             const newRole = action === 'PROMOTE' ? 'ADMIN' : 'USER';
             await ApiService.admin.updateUserRole(user.id, newRole);
-            toast.success(`Role Updated`);
+            toast.success(`Role updated`);
             setRoleConfirm({ isOpen: false, action: null });
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Role Change Failed");
+            toast.error(e.response?.data?.message || "Role change failed");
         } finally {
             setIsProcessing(false);
         }
@@ -140,9 +142,15 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <div className="p-6 text-center space-y-4">
                             <div className="relative inline-block">
-                                <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center text-primary text-2xl font-bold border border-primary/10 mx-auto">
-                                    {user.firstName[0]}{user.lastName[0]}
-                                </div>
+                                {user.avatarUrl ? (
+                                    <div className="relative h-20 w-20 rounded-full border border-border/40 shadow-inner mx-auto overflow-hidden bg-muted">
+                                        <Image src={user.avatarUrl} fill sizes="80px" className="object-cover" alt="" />
+                                    </div>
+                                ) : (
+                                    <div className="h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center text-primary text-2xl font-bold border border-primary/10 mx-auto">
+                                        {user.firstName[0]}{user.lastName[0]}
+                                    </div>
+                                )}
                                 <div className={cn(
                                     "absolute -bottom-1 -right-1 h-8 w-8 rounded-3xl border-4 border-card flex items-center justify-center shadow-sm",
                                     isLocked ? "bg-destructive text-white" : "bg-emerald-500 text-white"
@@ -273,7 +281,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                         </CardHeader>
                         <div className="p-0">
                             {user.wallets.length === 0 ? (
-                                <div className="p-8 text-center text-xs text-muted-foreground italic">No wallet nodes identified.</div>
+                                <div className="p-8 text-center text-xs text-muted-foreground italic">No wallets identified.</div>
                             ) : user.wallets.map((w: any) => (
                                 <div key={w.id} className="flex items-center justify-between p-4 md:px-6 border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors group">
                                     <div className="flex items-center gap-4">
@@ -354,7 +362,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 title={statusConfirm.action === 'LOCK' ? 'Restrict Access' : 'Restore Access'}
                 description={statusConfirm.action === 'LOCK'
                     ? `Terminate active sessions & restrict platform access for ${user.email}?`
-                    : `Restore full ledger & identity access for ${user.email}?`
+                    : `Restore full access for ${user.email}?`
                 }
                 confirmText={statusConfirm.action === 'LOCK' ? 'Lock Account' : 'Unlock Account'}
             />

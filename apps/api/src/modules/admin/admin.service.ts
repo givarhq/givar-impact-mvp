@@ -663,6 +663,7 @@ export class AdminService {
           emailVerified: true,
           accountType: true,
           accountLockedUntil: true,
+          avatarKey: true,
           _count: { select: { donations: true, projects: true } },
           donations: { select: { amount: true } }
         },
@@ -671,17 +672,25 @@ export class AdminService {
       this.prisma.user.count({ where })
     ]);
 
-    // 4. Post-Process: Calculate LIV
-    const data = users.map(user => {
+    // 4. Post-Process: Calculate LIV & Hydrate Avatar
+    const data = await Promise.all(users.map(async (user) => {
       const liv = user.donations.reduce((acc, d) => acc + d.amount, 0n);
+
+      let avatarUrl = null;
+      if (user.avatarKey) {
+        const { viewUrl } = await this.storage.getPresignedViewUrl(user.avatarKey);
+        avatarUrl = viewUrl;
+      }
+
       return {
         ...user,
         donations: undefined,
         lifetimeImpact: liv.toString(),
         isLocked: !!user.accountLockedUntil && user.accountLockedUntil > new Date(),
-        accountType: user.role !== UserRole.USER ? 'SYSTEM' : user.accountType
+        accountType: user.role !== UserRole.USER ? 'SYSTEM' : user.accountType,
+        avatarUrl
       };
-    });
+    }));
 
     return {
       data,
@@ -711,12 +720,19 @@ export class AdminService {
       _sum: { amount: true }
     });
 
+    let avatarUrl = null;
+    if (user.avatarKey) {
+      const { viewUrl } = await this.storage.getPresignedViewUrl(user.avatarKey);
+      avatarUrl = viewUrl;
+    }
+
     return {
       ...user,
       passwordHash: undefined, // Security: never leak hash even to admins
       lifetimeImpact: livResult._sum.amount?.toString() || '0',
       wallets: user.wallets.map(w => ({ ...w, balance: w.balance.toString() })),
-      accountType: user.role !== UserRole.USER ? 'SYSTEM' : user.accountType
+      accountType: user.role !== UserRole.USER ? 'SYSTEM' : user.accountType,
+      avatarUrl
     };
   }
 
