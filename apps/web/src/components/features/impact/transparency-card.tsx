@@ -16,16 +16,13 @@ interface TransparencyCardProps {
 }
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
-    const raised = BigInt(project.raisedAmount || '0');
-    const target = BigInt(project.targetAmount || '0');
+    const raised = Number(project.raisedAmount || 0);
+    const target = Number(project.targetAmount || 0);
 
-    const remaining = raised >= target ? 0n : target - raised;
+    const remainingMinor = BigInt(project.targetAmount || '0') - BigInt(project.raisedAmount || '0');
+    const remaining = remainingMinor < 0n ? 0n : remainingMinor;
 
-    const percent = target > 0n
-        ? Number((raised * 100n) / target)
-        : 0;
-
-    const barWidth = Math.min(100, percent);
+    const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
 
     const [expandedCard, setExpandedCard] = useState<'goal' | 'remaining' | null>(null);
     const [copied, setCopied] = useState(false);
@@ -47,14 +44,14 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-3xl border border-emerald-100">
                     <ShieldCheck className="h-3.5 w-3.5" />
-                    <span className="text-xs font-bold tracking-tight">Verified budget</span>
+                    <span className="text-xs font-bold tracking-tight">Verified Budget</span>
                 </div>
 
                 <button
                     onClick={copyIdToClipboard}
                     className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium hover:text-foreground transition-colors group/copy outline-none"
                 >
-                    <span>id: {project.slug.slice(0, 8)}...</span>
+                    <span>ID: {project.slug.slice(0, 16)}...</span>
                     {copied ? (
                         <Check className="h-3 w-3 text-emerald-500 animate-in zoom-in" />
                     ) : (
@@ -76,13 +73,13 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             {/* Progress Architecture */}
             <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-xs font-bold">
-                    <span className="text-primary">{percent}% funded</span>
+                    <span className="text-primary">{percent.toFixed(0)}% funded</span>
                     <span className="text-muted-foreground">Target</span>
                 </div>
                 <div className="h-1.5 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
                     <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: `${barWidth}%` }}
+                        animate={{ width: `${percent}%` }}
                         transition={{ duration: 1, ease: "easeOut" }}
                         className="h-full bg-primary rounded-3xl shadow-sm"
                     />
