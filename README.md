@@ -59,6 +59,7 @@ If you are new to the codebase:
 - **Storage:** iDrive e2 (S3-compatible) for encrypted KYC and evidence storage.
 - **Payments:** Paystack (Zonal payment processing & Webhook logic).
 - **Communication:** Resend (Transactional emails with dynamic React-based templates).
+- **Observability:** Sentry (Forensic error tracking & session replay).
 
 ---
 
@@ -79,68 +80,80 @@ Givar is engineered with a **Domain-Driven Design (DDD)** approach within a modu
 ---
 
 ### 1. The Forensic Ledger Engine (`apps/api/src/modules/wallet`)
-The heart of Givar is a "double-entry" style transaction ledger.
-- **Atomic Operations:** All financial movements (donations, tranches, funding) are wrapped in `prisma.$transaction`. This ensures that a `Wallet` balance update never occurs without a corresponding `WalletTransaction` and `AuditLog` entry.
+The heart of Givar is a "triple-entry" style transaction ledger.
+- **Atomic Operations:** All financial movements (donations, fees, tranches, funding) are wrapped in `prisma.$transaction`.
+- **Triple-Entry Flow:** A donation now triggers three simultaneous ledger events: 
+  1. **User Debit:** Funds leave the donor wallet.
+  2. **Project Credit:** `raisedAmount` increases on the project node.
+  3. **Treasury Credit:** Platform fees and tips are routed to a designated system wallet (`REV-` reference).
 - **The "BigInt" Standard:** To eliminate floating-point rounding errors, Givar handles all currency in **Minor Units** (e.g., Kobo/Cents) using JavaScript `BigInt` and PostgreSQL `Numeric`.
 - **Ledger Oversight:** Admins have a specialized `WalletRepository` access level for manual reconciliation and suspense resolution, forced through the `AuditLog` service.
 
-### 2. Project Lifecycle & Promotion Pipeline (`apps/api/src/modules/project`)
+### 2. Transaction Fee Governance (`apps/api/src/modules/fee`)
+The platform utilizes an immutable, append-only rule engine for financial governance.
+- **Append-Only Logic:** Fee rules are never updated in place. Old rules are archived (`isActive: false`) and a new rule is inserted to preserve historical financial context.
+- **Financial Snapshots:** Every `Donation` and `GuestDonation` stores a forensic snapshot of the `feePercentage`, `feeAmount`, and `tipAmount` at the exact moment of transaction. This prevents historical drift if global rates change later.
+- **Governance Security:** Modifying the global fee rate requires **Step-Up Authentication** (SuperAdmin password re-entry) to authorize the ledger mutation.
+
+### 3. Project Lifecycle & Promotion Pipeline (`apps/api/src/modules/project`)
 The system follows a strict state machine to move from a user's idea to a verified, fundable project:
 1.  **Draft Phase (`ProjectProposal`):** Initial data capture. No financial capabilities.
 2.  **Verification Phase (`OrganizationProfile`):** The user submits KYC/Legal documents stored securely in iDrive e2. 
 3.  **Promotion Logic:** Upon Admin approval, the `AdminService` triggers a promotion event. This creates a formal `Project` entity and bridges the `ProjectProposal` ID for historical traceability.
 4.  **Milestone-Based Tranches:** Funds are locked in the `Project` raised amount and released via recorded `Disbursements` only upon Admin verification of `Milestone` completion.
 
-### 3. The Security & Impersonation Layer (`apps/api/src/modules/auth`)
+### 4. The Security & Impersonation Layer (`apps/api/src/modules/auth`)
 Givar implements a "Steel Gate" security architecture:
 - **RBAC (Role-Based Access Control):** Custom `@Roles()` decorators and the `RolesGuard` manage access levels (`USER`, `ADMIN`, `SUPERADMIN`).
 - **The ReadOnly Guard:** This is a mission-critical feature for support. 
     - When an Admin "impersonates" a user, a specialized JWT is issued with an `isImpersonating: true` claim.
     - The **Global `ReadOnlyGuard`** intercepts all incoming requests. If this claim is present, it permits `GET` requests but throws a `403 Forbidden` for any mutation attempt.
 
-### 4. Media & Document Pipeline (`apps/api/src/modules/storage`)
+### 5. Media & Document Pipeline (`apps/api/src/modules/storage`)
 Givar treats file security with the same priority as financial data:
 - **S3 Key Management:** The database *never* stores public URLs for sensitive documents. It only stores the S3 Key.
 - **Just-In-Time (JIT) Hydration:** The `StorageService` uses a hydration pattern. When a controller retrieves an entity, the service generates a **short-lived (15-minute) Presigned URL** from iDrive e2.
 
-### 5. Donation Architecture & Suspense Routing (`apps/api/src/modules/donation`)
+### 6. Donation Architecture & Suspense Routing (`apps/api/src/modules/donation`)
 The donation engine is designed for high-concurrency and financial safety.
 - **Funding Cap Protection:** Before processing, the service calculates `remainingNeeded`. If a donation exceeds this, the system triggers an `OVERFUNDING` exception.
 - **Suspense Routing:** If funds are received for a project that is already `FUNDED`, `COMPLETED`, or missing, Givar routes the capital to the **Suspense Ledger** (`TxStatus.SUSPENSE`) for manual Admin re-allocation.
 - **Guest Donation Logic:** Supports unauthenticated giving by creating a `GuestDonor` identity (unique by email) and linking a `GuestDonation` record.
 - **Recurring Impact:** Uses a cron-ready state machine where the first charge is processed immediately to verify liquidity before setting the `nextChargeDate`.
 
-### 6. Forensic Audit System (`apps/api/src/modules/audit`)
+### 7. Forensic Audit System (`apps/api/src/modules/audit`)
 Givar maintains a platform-wide "Watchtower" that records every state mutation.
 - **Contextual Tracking:** Every log captures the actor's IP address and User-Agent. Sensitive actions (e.g., `WALLET_DEBIT`, `PROJECT_DELETED`) are flagged for the 24h Security Summary.
 - **Transactional Logging:** Audit logs are passed into Prisma transactions. If the business logic fails and rolls back, the audit log is never created, ensuring the log always matches the ground-truth state.
 
-### 7. Organization & KYC State Machine (`apps/api/src/modules/organization`)
-The verification pipeline manages the transition from individual givers to verified organizers.
-- **State Convergence:** When an Admin verifies an organization, the `User.accountType` is upgraded to `ORGANIZER`, and any proposals in the `AWAITING_VERIFICATION` room are auto-promoted to `SUBMITTED`.
+### 8. Hybrid Identity & KYC State Machine (`apps/api/src/modules/organization`)
+The verification pipeline supports diverse entity types (`KycType`).
+- **State Convergence:** When an Admin verifies an organization, the account is upgraded.
+    - **Corporate Entity:** `User.accountType` upgrades to `ORGANIZER`.
+    - **Individual Advocate:** `User.accountType` remains `INDIVIDUAL`, but the profile gains `VERIFIED` status to launch public causes.
 - **Identity Pinning:** Once verified, an organization’s `legalName` is pinned to all its projects, preventing identity swapping during active fundraising.
 
-### 8. Transactional Email Infrastructure (`apps/api/src/modules/email`)
+### 9. Transactional Email Infrastructure (`apps/api/src/modules/email`)
 Givar utilizes Resend for all automated communications.
 - **Asynchronous Dispatch:** Email calls use "Fire and Forget" logic (non-blocking) to ensure API performance.
 - **Preference Filtering:** The service checks the `User.preferences` JSON. Users can granularly opt out of `donationReceipts` or `milestoneUpdates` while still receiving `securityAlerts`.
 
-### 9. Proposal Lifecycle & Auto-Save (`apps/api/src/modules/proposal`)
+### 10. Proposal Lifecycle & Auto-Save (`apps/api/src/modules/proposal`)
 The proposal module acts as a secure sandbox for future projects.
 - **Debounced Auto-Save:** A specialized hook (`useProposalAutoSave`) detects changes in the frontend `Zustand` store and debounces updates to the backend.
 - **Submission Gatekeeper:** Final submission requires a `coverImage`, a complete `budgetBreakdown`, and at least one `kycDocument`.
 
-### 10. Giving Goals & Progress Engine (`apps/api/src/modules/goals`)
-A specialized service for tracking donor impact.
-- **Real-time Aggregation:** Percentage completion is calculated at runtime using `_sum` aggregates on all user donations within the goal's `startDate` and `endDate`.
-- **Interval Upsert:** Maintains one `ACTIVE` goal per interval (`MONTHLY`/`YEARLY`) to prevent ledger clutter.
+### 11. Treasury Intelligence & Reconciliation (`apps/api/src/modules/admin`)
+- **Consensus Achievement:** Admins can verify Givar's internal ledger against Paystack's "Ground Truth" via the `verifyExternalTransaction` endpoint.
+- **Manual Sync:** The protocol allows manual fulfillment of orphaned transactions while maintaining the exact fee/tip mathematical intent frozen at the time of payment initiation.
+- **Revenue Reporting:** The dashboard tracks platform efficiency and net revenue as primary KPIs.
 
-### 11. Frontend Reactive Architecture (`apps/web`)
+### 12. Frontend Reactive Architecture (`apps/web`)
 - **Query Strategy:** Driven by `TanStack Query`, ensuring the UI and the Ledger stay in sync without manual page refreshes.
 - **Shared Type Safety:** The Frontend imports Zod schemas and TypeScript interfaces directly from the shared packages (e.g., `packages/database`).
 - **Global State:** Minimalist approach using `Zustand` for UI-only state (modals, auto-save buffers, and search states).
 
-### 12. Hybrid Recommendation & Discovery Engine (`apps/api/src/modules/recommendations`)
+### 13. Hybrid Recommendation & Discovery Engine (`apps/api/src/modules/recommendations`)
 Givar utilizes a multi-stage discovery pipeline to balance organic momentum, donor relevance, and administrative intent.
 - **The Multi-Stage Pipeline:** Every discovery request (Feed, Carousel, or Explore) passes through a deterministic sequence: `Lightweight Scan` -> `Hybrid Scoring` -> `Personalization` -> `Diversity Enforcement` -> `Admin Overrides` -> `Heavy Hydration`.
 - **Hybrid Scoring Logic:** The engine calculates a "Visibility Score" using a weighted formula: `(Recency Decay × Weight) + (7-Day Donation Velocity × Weight) + Admin Weighting + Manual Boost`. 
@@ -150,13 +163,13 @@ Givar utilizes a multi-stage discovery pipeline to balance organic momentum, don
 - **Administrative "Visibility Control":** Admins can manually override the algorithm using `FeaturedSlots` (pinned positions 1-5) and adjust global category multipliers to prioritize specific sectors (e.g., Emergency Relief) platform-wide.
 - **Performance Architecture:** To handle 1,000+ projects, the system uses a "Score-All, Hydrate-Page" strategy. It calculates scores for the entire ledger in-memory (lightweight) but only performs heavy database joins (hydration) and S3 presigning for the specific 18-24 items requested for the current page.
 
-### 13. Integrated Communication & Feedback Loop (apps/api/src/modules/communication)
+### 14. Integrated Communication & Feedback Loop (apps/api/src/modules/communication)
 Givar facilitates a secure, direct dialogue between administrative compliance nodes and project organizers.
 - **Contextual Threading:** Messages are logically partitioned by the entity they address (Project or Proposal), creating a permanent, forensic-grade record of all vetting discussions and execution queries.
 - **Bidirectional Alerts:** The system triggers bidirectional notifications. Messages from admins notify the specific organizer, while organizer replies are broadcasted to all administrative nodes to ensure rapid response times.
 - **Email Redundancy:** To ensure stakeholders never miss critical feedback, every administrative message triggers an asynchronous email dispatch via Resend, providing a link directly back to the secure management terminal.
 
-### 14. Notification System (apps/api/src/modules/notifications)
+### 15. Notification System (apps/api/src/modules/notifications)
 The platform features a centralized event dispatcher designed to keep users synchronized with their impact ledger.
 - **Event Taxonomy:** Notifications are categorized by type, including `KYC_STATUS`, `PROJECT_STATUS`, `MILESTONE_ALERT`, and `MESSAGE`, allowing the UI to render distinct visual cues and navigation paths.
 - **Real-time Synchronization:** The system provides optimized unread count queries for header badges and supports bulk state transitions ("Mark all as read") to maintain a clean donor experience.
@@ -183,7 +196,7 @@ Contains the `schema.prisma` and the centralized database client. All other apps
 ---
 
 ## Invariants (Do Not Violate)
-- **Supporting Transactions:** Never update a `Wallet` balance without a corresponding `WalletTransaction` and `AuditLog` entry.
+- **Triple-Entry Integrity:** Never update a `Wallet` balance without a corresponding `WalletTransaction`, `Donation` (if applicable), and `AuditLog` entry. Revenue must be explicitly credited to the system node.
 - **Audit Compulsion:** Never bypass the `AuditService` for state mutations. Every change must be traceable to an actor.
 - **Private Asset Security:** Never store or serve public URLs for KYC or legal documents. Assets must remain in the `/private/` S3 path and be accessed via short-lived (15-min) presigned URLs.
 - **Impersonation Lock:** Never permit `POST`, `PATCH`, or `DELETE` requests while an admin is impersonating a user. This is enforced by the platform-wide `ReadOnlyGuard`.
@@ -249,12 +262,13 @@ The Givar platform utilizes a procedural seeding engine to generate a high-fidel
 The seed script follows a strict relational dependency order to ensure data integrity:
 1.  **Purge:** Atomic deletion of all existing records across the ledger.
 2.  **Taxonomy:** Creation of system-wide `Category` nodes (Water, Education, etc.).
-3.  **Identity:** Generation of `User` nodes (Admins, Organizers, and Donors).
-4.  **KYC:** Initialization of `OrganizationProfiles` with forensic document keys.
-5.  **Financial Nodes:** Lazy-loading of `Wallets` with initial capital injections.
-6.  **Pipeline Simulation:** Moving entities from `ProjectProposal` (Draft) to live `Project` status.
-7.  **Liquidity Velocity:** Generating a 30-day history of `WalletTransactions` and `Donations`.
-8.  **Audit Trace:** Every event above generates a corresponding `AuditLog` entry.
+3.  **Governance:** Initialization of `TransactionFeeRule` (Global 2.5% rate).
+4.  **Identity:** Generation of `User` nodes (Admins, Organizers, and Donors).
+5.  **KYC:** Initialization of `OrganizationProfiles` with forensic document keys.
+6.  **Financial Nodes:** Lazy-loading of `Wallets` with initial capital injections.
+7.  **Pipeline Simulation:** Moving entities from `ProjectProposal` (Draft) to live `Project` status.
+8.  **Liquidity Velocity:** Generating a 30-day history of `WalletTransactions` and `Donations`, complete with fee snapshots.
+9.  **Audit Trace:** Every event above generates a corresponding `AuditLog` entry.
 
 ---
 
