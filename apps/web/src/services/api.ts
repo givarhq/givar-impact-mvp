@@ -233,6 +233,7 @@ export const ApiService = {
     create: (data: {
       projectId: string;
       amount: string;
+      tipAmount?: string; // Optional platform tip in minor units
       currency: string;
       message?: string;
     }) => apiClient.post('/donations', data).then(r => r.data),
@@ -247,6 +248,7 @@ export const ApiService = {
     direct: (data: {
       projectId: string;
       amount: string;
+      tipAmount?: string; // Optional platform tip for direct gateway payments
       currency: string;
       guestEmail?: string;
       guestName?: string;
