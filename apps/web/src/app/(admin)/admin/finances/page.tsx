@@ -4,7 +4,7 @@ import { FinanceReportClient } from '../../../../components/features/admin/finan
 
 export const metadata = {
     title: 'Treasury Intelligence',
-    description: 'Forensic financial monitoring, capital distribution, & institutional reporting.',
+    description: 'Financial monitoring, capital distribution, & institutional reporting.',
 };
 
 export default async function AdminFinancesPage({

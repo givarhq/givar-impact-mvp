@@ -18,6 +18,10 @@ export const OrganizationFilters = memo(function OrganizationFilters() {
     const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
     useEffect(() => {
+        if (search === (searchParams.get('search') || '') &&
+            status === (searchParams.get('status') || 'all') &&
+            sortBy === (searchParams.get('sortBy') || 'createdAt')) return;
+
         const params = new URLSearchParams(searchParams.toString());
         params.set('page', '1');
 

@@ -18,6 +18,10 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
   useEffect(() => {
+    if (search === (searchParams.get('search') || '') &&
+      status === (searchParams.get('status') || 'all') &&
+      category === (searchParams.get('category') || 'all')) return;
+
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', '1');
 

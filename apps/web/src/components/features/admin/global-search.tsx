@@ -252,7 +252,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                     {displayData.projects.length > 0 && (
                                         <div className="space-y-1">
                                             <div className="px-4 py-1.5 text-[10px] font-black tracking-widest text-primary flex items-center gap-2 mt-2">
-                                                <Briefcase className="h-3 w-3" /> Project Nodes
+                                                <Briefcase className="h-3 w-3" /> Projects
                                             </div>
                                             {displayData.projects.map(project => (
                                                 <button
@@ -336,7 +336,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                     {displayData.transactions.length > 0 && (
                                         <div className="space-y-1">
                                             <div className="px-4 py-1.5 text-[10px] font-black tracking-widest text-primary flex items-center gap-2 mt-2">
-                                                <Database className="h-3 w-3" /> Financial Ledger
+                                                <Database className="h-3 w-3" /> Finances
                                             </div>
                                             {displayData.transactions.map(tx => (
                                                 <button

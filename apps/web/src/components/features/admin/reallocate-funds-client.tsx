@@ -85,7 +85,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
         } else {
             setSelectedSplits(prev => [...prev, { id: project.id, title: project.title, amount: '' }]);
             if (window.innerWidth < 1024) {
-                toast.success("Added To Ledger", {
+                toast.success("Added to ledger", {
                     icon: <Plus className="h-4 w-4" />,
                     style: { borderRadius: '24px', fontWeight: 'bold', fontSize: '12px' }
                 });
@@ -109,7 +109,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
     const handleCommit = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading('Executing Forensic Allocation...');
+        const toastId = toast.loading('Executing allocation...');
         try {
             await ApiService.admin.resolveSuspense(transaction.id, {
                 action: 'ALLOCATE' as any,
@@ -118,11 +118,11 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     amount: (BigInt(parseFormattedNumber(s.amount)) * 100n).toString()
                 }))
             });
-            toast.success("Reconciliation Complete", { id: toastId });
+            toast.success("Reconciliation complete", { id: toastId });
             router.push('/admin/ledger');
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Allocation Failed", { id: toastId });
+            toast.error(e.response?.data?.message || "Allocation failed", { id: toastId });
         } finally {
             setIsProcessing(false);
             setShowConfirm(false);
@@ -160,7 +160,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                 <Plus className="h-5 w-5 text-muted-foreground/40" />
                             </div>
                             <p className="text-[11px] font-bold text-muted-foreground tracking-widest max-w-[180px] mx-auto ">
-                                Tap project nodes to populate the split ledger.
+                                Tap projects to populate the split ledger.
                             </p>
                         </motion.div>
                     ) : (
@@ -298,7 +298,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         <div className="relative w-full group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <Input
-                                placeholder="Filter Active Project Nodes..."
+                                placeholder="Filter Active Projects..."
                                 className="pl-12 h-14 rounded-[22px] bg-card border-border/40 shadow-sm focus:bg-white transition-all text-sm font-medium"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -363,7 +363,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                             {filteredProjects.length === 0 ? (
                                 <div className="col-span-full py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/10">
                                     <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-4" />
-                                    <p className="font-black text-muted-foreground tracking-widest text-[11px] ">No Matching Project Nodes Identified</p>
+                                    <p className="font-black text-muted-foreground tracking-widest text-[11px] ">No matching projects identified</p>
                                 </div>
                             ) : filteredProjects.map(p => {
                                 const isSelected = selectedSplits.some(s => s.id === p.id);
@@ -469,7 +469,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     isLoading={isProcessing}
                     variant="warning"
                     title="Authorize Ledger Commitment"
-                    description={`Forensic Protocol: You are about to re-distribute ₦${(Number(transaction.amount) / 100).toLocaleString()} from the Suspense System across ${selectedSplits.length} target causes. This transaction is immutable & will be recorded in the Audit Trail.`}
+                    description={`You are about to re-distribute ₦${(Number(transaction.amount) / 100).toLocaleString()} from the Suspense System across ${selectedSplits.length} target causes. This transaction is immutable & will be recorded in the Audit Trail.`}
                     confirmText="Commit Changes"
                     cancelText="Return To Ledger"
                 />

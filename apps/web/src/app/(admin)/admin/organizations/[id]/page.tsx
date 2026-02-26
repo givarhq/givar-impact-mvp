@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export const metadata = {
     title: 'Organization detail',
-    description: 'Forensic view of legal entity registration & impact history.',
+    description: 'View of legal entity registration & impact history.',
 };
 
 export default async function AdminOrganizationDetailPage({

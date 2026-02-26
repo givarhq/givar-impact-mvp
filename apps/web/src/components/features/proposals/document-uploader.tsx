@@ -18,12 +18,12 @@ export const DocumentUploader = memo(function DocumentUploader() {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('File Size Limit Exceeded (Max 10mb)');
+      toast.error('File size limit exceeded (max 10MB)');
       return;
     }
 
     setIsLoading(true);
-    const toastId = toast.loading('Encrypting & Uploading...');
+    const toastId = toast.loading('Encrypting & uploading...');
     try {
       const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
         fileType: file.type,
@@ -37,9 +37,9 @@ export const DocumentUploader = memo(function DocumentUploader() {
       });
 
       addKycDocument(key);
-      toast.success('Document Secured On Ledger', { id: toastId });
+      toast.success('Upload successful!', { id: toastId });
     } catch (error) {
-      toast.error('Secure Upload Failed', { id: toastId });
+      toast.error('Secure upload failed', { id: toastId });
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +117,7 @@ export const DocumentUploader = memo(function DocumentUploader() {
                 className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 outline-none active:scale-90"
                 onClick={() => {
                   removeKycDocument(key);
-                  toast.success('Document Detached');
+                  toast.success('Document detached');
                 }}
               >
                 <Trash2 className="h-4 w-4" />

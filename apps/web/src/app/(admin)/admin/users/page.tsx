@@ -5,7 +5,7 @@ import { UsersPageClient } from './users-page-client';
 
 export const metadata = {
     title: 'User Management',
-    description: 'Manage platform identities, roles, & forensic status.',
+    description: 'Manage platform identities, roles, & status.',
 };
 
 export default async function AdminUsersPage({

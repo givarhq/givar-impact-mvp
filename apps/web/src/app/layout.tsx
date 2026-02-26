@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
@@ -9,6 +9,17 @@ import { ImpersonationBanner } from '../components/layout/impersonation-banner';
 import { ActivityMonitor } from '../components/layout/activity-monitor';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' }, // zinc-950
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false, // Ensures "App-like" feel on mobile preventing accidental zoom on inputs
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies();
@@ -31,9 +42,20 @@ export async function generateMetadata(): Promise<Metadata> {
       default: isAdmin ? 'Givar - Admin Panel' : 'Givar - Transparent Giving',
     },
     description: 'Simple, transparent, & impact-driven giving for everyone.',
+    applicationName: 'Givar',
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: 'Givar',
+    },
+    formatDetection: {
+      telephone: false,
+    },
     icons: {
       icon: '/Givar1.png',
+      apple: '/Givar1.png', // In prod, use specific apple-touch-icon sizes
     },
+    manifest: '/manifest.json',
   };
 }
 
@@ -65,11 +87,11 @@ export default function RootLayout({
                 fontWeight: 'bold',
                 fontSize: '12px',
                 padding: '12px 20px',
-                background: 'hsl(var(--card))', // Explicit opaque background via HSL variable
+                background: 'hsl(var(--card))',
                 color: 'hsl(var(--foreground))',
                 border: '1px solid hsl(var(--border))',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', // Solid shadow for depth
-                opacity: 1, // Force absolute opacity
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                opacity: 1,
               },
               success: {
                 iconTheme: {

@@ -4,7 +4,7 @@ import { LedgerOversightClient } from '../../../../components/features/admin/led
 
 export const metadata = {
   title: 'Ledger oversight',
-  description: 'Forensic financial monitoring & manual reconciliation tools.',
+  description: 'Financial monitoring & manual reconciliation tools.',
 };
 
 export default async function LedgerOversightPage() {

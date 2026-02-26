@@ -301,7 +301,7 @@ export default async function ProjectManagePage({
                     <div className="p-5 rounded-3xl bg-muted/10 border border-dashed border-border/60 flex items-start gap-3 min-w-0">
                         <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                            Vendor coordination issues? Contact Givar Compliance nodes directly via the support terminal.
+                            Vendor coordination issues? Contact Givar directly via the support terminal.
                         </p>
                     </div>
                 </div>

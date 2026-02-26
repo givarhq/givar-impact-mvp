@@ -77,7 +77,7 @@ export function AdminHeader({ user }: { user: any }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40 md:border-none">
+    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-border/40 md:border-none">
       <div className="flex items-center justify-between w-full gap-4">
 
         <div className="flex items-center min-w-0">

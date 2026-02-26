@@ -18,6 +18,10 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
     const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
     useEffect(() => {
+        if (search === (searchParams.get('search') || '') &&
+            status === (searchParams.get('status') || 'all') &&
+            categoryId === (searchParams.get('categoryId') || 'all')) return;
+
         const params = new URLSearchParams(searchParams.toString());
         params.set('page', '1');
 

@@ -69,7 +69,7 @@ export function Header({ user }: { user: any }) {
   const currentTitle = PAGE_TITLES[pathname] || 'Dashboard';
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center justify-between gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-b border-border/40">
+    <header className="sticky top-0 z-30 flex h-14 md:h-16 items-center justify-between gap-4 bg-background/80 px-4 md:px-6 backdrop-blur-xl transition-all border-border/40">
 
       <div className="flex items-center flex-1 min-w-0">
         <div className="flex items-center gap-4">

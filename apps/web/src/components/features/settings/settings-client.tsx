@@ -68,7 +68,7 @@ const SETTINGS_OPTIONS = [
         icon: Activity,
         color: 'text-purple-500',
         bg: 'bg-purple-500/10',
-        description: 'Account forensic audit logs.'
+        description: 'Account logs.'
     },
     {
         id: 'preferences',

@@ -22,6 +22,11 @@ export const AuditFilters = memo(function AuditFilters() {
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
+    if (search === (searchParams.get('search') || '') &&
+      action === (searchParams.get('action') || 'all') &&
+      startDate === (searchParams.get('startDate') || '') &&
+      endDate === (searchParams.get('endDate') || '')) return;
+
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', '1');
 

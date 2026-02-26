@@ -121,21 +121,21 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
   const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
     setIsSubmitting(true);
-    const toastId = toast.loading(status === 'DRAFT' ? "Saving Your Progress..." : "Publishing Cause To The Ledger...");
+    const toastId = toast.loading(status === 'DRAFT' ? "Saving your progress..." : "Publishing cause...");
     try {
       const payload = { ...data, targetAmount: data.targetAmount * 100, status };
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
-        toast.success(status === 'DRAFT' ? 'Changes Saved As Draft' : 'Project Successfully Published', { id: toastId });
+        toast.success(status === 'DRAFT' ? 'Changes saved as draft' : 'Project successfully published', { id: toastId });
         setIsEditing(false);
       } else {
         await ApiService.admin.createProject(payload);
-        toast.success(status === 'DRAFT' ? 'New Cause Saved As Draft' : 'New Cause Launched Successfully', { id: toastId });
+        toast.success(status === 'DRAFT' ? 'New cause saved as draft' : 'New cause launched successfully', { id: toastId });
         router.push(status === 'DRAFT' ? '/admin/projects?tab=drafts' : '/admin/projects?tab=live');
       }
       router.refresh();
     } catch (error) {
-      toast.error('We Could Not Save These Changes At This Time', { id: toastId });
+      toast.error('We could not save these changes', { id: toastId });
     } finally {
       setIsSubmitting(false);
     }

@@ -25,6 +25,10 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
   useEffect(() => {
+    if (search === (searchParams.get('search') || '') &&
+      activeCategory === (searchParams.get('category') || 'all') &&
+      sort === (searchParams.get('sort') || 'newest')) return;
+
     const params = new URLSearchParams(searchParams.toString());
 
     if (search) params.set('search', search); else params.delete('search');

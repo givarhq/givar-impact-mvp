@@ -39,7 +39,7 @@ const FILTERS: { id: FilterType; label: string; icon: any }[] = [
     { id: 'all', label: 'All Results', icon: LayoutGrid },
     { id: 'projects', label: 'Verified Causes', icon: Compass },
     { id: 'proposals', label: 'My Proposals', icon: FileText },
-    { id: 'transactions', label: 'Ledger History', icon: Database },
+    { id: 'transactions', label: 'Transaction History', icon: Database },
     { id: 'subscriptions', label: 'Recurring Support', icon: Repeat },
     { id: 'auditLogs', label: 'Activity Logs', icon: History },
 ];
@@ -255,7 +255,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
 
                                     {displayData.transactions.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">Ledger History</div>
+                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">Transaction History</div>
                                             {displayData.transactions.map(tx => (
                                                 <button key={tx.id} onClick={() => handleNavigate(`/dashboard/history`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-secondary text-foreground flex items-center justify-center shrink-0 border border-border/40 shadow-inner">

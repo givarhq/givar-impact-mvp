@@ -4,7 +4,7 @@ import { ApiService } from '../../../../services/api';
 
 export const metadata = {
   title: 'Transaction History',
-  description: 'View your complete impact ledger, download receipts, & track capital flow.',
+  description: 'View your complete impacts, download receipts, & track capital flow.',
 };
 
 export default async function HistoryPage({

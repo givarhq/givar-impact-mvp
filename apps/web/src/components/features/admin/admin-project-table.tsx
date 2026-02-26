@@ -194,7 +194,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                 </AnimatePresence>
             </div>
 
-            {/* DESKTOP: Forensic Table */}
+            {/* DESKTOP: Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden w-full">
                 <div className="overflow-x-auto no-scrollbar w-full">
                     <table className="w-full text-sm text-left border-collapse min-w-full">

@@ -51,7 +51,7 @@ export default function PlanPage() {
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Plan your execution</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Define your ledger & roadmap. Precision here is critical for administrative audit approval.
+            Define your budget & roadmap. Precision here is critical for administrative audit approval.
           </CardDescription>
         </CardHeader>
 
@@ -61,7 +61,7 @@ export default function PlanPage() {
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary" />
-                Budget ledger
+                Budget
               </h3>
               <p className="text-xs text-muted-foreground font-medium">Itemize every requirement for the project procurement.</p>
             </div>

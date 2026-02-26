@@ -110,7 +110,7 @@ export const BulkActionsToolbar = memo(function BulkActionsToolbar({
             if (action === 'SET_USER') variant = 'destructive';
             return {
                 title: `Confirm Batch ${label}`,
-                desc: `Apply ${label} status to ${count} selected account nodes?`,
+                desc: `Apply ${label} status to ${count} selected accounts?`,
                 variant,
             };
         }
@@ -121,7 +121,7 @@ export const BulkActionsToolbar = memo(function BulkActionsToolbar({
             if (action === 'SUSPEND') variant = 'warning';
             return {
                 title: `Confirm Batch ${action}`,
-                desc: `Apply ${action.toLowerCase()} to ${count} project nodes? This is recorded in the Audit Trail.`,
+                desc: `Apply ${action.toLowerCase()} to ${count} projects? This is recorded in the Audit Trail.`,
                 variant,
             };
         }

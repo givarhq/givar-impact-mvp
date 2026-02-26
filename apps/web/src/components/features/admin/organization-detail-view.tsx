@@ -191,7 +191,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                         </div>
                                         <div className="text-left min-w-0">
                                             <p className="text-xs font-bold text-foreground truncate group-hover:text-primary">Legal Document {i + 1}</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate">Secure Forensic Access</p>
+                                            <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate">Secure Access</p>
                                         </div>
                                     </div>
                                     <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />

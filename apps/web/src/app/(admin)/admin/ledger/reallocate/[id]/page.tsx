@@ -5,7 +5,7 @@ import { ReallocateFundsClient } from '../../../../../../components/features/adm
 
 export const metadata = {
     title: 'Reallocate capital',
-    description: 'Manual redistribution of orphaned ledger funds to active causes.',
+    description: 'Manual redistribution of orphaned funds to active causes.',
 };
 
 export default async function ReallocateFundsPage({

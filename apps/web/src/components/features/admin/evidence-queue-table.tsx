@@ -148,7 +148,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                 </AnimatePresence>
             </div>
 
-            {/* DESKTOP: Forensic Queue Table */}
+            {/* DESKTOP: Queue Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto no-scrollbar">
                     <table className="w-full text-sm text-left border-collapse">
@@ -286,7 +286,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                             )}
                                                                             <div className="pt-6 border-t border-border/40 text-center">
                                                                                 <span className="text-[10px] font-black text-emerald-600 flex items-center justify-center gap-1.5 tracking-[0.2em] ">
-                                                                                    <Check className="h-3.5 w-3.5 stroke-[4px]" /> Ledger Synchronized
+                                                                                    <Check className="h-3.5 w-3.5 stroke-[4px]" /> Synchronized
                                                                                 </span>
                                                                             </div>
                                                                         </div>

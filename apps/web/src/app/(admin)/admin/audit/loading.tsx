@@ -23,7 +23,7 @@ export default function AuditLoading() {
                 ))}
             </div>
 
-            {/* Forensic Table Skeleton */}
+            {/* Table Skeleton */}
             <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="bg-muted/40 border-b border-border/40 p-4 hidden md:flex items-center justify-between">
                     <Skeleton className="h-4 w-12" />

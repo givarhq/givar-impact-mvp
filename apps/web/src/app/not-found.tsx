@@ -54,7 +54,7 @@ export default async function NotFound() {
 
                 {/* Messaging */}
                 <div className="space-y-3">
-                    <h1 className="text-3xl font-black tracking-tight text-foreground">Lost in the ledger?</h1>
+                    <h1 className="text-3xl font-black tracking-tight text-foreground">Lost?</h1>
                     <p className="text-muted-foreground leading-relaxed text-sm max-w-xs mx-auto font-medium">
                         We couldn&apos;t find the record or cause you were looking for. The path may have been moved or the link is stale.
                     </p>

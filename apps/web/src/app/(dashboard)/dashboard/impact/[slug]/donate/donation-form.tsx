@@ -400,7 +400,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                             <div className="text-xs space-y-0.5">
                                 <p className="font-bold">Final contribution</p>
                                 <p className="font-medium">
-                                    This gift will complete the project goal. Any surplus will be reallocated to urgent causes on the ledger.
+                                    This gift will complete the project goal. Any surplus will be reallocated to urgent causes.
                                 </p>
                             </div>
                         </motion.div>

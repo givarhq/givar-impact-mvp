@@ -176,7 +176,7 @@ export default function FundWalletPage() {
           <div className="bg-primary/5 border border-primary/20 p-5 rounded-[24px] flex items-start gap-4 shadow-inner min-w-0">
             <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-              Transactions are encrypted & processed by Paystack. Givar does not store your sensitive card information on the ledger.
+              Transactions are encrypted & processed by Paystack. Givar does not store your sensitive card information.
             </p>
           </div>
 

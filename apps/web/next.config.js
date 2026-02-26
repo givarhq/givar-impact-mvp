@@ -1,4 +1,16 @@
 const { withSentryConfig } = require("@sentry/nextjs");
+const withPWA = require("@ducanh2912/next-pwa").default({
+    dest: "public",
+    cacheOnFrontEndNav: true,
+    aggressiveFrontEndNavCaching: true,
+    reloadOnOnline: true,
+    swcMinify: true,
+    // Logic: Disable PWA service worker in development to prevent caching confusion
+    disable: process.env.NODE_ENV === "development",
+    workboxOptions: {
+        disableDevLogs: true,
+    },
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -35,9 +47,9 @@ const nextConfig = {
     },
 };
 
-// Logic: Inject Sentry Webpack plugins for sourcemap uploads and telemetry tracking
+// Logic: Wrap config with PWA first, then Sentry, ensuring both handlers are active
 module.exports = withSentryConfig(
-    nextConfig,
+    withPWA(nextConfig),
     {
         silent: true,
         org: "givar",

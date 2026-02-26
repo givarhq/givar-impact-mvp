@@ -313,7 +313,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                             <div className="p-5 rounded-3xl bg-amber-500/[0.04] border border-amber-500/20 flex gap-4">
                                                 <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
                                                 <p className="text-[11px] text-amber-900 leading-relaxed font-bold tracking-tight">
-                                                    Discrepancy detected. Payment verified externally but absent internally. Forensic repair recommended.
+                                                    Discrepancy detected. Payment verified externally but absent internally. Repair recommended.
                                                 </p>
                                             </div>
                                             <Button
@@ -322,7 +322,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                 disabled={isProcessing}
                                             >
                                                 {isProcessing ? <Loader2 className="animate-spin h-4 w-4" /> : <ShieldCheck className="h-4 w-4" />}
-                                                Initialize Forensic Sync
+                                                Initialize Sync
                                             </Button>
                                         </div>
                                     ) : (
@@ -340,42 +340,42 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 </TabsContent>
 
                 <TabsContent value="maintenance" className="space-y-6 outline-none pt-2">
-    <div className="max-w-2xl">
-        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden group hover:border-primary/20 transition-all">
-            <CardHeader className="bg-primary/[0.02] border-b border-border/40 p-6">
-                <CardTitle className="text-sm font-bold flex items-center gap-3 text-foreground">
-                    <Sparkles className="h-5 w-5 text-primary" /> Dust Sweep Protocol
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 md:p-8 space-y-6">
-                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                    Cleans up project accounts with very small balances (less than ₦100) that haven’t been active for over 30 days.
-                </p>
+                    <div className="max-w-2xl">
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden group hover:border-primary/20 transition-all">
+                            <CardHeader className="bg-primary/[0.02] border-b border-border/40 p-6">
+                                <CardTitle className="text-sm font-bold flex items-center gap-3 text-foreground">
+                                    <Sparkles className="h-5 w-5 text-primary" /> Dust Sweep Protocol
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6 md:p-8 space-y-6">
+                                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                                    Cleans up project accounts with very small balances (less than ₦100) that haven’t been active for over 30 days.
+                                </p>
 
-                <div className="p-5 rounded-3xl bg-muted/20 border border-border/40 flex items-start gap-4">
-                    <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-                        Project goals will be updated to match actual funds raised. Owners of affected projects will get an automatic notice about the changes.
-                    </p>
-                </div>
+                                <div className="p-5 rounded-3xl bg-muted/20 border border-border/40 flex items-start gap-4">
+                                    <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                                        Project goals will be updated to match actual funds raised. Owners of affected projects will get an automatic notice about the changes.
+                                    </p>
+                                </div>
 
-                <div className="flex justify-center">
-  <Button
-    onClick={() => setShowSweepConfirm(true)}
-    disabled={isProcessing}
-    className="h-12 px-8 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/20 border-0 transition-all active:scale-95"
-  >
-    {isProcessing ? (
-      <Loader2 className="h-4 w-4 animate-spin" />
-    ) : (
-      "Run Sweep"
-    )}
-  </Button>
-</div>
-            </CardContent>
-        </Card>
-    </div>
-</TabsContent>
+                                <div className="flex justify-center">
+                                    <Button
+                                        onClick={() => setShowSweepConfirm(true)}
+                                        disabled={isProcessing}
+                                        className="h-12 px-8 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/20 border-0 transition-all active:scale-95"
+                                    >
+                                        {isProcessing ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            "Run Sweep"
+                                        )}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
             </Tabs>
 
             <ConfirmModal
@@ -385,7 +385,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 isLoading={isProcessing}
                 variant="warning"
                 title="Execute Dust Sweep"
-                description="This protocol will align the goals & finalize all stagnant project nodes with balances under ₦100. This action is audited & irreversible."
+                description="This action will align the goals & finalize all stagnant projects with balances under ₦100. This action is audited & irreversible."
                 confirmText="Execute Protocol"
             />
 
@@ -396,7 +396,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 isLoading={isProcessing}
                 variant="destructive"
                 title="Trigger Audit Refund"
-                description={`Initialize an automated external refund for ${refundModal.reference}? This procedure is forensic & irreversible.`}
+                description={`Initialize an automated external refund for ${refundModal.reference}? This procedure is irreversible.`}
                 confirmText="Confirm Refund"
             />
         </div>

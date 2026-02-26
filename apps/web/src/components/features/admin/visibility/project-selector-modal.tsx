@@ -101,7 +101,7 @@ export const ProjectSelectorModal = memo(function ProjectSelectorModal({
                         {isLoading ? (
                             <div className="py-12 flex flex-col items-center justify-center gap-3 min-w-0">
                                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                <span className="text-[11px] font-bold tracking-widest text-muted-foreground ">Searching Ledger Database</span>
+                                <span className="text-[11px] font-bold tracking-widest text-muted-foreground ">Searching Database</span>
                             </div>
                         ) : projects.length > 0 ? (
                             <AnimatePresence mode="popLayout">

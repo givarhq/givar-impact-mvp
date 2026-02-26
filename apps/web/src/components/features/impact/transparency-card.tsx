@@ -47,7 +47,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-3xl border border-emerald-100">
                     <ShieldCheck className="h-3.5 w-3.5" />
-                    <span className="text-xs font-bold tracking-tight">Verified ledger</span>
+                    <span className="text-xs font-bold tracking-tight">Verified budget</span>
                 </div>
 
                 <button

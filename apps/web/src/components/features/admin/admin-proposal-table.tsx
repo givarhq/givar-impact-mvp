@@ -167,7 +167,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                 </AnimatePresence>
             </div>
 
-            {/* DESKTOP: Forensic Table */}
+            {/* DESKTOP: Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left border-collapse">

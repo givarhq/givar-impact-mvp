@@ -161,7 +161,7 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
         isLoading={isDeleting}
         variant="destructive"
         title="Delete Proposal"
-        description="Permanently Remove This Cause From The Ledger? This Action Is Forensic & Irreversible."
+        description="Permanently remove this cause? This action is irreversible."
         confirmText="Confirm Delete"
       />
     </>

@@ -119,7 +119,7 @@ export const DisbursementForm = memo(function DisbursementForm({
             window.open(viewUrl, '_blank');
             toast.dismiss(toastId);
         } catch (e) {
-            toast.error('Forensic Access Denied', { id: toastId });
+            toast.error('Access Denied', { id: toastId });
         }
     };
 

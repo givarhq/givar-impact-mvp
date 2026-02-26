@@ -443,7 +443,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     <div className="p-5 bg-muted/20 rounded-3xl border border-border/40 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                            <strong className="text-foreground">Givar Protocol:</strong> funds are released in tranches only after audit nodes verify proof of work.
+                            <strong className="text-foreground">Givar Protocol:</strong> Funds are released in tranches only after audit exercise verify proof of work.
                         </p>
                     </div>
                 </div>

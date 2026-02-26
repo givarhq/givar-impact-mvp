@@ -115,7 +115,7 @@ export const AuditTable = memo(function AuditTable({ logs }: { logs: any[] }) {
                 })}
             </div>
 
-            {/* DESKTOP: Forensic Table */}
+            {/* DESKTOP: Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
                 <table className="w-full text-sm text-left border-collapse">
                     <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">

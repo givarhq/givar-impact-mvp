@@ -77,7 +77,7 @@ export function ImpersonationBanner() {
                         <ShieldAlert className="h-4 w-4 animate-pulse" />
                     </div>
                     <div className="flex flex-col">
-                        <p className="text-xs font-bold text-amber-500/90 leading-tight">Forensic perspective mode</p>
+                        <p className="text-xs font-bold text-amber-500/90 leading-tight">Perspective mode</p>
                         <div className="flex items-center gap-2">
                             <p className="text-xs font-medium">
                                 User: <span className="text-amber-500 font-bold">{sessionData.user.firstName} {sessionData.user.lastName}</span>

@@ -22,6 +22,11 @@ export const UserFilters = memo(function UserFilters() {
     const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
 
     useEffect(() => {
+        if (search === (searchParams.get('search') || '') &&
+            status === (searchParams.get('status') || 'all') &&
+            role === (searchParams.get('role') || 'all') &&
+            type === (searchParams.get('accountType') || 'all')) return;
+
         const params = new URLSearchParams(searchParams.toString());
         params.set('page', '1');
 
@@ -41,7 +46,7 @@ export const UserFilters = memo(function UserFilters() {
 
     const handleExport = async () => {
         setIsExporting(true);
-        const toastId = toast.loading("Generating Forensic Ledger...");
+        const toastId = toast.loading("Generating...");
         try {
             const params = new URLSearchParams(searchParams.toString());
             params.delete('page');
@@ -55,9 +60,9 @@ export const UserFilters = memo(function UserFilters() {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
-            toast.success('Forensic Ledger Exported', { id: toastId });
+            toast.success('Successfully exported', { id: toastId });
         } catch (e: any) {
-            toast.error('Export Failed', { id: toastId });
+            toast.error('Export failed', { id: toastId });
         } finally {
             setIsExporting(false);
         }
@@ -80,7 +85,7 @@ export const UserFilters = memo(function UserFilters() {
                     <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
-                            placeholder="Search By Name, Email, Or Forensic ID..."
+                            placeholder="Search by name, email, or ID..."
                             className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}

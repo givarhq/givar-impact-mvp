@@ -253,7 +253,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                                 <MailCheck className="h-5 w-5 text-amber-600 shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-amber-900 text-xs ">Verify Identity</h4>
-                                    <p className="text-xs text-amber-700 font-medium">Verify your email to establish trust on the impact ledger.</p>
+                                    <p className="text-xs text-amber-700 font-medium">Please verify your email to donate to and launch causes.</p>
                                 </div>
                                 {!showCodeInput && (
                                     <Button onClick={handleRequestCode} disabled={isVerifying} className="h-8 rounded-3xl bg-amber-600 text-white font-bold text-xs px-4">

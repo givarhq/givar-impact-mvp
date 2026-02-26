@@ -10,7 +10,7 @@ import { SmartCurrency } from '../../../../../components/ui/smart-currency';
 
 export const metadata = {
   title: 'Support this cause',
-  description: 'Contribute to this verified mission & track your impact on the transparent ledger.',
+  description: 'Contribute to this verified mission & track your impact on the public records.',
 };
 
 export default async function PublicDonationPage({ params }: { params: Promise<{ slug: string }> }) {

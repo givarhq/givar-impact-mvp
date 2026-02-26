@@ -50,7 +50,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
 
     const handleExport = async () => {
         setIsExporting(true);
-        const toastId = toast.loading('Preparing Your Forensic Treasury Report...');
+        const toastId = toast.loading('Preparing your treasury report...');
         try {
             const params = new URLSearchParams(searchParams.toString());
             const response = await ApiService.admin.exportFinanceCsv(params);
@@ -61,9 +61,9 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
             document.body.appendChild(link);
             link.click();
             link.remove();
-            toast.success('Your Forensic Report Is Ready For Download', { id: toastId });
+            toast.success('Your report is ready for download', { id: toastId });
         } catch (e) {
-            toast.error('We Could Not Complete The Export Request', { id: toastId });
+            toast.error('We could not complete the export request', { id: toastId });
         } finally {
             setIsExporting(false);
         }
