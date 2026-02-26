@@ -2,11 +2,13 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, memo } from 'react';
-import { Search, X, Filter, ArrowRight } from 'lucide-react';
+import { Search, X, Filter, ArrowRight, Download, Loader2 } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '../../ui/select';
 import { cn } from '../../../lib/utils/cn';
+import { ApiService } from '../../../services/api';
+import toast from 'react-hot-toast';
 
 export const AuditFilters = memo(function AuditFilters() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export const AuditFilters = memo(function AuditFilters() {
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -41,6 +44,30 @@ export const AuditFilters = memo(function AuditFilters() {
     setAction('all');
     setStartDate('');
     setEndDate('');
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    const toastId = toast.loading("Generating Forensic Audit Export...");
+    try {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('page');
+      params.delete('limit');
+      const response = await ApiService.admin.exportAuditLogs(params);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `givar-audit-logs-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Forensic Ledger Exported', { id: toastId });
+    } catch (e: any) {
+      toast.error('Export Failed', { id: toastId });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const hasActiveFilters = search || action !== 'all' || startDate || endDate;
@@ -179,6 +206,17 @@ export const AuditFilters = memo(function AuditFilters() {
               </SelectContent>
             </Select>
 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="h-9 px-4 rounded-3xl border-border/60 font-bold text-xs gap-2 bg-transparent hover:bg-muted transition-all active:scale-95"
+            >
+              {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              Export
+            </Button>
+
             {hasActiveFilters && (
               <Button variant="ghost" onClick={clearFilters} className="h-9 px-3 rounded-3xl text-muted-foreground text-xs font-bold transition-all active:scale-95">
                 Reset
@@ -223,18 +261,23 @@ export const AuditFilters = memo(function AuditFilters() {
               </div>
             </div>
 
+            <Select value={action} onValueChange={setAction}>
+              <SelectTrigger className="w-full h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
+                <SelectValue placeholder="Action Type" />
+              </SelectTrigger>
+              <SelectContent className="rounded-3xl max-h-[350px] overflow-y-auto">
+                <ActionOptions />
+              </SelectContent>
+            </Select>
+
             <div className="flex gap-2">
-              <Select value={action} onValueChange={setAction}>
-                <SelectTrigger className="flex-1 h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
-                  <SelectValue placeholder="Action Type" />
-                </SelectTrigger>
-                <SelectContent className="rounded-3xl max-h-[350px] overflow-y-auto">
-                  <ActionOptions />
-                </SelectContent>
-              </Select>
+              <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-10 rounded-3xl border-border/60 font-bold text-xs gap-2 flex-1 active:scale-95 transition-all">
+                {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                Export CSV
+              </Button>
               {hasActiveFilters && (
-                <Button variant="outline" onClick={clearFilters} className="h-10 px-4 rounded-3xl border-border/60 text-xs font-bold shrink-0 active:scale-95">
-                  Reset
+                <Button variant="ghost" onClick={clearFilters} className="h-10 rounded-3xl font-bold text-xs flex-1 active:scale-95 transition-all">
+                  Reset Filters
                 </Button>
               )}
             </div>
