@@ -8,18 +8,18 @@ export default function AdminSettingsLoading() {
                 <Skeleton className="h-7 w-48 rounded-3xl" />
             </div>
 
-            {/* Navigation - Desktop (Horizontal Tabs) */}
+            {/* Navigation - Desktop (Horizontal Tabs) - Updated to 5 placeholders */}
             <div className="hidden md:block overflow-x-auto no-scrollbar pb-1">
                 <div className="h-11 bg-muted/50 p-1 rounded-3xl w-fit border border-border/40 inline-flex gap-2">
-                    {[1, 2, 3, 4].map((i) => (
+                    {[1, 2, 3, 4, 5].map((i) => (
                         <Skeleton key={i} className="h-full w-36 rounded-3xl" />
                     ))}
                 </div>
             </div>
 
-            {/* Mobile Initial State: Admin Settings Menu List (4 Options) */}
+            {/* Mobile Initial State: Admin Settings Menu List (5 Options) */}
             <div className="grid gap-2 md:hidden">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3, 4, 5].map((i) => (
                     <div
                         key={i}
                         className="flex items-center justify-between p-4 bg-card border border-border/40 rounded-3xl h-[76px]"
