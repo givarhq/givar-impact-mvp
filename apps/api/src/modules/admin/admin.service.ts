@@ -2353,7 +2353,7 @@ export class AdminService {
     const categoryFilter = categoryIds && categoryIds.length > 0 ? { in: categoryIds } : undefined;
 
     // 1. Core Capital Flow Aggregates
-    const [inflowRes, donationRes, disbursementRes] = await Promise.all([
+    const [inflowRes, donationRes, disbursementRes, revenueRes] = await Promise.all([
       // Gross Inflow (Wallet Funding + Direct Pay)
       this.prisma.walletTransaction.aggregate({
         where: { type: TxType.CREDIT, createdAt: dateFilter, status: TxStatus.COMPLETED },
@@ -2371,10 +2371,21 @@ export class AdminService {
         where: { createdAt: dateFilter, project: { categoryId: categoryFilter } },
         _sum: { amount: true },
         _count: true
+      }),
+      // Platform Revenue (Fees + Tips)
+      // Identified by reference pattern 'REV-'
+      this.prisma.walletTransaction.aggregate({
+        where: {
+          type: TxType.CREDIT,
+          createdAt: dateFilter,
+          status: TxStatus.COMPLETED,
+          reference: { startsWith: 'REV-' }
+        },
+        _sum: { amount: true }
       })
     ]);
 
-    // 2. Performance Rankings (Most/Least Performing Causes)
+    // Performance Stats
     const projectStats = await this.prisma.project.findMany({
       where: {
         categoryId: categoryFilter,
@@ -2407,7 +2418,7 @@ export class AdminService {
       .sort((a, b) => a.fundingRate - b.fundingRate)
       .slice(0, 5);
 
-    // 3. Category Sector Performance
+    // Category Stats
     const categories = await this.prisma.category.findMany({
       include: {
         _count: { select: { projects: true } },
@@ -2438,6 +2449,7 @@ export class AdminService {
         grossInflow: inflowRes._sum.amount?.toString() || '0',
         committedCapital: donationRes._sum.amount?.toString() || '0',
         deployedCapital: disbursementRes._sum.amount?.toString() || '0',
+        platformRevenue: revenueRes._sum.amount?.toString() || '0',
         transactionCount: inflowRes._count + donationRes._count + disbursementRes._count,
         efficiencyRatio: donationRes._sum.amount > 0n
           ? (Number(disbursementRes._sum.amount || 0n) / Number(donationRes._sum.amount)) * 100

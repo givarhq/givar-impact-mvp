@@ -313,8 +313,23 @@ export class WalletService {
 
     const include = {
       donation: {
-        select: { project: { select: { title: true, slug: true } } },
+        select: {
+          baseAmount: true,
+          feeAmount: true,
+          tipAmount: true,
+          feePercentageUsed: true,
+          project: { select: { title: true, slug: true } }
+        },
       },
+      guestDonation: { // Include Guest Donations for unified history if we link them later
+        select: {
+          baseAmount: true,
+          feeAmount: true,
+          tipAmount: true,
+          feePercentageUsed: true,
+          project: { select: { title: true, slug: true } }
+        }
+      }
     };
 
     const [transactions, total] = await this.prisma.$transaction([
@@ -328,12 +343,24 @@ export class WalletService {
       this.prisma.walletTransaction.count({ where }),
     ]);
 
-    const enhanced = transactions.map((tx) => ({
-      ...tx,
-      isDonation: !!tx.donation,
-      projectName: tx.donation?.project?.title ?? null,
-      project: tx.donation?.project ?? null,
-    }));
+    const enhanced = transactions.map((tx) => {
+      // Normalize whether it came from Donation or GuestDonation (future proofing)
+      const context = tx.donation || tx.guestDonation;
+
+      return {
+        ...tx,
+        isDonation: !!context,
+        projectName: context?.project?.title ?? null,
+        project: context?.project ?? null,
+        // Serializing BigInts for JSON transport
+        financials: context ? {
+          baseAmount: context.baseAmount.toString(),
+          feeAmount: context.feeAmount.toString(),
+          tipAmount: context.tipAmount.toString(),
+          feePercentage: context.feePercentageUsed
+        } : null
+      };
+    });
 
     return {
       data: enhanced,
