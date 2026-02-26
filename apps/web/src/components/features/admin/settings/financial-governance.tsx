@@ -221,11 +221,11 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                                     <div className="grid grid-cols-1 gap-3">
                                         <Button
-                                            onClick={handleUpdate}
-                                            disabled={isUpdating || !password || percentage === ''}
-                                            className="w-full h-12 rounded-3xl font-bold tracking-widest text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
-                                        >
-                                            {isUpdating ? <Loader2 className="animate-spin h-5 w-5" /> : 'Confirm Mutation'}
+    onClick={handleUpdate}
+    disabled={isUpdating || !password || percentage === ''}
+    className="w-auto px-8 mx-auto flex h-12 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
+>
+                                            {isUpdating ? <Loader2 className="animate-spin h-5 w-5" /> : 'Confirm Changes'}
                                         </Button>
                                         <Button
                                             variant="ghost"
