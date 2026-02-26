@@ -104,15 +104,13 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
             ) : report ? (
                 <div className="space-y-8 md:space-y-12 animate-in fade-in duration-700">
 
-                    {/* Restored to 4-column layout for perfect symmetry */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                         <KPICard
                             title="Gross Inflow"
                             value={report.overview.grossInflow}
-                            // Merged: Shows Platform Revenue context inline
                             subValue={
                                 <span className="flex items-center gap-1">
-                                    Givar Revenue: <SmartCurrency amount={report.overview.platformRevenue} currency="NGN" visible={true} size="small" className="text-foreground" />
+                                    Revenue: <SmartCurrency amount={report.overview.platformRevenue} currency="NGN" visible={true} size="small" className="text-foreground" />
                                 </span>
                             }
                             icon={ArrowDownLeft}
