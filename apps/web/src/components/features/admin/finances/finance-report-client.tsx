@@ -98,7 +98,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                     <p className="text-sm font-bold text-muted-foreground tracking-tight">
-                        Compiling Treasury Intelligence Data...
+                        Compiling data...
                     </p>
                 </div>
             ) : report ? (
