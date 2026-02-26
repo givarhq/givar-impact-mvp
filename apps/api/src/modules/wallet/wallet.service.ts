@@ -164,6 +164,7 @@ export class WalletService {
         event,
         reference: data.reference,
         amount: data.amount,
+        amount_naira: (Number(data.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         currency: data.currency,
         channel: data.channel,
       },
@@ -230,9 +231,11 @@ export class WalletService {
         entityType: 'WalletTransaction',
         metadata: {
           amount,
+          amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           currency,
           reference,
           newBalance: result.newBalance.toString(),
+          newBalance_naira: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           channel: data.channel,
         },
       });

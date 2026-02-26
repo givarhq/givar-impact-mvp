@@ -1377,7 +1377,7 @@ export class AdminService {
               action: 'AUTO_REFUND',
               originalRef: tx.reference,
               amountRaw: tx.amount.toString(),
-              amountFormatted: (Number(tx.amount) / 100).toFixed(2)
+              amount_naira: (Number(tx.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             },
           },
         });
@@ -1525,7 +1525,7 @@ export class AdminService {
             metadata: {
               action: 'MULTI_REALLOCATE',
               totalCapitalRaw: tx.amount.toString(),
-              totalCapitalFormatted: (Number(tx.amount) / 100).toFixed(2),
+              totalCapital_naira: (Number(tx.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
               currency: tx.currency,
               parentReference: tx.reference,
               splitCount: dto.allocations.length,
@@ -1571,6 +1571,7 @@ export class AdminService {
         metadata: {
           vendor: dto.vendorName,
           milestone: milestone?.phase || 'Unknown',
+          amount_naira: (Number(dto.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           hasReceipt: !!dto.receiptKey
         }
       }, tx);
@@ -2231,7 +2232,7 @@ export class AdminService {
               action: 'DUST_SWEEP_PROTOCOL',
               originalTarget: project.targetAmount.toString(),
               finalTarget: project.raisedAmount.toString(),
-              absorbedGap: gap.toString(),
+              absorbedGap_naira: (Number(gap) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
               reason: gap < DUST_LIMIT_MINOR ? 'MATHEMATICALLY_STUCK' : 'STAGNANT_SMALL_REMAINDER',
             },
           },

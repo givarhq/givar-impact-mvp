@@ -266,8 +266,11 @@ export class DonationService {
           metadata: {
             projectId: dto.projectId,
             totalPaid: amount.toString(),
+            totalPaid_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             appliedToProject: amountToProject.toString(),
+            applied_naira: (Number(amountToProject) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             surplus: surplus.toString(),
+            surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             currency: dto.currency,
             reference,
             isGoalMet,
@@ -609,8 +612,11 @@ export class DonationService {
         metadata: {
           projectId,
           totalPaid: amount.toString(),
+          totalPaid_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           applied: amountToProject.toString(),
+          applied_naira: (Number(amountToProject) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           surplus: surplus.toString(),
+          surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           isGoalMet,
           reference,
           channel
@@ -742,6 +748,7 @@ export class DonationService {
         metadata: {
           projectId,
           amount: amount.toString(),
+          amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           currency,
           reference,
           method: 'DIRECT_WEBHOOK',
@@ -865,6 +872,7 @@ export class DonationService {
         metadata: {
           guestEmail: normalizedEmail,
           amount: amount.toString(),
+          amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           projectId,
           reference,
           method: 'GUEST_WEBHOOK',
@@ -1152,6 +1160,7 @@ export class DonationService {
         metadata: {
           reference,
           amount: amount.toString(),
+          amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           projectId,
           guestEmail: userId === 'GUEST' ? guestEmail : undefined
         }
