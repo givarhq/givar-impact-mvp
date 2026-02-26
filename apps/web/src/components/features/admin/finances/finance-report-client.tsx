@@ -57,9 +57,9 @@ const KPICard = memo(function KPICard({ title, value, subValue, icon: Icon, colo
                             />
                         )}
                     </div>
-                    <p className="text-[10px] font-bold text-muted-foreground truncate opacity-70">
+                    <div className="text-[10px] font-bold text-muted-foreground truncate opacity-70">
                         {subValue}
-                    </p>
+                    </div>
                 </div>
             </Card>
         </motion.div>
@@ -104,11 +104,17 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
             ) : report ? (
                 <div className="space-y-8 md:space-y-12 animate-in fade-in duration-700">
 
+                    {/* Restored to 4-column layout for perfect symmetry */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                         <KPICard
                             title="Gross Inflow"
                             value={report.overview.grossInflow}
-                            subValue={`${report.overview.transactionCount} Successful Entries`}
+                            // Merged: Shows Platform Revenue context inline
+                            subValue={
+                                <span className="flex items-center gap-1">
+                                    Givar Revenue: <SmartCurrency amount={report.overview.platformRevenue} currency="NGN" visible={true} size="small" className="text-foreground" />
+                                </span>
+                            }
                             icon={ArrowDownLeft}
                             color="text-blue-500"
                             bg="bg-blue-500/10"
