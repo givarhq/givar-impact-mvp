@@ -27,15 +27,14 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
   const donateLink = `${detailsLink}/donate`;
 
-  // Badge Logic
-  const getBadgeConfig = () => {
-    if (project.organizerType === 'SYSTEM') return { icon: BadgeCheck, text: 'Givar Official', color: 'bg-primary/90 text-white' };
-    if (project.organizerType === 'ORGANIZATION') return { icon: ShieldCheck, text: 'Verified Org', color: 'bg-blue-600 text-white' };
-    return { icon: UserCheck, text: 'Verified Individual', color: 'bg-emerald-600 text-white' }; // Default to Individual
+  // Logic: Use specific icons to represent entity types without text badges
+  const getVerIcon = () => {
+    if (project.organizerType === 'SYSTEM') return BadgeCheck;
+    if (project.organizerType === 'ORGANIZATION') return ShieldCheck;
+    return UserCheck;
   };
 
-  const badge = getBadgeConfig();
-  const BadgeIcon = badge.icon;
+  const VerIcon = getVerIcon();
 
   return (
     <Card className="group flex flex-col rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
@@ -62,10 +61,10 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
           </Badge>
         </div>
 
-        {/* Verification Badge (Bottom Right Overlay) */}
+        {/* Verification Icon Overlay */}
         {project.isVerifiedOrganizer && (
-          <div className={`absolute bottom-3 right-3 flex items-center gap-1.5 px-2 py-0.5 rounded-3xl text-[10px] font-bold shadow-sm backdrop-blur-sm ${badge.color}`}>
-            <BadgeIcon className="h-3 w-3" /> {badge.text}
+          <div className="absolute bottom-3 right-3 h-7 w-7 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-md text-primary border border-border/10 shadow-sm transition-transform duration-300 group-hover:scale-110">
+            <VerIcon className="h-4 w-4" />
           </div>
         )}
       </Link>
