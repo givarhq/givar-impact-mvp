@@ -37,7 +37,7 @@ export default async function AdminFinancesPage({
 
             <FinanceReportClient
                 categories={categories || []}
-                initialFilters={resolvedParams}
+                report={report}
             />
         </div>
     );
