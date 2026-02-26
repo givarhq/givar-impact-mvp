@@ -13,7 +13,7 @@ export const EvidenceFilters = memo(function EvidenceFilters() {
     const searchParams = useSearchParams();
     const [search, setSearch] = useState(searchParams.get('search') || '');
     const [status, setStatus] = useState(searchParams.get('status') || 'PENDING');
-    const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+    const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
     useEffect(() => {
         if (search === (searchParams.get('search') || '') &&
@@ -24,7 +24,7 @@ export const EvidenceFilters = memo(function EvidenceFilters() {
             params.set('page', '1');
             if (search) params.set('search', search); else params.delete('search');
             if (status) params.set('status', status); else params.delete('status');
-            router.replace(`?${params.toString()}`);
+            router.replace(`?${params.toString()}`, { scroll: false });
         }, 400);
         return () => clearTimeout(timeout);
     }, [search, status, router, searchParams]);

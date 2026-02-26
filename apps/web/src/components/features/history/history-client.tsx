@@ -35,7 +35,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isExporting, setIsExporting] = useState(false);
-  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
   const prevFiltersRef = useRef<string>('');
 
@@ -90,7 +90,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
 
     if (newQueryString !== currentQueryString) {
       const handler = setTimeout(() => {
-        router.replace(`${pathname}?${newQueryString}`);
+        router.replace(`${pathname}?${newQueryString}`, { scroll: false });
         prevFiltersRef.current = currentFiltersStr;
       }, 300);
       return () => clearTimeout(handler);
