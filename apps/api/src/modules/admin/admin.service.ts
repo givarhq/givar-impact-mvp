@@ -130,15 +130,15 @@ export class AdminService {
     if (suspenseCount > 0) {
       dominantRisk = 'LEDGER_SUSPENSE';
       riskCount = suspenseCount;
-      riskLabel = 'orphaned transaction(s)';
+      riskLabel = 'Orphaned Transaction(s)';
     } else if (pendingKyc > 0) {
       dominantRisk = 'KYC_PENDING';
       riskCount = pendingKyc;
-      riskLabel = 'pending kyc';
+      riskLabel = 'Pending KYC';
     } else if (pendingEvidenceCount > 0) {
       dominantRisk = 'EVIDENCE_AUDIT';
       riskCount = pendingEvidenceCount;
-      riskLabel = 'proofs to audit';
+      riskLabel = 'Proofs to Audit';
     }
 
     return {
