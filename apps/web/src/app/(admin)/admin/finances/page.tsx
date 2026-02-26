@@ -19,8 +19,14 @@ export default async function AdminFinancesPage({
 
     const resolvedParams = await searchParams;
 
-    // Initial fetch of categories for the multi-select filter
-    const categories = await ApiService.projects.getCategories(token);
+    const params = new URLSearchParams(resolvedParams as any);
+
+    // Parallel fetch: Categories for filter + Full Finance Report
+    const [categories, report] = await Promise.all([
+        ApiService.projects.getCategories(token),
+        ApiService.admin.getFinanceReport(params)
+    ]);
+
 
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
