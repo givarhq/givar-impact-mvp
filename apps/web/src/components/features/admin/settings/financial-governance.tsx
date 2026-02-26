@@ -149,7 +149,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                     {isSuperAdmin ? (
                         <Dialog open={showModal} onOpenChange={setShowModal}>
                             <DialogTrigger asChild>
-                                <Button className="w-full h-12 rounded-3xl font-bold tracking-widest text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0">
+                                <Button className="w-auto px-8 mx-auto flex h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0">
                                     <Lock className="h-4 w-4 mr-2" /> Modify Financial Protocol
                                 </Button>
                             </DialogTrigger>
