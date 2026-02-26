@@ -20,6 +20,7 @@ import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../email/email.service';
+import { FeeService } from '../fee/fee.service';
 
 @Injectable()
 export class DonationService {
@@ -34,6 +35,7 @@ export class DonationService {
     private config: ConfigService,
     private audit: AuditService,
     private emailService: EmailService,
+    private feeService: FeeService,
   ) { }
 
   // Centralized Receipt Logic
@@ -93,13 +95,14 @@ export class DonationService {
       throw new ForbiddenException('EMAIL_NOT_VERIFIED');
     }
 
-    const amount = BigInt(dto.amount);
+    const baseAmount = BigInt(dto.amount);
+    const tipAmount = BigInt(dto.tipAmount || '0');
 
-    if (amount < this.MIN_DONATION_MINOR) {
+    if (baseAmount < this.MIN_DONATION_MINOR) {
       throw new BadRequestException('Amount is below minimum allowed (100.00)');
     }
 
-    if (amount > this.MAX_DONATION_MINOR) {
+    if (baseAmount > this.MAX_DONATION_MINOR) {
       throw new BadRequestException('Amount exceeds maximum allowed per donation');
     }
 
@@ -115,7 +118,8 @@ export class DonationService {
         raisedAmount: true,
         status: true,
         userId: true,
-        slug: true
+        slug: true,
+        categoryId: true
       },
     });
 
@@ -130,6 +134,9 @@ export class DonationService {
     if (project.currency !== dto.currency) {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
+
+    const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(baseAmount, project.categoryId || undefined);
+    const totalCharge = baseAmount + feeAmountMinor + tipAmount;
 
     const result = await this.prisma.$transaction(async (tx) => {
       // 1. Transaction-level Re-read: Get fresh state to prevent race conditions
@@ -147,16 +154,16 @@ export class DonationService {
       // If project was funded mid-flight, actualRemaining becomes 0
       const actualRemaining = (txProject.status !== ProjectStatus.ACTIVE || currentRemaining <= 0n) ? 0n : currentRemaining;
 
-      const amountToProject = amount > actualRemaining ? actualRemaining : amount;
-      const surplus = amount - amountToProject;
+      const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
+      const surplus = baseAmount - amountToProject;
 
       const reference = `DON-${crypto.randomUUID()}`;
 
-      // 3. Process full debit from user wallet
+      // 3. Process full debit from user wallet (Base + Fee + Tip)
       const { transaction: walletTx } = await this.walletRepo.processTransaction(
         {
           userId,
-          amount,
+          amount: totalCharge,
           currency: dto.currency,
           type: TxType.DEBIT,
           reference,
@@ -165,6 +172,34 @@ export class DonationService {
         },
         tx,
       );
+
+      // 3b. Platform Revenue Routing
+      if (feeAmountMinor > 0n || tipAmount > 0n) {
+        const systemNode = await tx.user.findFirst({
+          where: { role: UserRole.SUPERADMIN },
+          include: { wallets: { where: { currency: dto.currency } } }
+        });
+
+        if (systemNode?.wallets[0]) {
+          await tx.walletTransaction.create({
+            data: {
+              walletId: systemNode.wallets[0].id,
+              amount: feeAmountMinor + tipAmount,
+              currency: dto.currency,
+              type: TxType.CREDIT,
+              status: TxStatus.COMPLETED,
+              reference: `REV-${reference}`,
+              description: `Platform revenue & tip from: ${txProject.title}`,
+              metadata: {
+                originalProjectId: txProject.id,
+                donorId: userId,
+                feeAmount: feeAmountMinor.toString(),
+                tipAmount: tipAmount.toString()
+              }
+            }
+          });
+        }
+      }
 
       // 4. Spillover Logic: Enforce system wallet existence (no silent spill loss)
       if (surplus > 0n) {
@@ -207,7 +242,12 @@ export class DonationService {
             userId,
             projectId: txProject.id,
             transactionId: walletTx.id,
-            amount: amount,
+            amount: totalCharge,
+            baseAmount: baseAmount,
+            feePercentageUsed: feeRule.percentage,
+            feeAmount: feeAmountMinor,
+            tipAmount: tipAmount,
+            feeRuleId: feeRule.id,
             currency: dto.currency,
             message: dto.message?.trim() || null,
           },
@@ -265,12 +305,14 @@ export class DonationService {
           entityType: 'Project',
           metadata: {
             projectId: dto.projectId,
-            totalPaid: amount.toString(),
-            totalPaid_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            totalPaid: totalCharge.toString(),
+            totalPaid_naira: (Number(totalCharge) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             appliedToProject: amountToProject.toString(),
             applied_naira: (Number(amountToProject) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             surplus: surplus.toString(),
             surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            feeAmount: feeAmountMinor.toString(),
+            tipAmount: tipAmount.toString(),
             currency: dto.currency,
             reference,
             isGoalMet,
@@ -280,13 +322,13 @@ export class DonationService {
       );
 
       // We return the txProject as it has the original context needed for notifications
-      return { donation, isGoalMet, project: txProject, surplus };
+      return { donation, isGoalMet, project: txProject, surplus, totalCharge };
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable
     });
 
     // 1. Trigger Individual Receipt for the FULL amount paid (matches bank statement)
-    await this.triggerReceipt(userId, null, dto.projectId, amount, dto.currency, `WAL-${result.project.id.slice(0, 8)}`, result.surplus);
+    await this.triggerReceipt(userId, null, dto.projectId, result.totalCharge, dto.currency, `WAL-${result.project.id.slice(0, 8)}`, result.surplus);
 
     // 2. Trigger "Project Funded" Alert to Organizer
     if (result.isGoalMet) {
@@ -316,20 +358,20 @@ export class DonationService {
       throw new ForbiddenException('Please verify your email address to use direct payments.');
     }
 
+    const baseAmountBig = BigInt(dto.amount);
+    const tipAmountBig = BigInt(dto.tipAmount || '0');
 
-    const amountBig = BigInt(dto.amount);
-
-    if (amountBig < this.MIN_DONATION_MINOR) {
+    if (baseAmountBig < this.MIN_DONATION_MINOR) {
       throw new BadRequestException('Minimum donation amount is 100.00');
     }
 
-    if (amountBig > this.MAX_DONATION_MINOR) {
+    if (baseAmountBig > this.MAX_DONATION_MINOR) {
       throw new BadRequestException('Amount exceeds maximum allowed per donation');
     }
 
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
-      select: { id: true, isActive: true, currency: true, status: true },
+      select: { id: true, isActive: true, currency: true, status: true, categoryId: true },
     });
 
     if (!project || !project.isActive) {
@@ -343,6 +385,9 @@ export class DonationService {
     if (project.currency !== dto.currency) {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
+
+    const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(baseAmountBig, project.categoryId || undefined);
+    const totalCharge = baseAmountBig + feeAmountMinor + tipAmountBig;
 
     let emailToCharge: string;
     let internalUserId: string | null = null;
@@ -362,7 +407,7 @@ export class DonationService {
         'https://api.paystack.co/transaction/initialize',
         {
           email: emailToCharge,
-          amount: Number(amountBig),
+          amount: Number(totalCharge),
           currency: dto.currency,
           metadata: {
             donationType: 'DIRECT',
@@ -370,6 +415,11 @@ export class DonationService {
             guestEmail: emailToCharge,
             guestName: dto.guestName?.trim() || 'Anonymous',
             projectId: dto.projectId,
+            baseAmount: baseAmountBig.toString(),
+            feeAmount: feeAmountMinor.toString(),
+            tipAmount: tipAmountBig.toString(),
+            feePercentage: feeRule.percentage,
+            feeRuleId: feeRule.id
           },
           callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
         },
@@ -403,12 +453,6 @@ export class DonationService {
     }
   }
 
-  /**
-   * Fulfill direct (Paystack-initiated) donation from webhook
-   * Critical: must be extremely idempotent
-   * Fulfill direct donation with Funding Cap and Suspense Routing
-   * Strictly respects Guest/User branching and Security Hardening
-   */
   async fulfillDirectDonation(data: {
     userId: string;
     guestEmail?: string;
@@ -418,8 +462,16 @@ export class DonationService {
     currency: Currency;
     reference: string;
     channel?: string;
+    baseAmount?: bigint;
+    feeAmount?: bigint;
+    tipAmount?: bigint;
+    feePercentageUsed?: number;
+    feeRuleId?: string;
   }) {
-    const { userId, guestEmail, guestName, projectId, amount, currency, reference, channel } = data;
+    const {
+      userId, guestEmail, guestName, projectId, amount, currency, reference, channel,
+      baseAmount = amount, feeAmount = 0n, tipAmount = 0n, feePercentageUsed = 0, feeRuleId = null
+    } = data;
 
     if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money'].includes(channel)) {
       this.logger.warn(`Suspicious payment channel ignored`, { channel, reference });
@@ -455,11 +507,39 @@ export class DonationService {
       // If the project is closed, it accepts zero. If open, it accepts up to the remaining gap.
       const actualRemaining = isClosed ? 0n : (currentRemaining <= 0n ? 0n : currentRemaining);
 
-      const amountToProject = amount > actualRemaining ? actualRemaining : amount;
-      const surplus = amount - amountToProject;
+      const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
+      const surplus = baseAmount - amountToProject;
 
       let processedDonationId: string;
       let isGoalMet = false;
+
+      // Platform Revenue Routing for Direct Pays
+      if (feeAmount > 0n || tipAmount > 0n) {
+        const systemNode = await tx.user.findFirst({
+          where: { role: UserRole.SUPERADMIN },
+          include: { wallets: { where: { currency } } }
+        });
+
+        if (systemNode?.wallets[0]) {
+          await tx.walletTransaction.create({
+            data: {
+              walletId: systemNode.wallets[0].id,
+              amount: feeAmount + tipAmount,
+              currency,
+              type: TxType.CREDIT,
+              status: TxStatus.COMPLETED,
+              reference: `REV-${reference}`,
+              description: `Platform revenue & tip via Gateway: ${project.title}`,
+              metadata: {
+                originalProjectId: project.id,
+                feeAmount: feeAmount.toString(),
+                tipAmount: tipAmount.toString(),
+                channel
+              }
+            }
+          });
+        }
+      }
 
       if (userId !== 'GUEST') {
         // --- PATH: REGISTERED USER (FIXED FOR SYMMETRY) ---
@@ -494,7 +574,12 @@ export class DonationService {
               userId,
               projectId,
               transactionId: donationTx.id,
-              amount: amount, // Capture total contributed impact
+              amount: amount,
+              baseAmount: baseAmount,
+              feePercentageUsed: feePercentageUsed,
+              feeAmount: feeAmount,
+              tipAmount: tipAmount,
+              feeRuleId: feeRuleId,
               currency,
               message: 'Direct payment fulfillment',
             },
@@ -525,17 +610,21 @@ export class DonationService {
           data: {
             guestDonorId: guestDonor.id,
             projectId,
-            amount: amount, // Capture total impact
+            amount: amount,
+            baseAmount: baseAmount,
+            feePercentageUsed: feePercentageUsed,
+            feeAmount: feeAmount,
+            tipAmount: tipAmount,
+            feeRuleId: feeRuleId,
             currency,
             reference,
             status: TxStatus.COMPLETED,
-            // Note: GuestDonation model does not support a metadata field in current schema
           }
         });
         processedDonationId = guestDonation.id;
       }
 
-      // 3. Ledger Sync: Update Project State
+      // 3. Ledger Sync: Update Project State uses baseAmount To Project
       if (amountToProject > 0n) {
         const updatedProject = await tx.project.update({
           where: { id: projectId },

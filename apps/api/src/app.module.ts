@@ -20,6 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 import { CommunicationModule } from './modules/communication/communication.module';
 import { NotificationModule } from './modules/notifications/notification.module';
+import { FeeModule } from './modules/fee/fee.module';
 
 @Module({
   imports: [
@@ -53,7 +54,8 @@ import { NotificationModule } from './modules/notifications/notification.module'
     OrganizationModule,
     RecommendationsModule,
     CommunicationModule,
-    NotificationModule
+    NotificationModule,
+    FeeModule
   ],
   controllers: [],
   providers: [

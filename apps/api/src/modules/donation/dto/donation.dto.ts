@@ -16,6 +16,11 @@ export class CreateDonationDto {
   @Matches(MONEY_REGEX, { message: MONEY_MESSAGE })
   amount!: string;
 
+  // Support for optional tips
+  @IsOptional()
+  @IsNumberString()
+  tipAmount?: string;
+
   @IsEnum(Currency)
   currency!: Currency;
 
@@ -30,6 +35,11 @@ export class InitiateDirectDonationDto {
 
   @Matches(MONEY_REGEX, { message: MONEY_MESSAGE })
   amount: string;
+
+  // Support for optional tips
+  @IsOptional()
+  @IsNumberString()
+  tipAmount?: string;
 
   @IsEnum(Currency)
   currency: Currency;
