@@ -79,7 +79,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                     <span className="text-primary">{percent}% funded</span>
                     <span className="text-muted-foreground">Target</span>
                 </div>
-                <div className="h-2 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
+                <div className="h-2.5 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
                     <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${barWidth}%` }}
