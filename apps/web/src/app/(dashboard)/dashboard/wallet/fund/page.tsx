@@ -91,14 +91,15 @@ export default function FundWalletPage() {
     <div className="max-w-2xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20 min-w-0">
 
       <div className="flex flex-col gap-4 px-1 min-w-0">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="w-fit pl-0 text-muted-foreground hover:text-foreground group rounded-3xl"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          Go Back
-        </Button>
+        <Link href="/dashboard/history">
+          <Button
+            variant="ghost"
+            className="w-fit pl-0 text-muted-foreground hover:text-foreground group rounded-3xl"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Go Back
+          </Button>
+        </Link>
       </div>
 
       <Card className="border-border/40 shadow-xl overflow-hidden rounded-3xl relative min-w-0 bg-card">
