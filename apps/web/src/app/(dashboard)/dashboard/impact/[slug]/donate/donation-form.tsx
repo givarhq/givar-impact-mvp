@@ -1,3 +1,5 @@
+// apps/web/src/app/(dashboard)/dashboard/impact/[slug]/donate/donation-form.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -28,6 +30,8 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
     // State
     const [amount, setAmount] = useState('');
+    const [tipAmount, setTipAmount] = useState('');
+    const [feeRule, setFeeRule] = useState<{ percentage: number; optionalTipEnabled: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
@@ -61,7 +65,10 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         checkVerification();
 
         setAmount('');
+        setTipAmount('');
         setIsLoading(false);
+
+        ApiService.fees.getPublicCurrent().then(setFeeRule).catch(console.error);
 
         if (!isAuthenticated) {
             setSelectedMethod('direct');
@@ -100,17 +107,23 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
     // Financial Logic
     const isGuest = !isAuthenticated;
-    const donationAmountMinor = BigInt(parseFormattedNumber(amount) || '0') * 100n;
+    const baseAmountMinor = BigInt(parseFormattedNumber(amount) || '0') * 100n;
+    const tipAmountMinor = BigInt(parseFormattedNumber(tipAmount) || '0') * 100n;
+
+    const feePercentage = feeRule?.percentage || 0;
+    const feeAmountMinor = (baseAmountMinor * BigInt(Math.round(feePercentage * 100))) / 10000n;
+    const totalChargeMinor = baseAmountMinor + feeAmountMinor + tipAmountMinor;
+
     const walletBalanceMinor = BigInt(currentWallet?.balance || '0');
 
     const isWalletMethod = selectedMethod === 'wallet';
-    const hasSufficientFunds = !isGuest && walletBalanceMinor >= donationAmountMinor;
-    const needsFunding = isWalletMethod && !hasSufficientFunds && donationAmountMinor > 0n;
+    const hasSufficientFunds = !isGuest && walletBalanceMinor >= totalChargeMinor;
+    const needsFunding = isWalletMethod && !hasSufficientFunds && totalChargeMinor > 0n;
 
     const targetAmountMinor = BigInt(project?.targetAmount || '0');
     const raisedAmountMinor = BigInt(project?.raisedAmount || '0');
     const remainingNeededMinor = targetAmountMinor - raisedAmountMinor;
-    const isCompletingProject = donationAmountMinor >= remainingNeededMinor && remainingNeededMinor > 0n;
+    const isCompletingProject = baseAmountMinor >= remainingNeededMinor && remainingNeededMinor > 0n;
 
     if (!project) return null;
 
@@ -137,7 +150,8 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
         setIsLoading(true);
         try {
-            const minorAmount = donationAmountMinor.toString();
+            const minorAmount = baseAmountMinor.toString();
+            const minorTipAmount = tipAmountMinor.toString();
             const projectSlug = project.slug;
 
             // Determine redirect path
@@ -150,6 +164,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                     await ApiService.donations.create({
                         projectId: project.id,
                         amount: minorAmount,
+                        tipAmount: minorTipAmount,
                         currency: project.currency,
                     });
                 } else {
@@ -170,6 +185,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                 const payload: any = {
                     projectId: project.id,
                     amount: minorAmount,
+                    tipAmount: minorTipAmount,
                     currency: project.currency,
                 };
                 if (isGuest) {
@@ -184,6 +200,56 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         } catch (error) {
             setIsLoading(false);
         }
+    };
+
+    const renderBreakdown = () => {
+        if (!amount) return null;
+        return (
+            <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 pt-4 border-t border-border/40 overflow-hidden"
+            >
+                {feeRule?.optionalTipEnabled && (
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-muted-foreground ml-1">Optional Tip (Helps cover platform costs)</label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">₦</span>
+                            <Input
+                                type="text"
+                                placeholder="0"
+                                className="pl-10 h-11 text-sm font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums"
+                                value={formatNumberInput(tipAmount)}
+                                onChange={(e) => setTipAmount(parseFormattedNumber(formatNumberInput(e.target.value)))}
+                                disabled={isUnverified}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <div className="p-4 rounded-[20px] bg-muted/20 border border-border/40 space-y-2.5 shadow-inner">
+                    <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                        <span>Project Impact</span>
+                        <span className="tabular-nums font-bold text-foreground">₦{(Number(baseAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                        <span>Platform Fee ({feePercentage}%)</span>
+                        <span className="tabular-nums font-bold text-foreground">₦{(Number(feeAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                    {tipAmountMinor > 0n && (
+                        <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                            <span>Platform Tip</span>
+                            <span className="tabular-nums font-bold text-foreground">₦{(Number(tipAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        </div>
+                    )}
+                    <div className="pt-2.5 border-t border-border/40 flex justify-between items-center">
+                        <span className="text-sm font-bold text-foreground">Total Charge</span>
+                        <span className="text-sm font-black text-primary tabular-nums">₦{(Number(totalChargeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    </div>
+                </div>
+            </motion.div>
+        );
     };
 
     return (
@@ -271,6 +337,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                                         </button>
                                     ))}
                                 </div>
+                                {renderBreakdown()}
                             </div>
 
                             <div className="space-y-2.5">
@@ -328,6 +395,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                                                 </button>
                                             ))}
                                         </div>
+                                        {renderBreakdown()}
                                     </div>
 
                                     <AnimatePresence>
@@ -362,7 +430,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-primary/10 mr-3 text-primary border border-primary/10 shrink-0"><Wallet className="h-4.5 w-4.5" /></div>
                                                     <div className="text-left flex-1 min-w-0">
                                                         <p className="font-bold text-sm text-foreground truncate">Givar wallet</p>
-                                                        <p className={cn("text-xs font-medium truncate", !hasSufficientFunds && donationAmountMinor > 0n ? "text-destructive" : "text-muted-foreground")}>
+                                                        <p className={cn("text-xs font-medium truncate", !hasSufficientFunds && totalChargeMinor > 0n ? "text-destructive" : "text-muted-foreground")}>
                                                             Balance: {formatCurrency(currentWallet?.balance || '0', project.currency)}
                                                         </p>
                                                     </div>
