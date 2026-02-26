@@ -15,7 +15,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [status, setStatus] = useState(searchParams.get('status') || 'all');
   const [category, setCategory] = useState(searchParams.get('category') || 'all');
-  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
   useEffect(() => {
     if (search === (searchParams.get('search') || '') &&
@@ -31,7 +31,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
 
     const timeout = setTimeout(() => {
       if (params.toString() !== searchParams.toString()) {
-        router.replace(`?${params.toString()}`);
+        router.replace(`?${params.toString()}`, { scroll: false });
       }
     }, 400);
 
