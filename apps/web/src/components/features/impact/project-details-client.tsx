@@ -46,7 +46,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     // Hybrid Badge Logic
     const getVerificationMeta = () => {
         if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') {
-            return { label: 'Platform Organizer', icon: BadgeCheck, color: 'text-primary', badgeStyle: 'bg-primary/10 text-primary border-primary/20' };
+            return { label: 'Givar Team', icon: BadgeCheck, color: 'text-primary', badgeStyle: 'bg-primary/10 text-primary border-primary/20' };
         }
         if (project.organizerType === 'ORGANIZATION') {
             return { label: 'Verified Organization', icon: ShieldCheck, color: 'text-blue-600', badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200' };
@@ -80,12 +80,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <VerIcon className="h-3 w-3" /> {verMeta.label}
                             </Badge>
                         )}
-
-                        {project.tags?.map(tag => (
-                            <Badge key={tag} variant="outline" className="rounded-3xl bg-background/50 text-xs font-medium border-border/60">
-                                {tag}
-                            </Badge>
-                        ))}
                     </div>
                     <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground leading-tight">
                         {project.title}

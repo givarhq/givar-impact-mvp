@@ -162,7 +162,8 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                 }
                 toast.success(donationType === 'one-time' ? `Successfully donated!` : `Subscription active!`);
 
-                // Force a hard navigation/refresh to update project stats immediately
+                // Logic: Force a router refresh before the hard reload to bust client-side state
+                router.refresh();
                 window.location.href = redirectPath;
 
             } else if (selectedMethod === 'direct') {

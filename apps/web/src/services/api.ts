@@ -198,7 +198,7 @@ export const ApiService = {
       serverFetch<{ data: Project[]; meta: any }>(
         `/projects?${params.toString()}`,
         token,
-        { tags: ['projects-list'], next: { revalidate: 60 } }
+        { tags: ['projects-list'], next: { revalidate: 0 } }
       ),
 
     get: (token: string, slug: string) =>
@@ -208,7 +208,7 @@ export const ApiService = {
           updates: any[];
           donorCount: number;
         }
-      >(`/projects/${slug}`, token, { tags: [`project-${slug}`], next: { revalidate: 30 } }),
+      >(`/projects/${slug}`, token, { tags: [`project-${slug}`], next: { revalidate: 0 } }),
 
     getCategories: (token?: string) =>
       token
@@ -286,7 +286,7 @@ export const ApiService = {
     getAnalytics: (token: string) =>
       serverFetch<any>('/admin/analytics/full-report', token, {
         tags: ['admin-analytics'],
-        next: { revalidate: 300 } // 5 minute freshness for heavy analytics
+        next: { revalidate: 0 } // 1 minute freshness for heavy analytics
       }),
 
     getUsers: (token: string, params: URLSearchParams) =>
@@ -332,7 +332,7 @@ export const ApiService = {
       serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token, { tags: ['admin-audit'] }),
 
     getAuditSummary: (token: string) =>
-      serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token, { next: { revalidate: 60 } }),
+      serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token, { next: { revalidate: 0 } }),
 
     exportAuditLogs: (params: URLSearchParams) =>
       apiClient.get(`/admin/audit/export?${params.toString()}`, {
@@ -452,7 +452,7 @@ export const ApiService = {
       token
         ? serverFetch<{ data: Project[]; meta: any }>('/recommendations/featured', token, {
           tags: ['featured-feed'],
-          next: { revalidate: 60 }
+          next: { revalidate: 0 }
         })
         : apiClient.get('/recommendations/featured').then(r => r.data),
 
@@ -461,7 +461,7 @@ export const ApiService = {
       return token
         ? serverFetch<{ data: Project[]; meta: any }>(endpoint, token, {
           tags: ['discovery-feed'],
-          next: { revalidate: 30 }
+          next: { revalidate: 0 }
         })
         : apiClient.get(endpoint).then(r => r.data);
     },

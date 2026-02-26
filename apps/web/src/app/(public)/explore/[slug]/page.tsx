@@ -13,7 +13,7 @@ export const metadata = {
 async function getProject(slug: string) {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${slug}`, {
-      next: { revalidate: 60 }, // Public cache revalidation
+      next: { revalidate: 0 }, // Logic: Set to 0 to ensure givers see real-time ledger updates
     });
     if (!res.ok) return null;
     return res.json();
