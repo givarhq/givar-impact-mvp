@@ -89,7 +89,7 @@ export function Header({ user }: { user: any }) {
             </Link>
           </div>
 
-          <h1 className="hidden md:block text-lg lg:text-xl font-semibold text-foreground truncate">
+          <h1 className="hidden md:block text-lg font-semibold text-foreground truncate">
             {currentTitle}
           </h1>
         </div>

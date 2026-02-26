@@ -144,7 +144,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
     return (
         <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 max-w-[1600px] mx-auto">
             <div className="md:hidden">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Ledger Oversight</h1>
+                <h1 className="text-lg font-bold tracking-tight text-foreground">Ledger Oversight</h1>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

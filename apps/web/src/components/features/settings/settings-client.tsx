@@ -102,7 +102,7 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
         <div className="w-full space-y-4 md:space-y-0">
             {!activeTab && (
                 <div className="md:hidden">
-                    <h1 className="text-xl font-bold tracking-tight text-foreground">Settings</h1>
+                    <h1 className="text-lg font-bold tracking-tight text-foreground">Settings</h1>
                 </div>
             )}
 

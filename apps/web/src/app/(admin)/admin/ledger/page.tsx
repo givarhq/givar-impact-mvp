@@ -3,7 +3,7 @@ import { ApiService } from '../../../../services/api';
 import { LedgerOversightClient } from '../../../../components/features/admin/ledger-oversight-client';
 
 export const metadata = {
-  title: 'Ledger oversight',
+  title: 'Ledger Oversight',
   description: 'Financial monitoring & manual reconciliation tools.',
 };
 

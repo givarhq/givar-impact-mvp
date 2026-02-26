@@ -252,7 +252,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         >
                             <ArrowLeft className="h-3 w-3 mr-2 transition-transform group-hover:-translate-x-1" /> Back To Ledger
                         </button>
-                        <h1 className="text-xl font-bold tracking-tight text-foreground">Reallocate Orphaned Funds</h1>
+                        <h1 className="text-lg font-bold tracking-tight text-foreground">Reallocate Orphaned Funds</h1>
                         <div className="flex items-center gap-4">
                             <Badge variant="outline" className="font-mono text-[10px] py-1 px-3 rounded-3xl border-border/50 bg-muted/20 shadow-inner">
                                 Ref: {transaction.reference}

@@ -37,7 +37,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/verifications': 'Verifications',
   '/admin/ledger': 'Ledger Oversight',
   '/admin/organizations': 'Organizations',
-  '/admin/settings': 'System Settings',
+  '/admin/settings': 'Settings',
   '/admin/finances': 'Treasury Intelligence',
 };
 
@@ -81,7 +81,7 @@ export function AdminHeader({ user }: { user: any }) {
       <div className="flex items-center justify-between w-full gap-4">
 
         <div className="flex items-center min-w-0">
-          <h1 className="text-lg md:text-xl font-semibold text-foreground hidden md:block truncate">
+          <h1 className="text-lg font-semibold text-foreground hidden md:block truncate">
             {currentTitle}
           </h1>
 

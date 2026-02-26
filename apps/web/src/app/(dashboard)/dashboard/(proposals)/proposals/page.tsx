@@ -21,7 +21,7 @@ export default async function MyProposalsPage() {
     <div className="space-y-4 md:space-y-6 w-full min-w-0 animate-in fade-in duration-500">
       {/* Mobile Title */}
       <div className="md:hidden px-1">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">My Causes</h1>
+        <h1 className="text-lg font-bold tracking-tight text-foreground">My Causes</h1>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">

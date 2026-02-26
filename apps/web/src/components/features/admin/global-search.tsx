@@ -153,7 +153,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                             <X className="h-3.5 w-3.5" />
                         </button>
                     ) : (
-                        <div className="flex items-center gap-1 bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[10px] text-muted-foreground font-bold shadow-sm">
+                        <div className="flex items-center gap-1 bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[10px] text-muted-foreground font-semibold shadow-sm">
                             <CornerDownLeft className="h-3 w-3" />
                         </div>
                     )}
@@ -182,7 +182,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                             key={f.id}
                                             onClick={() => setActiveFilter(f.id)}
                                             className={cn(
-                                                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-3xl text-[11px] font-bold transition-all whitespace-nowrap border shrink-0",
+                                                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-3xl text-[11px] font-semibold transition-all whitespace-nowrap border shrink-0",
                                                 activeFilter === f.id
                                                     ? "bg-primary text-white border-primary shadow-md scale-105"
                                                     : "bg-background border-border/60 text-muted-foreground hover:text-foreground hover:border-border"
@@ -209,7 +209,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                         <Search className="h-6 w-6 opacity-20" />
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-sm font-bold text-foreground">No Matches Identified</p>
+                                        <p className="text-sm font-semibold text-foreground">No Matches Identified</p>
                                         <p className="text-xs font-medium opacity-60">Try searching by full name, email address, or reference ID</p>
                                     </div>
                                 </div>
@@ -232,7 +232,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-0.5">
-                                                            <span className="font-bold text-sm text-foreground">{user.firstName} {user.lastName}</span>
+                                                            <span className="font-semibold text-sm text-foreground">{user.firstName} {user.lastName}</span>
                                                             <Badge variant="secondary" className={cn(
                                                                 "text-[9px] px-2 py-0 rounded-full font-black tracking-wider shadow-none border-none",
                                                                 user.role === 'ADMIN' || user.role === 'SUPERADMIN' ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
@@ -265,11 +265,11 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between gap-4">
-                                                            <span className="font-bold text-sm text-foreground truncate">{project.title}</span>
+                                                            <span className="font-semibold text-sm text-foreground truncate">{project.title}</span>
                                                             <SmartCurrency amount={project.raisedAmount.toString()} currency={project.currency} visible={true} size="small" className="shrink-0" />
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-1">
-                                                            <Badge variant="outline" className="text-[9px] h-4.5 px-2 font-bold tracking-tight rounded-full bg-background border-border/60 shadow-none ">{project.status}</Badge>
+                                                            <Badge variant="outline" className="text-[9px] h-4.5 px-2 font-semibold tracking-tight rounded-full bg-background border-border/60 shadow-none ">{project.status}</Badge>
                                                             <span className="text-[10px] text-muted-foreground font-mono truncate opacity-60">Ref: {project.slug.split('-')[0]}</span>
                                                         </div>
                                                     </div>
@@ -294,9 +294,9 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                                         <FileText className="h-4.5 w-4.5" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="font-bold text-sm text-foreground truncate block">{prop.title || 'Untitled Draft'}</span>
+                                                        <span className="font-semibold text-sm text-foreground truncate block">{prop.title || 'Untitled Draft'}</span>
                                                         <div className="flex items-center gap-2 mt-1">
-                                                            <Badge variant="outline" className="text-[9px] h-4.5 px-2 border-purple-500/20 bg-purple-500/5 text-purple-600 font-bold rounded-full ">{prop.status}</Badge>
+                                                            <Badge variant="outline" className="text-[9px] h-4.5 px-2 border-purple-500/20 bg-purple-500/5 text-purple-600 font-semibold rounded-full ">{prop.status}</Badge>
                                                             <span className="text-[10px] text-muted-foreground font-medium">{prop.category?.name || 'Uncategorized'}</span>
                                                         </div>
                                                     </div>
@@ -322,8 +322,8 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between gap-3">
-                                                            <span className="font-bold text-sm text-foreground block truncate">{org.legalName}</span>
-                                                            <Badge variant="outline" className="text-[9px] h-4.5 px-2 font-bold rounded-full shadow-none border-border/60 ">{org.status}</Badge>
+                                                            <span className="font-semibold text-sm text-foreground block truncate">{org.legalName}</span>
+                                                            <Badge variant="outline" className="text-[9px] h-4.5 px-2 font-semibold rounded-full shadow-none border-border/60 ">{org.status}</Badge>
                                                         </div>
                                                         <span className="text-[10px] font-mono text-muted-foreground font-medium mt-0.5 block">Reg: {org.registrationNumber || 'No Data Identified'}</span>
                                                     </div>
@@ -352,7 +352,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between gap-4">
-                                                            <span className="font-mono text-xs font-bold text-foreground truncate">{tx.reference}</span>
+                                                            <span className="font-mono text-xs font-semibold text-foreground truncate">{tx.reference}</span>
                                                             <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" className="shrink-0" />
                                                         </div>
                                                         <p className="text-[11px] text-muted-foreground truncate mt-1 font-medium italic opacity-80">{tx.description || 'System Ledger Transfer'}</p>
@@ -379,8 +379,8 @@ export const GlobalSearch = memo(function GlobalSearch() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex justify-between items-center gap-2">
-                                                            <span className="font-bold text-xs text-foreground truncate">{log.action.replace(/_/g, ' ')}</span>
-                                                            <span className="text-[9px] font-bold text-muted-foreground whitespace-nowrap">{formatDate(log.createdAt).split(',')[0]}</span>
+                                                            <span className="font-semibold text-xs text-foreground truncate">{log.action.replace(/_/g, ' ')}</span>
+                                                            <span className="text-[9px] font-semibold text-muted-foreground whitespace-nowrap">{formatDate(log.createdAt).split(',')[0]}</span>
                                                         </div>
                                                         <p className="text-[10px] font-mono text-muted-foreground truncate mt-1">
                                                             {log.entityType} Node • {log.ipAddress}
@@ -395,7 +395,7 @@ export const GlobalSearch = memo(function GlobalSearch() {
                         </div>
 
                         <div className="p-3 bg-muted/20 border-t border-border/40 text-center">
-                            <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">
+                            <p className="text-[10px] font-semibold text-muted-foreground tracking-widest ">
                                 System Consensus Database Scanned
                             </p>
                         </div>

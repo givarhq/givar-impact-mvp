@@ -32,7 +32,7 @@ export default async function AdminFinancesPage({
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Page Identity (Mobile Only) */}
             <div className="md:hidden px-1">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Treasury Intelligence</h1>
+                <h1 className="text-lg font-bold tracking-tight text-foreground">Treasury Intelligence</h1>
             </div>
 
             <FinanceReportClient

@@ -87,7 +87,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                     </div>
                     <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
-                            <h1 className="text-xl font-bold tracking-tight text-foreground truncate max-w-full">{profile.legalName}</h1>
+                            <h1 className="text-lg font-bold tracking-tight text-foreground truncate max-w-full">{profile.legalName}</h1>
                             <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[10px] tracking-widest border  shrink-0", statusColor)}>
                                 {profile.status}
                             </Badge>

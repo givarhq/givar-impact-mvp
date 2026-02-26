@@ -78,7 +78,7 @@ export const UserFilters = memo(function UserFilters() {
         <div className="space-y-4 md:space-y-6">
             <div className="flex items-center justify-between gap-4 w-full relative min-h-[40px]">
                 <div className="flex items-center gap-6 flex-1 min-w-0">
-                    <h1 className="md:hidden text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
+                    <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
                         Users
                     </h1>
 

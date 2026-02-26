@@ -144,7 +144,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                             <X className="h-4 w-4" />
                         </button>
                     ) : (
-                        <div className="bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[11px] text-muted-foreground font-bold flex items-center gap-1 shadow-sm tracking-tighter">
+                        <div className="bg-background border border-border/60 px-2 py-0.5 rounded-3xl text-[11px] text-muted-foreground font-semibold flex items-center gap-1 shadow-sm tracking-tighter">
                             <CornerDownLeft className="h-3 w-3" />
                         </div>
                     )}
@@ -171,7 +171,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                             key={f.id}
                                             onClick={() => setActiveFilter(f.id)}
                                             className={cn(
-                                                "flex items-center gap-1.5 px-4 py-1.5 rounded-3xl text-xs font-bold transition-all whitespace-nowrap border shrink-0",
+                                                "flex items-center gap-1.5 px-4 py-1.5 rounded-3xl text-xs font-semibold transition-all whitespace-nowrap border shrink-0",
                                                 activeFilter === f.id
                                                     ? "bg-primary text-white border-primary shadow-sm"
                                                     : "bg-background border-border/60 text-muted-foreground hover:text-foreground"
@@ -193,7 +193,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                         <Compass className="h-7 w-7 opacity-20" />
                                     </div>
                                     <div className="space-y-1">
-                                        <p className="text-sm font-bold text-foreground">We Couldn't Find Any Matches</p>
+                                        <p className="text-sm font-semibold text-foreground">We Couldn't Find Any Matches</p>
                                         <p className="text-xs font-medium opacity-60 max-w-[240px] mx-auto">Try searching for a different cause title, location, or transaction ID.</p>
                                     </div>
                                 </div>
@@ -201,14 +201,14 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                 <div className="space-y-4 pb-2 min-w-0">
                                     {activeFilter === 'all' && displayData.navigation.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">Shortcuts</div>
+                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Shortcuts</div>
                                             {displayData.navigation.map((nav, i) => (
                                                 <button key={i} onClick={() => handleNavigate(nav.path)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left group min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-inner">
                                                         <Settings className="h-5 w-5" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="font-bold text-sm text-foreground group-hover:text-primary transition-colors block truncate">{nav.label}</span>
+                                                        <span className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors block truncate">{nav.label}</span>
                                                     </div>
                                                     <ChevronRight className="h-4 w-4 text-muted-foreground opacity-20 group-hover:opacity-100 transition-all shrink-0" />
                                                 </button>
@@ -218,16 +218,16 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
 
                                     {displayData.projects.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">Verified Causes</div>
+                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Verified Causes</div>
                                             {displayData.projects.map(p => (
                                                 <button key={p.id} onClick={() => handleNavigate(`/dashboard/impact/${p.slug}`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
                                                         <Compass className="h-5 w-5" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="font-bold text-sm text-foreground truncate block group-hover:text-primary">{p.title}</span>
+                                                        <span className="font-semibold text-sm text-foreground truncate block group-hover:text-primary">{p.title}</span>
                                                         <div className="flex items-center gap-1.5 mt-0.5">
-                                                            <span className="text-[11px] text-muted-foreground font-bold tracking-tighter">Goal:</span>
+                                                            <span className="text-[11px] text-muted-foreground font-semibold tracking-tighter">Goal:</span>
                                                             <SmartCurrency amount={p.targetAmount.toString()} currency={p.currency} visible={true} size="small" />
                                                         </div>
                                                     </div>
@@ -238,15 +238,15 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
 
                                     {displayData.proposals.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">My Proposals</div>
+                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">My Proposals</div>
                                             {displayData.proposals.map(p => (
                                                 <button key={p.id} onClick={() => handleNavigate(`/dashboard/proposals/edit/${p.id}/hook`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0 shadow-inner">
                                                         <FileText className="h-5 w-5" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="font-bold text-sm text-foreground truncate block">{p.title || 'Untitled Draft'}</span>
-                                                        <Badge variant="outline" className="text-[11px] h-5 mt-1 px-2 font-bold rounded-3xl border-purple-500/20 bg-purple-500/5 shadow-none">{p.status}</Badge>
+                                                        <span className="font-semibold text-sm text-foreground truncate block">{p.title || 'Untitled Draft'}</span>
+                                                        <Badge variant="outline" className="text-[11px] h-5 mt-1 px-2 font-semibold rounded-3xl border-purple-500/20 bg-purple-500/5 shadow-none">{p.status}</Badge>
                                                     </div>
                                                 </button>
                                             ))}
@@ -255,7 +255,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
 
                                     {displayData.transactions.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">Transaction History</div>
+                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Transaction History</div>
                                             {displayData.transactions.map(tx => (
                                                 <button key={tx.id} onClick={() => handleNavigate(`/dashboard/history`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-secondary text-foreground flex items-center justify-center shrink-0 border border-border/40 shadow-inner">
@@ -263,7 +263,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex justify-between items-center gap-4">
-                                                            <span className="font-mono text-xs font-bold text-foreground truncate">ID: {tx.reference.slice(0, 8)}...</span>
+                                                            <span className="font-mono text-xs font-semibold text-foreground truncate">ID: {tx.reference.slice(0, 8)}...</span>
                                                             <SmartCurrency amount={tx.amount.toString()} currency={tx.currency} visible={true} size="small" className="shrink-0" />
                                                         </div>
                                                         <p className="text-xs text-muted-foreground truncate font-medium">{tx.description}</p>
@@ -275,15 +275,15 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
 
                                     {displayData.subscriptions.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">Recurring Support</div>
+                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Recurring Support</div>
                                             {displayData.subscriptions.map(s => (
                                                 <button key={s.id} onClick={() => handleNavigate(`/dashboard/subscriptions`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left group min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
                                                         <Repeat className="h-5 w-5" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="font-bold text-sm text-foreground truncate block group-hover:text-primary">{s.project.title}</span>
-                                                        <p className="text-xs text-muted-foreground font-bold tracking-tight">{s.interval} Contribution</p>
+                                                        <span className="font-semibold text-sm text-foreground truncate block group-hover:text-primary">{s.project.title}</span>
+                                                        <p className="text-xs text-muted-foreground font-semibold tracking-tight">{s.interval} Contribution</p>
                                                     </div>
                                                 </button>
                                             ))}
@@ -292,14 +292,14 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
 
                                     {displayData.auditLogs.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-bold tracking-widest text-muted-foreground/60">Account Activity</div>
+                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Account Activity</div>
                                             {displayData.auditLogs.map(log => (
                                                 <button key={log.id} onClick={() => handleNavigate(`/dashboard/settings?tab=activity`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-zinc-500/10 text-zinc-600 flex items-center justify-center shrink-0 shadow-inner">
                                                         <History className="h-5 w-5" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <span className="font-bold text-sm text-foreground block truncate group-hover:text-primary">{log.action.replace(/_/g, ' ')}</span>
+                                                        <span className="font-semibold text-sm text-foreground block truncate group-hover:text-primary">{log.action.replace(/_/g, ' ')}</span>
                                                         <span className="text-xs text-muted-foreground font-medium">{formatDate(log.createdAt)}</span>
                                                     </div>
                                                 </button>

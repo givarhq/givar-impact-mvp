@@ -120,7 +120,7 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
                         <DialogTrigger asChild>
                             <Button variant="outline" className="rounded-3xl h-11 px-5 font-bold text-xs gap-2 border-border/60 bg-background hover:bg-muted transition-all active:scale-95">
                                 <Plus className="h-4 w-4" />
-                                <span>Filter By Sectors</span>
+                                <span>Filter by Sectors</span>
                                 {selectedCategories.length > 0 && (
                                     <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center rounded-full bg-primary text-white border-0 text-[10px] font-black">
                                         {selectedCategories.length}

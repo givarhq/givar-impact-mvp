@@ -5,6 +5,11 @@ import { Pagination } from '../../../../components/features/history/pagination';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+    title: 'Verifications',
+    description: 'Impact evidence & KYC verifications.',
+};
+
 export default async function AdminVerificationPage({
     searchParams,
 }: {

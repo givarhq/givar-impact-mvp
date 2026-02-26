@@ -129,7 +129,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     </div>
                     <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h1 className="text-lg md:text-xl font-bold tracking-tight text-foreground truncate max-w-full leading-tight">
+                            <h1 className="text-lg font-bold tracking-tight text-foreground truncate max-w-full leading-tight">
                                 {proposal.title || 'Untitled Project Proposal'}
                             </h1>
                             <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px] tracking-wider border shrink-0", statusColor)}>

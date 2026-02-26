@@ -43,7 +43,7 @@ export default async function AdminSettingsPage() {
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             <div className="px-1 md:hidden">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">Settings</h1>
+                <h1 className="text-lg font-bold tracking-tight text-foreground">Settings</h1>
             </div>
 
             <div className="w-full min-w-0">

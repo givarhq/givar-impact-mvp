@@ -30,7 +30,7 @@ export default async function NewProjectPage() {
         </Link>
 
         <div className="md:hidden">
-          <h1 className="text-xl font-bold tracking-tight text-foreground">Create new project</h1>
+          <h1 className="text-lg font-bold tracking-tight text-foreground">Create new project</h1>
         </div>
       </div>
 

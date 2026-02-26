@@ -150,7 +150,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                         <Dialog open={showModal} onOpenChange={setShowModal}>
                             <DialogTrigger asChild>
                                 <Button className="w-auto px-8 mx-auto flex h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0">
-                                    <Lock className="h-4 w-4 mr-2" /> Modify Financial Protocol
+                                    <Lock className="h-4 w-4 mr-2" /> Modify Fee Protocol
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card">
@@ -221,10 +221,10 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                                     <div className="grid grid-cols-1 gap-3">
                                         <Button
-    onClick={handleUpdate}
-    disabled={isUpdating || !password || percentage === ''}
-    className="w-auto px-8 mx-auto flex h-12 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
->
+                                            onClick={handleUpdate}
+                                            disabled={isUpdating || !password || percentage === ''}
+                                            className="w-auto px-8 mx-auto flex h-12 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
+                                        >
                                             {isUpdating ? <Loader2 className="animate-spin h-5 w-5" /> : 'Confirm Changes'}
                                         </Button>
                                         <Button

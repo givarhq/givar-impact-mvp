@@ -52,7 +52,7 @@ export default async function EditProjectPage({
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-bold tracking-tight text-foreground md:hidden truncate">
+              <h1 className="text-lg font-bold tracking-tight text-foreground md:hidden truncate">
                 {project.title}
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
