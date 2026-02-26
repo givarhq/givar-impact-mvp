@@ -39,4 +39,28 @@ export class AuditController {
       endDate
     });
   }
+
+  @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
+  @Get('export')
+  async exportLogs(
+    @Query('userId') userId?: string,
+    @Query('search') search?: string,
+    @Query('action') action?: AuditAction,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Res() res?: Response,
+  ) {
+    const csv = await this.auditService.exportLogs({
+      userId,
+      search,
+      action,
+      startDate,
+      endDate
+    });
+    const timestamp = new Date().toISOString().split('T')[0];
+
+    res!.header('Content-Type', 'text/csv');
+    res!.attachment(`givar-audit-logs-${timestamp}.csv`);
+    return res!.send(csv);
+  }
 }

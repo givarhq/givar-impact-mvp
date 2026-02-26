@@ -334,6 +334,11 @@ export const ApiService = {
     getAuditSummary: (token: string) =>
       serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token, { next: { revalidate: 60 } }),
 
+    exportAuditLogs: (params: URLSearchParams) =>
+      apiClient.get(`/admin/audit/export?${params.toString()}`, {
+        responseType: 'blob',
+      }),
+
     getProposals: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: any[]; meta: any }>(`/admin/proposals?${params.toString()}`, token, { tags: ['admin-proposals'] }),
 

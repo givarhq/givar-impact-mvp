@@ -17,7 +17,7 @@ interface CreateLogParams {
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async log(params: CreateLogParams, tx?: Prisma.TransactionClient) {
     const { userId, action, entityId, entityType, metadata, req } = params;
@@ -46,14 +46,14 @@ export class AuditService {
       });
     } catch (error) {
       this.logger.error(`Failed to write audit log for ${action}`, error);
-      if (tx) throw error; 
+      if (tx) throw error;
     }
   }
 
   // Advanced Filtering & Pagination
-  async getLogs(query: { 
-    page?: number; 
-    limit?: number; 
+  async getLogs(query: {
+    page?: number;
+    limit?: number;
     userId?: string;
     action?: AuditAction;
     search?: string;
@@ -92,13 +92,13 @@ export class AuditService {
       this.prisma.auditLog.count({ where }),
     ]);
 
-    return { 
-        data: logs, 
-        meta: { 
-            total, 
-            page, 
-            lastPage: Math.ceil(total / limit) 
-        } 
+    return {
+      data: logs,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit)
+      }
     };
   }
 
@@ -108,30 +108,81 @@ export class AuditService {
     const last24h = subHours(now, 24);
 
     const [total24h, failedLogins24h, highRisk24h] = await Promise.all([
-        // 1. Volume
-        this.prisma.auditLog.count({
-            where: { createdAt: { gte: last24h } }
-        }),
-        // 2. Security Threats
-        this.prisma.auditLog.count({
-            where: { 
-                action: 'USER_LOGIN_FAILED',
-                createdAt: { gte: last24h } 
-            }
-        }),
-        // 3. Admin/Sensitive Actions
-        this.prisma.auditLog.count({
-            where: {
-                action: { in: ['PROJECT_DELETED', 'PROJECT_SUSPENDED', 'WALLET_DEBIT'] },
-                createdAt: { gte: last24h }
-            }
-        })
+      // 1. Volume
+      this.prisma.auditLog.count({
+        where: { createdAt: { gte: last24h } }
+      }),
+      // 2. Security Threats
+      this.prisma.auditLog.count({
+        where: {
+          action: 'USER_LOGIN_FAILED',
+          createdAt: { gte: last24h }
+        }
+      }),
+      // 3. Admin/Sensitive Actions
+      this.prisma.auditLog.count({
+        where: {
+          action: { in: ['PROJECT_DELETED', 'PROJECT_SUSPENDED', 'WALLET_DEBIT'] },
+          createdAt: { gte: last24h }
+        }
+      })
     ]);
 
     return {
-        total24h,
-        failedLogins24h,
-        highRisk24h
+      total24h,
+      failedLogins24h,
+      highRisk24h
     };
+  }
+
+  async exportLogs(query: {
+    userId?: string;
+    action?: AuditAction;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const { userId, action, search, startDate, endDate } = query;
+
+    const where: Prisma.AuditLogWhereInput = {
+      ...(userId && { userId }),
+      ...(action && { action }),
+      ...(startDate && endDate && {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      }),
+      ...(search && {
+        OR: [
+          { ipAddress: { contains: search, mode: 'insensitive' } },
+          { entityId: { contains: search, mode: 'insensitive' } },
+          { user: { email: { contains: search, mode: 'insensitive' } } },
+        ],
+      }),
+    };
+
+    const logs = await this.prisma.auditLog.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { user: { select: { email: true, firstName: true, lastName: true } } },
+    });
+
+    const flattened = logs.map(log => ({
+      ID: log.id,
+      Timestamp: log.createdAt.toISOString(),
+      Actor_Email: log.user?.email || 'System / Anonymous',
+      Actor_Name: log.user ? `${log.user.firstName} ${log.user.lastName}` : 'N/A',
+      Action: log.action,
+      Target_Type: log.entityType || 'N/A',
+      Target_ID: log.entityId || 'N/A',
+      IP_Address: log.ipAddress || 'N/A',
+      User_Agent: log.userAgent || 'N/A',
+      Metadata: JSON.stringify(log.metadata || {})
+    }));
+
+    if (flattened.length === 0) return 'ID,Timestamp,Actor_Email,Actor_Name,Action,Target_Type,Target_ID,IP_Address,User_Agent,Metadata';
+
+    return json2csv(flattened);
   }
 }
