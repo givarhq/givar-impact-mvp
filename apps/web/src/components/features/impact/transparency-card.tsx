@@ -23,6 +23,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const remaining = remainingMinor < 0n ? 0n : remainingMinor;
 
     const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
+    const displayWidth = `${percent}%`;
 
     const [expandedCard, setExpandedCard] = useState<'goal' | 'remaining' | null>(null);
     const [copied, setCopied] = useState(false);
@@ -78,9 +79,10 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 </div>
                 <div className="h-1.5 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
                     <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${percent}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
+                        initial={{ width: "0%" }}
+                        animate={{ width: displayWidth }}
+                        style={{ width: displayWidth }}
+                        transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                         className="h-full bg-primary rounded-3xl shadow-sm"
                     />
                 </div>
