@@ -13,7 +13,6 @@ import {
     FileText,
     Calendar,
     ExternalLink,
-    ArrowUp,
     Download,
     Loader2,
     CreditCard,
@@ -97,6 +96,26 @@ export const HistoryTable = memo(function HistoryTable({
 
         // Fallback
         return { label: 'Payment Method', method: 'Wallet Balance' };
+    };
+
+    // Financial Breakdown Helper
+    const getFinancialBreakdown = (tx: any) => {
+        if (!tx.financials) return null;
+
+        const base = BigInt(tx.financials.baseAmount);
+        const fee = BigInt(tx.financials.feeAmount);
+        const tip = BigInt(tx.financials.tipAmount);
+        const total = BigInt(tx.amount);
+
+        // Safety check to ensure math aligns
+        if (base + fee + tip !== total) return null;
+
+        return {
+            base: base.toString(),
+            fee: fee.toString(),
+            tip: tip.toString(),
+            feePercentage: tx.financials.feePercentage
+        };
     };
 
     if (transactions.length === 0) {
@@ -224,11 +243,31 @@ export const HistoryTable = memo(function HistoryTable({
                                     <FileText className="h-12 w-12" />
                                 </div>
                                 <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5">
-                                    {selectedTx.type === 'CREDIT' ? 'Amount Received' : 'Impact Value'}
+                                    {selectedTx.type === 'CREDIT' ? 'Amount Received' : 'Total Impact Value'}
                                 </p>
                                 <div className="max-w-full overflow-hidden leading-none">
                                     <SmartCurrency amount={selectedTx.amount} currency={selectedTx.currency} visible={true} size="large" className="text-foreground" />
                                 </div>
+
+                                {/* Financial Breakdown (If Available) */}
+                                {getFinancialBreakdown(selectedTx) && (
+                                    <div className="mt-4 pt-4 border-t border-border/40 space-y-2">
+                                        <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
+                                            <span>Project Impact</span>
+                                            <SmartCurrency amount={getFinancialBreakdown(selectedTx)!.base} currency={selectedTx.currency} visible={true} size="small" className="text-foreground" />
+                                        </div>
+                                        <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
+                                            <span>Platform Fee ({getFinancialBreakdown(selectedTx)!.feePercentage}%)</span>
+                                            <SmartCurrency amount={getFinancialBreakdown(selectedTx)!.fee} currency={selectedTx.currency} visible={true} size="small" className="text-foreground" />
+                                        </div>
+                                        {BigInt(getFinancialBreakdown(selectedTx)!.tip) > 0n && (
+                                            <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
+                                                <span>Optional Tip</span>
+                                                <SmartCurrency amount={getFinancialBreakdown(selectedTx)!.tip} currency={selectedTx.currency} visible={true} size="small" className="text-foreground" />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* --- HIDDEN RECEIPT GENERATION DOM --- */}
@@ -261,16 +300,41 @@ export const HistoryTable = memo(function HistoryTable({
                                         </div>
                                     </div>
                                     <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 mb-10">
-                                        <div className="flex justify-between items-center">
+                                        <div className="flex justify-between items-center mb-6">
                                             <div>
                                                 <p className="text-xs font-bold text-emerald-600 mb-1">Beneficiary Cause</p>
                                                 <p className="text-xl font-black">{selectedTx.project?.title || selectedTx.description}</p>
                                             </div>
+                                        </div>
+
+                                        {/* Updated Receipt Breakdown */}
+                                        {getFinancialBreakdown(selectedTx) ? (
+                                            <div className="space-y-3 pt-6 border-t border-emerald-200">
+                                                <div className="flex justify-between text-sm font-medium text-emerald-800">
+                                                    <span>Direct Project Impact</span>
+                                                    <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedTx)!.base, selectedTx.currency)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm font-medium text-emerald-800">
+                                                    <span>Platform Fee ({getFinancialBreakdown(selectedTx)!.feePercentage}%)</span>
+                                                    <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedTx)!.fee, selectedTx.currency)}</span>
+                                                </div>
+                                                {BigInt(getFinancialBreakdown(selectedTx)!.tip) > 0n && (
+                                                    <div className="flex justify-between text-sm font-medium text-emerald-800">
+                                                        <span>Platform Tip</span>
+                                                        <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedTx)!.tip, selectedTx.currency)}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-center pt-4 border-t border-emerald-200 mt-2">
+                                                    <span className="text-sm font-bold text-emerald-900">Total Contribution</span>
+                                                    <span className="text-2xl font-black text-emerald-700">{formatCurrency(selectedTx.amount, selectedTx.currency)}</span>
+                                                </div>
+                                            </div>
+                                        ) : (
                                             <div className="text-right">
                                                 <p className="text-xs font-bold text-emerald-600 mb-1">Amount</p>
                                                 <p className="text-3xl font-black text-emerald-700">{formatCurrency(selectedTx.amount, selectedTx.currency)}</p>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                     <div className="pt-10 border-t border-slate-100 flex justify-between items-center">
                                         <div className="flex items-center gap-3">

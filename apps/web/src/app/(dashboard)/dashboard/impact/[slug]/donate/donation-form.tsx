@@ -1,5 +1,3 @@
-// apps/web/src/app/(dashboard)/dashboard/impact/[slug]/donate/donation-form.tsx
-
 'use client';
 
 import { useState, useEffect } from 'react';
