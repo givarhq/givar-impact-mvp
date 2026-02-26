@@ -320,15 +320,6 @@ export class WalletService {
           feePercentageUsed: true,
           project: { select: { title: true, slug: true } }
         },
-      },
-      guestDonation: { // Include Guest Donations for unified history if we link them later
-        select: {
-          baseAmount: true,
-          feeAmount: true,
-          tipAmount: true,
-          feePercentageUsed: true,
-          project: { select: { title: true, slug: true } }
-        }
       }
     };
 
@@ -344,9 +335,8 @@ export class WalletService {
     ]);
 
     const enhanced = transactions.map((tx) => {
-      // Normalize whether it came from Donation or GuestDonation (future proofing)
-      const context = tx.donation || tx.guestDonation;
-
+      const context = tx.donation;
+      
       return {
         ...tx,
         isDonation: !!context,
