@@ -37,7 +37,7 @@ const KPICard = memo(function KPICard({ title, value, subValue, icon: Icon, colo
                     )}>
                         <Icon className="h-5 w-5" />
                     </div>
-                    <p className="text-xs font-bold text-muted-foreground truncate">
+                    <p className="text-xs font-bold text-muted-foreground line-clamp-2 leading-tight">
                         {title}
                     </p>
                 </div>
@@ -121,7 +121,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         <KPICard
                             title="Capital Committed"
                             value={report.overview.committedCapital}
-                            subValue="Assigned To Active Causes"
+                            subValue="Assigned to Active Causes"
                             icon={TrendingUp}
                             color="text-primary"
                             bg="bg-primary/10"
@@ -130,7 +130,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         <KPICard
                             title="Capital Deployed"
                             value={report.overview.deployedCapital}
-                            subValue="Transferred To Verified Vendors"
+                            subValue="Transferred to Verified Vendors"
                             icon={ArrowUpRight}
                             color="text-emerald-500"
                             bg="bg-emerald-500/10"
@@ -139,7 +139,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         <KPICard
                             title="Efficiency Ratio"
                             value={`${report.overview.efficiencyRatio.toFixed(1)}%`}
-                            subValue="Inflow To Deployment Ratio"
+                            subValue="Inflow to Deployment Ratio"
                             icon={Activity}
                             color="text-purple-500"
                             bg="bg-purple-500/10"

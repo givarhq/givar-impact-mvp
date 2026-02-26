@@ -127,21 +127,21 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
             <Card
                 onClick={onClick}
                 className={cn(
-                    "relative p-3.5 md:p-5 bg-card overflow-hidden rounded-3xl transition-all duration-300 group h-full flex flex-col justify-between",
-                    "border-border/40 shadow-sm",
-                    onClick && "cursor-pointer hover:shadow-md hover:border-primary/20",
+                    "relative p-5 bg-card overflow-hidden rounded-3xl transition-all duration-300 group h-full flex flex-col justify-between",
+                    "border-border/40 shadow-sm hover:shadow-md",
+                    onClick && "cursor-pointer hover:border-primary/20",
                     highlight && "ring-2 ring-primary/10 bg-primary/[0.01]"
                 )}
             >
                 <div className="relative z-10 space-y-3 md:space-y-4">
-                    <div className="flex items-center gap-2.5 md:gap-3">
+                    <div className="flex items-center gap-3 mb-4">
                         <div className={cn(
-                            "h-8 w-8 md:h-9 md:w-9 rounded-2xl flex items-center justify-center shadow-sm border border-transparent shrink-0",
+                            "h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner shrink-0 transition-transform group-hover:scale-110",
                             bg, color
                         )}>
-                            <Icon className="h-4 md:h-4.5 w-4 md:w-4.5" />
+                            <Icon className="h-5 w-5" />
                         </div>
-                        <p className="text-xs md:text-sm font-bold text-muted-foreground/80 leading-tight">
+                        <p className="text-xs font-bold text-muted-foreground line-clamp-2 leading-tight">
                             {title}
                         </p>
                     </div>

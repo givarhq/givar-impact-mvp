@@ -67,16 +67,16 @@ function SummaryCard({ label, value, subValue, icon: Icon, color, bg, delay }: a
       whileHover={{ y: -2, transition: { duration: 0.2 } }}
       className="h-full min-w-0"
     >
-      <Card className="relative p-3.5 md:p-5 bg-card overflow-hidden rounded-3xl transition-all duration-300 group h-full flex flex-col justify-between border-border/40 shadow-sm">
+      <Card className="relative p-5 bg-card overflow-hidden rounded-3xl transition-all duration-300 group h-full flex flex-col justify-between border-border/40 shadow-sm hover:shadow-md">
         <div className="relative z-10 space-y-3 md:space-y-4 min-w-0">
-          <div className="flex items-center gap-2.5 md:gap-3 min-w-0">
+          <div className="flex items-center gap-3 mb-4 min-w-0">
             <div className={cn(
-              "h-8 w-8 md:h-9 md:w-9 rounded-2xl flex items-center justify-center shadow-sm border border-transparent shrink-0 transition-transform group-hover:scale-110",
+              "h-10 w-10 rounded-2xl flex items-center justify-center shadow-inner shrink-0 transition-transform group-hover:scale-110",
               bg, color
             )}>
-              <Icon className="h-4 md:h-4.5 w-4 md:w-4.5" />
+              <Icon className="h-5 w-5" />
             </div>
-            <p className="text-xs md:text-sm font-bold text-muted-foreground/80 leading-tight truncate">
+            <p className="text-xs font-bold text-muted-foreground line-clamp-2 leading-tight">
               {label}
             </p>
           </div>
