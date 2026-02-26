@@ -166,7 +166,7 @@ export const CategoryBrowser = memo(function CategoryBrowser({ categories, selec
                 ref={scrollRef}
                 onScroll={checkScroll}
                 role="tablist"
-                className="flex gap-2 overflow-x-auto pb-1 px-1 scroll-smooth w-full touch-pan-x min-w-0 no-scrollbar"
+                className="flex gap-2 overflow-x-auto pb-1 px-1 scroll-smooth w-full touch-pan-x touch-pan-y min-w-0 no-scrollbar"
                 style={{ scrollbarGutter: 'stable' }}
             >
                 {allCategories.map((cat, index) => {
