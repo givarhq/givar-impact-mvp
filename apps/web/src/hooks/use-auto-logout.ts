@@ -46,36 +46,33 @@ export function useAutoLogout() {
         const token = getCookie('givar_token');
         if (!token) return;
 
-        // Initialize activity timestamp
-        recordActivity();
-
-        // Standard interaction listeners
-        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-
-        const handleInteraction = () => {
-            recordActivity();
-        };
-
-        events.forEach(event => {
-            window.addEventListener(event, handleInteraction);
-        });
-
-        // Forensic Watcher: Check every 10 seconds if the threshold has been crossed
-        checkInterval.current = setInterval(() => {
+        // Logic: Deterministic Check (Mount & Tab Focus)
+        // Ensures that if a user returns to a dormant tab, they are booted immediately 
+        // if the threshold was crossed while the tab was backgrounded.
+        const checkExpiry = () => {
             const lastActivity = localStorage.getItem(ACTIVITY_STORAGE_KEY);
-
             if (lastActivity) {
                 const diff = Date.now() - parseInt(lastActivity, 10);
-                if (diff >= INACTIVITY_LIMIT) {
-                    performLogout('inactivity');
-                }
+                if (diff >= INACTIVITY_LIMIT) performLogout('inactivity');
             }
-        }, 10000);
+        };
+
+        checkExpiry();
+        recordActivity();
+
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        const handleInteraction = () => recordActivity();
+
+        events.forEach(event => window.addEventListener(event, handleInteraction));
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') checkExpiry();
+        });
+
+        checkInterval.current = setInterval(checkExpiry, 10000);
 
         return () => {
-            events.forEach(event => {
-                window.removeEventListener(event, handleInteraction);
-            });
+            events.forEach(event => window.removeEventListener(event, handleInteraction));
+            document.removeEventListener('visibilitychange', checkExpiry);
             if (checkInterval.current) clearInterval(checkInterval.current);
         };
     }, [performLogout, recordActivity]);
