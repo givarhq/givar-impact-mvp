@@ -19,7 +19,7 @@ export const UserFilters = memo(function UserFilters() {
     const [role, setRole] = useState(searchParams.get('role') || 'all');
     const [type, setType] = useState(searchParams.get('accountType') || 'all');
     const [isExporting, setIsExporting] = useState(false);
-    const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+    const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
     useEffect(() => {
         if (search === (searchParams.get('search') || '') &&
@@ -37,7 +37,7 @@ export const UserFilters = memo(function UserFilters() {
 
         const timeout = setTimeout(() => {
             if (params.toString() !== searchParams.toString()) {
-                router.replace(`?${params.toString()}`);
+                router.replace(`?${params.toString()}`, { scroll: false });
             }
         }, 400);
 

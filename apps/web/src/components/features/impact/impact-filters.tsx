@@ -22,7 +22,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
   const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
-  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
   useEffect(() => {
     if (search === (searchParams.get('search') || '') &&
@@ -39,7 +39,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
 
     const timeout = setTimeout(() => {
       if (params.toString() !== searchParams.toString()) {
-        router.push(`?${params.toString()}`);
+        router.replace(`?${params.toString()}`, { scroll: false });
       }
     }, 400);
 

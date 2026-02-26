@@ -18,7 +18,7 @@ export const AuditFilters = memo(function AuditFilters() {
   const [action, setAction] = useState(searchParams.get('action') || 'all');
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || '');
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || '');
-  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(false);
+  const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
   const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export const AuditFilters = memo(function AuditFilters() {
 
     const timeout = setTimeout(() => {
       if (params.toString() !== searchParams.toString()) {
-        router.replace(`?${params.toString()}`);
+        router.replace(`?${params.toString()}`, { scroll: false });
       }
     }, 400);
 
