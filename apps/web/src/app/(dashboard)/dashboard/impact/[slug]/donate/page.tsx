@@ -44,7 +44,7 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
 
       {/* Header Context */}
       <div className="flex flex-col gap-4 px-1 min-w-0">
-        <Link href={backLink} className="w-fit">
+        <Link href={backLink} className="w-fit" prefetch={false}>
           <Button variant="ghost" className="text-muted-foreground hover:text-foreground -ml-4 group rounded-3xl">
             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
             Back to details
