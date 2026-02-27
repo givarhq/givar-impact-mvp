@@ -13,6 +13,7 @@ import {
     Bar
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
+import { formatCurrency } from '../../../../lib/utils/format';
 
 interface FinancialTrendChartProps {
     data: Array<{ date: string; volume: string; donations: number }>;
@@ -110,11 +111,11 @@ export const FinancialTrendChart = memo(function FinancialTrendChart({
                 </div>
             </CardHeader>
 
-            <CardContent className="flex-1 px-6 pb-6">
+            <CardContent className="flex-1 px-1 sm:px-6 pb-6">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart
                         data={chartData}
-                        margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                        margin={{ top: 10, right: 5, left: -20, bottom: 0 }}
                     >
                         <CartesianGrid
                             stroke="hsl(var(--border))"
