@@ -1,15 +1,14 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
+    // Logic: Ensure DSN is explicitly referenced from public env to be available in browser
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-    // Logic: Only capture 10% of standard traces in production to save quota, 100% in dev
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
-    debug: false,
+    debug: process.env.NODE_ENV === "development",
     replaysOnErrorSampleRate: 1.0,
     replaysSessionSampleRate: 0.1,
     integrations: [
         Sentry.replayIntegration({
-            // Logic: Strictly mask all user data and text for forensic compliance
             maskAllText: true,
             blockAllMedia: true,
         }),

@@ -61,5 +61,7 @@ module.exports = withSentryConfig(
         hideSourceMaps: true,
         disableLogger: true,
         automaticVercelMonitors: true,
+        // Logic: Tunneling bypasses ad-blockers that often block Sentry ingest on the frontend
+        tunnelRoute: "/monitoring-tunnel",
     }
 );
