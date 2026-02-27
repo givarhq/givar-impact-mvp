@@ -25,7 +25,6 @@ export const DashboardHero = memo(function DashboardHero({ firstName, totalImpac
                     <p className="text-sm font-medium text-muted-foreground">
                         Welcome, <span className="text-foreground font-bold">{firstName}</span>
                     </p>
-                    <button onClick={() => { throw new Error("Frontend Sentry Test Crash"); }}>Test Crash</button>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1.5">
                             <BarChart3 className="h-3.5 w-3.5" />
