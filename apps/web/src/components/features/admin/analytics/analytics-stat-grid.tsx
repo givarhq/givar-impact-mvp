@@ -141,7 +141,7 @@ function StatCard({ title, value, subValue, icon: Icon, color, bg, highlight, on
                         )}>
                             <Icon className="h-5 w-5" />
                         </div>
-                        <p className="text-xs font-bold text-muted-foreground line-clamp-2 leading-tight">
+                        <p className="text-xs font-bold text-muted-foreground line-clamp-2 leading-tight flex-1 min-w-0 break-all sm:break-words">
                             {title}
                         </p>
                     </div>
