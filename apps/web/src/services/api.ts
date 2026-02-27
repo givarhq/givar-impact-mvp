@@ -413,8 +413,11 @@ export const ApiService = {
     triggerDustSweep: () =>
       apiClient.post('/admin/ledger/sweep').then(r => r.data),
 
-    getFinanceReport: (params: URLSearchParams) =>
-      apiClient.get(`/admin/finances/report?${params.toString()}`).then(r => r.data),
+    getFinanceReport: (token: string, params: URLSearchParams) =>
+      serverFetch<any>(`/admin/finances/report?${params.toString()}`, token, {
+        tags: ['admin-finance-report'],
+        next: { revalidate: 0 }
+      }),
 
     exportFinanceCsv: (params: URLSearchParams) =>
       apiClient.get(`/admin/finances/export?${params.toString()}`, {

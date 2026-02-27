@@ -74,10 +74,10 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     <KPICard
                         title="Gross Inflow"
-                        value={report.overview.grossInflow}
+                        value={report?.overview?.grossInflow || '0'}
                         subValue={
                             <span className="flex items-center gap-1">
-                                Revenue: <SmartCurrency amount={report.overview.platformRevenue} currency="NGN" visible={true} size="small" className="text-foreground" />
+                                Revenue: <SmartCurrency amount={report?.overview?.platformRevenue || '0'} currency="NGN" visible={true} size="small" className="text-foreground" />
                             </span>
                         }
                         icon={ArrowDownLeft}
