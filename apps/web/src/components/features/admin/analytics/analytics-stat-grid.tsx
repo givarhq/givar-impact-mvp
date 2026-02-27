@@ -73,7 +73,7 @@ export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgD
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <StatCard
-                title="Total Entities"
+                title="Total Users"
                 value={summary.totalUsers}
                 subValue={`${Math.abs(summary.userGrowthPercent)}% Growth`}
                 icon={Users}
