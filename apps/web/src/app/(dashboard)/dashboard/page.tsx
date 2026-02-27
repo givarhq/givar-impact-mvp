@@ -61,8 +61,6 @@ export default async function DashboardPage({
           donationCount={history?.length || 0}
         />
 
-        <button onClick={() => { throw new Error("Frontend Sentry Test Crash"); }}>Test Crash</button>
-
         <TabsContent value="discovery" className="space-y-4 md:space-y-6 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
           {/* Main Hero discovery */}
           <FeaturedCarousel projects={featuredProjects} />
