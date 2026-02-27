@@ -13,13 +13,30 @@ import {
     Bar
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
-import { formatCurrency } from '../../../../lib/utils/format';
 
 interface FinancialTrendChartProps {
     data: Array<{ date: string; volume: string; donations: number }>;
     title: string;
     subtitle: string;
 }
+
+const formatCompactNGN = (value: number) => {
+    const abs = Math.abs(value);
+
+    if (abs >= 1_000_000_000) {
+        return `₦${(value / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B`;
+    }
+
+    if (abs >= 1_000_000) {
+        return `₦${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+
+    if (abs >= 1_000) {
+        return `₦${(value / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    }
+
+    return `₦${value}`;
+};
 
 const PremiumTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
@@ -28,22 +45,22 @@ const PremiumTooltip = ({ active, payload, label }: any) => {
     const count = payload.find((p: any) => p.dataKey === 'donations')?.value || 0;
 
     return (
-        <div className="bg-background/95 backdrop-blur-xl border border-border shadow-2xl px-4 py-3 rounded-xl min-w-[180px]">
-            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
+        <div className="bg-background border border-border shadow-2xl px-4 py-3 rounded-xl min-w-[190px]">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-3 text-left">
                 {label}
             </p>
 
             <div className="space-y-2">
                 <div className="flex justify-between text-xs font-medium">
                     <span className="text-muted-foreground">Liquidity</span>
-                    <span className="font-semibold tabular-nums">
-                        {formatCurrency(volume * 100, 'NGN')}
+                    <span className="font-semibold tabular-nums text-foreground">
+                        {formatCompactNGN(volume * 100)}
                     </span>
                 </div>
 
                 <div className="flex justify-between text-xs font-medium">
                     <span className="text-muted-foreground">Frequency</span>
-                    <span className="font-semibold tabular-nums">
+                    <span className="font-semibold tabular-nums text-foreground">
                         {count}
                     </span>
                 </div>
@@ -69,41 +86,40 @@ export const FinancialTrendChart = memo(function FinancialTrendChart({
     );
 
     return (
-        <Card className="rounded-2xl border border-border bg-background shadow-sm flex flex-col h-[380px]">
-            <CardHeader className="px-6 pt-6 pb-3 flex items-center justify-between">
-                <div>
+        <Card className="rounded-3xl border border-border bg-background shadow-sm flex flex-col h-[380px]">
+            <CardHeader className="px-7 pt-7 pb-4 flex items-start justify-between">
+                <div className="space-y-1 text-left">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <TrendingUp className="h-4 w-4 text-primary" />
                         {title}
                     </CardTitle>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground">
                         {subtitle}
                     </p>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-6 text-[11px] font-medium">
+                <div className="hidden sm:flex items-center gap-6 text-[11px] font-medium text-left">
                     <div className="flex items-center gap-2">
                         <div className="h-2 w-6 bg-primary rounded-sm" />
                         Liquidity
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="h-2 w-6 bg-muted-foreground/40 rounded-sm" />
+                        <div className="h-2 w-6 bg-muted-foreground/50 rounded-sm" />
                         Frequency
                     </div>
                 </div>
             </CardHeader>
 
-            <CardContent className="flex-1 px-4 pb-4">
+            <CardContent className="flex-1 px-6 pb-6">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart
                         data={chartData}
                         margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
                     >
-                        {/* Clean Solid Grid */}
                         <CartesianGrid
                             stroke="hsl(var(--border))"
-                            vertical={true}
-                            horizontal={true}
+                            vertical
+                            horizontal
                             strokeOpacity={0.25}
                         />
 
@@ -111,15 +127,23 @@ export const FinancialTrendChart = memo(function FinancialTrendChart({
                             dataKey="dateShort"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
+                            tick={{
+                                fontSize: 10,
+                                fill: 'hsl(var(--muted-foreground))',
+                                fontWeight: 600
+                            }}
                         />
 
                         <YAxis
                             yAxisId="left"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
-                            tickFormatter={(val) => `₦${(val / 1000).toFixed(0)}k`}
+                            tick={{
+                                fontSize: 10,
+                                fill: 'hsl(var(--muted-foreground))',
+                                fontWeight: 600
+                            }}
+                            tickFormatter={formatCompactNGN}
                         />
 
                         <YAxis
@@ -127,10 +151,13 @@ export const FinancialTrendChart = memo(function FinancialTrendChart({
                             orientation="right"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))', fontWeight: 600 }}
+                            tick={{
+                                fontSize: 10,
+                                fill: 'hsl(var(--muted-foreground))',
+                                fontWeight: 600
+                            }}
                         />
 
-                        {/* Vertical Crosshair Cursor */}
                         <Tooltip
                             content={<PremiumTooltip />}
                             cursor={{
@@ -140,18 +167,16 @@ export const FinancialTrendChart = memo(function FinancialTrendChart({
                             }}
                         />
 
-                        {/* Frequency Bars */}
                         <Bar
                             yAxisId="right"
                             dataKey="donations"
                             barSize={12}
                             fill="hsl(var(--muted-foreground))"
-                            opacity={0.25}
-                            radius={[2, 2, 0, 0]}
+                            opacity={0.35}
+                            radius={[4, 4, 0, 0]}
                             animationDuration={600}
                         />
 
-                        {/* Liquidity Line */}
                         <Area
                             yAxisId="left"
                             type="monotone"
