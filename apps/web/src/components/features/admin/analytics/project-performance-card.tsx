@@ -51,7 +51,7 @@ export const ProjectPerformanceCard = memo(function ProjectPerformanceCard({ top
             <CardHeader className="p-5 md:p-6 pb-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="space-y-0.5">
                     <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-primary" /> Project leaderboard
+                        <TrendingUp className="h-4 w-4 text-primary" /> Project Leaderboard
                     </CardTitle>
                 </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
