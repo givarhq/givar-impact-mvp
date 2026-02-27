@@ -34,7 +34,7 @@ const KPICard = memo(function KPICard({ title, value, subValue, icon: Icon, colo
                     )}>
                         <Icon className="h-5 w-5" />
                     </div>
-                    <p className="text-xs font-bold text-muted-foreground line-clamp-2 leading-tight flex-1 min-w-0 break-all sm:break-words">
+                    <p className="text-xs font-bold text-muted-foreground line-clamp-2 leading-tight">
                         {title}
                     </p>
                 </div>
