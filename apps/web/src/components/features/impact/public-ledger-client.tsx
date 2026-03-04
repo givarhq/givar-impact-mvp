@@ -23,6 +23,7 @@ import { Pagination } from '../history/pagination';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '../../ui/badge';
 
 interface PublicLedgerClientProps {
     project?: any;
@@ -57,7 +58,6 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
         const toastId = toast.loading('Opening record...');
         try {
             const { ApiService } = await import('../../../services/api');
-            // Use project id from the entry if in global view, otherwise use prop
             const contextId = isGlobalView ? selectedEntry?.projectId : project.id;
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, contextId);
             window.open(viewUrl, '_blank');
@@ -88,9 +88,9 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
                 <Tabs value={activeType} onValueChange={handleTabChange} className="w-full md:w-auto">
                     <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 md:h-11 w-full md:w-fit border border-border/40 shadow-inner flex md:inline-flex">
-                        <TabsTrigger value="All" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">All</TabsTrigger>
-                        <TabsTrigger value="Inflow" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Donations</TabsTrigger>
-                        <TabsTrigger value="Outflow" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Payments</TabsTrigger>
+                        <TabsTrigger value="all" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">All</TabsTrigger>
+                        <TabsTrigger value="INFLOW" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Donations</TabsTrigger>
+                        <TabsTrigger value="OUTFLOW" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Payments</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>
@@ -129,9 +129,14 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
 
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-center gap-2 min-w-0">
-                                                        <p className="font-bold text-foreground truncate text-sm">
-                                                            {entry.actorName}
-                                                        </p>
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <p className="font-bold text-foreground truncate text-sm">
+                                                                {entry.actorName}
+                                                            </p>
+                                                            {entry.isYou && (
+                                                                <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0 rounded-full border-primary/20 bg-primary/5 text-primary">You</Badge>
+                                                            )}
+                                                        </div>
                                                         <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm whitespace-nowrap", isInflow ? "text-emerald-600" : "text-blue-600")}>
                                                             {isInflow ? '+' : '-'}{formatCurrency(entry.amount, entry.currency)}
                                                         </p>
@@ -241,7 +246,10 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 <p className="text-xs font-bold text-muted-foreground mb-0.5">
                                                     {selectedEntry.type === 'INFLOW' ? 'Contributor' : 'Payee'}
                                                 </p>
-                                                <p className="font-bold text-sm text-foreground truncate">{selectedEntry.actorName}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-bold text-sm text-foreground truncate">{selectedEntry.actorName}</p>
+                                                    {selectedEntry.isYou && <Badge variant="outline" className="text-[9px] font-bold h-4 px-1 rounded-full border-primary/20 bg-primary/5 text-primary">You</Badge>}
+                                                </div>
                                             </div>
                                             <div className="text-right shrink-0">
                                                 <p className="text-xs font-bold text-muted-foreground mb-0.5">Verification date</p>
@@ -255,14 +263,11 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 <p className="font-bold text-sm text-foreground truncate leading-tight flex-1">
                                                     {selectedEntry.projectName}
                                                 </p>
-                                                {/* Linking logic based on availability of slug in either entry or project prop */}
-                                                {(project?.slug || selectedEntry?.projectSlug) && (
-                                                    <Link href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`}>
-                                                        <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 shadow-sm shrink-0 hover:bg-primary hover:text-white transition-all">
-                                                            <Compass className="h-3.5 w-3.5" />
-                                                        </div>
-                                                    </Link>
-                                                )}
+                                                <Link href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${selectedEntry.projectSlug}`}>
+                                                    <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 shadow-sm shrink-0 hover:bg-primary hover:text-white transition-all">
+                                                        <Compass className="h-3.5 w-3.5" />
+                                                    </div>
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>

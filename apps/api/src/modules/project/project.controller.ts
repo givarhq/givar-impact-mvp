@@ -9,6 +9,7 @@ import { ProjectQueryDto } from './dto/project-query.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { SkipThrottle } from '@nestjs/throttler';
 import { SubmitMilestoneProofDto } from './dto/evidence.dto';
+import { OptionalJwtAuthGuard } from 'src/common/guards/optional-jwt.guard';
 
 @Controller('projects')
 export class ProjectController {
@@ -88,8 +89,10 @@ export class ProjectController {
 
   // Global Ledger (All projects combined)
   @Public()
+  @UseGuards(OptionalJwtAuthGuard) // Identify the user if logged in
   @Get('ledger/global')
   getGlobalLedger(
+    @Req() req: any,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('type') type?: string,
@@ -97,14 +100,17 @@ export class ProjectController {
     return this.service.getProjectLedger(null, {
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 15,
-      type
+      type,
+      requestingUserId: req.user?.id
     });
   }
 
   // Project-Specific Ledger
   @Public()
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':slug/ledger')
   getProjectLedger(
+    @Req() req: any,
     @Param('slug') slug: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -113,7 +119,8 @@ export class ProjectController {
     return this.service.getProjectLedger(slug, {
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 15,
-      type
+      type,
+      requestingUserId: req.user?.id
     });
   }
 }

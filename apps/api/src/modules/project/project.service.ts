@@ -494,8 +494,8 @@ export class ProjectService {
    * Public Ledger Aggregation Engine
    * Unifies platform-wide or project-specific capital flow with masked identities.
    */
-  async getProjectLedger(slug: string | null, query: { page?: number; limit?: number; type?: string }) {
-    const { page = 1, limit = 15, type = 'all' } = query;
+  async getProjectLedger(slug: string | null, query: { page?: number; limit?: number; type?: string; requestingUserId?: string }) {
+    const { page = 1, limit = 15, type = 'all', requestingUserId } = query;
     const skip = (page - 1) * limit;
 
     let projectTitleContext = 'Platform-Wide';
@@ -514,41 +514,26 @@ export class ProjectService {
     const fetchInflows = type === 'all' || type === 'INFLOW';
     const fetchOutflows = type === 'all' || type === 'OUTFLOW';
 
-    // Model-specific where clauses to satisfy TypeScript
     const donationWhere: Prisma.DonationWhereInput = targetProjectId ? { projectId: targetProjectId } : {};
     const guestDonationWhere: Prisma.GuestDonationWhereInput = targetProjectId ? { projectId: targetProjectId, status: 'COMPLETED' } : { status: 'COMPLETED' };
     const disbursementWhere: Prisma.DisbursementWhereInput = targetProjectId ? { projectId: targetProjectId } : {};
 
-    const [
-      donations,
-      guestDonations,
-      disbursements,
-      countD,
-      countG,
-      countDisp
-    ] = await Promise.all([
+    const [donations, guestDonations, disbursements, countD, countG, countDisp] = await Promise.all([
       fetchInflows ? this.prisma.donation.findMany({
         where: donationWhere,
-        include: {
-          user: { select: { firstName: true, lastName: true } },
-          project: { select: { title: true } },
-          transaction: { select: { reference: true } }
-        },
+        include: { user: { select: { id: true, firstName: true, lastName: true } }, project: { select: { title: true, slug: true } }, transaction: { select: { reference: true } } },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
       }) : Promise.resolve([]),
       fetchInflows ? this.prisma.guestDonation.findMany({
         where: guestDonationWhere,
-        include: {
-          guestDonor: { select: { name: true } },
-          project: { select: { title: true } }
-        },
+        include: { guestDonor: { select: { name: true } }, project: { select: { title: true, slug: true } } },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
       }) : Promise.resolve([]),
       fetchOutflows ? this.prisma.disbursement.findMany({
         where: disbursementWhere,
-        include: { project: { select: { title: true } } },
+        include: { project: { select: { title: true, slug: true } } },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
       }) : Promise.resolve([]),
@@ -569,28 +554,34 @@ export class ProjectService {
 
     const entries: any[] = [];
 
-    donations.forEach(d => entries.push({
-      id: d.id,
-      type: 'INFLOW',
-      amount: d.baseAmount.toString(),
-      currency: d.currency,
-      reference: d.transaction?.reference || d.transactionId,
-      description: 'Public Contribution',
-      createdAt: d.createdAt,
-      actorName: maskName(d.user?.firstName, d.user?.lastName),
-      projectName: d.project.title
-    }));
+    donations.forEach(d => {
+      const isRequester = requestingUserId && d.userId === requestingUserId;
+      entries.push({
+        id: d.id,
+        type: 'INFLOW',
+        amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(), // Fallback fix
+        currency: d.currency,
+        reference: d.transaction?.reference || d.transactionId,
+        description: 'Public Contribution',
+        createdAt: d.createdAt,
+        actorName: isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName),
+        isYou: isRequester,
+        projectName: d.project.title,
+        projectSlug: d.project.slug
+      });
+    });
 
     guestDonations.forEach(d => entries.push({
       id: d.id,
       type: 'INFLOW',
-      amount: d.baseAmount.toString(),
+      amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
       currency: d.currency,
       reference: d.reference,
       description: 'Public Contribution',
       createdAt: d.createdAt,
       actorName: maskName(null, null, d.guestDonor?.name),
-      projectName: d.project.title
+      projectName: d.project.title,
+      projectSlug: d.project.slug
     }));
 
     disbursements.forEach(d => entries.push({
@@ -603,21 +594,12 @@ export class ProjectService {
       createdAt: d.createdAt,
       actorName: d.vendorName,
       receiptKey: d.receiptKey,
-      projectName: d.project.title
+      projectName: d.project.title,
+      projectSlug: d.project.slug
     }));
 
     entries.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     const paginatedData = entries.slice(skip, skip + limit);
-    const total = countD + countG + countDisp;
-
-    return {
-      data: paginatedData,
-      meta: {
-        total,
-        page,
-        lastPage: Math.ceil(total / limit) || 1,
-        context: projectTitleContext
-      }
-    };
+    return { data: paginatedData, meta: { total: countD + countG + countDisp, page, lastPage: Math.ceil((countD + countG + countDisp) / limit) || 1, context: projectTitleContext } };
   }
 }
