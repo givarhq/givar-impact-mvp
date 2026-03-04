@@ -12,7 +12,7 @@ export function AboutContent() {
             {/* Header Section */}
             <section className="text-center space-y-3 pt-2">
                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground leading-[0.95]">
-                    Giving Is <span className="text-primary italic">Human.</span>
+                    Giving Is <span className="text-primary italic">Human</span>.
                 </h1>
                 <div className="h-1 w-16 bg-primary/20 mx-auto rounded-full" />
             </section>
@@ -94,7 +94,7 @@ export function AboutContent() {
                             alt="Folarin Ajayi"
                             fill
                             sizes="(max-width: 768px) 240px, 300px"
-                            className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                            className="object-cover transition-all duration-700"
                             priority
                         />
                     </div>
