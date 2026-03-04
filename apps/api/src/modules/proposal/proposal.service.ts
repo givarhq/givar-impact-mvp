@@ -152,13 +152,22 @@ export class ProposalService {
     const proposals = await this.prisma.projectProposal.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
-      include: { category: true } // Include category name
+      include: { category: true }
     });
 
-    // Serialize BigInts
+    const proposalIds = proposals.map(p => p.id);
+    const projects = await this.prisma.project.findMany({
+      where: { proposalId: { in: proposalIds } },
+      select: { proposalId: true, status: true }
+    });
+
+    const projectMap = new Map(projects.map(p => [p.proposalId, p.status]));
+
+    // Serialize BigInts and attach active project status
     return proposals.map(p => ({
       ...p,
-      targetAmount: p.targetAmount?.toString() || '0'
+      targetAmount: p.targetAmount?.toString() || '0',
+      projectStatus: projectMap.get(p.id) || null
     }));
   }
 

@@ -41,7 +41,21 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const config = statusConfig[proposal.status] || statusConfig.DRAFT;
+  const baseConfig = statusConfig[proposal.status] || statusConfig.DRAFT;
+  const config = { ...baseConfig };
+
+  if (proposal.status === 'APPROVED' && proposal.projectStatus) {
+    if (proposal.projectStatus === 'FUNDED') {
+      config.label = 'Funded';
+    } else if (proposal.projectStatus === 'COMPLETED') {
+      config.label = 'Completed';
+    } else if (proposal.projectStatus === 'SUSPENDED') {
+      config.label = 'Suspended';
+      config.color = 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+      config.icon = AlertCircle;
+    }
+  }
+
   const StatusIcon = config.icon;
 
   const isEditable = ['DRAFT', 'CHANGES_REQUESTED'].includes(proposal.status);
