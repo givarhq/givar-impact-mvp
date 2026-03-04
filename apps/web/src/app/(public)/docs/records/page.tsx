@@ -58,7 +58,7 @@ export default function PublicRecordsPage() {
                                 <h3 className="text-lg font-bold text-foreground">Real proof</h3>
                             </div>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                People running projects must upload photos and receipts to show they are doing the work. You don't have to take their word for it—you can see it yourself.
+                                People running projects must upload photos and receipts to show they are doing the work. You don't have to take their word for it — you can see it yourself.
                             </p>
                         </Card>
                     </div>
