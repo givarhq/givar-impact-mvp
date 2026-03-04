@@ -1,7 +1,7 @@
 import { PublicLayout } from '../../../../components/layout/public-layout';
 import { Metadata } from 'next';
 import { Shield, Eye, Lock, Database } from 'lucide-react';
-import { Card } from '../../../../components/ui/card';
+import { Card, CardContent } from '../../../../components/ui/card';
 
 export const metadata: Metadata = {
     title: 'Privacy Policy',
@@ -34,46 +34,60 @@ export default function PrivacyPage() {
 
                     {/* Policy Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner shrink-0">
-                                    <Eye className="h-5 w-5" />
+                        <Card className="rounded-3xl border-border/40 bg-card hover:border-primary/30 transition-all shadow-sm">
+                            <CardContent className="p-6 md:p-8 space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner shrink-0">
+                                        <Eye className="h-5 w-5" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground">What is public?</h3>
                                 </div>
-                                <h3 className="text-lg font-bold text-foreground">What is public?</h3>
-                            </div>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                To prove impact, we show transaction amounts, dates, and project receipts. However, your name is masked (e.g., "J*** D.") on public pages unless you explicitly choose to be visible.
-                            </p>
+                                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                    To prove impact, we show transaction amounts, dates, and project receipts. However, your name is masked (e.g., "J*** D.") on public pages unless you explicitly choose to be visible.
+                                </p>
+                            </CardContent>
                         </Card>
 
-                        <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-inner shrink-0">
-                                <Lock className="h-5 w-5" />
-                            </div>
-                            <h3 className="text-lg font-bold text-foreground">What is private?</h3>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                Your email address, phone number, password, and payment card details are strictly private. We never sell your personal contact information to advertisers.
-                            </p>
+                        <Card className="rounded-3xl border-border/40 bg-card hover:border-primary/30 transition-all shadow-sm">
+                            <CardContent className="p-6 md:p-8 space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-inner shrink-0">
+                                        <Lock className="h-5 w-5" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground">What is private?</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                    Your email address, phone number, password, and payment card details are strictly private. We never sell your personal contact information to advertisers.
+                                </p>
+                            </CardContent>
                         </Card>
 
-                        <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
-                                <Database className="h-5 w-5" />
-                            </div>
-                            <h3 className="text-lg font-bold text-foreground">Data retention</h3>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                Because we operate an immutable ledger, financial records cannot be deleted. If you delete your account, your personal profile is removed, but the donation history remains as an anonymous entry.
-                            </p>
+                        <Card className="rounded-3xl border-border/40 bg-card hover:border-primary/30 transition-all shadow-sm">
+                            <CardContent className="p-6 md:p-8 space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
+                                        <Database className="h-5 w-5" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground">Data retention</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                    Because we operate an immutable ledger, financial records cannot be deleted. If you delete your account, your personal profile is removed, but the donation history remains as an anonymous entry.
+                                </p>
+                            </CardContent>
                         </Card>
 
-                        <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="h-10 w-10 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-600 shadow-inner shrink-0">
-                                <Shield className="h-5 w-5" />
-                            </div>
-                            <h3 className="text-lg font-bold text-foreground">Security first</h3>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                We use industry-standard encryption for all data in transit and at rest. Payment processing is handled by compliant gateways (Paystack), so your card data never touches our servers.
-                            </p>
+                        <Card className="rounded-3xl border-border/40 bg-card hover:border-primary/30 transition-all shadow-sm">
+                            <CardContent className="p-6 md:p-8 space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-600 shadow-inner shrink-0">
+                                        <Shield className="h-5 w-5" />
+                                    </div>
+                                    <h3 className="text-lg font-bold text-foreground">Security first</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                    We use industry-standard encryption for all data in transit and at rest. Payment processing is handled by compliant gateways (Paystack), so your card data never touches our servers.
+                                </p>
+                            </CardContent>
                         </Card>
                     </div>
 
