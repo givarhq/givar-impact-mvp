@@ -39,20 +39,24 @@ export default function SmartWalletsPage() {
                     {/* Feature Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                                <ShieldCheck className="h-5 w-5" />
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
+                                    <ShieldCheck className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">Safe and sound</h3>
                             </div>
-                            <h3 className="text-lg font-bold text-foreground">Safe and sound</h3>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                                 Your money is kept safe in your wallet until you decide which project needs it. You are always the one in control of where your money goes.
                             </p>
                         </Card>
 
                         <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner">
-                                <Zap className="h-5 w-5" />
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner shrink-0">
+                                    <Zap className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">Instant support</h3>
                             </div>
-                            <h3 className="text-lg font-bold text-foreground">Instant support</h3>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                                 Once your wallet has funds, you can support a cause with just one click. No more waiting for banks or filling out long forms when you want to help.
                             </p>

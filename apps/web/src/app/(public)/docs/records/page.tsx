@@ -39,22 +39,26 @@ export default function PublicRecordsPage() {
                     {/* Info Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-inner">
-                                <CheckCircle2 className="h-5 w-5" />
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-inner shrink-0">
+                                    <CheckCircle2 className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">Records stay forever</h3>
                             </div>
-                            <h3 className="text-lg font-bold text-foreground">Records stay forever</h3>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                                 Once a donation is made, it is written down and cannot be deleted or hidden. This means our history is always honest and complete.
                             </p>
                         </Card>
 
                         <Card className="rounded-3xl border-border/40 bg-card p-6 md:p-8 space-y-4 shadow-sm">
-                            <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                                <Camera className="h-5 w-5" />
+                            <div className="flex items-center gap-4">
+                                <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
+                                    <Camera className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-lg font-bold text-foreground">Real proof</h3>
                             </div>
-                            <h3 className="text-lg font-bold text-foreground">Real proof</h3>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                People running projects must upload photos and receipts to show they are doing the work. You don't have to take their word for it — you can see it yourself.
+                                People running projects must upload photos and receipts to show they are doing the work. You don't have to take their word for it—you can see it yourself.
                             </p>
                         </Card>
                     </div>
