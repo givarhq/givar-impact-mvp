@@ -18,7 +18,6 @@ async function getLandingStats() {
 }
 
 export default async function LandingPage() {
-    // Logic: Retrieve real featured projects from the discovery engine to pass into the Hero section
     let featuredProjects = [];
     try {
         const response = await ApiService.recommendations.getFeatured();
@@ -62,16 +61,16 @@ export default async function LandingPage() {
                             <div>
                                 <h4 className="font-bold text-foreground mb-4">Product</h4>
                                 <ul className="space-y-3 text-sm font-medium text-muted-foreground">
-                                    <li><Link href="/signup" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
-                                    <li><Link href="/explore" className="hover:text-primary transition-colors">Public Records</Link></li>
+                                    <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
+                                    <li><Link href="/docs/records" className="hover:text-primary transition-colors">Public Records</Link></li>
                                 </ul>
                             </div>
 
                             <div>
                                 <h4 className="font-bold text-foreground mb-4">Company</h4>
                                 <ul className="space-y-3 text-sm font-medium text-muted-foreground">
-                                    <li><Link href="/about" className="hover:text-primary transition-colors">Our Manifesto</Link></li>
-                                    <li><Link href="#" className="hover:text-primary transition-colors">Contact Support</Link></li>
+                                    <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+                                    <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
                                 </ul>
                             </div>
                         </div>
