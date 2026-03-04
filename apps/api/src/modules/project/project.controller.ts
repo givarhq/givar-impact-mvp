@@ -85,4 +85,20 @@ export class ProjectController {
   userSearch(@Req() req: any, @Query('q') query: string) {
     return this.service.userGlobalSearch(req.user.id, query);
   }
+
+  // Public Ledger Endpoint
+  @Public()
+  @Get(':slug/ledger')
+  getProjectLedger(
+    @Param('slug') slug: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('type') type?: string,
+  ) {
+    return this.service.getProjectLedger(slug, {
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 15,
+      type
+    });
+  }
 }

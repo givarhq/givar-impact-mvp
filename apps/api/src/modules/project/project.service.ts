@@ -489,4 +489,120 @@ export class ProjectService {
       navigation: nav,
     };
   }
+
+  // --------------------------------------------------------
+  // Public Ledger Aggregation Engine
+  // --------------------------------------------------------
+  async getProjectLedger(slug: string, query: { page?: number; limit?: number; type?: string }) {
+    const { page = 1, limit = 15, type = 'all' } = query;
+    const skip = (page - 1) * limit;
+
+    const project = await this.prisma.project.findUnique({
+      where: { slug },
+      select: { id: true, title: true, currency: true }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    const fetchInflows = type === 'all' || type === 'INFLOW';
+    const fetchOutflows = type === 'all' || type === 'OUTFLOW';
+
+    // Parallel fetch of all financial records
+    const [
+      donations,
+      guestDonations,
+      disbursements,
+      countDonations,
+      countGuest,
+      countDisbursements
+    ] = await Promise.all([
+      fetchInflows ? this.prisma.donation.findMany({
+        where: { projectId: project.id },
+        include: {
+          user: { select: { firstName: true, lastName: true } },
+          transaction: { select: { reference: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: skip + limit
+      }) : [],
+      fetchInflows ? this.prisma.guestDonation.findMany({
+        where: { projectId: project.id, status: 'COMPLETED' },
+        include: { guestDonor: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: skip + limit
+      }) : [],
+      fetchOutflows ? this.prisma.disbursement.findMany({
+        where: { projectId: project.id },
+        orderBy: { createdAt: 'desc' },
+        take: skip + limit
+      }) : [],
+      fetchInflows ? this.prisma.donation.count({ where: { projectId: project.id } }) : 0,
+      fetchInflows ? this.prisma.guestDonation.count({ where: { projectId: project.id, status: 'COMPLETED' } }) : 0,
+      fetchOutflows ? this.prisma.disbursement.count({ where: { projectId: project.id } }) : 0,
+    ]);
+
+    // Data Masking Logic to preserve identity privacy
+    const maskName = (firstName?: string | null, lastName?: string | null, fullName?: string | null) => {
+      if (firstName && lastName) return `${firstName[0]}*** ${lastName[0]}.`;
+      if (fullName) {
+        const parts = fullName.trim().split(' ');
+        if (parts.length > 1) return `${parts[0][0]}*** ${parts[1][0]}.`;
+        return `${fullName[0]}***`;
+      }
+      return 'Anonymous Supporter';
+    };
+
+    const entries: any[] = [];
+
+    // Map Authenticated Inflows
+    donations.forEach(d => entries.push({
+      id: d.id,
+      type: 'INFLOW',
+      amount: d.baseAmount.toString(), // Use base amount for public tracking
+      currency: d.currency,
+      reference: d.transaction?.reference || d.transactionId,
+      description: 'Public Contribution',
+      createdAt: d.createdAt,
+      actorName: maskName(d.user?.firstName, d.user?.lastName)
+    }));
+
+    // Map Guest Inflows
+    guestDonations.forEach(d => entries.push({
+      id: d.id,
+      type: 'INFLOW',
+      amount: d.baseAmount.toString(),
+      currency: d.currency,
+      reference: d.reference,
+      description: 'Public Contribution',
+      createdAt: d.createdAt,
+      actorName: maskName(null, null, d.guestDonor?.name)
+    }));
+
+    // Map Verified Outflows
+    disbursements.forEach(d => entries.push({
+      id: d.id,
+      type: 'OUTFLOW',
+      amount: d.amount.toString(),
+      currency: d.currency,
+      reference: d.reference,
+      description: 'Verified Deployment',
+      createdAt: d.createdAt,
+      actorName: d.vendorName,
+      receiptKey: d.receiptKey
+    }));
+
+    // Sort combined payload and paginate
+    entries.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const paginatedData = entries.slice(skip, skip + limit);
+    const total = countDonations + countGuest + countDisbursements;
+
+    return {
+      data: paginatedData,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit) || 1
+      }
+    };
+  }
 }
