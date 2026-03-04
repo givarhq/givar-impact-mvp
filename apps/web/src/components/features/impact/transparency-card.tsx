@@ -41,6 +41,8 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const recordsLink = `/explore/${project.slug}/records`;
+
     return (
         <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 shadow-sm">
             {/* Header Context */}
@@ -168,8 +170,8 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             </div>
 
             {/* Ledger Navigation */}
-            <Link href={`/dashboard/history?search=${encodeURIComponent(project.title)}`}>
-                <Button variant="outline" className="w-full rounded-3xl border-border/60 hover:bg-muted text-xs h-10 font-bold gap-2 active:scale-95 transition-all">
+            <Link href={recordsLink}>
+                <Button variant="outline" className="w-auto mx-auto flex rounded-3xl border-border/60 hover:bg-muted text-xs h-10 font-bold gap-2 active:scale-95 transition-all">
                     View public records <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
             </Link>
