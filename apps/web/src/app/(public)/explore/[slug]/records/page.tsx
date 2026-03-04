@@ -5,7 +5,7 @@ import { PublicLayout } from '../../../../../components/layout/public-layout';
 import { PublicLedgerClient } from '../../../../../components/features/impact/public-ledger-client';
 import { Button } from '../../../../../components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShieldCheck } from 'lucide-react';
 
 export const metadata = {
     title: 'Public Records',
@@ -24,11 +24,9 @@ export default async function PublicProjectLedgerPage({
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value || '';
 
-    // 1. Fetch Project for context
     const project = await ApiService.projects.get(token, slug);
     if (!project) notFound();
 
-    // 2. Fetch Initial Ledger Data
     const paramsObj = new URLSearchParams();
     if (resolvedParams.page) paramsObj.set('page', String(resolvedParams.page));
     if (resolvedParams.type) paramsObj.set('type', String(resolvedParams.type));
@@ -38,7 +36,7 @@ export default async function PublicProjectLedgerPage({
     return (
         <PublicLayout>
             <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 animate-in fade-in duration-500">
-                <div className="flex flex-col gap-4 px-1">
+                <div className="flex flex-col gap-4 px-1 min-w-0">
                     <Link href={`/explore/${slug}`} className="w-fit">
                         <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">
                             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
@@ -46,11 +44,16 @@ export default async function PublicProjectLedgerPage({
                         </Button>
                     </Link>
 
-                    <div className="space-y-1">
-                        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">
-                            Public Records
-                        </h1>
-                        <p className="text-sm text-muted-foreground font-medium">
+                    <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground">
+                                Public <span className="text-primary italic">Records.</span>
+                            </h1>
+                            <div className="hidden sm:flex h-8 w-8 rounded-2xl bg-emerald-500/10 items-center justify-center text-emerald-600 border border-emerald-500/20 shadow-inner">
+                                <ShieldCheck className="h-4.5 w-4.5" />
+                            </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground font-medium max-w-xl">
                             Verified giving and payment history for <span className="text-foreground font-bold">{project.title}</span>
                         </p>
                     </div>

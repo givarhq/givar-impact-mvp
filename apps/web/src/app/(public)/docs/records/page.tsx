@@ -84,7 +84,7 @@ export default function PublicRecordsPage() {
                     <section className="text-center space-y-6 pt-8 border-t border-border/40">
                         <h2 className="text-2xl font-bold text-foreground">Want to see a record?</h2>
                         <div className="flex justify-center">
-                            <Link href="/explore">
+                            <Link href="/records">
                                 <Button size="lg" className="h-12 px-10 rounded-full font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105 transition-transform border-0">
                                     View transactions <Search className="ml-2 h-4 w-4" />
                                 </Button>
