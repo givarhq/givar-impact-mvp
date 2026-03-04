@@ -34,7 +34,8 @@ export default async function DashboardProjectLedgerPage({
     if (resolvedParams.page) paramsObj.set('page', String(resolvedParams.page));
     if (resolvedParams.type) paramsObj.set('type', String(resolvedParams.type));
 
-    const initialLedger = await ApiService.projects.getLedger(paramsObj, slug);
+    // Logic: Pass the token as the 3rd argument so the backend knows it's YOU
+    const initialLedger = await ApiService.projects.getLedger(paramsObj, slug, token);
 
     return (
         <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-500">
