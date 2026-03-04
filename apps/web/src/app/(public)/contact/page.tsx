@@ -1,21 +1,21 @@
 import { PublicLayout } from '../../../components/layout/public-layout';
-import { Mail, MessageCircle, ShieldCheck, MapPin } from 'lucide-react';
+import { Mail, ShieldCheck, Phone } from 'lucide-react';
 import { Metadata } from 'next';
 import { Card, CardContent } from '../../../components/ui/card';
 
 export const metadata: Metadata = {
-    title: 'Contact Us | Givar',
+    title: 'Contact Us',
     description: 'Get in touch with the Givar Impact team for support or inquiries.',
 };
 
 export default function ContactPage() {
     return (
         <PublicLayout>
-            <div className="container mx-auto px-4 py-12 md:py-24 max-w-4xl">
+            <div className="container mx-auto px-4 py-4 md:py-8 max-w-5xl">
                 <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <div className="text-center space-y-4">
+                    <div className="text-center space-y-4 pt-4">
                         <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground">
-                            Get in <span className="text-primary italic">Touch.</span>
+                            Get in Touch.
                         </h1>
                         <p className="text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">
                             Have questions about a cause or need technical assistance? Our support team is here to help you move impact forward.
@@ -41,14 +41,14 @@ export default function ContactPage() {
                         <Card className="rounded-3xl border-border/40 bg-card hover:border-primary/30 transition-all shadow-sm">
                             <CardContent className="p-8 space-y-4">
                                 <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner">
-                                    <ShieldCheck className="h-6 w-6" />
+                                    <Phone className="h-6 w-6" />
                                 </div>
                                 <div className="space-y-1">
-                                    <h3 className="text-lg font-bold text-foreground">Technical Ops</h3>
-                                    <p className="text-sm text-muted-foreground font-medium">For ledger reconciliation or security issues.</p>
+                                    <h3 className="text-lg font-bold text-foreground">Phone Support</h3>
+                                    <p className="text-sm text-muted-foreground font-medium">Available Monday to Friday, 9am - 5pm.</p>
                                 </div>
-                                <p className="text-foreground font-bold text-sm bg-muted/50 px-3 py-1 rounded-full w-fit">
-                                    Response time: &lt; 24h
+                                <p className="text-foreground font-black tracking-tight text-xl">
+                                    +234 905 551 340 (NG)
                                 </p>
                             </CardContent>
                         </Card>
