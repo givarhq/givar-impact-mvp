@@ -3,11 +3,11 @@
 import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, ShieldCheck, Wallet, Activity, Heart, ArrowRightCircle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Wallet, Activity, Heart } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ProjectCard } from '../impact/project-card';
 import { ShareModal } from '../impact/share-modal';
 import { Project } from '../../../types';
@@ -29,8 +29,6 @@ interface HeroSectionProps {
 
 export const HeroSection = memo(function HeroSection({ featuredProjects, stats }: HeroSectionProps) {
     const displayProjects = featuredProjects.slice(0, 4);
-
-    // State for Share Modal
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [shareProject, setShareProject] = useState<Project | null>(null);
 
@@ -76,17 +74,17 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                 </div>
                             </div>
 
-                            <div className="flex flex-row gap-4 pt-2">
-                                <Link href="/explore" className="flex-1">
-                                    <Button className="w-full h-12 sm:h-14 px-2 sm:px-6 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-sm sm:text-base shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
-                                        Explore Causes <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            <div className="flex flex-row flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                                <Link href="/explore">
+                                    <Button className="w-auto h-12 sm:h-14 px-8 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-sm sm:text-base shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                                        Explore Causes <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                                     </Button>
                                 </Link>
 
-                                <Link href="/signup" className="flex-1">
+                                <Link href="/signup">
                                     <Button
                                         variant="outline"
-                                        className="w-full h-12 sm:h-14 px-2 sm:px-6 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
+                                        className="w-auto h-12 sm:h-14 px-8 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
                                     >
                                         Create Account
                                     </Button>
@@ -217,7 +215,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
             </section>
 
             {/* HOW IT WORKS */}
-            <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6">
+            <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6 scroll-mt-28">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See Real-Time Impact</h2>
                     <p className="text-muted-foreground font-medium mt-4 max-w-xl mx-auto">Follow your donation from the moment it leaves your wallet to the exact moment it changes a life.</p>
@@ -326,9 +324,11 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     </div>
                 )}
 
-                <div className="mt-10 text-center sm:hidden">
+                <div className="mt-10 flex justify-center sm:hidden">
                     <Link href="/explore">
-                        <Button variant="outline" className="w-full h-12 rounded-3xl font-bold border-border/60 dark:border-white/10 dark:bg-zinc-900">View all causes  <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                        <Button variant="outline" className="w-auto h-12 rounded-3xl font-bold border-border/60 dark:border-white/10 dark:bg-zinc-900 px-8 transition-all active:scale-95">
+                            View all causes <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
                     </Link>
                 </div>
             </section>
@@ -367,7 +367,6 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </div>
             </section>
 
-            {/* Share Modal Integration */}
             <ShareModal
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}

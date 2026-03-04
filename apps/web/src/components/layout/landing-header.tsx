@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useEffect, useState, memo } from 'react';
 import { cn } from '../../lib/utils/cn';
@@ -62,19 +61,19 @@ export const LandingHeader = memo(function LandingHeader({
           </Link>
         </nav>
 
-        <div className="relative z-10 flex items-center gap-3">
+        <div className="relative z-10 flex items-center justify-center gap-3">
           {!hideAuthButtons && (
             <>
-              <Link href="/login">
+              <Link href="/login" className="flex items-center justify-center">
                 <Button
                   variant="ghost"
-                  className="hidden md:flex text-foreground hover:text-primary font-bold hover:bg-primary/5 rounded-full px-6 transition-all"
+                  className="hidden md:flex w-auto text-foreground hover:text-primary font-bold hover:bg-primary/5 rounded-full px-6 transition-all"
                 >
                   Sign In
                 </Button>
               </Link>
-              <Link href="/signup">
-                <Button className="rounded-full px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0">
+              <Link href="/signup" className="flex items-center justify-center">
+                <Button className="w-auto rounded-full px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0">
                   Get Started
                 </Button>
               </Link>
