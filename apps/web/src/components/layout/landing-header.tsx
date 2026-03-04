@@ -64,7 +64,7 @@ export const LandingHeader = memo(function LandingHeader({
             How It Works
           </a>
           <Link href="/about" className="hover:text-primary transition-colors">
-            Our Mission
+            About
           </Link>
         </nav>
 
