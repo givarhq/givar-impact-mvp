@@ -54,7 +54,7 @@ export default function PublicRecordsPage() {
                             </div>
                             <h3 className="text-lg font-bold text-foreground">Real proof</h3>
                             <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                People running projects must upload photos and receipts to show they are doing the work. You don't have to take their word for it—you can see it yourself.
+                                People running projects must upload photos and receipts to show they are doing the work. You don't have to take their word for it — you can see it yourself.
                             </p>
                         </Card>
                     </div>
@@ -64,7 +64,7 @@ export default function PublicRecordsPage() {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-10 -mt-10" />
                         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
                             <div className="flex-1 space-y-4">
-                                <h2 className="text-2xl font-bold tracking-tight text-foreground">Total <span className="text-primary italic">honesty.</span></h2>
+                                <h2 className="text-2xl font-bold tracking-tight text-foreground">Total <span className="text-primary italic">honesty</span>.</h2>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                                     Our team checks every project milestone. We only release the next bit of money after we've seen proof that the previous work was actually done. This keeps everyone accountable.
                                 </p>
@@ -82,7 +82,7 @@ export default function PublicRecordsPage() {
                         <div className="flex justify-center">
                             <Link href="/explore">
                                 <Button size="lg" className="h-12 px-10 rounded-full font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105 transition-transform border-0">
-                                    Browse Active Causes <Search className="ml-2 h-4 w-4" />
+                                    Browse active causes <Search className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                         </div>

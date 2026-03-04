@@ -28,7 +28,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection = memo(function HeroSection({ featuredProjects, stats }: HeroSectionProps) {
-    const displayProjects = featuredProjects.slice(0, 4);
+    const displayProjects = featuredProjects.slice(0, 3);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [shareProject, setShareProject] = useState<Project | null>(null);
 
@@ -305,7 +305,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </div>
 
                 {displayProjects.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayProjects.map((project, index) => (
                             <motion.div
                                 key={project.id}

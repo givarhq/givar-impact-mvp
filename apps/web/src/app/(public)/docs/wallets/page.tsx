@@ -63,7 +63,7 @@ export default function SmartWalletsPage() {
                     <section className="bg-muted/30 border border-border/50 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-10 -mt-10" />
                         <div className="relative z-10 space-y-6">
-                            <h2 className="text-2xl font-bold tracking-tight text-foreground">How it <span className="text-primary italic">works.</span></h2>
+                            <h2 className="text-2xl font-bold tracking-tight text-foreground">How it <span className="text-primary italic">works</span>.</h2>
                             <div className="space-y-4 text-muted-foreground font-medium leading-relaxed">
                                 <p>1. <span className="text-foreground font-bold">Quick Setup:</span> Create your account and confirm your email.</p>
                                 <p>2. <span className="text-foreground font-bold">Add Funds:</span> Put some money in your wallet using your card or bank transfer.</p>
@@ -84,7 +84,7 @@ export default function SmartWalletsPage() {
                             <div className="pt-4 flex justify-center">
                                 <Link href="/signup">
                                     <Button size="lg" className="h-12 px-10 rounded-full font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105 transition-transform border-0">
-                                        Open My Wallet <ArrowRight className="ml-2 h-4 w-4" />
+                                        Open my wallet <ArrowRight className="ml-2 h-4 w-4" />
                                     </Button>
                                 </Link>
                             </div>
