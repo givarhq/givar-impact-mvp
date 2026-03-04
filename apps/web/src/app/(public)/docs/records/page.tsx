@@ -86,7 +86,7 @@ export default function PublicRecordsPage() {
                         <div className="flex justify-center">
                             <Link href="/explore">
                                 <Button size="lg" className="h-12 px-10 rounded-full font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105 transition-transform border-0">
-                                    Browse active causes <Search className="ml-2 h-4 w-4" />
+                                    View transactions <Search className="ml-2 h-4 w-4" />
                                 </Button>
                             </Link>
                         </div>
