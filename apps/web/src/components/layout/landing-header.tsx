@@ -67,7 +67,7 @@ export const LandingHeader = memo(function LandingHeader({
 
         <div className="relative z-10 flex items-center justify-center gap-3">
           {/* Mobile About Link */}
-          <Link href="/about" className="md:hidden text-xs font-bold text-muted-foreground hover:text-primary transition-colors px-2">
+          <Link href="/about" className="md:hidden text-sm font-bold text-muted-foreground hover:text-primary transition-colors px-2">
             About
           </Link>
 
@@ -82,7 +82,7 @@ export const LandingHeader = memo(function LandingHeader({
                 </Button>
               </Link>
               <Link href="/signup" className="flex items-center justify-center">
-                <Button className="w-auto rounded-full px-5 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-xs md:text-sm">
+                <Button className="w-auto rounded-full px-5 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm">
                   Get Started
                 </Button>
               </Link>
