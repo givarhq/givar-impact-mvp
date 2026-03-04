@@ -12,7 +12,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
       <footer className="border-t border-border/40 py-10 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 text-[11px] font-bold tracking-widest text-muted-foreground uppercase">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 text-[11px] font-bold tracking-widest text-muted-foreground">
             <Link href="/contact" className="hover:text-primary transition-colors">
               Contact
             </Link>
