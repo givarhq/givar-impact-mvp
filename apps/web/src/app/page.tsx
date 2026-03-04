@@ -61,8 +61,9 @@ export default async function LandingPage() {
                             <div>
                                 <h4 className="font-bold text-foreground mb-4">Product</h4>
                                 <ul className="space-y-3 text-sm font-medium text-muted-foreground">
-                                    <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
-                                    <li><Link href="/docs/records" className="hover:text-primary transition-colors">Public Records</Link></li>
+                                    <li><Link href="/signup" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
+                                    <li><Link href="/explore" className="hover:text-primary transition-colors">Public Records</Link></li>
+                                    <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">How Wallets Work</Link></li>
                                 </ul>
                             </div>
 
@@ -71,6 +72,8 @@ export default async function LandingPage() {
                                 <ul className="space-y-3 text-sm font-medium text-muted-foreground">
                                     <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
                                     <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
+                                    <li><Link href="/legal/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                                    <li><Link href="/legal/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
                                 </ul>
                             </div>
                         </div>
