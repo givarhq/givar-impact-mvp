@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { useEffect, useState, memo } from 'react';
+import { useEffect, useState, memo, useCallback } from 'react';
 import { cn } from '../../lib/utils/cn';
 import { LandingHeaderProps } from '../../types';
 
@@ -14,11 +14,17 @@ export const LandingHeader = memo(function LandingHeader({
   const [scrolled, setScrolled] = useState(false);
   const isAuth = variant === 'auth';
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  const handleScroll = useCallback(() => {
+    // Robust threshold check to prevent blur disappearing during fast anchor jumps
+    setScrolled(window.scrollY > 20);
   }, []);
+
+  useEffect(() => {
+    // Initial check
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   return (
     <header
@@ -53,9 +59,10 @@ export const LandingHeader = memo(function LandingHeader({
           <Link href="/explore" className="hover:text-primary transition-colors">
             Explore Causes
           </Link>
-          <Link href="/#how-it-works" className="hover:text-primary transition-colors">
+          {/* Using a tag for native hash behavior to prevent "stuck" scrolling state */}
+          <a href="/#how-it-works" className="hover:text-primary transition-colors">
             How It Works
-          </Link>
+          </a>
           <Link href="/about" className="hover:text-primary transition-colors">
             Our Mission
           </Link>

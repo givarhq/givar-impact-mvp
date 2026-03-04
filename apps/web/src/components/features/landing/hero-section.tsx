@@ -74,10 +74,10 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                 </div>
                             </div>
 
-                            <div className="flex flex-row flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+                            <div className="flex flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                                 <Link href="/explore">
                                     <Button className="w-auto h-12 sm:h-14 px-8 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-sm sm:text-base shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
-                                        Explore Causes <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                                        Explore Causes <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                                     </Button>
                                 </Link>
 
@@ -86,7 +86,8 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                         variant="outline"
                                         className="w-auto h-12 sm:h-14 px-8 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
                                     >
-                                        Create Account
+                                        <span className="hidden sm:inline">Create Account</span>
+                                        <span className="sm:hidden">Sign In</span>
                                     </Button>
                                 </Link>
                             </div>
@@ -367,6 +368,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </div>
             </section>
 
+            {/* Share Modal Integration */}
             <ShareModal
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
