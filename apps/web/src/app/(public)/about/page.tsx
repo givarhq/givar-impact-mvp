@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'About Us | Givar',
-    description: 'Givar is humanizing the way the world gives through transparency & verified impact.',
+    description: 'Learn about the mission, approach, and the story behind the Givar Impact infrastructure.',
 };
 
 export default function AboutPage() {

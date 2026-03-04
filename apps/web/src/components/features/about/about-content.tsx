@@ -1,74 +1,144 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Heart, Zap, Globe, Users, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { ShieldCheck, Heart, Zap, Globe, Users, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export function AboutContent() {
     return (
         <div className="max-w-4xl mx-auto md:-mt-10 space-y-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Hero Section */}
+            {/* Header Section */}
             <section className="text-center space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black  tracking-[0.2em] mb-4">
-                    <Heart className="h-3 w-3 fill-current" /> Humanizing Philanthropy
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black tracking-[0.2em] mb-4">
+                    <ShieldCheck className="h-3 w-3" /> Infrastructure for Impact
                 </div>
                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground leading-[0.95]">
-                    Giving should feel <br />
-                    <span className="text-primary italic">human again.</span>
+                    About <span className="text-primary italic">Givar.</span>
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto font-medium">
-                    Givar is building a new way for people & organisations to give — one that’s simple, transparent, & genuinely impact-driven.
-                </p>
+                <div className="h-1 w-20 bg-primary/20 mx-auto rounded-full mt-4" />
             </section>
 
-            {/* Manifesto Section */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            {/* Giving is Human Section */}
+            <section className="space-y-8 max-w-2xl mx-auto text-center md:text-left">
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">Giving Is Human</h2>
+                    <p className="text-lg md:text-xl text-foreground font-bold leading-tight">
+                        We believe the impulse to give is part of what makes us human.
+                    </p>
+                </div>
+                <div className="space-y-6 text-muted-foreground leading-relaxed font-medium">
+                    <p>
+                        People support families, communities, and causes that matter to them. They show up when there is need.
+                    </p>
+                    <p>
+                        But too often, the systems that connect generosity to impact feel unclear or <span className="text-foreground font-bold">unreliable.</span> And when trust is <span className="text-foreground font-bold">missing</span>, that impulse slows down.
+                    </p>
+                </div>
+            </section>
+
+            {/* The Gap Section */}
+            <section className="bg-muted/30 border border-border/50 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-10 -mt-10" />
+                <div className="relative z-10 space-y-6">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">The Gap</h2>
+                    <div className="space-y-4 text-muted-foreground leading-relaxed font-medium">
+                        <p>
+                            In many communities, the challenge is not a lack of compassion. It is a <span className="text-foreground font-bold">lack of structure.</span>
+                        </p>
+                        <p>
+                            There isn’t always a <span className="text-foreground font-bold">simple, transparent system</span> that connects those who <span className="text-primary font-bold">have</span> with those who <span className="text-primary font-bold">need</span> in a way that feels secure and <span className="text-foreground font-bold">accountable.</span>
+                        </p>
+                        <p className="italic">
+                            Without that structure, good intentions don’t always translate into lasting impact.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Our Approach Section */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
                 <div className="space-y-6">
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">The Givar Impact Philosophy</h2>
-                    <div className="space-y-4 text-muted-foreground leading-relaxed">
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">Our Approach</h2>
+                    <div className="space-y-4 text-muted-foreground leading-relaxed font-medium">
                         <p>
-                            Traditional giving has become a black box. You send money, but the connection to the result often fades into annual reports & opaque spreadsheets.
-                        </p>
-                        <p className="text-foreground font-semibold">
-                            We’re starting with Givar Impact: a collective fund that allows people to pool their giving & support real-world causes together.
+                            Givar exists to close that gap.
                         </p>
                         <p>
-                            This MVP is about proving that giving can feel human again — not transactional, & never opaque. By verifying every milestone on our ledger, we ensure that your generosity translates directly into action.
+                            We provide a <span className="text-foreground font-bold">trusted, structured platform</span> that makes giving clear, direct, and trackable.
+                        </p>
+                        <p>
+                            By combining a secure wallet system with verified causes and transparent activity tracking, we create an environment where generosity can move with confidence.
                         </p>
                     </div>
                 </div>
-                <div className="bg-muted/30 border border-border/50 rounded-3xl p-8 md:p-12 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-10 -mt-10" />
-                    <div className="relative z-10 space-y-6">
-                        <div className="h-12 w-12 rounded-2xl bg-background flex items-center justify-center shadow-xl border border-border/50 transition-transform group-hover:scale-110 duration-500">
-                            <ShieldCheck className="h-6 w-6 text-primary" />
-                        </div>
-                        <h3 className="text-xl font-black tracking-tight">The Transparency Protocol</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                            We track every cent from your wallet to the project's execution. No middlemen, no hidden fees, just pure impact.
-                        </p>
+                <div className="space-y-4 p-8 rounded-3xl border border-primary/20 bg-primary/[0.02]">
+                    <div className="space-y-4">
+                        {[
+                            "Giving becomes simple.",
+                            "Impact becomes visible.",
+                            "Trust becomes foundational."
+                        ].map((text, i) => (
+                            <div key={i} className="flex items-center gap-3">
+                                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                </div>
+                                <span className="text-sm font-bold text-foreground">{text}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </section>
 
-            {/* Values Grid */}
-            <section className="space-y-12">
-                <div className="text-center">
-                    <h2 className="text-2xl font-black  tracking-widest text-foreground/20">Our Pillars</h2>
+            {/* More Than a Platform Section */}
+            <section className="space-y-8 max-w-2xl mx-auto border-t border-border/40 pt-16">
+                <h2 className="text-2xl font-bold tracking-tight text-primary">More Than a Platform</h2>
+                <div className="space-y-6 text-muted-foreground leading-relaxed font-medium">
+                    <p className="text-foreground font-bold text-lg">
+                        Givar is not a charity. It is infrastructure.
+                    </p>
+                    <p>
+                        We are building a giving ecosystem — one that connects individuals, communities, and organizations in a way that promotes consistency, accountability, and long-term impact.
+                    </p>
+                    <p>
+                        Our goal is not just to facilitate transactions. It is to help create a culture of giving.
+                    </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                        { icon: Zap, title: "Simple", desc: "One-click donations, automated recurring support, & an intuitive dashboard to manage your giving portfolio." },
-                        { icon: Globe, title: "Transparent", desc: "Verifiable proof of work for every project. See photos, receipts, & location data for the work you fund." },
-                        { icon: Users, title: "Impact-Driven", desc: "We focus on real-world outcomes. From clean water to education, we support causes that move the needle." }
-                    ].map((v, i) => (
-                        <div key={i} className="p-8 rounded-3xl border border-border/50 bg-card hover:border-primary/30 transition-all duration-300">
-                            <v.icon className="h-8 w-8 text-primary mb-6" />
-                            <h4 className="text-lg font-bold mb-2">{v.title}</h4>
-                            <p className="text-sm text-muted-foreground leading-relaxed">{v.desc}</p>
-                        </div>
-                    ))}
+            </section>
+
+            {/* Why Givar Was Created Section (Founder) */}
+            <section className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center bg-card border border-border/40 rounded-[48px] p-8 md:p-12 shadow-sm">
+                <div className="md:col-span-4 flex flex-col items-center text-center space-y-4">
+                    <div className="relative aspect-[1015/1100] w-full max-w-[280px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
+                        <Image
+                            src="/founder-photo.png"
+                            alt="Folarin Ajayi"
+                            fill
+                            sizes="(max-width: 768px) 280px, 400px"
+                            className="object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                            priority
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <h4 className="text-md font-bold text-foreground">Folarin Ajayi</h4>
+                        <p className="text-sm font-bold text-muted-foreground">Founder, Givar</p>
+                    </div>
+                </div>
+                <div className="md:col-span-8 space-y-6">
+                    <h3 className="text-2xl font-black tracking-tight text-foreground">Why Givar Was Created</h3>
+                    <div className="space-y-4 text-muted-foreground leading-relaxed font-medium">
+                        <p>
+                            I grew up seeing <span className="text-foreground font-bold">people</span> who wanted to help, and people who needed help, but the systems connecting them were often informal or <span className="text-foreground font-bold">unreliable.</span>
+                        </p>
+                        <p>
+                            Over time, I realized that many <span className="text-foreground font-bold">efforts fail</span> because where people lack compassion — they fail because there isn’t a clear, trustworthy structure to support giving.
+                        </p>
+                        <p className="text-primary font-bold">
+                            That realization became the foundation for Givar.
+                        </p>
+                    </div>
                 </div>
             </section>
 
@@ -76,18 +146,13 @@ export function AboutContent() {
             <section className="bg-zinc-950 rounded-[48px] p-8 md:p-16 text-center space-y-8 relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.15),transparent_70%)]" />
                 <div className="relative z-10 space-y-4">
-                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Ready to humanize your giving?</h2>
-                    <p className="text-zinc-400 max-w-lg mx-auto">
-                        Join the Givar network & start supporting verified causes with 100% transparency.
+                    <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Ready to make an impact?</h2>
+                    <p className="text-zinc-400 max-w-lg mx-auto font-medium">
+                        Join the Givar network and start supporting verified causes with 100% transparency.
                     </p>
                     <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link href="/signup">
-                            <Button size="lg" className="h-14 px-10 rounded-full font-bold bg-primary text-white shadow-[0_0_30px_hsl(var(--primary)/0.3)] hover:scale-105 transition-transform">
-                                Create Impact Wallet
-                            </Button>
-                        </Link>
                         <Link href="/explore">
-                            <Button variant="ghost" className="text-white hover:bg-white/10 h-14 px-8 rounded-full font-bold">
+                            <Button size="lg" className="h-14 px-10 rounded-full font-bold bg-primary text-white shadow-[0_0_30px_hsl(var(--primary)/0.3)] hover:scale-105 transition-transform border-0">
                                 Explore Causes <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </Link>
