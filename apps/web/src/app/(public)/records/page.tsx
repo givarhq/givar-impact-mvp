@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { ApiService } from '../../../services/api';
 import { PublicLayout } from '../../../components/layout/public-layout';
 import { PublicLedgerClient } from '../../../components/features/impact/public-ledger-client';
@@ -15,12 +16,15 @@ export default async function GlobalRecordsPage({
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
     const resolvedParams = await searchParams;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('givar_token')?.value; // Get token if exists
 
     const paramsObj = new URLSearchParams();
     if (resolvedParams.page) paramsObj.set('page', String(resolvedParams.page));
     if (resolvedParams.type) paramsObj.set('type', String(resolvedParams.type));
 
-    const ledger = await ApiService.projects.getLedger(paramsObj);
+    // Pass token to API service
+    const ledger = await ApiService.projects.getLedger(paramsObj, undefined, token);
 
     return (
         <PublicLayout>

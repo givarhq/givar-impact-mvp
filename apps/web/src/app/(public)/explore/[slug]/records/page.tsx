@@ -31,7 +31,8 @@ export default async function PublicProjectLedgerPage({
     if (resolvedParams.page) paramsObj.set('page', String(resolvedParams.page));
     if (resolvedParams.type) paramsObj.set('type', String(resolvedParams.type));
 
-    const initialLedger = await ApiService.projects.getLedger(paramsObj, slug);
+    // Pass token to API service to enable "You" identification
+    const initialLedger = await ApiService.projects.getLedger(paramsObj, slug, token);
 
     return (
         <PublicLayout>

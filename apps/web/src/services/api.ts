@@ -227,8 +227,13 @@ export const ApiService = {
     globalSearch: (query: string) =>
       apiClient.get(`/projects/search/global?q=${encodeURIComponent(query)}`).then(r => r.data),
 
-    getLedger: (params: URLSearchParams, slug?: string) => {
+    getLedger: (params: URLSearchParams, slug?: string, token?: string) => {
       const endpoint = slug ? `/projects/${slug}/ledger` : `/projects/ledger/global`;
+
+      if (token) {
+        return serverFetch<any>(`${endpoint}?${params.toString()}`, token, { next: { revalidate: 0 } });
+      }
+
       return apiClient.get(`${endpoint}?${params.toString()}`).then(r => r.data);
     },
   },
