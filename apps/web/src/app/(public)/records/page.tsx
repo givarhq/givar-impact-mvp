@@ -35,7 +35,7 @@ export default async function GlobalRecordsPage({
                             <Database className="h-5 w-5" />
                         </div>
                         <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground">
-                            Platform <span className="text-primary italic">Records.</span>
+                            Platform <span className="text-primary italic">Records</span>.
                         </h1>
                     </div>
                     <p className="text-sm text-muted-foreground font-medium max-w-lg">
