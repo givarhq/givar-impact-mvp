@@ -17,11 +17,11 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               Contact
             </Link>
             <span className="hidden md:block text-border">|</span>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="/legal/privacy" className="hover:text-primary transition-colors">
               Privacy
             </Link>
             <span className="hidden md:block text-border">|</span>
-            <Link href="#" className="hover:text-primary transition-colors">
+            <Link href="/legal/terms" className="hover:text-primary transition-colors">
               Terms
             </Link>
           </div>
