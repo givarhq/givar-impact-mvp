@@ -15,12 +15,10 @@ export const LandingHeader = memo(function LandingHeader({
   const isAuth = variant === 'auth';
 
   const handleScroll = useCallback(() => {
-    // Robust threshold check to prevent blur disappearing during fast anchor jumps
     setScrolled(window.scrollY > 20);
   }, []);
 
   useEffect(() => {
-    // Initial check
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -54,12 +52,11 @@ export const LandingHeader = memo(function LandingHeader({
           </span>
         </Link>
 
-        {/* Centered Nav */}
+        {/* Desktop Nav */}
         <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold text-muted-foreground">
           <Link href="/explore" className="hover:text-primary transition-colors">
             Explore Causes
           </Link>
-          {/* Using a tag for native hash behavior to prevent "stuck" scrolling state */}
           <a href="/#how-it-works" className="hover:text-primary transition-colors">
             How It Works
           </a>
@@ -69,6 +66,11 @@ export const LandingHeader = memo(function LandingHeader({
         </nav>
 
         <div className="relative z-10 flex items-center justify-center gap-3">
+          {/* Mobile About Link */}
+          <Link href="/about" className="md:hidden text-xs font-bold text-muted-foreground hover:text-primary transition-colors px-2">
+            About
+          </Link>
+
           {!hideAuthButtons && (
             <>
               <Link href="/login" className="flex items-center justify-center">
@@ -80,7 +82,7 @@ export const LandingHeader = memo(function LandingHeader({
                 </Button>
               </Link>
               <Link href="/signup" className="flex items-center justify-center">
-                <Button className="w-auto rounded-full px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0">
+                <Button className="w-auto rounded-full px-5 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-xs md:text-sm">
                   Get Started
                 </Button>
               </Link>

@@ -10,9 +10,9 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="border-t border-border/40 py-10 bg-muted/20">
+      <footer className="border-t border-border/40 py-8 bg-muted/20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 text-[11px] font-bold tracking-widest text-muted-foreground">
+          <div className="flex flex-row flex-wrap items-center justify-center gap-x-6 gap-y-3 md:gap-10 text-xs font-bold text-muted-foreground">
             <Link href="/contact" className="hover:text-primary transition-colors">
               Contact
             </Link>
@@ -29,8 +29,8 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               Terms
             </Link>
           </div>
-          <div className="mt-8 text-center text-[10px] font-medium text-muted-foreground/60">
-            &copy; {new Date().getFullYear()} Givar Impact. Infrastructure for modern philanthropy.
+          <div className="mt-6 text-center text-[10px] font-medium text-muted-foreground/60">
+            &copy; {new Date().getFullYear()} Givar Impact Platform. Infrastructure for modern philanthropy.
           </div>
         </div>
       </footer>
