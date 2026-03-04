@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import { SentryInterceptor } from './common/interceptors/sentry.interceptor';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 // MONKEY PATCH: BigInt Serialization
 // Critical for financial math. Converts BigInt to string in JSON responses.
@@ -42,8 +43,24 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
+  // Swagger API Documentation Setup
+  const config = new DocumentBuilder()
+    .setTitle('Givar Platform API')
+    .setDescription('The immutable ledger and discovery protocol for Givar Impact.')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
+
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`Givar API running on: http://localhost:${port}/api`);
+  console.log(`Swagger Docs available at: http://localhost:${port}/api/docs`);
 }
 bootstrap();

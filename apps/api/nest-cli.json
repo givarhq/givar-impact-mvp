@@ -6,6 +6,15 @@
         "deleteOutDir": false,
         "assets": [],
         "manualRestart": true,
-        "watchAssets": false
+        "watchAssets": false,
+        "plugins": [
+            {
+                "name": "@nestjs/swagger",
+                "options": {
+                    "classValidatorShim": true,
+                    "introspectComments": true
+                }
+            }
+        ]
     }
 }
