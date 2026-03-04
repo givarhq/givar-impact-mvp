@@ -286,9 +286,18 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                         <div className="space-y-1 min-w-0">
                                             <p className="text-xs font-bold text-muted-foreground mb-0.5">Target project</p>
                                             <div className="flex items-center justify-between gap-3 min-w-0">
-                                                <p className="font-bold text-sm text-foreground truncate leading-tight flex-1">
-                                                    {selectedEntry.projectName}
-                                                </p>
+                                                {(project?.slug || selectedEntry?.projectSlug) ? (
+                                                    <Link
+                                                        href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`}
+                                                        className="font-bold text-sm text-foreground truncate leading-tight flex-1 hover:text-primary transition-colors"
+                                                    >
+                                                        {selectedEntry.projectName}
+                                                    </Link>
+                                                ) : (
+                                                    <p className="font-bold text-sm text-foreground truncate leading-tight flex-1">
+                                                        {selectedEntry.projectName}
+                                                    </p>
+                                                )}
                                                 {(project?.slug || selectedEntry?.projectSlug) && (
                                                     <Link href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`}>
                                                         <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 shadow-sm shrink-0 hover:bg-primary hover:text-white transition-all">
