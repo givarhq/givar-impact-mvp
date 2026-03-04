@@ -15,7 +15,7 @@ export default function ContactPage() {
                 <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="text-center space-y-3 pt-2">
                         <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground">
-                            Get in <span className="text-primary italic">Touch.</span>
+                            Get in <span className="text-primary italic">Touch</span>.
                         </h1>
                         <p className="text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">
                             Have questions about a cause or need technical assistance? Our support team is here to help you move impact forward.
