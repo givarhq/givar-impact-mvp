@@ -227,8 +227,10 @@ export const ApiService = {
     globalSearch: (query: string) =>
       apiClient.get(`/projects/search/global?q=${encodeURIComponent(query)}`).then(r => r.data),
 
-    getLedger: (slug: string, params: URLSearchParams) =>
-      apiClient.get(`/projects/${slug}/ledger?${params.toString()}`).then(r => r.data),
+    getLedger: (params: URLSearchParams, slug?: string) => {
+      const endpoint = slug ? `/projects/${slug}/ledger` : `/projects/ledger/global`;
+      return apiClient.get(`${endpoint}?${params.toString()}`).then(r => r.data);
+    },
   },
 
   // --- DONATIONS ---

@@ -86,7 +86,22 @@ export class ProjectController {
     return this.service.userGlobalSearch(req.user.id, query);
   }
 
-  // Public Ledger Endpoint
+  // Global Ledger (All projects combined)
+  @Public()
+  @Get('ledger/global')
+  getGlobalLedger(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('type') type?: string,
+  ) {
+    return this.service.getProjectLedger(null, {
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 15,
+      type
+    });
+  }
+
+  // Project-Specific Ledger
   @Public()
   @Get(':slug/ledger')
   getProjectLedger(
