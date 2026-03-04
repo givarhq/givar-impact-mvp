@@ -47,14 +47,6 @@ export default async function DashboardProjectLedgerPage({
                 </Link>
 
                 <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground">
-                            Public <span className="text-primary italic">Records.</span>
-                        </h1>
-                        <div className="hidden sm:flex h-8 w-8 rounded-2xl bg-emerald-500/10 items-center justify-center text-emerald-600 border border-emerald-500/20 shadow-inner">
-                            <ShieldCheck className="h-4.5 w-4.5" />
-                        </div>
-                    </div>
                     <p className="text-sm text-muted-foreground font-medium max-w-xl">
                         Verified giving and payment history for <span className="text-foreground font-bold">{project.title}</span>
                     </p>
