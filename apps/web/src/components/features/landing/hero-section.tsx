@@ -3,7 +3,7 @@
 import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, ShieldCheck, Wallet, Activity, Heart } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Wallet, Activity, Heart, ExternalLink } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
@@ -128,22 +128,27 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     className="lg:hidden w-full pt-8"
                 >
                     <Card className="w-full border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] rounded-3xl">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
-                                <Activity className="h-5 w-5" />
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
-                                <div className="text-lg font-black font-mono truncate">
-                                    <SmartCurrency
-                                        amount={stats.totalVolume}
-                                        currency="NGN"
-                                        visible={true}
-                                        size="default"
-                                        className="text-emerald-950 dark:text-white"
-                                    />
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
+                                    <Activity className="h-5 w-5" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
+                                    <div className="text-lg font-black font-mono truncate">
+                                        <SmartCurrency
+                                            amount={stats.totalVolume}
+                                            currency="NGN"
+                                            visible={true}
+                                            size="default"
+                                            className="text-emerald-950 dark:text-white"
+                                        />
+                                    </div>
                                 </div>
                             </div>
+                            <Link href="/records" title="View Public Ledger">
+                                <ExternalLink className="h-4 w-4 text-emerald-900/40 dark:text-white/40 hover:text-primary transition-colors" />
+                            </Link>
                         </div>
 
                         {stats.latestDonation ? (
@@ -177,22 +182,27 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     className="absolute right-6 bottom-10 hidden lg:block z-20"
                 >
                     <Card className="w-80 border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                                <Activity className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
-                                <div className="text-lg font-black font-mono">
-                                    <SmartCurrency
-                                        amount={stats.totalVolume}
-                                        currency="NGN"
-                                        visible={true}
-                                        size="default"
-                                        className="text-emerald-950 dark:text-white"
-                                    />
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                                    <Activity className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
+                                    <div className="text-lg font-black font-mono">
+                                        <SmartCurrency
+                                            amount={stats.totalVolume}
+                                            currency="NGN"
+                                            visible={true}
+                                            size="default"
+                                            className="text-emerald-950 dark:text-white"
+                                        />
+                                    </div>
                                 </div>
                             </div>
+                            <Link href="/records" title="View Public Ledger">
+                                <ExternalLink className="h-4 w-4 text-emerald-900/40 dark:text-white/40 hover:text-primary transition-colors" />
+                            </Link>
                         </div>
 
                         {stats.latestDonation ? (
