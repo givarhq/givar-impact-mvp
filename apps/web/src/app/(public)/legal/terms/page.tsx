@@ -71,7 +71,7 @@ export default function TermsPage() {
                                     <h3 className="text-lg font-bold text-foreground">Platform responsibility</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    Givar verifies organizations and tracks funds, but we do not execute the projects ourselves. We facilitate the infrastructure for transparent philanthropy.
+                                    Givar's team directly launches and manages verified causes, tracking all funds from donation to impact. We also provide this same transparent infrastructure for our trusted partners.
                                 </p>
                             </CardContent>
                         </Card>
