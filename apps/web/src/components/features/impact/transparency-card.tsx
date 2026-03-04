@@ -10,12 +10,14 @@ import { cn } from '../../../lib/utils/cn';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 interface TransparencyCardProps {
     project: Project & { donorCount?: number };
 }
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
+    const pathname = usePathname();
     const raised = BigInt(project.raisedAmount || '0');
     const target = BigInt(project.targetAmount || '0');
 
@@ -41,7 +43,11 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const recordsLink = `/explore/${project.slug}/records`;
+    // Logic: Dynamically construct the records link based on current view mode.
+    // If the user is in the /dashboard context, we use the dashboard records path.
+    // If they are in the /explore context, we use the public explore records path.
+    const baseContext = pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore';
+    const recordsLink = `${baseContext}/${project.slug}/records`;
 
     return (
         <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 shadow-sm">
