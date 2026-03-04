@@ -25,8 +25,8 @@ export default async function GlobalRecordsPage({
     return (
         <PublicLayout>
             <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 animate-in fade-in duration-500">
-                <div className="flex flex-col gap-2 px-1 min-w-0">
-                    <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-2 px-1 text-center md:text-left">
+                    <div className="flex items-center justify-center md:justify-start gap-3">
                         <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-inner shrink-0">
                             <Database className="h-5 w-5" />
                         </div>
@@ -41,6 +41,7 @@ export default async function GlobalRecordsPage({
 
                 <div className="w-full min-w-0">
                     <PublicLedgerClient
+                        project={{ id: 'global' }}
                         initialData={ledger || { data: [], meta: { total: 0, page: 1, lastPage: 1 } }}
                     />
                 </div>
