@@ -25,31 +25,35 @@ export default function ContactPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <Card className="rounded-3xl border-border/40 bg-card hover:border-primary/30 transition-all shadow-sm">
                             <CardContent className="p-6 md:p-8 space-y-4">
-                                <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                                    <Mail className="h-5 w-5" />
-                                </div>
-                                <div className="space-y-0.5">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
+                                        <Mail className="h-5 w-5" />
+                                    </div>
                                     <h3 className="text-lg font-bold text-foreground">Email Support</h3>
-                                    <p className="text-sm text-muted-foreground font-medium">For general inquiries and verification help.</p>
                                 </div>
-                                <a href="mailto:info@givarapp.com" className="text-primary font-black tracking-tight text-xl hover:underline">
-                                    info@givarapp.com
-                                </a>
+                                <div className="space-y-1">
+                                    <p className="text-sm text-muted-foreground font-medium">For general inquiries and verification help.</p>
+                                    <a href="mailto:info@givarapp.com" className="text-primary font-black tracking-tight text-xl hover:underline block">
+                                        info@givarapp.com
+                                    </a>
+                                </div>
                             </CardContent>
                         </Card>
 
                         <Card className="rounded-3xl border-border/40 bg-card hover:border-primary/30 transition-all shadow-sm">
                             <CardContent className="p-6 md:p-8 space-y-4">
-                                <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner">
-                                    <Phone className="h-5 w-5" />
-                                </div>
-                                <div className="space-y-0.5">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner shrink-0">
+                                        <Phone className="h-5 w-5" />
+                                    </div>
                                     <h3 className="text-lg font-bold text-foreground">Phone Support</h3>
-                                    <p className="text-sm text-muted-foreground font-medium">Available Monday to Friday, 9am - 5pm.</p>
                                 </div>
-                                <p className="text-foreground font-black tracking-tight text-xl">
-                                    +234 905 551 340 (NG)
-                                </p>
+                                <div className="space-y-1">
+                                    <p className="text-sm text-muted-foreground font-medium">Available Monday to Friday, 9am - 5pm.</p>
+                                    <p className="text-foreground font-black tracking-tight text-xl">
+                                        +234 905 551 340 (NG)
+                                    </p>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
