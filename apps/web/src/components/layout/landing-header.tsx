@@ -29,9 +29,9 @@ export const LandingHeader = memo(function LandingHeader({
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isAuth
-          ? 'bg-background border-b border-border/40 py-4'
+          ? 'bg-background border-border/40 py-4'
           : scrolled
-            ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-border/40 py-3 shadow-sm'
+            ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-border/40 py-3 shadow-sm'
             : 'bg-transparent py-6'
       )}
     >

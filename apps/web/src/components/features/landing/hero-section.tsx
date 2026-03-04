@@ -81,13 +81,21 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                     </Button>
                                 </Link>
 
-                                <Link href="/signup">
+                                <Link href="/signup" className="hidden sm:block">
                                     <Button
                                         variant="outline"
                                         className="w-auto h-12 sm:h-14 px-8 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
                                     >
-                                        <span className="hidden sm:inline">Create Account</span>
-                                        <span className="sm:hidden">Sign In</span>
+                                        Create Account
+                                    </Button>
+                                </Link>
+
+                                <Link href="/login" className="sm:hidden">
+                                    <Button
+                                        variant="outline"
+                                        className="w-auto h-12 sm:h-14 px-8 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
+                                    >
+                                        Sign In
                                     </Button>
                                 </Link>
                             </div>

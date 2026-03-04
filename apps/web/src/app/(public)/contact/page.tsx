@@ -56,7 +56,7 @@ export default function ContactPage() {
 
                     <div className="p-6 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
                         <p className="text-xs text-muted-foreground font-medium">
-                            Givar Impact Platform • Lagos, Nigeria
+                            Givar Impact • Lagos, Nigeria
                         </p>
                     </div>
                 </div>
