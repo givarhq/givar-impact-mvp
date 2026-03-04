@@ -43,11 +43,11 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // Logic: Dynamically construct the records link based on current view mode.
-    // If the user is in the /dashboard context, we use the dashboard records path.
-    // If they are in the /explore context, we use the public explore records path.
-    const baseContext = pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore';
-    const recordsLink = `${baseContext}/${project.slug}/records`;
+    // Logic: Dynamically construct the records link based on current path to prevent middleware 404/redirects.
+    const isDashboard = pathname.startsWith('/dashboard');
+    const recordsLink = isDashboard
+        ? `/dashboard/impact/${project.slug}/records`
+        : `/explore/${project.slug}/records`;
 
     return (
         <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 shadow-sm">
