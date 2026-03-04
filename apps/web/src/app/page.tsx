@@ -59,7 +59,7 @@ export default async function LandingPage() {
 
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
                             <div>
-                                <h4 className="font-bold text-foreground mb-4">Product</h4>
+                                <h4 className="font-bold text-foreground mb-4">Documentation</h4>
                                 <ul className="space-y-3 text-sm font-medium text-muted-foreground">
                                     <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
                                     <li><Link href="/docs/records" className="hover:text-primary transition-colors">Public Records</Link></li>
