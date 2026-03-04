@@ -32,7 +32,7 @@ export function MobileNav({ user }: { user: any }) {
     ...dashboardNav,
     {
       title: 'Profile',
-      href: '/dashboard/settings',
+      href: '/dashboard/settings?tab=profile',
       icon: CircleUser,
     }
   ];
