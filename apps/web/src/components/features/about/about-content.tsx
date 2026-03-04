@@ -87,7 +87,7 @@ export function AboutContent() {
 
             {/* Why Givar Was Created Section (Founder) */}
             <section className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10 items-center bg-card border border-border/40 rounded-[40px] p-6 md:p-10 shadow-sm max-w-5xl mx-auto">
-                <div className="md:col-span-4 flex flex-col items-center text-center space-y-3">
+                <div className="order-2 md:order-1 md:col-span-4 flex flex-col items-center text-center space-y-3">
                     <div className="relative aspect-[1015/1100] w-full max-w-[240px] rounded-2xl overflow-hidden border border-border shadow-md bg-muted">
                         <Image
                             src="/founder-photo.png"
@@ -103,7 +103,7 @@ export function AboutContent() {
                         <p className="text-xs font-bold text-muted-foreground">Founder, Givar</p>
                     </div>
                 </div>
-                <div className="md:col-span-8 space-y-4">
+                <div className="order-1 md:order-2 md:col-span-8 space-y-4">
                     <h3 className="text-2xl font-black tracking-tight text-foreground">Why Givar Was Created</h3>
                     <div className="space-y-3 text-muted-foreground leading-relaxed font-medium">
                         <p>
