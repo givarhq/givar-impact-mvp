@@ -10,7 +10,7 @@ import {
     Copy,
     Database,
     FileText,
-    Compass,
+    ExternalLink,
     Wallet,
     CreditCard,
     Inbox
@@ -301,7 +301,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 {(project?.slug || selectedEntry?.projectSlug) && (
                                                     <Link href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`}>
                                                         <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 shadow-sm shrink-0 hover:bg-primary hover:text-white transition-all">
-                                                            <Compass className="h-3.5 w-3.5" />
+                                                            <ExternalLink className="h-3.5 w-3.5" />
                                                         </div>
                                                     </Link>
                                                 )}
