@@ -216,7 +216,15 @@ export class ProjectService {
     const latestDonations = await this.prisma.donation.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
-      include: { project: { select: { title: true } } }
+      include: {
+        project: {
+          select: {
+            title: true,
+            targetAmount: true,
+            raisedAmount: true
+          }
+        }
+      }
     });
 
     return {
@@ -224,6 +232,8 @@ export class ProjectService {
       latestDonations: latestDonations.map(d => ({
         projectTitle: d.project.title,
         amount: d.amount.toString(),
+        raised: d.project.raisedAmount.toString(),
+        target: d.project.targetAmount.toString(),
         createdAt: d.createdAt
       }))
     };
