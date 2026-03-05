@@ -46,6 +46,8 @@ export function useAutoLogout() {
         const token = getCookie('givar_token');
         if (!token) return;
 
+        recordActivity();
+
         // Logic: Deterministic Check (Mount & Tab Focus)
         // Ensures that if a user returns to a dormant tab, they are booted immediately 
         // if the threshold was crossed while the tab was backgrounded.

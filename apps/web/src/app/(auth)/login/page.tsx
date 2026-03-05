@@ -63,8 +63,10 @@ function LoginComponent() {
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
 
-      // Logic: Hard redirect to target to prevent layout hydration flashes 
-      // during the auth state transition.
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('givar_last_activity', Date.now().toString());
+      }
+
       const redirectPath = searchParams.get('redirect');
       if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
         window.location.href = redirectPath || '/admin';
