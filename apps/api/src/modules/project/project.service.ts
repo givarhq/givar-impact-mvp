@@ -213,18 +213,19 @@ export class ProjectService {
       where: { isActive: true },
     });
 
-    const latestDonation = await this.prisma.donation.findFirst({
+    const latestDonations = await this.prisma.donation.findMany({
+      take: 5,
       orderBy: { createdAt: 'desc' },
       include: { project: { select: { title: true } } }
     });
 
     return {
       totalVolume: aggregate._sum.raisedAmount || 0n,
-      latestDonation: latestDonation ? {
-        projectTitle: latestDonation.project.title,
-        amount: latestDonation.amount,
-        createdAt: latestDonation.createdAt
-      } : null
+      latestDonations: latestDonations.map(d => ({
+        projectTitle: d.project.title,
+        amount: d.amount.toString(),
+        createdAt: d.createdAt
+      }))
     };
   }
 
