@@ -275,7 +275,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                 </AnimatePresence>
                             </div>
 
-                            <div className="flex justify-between text-xs text-emerald-900/40 dark:text-white/40 font-bold pt-1 tracking-widest">
+                            <div className="flex justify-between text-xs text-emerald-900/40 dark:text-white/40 font-bold pt-1">
                                 <span>Just now</span>
                                 <span>Verified on-chain</span>
                             </div>
