@@ -94,7 +94,7 @@ export default function PrivacyPage() {
                     {/* Footer Note */}
                     <div className="p-6 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
                         <p className="text-xs text-muted-foreground font-medium">
-                            Last updated: March 2026. For privacy concerns, contact <a href="mailto:info@givarapp.com" className="text-primary hover:underline">info@givarapp.com</a>.
+                            Last updated: March 2026. For privacy concerns, contact <a href="mailto:support@givarapp.com" className="text-primary hover:underline">support@givarapp.com</a>.
                         </p>
                     </div>
                 </div>

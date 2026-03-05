@@ -33,8 +33,8 @@ export default function ContactPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-sm text-muted-foreground font-medium">For general inquiries and verification help.</p>
-                                    <a href="mailto:info@givarapp.com" className="text-primary font-black tracking-tight text-xl hover:underline block">
-                                        info@givarapp.com
+                                    <a href="mailto:support@givarapp.com" className="text-primary font-black tracking-tight text-xl hover:underline block">
+                                        support@givarapp.com
                                     </a>
                                 </div>
                             </CardContent>
