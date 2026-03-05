@@ -1,13 +1,13 @@
 'use client';
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, ShieldCheck, Wallet, Activity, Heart, ExternalLink } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ProjectCard } from '../impact/project-card';
 import { ShareModal } from '../impact/share-modal';
 import { Project } from '../../../types';
@@ -15,11 +15,11 @@ import { cn } from 'apps/web/src/lib/utils/cn';
 
 interface PlatformStats {
     totalVolume: string;
-    latestDonation: {
+    latestDonations: Array<{
         projectTitle: string;
         amount: string;
         createdAt: string;
-    } | null;
+    }>;
 }
 
 interface HeroSectionProps {
@@ -31,6 +31,19 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
     const displayProjects = featuredProjects.slice(0, 3);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [shareProject, setShareProject] = useState<Project | null>(null);
+
+    const donations = stats.latestDonations || [];
+    const [donationIndex, setDonationIndex] = useState(0);
+
+    useEffect(() => {
+        if (donations.length <= 1) return;
+        const interval = setInterval(() => {
+            setDonationIndex((prev) => (prev + 1) % donations.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [donations.length]);
+
+    const activeDonation = donations[donationIndex];
 
     return (
         <div className="w-full flex flex-col items-center">
@@ -127,8 +140,8 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="lg:hidden w-full pt-8"
                 >
-                    <Link href="/records" title="View Public Ledger" className="block">
-                        <Card className="group w-full border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] rounded-3xl hover:shadow-[0_15px_40px_rgba(0,0,0,0.08)] transition-all cursor-pointer">
+                    <Link href="/records" title="View Public Ledger" className="block outline-none">
+                        <Card className="group w-full border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_10px_30px_rgba(0,0,0,0.05)] rounded-3xl hover:shadow-[0_15px_40px_rgba(0,0,0,0.08)] transition-all cursor-pointer active:scale-[0.98]">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 rounded-2xl bg-primary/20 flex items-center justify-center text-primary">
@@ -150,26 +163,37 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                 <ExternalLink className="h-4 w-4 text-emerald-900/40 dark:text-white/40 group-hover:text-primary transition-colors" />
                             </div>
 
-                            {stats.latestDonation ? (
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-[11px] font-bold">
-                                        <span className="text-emerald-900/40 dark:text-white/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
-                                        <span className="text-primary font-mono shrink-0">
-                                            + <SmartCurrency
-                                                amount={stats.latestDonation.amount}
-                                                currency="NGN"
-                                                visible={true}
-                                                className="text-primary"
-                                            />
-                                        </span>
-                                    </div>
-                                    <div className="h-1 w-full bg-emerald-900/5 dark:bg-white/5 rounded-full overflow-hidden">
-                                        <div className="h-full bg-primary w-full animate-pulse" />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-xs text-emerald-900/30 dark:text-white/30 font-bold italic">Waiting For First Donation...</div>
-                            )}
+                            <div className="h-[44px] relative overflow-hidden">
+                                <AnimatePresence mode="wait">
+                                    {activeDonation ? (
+                                        <motion.div
+                                            key={donationIndex}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.4 }}
+                                            className="space-y-2"
+                                        >
+                                            <div className="flex justify-between items-center text-[11px] font-bold">
+                                                <span className="text-emerald-900/40 dark:text-white/40 truncate flex-1 mr-4">{activeDonation.projectTitle}</span>
+                                                <span className="text-primary font-mono shrink-0">
+                                                    + <SmartCurrency
+                                                        amount={activeDonation.amount}
+                                                        currency="NGN"
+                                                        visible={true}
+                                                        className="text-primary"
+                                                    />
+                                                </span>
+                                            </div>
+                                            <div className="h-1 w-full bg-emerald-900/5 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-primary w-full animate-pulse" />
+                                            </div>
+                                        </motion.div>
+                                    ) : (
+                                        <div className="text-xs text-emerald-900/30 dark:text-white/30 font-bold italic">Waiting For First Donation...</div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </Card>
                     </Link>
                 </motion.div>
@@ -181,8 +205,8 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     transition={{ duration: 0.8, delay: 0.5 }}
                     className="absolute right-6 bottom-10 hidden lg:block z-20"
                 >
-                    <Link href="/records" title="View Public Ledger" className="block">
-                        <Card className="group w-80 border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)] transition-all cursor-pointer">
+                    <Link href="/records" title="View Public Ledger" className="block outline-none">
+                        <Card className="group w-80 border-white/40 dark:border-white/10 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-5 text-emerald-950 dark:text-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-2xl hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)] transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="h-10 w-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
@@ -204,30 +228,42 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                                 <ExternalLink className="h-4 w-4 text-emerald-900/40 dark:text-white/40 group-hover:text-primary transition-colors" />
                             </div>
 
-                            {stats.latestDonation ? (
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-center text-xs font-bold">
-                                        <span className="text-emerald-900/40 dark:text-white/40 truncate w-[200px] inline-block">{stats.latestDonation.projectTitle}</span>
-                                        <span className="text-primary font-mono shrink-0">
-                                            + <SmartCurrency
-                                                amount={stats.latestDonation.amount}
-                                                currency="NGN"
-                                                visible={true}
-                                                className="text-primary"
-                                            />
-                                        </span>
-                                    </div>
-                                    <div className="h-1 w-full bg-emerald-900/5 dark:bg-white/5 rounded-full overflow-hidden">
-                                        <div className="h-full bg-primary w-full animate-pulse" />
-                                    </div>
-                                    <div className="flex justify-between text-[10px] text-emerald-900/30 dark:text-white/30 font-bold pt-1 tracking-widest">
-                                        <span>Just Now</span>
-                                        <span>Verified On-Chain</span>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-xs text-emerald-900/30 dark:text-white/30 font-bold italic">Waiting For First Donation...</div>
-                            )}
+                            <div className="h-[44px] relative overflow-hidden">
+                                <AnimatePresence mode="wait">
+                                    {activeDonation ? (
+                                        <motion.div
+                                            key={donationIndex}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            transition={{ duration: 0.4 }}
+                                            className="space-y-2"
+                                        >
+                                            <div className="flex justify-between items-center text-xs font-bold">
+                                                <span className="text-emerald-900/40 dark:text-white/40 truncate flex-1 mr-4">{activeDonation.projectTitle}</span>
+                                                <span className="text-primary font-mono shrink-0">
+                                                    + <SmartCurrency
+                                                        amount={activeDonation.amount}
+                                                        currency="NGN"
+                                                        visible={true}
+                                                        className="text-primary"
+                                                    />
+                                                </span>
+                                            </div>
+                                            <div className="h-1 w-full bg-emerald-900/5 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-primary w-full animate-pulse" />
+                                            </div>
+                                        </motion.div>
+                                    ) : (
+                                        <div className="text-xs text-emerald-900/30 dark:text-white/30 font-bold italic">Waiting For First Donation...</div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            <div className="flex justify-between text-[10px] text-emerald-900/30 dark:text-white/30 font-bold pt-1 tracking-widest uppercase">
+                                <span>Just Now</span>
+                                <span>Verified On-Chain</span>
+                            </div>
                         </Card>
                     </Link>
                 </motion.div>
