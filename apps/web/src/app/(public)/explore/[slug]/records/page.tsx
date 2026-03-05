@@ -38,7 +38,7 @@ export default async function PublicProjectLedgerPage({
         <PublicLayout>
             <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 animate-in fade-in duration-500">
                 <div className="flex flex-col gap-4 px-1 min-w-0">
-                    <Link href={`/explore/${slug}`} className="w-fit">
+                    <Link href={`/explore/${slug}`} className="w-fit" prefetch={false}>
                         <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">
                             <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
                             Back to project

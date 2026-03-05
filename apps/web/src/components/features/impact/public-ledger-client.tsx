@@ -290,6 +290,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                     <Link
                                                         href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`}
                                                         className="font-bold text-sm text-foreground truncate leading-tight flex-1 hover:text-primary transition-colors"
+                                                        prefetch={false}
                                                     >
                                                         {selectedEntry.projectName}
                                                     </Link>
@@ -299,7 +300,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                     </p>
                                                 )}
                                                 {(project?.slug || selectedEntry?.projectSlug) && (
-                                                    <Link href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`}>
+                                                    <Link href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`} prefetch={false}>
                                                         <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 shadow-sm shrink-0 hover:bg-primary hover:text-white transition-all">
                                                             <ExternalLink className="h-3.5 w-3.5" />
                                                         </div>
