@@ -54,7 +54,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
         <div className="w-full flex flex-col items-center">
 
             {/* HERO SECTION */}
-            <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 pt-32 md:pt-14 pb-12 md:pb-16">
+            <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 pt-32 md:pt-10 pb-12 md:pb-16">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-center">
 
                     {/* Left Copy */}
