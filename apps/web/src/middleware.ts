@@ -9,9 +9,10 @@ export function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const publicPaths = ['/', '/login', '/signup', '/about', '/explore'];
-  // Logic: Strict homepage match to avoid catching subpaths
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path) && (path === '/' ? pathname.length === 1 : true));
+  // Logic: Only redirect from these specific entry points if authenticated.
+  // This allows authenticated users to browse /about, /explore, /legal, etc.
+  const authRedirectPaths = ['/', '/login', '/signup'];
+  const isAuthRedirectPath = authRedirectPaths.includes(pathname);
 
   // 1. Authenticated Logic
   if (token) {
@@ -29,8 +30,8 @@ export function middleware(request: NextRequest) {
       viewMode !== 'USER' &&
       !isImpersonating;
 
-    // Redirect to respective home panels if on public landing pages
-    if (isPublicPath) {
+    // Redirect away from guest entry pages to the respective dashboard
+    if (isAuthRedirectPath) {
       const target = shouldBeInAdminEnv ? '/admin' : '/dashboard';
       return NextResponse.redirect(new URL(target, request.url));
     }
