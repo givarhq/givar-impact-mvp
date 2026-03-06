@@ -7,7 +7,7 @@ import { Github, Twitter, Linkedin } from 'lucide-react';
 
 export const Footer = memo(function Footer() {
     return (
-        <footer className="bg-white dark:bg-zinc-950 border-t border-border/40 py-16 transition-colors duration-300">
+        <footer className="bg-zinc-50 dark:bg-zinc-900/50 border-t border-border/40 py-16 transition-colors duration-300">
             <div className="container mx-auto px-6 max-w-6xl">
                 <div className="flex flex-col md:flex-row justify-between items-start gap-12">
                     <div className="space-y-6 max-w-sm">
