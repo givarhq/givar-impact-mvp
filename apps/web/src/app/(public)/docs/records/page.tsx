@@ -18,7 +18,7 @@ export default function PublicRecordsPage() {
 
                     {/* Header */}
                     <div className="text-center space-y-3 pt-2">
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-foreground leading-[0.95]">
+                        <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground leading-[0.95]">
                             Public <span className="text-primary italic">Records</span>.
                         </h1>
                         <div className="h-1 w-16 bg-primary/20 mx-auto rounded-full" />
