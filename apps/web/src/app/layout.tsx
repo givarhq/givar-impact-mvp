@@ -7,18 +7,20 @@ import { ThemeProvider } from '../components/themeprovider';
 import { cookies } from 'next/headers';
 import { ImpersonationBanner } from '../components/layout/impersonation-banner';
 import { ActivityMonitor } from '../components/layout/activity-monitor';
+import { ScrollToTop } from '../components/layout/scroll-to-top';
+import { Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#09090b' }, // zinc-950
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
   ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, // Ensures "App-like" feel on mobile preventing accidental zoom on inputs
+  userScalable: false,
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     icons: {
       icon: '/Givar1.png',
-      apple: '/Givar1.png', // In prod, use specific apple-touch-icon sizes
+      apple: '/Givar1.png',
     },
     manifest: '/manifest.json',
   };
@@ -73,6 +75,10 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
+          {/* Logic: Suspense boundary ensures the hook has access to searchParams on all routes */}
+          <Suspense fallback={null}>
+            <ScrollToTop />
+          </Suspense>
 
           <ActivityMonitor />
           <ImpersonationBanner />
