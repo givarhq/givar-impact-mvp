@@ -71,8 +71,7 @@
 
 @layer base {
     html {
-        /* Logic: Forces instant jumps for all navigations and anchor links */
-        scroll-behavior: auto !important;
+        scroll-behavior: smooth;
     }
 
     * {
@@ -81,9 +80,6 @@
 
     body {
         @apply bg-background text-foreground;
-        /* Logic: Ensures the body container doesn't retain old scroll positions */
-        min-height: 100vh;
-        overflow-x: hidden;
     }
 }
 
