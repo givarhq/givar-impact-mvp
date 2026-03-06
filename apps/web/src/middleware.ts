@@ -9,9 +9,13 @@ export function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const publicPaths = ['/', '/login', '/signup', '/about', '/explore'];
-  // Logic: Strict homepage match to avoid catching subpaths
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path) && (path === '/' ? pathname.length === 1 : true));
+  // Logic: Only redirect authenticated users away from purely entry-level paths.
+  // We now allow them to access /about, /explore, /contact, /records, and /legal paths
+  // while maintaining their session.
+  const guestOnlyPaths = ['/', '/login', '/signup'];
+  const isGuestOnlyPath = guestOnlyPaths.some(path =>
+    path === '/' ? pathname === '/' : pathname.startsWith(path)
+  );
 
   // 1. Authenticated Logic
   if (token) {
@@ -23,19 +27,18 @@ export function middleware(request: NextRequest) {
       } catch (e) { /* ignore malformed */ }
     }
 
-    // Logic: Respect viewMode for both ADMIN and SUPERADMIN roles.
     const shouldBeInAdminEnv =
       (userRole === 'ADMIN' || userRole === 'SUPERADMIN') &&
       viewMode !== 'USER' &&
       !isImpersonating;
 
-    // Redirect to respective home panels if on public landing pages
-    if (isPublicPath) {
+    // Redirect to respective home panels ONLY if on guest-only entry pages
+    if (isGuestOnlyPath) {
       const target = shouldBeInAdminEnv ? '/admin' : '/dashboard';
       return NextResponse.redirect(new URL(target, request.url));
     }
 
-    // Forced context switching for Admin vs Giver perspectives
+    // Forced context switching for Admin vs Giver perspectives for PROTECTED routes
     if (pathname.startsWith('/dashboard') && shouldBeInAdminEnv) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
@@ -59,7 +62,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Logic: Exclude all static assets and API routes from middleware processing to minimize TTFB
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)',
   ],

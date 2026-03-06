@@ -1,11 +1,19 @@
 'use client';
 
-import React, { memo } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Github, Twitter, Linkedin } from 'lucide-react';
+import { getCookie } from 'cookies-next';
 
 export const Footer = memo(function Footer() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const token = getCookie('givar_token');
+        setIsAuthenticated(!!token);
+    }, []);
+
     return (
         <footer className="bg-zinc-50 dark:bg-zinc-900/50 border-t border-border/40 py-16 transition-colors duration-300">
             <div className="container mx-auto px-6 max-w-6xl">
@@ -49,7 +57,14 @@ export const Footer = memo(function Footer() {
                 </div>
 
                 <div className="border-t border-border/40 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-medium text-muted-foreground">
-                    <div>&copy; {new Date().getFullYear()} Givar Inc. All rights reserved.</div>
+                    <div className="flex flex-col gap-1">
+                        <div>&copy; {new Date().getFullYear()} Givar Inc. All rights reserved.</div>
+                        {isAuthenticated && (
+                            <Link href="/dashboard" className="text-primary font-bold hover:underline underline-offset-4 text-xs">
+                                Return to Dashboard
+                            </Link>
+                        )}
+                    </div>
                     <div className="flex gap-6">
                         <Github className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
                         <Twitter className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
