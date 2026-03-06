@@ -22,6 +22,9 @@ const signupSchema = z.object({
     .regex(/[A-Z]/, 'Require one uppercase letter')
     .regex(/[0-9]/, 'Require one digit'),
   confirmPassword: z.string(),
+  acceptTerms: z.literal(true, {
+    errorMap: () => ({ message: 'You must accept the terms to continue' }),
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -65,8 +68,6 @@ export default function SignupPage() {
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
 
-      // Logic: Use hard location change for auth transitions to avoid 
-      // React hydration race conditions in the current layout.
       window.location.href = '/dashboard';
     } catch (error: any) {
       const message = error.response?.data?.message;
@@ -168,6 +169,30 @@ export default function SignupPage() {
             className="h-12 rounded-3xl bg-muted/20 border-border/60 focus:bg-background animate-in fade-in slide-in-from-top-1"
           />
         )}
+
+        <div className="space-y-3 pt-2">
+          <div className="flex items-start gap-3 px-1">
+            <div className="flex items-center h-5">
+              <input
+                id="acceptTerms"
+                type="checkbox"
+                {...register('acceptTerms')}
+                className="h-4 w-4 rounded border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+              />
+            </div>
+            <label htmlFor="acceptTerms" className="text-xs font-medium text-muted-foreground leading-snug cursor-pointer select-none">
+              By creating an account, you agree to our{' '}
+              <Link href="/legal/terms" className="text-primary font-bold hover:underline underline-offset-4">Terms of Service</Link>
+              {' '}and{' '}
+              <Link href="/legal/privacy" className="text-primary font-bold hover:underline underline-offset-4">Privacy Policy</Link>.
+            </label>
+          </div>
+          {errors.acceptTerms && (
+            <p className="text-xs font-bold text-destructive px-1 animate-in slide-in-from-top-1">
+              {errors.acceptTerms.message}
+            </p>
+          )}
+        </div>
 
         <Button
           className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0"

@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { Equals, IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { Currency } from '@givar/database';
 import { IsStrongPassword } from 'src/common/decorators/is-strong-password-decorator';
 
@@ -19,6 +19,10 @@ export class RegisterDto {
   @IsString()
   @MinLength(2)
   lastName!: string;
+
+  @IsBoolean()
+  @Equals(true, { message: 'TERMS_NOT_ACCEPTED' })
+  acceptTerms!: boolean;
 
   // Optional: Allow user to choose base currency, default to NGN
   @IsEnum(Currency)

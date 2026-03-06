@@ -72,7 +72,11 @@ export class AuthService {
         action: AuditAction.USER_REGISTER,
         entityId: user.id,
         entityType: 'User',
-        metadata: { email: user.email },
+        metadata: {
+          email: user.email,
+          termsAccepted: true,
+          legalVersion: '2026-03'
+        },
         req,
       }, tx);
 
