@@ -102,7 +102,7 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                             )}
                         >
                             <ShieldCheck className={cn("h-3.5 w-3.5", isSystem ? "fill-primary/20" : "")} />
-                            Official Only
+                            By Givar
                         </Button>
 
                         {showStatusFilter && (
