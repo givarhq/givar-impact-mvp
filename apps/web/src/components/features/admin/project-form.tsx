@@ -62,14 +62,14 @@ const timelineItemSchema = z.object({
 });
 
 const projectSchema = z.object({
-  title: z.string().min(5, "The Title Is A Bit Too Short"),
-  description: z.string().min(10, "Please Provide A More Detailed Description"),
+  title: z.string().min(5, "The title is a bit too short"),
+  description: z.string().min(10, "Please provide a more detailed description"),
   shortDesc: z.string().optional(),
-  categoryId: z.string().uuid("Please Select A Category"),
-  location: z.string().min(2, "A Location Is Required"),
-  targetAmount: z.number().min(100, "Minimum Goal Amount Is 100"),
+  categoryId: z.string().uuid("Please select a category"),
+  location: z.string().min(2, "A location is required"),
+  targetAmount: z.number().min(100, "Minimum goal amount is 100"),
   currency: z.enum(['NGN', 'USD', 'GBP']),
-  coverImage: z.string().url("A Primary Image Is Required"),
+  coverImage: z.string().min(1, "A primary image is required"),
   gallery: z.array(mediaItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
@@ -87,6 +87,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.imageUrl || null);
 
   const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
   const readOnly = initialData ? !isEditing : false;
@@ -144,6 +146,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const handleCancel = () => {
     if (initialData) {
       reset();
+      setCoverPreview(initialData.imageUrl || null);
       setIsEditing(false);
     }
   };
@@ -358,10 +361,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           <div className="lg:col-span-5 space-y-3">
             <p className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Primary Showcase Image</p>
-            {coverImage ? (
+            {coverPreview || coverImage ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-md group/img bg-muted">
                 <Image
-                  src={coverImage}
+                  src={coverPreview || coverImage}
                   alt="Project Hero"
                   fill
                   sizes="(max-width: 768px) 100vw, 800px"
@@ -369,7 +372,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => setValue('coverImage', '')}>
+                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => {
+                      setValue('coverImage', '', { shouldDirty: true });
+                      setCoverPreview(null);
+                    }}>
                       <X className="h-4 w-4 mr-2" /> Remove Image
                     </Button>
                   </div>
@@ -377,9 +383,13 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               </div>
             ) : (
               <div className="h-56">
-                <ImageUploader label="Upload image" onUploadComplete={(data) => setValue('coverImage', data.previewUrl)} />
+                <ImageUploader label="Upload image" onUploadComplete={(data) => {
+                  setValue('coverImage', data.key, { shouldDirty: true });
+                  setCoverPreview(data.previewUrl);
+                }} />
               </div>
             )}
+            {errors.coverImage && <p className="text-[11px] font-bold text-destructive px-2 mt-1">{errors.coverImage.message}</p>}
           </div>
 
           <div className="lg:col-span-7 space-y-3">

@@ -42,7 +42,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
   const router = useRouter();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [activeMilestone, setActiveMilestone] = useState<Milestone | null>(null);
-  const [proofImageUrl, setProofImageUrl] = useState<string | null>(null);
+  const [proofImage, setProofImage] = useState<{ key: string; url: string } | null>(null);
 
   const handleStatusChange = async (milestoneId: string, newStatus: Milestone['status']) => {
     if (newStatus === 'COMPLETED') {
@@ -65,7 +65,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
     } finally {
       setProcessingId(null);
       setActiveMilestone(null);
-      setProofImageUrl(null);
+      setProofImage(null);
     }
   };
 
@@ -197,21 +197,21 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
               </p>
 
               <AnimatePresence mode="wait">
-                {proofImageUrl ? (
+                {proofImage ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="relative aspect-video rounded-[24px] overflow-hidden border border-border/40 bg-muted shadow-inner group"
                   >
                     <Image
-                      src={proofImageUrl}
+                      src={proofImage.url}
                       alt="Phase Proof"
                       fill
                       sizes="(max-width: 768px) 100vw, 400px"
                       className="object-cover"
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button variant="destructive" size="sm" className="rounded-full h-9 px-4" onClick={() => setProofImageUrl(null)}>
+                      <Button variant="destructive" size="sm" className="rounded-full h-9 px-4" onClick={() => setProofImage(null)}>
                         Change Image
                       </Button>
                     </div>
@@ -220,7 +220,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <ImageUploader
                       label="Upload Proof Of Progress (Optional)"
-                      onUploadComplete={(data) => setProofImageUrl(data.previewUrl)}
+                      onUploadComplete={(data) => setProofImage({ key: data.key, url: data.previewUrl })}
                     />
                   </motion.div>
                 )}
@@ -229,7 +229,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
               <div className="flex flex-col gap-2 pt-2">
                 <Button
                   className="w-full h-14 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 bg-primary text-white border-0 transition-all active:scale-[0.98]"
-                  onClick={() => updateMilestone(activeMilestone!.id, 'COMPLETED', proofImageUrl || undefined)}
+                  onClick={() => updateMilestone(activeMilestone!.id, 'COMPLETED', proofImage?.key || undefined)}
                   disabled={processingId === activeMilestone?.id}
                 >
                   {processingId === activeMilestone?.id ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm & Finalize Phase'}
