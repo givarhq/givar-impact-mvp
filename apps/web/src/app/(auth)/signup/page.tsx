@@ -10,7 +10,7 @@ import { setCookie } from 'cookies-next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
-import { Loader2, AlertCircle, Eye, EyeOff, UserPlus } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
 
 const signupSchema = z.object({
@@ -206,7 +206,6 @@ export default function SignupPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
               Sign Up
             </div>
           )}
