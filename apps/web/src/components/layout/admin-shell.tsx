@@ -4,6 +4,7 @@ import * as React from 'react';
 import { AdminSidebar } from './admin-sidebar';
 import { AdminHeader } from './admin-header';
 import { AdminMobileNav } from './admin-mobile-nav';
+import { Footer } from './footer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
@@ -42,6 +43,10 @@ export function AdminShell({ children, user }: AdminShellProps) {
               </motion.div>
             </AnimatePresence>
           </main>
+
+          <div className="hidden md:block">
+            <Footer />
+          </div>
         </div>
       </div>
 
