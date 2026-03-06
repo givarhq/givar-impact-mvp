@@ -75,7 +75,7 @@ export function Sidebar({ user }: { user: any }) {
         </div>
 
         {/* Action Card: Start a Cause */}
-        <div className="p-2 mt-auto shrink-0 border-t border-border/40">
+        <div className="p-2 mt-auto shrink-0 border-border/40">
           <Link href="/dashboard/proposals/start" className="block group">
             <div className="relative overflow-hidden rounded-3xl bg-muted/30 border border-border/50 p-4 transition-all hover:bg-muted/50">
               <div className="flex items-center justify-between mb-1.5">
@@ -89,7 +89,7 @@ export function Sidebar({ user }: { user: any }) {
                 </div>
                 <ArrowRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
               </div>
-              <p className="text-xs text-muted-foreground leading-tight">
+              <p className="text-[11px] text-muted-foreground leading-tight">
                 Launch your verified impact project.
               </p>
             </div>
