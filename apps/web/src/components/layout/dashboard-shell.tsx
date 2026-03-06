@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { MobileNav } from './mobile-nav';
+import { Footer } from './footer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
@@ -43,6 +44,10 @@ export function DashboardShell({
               </motion.div>
             </AnimatePresence>
           </main>
+
+          <div className="hidden md:block">
+            <Footer />
+          </div>
         </div>
       </div>
 
