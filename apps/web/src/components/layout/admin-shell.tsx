@@ -44,9 +44,7 @@ export function AdminShell({ children, user }: AdminShellProps) {
             </AnimatePresence>
           </main>
 
-          <div className="hidden md:block">
-            <Footer />
-          </div>
+          <Footer />
         </div>
       </div>
 

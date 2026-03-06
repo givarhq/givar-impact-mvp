@@ -45,9 +45,7 @@ export function DashboardShell({
             </AnimatePresence>
           </main>
 
-          <div className="hidden md:block">
-            <Footer />
-          </div>
+          <Footer />
         </div>
       </div>
 
