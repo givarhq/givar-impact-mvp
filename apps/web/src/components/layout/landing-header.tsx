@@ -6,15 +6,12 @@ import { Button } from '../ui/button';
 import { useEffect, useState, memo, useCallback } from 'react';
 import { cn } from '../../lib/utils/cn';
 import { LandingHeaderProps } from '../../types';
-import { getCookie } from 'cookies-next';
-import { LayoutDashboard } from 'lucide-react';
 
 export const LandingHeader = memo(function LandingHeader({
   hideAuthButtons = false,
   variant = 'default',
 }: LandingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const isAuth = variant === 'auth';
 
   const handleScroll = useCallback(() => {
@@ -23,10 +20,6 @@ export const LandingHeader = memo(function LandingHeader({
 
   useEffect(() => {
     handleScroll();
-    // Logic: Detect session presence to adapt UI
-    const token = getCookie('givar_token');
-    setIsAuthenticated(!!token);
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
@@ -43,7 +36,7 @@ export const LandingHeader = memo(function LandingHeader({
       )}
     >
       <div className="container mx-auto px-4 md:px-6 relative flex items-center justify-between">
-        <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2 group relative z-10 outline-none">
+        <Link href="/" className="flex items-center gap-2 group relative z-10 outline-none">
           <div>
             <Image
               src="/Givar1.png"
@@ -64,11 +57,11 @@ export const LandingHeader = memo(function LandingHeader({
           <Link href="/explore" className="hover:text-primary transition-colors">
             Explore Causes
           </Link>
+          <a href="/#how-it-works" className="hover:text-primary transition-colors">
+            How It Works
+          </a>
           <Link href="/about" className="hover:text-primary transition-colors">
             About
-          </Link>
-          <Link href="/contact" className="hover:text-primary transition-colors">
-            Support
           </Link>
         </nav>
 
@@ -80,30 +73,19 @@ export const LandingHeader = memo(function LandingHeader({
 
           {!hideAuthButtons && (
             <>
-              {isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button className="w-auto rounded-full px-5 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
-                  </Button>
-                </Link>
-              ) : (
-                <>
-                  <Link href="/login" className="flex items-center justify-center">
-                    <Button
-                      variant="ghost"
-                      className="hidden md:flex w-auto text-foreground hover:text-primary font-bold hover:bg-primary/5 rounded-full px-6 transition-all"
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/signup" className="flex items-center justify-center">
-                    <Button className="w-auto rounded-full px-5 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm">
-                      Get Started
-                    </Button>
-                  </Link>
-                </>
-              )}
+              <Link href="/login" className="flex items-center justify-center">
+                <Button
+                  variant="ghost"
+                  className="hidden md:flex w-auto text-foreground hover:text-primary font-bold hover:bg-primary/5 rounded-full px-6 transition-all"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/signup" className="flex items-center justify-center">
+                <Button className="w-auto rounded-full px-5 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm">
+                  Get Started
+                </Button>
+              </Link>
             </>
           )}
         </div>
