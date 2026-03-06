@@ -79,7 +79,7 @@ export const AuditFilters = memo(function AuditFilters() {
 
   const ActionOptions = () => (
     <>
-      <SelectItem value="all" className="text-xs">All Actions</SelectItem>
+      <SelectItem value="all" className="text-xs">All actions</SelectItem>
 
       <SelectGroup>
         <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Identity & Access</SelectLabel>
@@ -157,7 +157,7 @@ export const AuditFilters = memo(function AuditFilters() {
           <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Search IP Address, Entity ID, Or Email..."
+              placeholder="Search IP address, entity ID, or email..."
               className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

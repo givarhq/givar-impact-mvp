@@ -55,7 +55,7 @@ export const OrganizationFilters = memo(function OrganizationFilters() {
                     <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
-                            placeholder="Search Legal Entities Or Reg Id..."
+                            placeholder="Search organizations or reg ID..."
                             className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -85,7 +85,7 @@ export const OrganizationFilters = memo(function OrganizationFilters() {
                                 </div>
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl border-border shadow-xl">
-                                <SelectItem value="all" className="text-xs font-bold py-2">All Entities</SelectItem>
+                                <SelectItem value="all" className="text-xs font-bold py-2">All partners</SelectItem>
                                 <SelectItem value="PENDING" className="text-xs font-bold py-2 text-amber-600">Pending Review</SelectItem>
                                 <SelectItem value="VERIFIED" className="text-xs font-bold py-2 text-emerald-600">Verified</SelectItem>
                                 <SelectItem value="REJECTED" className="text-xs font-bold py-2 text-destructive">Rejected</SelectItem>
@@ -128,7 +128,7 @@ export const OrganizationFilters = memo(function OrganizationFilters() {
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl">
-                                <SelectItem value="all">All Entities</SelectItem>
+                                <SelectItem value="all">All partners</SelectItem>
                                 <SelectItem value="PENDING">Pending</SelectItem>
                                 <SelectItem value="VERIFIED">Verified</SelectItem>
                                 <SelectItem value="REJECTED">Rejected</SelectItem>

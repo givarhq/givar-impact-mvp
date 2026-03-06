@@ -240,7 +240,8 @@ export class AdminService {
       search, status, categoryId,
       page = 1, limit = 20,
       sortBy = 'createdAt', sortOrder = 'desc',
-      excludeDrafts
+      excludeDrafts,
+      isSystem
     } = query;
 
     const skip = (page - 1) * limit;
@@ -248,6 +249,8 @@ export class AdminService {
     const where: Prisma.ProjectWhereInput = {
       ...(status ? { status } : (excludeDrafts ? { status: { not: ProjectStatus.DRAFT } } : {})),
       ...(categoryId && { categoryId }),
+      // Logic: If isSystem is true, filter projects owned by ADMIN or SUPERADMIN nodes
+      ...(isSystem && { user: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } } }),
       ...(search && {
         OR: [
           { id: { contains: search, mode: 'insensitive' } },
@@ -265,7 +268,10 @@ export class AdminService {
         where,
         skip,
         take: limit,
-        include: { category: { select: { name: true } } },
+        include: {
+          category: { select: { name: true } },
+          user: { select: { role: true } } // Include role for UI identification
+        },
         orderBy,
       }),
       this.prisma.project.count({ where }),
@@ -276,10 +282,12 @@ export class AdminService {
         ...p,
         targetAmount: p.targetAmount.toString(),
         raisedAmount: p.raisedAmount.toString(),
+        isGivarOfficial: p.user.role === UserRole.ADMIN || p.user.role === UserRole.SUPERADMIN
       })),
       meta: { total, page, lastPage: Math.ceil(total / limit) }
     };
   }
+
 
   // Project Moderation
   async approveProject(id: string) {

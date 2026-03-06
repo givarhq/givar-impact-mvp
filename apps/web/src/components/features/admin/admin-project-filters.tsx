@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, memo } from 'react';
-import { Search, Filter, X, LayoutGrid } from 'lucide-react';
+import { Search, Filter, X, LayoutGrid, ShieldCheck } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { Button } from '../../ui/button';
@@ -15,12 +15,19 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
     const [search, setSearch] = useState(searchParams.get('search') || '');
     const [status, setStatus] = useState(searchParams.get('status') || 'all');
     const [categoryId, setCategoryId] = useState(searchParams.get('categoryId') || 'all');
+    const [isSystem, setIsSystem] = useState(searchParams.get('isSystem') === 'true');
     const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
     useEffect(() => {
-        if (search === (searchParams.get('search') || '') &&
-            status === (searchParams.get('status') || 'all') &&
-            categoryId === (searchParams.get('categoryId') || 'all')) return;
+        const currentSearch = searchParams.get('search') || '';
+        const currentStatus = searchParams.get('status') || 'all';
+        const currentCategory = searchParams.get('categoryId') || 'all';
+        const currentSystem = searchParams.get('isSystem') === 'true';
+
+        if (search === currentSearch &&
+            status === currentStatus &&
+            categoryId === currentCategory &&
+            isSystem === currentSystem) return;
 
         const params = new URLSearchParams(searchParams.toString());
         params.set('page', '1');
@@ -30,6 +37,7 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
         if (search) params.set('search', search); else params.delete('search');
         if (status !== 'all') params.set('status', status); else params.delete('status');
         if (categoryId !== 'all') params.set('categoryId', categoryId); else params.delete('categoryId');
+        if (isSystem) params.set('isSystem', 'true'); else params.delete('isSystem');
 
         const timeout = setTimeout(() => {
             if (params.toString() !== searchParams.toString()) {
@@ -38,12 +46,13 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
         }, 400);
 
         return () => clearTimeout(timeout);
-    }, [search, status, categoryId, activeTab, router, searchParams]);
+    }, [search, status, categoryId, isSystem, activeTab, router, searchParams]);
 
     const clearFilters = () => {
         setSearch('');
         setStatus('all');
         setCategoryId('all');
+        setIsSystem(false);
     };
 
     const showStatusFilter = activeTab !== 'drafts';
@@ -58,9 +67,9 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
 
                     <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        <Input
-                            placeholder="Search Title Or Location..."
-                            className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
+                        <input
+                            placeholder="Search title or location..."
+                            className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50 outline-none px-2"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -81,6 +90,21 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                     </Button>
 
                     <div className="hidden md:flex items-center gap-2">
+                        {/* System Projects Toggle */}
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsSystem(!isSystem)}
+                            className={cn(
+                                "h-9 px-4 rounded-3xl font-bold text-xs gap-2 transition-all",
+                                isSystem
+                                    ? "bg-primary/10 border-primary/40 text-primary shadow-inner"
+                                    : "bg-muted/40 border-border/40 text-muted-foreground hover:bg-muted/60"
+                            )}
+                        >
+                            <ShieldCheck className={cn("h-3.5 w-3.5", isSystem ? "fill-primary/20" : "")} />
+                            Official Only
+                        </Button>
+
                         {showStatusFilter && (
                             <Select value={status} onValueChange={setStatus}>
                                 <SelectTrigger className="w-[120px] h-9 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
@@ -90,7 +114,7 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                                     </div>
                                 </SelectTrigger>
                                 <SelectContent className="rounded-3xl">
-                                    <SelectItem value="all" className="text-xs">All Status</SelectItem>
+                                    <SelectItem value="all" className="text-xs">All statuses</SelectItem>
                                     {activeTab === 'live' ? (
                                         <>
                                             <SelectItem value="ACTIVE" className="text-xs">Active</SelectItem>
@@ -118,14 +142,14 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                                 </div>
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all" className="text-xs">All Categories</SelectItem>
+                                <SelectItem value="all" className="text-xs">All categories</SelectItem>
                                 {categories.map(cat => (
                                     <SelectItem key={cat.id} value={cat.id} className="text-xs">{cat.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
 
-                        {(search || (showStatusFilter && status !== 'all') || categoryId !== 'all') && (
+                        {(search || (showStatusFilter && status !== 'all') || categoryId !== 'all' || isSystem) && (
                             <Button variant="ghost" onClick={clearFilters} className="h-9 px-3 rounded-3xl text-muted-foreground text-xs font-bold">
                                 Reset
                             </Button>
@@ -146,35 +170,46 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsSystem(!isSystem)}
+                            className={cn(
+                                "h-10 rounded-3xl font-bold text-xs gap-2 justify-start px-4",
+                                isSystem ? "bg-primary/10 border-primary text-primary" : "bg-muted/30 border-border/40 text-muted-foreground"
+                            )}
+                        >
+                            <ShieldCheck className="h-4 w-4" />
+                            Official Only
+                        </Button>
                         {showStatusFilter && (
                             <Select value={status} onValueChange={setStatus}>
                                 <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
                                     <SelectValue placeholder="Status" />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-3xl">
-                                    <SelectItem value="all">All Status</SelectItem>
+                                    <SelectItem value="all">All statuses</SelectItem>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
                                     <SelectItem value="FUNDED">Funded</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
                         <Select value={categoryId} onValueChange={setCategoryId}>
                             <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
                                 <SelectValue placeholder="Category" />
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all">All Categories</SelectItem>
+                                <SelectItem value="all">All categories</SelectItem>
                                 {categories.map(cat => (
                                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div>
-                    {(search || (showStatusFilter && status !== 'all') || categoryId !== 'all') && (
-                        <Button variant="outline" onClick={clearFilters} className="w-full h-9 rounded-3xl border-border/60 text-xs font-bold">
-                            Reset Filters
+                        <Button variant="outline" onClick={clearFilters} className="h-10 rounded-3xl border-border/60 text-xs font-bold">
+                            Reset
                         </Button>
-                    )}
+                    </div>
                 </div>
             )}
         </div>

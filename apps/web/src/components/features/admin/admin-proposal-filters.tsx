@@ -55,7 +55,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
           <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="Search Proposer Or Title..."
+              placeholder="Search proposer or title..."
               className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -85,7 +85,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all" className="text-xs">All Status</SelectItem>
+                <SelectItem value="all" className="text-xs">All statuses</SelectItem>
                 <SelectItem value="SUBMITTED" className="text-xs">Submitted</SelectItem>
                 <SelectItem value="UNDER_REVIEW" className="text-xs">Review</SelectItem>
                 <SelectItem value="CHANGES_REQUESTED" className="text-xs">Edits</SelectItem>
@@ -100,7 +100,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all" className="text-xs">All Categories</SelectItem>
+                <SelectItem value="all" className="text-xs">All categories</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat.id} value={cat.slug} className="text-xs">{cat.name}</SelectItem>
                 ))}
@@ -133,7 +133,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="SUBMITTED">Submitted</SelectItem>
                 <SelectItem value="UNDER_REVIEW">Review</SelectItem>
                 <SelectItem value="CHANGES_REQUESTED">Edits</SelectItem>
@@ -144,7 +144,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent className="rounded-3xl">
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {categories.map(cat => (
                   <SelectItem key={cat.id} value={cat.slug}>{cat.name}</SelectItem>
                 ))}

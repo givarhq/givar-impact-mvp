@@ -46,7 +46,7 @@ export const EvidenceFilters = memo(function EvidenceFilters() {
                     <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
-                            placeholder="Search Cause Or Progress Narrative..."
+                            placeholder="Search cause or progress narrative..."
                             className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -109,7 +109,7 @@ export const EvidenceFilters = memo(function EvidenceFilters() {
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl">
-                                <SelectItem value="all">All Evidence</SelectItem>
+                                <SelectItem value="all">All evidences</SelectItem>
                                 <SelectItem value="PENDING">Pending Review</SelectItem>
                                 <SelectItem value="APPROVED">Verified Proof</SelectItem>
                                 <SelectItem value="REJECTED">Declined Proof</SelectItem>

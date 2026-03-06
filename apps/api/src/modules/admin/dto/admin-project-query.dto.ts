@@ -37,4 +37,9 @@ export class AdminProjectQueryDto {
     @Transform(({ value }) => value === 'true')
     @IsBoolean()
     excludeDrafts?: boolean;
+
+    @IsOptional()
+    @Transform(({ value }) => value === 'true')
+    @IsBoolean()
+    isSystem?: boolean;
 }

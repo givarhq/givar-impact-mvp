@@ -109,10 +109,10 @@ export const UserFilters = memo(function UserFilters() {
                     <div className="hidden md:flex items-center gap-2">
                         <Select value={status} onValueChange={setStatus}>
                             <SelectTrigger className="w-[130px] h-10 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs">
-                                <SelectValue placeholder="All Statuses" />
+                                <SelectValue placeholder="All statuses" />
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all" className="text-xs">All Statuses</SelectItem>
+                                <SelectItem value="all" className="text-xs">All statuses</SelectItem>
                                 <SelectItem value="ACTIVE" className="text-xs">Active</SelectItem>
                                 <SelectItem value="LOCKED" className="text-xs">Locked</SelectItem>
                             </SelectContent>
@@ -123,7 +123,7 @@ export const UserFilters = memo(function UserFilters() {
                                 <SelectValue placeholder="Account Type" />
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all" className="text-xs">All Types</SelectItem>
+                                <SelectItem value="all" className="text-xs">All types</SelectItem>
                                 <SelectItem value="INDIVIDUAL" className="text-xs">Individual</SelectItem>
                                 <SelectItem value="ORGANIZER" className="text-xs">Organizer</SelectItem>
                             </SelectContent>
@@ -154,7 +154,7 @@ export const UserFilters = memo(function UserFilters() {
                     <div className="relative">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search Identities..."
+                            placeholder="Search identities..."
                             className="pl-11 h-11 rounded-3xl bg-muted/30 border-border/40 focus:bg-background"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -163,10 +163,10 @@ export const UserFilters = memo(function UserFilters() {
                     <div className="grid grid-cols-2 gap-2">
                         <Select value={status} onValueChange={setStatus}>
                             <SelectTrigger className="h-10 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs">
-                                <SelectValue placeholder="All Statuses" />
+                                <SelectValue placeholder="All statuses" />
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="all">All statuses</SelectItem>
                                 <SelectItem value="ACTIVE">Active</SelectItem>
                                 <SelectItem value="LOCKED">Locked</SelectItem>
                             </SelectContent>
@@ -176,7 +176,7 @@ export const UserFilters = memo(function UserFilters() {
                                 <SelectValue placeholder="Account Type" />
                             </SelectTrigger>
                             <SelectContent className="rounded-3xl">
-                                <SelectItem value="all">All Types</SelectItem>
+                                <SelectItem value="all">All types</SelectItem>
                                 <SelectItem value="INDIVIDUAL">Individual</SelectItem>
                                 <SelectItem value="ORGANIZER">Organizer</SelectItem>
                             </SelectContent>
