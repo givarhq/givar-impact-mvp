@@ -12,9 +12,9 @@ export default function ContactPage() {
     return (
         <PublicLayout>
             <div className="container mx-auto px-4 py-4 md:py-8 max-w-5xl">
-                <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="text-center space-y-3 pt-2">
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground">
+                        <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground">
                             Get in <span className="text-primary italic">Touch</span>.
                         </h1>
                         <p className="text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">

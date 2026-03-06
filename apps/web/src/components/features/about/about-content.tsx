@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export function AboutContent() {
     return (
-        <div className="max-w-5xl mx-auto space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header Section */}
             <section className="text-center space-y-3 pt-2">
                 <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground leading-[0.95]">
