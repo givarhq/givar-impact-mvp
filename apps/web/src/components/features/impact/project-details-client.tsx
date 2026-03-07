@@ -62,7 +62,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-20"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-32 md:pb-20"
         >
 
             {/* LEFT COLUMN: Content */}
@@ -178,10 +178,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
                                         "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_h3]:font-bold [&_h3]:tracking-tight[&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5[&_h3]:mb-2",
                                         "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4[&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal [&_ol]:pl-5[&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
@@ -201,7 +201,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                             className={cn(
                                                 "text-xs text-amber-900/80 leading-relaxed break-words font-medium",
                                                 "[&_p]:mb-2 [&_p]:last:mb-0",
-                                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
+                                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2[&_ul]:space-y-1",
                                                 "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
@@ -380,7 +380,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 hidden md:block">
                         {isFunded ? (
                             <Button size="lg" disabled className="w-full h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
                                 <Check className="mr-2 h-4 w-4" /> Mission funded
@@ -441,6 +441,33 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </p>
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile Sticky Action Bar */}
+            <div className={cn(
+                "md:hidden fixed left-0 right-0 p-3 bg-background/95 backdrop-blur-xl border-t border-border/40 z-40 flex items-center gap-3 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]",
+                isPublic ? "bottom-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]" : "bottom-14"
+            )}>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="h-12 w-12 rounded-3xl border-border/60 text-foreground shrink-0 bg-background shadow-sm active:scale-95 transition-all"
+                >
+                    <Share2 className="h-5 w-5" />
+                </Button>
+
+                {isFunded ? (
+                    <Button size="lg" disabled className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
+                        <Check className="mr-2 h-4 w-4" /> Mission funded
+                    </Button>
+                ) : (
+                    <Link href={donateLink} className="flex-1 block w-full">
+                        <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95">
+                            Fund this impact
+                        </Button>
+                    </Link>
+                )}
             </div>
 
             <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} />
