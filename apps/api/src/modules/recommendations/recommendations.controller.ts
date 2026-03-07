@@ -93,4 +93,14 @@ export class RecommendationsController {
     ) {
         return this.service.updateProjectWeights(id, dto, req.user.id);
     }
+
+    @UseGuards(OptionalJwtAuthGuard)
+    @Get('grouped')
+    async getGroupedFeed(
+        @Req() req: any,
+        @Query('limit') limit?: number
+    ) {
+        const limitNum = limit ? Number(limit) : 3;
+        return this.service.getGroupedFeed(req.user?.id, limitNum);
+    }
 }

@@ -480,6 +480,14 @@ export const ApiService = {
         })
         : apiClient.get(endpoint).then(r => r.data);
     },
+
+    getGroupedFeed: (token?: string) =>
+      token
+        ? serverFetch<any[]>('/recommendations/grouped', token, {
+          tags: ['grouped-feed'],
+          next: { revalidate: 0 }
+        })
+        : apiClient.get('/recommendations/grouped').then(r => r.data),
   },
 
   organizations: {
