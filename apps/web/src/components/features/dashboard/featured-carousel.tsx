@@ -96,24 +96,20 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
                     </div>
 
-                    <div className="flex flex-col justify-center p-4 lg:p-6 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 text-center">
-                        <div className="space-y-4">
-                            {/* Desktop-Only Project Context */}
-                            <div className="hidden lg:flex flex-col items-center gap-2 mb-2 animate-in fade-in slide-in-from-bottom-1 duration-500">
-                                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
-                                    {current.categoryName || 'Active Cause'}
-                                </Badge>
-                                {current.shortDesc && (
-                                    <p className="text-xs font-medium text-muted-foreground line-clamp-2 leading-relaxed px-4">
-                                        {current.shortDesc}
-                                    </p>
-                                )}
-                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60 mt-1 uppercase tracking-tighter">
-                                    <Heart className="h-3 w-3 fill-primary/20 text-primary" />
-                                    <span>Supported by {current.donorCount || 0} donors</span>
-                                </div>
+                    <div className="flex flex-col justify-center lg:justify-between p-4 lg:p-6 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 text-center lg:text-left">
+                        {/* Desktop-only: Category & Description */}
+                        <div className="hidden lg:flex flex-col gap-2 min-w-0">
+                            <div className="w-fit bg-primary/5 text-primary border border-primary/20 rounded-3xl px-2.5 py-0.5 text-[10px] font-bold tracking-tight">
+                                {current.categoryName || 'Active cause'}
                             </div>
+                            {current.shortDesc && (
+                                <p className="text-[11px] font-medium text-muted-foreground line-clamp-2 leading-relaxed">
+                                    {current.shortDesc}
+                                </p>
+                            )}
+                        </div>
 
+                        <div className="space-y-4">
                             <div className="space-y-2.5">
                                 <div className="flex justify-between items-end">
                                     <div className="space-y-0.5 text-left">
@@ -139,16 +135,22 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                 </div>
                             </div>
 
-                            <div className="flex flex-col items-center gap-4">
+                            <div className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         router.push(`/dashboard/impact/${current.slug}/donate`);
                                     }}
-                                    className="w-32 h-10 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-0"
+                                    className="w-32 h-10 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-0 shrink-0"
                                 >
                                     Donate Now
                                 </button>
+
+                                {/* Desktop-only: Social Proof */}
+                                <div className="hidden lg:flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60 tracking-tight whitespace-nowrap">
+                                    <ShieldCheck className="h-3 w-3 text-primary/60" />
+                                    <span>{current.donorCount || 0} Supporters</span>
+                                </div>
                             </div>
                         </div>
                     </div>
