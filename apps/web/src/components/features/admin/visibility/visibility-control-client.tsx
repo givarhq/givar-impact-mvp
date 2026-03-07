@@ -13,7 +13,10 @@ import {
     LayoutGrid,
     TrendingUp,
     CheckCircle2,
-    Info
+    Info,
+    ArrowDown,
+    ArrowUp,
+    List
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Button } from '../../../ui/button';
@@ -48,7 +51,7 @@ const SettingTooltip = ({ content }: { content: string }) => (
         >
             <Info className="h-3.5 w-3.5" />
         </button>
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-56 p-3 bg-zinc-950 text-white text-[11px] font-medium leading-relaxed rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 pointer-events-none text-center normal-case tracking-normal">
+        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-zinc-950 text-white text-[11px] font-medium leading-relaxed rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 pointer-events-none text-center normal-case tracking-normal">
             {content}
             <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-zinc-950" />
         </div>
@@ -65,9 +68,14 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
     const [isSelectorOpen, setIsSelectorOpen] = useState(false);
     const [activePosition, setActivePosition] = useState<number | null>(null);
 
+    // Sort categories by weight for display so Admin sees the actual order
+    const sortedCategories = [...categories].sort((a, b) =>
+        (categoryWeights[b.id] || 1) - (categoryWeights[a.id] || 1)
+    );
+
     const handleUpdateConfig = async () => {
         setIsSaving(true);
-        const toastId = toast.loading("Updating Discovery Algorithm...");
+        const toastId = toast.loading("Syncing Discovery Logic...");
         try {
             await Promise.all([
                 ApiService.admin.updateConfig(config),
@@ -75,10 +83,10 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                     ApiService.admin.updateCategoryWeight(id, weight)
                 )
             ]);
-            toast.success("Discovery Settings Synchronized", { id: toastId });
+            toast.success("Feed Algorithm Updated", { id: toastId });
             router.refresh();
         } catch (e: any) {
-            toast.error("Failed To Update Discovery Logic", { id: toastId });
+            toast.error("Failed To Sync Settings", { id: toastId });
         } finally {
             setIsSaving(false);
         }
@@ -91,28 +99,28 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
 
     const handleSelectProject = async (project: Project) => {
         if (activePosition === null) return;
-        const toastId = toast.loading(`Highlighting ${project.title}...`);
+        const toastId = toast.loading(`Pinning ${project.title}...`);
         try {
             await ApiService.admin.createSlot({
                 projectId: project.id,
                 position: activePosition
             });
-            toast.success("Project Added To Featured Highlights", { id: toastId });
+            toast.success("Featured Slot Updated", { id: toastId });
             setIsSelectorOpen(false);
             router.refresh();
         } catch (e) {
-            toast.error("Could Not Update Highlights", { id: toastId });
+            toast.error("Pin Failed", { id: toastId });
         }
     };
 
     const handleRemoveSlot = async (slotId: string) => {
-        const toastId = toast.loading("Removing Highlight...");
+        const toastId = toast.loading("Clearing Slot...");
         try {
             await ApiService.admin.deleteSlot(slotId);
-            toast.success("Featured Slot Cleared", { id: toastId });
+            toast.success("Slot Cleared", { id: toastId });
             router.refresh();
         } catch (e) {
-            toast.error("Failed To Remove Highlight", { id: toastId });
+            toast.error("Failed To Clear Slot", { id: toastId });
         }
     };
 
@@ -126,38 +134,38 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                         <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                             <div className="space-y-1">
                                 <CardTitle className="text-base font-bold flex items-center gap-3 text-foreground tracking-tight">
-                                    <SlidersHorizontal className="h-5 w-5 text-primary" /> Discovery Settings
+                                    <SlidersHorizontal className="h-5 w-5 text-primary" /> Ranking Logic
                                 </CardTitle>
-                                <p className="text-xs text-muted-foreground font-medium">Fine-tune the recommendation engine for all givers.</p>
+                                <p className="text-xs text-muted-foreground font-medium">Controls how projects are scored within their category rows.</p>
                             </div>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8 space-y-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
                                 <WeightSlider
-                                    label="New Project Priority"
-                                    desc="Boost for recently launched causes"
-                                    tooltip="Gives newly launched causes a temporary head start so they don't get buried under older, more popular projects."
+                                    label="Recency / Freshness"
+                                    desc="Boost for new launches"
+                                    tooltip="Critical for the new layout. Ensures the 'Top 4' preview slots rotate frequently so users don't see stale content."
                                     value={config.recencyWeight}
                                     onChange={(v) => setConfig({ ...config, recencyWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
-                                    label="Donation Momentum"
-                                    desc="Boost for high-frequency giving"
-                                    tooltip="Boosts causes that are currently receiving a lot of donations, highlighting what the community cares about right now."
+                                    label="Donation Velocity"
+                                    desc="Boost for active giving"
+                                    tooltip="Pushes causes that are currently trending into the visible 'Top 4' preview."
                                     value={config.velocityWeight}
                                     onChange={(v) => setConfig({ ...config, velocityWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
-                                    label="Community Interest"
-                                    desc="Boost based on page engagement"
-                                    tooltip="Pushes projects higher based on how close they are to reaching their final funding goal."
+                                    label="Goal Proximity"
+                                    desc="Boost for nearly funded"
+                                    tooltip="Prioritizes projects that are close to completion to encourage the final push."
                                     value={config.engagementWeight}
                                     onChange={(v) => setConfig({ ...config, engagementWeight: parseFloat(v) })}
                                 />
                                 <WeightSlider
-                                    label="Staff Priority"
-                                    desc="Boost for hand-picked initiatives"
-                                    tooltip="Controls the strength of the manual 'Priority Boost' slider found on individual projects."
+                                    label="Manual Boost Strength"
+                                    desc="Admin override power"
+                                    tooltip="Determines how much your manual 'Priority Boost' slider on individual projects affects their final rank."
                                     value={config.adminWeight}
                                     onChange={(v) => setConfig({ ...config, adminWeight: parseFloat(v) })}
                                 />
@@ -165,64 +173,51 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
 
                             <div className="pt-8 border-t border-border/40 space-y-8">
                                 <div className="flex flex-row items-center justify-between gap-4">
-    <div className="flex items-start gap-4 min-w-0 flex-1">
-        <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-inner">
-            <CheckCircle2 className="h-6 w-6" />
-        </div>
-        <div className="space-y-0.5 min-w-0 flex-1">
-            <div className="flex items-center">
-                <h4 className="text-sm font-bold text-foreground truncate">Show Completed Projects</h4>
-                <SettingTooltip content="Choose whether fully funded projects should still appear in the public feed or be hidden to make room for active needs." />
-            </div>
-            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                Display successfully funded projects in the public discovery feed.
-            </p>
-        </div>
-    </div>
-    <button
-        onClick={() => setConfig({ ...config, showFundedProjects: !config.showFundedProjects })}
-        className={cn(
-            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2",
-            config.showFundedProjects ? "bg-primary" : "bg-muted-foreground/20"
-        )}
-    >
-        <span
-            className={cn(
-                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
-                config.showFundedProjects ? "translate-x-5" : "translate-x-0"
-            )}
-        />
-    </button>
-</div>
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-8 border-t border-border/10">
-                                    <div className="flex items-start gap-4 min-w-0">
+                                    <div className="flex items-start gap-4 min-w-0 flex-1">
                                         <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 shadow-inner">
-                                            <LayoutGrid className="h-6 w-6" />
+                                            <CheckCircle2 className="h-6 w-6" />
                                         </div>
-                                        <div className="space-y-0.5 min-w-0">
+                                        <div className="space-y-0.5 min-w-0 flex-1">
                                             <div className="flex items-center">
-                                                <h4 className="text-sm font-bold text-foreground truncate">Cause Variety Limit</h4>
-                                                <SettingTooltip content="Limits how many projects from the same category can appear back-to-back, keeping the feed diverse." />
+                                                <h4 className="text-sm font-bold text-foreground truncate">Show Completed Projects</h4>
+                                                <SettingTooltip content="If enabled, fully funded projects will remain in the main feed rows. If disabled, they move to the 'Mission Accomplished' section or search-only." />
                                             </div>
-                                            <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
-                                                Maximum projects shown per sector to maintain a diverse feed.
+                                            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                                Keep funded causes visible in category rows.
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner">
-                                        <button
-                                            onClick={() => setConfig({ ...config, diversityLimit: Math.max(1, config.diversityLimit - 1) })}
-                                            className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all shadow-sm active:scale-90"
-                                        >
-                                            -
-                                        </button>
-                                        <span className="w-10 text-center font-bold text-base tabular-nums">{config.diversityLimit}</span>
-                                        <button
-                                            onClick={() => setConfig({ ...config, diversityLimit: Math.min(10, config.diversityLimit + 1) })}
-                                            className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all shadow-sm active:scale-90"
-                                        >
-                                            +
-                                        </button>
+                                    <button
+                                        onClick={() => setConfig({ ...config, showFundedProjects: !config.showFundedProjects })}
+                                        className={cn(
+                                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2",
+                                            config.showFundedProjects ? "bg-primary" : "bg-muted-foreground/20"
+                                        )}
+                                    >
+                                        <span className={cn("pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out", config.showFundedProjects ? "translate-x-5" : "translate-x-0")} />
+                                    </button>
+                                </div>
+
+                                {/* Legacy Setting: Diversity Limit */}
+                                <div className="flex flex-col gap-4 pt-4 border-t border-border/10 opacity-60 hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
+                                        <List className="h-3 w-3" /> Legacy Search Config
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div className="space-y-0.5 min-w-0">
+                                            <div className="flex items-center">
+                                                <h4 className="text-sm font-bold text-foreground truncate">Diversity Cap</h4>
+                                                <SettingTooltip content="Only applies to the 'Search' and 'See All' views. Has no effect on the categorized dashboard feed." />
+                                            </div>
+                                            <p className="text-xs text-muted-foreground font-medium max-w-[280px]">
+                                                Max duplicate categories in search results.
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-muted/40 p-1.5 rounded-2xl border border-border/40 shadow-inner w-fit">
+                                            <button onClick={() => setConfig({ ...config, diversityLimit: Math.max(1, config.diversityLimit - 1) })} className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all active:scale-90">-</button>
+                                            <span className="w-10 text-center font-bold text-base tabular-nums">{config.diversityLimit}</span>
+                                            <button onClick={() => setConfig({ ...config, diversityLimit: Math.min(10, config.diversityLimit + 1) })} className="h-8 w-8 rounded-xl bg-background border border-border/60 flex items-center justify-center font-bold hover:bg-muted transition-all active:scale-90">+</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -234,20 +229,24 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                             <div className="space-y-1">
                                 <CardTitle className="text-base font-bold flex items-center text-foreground tracking-tight">
                                     <TrendingUp className="h-5 w-5 text-primary mr-3" />
-                                    Sector Boosting
-                                    <SettingTooltip content="Permanently boosts all projects within a specific category, making them more likely to be seen first." />
+                                    Category Row Order
+                                    <SettingTooltip content="Controls the vertical order of categories on the dashboard. Higher weight = Higher position on the page." />
                                 </CardTitle>
-                                <p className="text-xs text-muted-foreground font-medium">Prioritize entire impact categories globally.</p>
+                                <p className="text-xs text-muted-foreground font-medium">Prioritize which sectors appear first on the feed.</p>
                             </div>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8">
                             <div className="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
-                                {categories.map((cat) => (
-                                    <div
+                                {sortedCategories.map((cat, index) => (
+                                    <motion.div
+                                        layout
                                         key={cat.id}
                                         className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 rounded-[22px] bg-muted/20 border border-border/40 group hover:border-primary/30 transition-all shadow-sm"
                                     >
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0 flex items-center gap-3">
+                                            <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground border border-border/50">
+                                                {index + 1}
+                                            </div>
                                             <p className="text-xs font-bold text-foreground leading-tight truncate">
                                                 {cat.name}
                                             </p>
@@ -268,11 +267,14 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                                 }
                                                 className="flex-1 h-1.5 bg-border rounded-3xl appearance-none cursor-pointer accent-primary focus:outline-none"
                                             />
-                                            <span className="text-xs font-black text-primary tabular-nums w-10 text-right">
-                                                {(categoryWeights[cat.id] || 1.0).toFixed(1)}x
-                                            </span>
+                                            <div className="flex flex-col items-end w-10">
+                                                <span className="text-xs font-black text-primary tabular-nums">
+                                                    {(categoryWeights[cat.id] || 1.0).toFixed(1)}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Weight</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
                         </CardContent>
@@ -289,7 +291,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                             ) : (
                                 <Save className="h-5 w-5 mr-2" />
                             )}
-                            Save Updates
+                            Save Feed Logic
                         </Button>
                     </div>
                 </div>
@@ -302,8 +304,8 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                 <div className="space-y-0.5">
                                     <CardTitle className="text-base font-bold flex items-center text-foreground tracking-tight">
                                         <Zap className="h-5 w-5 text-amber-500 mr-3" />
-                                        Featured Highlights
-                                        <SettingTooltip content="Manually pin specific causes to the scrolling banner at the very top of the homepage." />
+                                        Featured & Pinned
+                                        <SettingTooltip content="Projects pinned here will appear in the top Carousel AND be forced to position #1 in their respective category rows." />
                                     </CardTitle>
                                     <p className="text-xs text-muted-foreground font-medium">Manage the homepage highlights.</p>
                                 </div>
