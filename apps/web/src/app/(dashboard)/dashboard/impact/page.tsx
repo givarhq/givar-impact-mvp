@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
 import { ImpactFilters } from '../../../../components/features/impact/impact-filters';
 import { InfiniteDiscoveryGrid } from '../../../../components/features/impact/infinite-discovery-grid';
+import { GroupedDiscoveryFeed } from '../../../../components/features/impact/grouped-discovery-feed';
 
 export default async function ImpactPage({
   searchParams,
@@ -18,13 +19,12 @@ export default async function ImpactPage({
   const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category');
 
   let projects: any[] = [];
+  let groupedProjects: any[] = [];
   let meta = { total: 0, page: 1, lastPage: 1 };
 
-  // Fetch initial Page 1 on the Server for instant paint
+  // Fetch initial data
   if (isSmartDiscovery) {
-    const response = await ApiService.recommendations.getFeed(token, 1, 24);
-    projects = response?.data || [];
-    meta = response?.meta || meta;
+    groupedProjects = await ApiService.recommendations.getGroupedFeed(token);
   } else {
     const projectsResult = await ApiService.projects.list(token, params);
     projects = projectsResult?.data || [];
@@ -43,13 +43,18 @@ export default async function ImpactPage({
       </div>
 
       <div className="min-h-[400px]">
-        {/* Pass server data to the Infinite Grid for client-side expansion */}
-        <InfiniteDiscoveryGrid
-          initialData={projects}
-          initialMeta={meta}
-          isSmartDiscovery={isSmartDiscovery}
-          searchParams={params.toString()}
-        />
+        {isSmartDiscovery ? (
+          <GroupedDiscoveryFeed
+            groupedData={groupedProjects}
+          />
+        ) : (
+          <InfiniteDiscoveryGrid
+            initialData={projects}
+            initialMeta={meta}
+            isSmartDiscovery={false}
+            searchParams={params.toString()}
+          />
+        )}
       </div>
     </div>
   );

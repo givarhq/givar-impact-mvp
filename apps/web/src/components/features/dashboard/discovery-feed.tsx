@@ -1,22 +1,22 @@
 'use client';
 
 import React, { useState, memo } from 'react';
-import Link from 'next/link';
 import { Project } from '../../../types';
 import { ProjectCard } from '../impact/project-card';
-import { Zap, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Zap, CheckCircle2 } from 'lucide-react';
 import { ShareModal } from '../impact/share-modal';
-import { Button } from '../../ui/button';
-import { ProjectShowcase } from './project-showcase';
+import { GroupedDiscoveryFeed } from '../impact/grouped-discovery-feed';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface DiscoveryFeedProps {
-    trending: Project[];
+    groupedTrending?: Array<{ category: any, projects: Project[] }>;
     completed: Project[];
-    categories: Array<{ id: string; name: string; slug: string; icon: string }>;
+    // Keeping for type compatibility if needed, though unused in grouped view
+    trending?: Project[];
+    categories?: any[];
 }
 
-export const DiscoveryFeed = memo(function DiscoveryFeed({ trending, completed, categories }: DiscoveryFeedProps) {
+export const DiscoveryFeed = memo(function DiscoveryFeed({ groupedTrending, completed }: DiscoveryFeedProps) {
     const [shareProject, setShareProject] = useState<Project | null>(null);
     const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -40,27 +40,13 @@ export const DiscoveryFeed = memo(function DiscoveryFeed({ trending, completed, 
                     </div>
                 </div>
 
-                <div className="space-y-8">
-                    <ProjectShowcase
-                        initialProjects={trending}
-                        categories={categories}
-                        onShare={handleShare}
-                    />
-
-                    {trending.length > 0 && (
-                        <div className="flex justify-center pt-2">
-                            <Link href="/dashboard/impact">
-                                <Button
-                                    variant="outline"
-                                    className="rounded-3xl h-11 px-8 font-bold text-xs gap-2 border-border/60 hover:border-primary/30 hover:text-primary transition-all group active:scale-95"
-                                >
-                                    View All
-                                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                                </Button>
-                            </Link>
-                        </div>
-                    )}
-                </div>
+                {groupedTrending && groupedTrending.length > 0 ? (
+                    <GroupedDiscoveryFeed groupedData={groupedTrending} />
+                ) : (
+                    <div className="py-12 text-center">
+                        <p className="text-sm text-muted-foreground">Loading feed...</p>
+                    </div>
+                )}
             </section>
 
             <AnimatePresence>
