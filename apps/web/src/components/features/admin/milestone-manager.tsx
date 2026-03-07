@@ -73,7 +73,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
     <div className="space-y-6">
       <div className="flex items-center justify-between px-1">
         <h3 className="text-base font-bold text-foreground tracking-tight">Execution Tracking</h3>
-        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] tracking-widest px-3 py-1 shadow-none">
+        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px]  px-3 py-1 shadow-none">
           {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Completed
         </Badge>
       </div>
@@ -117,7 +117,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                       {/* Phase Content Area */}
                       <div className="flex-1 min-w-0 space-y-1.5">
                         <div className="flex items-center gap-3 mb-1">
-                          <span className="text-[10px] font-black tracking-widest text-muted-foreground">Phase {index + 1}</span>
+                          <span className="text-[10px] font-black  text-muted-foreground">Phase {index + 1}</span>
                           <AnimatePresence>
                             {status === 'COMPLETED' && milestone.completedAt && (
                               <motion.span
@@ -148,7 +148,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                             {status === 'PENDING' && (
                               <Button
                                 variant="outline"
-                                className="flex-1 md:flex-none rounded-3xl h-11 text-[11px] font-bold border-primary/20 text-primary hover:bg-primary/5 tracking-widest px-5 active:scale-95 transition-all"
+                                className="flex-1 md:flex-none rounded-3xl h-11 text-[11px] font-bold border-primary/20 text-primary hover:bg-primary/5  px-5 active:scale-95 transition-all"
                                 onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS')}
                                 disabled={!!processingId}
                               >
@@ -156,11 +156,11 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                               </Button>
                             )}
                             <Button
-                              className="flex-1 md:flex-none rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 h-11 px-7 text-[11px] tracking-widest border-0 active:scale-95 transition-all"
+                              className="flex-1 md:flex-none rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 h-11 px-7 text-[11px]  border-0 active:scale-95 transition-all"
                               onClick={() => handleStatusChange(milestone.id, 'COMPLETED')}
                               disabled={!!processingId}
                             >
-                              Mark As Completed
+                              Mark as Completed
                             </Button>
                           </div>
                         )}

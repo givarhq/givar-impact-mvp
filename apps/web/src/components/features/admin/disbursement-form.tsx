@@ -87,11 +87,11 @@ export const DisbursementForm = memo(function DisbursementForm({
 
     const handleSubmit = async () => {
         if (!milestoneId || !vendorName || !amount || !reference) {
-            return toast.error('Please Complete All Required Fields');
+            return toast.error('Please complete all required fields');
         }
 
         setIsLoading(true);
-        const toastId = toast.loading('Recording Treasury Outflow...');
+        const toastId = toast.loading('Recording disbursement...');
         try {
             const minorAmount = parseFormattedNumber(amount) + '00';
             await ApiService.admin.recordDisbursement(projectId, {
@@ -102,24 +102,24 @@ export const DisbursementForm = memo(function DisbursementForm({
                 receiptKey: receipt?.key
             });
 
-            toast.success('Disbursement Recorded Successfully', { id: toastId });
+            toast.success('Disbursement recorded successfully', { id: toastId });
             setAmount(''); setVendorName(''); setReference(''); setMilestoneId(''); setReceipt(null);
             router.refresh();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed To Commit Transaction', { id: toastId });
+            toast.error(error.response?.data?.message || 'Failed to commit transaction', { id: toastId });
         } finally {
             setIsLoading(false);
         }
     };
 
     const viewSecureReceipt = async (key: string) => {
-        const toastId = toast.loading('Opening Vault Asset...');
+        const toastId = toast.loading('Opening vault asset...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, projectId);
             window.open(viewUrl, '_blank');
             toast.dismiss(toastId);
         } catch (e) {
-            toast.error('Access Denied', { id: toastId });
+            toast.error('Access denied', { id: toastId });
         }
     };
 

@@ -62,13 +62,12 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                 <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <CardTitle className="text-sm font-bold flex items-center gap-2 tracking-widest text-foreground ">
+                            <CardTitle className="text-sm font-bold flex items-center gap-2  text-foreground ">
                                 <ShieldCheck className="h-4 w-4 text-primary" /> Discovery Visibility
                             </CardTitle>
-                            <p className="text-[11px] text-muted-foreground font-bold tracking-widest ">Visibility Controls</p>
                         </div>
                         <Badge variant="outline" className={cn(
-                            "rounded-3xl px-3 py-1 font-bold text-[10px] tracking-widest border ",
+                            "rounded-3xl px-3 py-1 font-bold text-[10px]  border ",
                             data.moderationStatus === 'APPROVED' ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
                                 data.moderationStatus === 'FLAGGED' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-destructive/5 text-destructive border-destructive/10"
                         )}>
@@ -79,7 +78,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                 <CardContent className="p-6 md:p-8 space-y-10">
 
                     <div className="space-y-3">
-                        <label className="text-[11px] font-bold tracking-widest text-muted-foreground ml-1 ">Safety Settings</label>
+                        <label className="text-[11px] font-bold  text-muted-foreground ml-1 ">Safety Settings</label>
                         <Select
                             value={data.moderationStatus}
                             onValueChange={(v: any) => setData(prev => ({ ...prev, moderationStatus: v }))}
@@ -88,9 +87,9 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl shadow-xl border-border/40">
-                                <SelectItem value="APPROVED" className="font-bold text-xs py-2.5">Approved (Show In Feed)</SelectItem>
-                                <SelectItem value="FLAGGED" className="font-bold text-xs py-2.5 text-amber-600">Flagged (Limit Visibility)</SelectItem>
-                                <SelectItem value="HIDDEN" className="font-bold text-xs py-2.5 text-destructive">Hidden (Remove From Feed)</SelectItem>
+                                <SelectItem value="APPROVED" className="font-bold text-xs py-2.5">Approved (show in feed)</SelectItem>
+                                <SelectItem value="FLAGGED" className="font-bold text-xs py-2.5 text-amber-600">Flagged (limit visibility)</SelectItem>
+                                <SelectItem value="HIDDEN" className="font-bold text-xs py-2.5 text-destructive">Hidden (remove from feed)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -99,7 +98,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                         <div className="space-y-4 p-6 rounded-3xl bg-muted/20 border border-border/40 group hover:border-primary/30 transition-all shadow-inner">
                             <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold tracking-widest text-foreground flex items-center gap-2 ">
+                                    <label className="text-[11px] font-bold  text-foreground flex items-center gap-2 ">
                                         <Zap className="h-3.5 w-3.5 text-amber-500" /> Featured Weight
                                     </label>
                                     <p className="text-[10px] text-muted-foreground font-medium leading-tight">Priority boost for the featured carousel.</p>
@@ -117,7 +116,7 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                         <div className="space-y-4 p-6 rounded-3xl bg-muted/20 border border-border/40 group hover:border-blue-500/30 transition-all shadow-inner">
                             <div className="flex justify-between items-start gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[11px] font-bold tracking-widest text-foreground flex items-center gap-2 ">
+                                    <label className="text-[11px] font-bold  text-foreground flex items-center gap-2 ">
                                         <TrendingUp className="h-3.5 w-3.5 text-blue-500" /> Priority Boost
                                     </label>
                                     <p className="text-[10px] text-muted-foreground font-medium leading-tight">Manual scoring bonus for trending lists.</p>
@@ -143,10 +142,10 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                     <Button
                         onClick={handleUpdate}
                         disabled={isSaving}
-                        className="w-full h-14 rounded-3xl font-bold tracking-widest text-xs shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
+                        className="w-auto h-12 rounded-3xl font-bold  text-xs shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
                     >
                         {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />}
-                        Apply Visibility Settings
+                        Apply visibility settings
                     </Button>
                 </CardContent>
             </Card>
