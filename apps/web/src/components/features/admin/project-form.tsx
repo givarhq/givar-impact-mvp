@@ -200,7 +200,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 <Fingerprint className="h-6 w-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-amber-900 tracking-tight">Amendment Protocol</h3>
+                <h3 className="text-base font-bold text-amber-900 tracking-tight">Project Amendment</h3>
                 <p className="text-xs text-amber-800 font-medium leading-relaxed">
                   You are editing a live project. Any changes to the financial goal, budget, or roadmap require a brief explanation for our donors.
                 </p>
@@ -208,7 +208,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-end px-1">
-                <label className="text-[10px] font-black text-amber-800 tracking-widest">Amendment Narrative</label>
+                <label className="text-[10px] font-black text-amber-800 tracking-widest">Narrative</label>
                 <span className={cn(
                   "text-[10px] font-bold px-2 py-0.5 rounded-full",
                   (reason?.length || 0) < 10 ? "text-destructive bg-destructive/5" : "text-emerald-600 bg-emerald-50"
