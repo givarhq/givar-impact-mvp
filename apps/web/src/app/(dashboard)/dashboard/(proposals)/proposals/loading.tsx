@@ -3,12 +3,13 @@ import { Skeleton } from '../../../../../components/ui/skeleton';
 export default function ProposalsLoading() {
     return (
         <div className="space-y-4 md:space-y-6 w-full min-w-0 animate-in fade-in duration-500">
-            {/* Mobile Title Skeleton */}
-            <Skeleton className="md:hidden h-7 w-32 ml-1" />
-
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <Skeleton className="hidden md:block h-5 w-80 rounded-3xl" />
-                <Skeleton className="h-12 w-full md:w-[160px] rounded-3xl" />
+            {/* Synchronized Header Skeleton */}
+            <div className="flex items-center justify-between gap-4 px-1 min-w-0">
+                <div className="space-y-2 min-w-0">
+                    <Skeleton className="h-7 w-32 md:h-9 md:w-48 rounded-3xl" />
+                    <Skeleton className="hidden md:block h-5 w-80 rounded-3xl" />
+                </div>
+                <Skeleton className="h-10 md:h-12 w-24 md:w-[160px] rounded-3xl shrink-0" />
             </div>
 
             {/* Proposal Grid Skeleton */}
