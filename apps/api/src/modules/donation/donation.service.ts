@@ -280,7 +280,7 @@ export class DonationService {
             type: 'DONATION_RECEIVED' as NotificationType,
             title: 'New contribution received',
             content: `You received a gift for "${txProject.title}".`,
-            link: `/dashboard/projects/${txProject.id}/manage`
+            link: `/dashboard/impact/${txProject.slug}`
           }
         });
 
@@ -291,7 +291,7 @@ export class DonationService {
               type: 'PROJECT_STATUS' as NotificationType,
               title: 'Goal reached!',
               content: `Success! "${txProject.title}" is now fully funded.`,
-              link: `/dashboard/projects/${txProject.id}/manage`
+              link: `/dashboard/impact/${txProject.slug}`
             }
           });
         }
@@ -648,7 +648,7 @@ export class DonationService {
             type: 'DONATION_RECEIVED' as NotificationType,
             title: 'New contribution received',
             content: `You received a gift for "${project.title}".`,
-            link: `/dashboard/projects/${project.id}/manage`
+            link: `/dashboard/impact/${project.slug}`
           }
         });
 
@@ -659,7 +659,7 @@ export class DonationService {
               type: 'PROJECT_STATUS' as NotificationType,
               title: 'Goal reached!',
               content: `Success! "${project.title}" is now fully funded.`,
-              link: `/dashboard/projects/${project.id}/manage`
+              link: `/dashboard/impact/${project.slug}`
             }
           });
         }

@@ -1606,6 +1606,17 @@ export class AdminService {
         }
       }, tx);
 
+      // Notify the organizer to provide proof of work for this disbursement
+      await tx.notification.create({
+        data: {
+          userId: project.userId,
+          type: 'MILESTONE_ALERT',
+          title: 'Action required: Proof of work',
+          content: `Funds disbursed to ${dto.vendorName} for "${milestone?.phase || 'Current Phase'}". Please upload evidence.`,
+          link: `/dashboard/projects/${projectId}/manage#submit-evidence`
+        }
+      });
+
       return { disbursement, owner: project.user, milestoneName: milestone?.phase };
     }).then(async (res) => {
       await this.emailService.sendEvidenceRequest(res.owner.email, {
