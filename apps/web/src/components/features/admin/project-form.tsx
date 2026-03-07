@@ -477,7 +477,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   ) : (
                     <div className="flex items-center justify-center gap-2 min-w-0">
                       <FileText className="h-4 w-4 shrink-0" />
-                      <span className="truncate">Save draft</span>
+                      <span className="truncate">Draft</span>
                     </div>
                   )}
                 </Button>
