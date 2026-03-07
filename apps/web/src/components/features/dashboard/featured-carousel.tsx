@@ -4,10 +4,11 @@ import React, { useState, useEffect, memo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { ArrowRight, MapPin, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Heart, MapPin, ShieldCheck } from 'lucide-react';
 import { Project } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { cn } from '../../../lib/utils/cn';
+import { Badge } from '../../ui/badge';
 
 export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { projects: Project[] }) {
     const router = useRouter();
@@ -97,6 +98,22 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
 
                     <div className="flex flex-col justify-center p-4 lg:p-6 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 text-center">
                         <div className="space-y-4">
+                            {/* Desktop-Only Project Context */}
+                            <div className="hidden lg:flex flex-col items-center gap-2 mb-2 animate-in fade-in slide-in-from-bottom-1 duration-500">
+                                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl px-3 py-0.5 text-[10px] font-black uppercase tracking-widest">
+                                    {current.categoryName || 'Active Cause'}
+                                </Badge>
+                                {current.shortDesc && (
+                                    <p className="text-xs font-medium text-muted-foreground line-clamp-2 leading-relaxed px-4">
+                                        {current.shortDesc}
+                                    </p>
+                                )}
+                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60 mt-1 uppercase tracking-tighter">
+                                    <Heart className="h-3 w-3 fill-primary/20 text-primary" />
+                                    <span>Supported by {current.donorCount || 0} donors</span>
+                                </div>
+                            </div>
+
                             <div className="space-y-2.5">
                                 <div className="flex justify-between items-end">
                                     <div className="space-y-0.5 text-left">
