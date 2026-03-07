@@ -46,20 +46,22 @@ export function useAutoLogout() {
         const token = getCookie('givar_token');
         if (!token) return;
 
-        recordActivity();
-
         // Logic: Deterministic Check (Mount & Tab Focus)
-        // Ensures that if a user returns to a dormant tab, they are booted immediately 
-        // if the threshold was crossed while the tab was backgrounded.
         const checkExpiry = () => {
             const lastActivity = localStorage.getItem(ACTIVITY_STORAGE_KEY);
             if (lastActivity) {
                 const diff = Date.now() - parseInt(lastActivity, 10);
-                if (diff >= INACTIVITY_LIMIT) performLogout('inactivity');
+                if (diff >= INACTIVITY_LIMIT) {
+                    performLogout('inactivity');
+                    return true;
+                }
             }
+            return false;
         };
 
-        checkExpiry();
+        // Do not record new activity if the session is already dead
+        if (checkExpiry()) return;
+
         recordActivity();
 
         const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
