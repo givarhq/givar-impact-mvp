@@ -166,7 +166,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
                 <SelectValue placeholder="Transaction Type" />
               </SelectTrigger>
               <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All Types</SelectItem>
+                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All types</SelectItem>
                 <SelectItem value="CREDIT" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Credit Records</SelectItem>
                 <SelectItem value="DEBIT" className="text-xs font-bold rounded-2xl py-2 text-rose-600">Debit Records</SelectItem>
               </SelectContent>
@@ -180,7 +180,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All Status</SelectItem>
+                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All statuses</SelectItem>
                 <SelectItem value="COMPLETED" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Completed</SelectItem>
                 <SelectItem value="PENDING" className="text-xs font-bold rounded-2xl py-2 text-amber-600">Pending</SelectItem>
               </SelectContent>
@@ -230,7 +230,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent className="rounded-3xl">
-                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="all">All types</SelectItem>
                     <SelectItem value="CREDIT">Credit</SelectItem>
                     <SelectItem value="DEBIT">Debit</SelectItem>
                   </SelectContent>
@@ -240,7 +240,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent className="rounded-3xl">
-                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="all">All statuses</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
                     <SelectItem value="PENDING">Pending</SelectItem>
                   </SelectContent>
