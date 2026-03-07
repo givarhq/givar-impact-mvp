@@ -22,10 +22,10 @@ export default function ImpactFeedLoading() {
             </div>
 
             {/* Discovery Grid Skeleton */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
                     <div key={i} className="group flex flex-row sm:flex-col rounded-3xl bg-card border border-border/40 shadow-sm h-full overflow-hidden">
-                        {/* Visual Header Skeleton */}
+                        {/* Visual Header Skeleton: Fixed width on mobile, full width on desktop */}
                         <Skeleton className="w-[110px] sm:w-full shrink-0 sm:aspect-video rounded-none border-r sm:border-r-0 sm:border-b border-border/40" />
 
                         {/* Content Body Skeleton */}
@@ -33,8 +33,8 @@ export default function ImpactFeedLoading() {
                             <div className="space-y-2 sm:space-y-3 min-w-0">
                                 <Skeleton className="h-4 w-3/4 rounded-md" />
                                 <div className="flex gap-2">
-                                    <Skeleton className="h-3 w-1/3 rounded-md" />
-                                    <Skeleton className="h-3 w-1/4 rounded-md" />
+                                    <Skeleton className="h-3 w-16 rounded-md" />
+                                    <Skeleton className="h-3 w-20 rounded-md" />
                                 </div>
                             </div>
 
