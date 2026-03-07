@@ -29,6 +29,18 @@ export class RecommendationsController {
         return this.service.getDiscoveryFeed(req.user?.id, pageNum, limitNum);
     }
 
+    @UseGuards(OptionalJwtAuthGuard)
+    @Get('grouped')
+    async getGroupedFeed(
+        @Req() req: any,
+        @Query('limit') limit?: number
+    ) {
+        // Logic: Default to 4 to fill the XL grid (1280px+) 
+        // which includes common 1366px laptop screens.
+        const limitNum = limit ? Number(limit) : 4;
+        return this.service.getGroupedFeed(req.user?.id, limitNum);
+    }
+
     // --- Admin Configuration (Audited) ---
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -92,15 +104,5 @@ export class RecommendationsController {
         @Body() dto: { featureWeight?: number; visibilityScore?: number; moderationStatus?: any }
     ) {
         return this.service.updateProjectWeights(id, dto, req.user.id);
-    }
-
-    @UseGuards(OptionalJwtAuthGuard)
-    @Get('grouped')
-    async getGroupedFeed(
-        @Req() req: any,
-        @Query('limit') limit?: number
-    ) {
-        const limitNum = limit ? Number(limit) : 3;
-        return this.service.getGroupedFeed(req.user?.id, limitNum);
     }
 }
