@@ -30,7 +30,7 @@ export default async function MyProposalsPage() {
 
         <Link href="/dashboard/proposals/start" className="shrink-0">
           <Button className="h-10 md:h-12 rounded-3xl px-5 md:px-8 shadow-lg shadow-primary/20 font-bold bg-primary text-white border-0 active:scale-95 transition-all text-xs md:text-sm">
-            <Plus className="mr-1.5 h-4 w-4" /> New <span className="hidden sm:inline">cause</span>
+            <Plus className="mr-1.5 h-4 w-4" /> New
           </Button>
         </Link>
       </div>
