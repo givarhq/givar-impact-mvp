@@ -42,15 +42,33 @@ export default function DashboardLoading() {
                 {/* Project Grid Skeleton */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="space-y-4">
-                            <Skeleton className="aspect-video w-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-3 w-1/2" />
-                            </div>
-                            <div className="flex gap-2">
-                                <Skeleton className="h-9 flex-1" />
-                                <Skeleton className="h-9 w-9" />
+                        <div key={i} className="group flex flex-row sm:flex-col rounded-3xl bg-card border border-border/40 shadow-sm h-full overflow-hidden">
+                            {/* Visual Header Skeleton */}
+                            <Skeleton className="w-[110px] sm:w-full shrink-0 sm:aspect-video rounded-none border-r sm:border-r-0 sm:border-b border-border/40" />
+
+                            {/* Content Body Skeleton */}
+                            <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between min-w-0 gap-2 sm:gap-3">
+                                <div className="space-y-2 sm:space-y-3 min-w-0">
+                                    <Skeleton className="h-4 w-3/4 rounded-md" />
+                                    <div className="flex gap-2">
+                                        <Skeleton className="h-3 w-1/3 rounded-md" />
+                                        <Skeleton className="h-3 w-1/4 rounded-md" />
+                                    </div>
+                                </div>
+
+                                {/* Progress & Actions Skeleton */}
+                                <div className="space-y-2 sm:space-y-3 mt-auto min-w-0 pt-2">
+                                    <div className="flex justify-between items-end gap-3 min-w-0">
+                                        <div className="space-y-2 flex-1 min-w-0">
+                                            <div className="flex justify-between items-end min-w-0">
+                                                <Skeleton className="h-3 w-16 rounded-md" />
+                                                <Skeleton className="h-3 w-8 rounded-md" />
+                                            </div>
+                                            <Skeleton className="h-1.5 w-full rounded-full" />
+                                        </div>
+                                        <Skeleton className="h-8 w-8 sm:h-9 sm:w-9 rounded-full shrink-0" />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))}
