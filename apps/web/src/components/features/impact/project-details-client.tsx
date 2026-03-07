@@ -199,7 +199,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </h4>
                                         <div
                                             className={cn(
-                                                "text-xs text-amber-900/80 leading-relaxed break-words font-medium",
+                                                "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
                                                 "[&_p]:mb-2 [&_p]:last:mb-0",
                                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2[&_ul]:space-y-1",
                                                 "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
