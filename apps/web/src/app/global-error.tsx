@@ -28,7 +28,7 @@ export default function GlobalError({
                     <div className="space-y-3">
                         <h1 className="text-3xl font-black tracking-tight text-foreground">System Exception</h1>
                         <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-[280px] mx-auto">
-                            A critical rendering fault was detected and securely reported to the platform engineers.
+                            A critical fault was detected and securely reported to the platform team.
                         </p>
                     </div>
                     <div className="flex justify-center">

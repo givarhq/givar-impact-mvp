@@ -25,21 +25,23 @@ export default function ErrorBoundary({
             </div>
 
             <div className="space-y-3 mb-8">
-                <h1 className="text-2xl font-black tracking-tight text-foreground">Rendering Fault</h1>
+                <h1 className="text-2xl font-black tracking-tight text-foreground">An error occured</h1>
                 <p className="text-sm text-muted-foreground font-medium leading-relaxed max-w-[320px] mx-auto">
-                    A component failed to render. The error has been securely logged for forensic review.
+                    A component failed to render. The error has been securely logged for review.
                 </p>
             </div>
 
-            <Button
-                onClick={() => reset()}
-                className="h-12 px-8 rounded-3xl font-bold text-sm tracking-widest shadow-lg shadow-primary/10 active:scale-[0.98] transition-all border-0 gap-2"
-            >
-                <RefreshCcw className="h-4 w-4" /> Try Again
-            </Button>
+            <div className="flex justify-center">
+                <Button
+                    onClick={() => reset()}
+                    className="h-12 px-8 rounded-3xl font-bold text-sm w-auto shadow-lg shadow-primary/10 active:scale-[0.98] transition-all border-0 gap-2"
+                >
+                    <RefreshCcw className="h-4 w-4" /> Try Again
+                </Button>
+            </div>
 
             {error.digest && (
-                <div className="mt-8 text-[10px] font-mono tracking-widest text-muted-foreground/40 uppercase">
+                <div className="mt-8 text-[10px] font-mono  text-muted-foreground/40 uppercase">
                     Ref: {error.digest}
                 </div>
             )}
