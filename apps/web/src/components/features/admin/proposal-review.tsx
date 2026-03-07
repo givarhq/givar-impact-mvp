@@ -472,7 +472,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             {proposal.riskAnalysis ? (
                                 <div
                                     className={cn(
-                                        "text-xs text-muted-foreground leading-relaxed break-words",
+                                        "text-xs text-muted-foreground leading-relaxed break-words whitespace-pre-line",
                                         "[&_p]:mb-2 [&_p]:last:mb-0",
                                         "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
                                         "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
