@@ -486,7 +486,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   type="button"
                   disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
                   onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
-                  className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px]
+                  className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px]
                shadow-xl shadow-primary/30 active:scale-[0.98] 
                transition-all bg-primary text-white border-0 truncate"
                 >
@@ -499,9 +499,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                       ) : (
                         <Send className="h-4 w-4 shrink-0" />
                       )}
-                      <span className="truncate">
-                        {initialData ? 'Publish' : 'Launch'}
-                      </span>
+                      {initialData ? 'Publish' : 'Launch'}
                     </div>
                   )}
                 </Button>
