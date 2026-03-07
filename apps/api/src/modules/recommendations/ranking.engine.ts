@@ -20,8 +20,8 @@ export interface RankingWeights {
 @Injectable()
 export class RankingEngine {
     /**
-     * Computes hybrid score using logarithmic recency decay and weighted velocity,
-     * then applies a high-sensitivity category multiplier for sector-wide prioritization.
+     * Computes deterministic score for "App Store" style ranking.
+     * Removed jitter/randomization to ensure the top 4 slots are always merit-based.
      */
     calculateScore(candidate: RankingCandidate, weights: RankingWeights): number {
         // 1. Recency Score (0 to 100)
@@ -55,15 +55,13 @@ export class RankingEngine {
             (candidate.visibilityScore * 10) // Visibility score slider 0-50, multiplied by 10 to heavily boost (up to 500)
         );
 
-        // Logic: Scattering Algorithm
-        // Apply a randomized jitter to prevent block clustering.
-        const jitter = 0.8 + (Math.random() * 0.2);
+        // Category Weight Impact
+        // In "Grouped" mode, this technically cancels out within the group, 
+        // but we keep it to maintain consistent scoring logic across different views.
+        // Removed jitter factor to ensure stability.
+        const categoryMultiplier = Math.pow(candidate.categoryWeight, 2);
 
-        // Category weight from admin settings (0.5 to 5.0). Power of 2 makes category prioritization extremely effective.
-        const exponentialWeight = Math.pow(candidate.categoryWeight, 2);
-        const dynamicMultiplier = exponentialWeight * jitter;
-
-        return (baseScore + 10.0) * dynamicMultiplier; // +10 to ensure even 0-activity items can be multiplied
+        return (baseScore + 10.0) * categoryMultiplier;
     }
 
     sort(candidates: { candidate: RankingCandidate; score: number }[]) {
