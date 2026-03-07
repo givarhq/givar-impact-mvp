@@ -82,8 +82,8 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                                 </Link>
                             </div>
 
-                            {/* Project Grid (Max 3 per row as per backend limit) */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 min-w-0">
+                            {/* Project Grid - Updated to 4 cols on XL */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-w-0">
                                 {group.projects.map((project) => (
                                     <motion.div
                                         key={project.id}
@@ -95,7 +95,7 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                                     >
                                         <ProjectCard
                                             project={project}
-                                            onDonate={() => { }} // Deprecated
+                                            onDonate={() => { }}
                                             onShare={handleShareClick}
                                             isPublic={isPublic}
                                         />

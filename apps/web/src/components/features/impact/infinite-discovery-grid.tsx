@@ -82,7 +82,8 @@ export const InfiniteDiscoveryGrid = memo(function InfiniteDiscoveryGrid({
 
     return (
         <div className="w-full min-w-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Updated to 4 cols on XL */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                 <AnimatePresence mode="popLayout">
                     {projects.map((project, index) => (
                         <motion.div
