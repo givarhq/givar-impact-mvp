@@ -7,6 +7,7 @@ import { Zap, CheckCircle2 } from 'lucide-react';
 import { ShareModal } from '../impact/share-modal';
 import { GroupedDiscoveryFeed } from '../impact/grouped-discovery-feed';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../../lib/utils/cn';
 
 interface DiscoveryFeedProps {
     groupedTrending?: Array<{ category: any, projects: Project[] }>;
@@ -66,14 +67,18 @@ export const DiscoveryFeed = memo(function DiscoveryFeed({ groupedTrending, comp
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                            {completed.map(p => (
-                                <ProjectCard
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                            {completed.map((p, pIndex) => (
+                                <div
                                     key={p.id}
-                                    project={p as any}
-                                    onDonate={() => { }}
-                                    onShare={handleShare}
-                                />
+                                    className={cn(pIndex === 3 && "hidden xl:block")}
+                                >
+                                    <ProjectCard
+                                        project={p as any}
+                                        onDonate={() => { }}
+                                        onShare={handleShare}
+                                    />
+                                </div>
                             ))}
                         </div>
                     </motion.section>

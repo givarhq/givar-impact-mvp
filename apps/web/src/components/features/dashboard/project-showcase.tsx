@@ -8,6 +8,7 @@ import { CategoryBrowser } from './category-browser';
 import { ApiService } from '../../../services/api';
 import { Loader2, Inbox } from 'lucide-react';
 import { getCookie } from 'cookies-next';
+import { cn } from '../../../lib/utils/cn';
 
 interface ProjectShowcaseProps {
     initialProjects: Project[];
@@ -61,14 +62,18 @@ export const ProjectShowcase = memo(function ProjectShowcase({ initialProjects, 
                                 <Loader2 className="h-6 w-6 text-primary animate-spin" />
                             </div>
                         ) : projects.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                                {projects.map(p => (
-                                    <ProjectCard
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                                {projects.map((p, pIndex) => (
+                                    <div
                                         key={p.id}
-                                        project={p as any}
-                                        onDonate={() => { }}
-                                        onShare={onShare}
-                                    />
+                                        className={cn(pIndex === 3 && "hidden xl:block")}
+                                    >
+                                        <ProjectCard
+                                            project={p as any}
+                                            onDonate={() => { }}
+                                            onShare={onShare}
+                                        />
+                                    </div>
                                 ))}
                             </div>
                         ) : (

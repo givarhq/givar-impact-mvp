@@ -1,4 +1,5 @@
 import { Skeleton } from '../../../components/ui/skeleton';
+import { cn } from '../../../lib/utils/cn';
 
 export default function DashboardLoading() {
     return (
@@ -41,8 +42,14 @@ export default function DashboardLoading() {
 
                 {/* Project Grid Skeleton (Trending) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="group flex flex-row sm:flex-col rounded-3xl bg-card border border-border/40 shadow-sm h-full overflow-hidden">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i, sIndex) => (
+                        <div
+                            key={i}
+                            className={cn(
+                                "group flex flex-row sm:flex-col rounded-3xl bg-card border border-border/40 shadow-sm h-full overflow-hidden",
+                                (sIndex + 1) % 4 === 0 && "hidden xl:block"
+                            )}
+                        >
                             {/* Visual Header Skeleton */}
                             <Skeleton className="w-[110px] sm:w-full shrink-0 sm:aspect-video rounded-none border-r sm:border-r-0 sm:border-b border-border/40" />
 
