@@ -3,11 +3,10 @@
 import { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Calendar, Repeat, PauseCircle, PlayCircle, Loader2 } from 'lucide-react';
+import { Calendar, Repeat, PauseCircle, PlayCircle, Loader2, CreditCard, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '../../../lib/utils/cn';
 import { formatDate } from '../../../lib/utils/format';
-import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { SmartCurrency } from '../../ui/smart-currency';
@@ -21,16 +20,19 @@ export const SubscriptionCard = memo(function SubscriptionCard({ subscription }:
     const [isLoading, setIsLoading] = useState(false);
     const isActive = subscription.status === 'ACTIVE';
 
-    const handleToggleStatus = async () => {
+    const handleToggleStatus = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         setIsLoading(true);
         const newStatus = isActive ? 'PAUSED' : 'ACTIVE';
 
         try {
             await ApiService.donations.updateSubscription(subscription.id, newStatus);
-            toast.success(`Subscription ${isActive ? 'paused' : 'resumed'} successfully`);
+            toast.success(`Subscription ${isActive ? 'paused' : 'resumed'}`);
             router.refresh();
         } catch (error) {
-            toast.error("Failed to update status");
+            toast.error("Status update failed");
         } finally {
             setIsLoading(false);
         }
@@ -43,96 +45,100 @@ export const SubscriptionCard = memo(function SubscriptionCard({ subscription }:
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
         >
-            <Card className={cn(
-                "relative overflow-hidden bg-card border-border/40 transition-all duration-300 rounded-3xl group shadow-sm",
-                !isActive && "opacity-80"
-            )}>
-                <CardContent className="p-4 md:p-5 flex flex-col md:flex-row items-stretch md:items-center gap-4 md:gap-6 min-w-0">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <Link href={`/dashboard/impact/${subscription.project.slug}`} className="shrink-0">
-                            <div className="relative h-14 w-14 rounded-2xl bg-muted overflow-hidden border border-border/40 shadow-inner group-hover:scale-105 transition-transform">
-                                {subscription.project.imageUrl ? (
-                                    <Image
-                                        src={subscription.project.imageUrl}
-                                        alt={subscription.project.title}
-                                        fill
-                                        sizes="56px"
-                                        className="object-cover"
-                                    />
-                                ) : (
-                                    <div className="h-full w-full bg-primary/5 flex items-center justify-center text-primary/30">
-                                        <Repeat className="h-6 w-6" />
-                                    </div>
-                                )}
+            <Link
+                href={`/dashboard/impact/${subscription.project.slug}`}
+                className={cn(
+                    "group block relative overflow-hidden rounded-2xl bg-card border border-border/40 transition-all duration-200",
+                    !isActive && "opacity-75 grayscale-[0.5] hover:opacity-100 hover:grayscale-0",
+                    isActive ? "hover:border-primary/30 hover:shadow-sm" : "hover:bg-muted/20"
+                )}
+            >
+                <div className="flex h-24 sm:h-28">
+                    {/* Left: Visual Identity */}
+                    <div className="relative w-24 sm:w-28 shrink-0 bg-muted border-r border-border/40 overflow-hidden">
+                        {subscription.project.imageUrl ? (
+                            <Image
+                                src={subscription.project.imageUrl}
+                                alt={subscription.project.title}
+                                fill
+                                sizes="112px"
+                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                        ) : (
+                            <div className="h-full w-full bg-primary/5 flex items-center justify-center text-primary/30">
+                                <Repeat className="h-8 w-8" />
                             </div>
-                        </Link>
+                        )}
 
-                        <div className="flex-1 min-w-0 space-y-1">
-                            <Link href={`/dashboard/impact/${subscription.project.slug}`} className="block min-w-0">
-                                <h4 className="font-bold text-sm text-foreground hover:text-primary transition-colors truncate">
-                                    {subscription.project.title}
-                                </h4>
-                            </Link>
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-muted-foreground tracking-tight">
-                                <span className="flex items-center gap-1">
-                                    <Repeat className="h-3 w-3" /> {subscription.interval.toLowerCase()}
-                                </span>
-                                <span className="text-border">|</span>
-                                <span className="flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" /> Next: {formatDate(subscription.nextChargeDate).split(',')[0]}
-                                </span>
-                            </div>
+                        {/* Status Overlay on Image */}
+                        <div className="absolute top-2 left-2">
+                            <div className={cn(
+                                "h-2 w-2 rounded-full ring-2 ring-white dark:ring-zinc-950 shadow-sm",
+                                isActive ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+                            )} />
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-none border-border/40 min-w-0">
-                        <div className="text-left md:text-right min-w-0 shrink-0">
-                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest leading-none mb-1.5">Contribution</p>
-                            <div className="font-bold text-base text-foreground tabular-nums leading-none">
-                                <SmartCurrency
-                                    amount={subscription.amount}
-                                    currency={subscription.currency}
-                                    visible={true}
-                                    size="default"
-                                />
+                    {/* Right: Content & Controls */}
+                    <div className="flex-1 p-3.5 sm:p-4 flex flex-col justify-between min-w-0">
+                        <div className="flex justify-between items-start gap-3">
+                            <div className="min-w-0 space-y-1">
+                                <h4 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors leading-tight">
+                                    {subscription.project.title}
+                                </h4>
+                                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground tracking-tight">
+                                    <Badge variant="secondary" className="h-5 px-1.5 rounded-md text-[10px] font-bold bg-muted border-border/50 text-foreground/70">
+                                        {subscription.interval}
+                                    </Badge>
+                                    <span className="flex items-center gap-1 truncate">
+                                        <Calendar className="h-3 w-3 opacity-70" /> {formatDate(subscription.nextChargeDate).split(',')[0]}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                            <Badge variant="outline" className={cn(
-                                "h-8 px-3 rounded-3xl font-bold text-[11px] tracking-wider border shadow-none",
-                                isActive
-                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                                    : "bg-muted text-muted-foreground border-border/60"
-                            )}>
-                                <div className={cn("w-1.5 h-1.5 rounded-full mr-2", isActive ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/40")} />
-                                {subscription.status}
-                            </Badge>
 
                             <Button
-                                variant="ghost"
                                 size="icon"
-                                className={cn(
-                                    "h-9 w-9 transition-all rounded-2xl active:scale-95",
-                                    isActive
-                                        ? "text-amber-600 hover:bg-amber-500/10"
-                                        : "text-primary hover:bg-primary/10"
-                                )}
+                                variant="ghost"
                                 onClick={handleToggleStatus}
                                 disabled={isLoading}
+                                className={cn(
+                                    "h-8 w-8 rounded-full shrink-0 transition-all active:scale-90 border",
+                                    isActive
+                                        ? "text-amber-600 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20"
+                                        : "text-emerald-600 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20"
+                                )}
+                                title={isActive ? "Pause Subscription" : "Resume Subscription"}
                             >
                                 {isLoading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                 ) : isActive ? (
-                                    <PauseCircle className="h-5 w-5" />
+                                    <PauseCircle className="h-4 w-4" />
                                 ) : (
-                                    <PlayCircle className="h-5 w-5" />
+                                    <PlayCircle className="h-4 w-4 ml-0.5" />
                                 )}
                             </Button>
                         </div>
+
+                        <div className="flex items-end justify-between border-t border-border/40 pt-2.5 mt-1">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider">Amount</span>
+                                <div className="font-black text-foreground text-sm flex items-center gap-1">
+                                    <SmartCurrency
+                                        amount={subscription.amount}
+                                        currency={subscription.currency}
+                                        visible={true}
+                                        size="default"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity -mr-1">
+                                Manage <ChevronRight className="h-3.5 w-3.5 ml-0.5" />
+                            </div>
+                        </div>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </Link>
         </motion.div>
     );
 });
