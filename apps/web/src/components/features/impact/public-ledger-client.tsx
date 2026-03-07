@@ -192,9 +192,9 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                         variant="secondary"
                                                         size="sm"
                                                         onClick={() => setSelectedEntry(entry)}
-                                                        className="rounded-3xl h-9 w-auto mx-auto flex px-8 text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
+                                                        className="rounded-3xl h-9 w-full mx-auto flex px-8 text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
                                                     >
-                                                        Details
+                                                        View details
                                                     </Button>
                                                 </div>
                                             </td>
