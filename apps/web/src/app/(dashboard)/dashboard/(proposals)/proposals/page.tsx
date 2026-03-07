@@ -22,7 +22,7 @@ export default async function MyProposalsPage() {
       {/* Header Row */}
       <div className="flex items-center justify-between gap-4 min-w-0 px-1">
         <div className="min-w-0">
-          <h1 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">My Causes</h1>
+          <h1 className="text-lg font-bold tracking-tight text-foreground">My Causes</h1>
           <p className="hidden md:block text-sm text-muted-foreground font-medium mt-1">
             Manage project proposals & track live platform impact.
           </p>
