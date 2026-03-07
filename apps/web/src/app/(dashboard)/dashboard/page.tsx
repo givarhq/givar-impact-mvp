@@ -6,6 +6,7 @@ import { FeaturedCarousel } from '../../../components/features/dashboard/feature
 import { DiscoveryFeed } from '../../../components/features/dashboard/discovery-feed';
 import { PortfolioView } from '../../../components/features/dashboard/portfolio-view';
 import { Tabs, TabsContent } from '../../../components/ui/tabs';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +33,7 @@ export default async function DashboardPage({
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
     ApiService.recommendations.getFeatured(token),
-    ApiService.recommendations.getGroupedFeed(token), // Now fetching grouped layout
+    ApiService.recommendations.getGroupedFeed(token),
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
     ApiService.wallet.get(token),
     ApiService.goals.getActive(token, 'MONTHLY'),
@@ -67,6 +68,15 @@ export default async function DashboardPage({
             groupedTrending={groupedFeed}
             completed={completedProjects}
           />
+
+          <div className="flex justify-center py-6">
+            <Link
+              href="/dashboard/impact"
+              className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide"
+            >
+              View all
+            </Link>
+          </div>
         </TabsContent>
 
         <TabsContent value="portfolio" className="outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">

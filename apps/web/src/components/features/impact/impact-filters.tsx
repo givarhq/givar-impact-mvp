@@ -37,11 +37,12 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
 
     params.delete('page');
 
+    // Logic: Increased debounce to 1000ms to prevent aggressive refreshing while typing
     const timeout = setTimeout(() => {
       if (params.toString() !== searchParams.toString()) {
         router.replace(`?${params.toString()}`, { scroll: false });
       }
-    }, 400);
+    }, 1000);
 
     return () => clearTimeout(timeout);
   }, [search, activeCategory, sort, router, searchParams]);
