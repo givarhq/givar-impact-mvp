@@ -519,7 +519,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                  shadow-lg bg-background transition-all active:scale-[0.98]"
                 >
                   <LockOpen className="h-4 w-4" />
-                  Unlock For Modification
+                  Unlock for modification
                 </Button>
               </div>
             )}
