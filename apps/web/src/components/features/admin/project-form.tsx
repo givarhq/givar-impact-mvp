@@ -200,7 +200,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 <Fingerprint className="h-6 w-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-bold text-amber-900 tracking-tight">Ledger Amendment Protocol</h3>
+                <h3 className="text-base font-bold text-amber-900 tracking-tight">Amendment Protocol</h3>
                 <p className="text-xs text-amber-800 font-medium leading-relaxed">
                   You are editing a live project. Any changes to the financial goal, budget, or roadmap require a brief explanation for our donors.
                 </p>
