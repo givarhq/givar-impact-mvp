@@ -24,18 +24,16 @@ export default async function DashboardPage({
     dbUser,
     history,
     featuredResponse,
-    feedResponse,
+    groupedFeed,
     completedResponse,
-    categories,
     wallet,
     activeGoal
   ] = await Promise.all([
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
     ApiService.recommendations.getFeatured(token),
-    ApiService.recommendations.getFeed(token, 1, 18), // Explicitly limit to 12 items
+    ApiService.recommendations.getGroupedFeed(token), // Now fetching grouped layout
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
-    ApiService.projects.getCategories(token),
     ApiService.wallet.get(token),
     ApiService.goals.getActive(token, 'MONTHLY'),
   ]);
@@ -49,7 +47,6 @@ export default async function DashboardPage({
   }, 0n);
 
   const featuredProjects = featuredResponse?.data || [];
-  const feedProjects = feedResponse?.data || [];
   const completedProjects = completedResponse?.data || [];
 
   return (
@@ -65,11 +62,10 @@ export default async function DashboardPage({
           {/* Main Hero discovery */}
           <FeaturedCarousel projects={featuredProjects} />
 
-          {/* Junior discovery extension: Limited to 12 top-scored items */}
+          {/* Junior discovery extension: Grouped Categories */}
           <DiscoveryFeed
-            trending={feedProjects}
+            groupedTrending={groupedFeed}
             completed={completedProjects}
-            categories={categories || []}
           />
         </TabsContent>
 
