@@ -36,7 +36,7 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
   const VerIcon = getVerIcon();
 
   return (
-    <Card className="group flex flex-row sm:flex-col rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full">
+    <Card className="group flex flex-row sm:flex-col rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none">
       {/* Visual Header */}
       <Link href={detailsLink} className="relative block w-[110px] sm:w-full shrink-0 sm:aspect-video bg-muted border-r sm:border-r-0 sm:border-b border-border/40 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
         {project.imageUrl ? (
