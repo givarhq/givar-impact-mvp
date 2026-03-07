@@ -31,13 +31,14 @@ export default function GlobalError({
                             A critical rendering fault was detected and securely reported to the platform engineers.
                         </p>
                     </div>
-
-                    <Button
-                        onClick={() => reset()}
-                        className="w-full h-12 rounded-3xl font-bold text-sm tracking-widest shadow-lg shadow-primary/10 active:scale-[0.98] transition-all border-0 gap-2"
-                    >
-                        <RefreshCcw className="h-4 w-4" /> Recover Session
-                    </Button>
+                    <div className="flex justify-center">
+                        <Button
+                            onClick={() => reset()}
+                            className="w-auto h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/10 active:scale-[0.98] transition-all border-0 gap-2"
+                        >
+                            <RefreshCcw className="h-4 w-4" /> Recover Session
+                        </Button>
+                    </div>
 
                     <div className="pt-8 text-xs font-black tracking-[0.3em] text-muted-foreground/30 uppercase">
                         Error Digest: {error.digest || 'UNKNOWN_FAULT'}
