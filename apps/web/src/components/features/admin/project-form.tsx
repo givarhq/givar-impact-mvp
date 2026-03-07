@@ -455,7 +455,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 onClick={handleCancel}
                 className="rounded-3xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto transition-all"
               >
-                {initialData ? 'Discard Changes' : 'Cancel Setup'}
+                {initialData ? 'Discard changes' : 'Cancel setup'}
               </Button>
             )}
           </div>
@@ -477,7 +477,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   ) : (
                     <div className="flex items-center justify-center gap-2 min-w-0">
                       <FileText className="h-4 w-4 shrink-0" />
-                      <span className="truncate">Save Draft</span>
+                      <span className="truncate">Save draft</span>
                     </div>
                   )}
                 </Button>
@@ -500,7 +500,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                         <Send className="h-4 w-4 shrink-0" />
                       )}
                       <span className="truncate">
-                        {initialData ? 'Save' : 'Launch'}
+                        {initialData ? 'Publish' : 'Launch'}
                       </span>
                     </div>
                   )}
