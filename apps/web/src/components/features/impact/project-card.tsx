@@ -53,13 +53,6 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
           </div>
         )}
 
-        {/* Category Badge */}
-        <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
-          <Badge className="bg-background/90 backdrop-blur-md text-foreground border-none text-[9px] sm:text-xs font-bold px-2 py-0.5 rounded-3xl shadow-sm">
-            {project.categoryName || 'Impact'}
-          </Badge>
-        </div>
-
         {/* Verification Icon Overlay */}
         {project.isVerifiedOrganizer && (
           <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-md text-primary border border-border/10 shadow-sm transition-transform duration-300 group-hover:scale-110">
