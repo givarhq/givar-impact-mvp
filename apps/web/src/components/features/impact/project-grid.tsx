@@ -2,11 +2,9 @@
 
 import React, { useState, memo } from 'react';
 import { SearchX } from 'lucide-react';
-import { getCookie } from 'cookies-next';
-import { Project, Wallet } from '../../../types';
+import { Project } from '../../../types';
 import { ProjectCard } from './project-card';
 import { ShareModal } from './share-modal';
-import { ApiService } from '../../../services/api';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface ProjectGridProps {
@@ -15,24 +13,8 @@ interface ProjectGridProps {
 }
 
 export const ProjectGrid = memo(function ProjectGrid({ projects, isPublic = false }: ProjectGridProps) {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [shareProject, setShareProject] = useState<Project | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [wallet, setWallet] = useState<Wallet | null>(null);
-
-  const handleDonateClick = (project: Project) => {
-    const token = getCookie('givar_token');
-
-    if (token && !wallet) {
-      ApiService.wallet.get()
-        .then(setWallet)
-        .catch((err) => {
-          console.error("Wallet fetch skipped/failed:", err);
-        });
-    }
-
-    setSelectedProject(project);
-  };
 
   const handleShareClick = (project: Project) => {
     setShareProject(project);
@@ -69,7 +51,7 @@ export const ProjectGrid = memo(function ProjectGrid({ projects, isPublic = fals
             >
               <ProjectCard
                 project={project}
-                onDonate={handleDonateClick}
+                onDonate={() => { }} // Deprecated action, maintained for TS interface compatibility
                 onShare={handleShareClick}
                 isPublic={isPublic}
               />

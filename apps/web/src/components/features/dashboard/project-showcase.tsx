@@ -12,11 +12,10 @@ import { getCookie } from 'cookies-next';
 interface ProjectShowcaseProps {
     initialProjects: Project[];
     categories: Array<{ id: string; name: string; slug: string; icon: string }>;
-    onDonate: (project: Project) => void;
     onShare: (project: Project) => void;
 }
 
-export const ProjectShowcase = memo(function ProjectShowcase({ initialProjects, categories, onDonate, onShare }: ProjectShowcaseProps) {
+export const ProjectShowcase = memo(function ProjectShowcase({ initialProjects, categories, onShare }: ProjectShowcaseProps) {
     const [projects, setProjects] = useState(initialProjects);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [isPending, startTransition] = useTransition();
@@ -62,12 +61,12 @@ export const ProjectShowcase = memo(function ProjectShowcase({ initialProjects, 
                                 <Loader2 className="h-6 w-6 text-primary animate-spin" />
                             </div>
                         ) : projects.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                 {projects.map(p => (
                                     <ProjectCard
                                         key={p.id}
                                         project={p as any}
-                                        onDonate={onDonate}
+                                        onDonate={() => { }}
                                         onShare={onShare}
                                     />
                                 ))}
