@@ -445,29 +445,33 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
             {/* Mobile Sticky Action Bar */}
             <div className={cn(
-                "md:hidden fixed left-0 right-0 p-3 bg-background/95 backdrop-blur-xl border-t border-border/40 z-40 flex items-center gap-3 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]",
-                isPublic ? "bottom-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]" : "bottom-14"
+                "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
+                isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
             )}>
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsShareModalOpen(true)}
-                    className="h-12 w-12 rounded-3xl border-border/60 text-foreground shrink-0 bg-background shadow-sm active:scale-95 transition-all"
-                >
-                    <Share2 className="h-5 w-5" />
-                </Button>
-
                 {isFunded ? (
-                    <Button size="lg" disabled className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
+                    <Button
+                        size="lg"
+                        disabled
+                        className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm pointer-events-auto"
+                    >
                         <Check className="mr-2 h-4 w-4" /> Mission funded
                     </Button>
                 ) : (
-                    <Link href={donateLink} className="flex-1 block w-full">
-                        <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95">
+                    <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
+                        <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
                             Fund this impact
                         </Button>
                     </Link>
                 )}
+
+                <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="h-12 w-12 rounded-3xl border-border/60 text-foreground shrink-0 bg-background shadow-lg active:scale-95 transition-all pointer-events-auto"
+                >
+                    <Share2 className="h-5 w-5" />
+                </Button>
             </div>
 
             <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} />
