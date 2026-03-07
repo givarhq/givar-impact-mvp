@@ -135,7 +135,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                 </div>
                             </div>
 
-                            <div className="flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-4">
+                            <div className="flex flex-col lg:flex-row items-center justify-center gap-4">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -145,12 +145,6 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                 >
                                     Donate Now
                                 </button>
-
-                                {/* Desktop-only: Social Proof */}
-                                <div className="hidden lg:flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground/60 tracking-tight whitespace-nowrap">
-                                    <ShieldCheck className="h-3 w-3 text-primary/60" />
-                                    <span>{current.donorCount || 0} Supporters</span>
-                                </div>
                             </div>
                         </div>
                     </div>
