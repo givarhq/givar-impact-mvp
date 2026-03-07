@@ -500,7 +500,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                         <Send className="h-4 w-4 shrink-0" />
                       )}
                       <span className="truncate">
-                        {initialData ? 'Publish Updates' : 'Launch Project'}
+                        {initialData ? 'Save' : 'Launch'}
                       </span>
                     </div>
                   )}
