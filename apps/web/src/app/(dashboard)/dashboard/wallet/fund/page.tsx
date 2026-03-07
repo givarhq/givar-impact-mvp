@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, CreditCard, Loader2, ShieldCheck, MailCheck, RefreshCw } from 'lucide-react';
 import { Button } from '../../../../../components/ui/button';
@@ -14,7 +13,6 @@ import { cn } from '../../../../../lib/utils/cn';
 import toast from 'react-hot-toast';
 
 export default function FundWalletPage() {
-  const router = useRouter();
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);

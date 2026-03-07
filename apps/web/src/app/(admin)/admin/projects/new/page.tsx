@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Create new project',
+  title: 'Create Project',
   description: 'Initialize a new impact cause on the Givar platform.',
 };
 

@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { ApiService } from '../../../services/api';
 import { AnalyticsOverviewClient } from '../../../components/features/admin/analytics/analytics-overview-client';
-import { Lock, LayoutDashboard } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 

@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-    title: 'Organization detail',
+    title: 'Organization Detail',
     description: 'View of legal entity registration & impact history.',
 };
 

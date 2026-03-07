@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '../../../../../components/ui/button';
 
 export const metadata = {
-  title: 'Review proposal',
+  title: 'Review Proposal',
   description: 'Technical & legal vetting of project proposals before platform launch.',
 };
 

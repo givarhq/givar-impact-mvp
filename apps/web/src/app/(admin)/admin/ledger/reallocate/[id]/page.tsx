@@ -4,7 +4,7 @@ import { ApiService } from '../../../../../../services/api';
 import { ReallocateFundsClient } from '../../../../../../components/features/admin/reallocate-funds-client';
 
 export const metadata = {
-    title: 'Reallocate capital',
+    title: 'Reallocate Capital',
     description: 'Manual redistribution of orphaned funds to active causes.',
 };
 

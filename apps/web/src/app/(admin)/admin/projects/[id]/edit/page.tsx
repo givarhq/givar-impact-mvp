@@ -12,7 +12,7 @@ import { ProjectVisibilityForm } from '../../../../../../components/features/adm
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 
 export const metadata = {
-  title: 'Edit project',
+  title: 'Edit Project',
   description: 'Manage project details, disbursements, & discovery visibility.',
 };
 

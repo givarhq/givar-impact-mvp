@@ -43,7 +43,7 @@ export default async function AdminUserDetailPage({
                 {user.accountLockedUntil && (
                     <div className="flex items-center gap-2 px-4 py-2 bg-destructive/10 text-destructive rounded-2xl border border-destructive/20 text-xs font-black  tracking-[0.2em] shadow-sm animate-pulse">
                         <ShieldAlert className="h-4 w-4" />
-                        Administrative Lock Active
+                        Lock Active
                     </div>
                 )}
             </div>

@@ -139,14 +139,16 @@ export const ProjectVisibilityForm = memo(function ProjectVisibilityForm({ proje
                         </p>
                     </div>
 
-                    <Button
-                        onClick={handleUpdate}
-                        disabled={isSaving}
-                        className="w-auto h-12 rounded-3xl font-bold  text-xs shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
-                    >
-                        {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />}
-                        Apply visibility settings
-                    </Button>
+                    <div className="flex justify-center">
+                        <Button
+                            onClick={handleUpdate}
+                            disabled={isSaving}
+                            className="w-auto h-12 rounded-3xl font-bold text-xs shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
+                        >
+                            {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />}
+                            Apply visibility settings
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </motion.div>
