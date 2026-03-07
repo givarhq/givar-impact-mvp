@@ -1,3 +1,4 @@
+import { cn } from '../../../lib/utils/cn';
 import { PublicLayout } from '../../../components/layout/public-layout';
 import { Skeleton } from '../../../components/ui/skeleton';
 
@@ -25,8 +26,14 @@ export default function PublicExploreLoading() {
 
                 {/* Discovery Grid Skeleton */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                        <div key={i} className="group flex flex-row sm:flex-col rounded-3xl bg-card border border-border/40 shadow-sm h-full overflow-hidden">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i, sIndex) => (
+                        <div
+                            key={i}
+                            className={cn(
+                                "group flex flex-row sm:flex-col rounded-3xl bg-card border border-border/40 shadow-sm h-full overflow-hidden",
+                                (sIndex + 1) % 4 === 0 && "hidden xl:block"
+                            )}
+                        >
                             {/* Visual Header Skeleton: Fixed width on mobile, full width on desktop */}
                             <Skeleton className="w-[110px] sm:w-full shrink-0 sm:aspect-video rounded-none border-r sm:border-r-0 sm:border-b border-border/40" />
 

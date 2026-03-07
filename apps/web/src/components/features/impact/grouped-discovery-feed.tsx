@@ -8,6 +8,7 @@ import { Button } from '../../ui/button';
 import { ArrowRight, Inbox } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../../lib/utils/cn';
 
 interface CategoryGroup {
     category: {
@@ -84,14 +85,17 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
 
                             {/* Project Grid - Updated to 4 cols on XL */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-w-0">
-                                {group.projects.map((project) => (
+                                {group.projects.map((project, pIndex) => (
                                     <motion.div
                                         key={project.id}
                                         layout
                                         initial={{ opacity: 0, scale: 0.98 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ duration: 0.2 }}
-                                        className="min-w-0 flex-1"
+                                        className={cn(
+                                            "min-w-0 flex-1",
+                                            pIndex === 3 && "hidden xl:block"
+                                        )}
                                     >
                                         <ProjectCard
                                             project={project}
