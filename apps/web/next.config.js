@@ -47,19 +47,36 @@ const nextConfig = {
     },
 };
 
-// Logic: Wrap config with PWA first, then Sentry, ensuring both handlers are active
+// Logic: Wrap config with PWA first, then Sentry, using unified v8+ configuration syntax
 module.exports = withSentryConfig(
     withPWA(nextConfig),
     {
-        silent: true,
         org: "givar",
         project: "givar-web",
-    },
-    {
+
+        // Only print logs for uploading source maps in CI
+        silent: !process.env.CI,
+
+        // Upload a larger set of source maps for prettier stack traces (increases build time)
         widenClientFileUpload: true,
+
+        // Transpiles SDK to be compatible with IE11 (increases bundle size)
         transpileClientSDK: true,
+
+        // Hides source maps from generated client bundles
         hideSourceMaps: true,
-        disableLogger: true,
-        automaticVercelMonitors: true,
+
+        // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
+        tunnelRoute: "/monitoring",
+
+        webpack: {
+            // Enables automatic instrumentation of Vercel Cron Monitors.
+            automaticVercelMonitors: true,
+
+            // Tree-shaking options for reducing bundle size
+            treeshake: {
+                removeDebugLogging: true,
+            },
+        },
     }
 );
