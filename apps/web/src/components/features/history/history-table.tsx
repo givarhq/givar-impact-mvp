@@ -40,6 +40,7 @@ const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> 
     PENDING: { icon: Clock, text: 'text-amber-500' },
     FAILED: { icon: XCircle, text: 'text-destructive' },
     REVERSED: { icon: XCircle, text: 'text-muted-foreground' },
+    SUSPENSE: { icon: Clock, text: 'text-amber-500' },
 };
 
 export const HistoryTable = memo(function HistoryTable({
@@ -75,41 +76,29 @@ export const HistoryTable = memo(function HistoryTable({
     };
 
     const getPaymentContext = (tx: Transaction) => {
-        // 1. Direct Donations (Debit via Paystack)
         if (tx.type === 'DEBIT' && tx.reference.startsWith('DON-')) {
             return { label: 'Givar Wallet', method: 'Wallet Balance' };
         }
         if (tx.type === 'DEBIT' && !tx.reference.startsWith('DON-')) {
             return { label: 'Direct Payment', method: `Paystack • ${tx.metadata?.channel || 'Card'}` };
         }
-
-        // 2. Wallet Funding (Credit via Paystack)
         if (tx.type === 'CREDIT' && tx.metadata?.channel) {
             const method = tx.metadata.channel.charAt(0).toUpperCase() + tx.metadata.channel.slice(1).replace('_', ' ');
             return { label: 'Payment Gateway', method: `Paystack • ${method}` };
         }
-
-        // 3. System Credits (Refunds, etc)
         if (tx.type === 'CREDIT') {
             return { label: 'Source', method: 'System Transfer' };
         }
-
-        // Fallback
         return { label: 'Payment Method', method: 'Wallet Balance' };
     };
 
-    // Financial Breakdown Helper
     const getFinancialBreakdown = (tx: any) => {
         if (!tx.financials) return null;
-
         const base = BigInt(tx.financials.baseAmount);
         const fee = BigInt(tx.financials.feeAmount);
         const tip = BigInt(tx.financials.tipAmount);
         const total = BigInt(tx.amount);
-
-        // Safety check to ensure math aligns
         if (base + fee + tip !== total) return null;
-
         return {
             base: base.toString(),
             fee: fee.toString(),
@@ -151,6 +140,7 @@ export const HistoryTable = memo(function HistoryTable({
                         {transactions.map((tx, index) => {
                             const typeStyle = typeStyles[tx.type];
                             const statusStyle = statusStyles[tx.status];
+                            const displayCategory = tx.category ? tx.category.replace(/_/g, ' ') : 'SYSTEM ENTRY';
 
                             return (
                                 <motion.tr
@@ -176,14 +166,20 @@ export const HistoryTable = memo(function HistoryTable({
                                                     </p>
                                                 </div>
 
-                                                <div className="md:hidden flex items-center gap-2 mt-1 text-xs font-bold text-muted-foreground tracking-tight">
-                                                    <span className="flex items-center gap-1 shrink-0">
-                                                        <Calendar className="h-3 w-3" /> {formatDate(tx.createdAt).split(',')[0]}
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0">
+                                                        {displayCategory}
                                                     </span>
-                                                    <span className="h-1 w-1 rounded-full bg-border shrink-0" />
-                                                    <span className={cn("flex items-center gap-1 shrink-0", statusStyle.text)}>
-                                                        <statusStyle.icon className="h-3 w-3" /> {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
-                                                    </span>
+                                                    <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight">
+                                                        <span className="h-1 w-1 rounded-full bg-border shrink-0" />
+                                                        <span className="flex items-center gap-1 shrink-0">
+                                                            <Calendar className="h-3 w-3" /> {formatDate(tx.createdAt).split(',')[0]}
+                                                        </span>
+                                                        <span className="h-1 w-1 rounded-full bg-border shrink-0" />
+                                                        <span className={cn("flex items-center gap-1 shrink-0", statusStyle.text)}>
+                                                            <statusStyle.icon className="h-3 w-3" /> {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -297,6 +293,9 @@ export const HistoryTable = memo(function HistoryTable({
                                             <p className="text-sm text-slate-500 pt-2">
                                                 Method: {getPaymentContext(selectedTx).method}
                                             </p>
+                                            <p className="text-sm text-slate-500 pt-1">
+                                                Category: {selectedTx.category?.replace(/_/g, ' ') || 'SYSTEM'}
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 mb-10">
@@ -397,7 +396,13 @@ export const HistoryTable = memo(function HistoryTable({
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-3 min-w-0">
+                                <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0 col-span-2">
+                                    <span className="text-xs font-bold text-muted-foreground block mb-1">Financial Category</span>
+                                    <div className="flex items-center gap-2 font-bold text-sm truncate">
+                                        <span className="truncate">{selectedTx.category?.replace(/_/g, ' ') || 'SYSTEM ENTRY'}</span>
+                                    </div>
+                                </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
                                     <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">Record Status</span>
                                     <div className={cn("flex items-center gap-2 font-bold text-xs md:text-xs truncate", statusStyles[selectedTx.status].text)}>

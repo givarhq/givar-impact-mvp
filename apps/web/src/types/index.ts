@@ -7,7 +7,9 @@ export enum Currency {
 }
 
 export type TxType = 'DEBIT' | 'CREDIT';
-export type TxStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
+export type TxStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED' | 'SUSPENSE';
+export type TxCategory = 'FUNDING' | 'DONATION' | 'TRANSACTION_FEE' | 'VOLUNTARY_TIP' | 'DISBURSEMENT' | 'REFUND' | 'INTERNAL_TRANSFER' | 'WITHDRAWAL' | 'ADJUSTMENT';
+
 export type VerificationStatus = 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 export type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'FUNDED' | 'COMPLETED' | 'SUSPENDED';
 
@@ -81,13 +83,13 @@ export interface Transaction {
   currency: string;
   type: TxType;
   status: TxStatus;
+  category: TxCategory;
   reference: string;
   description: string;
   metadata?: {
     channel?: string;
     card_type?: string;
-    bank?: string;
-    [key: string]: any;
+    bank?: string;[key: string]: any;
   };
   createdAt: string;
   isDonation: boolean;
@@ -244,6 +246,8 @@ export interface ImpactFeedProps {
 export interface ProjectCardProps {
   project: Project;
   onDonate: (project: Project) => void;
+  onShare: (project: Project) => void;
+  isPublic?: boolean;
 }
 
 export interface WalletCardProps {
