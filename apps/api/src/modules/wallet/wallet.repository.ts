@@ -6,6 +6,7 @@ import {
 import {
   Currency,
   Prisma,
+  TxCategory,
   TxStatus,
   TxType,
 } from '@givar/database';
@@ -73,6 +74,7 @@ export class WalletRepository {
       reference: string;
       description?: string;
       status?: TxStatus;
+      category?: TxCategory;
       metadata?: Prisma.InputJsonValue;
     },
     externalTx?: Prisma.TransactionClient,
@@ -107,13 +109,14 @@ export class WalletRepository {
       reference: string;
       description?: string;
       status?: TxStatus;
+      category?: TxCategory;
       metadata?: Prisma.InputJsonValue;
     },
   ): Promise<{
     transaction: Prisma.WalletTransactionGetPayload<{}>;
     newBalance: bigint;
   }> {
-    const { userId, amount, currency, type, reference, description, status, metadata } = params;
+    const { userId, amount, currency, type, reference, description, status, category, metadata } = params;
 
     if (amount <= 0n) {
       throw new BadRequestException('Transaction amount must be positive');
@@ -152,6 +155,7 @@ export class WalletRepository {
           currency,
           type,
           status: status || TxStatus.COMPLETED,
+          category: category || undefined,
           reference,
           description,
           metadata: metadata || Prisma.JsonNull,
