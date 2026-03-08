@@ -856,6 +856,7 @@ export class AdminService {
               currency: existing.currency,
               type: TxType.CREDIT,
               status: TxStatus.SUSPENSE,
+              category: TxCategory.INTERNAL_TRANSFER,
               reference: `SURPLUS-${projectId.slice(0, 8)}-${Date.now()}`,
               description: `Surplus from goal reduction: ${existing.title}`,
               metadata: { originalProjectId: projectId, reason: 'GOAL_REDUCTION_OVERAGE' }
@@ -1476,6 +1477,7 @@ export class AdminService {
                 currency: tx.currency,
                 type: TxType.DEBIT,
                 status: TxStatus.COMPLETED,
+                category: TxCategory.DONATION,
                 reference: splitRef,
                 description: `Impact Split for Project: ${split.projectId}`,
                 metadata: {
@@ -2531,11 +2533,12 @@ export class AdminService {
       Timestamp: tx.createdAt.toISOString(),
       Reference: tx.reference,
       Type: tx.type,
+      Financial_Category: tx.category,
       Amount: (Number(tx.amount) / 100).toFixed(2),
       Currency: tx.currency,
       Status: tx.status,
       Donor: tx.wallet.user.email,
-      Category: tx.donation?.project?.category?.name || 'N/A',
+      Project_Category: tx.donation?.project?.category?.name || 'N/A',
       Cause: tx.donation?.project?.title || 'System Top-up',
       Description: tx.description
     }));

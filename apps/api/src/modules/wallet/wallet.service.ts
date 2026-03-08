@@ -12,7 +12,7 @@ import { WalletRepository } from './wallet.repository';
 import axios from 'axios';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../common/prisma.service';
-import { Prisma, Currency, TxType, TxStatus, AuditAction } from '@givar/database';
+import { Prisma, Currency, TxType, TxStatus, AuditAction, TxCategory } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
 import { json2csv } from 'json-2-csv';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
@@ -221,6 +221,7 @@ export class WalletService {
         type: TxType.CREDIT,
         reference,
         status: TxStatus.COMPLETED,
+        category: TxCategory.FUNDING,
         description: 'Wallet funding via Paystack',
         metadata: { channel: data.channel }
       });
@@ -336,7 +337,7 @@ export class WalletService {
 
     const enhanced = transactions.map((tx) => {
       const context = tx.donation;
-      
+
       return {
         ...tx,
         isDonation: !!context,
@@ -392,6 +393,7 @@ export class WalletService {
       ID: tx.id,
       Date: tx.createdAt.toISOString(),
       Type: tx.type,
+      Category: tx.category,
       Amount: (Number(tx.amount) / 100).toFixed(2),
       Currency: tx.currency,
       Status: tx.status,

@@ -539,23 +539,41 @@ export class DonationService {
         });
 
         if (systemNode?.wallets[0]) {
-          await tx.walletTransaction.create({
-            data: {
-              walletId: systemNode.wallets[0].id,
-              amount: feeAmount + tipAmount,
-              currency,
-              type: TxType.CREDIT,
-              status: TxStatus.COMPLETED,
-              reference: `REV-${reference}`,
-              description: `Platform revenue & tip via Gateway: ${project.title}`,
-              metadata: {
-                originalProjectId: project.id,
-                feeAmount: feeAmount.toString(),
-                tipAmount: tipAmount.toString(),
-                channel
+          const systemWalletId = systemNode.wallets[0].id;
+
+          if (feeAmount > 0n) {
+            await tx.walletTransaction.create({
+              data: {
+                walletId: systemWalletId,
+                amount: feeAmount,
+                currency,
+                type: TxType.CREDIT,
+                status: TxStatus.COMPLETED,
+                category: TxCategory.TRANSACTION_FEE,
+                reference: `FEE-${reference}`,
+                description: `Platform fee via Gateway: ${project.title}`,
+                metadata: { originalProjectId: project.id, channel }
               }
-            }
-          });
+            });
+            await tx.wallet.update({ where: { id: systemWalletId }, data: { balance: { increment: feeAmount } } });
+          }
+
+          if (tipAmount > 0n) {
+            await tx.walletTransaction.create({
+              data: {
+                walletId: systemWalletId,
+                amount: tipAmount,
+                currency,
+                type: TxType.CREDIT,
+                status: TxStatus.COMPLETED,
+                category: TxCategory.VOLUNTARY_TIP,
+                reference: `TIP-${reference}`,
+                description: `Platform tip via Gateway: ${project.title}`,
+                metadata: { originalProjectId: project.id, channel }
+              }
+            });
+            await tx.wallet.update({ where: { id: systemWalletId }, data: { balance: { increment: tipAmount } } });
+          }
         }
       }
 
@@ -571,6 +589,7 @@ export class DonationService {
           reference: `IN-${reference}`,
           description: `Direct Pay Inflow`,
           status: TxStatus.COMPLETED,
+          category: TxCategory.FUNDING,
           metadata: { channel }
         }, tx);
 
@@ -583,6 +602,7 @@ export class DonationService {
           reference,
           description: `Direct donation: ${project.title}`,
           status: TxStatus.COMPLETED,
+          category: TxCategory.DONATION,
           metadata: { channel }
         }, tx);
 
@@ -698,6 +718,7 @@ export class DonationService {
               currency,
               type: TxType.CREDIT,
               status: TxStatus.SUSPENSE,
+              category: TxCategory.INTERNAL_TRANSFER,
               reference: `SPILL-${reference}`,
               description: `Surplus from direct completion: ${project.title}`,
               metadata: {
@@ -711,24 +732,26 @@ export class DonationService {
         }
       }
 
-      await this.audit.log({
-        userId: userId !== 'GUEST' ? userId : undefined,
-        action: AuditAction.DIRECT_PAYMENT_FULFILLED,
-        entityId: processedDonationId,
-        entityType: userId !== 'GUEST' ? 'Donation' : 'GuestDonation',
-        metadata: {
-          projectId,
-          totalPaid: amount.toString(),
-          totalPaid_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          applied: amountToProject.toString(),
-          applied_naira: (Number(amountToProject) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          surplus: surplus.toString(),
-          surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          isGoalMet,
-          reference,
-          channel
+      await tx.auditLog.create({
+        data: {
+          userId: userId !== 'GUEST' ? userId : undefined,
+          action: AuditAction.DIRECT_PAYMENT_FULFILLED,
+          entityId: processedDonationId,
+          entityType: userId !== 'GUEST' ? 'Donation' : 'GuestDonation',
+          metadata: {
+            projectId,
+            totalPaid: amount.toString(),
+            totalPaid_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            applied: amountToProject.toString(),
+            applied_naira: (Number(amountToProject) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            surplus: surplus.toString(),
+            surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            isGoalMet,
+            reference,
+            channel
+          }
         }
-      }, tx);
+      });
 
       return {
         status: 'processed',
@@ -800,6 +823,7 @@ export class DonationService {
           currency,
           type: TxType.CREDIT,
           status: TxStatus.COMPLETED,
+          category: TxCategory.FUNDING,
           reference: `${reference}-CREDIT`,
           description: `Direct Donation Charge`,
         },
@@ -812,6 +836,7 @@ export class DonationService {
           currency,
           type: TxType.DEBIT,
           status: TxStatus.COMPLETED,
+          category: TxCategory.DONATION,
           reference,
           description: `Direct donation to project ${projectId}`,
         },
@@ -847,21 +872,23 @@ export class DonationService {
         },
       });
 
-      await this.audit.log({
-        userId,
-        action: AuditAction.DIRECT_PAYMENT_FULFILLED,
-        entityId: donation.id,
-        entityType: 'Donation',
-        metadata: {
-          projectId,
-          amount: amount.toString(),
-          amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          currency,
-          reference,
-          method: 'DIRECT_WEBHOOK',
-          isGoalMet: isNowFunded
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: AuditAction.DIRECT_PAYMENT_FULFILLED,
+          entityId: donation.id,
+          entityType: 'Donation',
+          metadata: {
+            projectId,
+            amount: amount.toString(),
+            amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            currency,
+            reference,
+            method: 'DIRECT_WEBHOOK',
+            isGoalMet: isNowFunded
+          }
         }
-      }, tx);
+      });
 
       return {
         donationId: donation.id,
@@ -1204,6 +1231,7 @@ export class DonationService {
             currency,
             type: TxType.CREDIT,
             status: TxStatus.SUSPENSE,
+            category: TxCategory.INTERNAL_TRANSFER,
             reference,
             description: `SUSPENSE: Donation for closed project (${projectTitle || 'Unknown'})`,
             metadata: { originalProjectId: projectId, reason: 'PROJECT_CLOSED' }
@@ -1259,19 +1287,21 @@ export class DonationService {
         });
       }
 
-      await this.audit.log({
-        userId: userId !== 'GUEST' ? userId : undefined,
-        action: AuditAction.FUNDS_MOVED_TO_SUSPENSE,
-        entityId: resultId,
-        entityType: resultType,
-        metadata: {
-          reference,
-          amount: amount.toString(),
-          amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          projectId,
-          guestEmail: userId === 'GUEST' ? guestEmail : undefined
+      await tx.auditLog.create({
+        data: {
+          userId: userId !== 'GUEST' ? userId : undefined,
+          action: AuditAction.FUNDS_MOVED_TO_SUSPENSE,
+          entityId: resultId,
+          entityType: resultType,
+          metadata: {
+            reference,
+            amount: amount.toString(),
+            amount_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            projectId,
+            guestEmail: userId === 'GUEST' ? guestEmail : undefined
+          }
         }
-      }, tx);
+      });
 
       return { status: 'moved_to_suspense', reference };
     }).then(async (result) => {
