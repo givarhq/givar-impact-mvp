@@ -30,6 +30,20 @@ enum TxStatus {
   SUSPENSE
 }
 
+
+// Explicit Financial Categories
+enum TxCategory {
+  FUNDING           // Wallet Top-up
+  DONATION          // Money going to a project
+  TRANSACTION_FEE   // Mandatory platform fee
+  VOLUNTARY_TIP     // Optional donor tip
+  DISBURSEMENT      // Payout to vendor
+  REFUND            // Returned to donor
+  INTERNAL_TRANSFER // Spillover/Suspense movements
+  WITHDRAWAL        // User taking money out
+  ADJUSTMENT        // Admin correction
+}
+
 enum UserRole {
   USER
   ADMIN
@@ -277,6 +291,7 @@ model WalletTransaction {
   
   type            TxType
   status          TxStatus  @default(PENDING)
+  category        TxCategory @default(INTERNAL_TRANSFER)
   
   reference       String    @unique
   description     String?
@@ -291,6 +306,7 @@ model WalletTransaction {
 
   @@index([walletId])
   @@index([reference])
+  @@index([category])
   @@map("wallet_transactions")
 }
 

@@ -6,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Currency, TxStatus, TxType, AuditAction, ProjectStatus, UserRole, Prisma, NotificationType } from '@givar/database';
+import { Currency, TxStatus, TxType, AuditAction, ProjectStatus, UserRole, Prisma, NotificationType, TxCategory } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
 import { WalletRepository } from '../wallet/wallet.repository';
 import {
@@ -106,7 +106,6 @@ export class DonationService {
       throw new BadRequestException('Amount exceeds maximum allowed per donation');
     }
 
-    // Initial check outside transaction for quick rejection
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
       select: {
@@ -139,7 +138,6 @@ export class DonationService {
     const totalCharge = baseAmount + feeAmountMinor + tipAmount;
 
     const result = await this.prisma.$transaction(async (tx) => {
-      // 1. Transaction-level Re-read: Get fresh state to prevent race conditions
       const txProject = await tx.project.findUnique({
         where: { id: dto.projectId },
       });
@@ -148,10 +146,7 @@ export class DonationService {
         throw new BadRequestException('Project state changed during processing');
       }
 
-      // 2. Dynamic Cap Calculation: Handle already-funded guard inside transaction
       const currentRemaining = txProject.targetAmount - txProject.raisedAmount;
-
-      // If project was funded mid-flight, actualRemaining becomes 0
       const actualRemaining = (txProject.status !== ProjectStatus.ACTIVE || currentRemaining <= 0n) ? 0n : currentRemaining;
 
       const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
@@ -159,7 +154,8 @@ export class DonationService {
 
       const reference = `DON-${crypto.randomUUID()}`;
 
-      // 3. Process full debit from user wallet (Base + Fee + Tip)
+      // 1. Process full debit from user wallet (Base + Fee + Tip)
+      // Categorized as DONATION (System considers the whole outflow a donation event)
       const { transaction: walletTx } = await this.walletRepo.processTransaction(
         {
           userId,
@@ -169,11 +165,12 @@ export class DonationService {
           reference,
           description: `Donation to: ${txProject.title}`,
           status: TxStatus.COMPLETED,
+          category: TxCategory.DONATION, // <--- Explicit Category
         },
         tx,
       );
 
-      // 3b. Platform Revenue Routing
+      // 2. Platform Revenue Routing (Split into Fee and Tip)
       if (feeAmountMinor > 0n || tipAmount > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -181,27 +178,57 @@ export class DonationService {
         });
 
         if (systemNode?.wallets[0]) {
-          await tx.walletTransaction.create({
-            data: {
-              walletId: systemNode.wallets[0].id,
-              amount: feeAmountMinor + tipAmount,
-              currency: dto.currency,
-              type: TxType.CREDIT,
-              status: TxStatus.COMPLETED,
-              reference: `REV-${reference}`,
-              description: `Platform revenue & tip from: ${txProject.title}`,
-              metadata: {
-                originalProjectId: txProject.id,
-                donorId: userId,
-                feeAmount: feeAmountMinor.toString(),
-                tipAmount: tipAmount.toString()
+          const systemWalletId = systemNode.wallets[0].id;
+
+          // A. The Mandatory Fee
+          if (feeAmountMinor > 0n) {
+            await tx.walletTransaction.create({
+              data: {
+                walletId: systemWalletId,
+                amount: feeAmountMinor,
+                currency: dto.currency,
+                type: TxType.CREDIT,
+                status: TxStatus.COMPLETED,
+                category: TxCategory.TRANSACTION_FEE, // <--- Explicit
+                reference: `FEE-${reference}`,
+                description: `Platform fee from: ${txProject.title}`,
+                metadata: { originalProjectId: txProject.id, donorId: userId }
               }
-            }
-          });
+            });
+
+            // Increment wallet balance for fee
+            await tx.wallet.update({
+              where: { id: systemWalletId },
+              data: { balance: { increment: feeAmountMinor } }
+            });
+          }
+
+          // B. The Voluntary Tip
+          if (tipAmount > 0n) {
+            await tx.walletTransaction.create({
+              data: {
+                walletId: systemWalletId,
+                amount: tipAmount,
+                currency: dto.currency,
+                type: TxType.CREDIT,
+                status: TxStatus.COMPLETED,
+                category: TxCategory.VOLUNTARY_TIP, // <--- Explicit
+                reference: `TIP-${reference}`,
+                description: `Donor tip from: ${txProject.title}`,
+                metadata: { originalProjectId: txProject.id, donorId: userId }
+              }
+            });
+
+            // Increment wallet balance for tip
+            await tx.wallet.update({
+              where: { id: systemWalletId },
+              data: { balance: { increment: tipAmount } }
+            });
+          }
         }
       }
 
-      // 4. Spillover Logic: Enforce system wallet existence (no silent spill loss)
+      // 3. Spillover Logic
       if (surplus > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -221,6 +248,7 @@ export class DonationService {
             currency: dto.currency,
             type: TxType.CREDIT,
             status: TxStatus.SUSPENSE,
+            category: TxCategory.INTERNAL_TRANSFER, // <--- Explicit
             reference: `SPILL-${reference}`,
             description: `Surplus capital from completion of: ${txProject.title}`,
             metadata: {
@@ -232,7 +260,7 @@ export class DonationService {
         });
       }
 
-      // 5. Create Donation record (Only if project accepted a portion of the capital)
+      // 4. Create Donation record
       let donation = null;
       let isGoalMet = false;
 
@@ -253,12 +281,9 @@ export class DonationService {
           },
         });
 
-        // 6. Double-entry symmetry: Update Project raised amount
         const updatedProject = await tx.project.update({
           where: { id: txProject.id },
-          data: {
-            raisedAmount: { increment: amountToProject }
-          },
+          data: { raisedAmount: { increment: amountToProject } },
         });
 
         isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
@@ -266,14 +291,10 @@ export class DonationService {
         if (isGoalMet) {
           await tx.project.update({
             where: { id: txProject.id },
-            data: {
-              status: ProjectStatus.FUNDED,
-              fundedAt: new Date(),
-            }
+            data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
           });
         }
 
-        // 7. Success Alerts: Notify owner of incoming capital and goal milestones
         await tx.notification.create({
           data: {
             userId: txProject.userId,
@@ -308,9 +329,7 @@ export class DonationService {
             totalPaid: totalCharge.toString(),
             totalPaid_naira: (Number(totalCharge) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             appliedToProject: amountToProject.toString(),
-            applied_naira: (Number(amountToProject) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             surplus: surplus.toString(),
-            surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             feeAmount: feeAmountMinor.toString(),
             tipAmount: tipAmount.toString(),
             currency: dto.currency,
@@ -321,7 +340,6 @@ export class DonationService {
         tx,
       );
 
-      // We return the txProject as it has the original context needed for notifications
       return { donation, isGoalMet, project: txProject, surplus, totalCharge };
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable

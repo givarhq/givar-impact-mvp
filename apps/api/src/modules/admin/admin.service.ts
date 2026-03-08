@@ -1,6 +1,6 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType, Currency, TxType, ProofStatus } from '@givar/database';
+import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType, Currency, TxType, ProofStatus, TxCategory } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { WalletService } from '../wallet/wallet.service';
@@ -2390,9 +2390,15 @@ export class AdminService {
 
     // 1. Core Capital Flow Aggregates
     const [inflowRes, donationRes, disbursementRes, revenueRes] = await Promise.all([
-      // Gross Inflow (Wallet Funding + Direct Pay)
+      // Gross Inflow: (Funding + Direct Donations + Tips + Fees)
+      // We look at all CREDITS that are NOT internal transfers/refunds/payouts
       this.prisma.walletTransaction.aggregate({
-        where: { type: TxType.CREDIT, createdAt: dateFilter, status: TxStatus.COMPLETED },
+        where: {
+          type: TxType.CREDIT,
+          createdAt: dateFilter,
+          status: TxStatus.COMPLETED,
+          category: { in: [TxCategory.FUNDING, TxCategory.DONATION, TxCategory.TRANSACTION_FEE, TxCategory.VOLUNTARY_TIP] }
+        },
         _sum: { amount: true },
         _count: true
       }),
@@ -2409,13 +2415,13 @@ export class AdminService {
         _count: true
       }),
       // Platform Revenue (Fees + Tips)
-      // Identified by reference pattern 'REV-'
+      // Query by Category, NOT string prefix
       this.prisma.walletTransaction.aggregate({
         where: {
           type: TxType.CREDIT,
           createdAt: dateFilter,
           status: TxStatus.COMPLETED,
-          reference: { startsWith: 'REV-' }
+          category: { in: [TxCategory.TRANSACTION_FEE, TxCategory.VOLUNTARY_TIP] }
         },
         _sum: { amount: true }
       })
@@ -2486,7 +2492,7 @@ export class AdminService {
         committedCapital: donationRes._sum.amount?.toString() || '0',
         deployedCapital: disbursementRes._sum.amount?.toString() || '0',
         platformRevenue: revenueRes._sum.amount?.toString() || '0',
-        transactionCount: inflowRes._count + donationRes._count + disbursementRes._count,
+        transactionCount: inflowRes._count, // Count is more accurate from ledger now
         efficiencyRatio: donationRes._sum.amount > 0n
           ? (Number(disbursementRes._sum.amount || 0n) / Number(donationRes._sum.amount)) * 100
           : 0
