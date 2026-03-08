@@ -33,6 +33,11 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<any>) => {
+    // Logic: Silently ignore network drops or aborted requests caused by hard browser navigations
+    if (axios.isCancel(error) || error.code === 'ECONNABORTED' || error.message === 'Network Error' || !error.response) {
+      return Promise.reject(error);
+    }
+
     const status = error.response?.status;
 
     let data = error.response?.data;

@@ -13,10 +13,18 @@ export default function ErrorBoundary({
     reset: () => void;
 }) {
     useEffect(() => {
-        // Logic: Actively pipe page-level rendering exceptions to Sentry
-        console.error("Page-level exception caught:", error);
-        Sentry.captureException(error);
+        // Logic: Ignore expected unmount/network drop errors from Sentry logging
+        if (error.message !== 'Connection closed.') {
+            console.error("Page-level exception caught:", error);
+            Sentry.captureException(error);
+        }
     }, [error]);
+
+    // Logic: If the connection closed because the browser is navigating away,
+    // do not flash the red error boundary UI.
+    if (error.message === 'Connection closed.') {
+        return null;
+    }
 
     return (
         <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
