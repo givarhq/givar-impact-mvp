@@ -3,7 +3,7 @@
 import React, { memo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, ShieldCheck, Wallet, Activity, Heart, ExternalLink, AlertTriangle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Wallet, Activity, Heart, ExternalLink } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card } from '../../ui/card';
 import { SmartCurrency } from '../../ui/smart-currency';
@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ProjectCard } from '../impact/project-card';
 import { ShareModal } from '../impact/share-modal';
 import { Project } from '../../../types';
-import { cn } from '../../../lib/utils/cn';
+import { cn } from 'apps/web/src/lib/utils/cn';
 
 interface PlatformStats {
     totalVolume: string;
@@ -52,19 +52,6 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
 
     return (
         <div className="w-full flex flex-col items-center">
-            {/* SENTRY TEST BUTTON: REMOVE AFTER VERIFICATION */}
-            <div className="fixed bottom-20 left-4 z-[100] md:bottom-10 md:left-10">
-                <Button
-                    variant="destructive"
-                    onClick={() => {
-                        throw new Error("Givar Sentry Forensic Test: Client Component Crash");
-                    }}
-                    className="rounded-full shadow-2xl h-12 px-6 gap-2 border-2 border-white dark:border-zinc-950 animate-bounce"
-                >
-                    <AlertTriangle className="h-4 w-4" />
-                    Test Sentry
-                </Button>
-            </div>
 
             {/* HERO SECTION */}
             <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 pt-32 md:pt-10 pb-12 md:pb-16">
@@ -450,6 +437,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </div>
             </section>
 
+            {/* Share Modal Integration */}
             <ShareModal
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
