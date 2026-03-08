@@ -46,27 +46,23 @@ export function ImpersonationBanner() {
     const handleExit = () => {
         setIsExiting(true);
 
-        const originalToken = getCookie('givar_admin_backup_token');
-        const originalUser = getCookie('givar_admin_backup_user');
+        // We obliterate the user session and force the admin to log back in 
+        // to regain their elevated privileges.
+        deleteCookie('givar_token');
+        deleteCookie('givar_user');
+        deleteCookie('givar_is_impersonating');
+        deleteCookie('givar_view_mode');
 
-        if (originalToken && originalUser) {
-            setCookie('givar_token', originalToken, { maxAge: 604800, path: '/' });
-            setCookie('givar_user', originalUser, { maxAge: 604800, path: '/' });
+        // Ensure any legacy backup cookies are destroyed
+        deleteCookie('givar_admin_backup_token');
+        deleteCookie('givar_admin_backup_user');
 
-            deleteCookie('givar_admin_backup_token');
-            deleteCookie('givar_admin_backup_user');
-            deleteCookie('givar_is_impersonating');
-            deleteCookie('givar_view_mode');
+        toast.success('Support session ended. Please re-authenticate as Admin.', { duration: 4000 });
 
-            toast.success('Support session ended. Admin role restored.');
-            window.location.href = '/admin/users';
-        } else {
-            deleteCookie('givar_token');
-            deleteCookie('givar_user');
-            deleteCookie('givar_is_impersonating');
-            window.location.href = '/login?reason=session_lost';
-        }
+        // Redirect to login to force a fresh, secure admin session
+        window.location.href = '/login?reason=impersonation_ended';
     };
+
 
     return (
         <div className="sticky top-0 left-0 right-0 z-[60] bg-zinc-950 text-white px-4 py-2 shadow-xl border-b border-amber-500/20 animate-in slide-in-from-top duration-300">
