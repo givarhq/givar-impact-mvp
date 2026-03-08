@@ -17,4 +17,12 @@ Sentry.init({
   // Enable sending user PII (Personally Identifiable Information)
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
   sendDefaultPii: true,
+
+  // Logic: Ignore harmless network drops caused by hard browser navigations
+  ignoreErrors: [
+    "Connection closed.",
+    "Request aborted",
+    "Network Error",
+    "ECONNABORTED"
+  ],
 });

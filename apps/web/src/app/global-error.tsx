@@ -13,8 +13,10 @@ export default function GlobalError({
     reset: () => void;
 }) {
     useEffect(() => {
-        // Logic: Immediately pipe uncaught root-level exceptions to Sentry
-        Sentry.captureException(error);
+        // Logic: Ignore expected unmount/network drop errors from Sentry logging
+        if (error.message !== 'Connection closed.') {
+            Sentry.captureException(error);
+        }
     }, [error]);
 
     return (
