@@ -169,8 +169,8 @@ export const HistoryTable = memo(function HistoryTable({
                                                     </p>
                                                 </div>
 
-                                                <div className="flex items-center gap-2 mt-1 min-w-0">
-                                                    <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 truncate max-w-[80px] md:max-w-none">
+                                                <div className="flex items-center gap-3 mt-2 min-w-0">
+                                                    <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 truncate max-w-[80px] md:max-w-none mr-1">
                                                         {displayCategory}
                                                     </span>
                                                     <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
@@ -179,8 +179,8 @@ export const HistoryTable = memo(function HistoryTable({
                                                             <Calendar className="h-3 w-3" /> {formatDate(tx.createdAt).split(',')[0]}
                                                         </span>
                                                         <span className="h-1 w-1 rounded-full bg-border shrink-0" />
-                                                        <span className={cn("flex items-center gap-1 shrink-0", statusStyle.text)}>
-                                                            <statusStyle.icon className="h-3 w-3" /> {tx.status.charAt(0) + tx.status.slice(1).toLowerCase()}
+                                                        <span className={cn("flex items-center shrink-0", statusStyle.text)}>
+                                                            <statusStyle.icon className="h-3 w-3" />
                                                         </span>
                                                     </div>
                                                 </div>
@@ -227,13 +227,13 @@ export const HistoryTable = memo(function HistoryTable({
                                 </DialogTitle>
                             </DialogHeader>
 
-                            <div className="text-center p-6 rounded-3xl bg-muted/30 border border-border/40 relative overflow-hidden shadow-inner">
+                            <div className="text-center pt-8 pb-6 px-6 rounded-3xl bg-muted/30 border border-border/40 relative overflow-hidden shadow-inner">
                                 <div className="absolute top-0 right-0 p-4 opacity-5">
                                     <FileText className="h-12 w-12" />
                                 </div>
 
-                                <div className="absolute top-4 left-4">
-                                    <Badge variant="outline" className="rounded-full px-2 py-0.5 border-border/60 bg-background/50 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                <div className="absolute top-3 left-4">
+                                    <Badge variant="outline" className="rounded-full px-2 py-0.5 border-border/60 bg-background/60 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                                         {selectedTx.category?.replace(/_/g, ' ') || 'SYSTEM'}
                                     </Badge>
                                 </div>
