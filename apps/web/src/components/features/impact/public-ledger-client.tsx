@@ -26,7 +26,6 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { Button } from '../../ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../../ui/tabs';
 import { Pagination } from '../history/pagination';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TxStatus, TxType } from '../../../types';
@@ -201,11 +200,6 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                                 </span>
                                                             </div>
                                                         </div>
-                                                        <div className="hidden md:block mt-1">
-                                                            <p className="text-[11px] text-muted-foreground font-medium truncate opacity-60">
-                                                                {entry.description}
-                                                            </p>
-                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -278,7 +272,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                             <div className="space-y-1.5 min-w-0">
                                 <span className="text-xs font-bold text-muted-foreground block px-1">Identification</span>
                                 <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">
-                                    <div className="pt-3 border-t border-border/40 flex justify-between items-center gap-4">
+                                    <div className="pt-3 border-border/40 flex justify-between items-center gap-4">
                                         <div className="min-w-0 flex-1">
                                             <span className="text-xs font-bold text-muted-foreground tracking-tighter block mb-0.5">Reference ID</span>
                                             <p className="font-mono text-xs truncate text-foreground/50">{selectedEntry.reference}</p>
