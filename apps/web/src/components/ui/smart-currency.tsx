@@ -22,7 +22,7 @@ const sizeStyles = {
   }
 }
 
-export const SmartCurrency = ({ amount, currency, visible, className, size = 'default' }: SmartCurrencyProps) => {
+export const SmartCurrency = ({ amount, currency, visible, className, size = 'default', hideKobo = false }: SmartCurrencyProps) => {
   if (!visible) {
     return <span className="text-muted-foreground/40 tracking-widest text-lg select-none">••••</span>;
   }
@@ -45,7 +45,7 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
     // Format to max 2 decimal places, remove trailing zeros (e.g. 100.00 -> 100)
     const formatted = new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
-      maximumFractionDigits: 2
+      maximumFractionDigits: hideKobo ? 0 : 2
     }).format(abbreviated);
 
     mainPart = formatted;
@@ -62,13 +62,13 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
   } else {
     // Condition 1: < 10M -> Full amount WITH kobo
     const formattedTotal = new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: hideKobo ? 0 : 2,
+      maximumFractionDigits: hideKobo ? 0 : 2
     }).format(numericAmount);
 
     const parts = formattedTotal.split('.');
     mainPart = parts[0];
-    secondaryPart = `.${parts[1]}`;
+    secondaryPart = parts[1] ? `.${parts[1]}` : '';
   }
 
   const styles = sizeStyles[size];

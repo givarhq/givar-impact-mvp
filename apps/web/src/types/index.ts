@@ -248,6 +248,7 @@ export interface ProjectCardProps {
   onDonate: (project: Project) => void;
   onShare: (project: Project) => void;
   isPublic?: boolean;
+  hideKobo?: boolean;
 }
 
 export interface WalletCardProps {
@@ -284,4 +285,5 @@ export interface SmartCurrencyProps {
   visible: boolean;
   className?: string;
   size?: 'small' | 'default' | 'large';
+  hideKobo?: boolean;
 }

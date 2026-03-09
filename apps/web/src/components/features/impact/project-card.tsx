@@ -5,19 +5,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { Project } from '../../../types';
+import { Project, ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
 import { motion } from 'framer-motion';
 
-interface ProjectCardProps {
-  project: Project & { categoryName?: string; donorCount?: number };
-  onDonate: (project: Project) => void;
-  onShare: (project: Project) => void;
-  isPublic?: boolean;
-}
-
-export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShare, isPublic = false }: ProjectCardProps) {
+export const ProjectCard = memo(function ProjectCard({
+  project,
+  onDonate,
+  onShare,
+  isPublic = false,
+  hideKobo = false // NEW PROP
+}: ProjectCardProps) {
   const raised = Number(project.raisedAmount || 0);
   const target = Number(project.targetAmount || 0);
   const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
@@ -87,11 +86,11 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
               <div className="flex justify-between items-end text-xs font-bold min-w-0">
                 <div className="flex items-baseline gap-1 truncate min-w-0">
                   <span className="text-foreground truncate">
-                    <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
+                    <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
                   </span>
                   <span className="text-muted-foreground text-[10px] font-medium shrink-0">of</span>
                   <span className="text-muted-foreground opacity-60 truncate font-medium">
-                    <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" />
+                    <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
                   </span>
                 </div>
               </div>
