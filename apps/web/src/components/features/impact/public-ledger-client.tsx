@@ -13,7 +13,10 @@ import {
     ExternalLink,
     Wallet,
     CreditCard,
-    Inbox
+    Inbox,
+    Clock,
+    XCircle,
+    ChevronRight,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -26,6 +29,7 @@ import { Pagination } from '../history/pagination';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TxStatus, TxType } from '../../../types';
 
 interface PublicLedgerClientProps {
     project?: any;
@@ -34,6 +38,20 @@ interface PublicLedgerClientProps {
         meta: { total: number; page: number; lastPage: number; context?: string };
     };
 }
+
+const typeStyles: Record<TxType, { icon: React.ElementType, bg: string, text: string, sign: string }> = {
+    DEBIT: { icon: ArrowUpRight, bg: 'bg-blue-500/10', text: 'text-blue-600', sign: '-' },
+    CREDIT: { icon: ArrowDownLeft, bg: 'bg-emerald-500/10', text: 'text-emerald-500', sign: '+' },
+};
+
+const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> = {
+    COMPLETED: { icon: CheckCircle2, text: 'text-emerald-500' },
+    PENDING: { icon: Clock, text: 'text-amber-500' },
+    FAILED: { icon: XCircle, text: 'text-destructive' },
+    REVERSED: { icon: XCircle, text: 'text-muted-foreground' },
+    SUSPENSE: { icon: Clock, text: 'text-amber-500' },
+};
+
 
 export const PublicLedgerClient = memo(function PublicLedgerClient({ project, initialData }: PublicLedgerClientProps) {
     const router = useRouter();
@@ -131,28 +149,30 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 <th className="px-6 py-4 font-bold text-xs text-muted-foreground text-left w-[200px]">Verification date</th>
                                 <th className="px-6 py-4 font-bold text-xs text-muted-foreground text-right">Value</th>
                                 <th className="px-6 py-4 font-bold text-xs text-muted-foreground text-center">Status</th>
-                                <th className="px-6 py-3 w-[100px]"></th>
+                                <th className="px-6 py-3 w-[24px]"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/40 block md:table-row-group">
                             <AnimatePresence mode="popLayout" initial={false}>
                                 {initialData.data.map((entry, index) => {
                                     const isInflow = entry.type === 'INFLOW';
+                                    const typeStyle = isInflow ? typeStyles.CREDIT : typeStyles.DEBIT;
+                                    const statusStyle = statusStyles['COMPLETED'];
+                                    const displayCategory = entry.type === 'INFLOW' ? 'CONTRIBUTION' : (entry.receiptKey ? 'VENDOR_PAYMENT' : 'DISBURSEMENT');
+
                                     return (
                                         <motion.tr
                                             key={entry.id}
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ duration: 0.2, delay: index * 0.02 }}
-                                            className="hover:bg-muted/30 transition-colors group block md:table-row w-full overflow-hidden"
+                                            className="md:cursor-pointer hover:bg-muted/30 transition-colors group block md:table-row w-full overflow-hidden"
+                                            onClick={() => { if (window.innerWidth >= 768) setSelectedEntry(entry); }}
                                         >
                                             <td className="block md:table-cell p-4 md:px-6 md:py-4 border-none w-full min-w-0">
                                                 <div className="flex items-center gap-3 w-full min-w-0">
-                                                    <div className={cn(
-                                                        "h-10 w-10 shrink-0 flex items-center justify-center rounded-3xl shadow-sm border border-border/10",
-                                                        isInflow ? "bg-emerald-500/10 text-emerald-600" : "bg-blue-500/10 text-blue-600"
-                                                    )}>
-                                                        {isInflow ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
+                                                    <div className={cn("h-10 w-10 shrink-0 flex items-center justify-center rounded-3xl shadow-sm border border-border/10", typeStyle.bg, typeStyle.text)}>
+                                                        <typeStyle.icon className="h-5 w-5" />
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
@@ -165,21 +185,23 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                                     <div className="px-1.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[9px] font-bold text-primary">You</div>
                                                                 )}
                                                             </div>
-                                                            <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm whitespace-nowrap", isInflow ? "text-emerald-600" : "text-blue-600")}>
-                                                                {isInflow ? '+' : '-'}{formatCurrency(entry.amount, entry.currency)}
+                                                            <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm whitespace-nowrap", typeStyle.text)}>
+                                                                {typeStyle.sign}{formatCurrency(entry.amount, entry.currency)}
                                                             </p>
                                                         </div>
 
-                                                        <div className="md:hidden flex items-center gap-2 mt-1 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
-                                                            <span className="flex items-center gap-1 shrink-0">
-                                                                <Calendar className="h-3 w-3" /> {formatDate(entry.createdAt).split(',')[0]}
+                                                        <div className="flex items-center gap-3 mt-2 min-w-0">
+                                                            <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 truncate max-w-[120px] md:max-w-none">
+                                                                {displayCategory.replace(/_/g, ' ')}
                                                             </span>
-                                                            <span className="h-1 w-1 rounded-full bg-border shrink-0" />
-                                                            <span className="text-primary truncate">
-                                                                {entry.description}
-                                                            </span>
+                                                            <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
+                                                                <span className="h-1 w-1 rounded-full bg-border shrink-0" />
+                                                                <span className="flex items-center gap-1 shrink-0">
+                                                                    <Calendar className="h-3 w-3" /> {formatDate(entry.createdAt).split(',')[0]}
+                                                                </span>
+                                                            </div>
                                                         </div>
-                                                        <div className="hidden md:block">
+                                                        <div className="hidden md:block mt-1">
                                                             <p className="text-[11px] text-muted-foreground font-medium truncate opacity-60">
                                                                 {entry.description}
                                                             </p>
@@ -202,23 +224,18 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                             <td className="px-6 py-4 text-muted-foreground hidden md:table-cell text-xs font-medium whitespace-nowrap">
                                                 {formatDate(entry.createdAt)}
                                             </td>
-                                            <td className={cn("px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell text-sm whitespace-nowrap", isInflow ? "text-emerald-600" : "text-blue-600")}>
-                                                {isInflow ? '+' : '-'}{formatCurrency(entry.amount, entry.currency)}
+                                            <td className={cn("px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell text-sm whitespace-nowrap", typeStyle.text)}>
+                                                {typeStyle.sign} {formatCurrency(entry.amount, entry.currency)}
                                             </td>
                                             <td className="px-6 py-4 hidden md:table-cell text-center">
                                                 <div className="flex justify-center">
-                                                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                                                    <statusStyle.icon className={cn("h-5 w-5", statusStyle.text)} />
                                                 </div>
                                             </td>
-                                            <td className="hidden md:table-cell px-6 py-4 text-right">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => setSelectedEntry(entry)}
-                                                    className="rounded-3xl h-8 text-xs font-bold px-4 transition-all active:scale-95"
-                                                >
-                                                    Details
-                                                </Button>
+                                            <td className="hidden md:table-cell px-6 py-4">
+                                                <div className="h-8 w-6 flex items-center justify-end">
+                                                    <ChevronRight className="h-4 w-4 text-muted-foreground opacity-20 group-hover:opacity-100 transition-opacity" />
+                                                </div>
                                             </td>
                                         </motion.tr>
                                     );
@@ -242,7 +259,15 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                             </DialogHeader>
 
                             <div className="text-center p-6 rounded-3xl bg-muted/30 border border-border/40 relative overflow-hidden shadow-inner min-w-0">
-                                <p className="text-xs text-muted-foreground font-bold mb-1.5">
+                                <div className="absolute top-0 right-0 p-4 opacity-5">
+                                    <FileText className="h-12 w-12" />
+                                </div>
+                                <div className="absolute top-3 left-4">
+                                    <span className="px-2 py-0.5 rounded-full bg-background/60 border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                                        {selectedEntry.type === 'INFLOW' ? 'CONTRIBUTION' : (selectedEntry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT')}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5 mt-2">
                                     {selectedEntry.type === 'INFLOW' ? 'Total contribution' : 'Verified payment'}
                                 </p>
                                 <div className="max-w-full overflow-hidden leading-none">
@@ -252,79 +277,50 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
 
                             <div className="space-y-1.5 min-w-0">
                                 <span className="text-xs font-bold text-muted-foreground block px-1">Identification</span>
-                                <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-4 min-w-0">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between gap-3 min-w-0">
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-xs font-bold text-muted-foreground block mb-0.5">Reference Id</p>
-                                                <p className="font-mono text-xs truncate text-foreground/50">{selectedEntry.reference}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => copyReference(selectedEntry.reference)}
-                                                className="h-8 w-8 flex items-center justify-center rounded-3xl hover:bg-muted text-muted-foreground hover:text-primary transition-colors border border-border/50 shrink-0 active:scale-90"
-                                                title="Copy"
-                                            >
-                                                <Copy className="h-3.5 w-3.5" />
-                                            </button>
+                                <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">
+                                    <div className="pt-3 border-t border-border/40 flex justify-between items-center gap-4">
+                                        <div className="min-w-0 flex-1">
+                                            <span className="text-xs font-bold text-muted-foreground tracking-tighter block mb-0.5">Reference ID</span>
+                                            <p className="font-mono text-xs truncate text-foreground/50">{selectedEntry.reference}</p>
                                         </div>
-                                    </div>
-
-                                    <div className="pt-3 border-t border-border/40 space-y-3 min-w-0">
-                                        <div className="flex justify-between items-start gap-4 min-w-0">
-                                            <div className="min-w-0">
-                                                <p className="text-xs font-bold text-muted-foreground mb-0.5">
-                                                    {selectedEntry.type === 'INFLOW' ? 'Contributor' : 'Payee'}
-                                                </p>
-                                                <p className="font-bold text-sm text-foreground truncate">{selectedEntry.actorName}</p>
-                                            </div>
-                                            <div className="text-right shrink-0">
-                                                <p className="text-xs font-bold text-muted-foreground mb-0.5">Verification date</p>
-                                                <p className="font-bold text-sm text-foreground">{formatDate(selectedEntry.createdAt).split(',')[0]}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1 min-w-0">
-                                            <p className="text-xs font-bold text-muted-foreground mb-0.5">Target project</p>
-                                            <div className="flex items-center justify-between gap-3 min-w-0">
-                                                {(project?.slug || selectedEntry?.projectSlug) ? (
-                                                    <Link
-                                                        href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`}
-                                                        className="font-bold text-sm text-foreground truncate leading-tight flex-1 hover:text-primary transition-colors"
-                                                        prefetch={false}
-                                                    >
-                                                        {selectedEntry.projectName}
-                                                    </Link>
-                                                ) : (
-                                                    <p className="font-bold text-sm text-foreground truncate leading-tight flex-1">
-                                                        {selectedEntry.projectName}
-                                                    </p>
-                                                )}
-                                                {(project?.slug || selectedEntry?.projectSlug) && (
-                                                    <Link href={`${pathname.startsWith('/dashboard') ? '/dashboard/impact' : '/explore'}/${project?.slug || selectedEntry.projectSlug}`} prefetch={false}>
-                                                        <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10 shadow-sm shrink-0 hover:bg-primary hover:text-white transition-all">
-                                                            <ExternalLink className="h-3.5 w-3.5" />
-                                                        </div>
-                                                    </Link>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <button
+                                            onClick={() => copyReference(selectedEntry.reference)}
+                                            className="h-8 w-8 flex items-center justify-center rounded-3xl hover:bg-muted text-muted-foreground hover:text-primary transition-colors border border-border/50 shrink-0 active:scale-90"
+                                            title="Copy"
+                                        >
+                                            <Copy className="h-3.5 w-3.5" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 min-w-0">
+                                <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0 col-span-2">
+                                    <span className="text-xs font-bold text-muted-foreground block mb-1">
+                                        {selectedEntry.type === 'INFLOW' ? 'Contributor' : 'Payee'}
+                                    </span>
+                                    <div className="flex items-center gap-2 font-bold text-sm truncate">
+                                        <span className="truncate">{selectedEntry.actorName}</span>
+                                    </div>
+                                </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
                                     <span className="text-xs font-bold text-muted-foreground block mb-1">Status</span>
                                     <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs truncate">
                                         <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                                        <span>Verified</span>
+                                        <span className="truncate">Verified</span>
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
                                     <span className="text-xs font-bold text-muted-foreground block mb-1">Method</span>
-                                    <div className="flex items-center gap-2 text-foreground font-bold text-xs truncate">
-                                        <Database className="h-3.5 w-3.5 text-primary shrink-0" />
-                                        <span className="truncate">{selectedEntry.type === 'INFLOW' ? 'Direct support' : 'Project payment'}</span>
+                                    <div className="flex items-center gap-2">
+                                        {selectedEntry.type === 'OUTFLOW' ? (
+                                            <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
+                                        ) : (
+                                            <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        )}
+                                        <p className="text-xs font-bold text-foreground truncate ">
+                                            {selectedEntry.type === 'INFLOW' ? 'Direct support' : 'Project payment'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -332,7 +328,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                             {selectedEntry.receiptKey && (
                                 <Button
                                     onClick={() => viewSecureReceipt(selectedEntry.receiptKey)}
-                                    className="w-auto mx-auto flex h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg active:scale-95 transition-all border-0 px-8"
+                                    className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg active:scale-95 transition-all border-0"
                                 >
                                     <FileText className="h-4 w-4" /> View proof of payment
                                 </Button>
