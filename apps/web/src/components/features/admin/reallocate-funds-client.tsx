@@ -18,7 +18,7 @@ import { ConfirmModal } from '../../ui/confirm-modal';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { cn } from '../../../lib/utils/cn';
 import { ApiService } from '../../../services/api';
-import { formatCurrency, formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
+import { formatCurrency } from '../../../lib/utils/format';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
@@ -27,6 +27,54 @@ interface ReallocateFundsClientProps {
     initialProjects: any[];
     categories: any[];
 }
+
+// Local helper to handle decimal (Kobo) input formatting
+const formatDecimalInput = (value: string): string => {
+    // 1. Remove invalid characters (keep digits and one dot)
+    let cleaned = value.replace(/[^0-9.]/g, '');
+
+    // 2. Prevent multiple dots
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+        cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+
+    // 3. Limit to 2 decimal places (kobo)
+    if (parts.length === 2 && parts[1].length > 2) {
+        cleaned = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+
+    return cleaned;
+};
+
+// Local helper to parse the input string into BigInt (Minor units)
+const parseToMinor = (value: string): bigint => {
+    if (!value) return 0n;
+    // Remove formatting, treat empty or dot-only as 0
+    const raw = value.replace(/,/g, '');
+    if (raw === '' || raw === '.') return 0n;
+
+    // Handle decimals
+    const parts = raw.split('.');
+    let major = parts[0] || '0';
+    let minor = parts.length > 1 ? parts[1] : '';
+
+    // Pad minor string to exactly 2 digits (e.g. '5' -> '50')
+    minor = minor.padEnd(2, '0').substring(0, 2);
+
+    return BigInt(major + minor);
+};
+
+// Local helper to format BigInt (minor) back to user-friendly string
+const formatFromMinor = (minorVal: bigint): string => {
+    if (minorVal === 0n) return '';
+    const num = Number(minorVal) / 100;
+    // We don't use Intl here because we want raw input format (e.g., '100.50') 
+    // to populate the input box, not fully comma-separated yet to make editing easier.
+    // However, for the display (non-input), we use toLocaleString.
+    return num.toString();
+};
+
 
 export const ReallocateFundsClient = memo(function ReallocateFundsClient({
     transaction,
@@ -38,7 +86,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
     // Store remaining gap data so we can validate inputs
-    const [selectedSplits, setSelectedSplits] = useState<Array<{ id: string; title: string; amount: string; maxAllowed: bigint }>>([]);
+    const [selectedSplits, setSelectedSplits] = useState<Array<{ id: string; title: string; amountInput: string; maxAllowed: bigint }>>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [isMobileLedgerOpen, setIsMobileLedgerOpen] = useState(false);
@@ -90,12 +138,12 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
             setSelectedSplits(prev => [...prev, {
                 id: project.id,
                 title: project.title,
-                amount: '',
+                amountInput: '',
                 maxAllowed
             }]);
 
             if (window.innerWidth < 1024) {
-                toast.success("Added to ledger", {
+                toast.success("Added to list", {
                     icon: <Plus className="h-4 w-4" />,
                     style: { borderRadius: '24px', fontWeight: 'bold', fontSize: '12px' }
                 });
@@ -104,9 +152,8 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
     };
 
     const updateSplitAmount = (id: string, value: string) => {
-        const formatted = formatNumberInput(value);
-        const rawString = parseFormattedNumber(formatted);
-        const rawMinor = rawString === '' ? 0n : BigInt(rawString) * 100n;
+        const formattedInput = formatDecimalInput(value);
+        const rawMinor = parseToMinor(formattedInput);
 
         setSelectedSplits(prev => prev.map(s => {
             if (s.id !== id) return s;
@@ -114,18 +161,17 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
             // UI Guard: Automatically cap the input if it exceeds the project's remaining need
             if (rawMinor > s.maxAllowed) {
                 toast.error(`Capped at project limit: ₦${(Number(s.maxAllowed) / 100).toLocaleString()}`);
-                // Convert the max minor units back to major units for the input field
-                const maxMajor = (Number(s.maxAllowed) / 100).toString();
-                return { ...s, amount: maxMajor };
+                // Convert the max minor units back to major units string
+                const maxMajorStr = formatFromMinor(s.maxAllowed);
+                return { ...s, amountInput: maxMajorStr };
             }
 
-            return { ...s, amount: rawString };
+            return { ...s, amountInput: formattedInput };
         }));
     };
 
     const currentTotalAllocatedMinor = selectedSplits.reduce((acc, curr) => {
-        const amountBase = Number(curr.amount || '0');
-        return acc + BigInt(Math.round(amountBase * 100));
+        return acc + parseToMinor(curr.amountInput);
     }, 0n);
 
     const remainingMinor = totalOrphanedMinor - currentTotalAllocatedMinor;
@@ -133,20 +179,20 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
     const handleCommit = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading('Executing allocation...');
+        const toastId = toast.loading('Confirming transfer...');
         try {
             await ApiService.admin.resolveSuspense(transaction.id, {
                 action: 'ALLOCATE' as any,
                 allocations: selectedSplits.map(s => ({
                     projectId: s.id,
-                    amount: (BigInt(parseFormattedNumber(s.amount)) * 100n).toString()
+                    amount: parseToMinor(s.amountInput).toString()
                 }))
             });
-            toast.success("Reconciliation complete", { id: toastId });
+            toast.success("Transfer complete", { id: toastId });
             router.push('/admin/ledger');
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Allocation failed", { id: toastId });
+            toast.error(e.response?.data?.message || "Transfer failed", { id: toastId });
         } finally {
             setIsProcessing(false);
             setShowConfirm(false);
@@ -162,14 +208,14 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                 </div>
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-[11px] font-black tracking-widest text-foreground flex items-center gap-2 ">
-                            <Calculator className="h-3.5 w-3.5 text-primary" /> Reconciliation Ledger
+                        <h3 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
+                            <Calculator className="h-4 w-4 text-primary" /> Transfer list
                         </h3>
                         <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="rounded-3xl bg-background font-bold text-[10px] shadow-sm">{selectedSplits.length} Target Splits</Badge>
+                            <Badge variant="outline" className="rounded-3xl bg-background font-bold text-xs shadow-sm">{selectedSplits.length} selected</Badge>
                         </div>
                     </div>
-                    <p className="text-[11px] text-muted-foreground font-medium">Assign orphaned capital to selected projects.</p>
+                    <p className="text-xs text-muted-foreground font-medium">Assign these funds to specific causes.</p>
                 </div>
             </div>
 
@@ -183,14 +229,14 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                             <div className="h-12 w-12 bg-background rounded-2xl bg-card flex items-center justify-center mx-auto shadow-sm border border-border/50">
                                 <Plus className="h-5 w-5 text-muted-foreground/40" />
                             </div>
-                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest max-w-[180px] mx-auto ">
-                                Tap projects to populate the split ledger.
+                            <p className="text-xs font-medium text-muted-foreground max-w-[180px] mx-auto">
+                                Tap projects to add them to this transfer list.
                             </p>
                         </motion.div>
                     ) : (
                         <div className="space-y-3">
                             {selectedSplits.map(s => {
-                                const currentInputMinor = BigInt(Math.round(Number(s.amount || '0') * 100));
+                                const currentInputMinor = parseToMinor(s.amountInput);
                                 const isAtMax = currentInputMinor > 0n && currentInputMinor >= s.maxAllowed;
 
                                 return (
@@ -207,32 +253,33 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                     >
                                         <div className="flex justify-between items-start gap-2">
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-[9px] font-black text-primary tracking-widest  mb-0.5">Target Cause</p>
-                                                <p className="text-xs font-bold text-foreground truncate">{s.title}</p>
+                                                <p className="text-[10px] font-bold text-primary tracking-widest uppercase mb-0.5">Target cause</p>
+                                                <p className="text-sm font-bold text-foreground truncate">{s.title}</p>
                                             </div>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); toggleProject({ id: s.id }); }}
-                                                className="h-7 w-7 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all bg-background border border-border/50 shadow-sm"
+                                                className="h-8 w-8 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all bg-background border border-border/50 shadow-sm"
                                             >
-                                                <X className="h-3.5 w-3.5" />
+                                                <X className="h-4 w-4" />
                                             </button>
                                         </div>
                                         <div className="relative group">
-                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-foreground">₦</span>
+                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-foreground">₦</span>
                                             <Input
+                                                type="text"
                                                 placeholder="0.00"
                                                 className={cn(
-                                                    "h-11 pl-8 rounded-2xl border-border/60 text-sm font-bold tabular-nums shadow-inner transition-all focus:bg-white",
+                                                    "h-12 pl-8 rounded-2xl border-border/60 text-base font-bold tabular-nums shadow-inner transition-all focus:bg-white",
                                                     isAtMax ? "bg-amber-100/50" : "bg-background"
                                                 )}
-                                                value={formatNumberInput(s.amount)}
+                                                value={s.amountInput}
                                                 onChange={(e) => updateSplitAmount(s.id, e.target.value)}
                                             />
                                         </div>
-                                        <div className="flex justify-between items-center text-[9px] font-bold">
-                                            <span className="text-muted-foreground tracking-widest">Capacity Limit:</span>
-                                            <span className={isAtMax ? "text-amber-600" : "text-muted-foreground"}>
-                                                ₦{(Number(s.maxAllowed) / 100).toLocaleString()}
+                                        <div className="flex justify-between items-center text-xs font-medium">
+                                            <span className="text-muted-foreground">Remaining need:</span>
+                                            <span className={isAtMax ? "text-amber-600 font-bold" : "text-muted-foreground"}>
+                                                ₦{(Number(s.maxAllowed) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </span>
                                         </div>
                                     </motion.div>
@@ -245,25 +292,25 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
             <div className="p-6 pb-[max(2rem,env(safe-area-inset-bottom))] bg-card border-t border-border/40 space-y-4 shrink-0 mt-auto">
                 <div className="flex justify-between items-center px-1">
-                    <span className="text-[11px] font-bold tracking-widest text-muted-foreground ">Original Allocation</span>
+                    <span className="text-xs font-medium text-muted-foreground">Initial amount</span>
                     <span className="font-bold text-foreground tabular-nums text-sm">
                         <SmartCurrency amount={transaction.amount} currency={transaction.currency} visible={true} size="small" />
                     </span>
                 </div>
                 <div className="p-5 rounded-3xl bg-zinc-950 text-white shadow-xl relative overflow-hidden">
                     <div className="relative z-10 flex justify-between items-center">
-                        <span className="text-[10px] font-black tracking-[0.2em] text-zinc-500 ">Ledger Balance</span>
+                        <span className="text-xs font-medium text-zinc-400">Remaining to assign</span>
                         <span className={cn(
-                            "text-xl font-black tabular-nums tracking-tight transition-colors duration-300",
+                            "text-xl font-bold tabular-nums tracking-tight transition-colors duration-300",
                             remainingMinor === 0n ? "text-emerald-500" : remainingMinor < 0n ? "text-destructive" : "text-amber-500"
                         )}>
-                            {remainingMinor < 0n ? '-' : ''}₦{(Math.abs(Number(remainingMinor)) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {remainingMinor < 0n ? '-' : ''}₦{(Math.abs(Number(remainingMinor)) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                     </div>
                     {remainingMinor !== 0n && selectedSplits.length > 0 && (
-                        <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-zinc-400 animate-pulse">
+                        <div className="mt-3 flex items-center gap-2 text-[10px] font-medium text-zinc-400 animate-pulse">
                             <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                            <span>Entry must balance to zero for commitment</span>
+                            <span>Assign exactly the total amount to continue</span>
                         </div>
                     )}
                     <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -271,12 +318,12 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     </div>
                 </div>
                 <Button
-                    className="w-full h-14 rounded-3xl text-xs font-black shadow-lg shadow-primary/20 gap-2 tracking-widest bg-primary hover:bg-primary/90 text-white border-0 transition-all active:scale-[0.98] disabled:opacity-50"
+                    className="w-full h-12 rounded-3xl text-sm font-bold shadow-lg shadow-primary/20 gap-2 bg-primary hover:bg-primary/90 text-white border-0 transition-all active:scale-[0.98] disabled:opacity-50"
                     disabled={!isBalanced || selectedSplits.length === 0 || isProcessing}
                     onClick={() => setShowConfirm(true)}
                 >
                     {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                    Execute Transfer
+                    Confirm transfer
                 </Button>
             </div>
         </div>
@@ -289,11 +336,11 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     <div className="space-y-2">
                         <button
                             onClick={() => router.back()}
-                            className="group flex items-center text-[10px] font-black tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-2 "
+                            className="group flex items-center text-xs font-bold text-muted-foreground hover:text-foreground transition-colors mb-2"
                         >
-                            <ArrowLeft className="h-3 w-3 mr-2 transition-transform group-hover:-translate-x-1" /> Back To Ledger
+                            <ArrowLeft className="h-3.5 w-3.5 mr-1.5 transition-transform group-hover:-translate-x-1" /> Back to ledger
                         </button>
-                        <h1 className="text-lg font-bold tracking-tight text-foreground">Reallocate Orphaned Funds</h1>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Assign unallocated funds</h1>
                         <div className="flex items-center gap-4">
                             <Badge variant="outline" className="font-mono text-[10px] py-1 px-3 rounded-3xl border-border/50 bg-muted/20 shadow-inner">
                                 Ref: {transaction.reference}
@@ -306,8 +353,8 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
     shadow-sm w-full md:w-auto relative">
 
                         <div className="space-y-1 relative z-10">
-                            <p className="text-[10px] font-black text-primary tracking-widest">
-                                Transaction Value
+                            <p className="text-[10px] font-bold text-primary tracking-widest uppercase">
+                                Amount to assign
                             </p>
                             <SmartCurrency
                                 amount={transaction.amount}
@@ -321,12 +368,12 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         <div className="hidden md:block h-10 w-px bg-primary/20 relative z-10" />
 
                         <div className="space-y-1 relative z-10 md:text-right">
-                            <p className="text-[10px] font-black text-muted-foreground tracking-widest">
-                                Current State
+                            <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
+                                Current status
                             </p>
-                            <div className="flex items-center md:justify-end gap-2 text-amber-600 font-black text-[11px] tracking-widest italic">
+                            <div className="flex items-center md:justify-end gap-2 text-amber-600 font-bold text-xs italic">
                                 <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                                Unresolved
+                                Unassigned
                             </div>
                         </div>
 
@@ -339,7 +386,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         <div className="relative w-full group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <Input
-                                placeholder="Filter Active Projects..."
+                                placeholder="Search active causes..."
                                 className="pl-12 h-14 rounded-[22px] bg-card border-border/40 shadow-sm focus:bg-white transition-all text-sm font-medium"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -365,22 +412,22 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                 <button
                                     onClick={() => setActiveCategory('all')}
                                     className={cn(
-                                        "px-6 py-2.5 rounded-3xl text-[11px] font-black tracking-widest transition-all whitespace-nowrap border ",
+                                        "px-6 py-2.5 rounded-3xl text-xs font-bold transition-all whitespace-nowrap border",
                                         activeCategory === 'all'
-                                            ? "bg-primary text-white border-primary shadow-lg"
+                                            ? "bg-primary text-white border-primary shadow-sm"
                                             : "bg-card text-muted-foreground border-border/40 hover:border-border hover:text-foreground shadow-sm"
                                     )}
                                 >
-                                    All Sectors
+                                    All categories
                                 </button>
                                 {categories.map(cat => (
                                     <button
                                         key={cat.id}
                                         onClick={() => setActiveCategory(cat.id)}
                                         className={cn(
-                                            "px-6 py-2.5 rounded-3xl text-[11px] font-black tracking-widest transition-all whitespace-nowrap border ",
+                                            "px-6 py-2.5 rounded-3xl text-xs font-bold transition-all whitespace-nowrap border",
                                             activeCategory === cat.id
-                                                ? "bg-primary text-white border-primary shadow-lg"
+                                                ? "bg-primary text-white border-primary shadow-sm"
                                                 : "bg-card text-muted-foreground border-border/40 hover:border-border hover:text-foreground shadow-sm"
                                         )}
                                     >
@@ -404,7 +451,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                             {filteredProjects.length === 0 ? (
                                 <div className="col-span-full py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/10">
                                     <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-4" />
-                                    <p className="font-black text-muted-foreground tracking-widest text-[11px] ">No matching projects identified</p>
+                                    <p className="font-bold text-muted-foreground text-sm">No matching causes found</p>
                                 </div>
                             ) : filteredProjects.map(p => {
                                 const isSelected = selectedSplits.some(s => s.id === p.id);
@@ -436,10 +483,10 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                                                     )}
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-[9px] font-black text-primary tracking-widest  mb-1">{p.categoryName}</p>
+                                                    <p className="text-[10px] font-bold text-primary tracking-widest uppercase mb-1">{p.categoryName}</p>
                                                     <h4 className="font-bold text-sm text-foreground truncate leading-tight">{p.title}</h4>
-                                                    <p className="text-[11px] text-muted-foreground font-bold mt-1.5 flex items-center gap-2">
-                                                        <Target className="h-3.5 w-3.5 text-muted-foreground/60" /> Goal: {formatCurrency(p.targetAmount, p.currency)}
+                                                    <p className="text-xs text-muted-foreground font-medium mt-1.5 flex items-center gap-2">
+                                                        <Target className="h-3.5 w-3.5 text-muted-foreground/60" /> Need: {formatCurrency(p.targetAmount, p.currency)}
                                                     </p>
                                                 </div>
                                                 <div className={cn(
@@ -473,21 +520,21 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         >
                             <div
                                 onClick={() => setIsMobileLedgerOpen(true)}
-                                className="bg-zinc-950/95 backdrop-blur-2xl border border-white/10 rounded-full p-2 pl-7 pr-2 shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-between cursor-pointer active:scale-95 transition-all"
+                                className="bg-zinc-950/95 backdrop-blur-2xl border border-white/10 rounded-3xl p-3 pl-6 pr-3 shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-between cursor-pointer active:scale-95 transition-all"
                             >
                                 <div className="flex flex-col">
-                                    <span className="text-[9px] font-black tracking-[0.2em] text-zinc-500 ">Ledger Balance</span>
+                                    <span className="text-[10px] font-medium text-zinc-400">Remaining</span>
                                     <span className={cn(
-                                        "text-sm font-black tabular-nums",
-                                        remainingMinor === 0n ? "text-emerald-500" : "text-amber-500"
+                                        "text-base font-bold tabular-nums",
+                                        remainingMinor === 0n ? "text-emerald-500" : "text-white"
                                     )}>
-                                        {remainingMinor < 0n ? '-' : ''}₦{(Math.abs(Number(remainingMinor)) / 100).toLocaleString()}
+                                        {remainingMinor < 0n ? '-' : ''}₦{(Math.abs(Number(remainingMinor)) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                                 <Button
-                                    className="h-11 rounded-full px-8 font-black text-[10px] tracking-widest bg-primary text-white hover:bg-primary/90 border-0 shadow-lg"
+                                    className="h-11 rounded-2xl px-6 font-bold text-sm bg-primary text-white hover:bg-primary/90 border-0 shadow-lg"
                                 >
-                                    Commit Ledger <ArrowUpRight className="ml-1.5 h-4 w-4" />
+                                    Confirm <ArrowUpRight className="ml-1.5 h-4 w-4" />
                                 </Button>
                             </div>
                         </motion.div>
@@ -497,7 +544,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                 <Dialog open={isMobileLedgerOpen} onOpenChange={setIsMobileLedgerOpen}>
                     <DialogContent className="w-full max-w-full h-[88dvh] p-0 rounded-t-[40px] rounded-b-none border-none shadow-2xl bg-card flex flex-col overflow-hidden fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 z-50">
                         <DialogHeader className="sr-only">
-                            <DialogTitle>Reallocation Ledger Terminal</DialogTitle>
+                            <DialogTitle>Transfer List</DialogTitle>
                         </DialogHeader>
                         {LedgerContent}
                     </DialogContent>
@@ -509,10 +556,10 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     onConfirm={handleCommit}
                     isLoading={isProcessing}
                     variant="warning"
-                    title="Authorize Ledger Commitment"
-                    description={`You are about to re-distribute ₦${(Number(transaction.amount) / 100).toLocaleString()} from the Suspense System across ${selectedSplits.length} target causes. This transaction is immutable & will be recorded in the Audit Trail.`}
-                    confirmText="Commit Changes"
-                    cancelText="Return To Ledger"
+                    title="Confirm funds transfer"
+                    description={`You are about to distribute ₦${(Number(transaction.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })} across ${selectedSplits.length} causes. This action cannot be undone.`}
+                    confirmText="Complete transfer"
+                    cancelText="Cancel"
                 />
             </div>
         </LayoutGroup>
