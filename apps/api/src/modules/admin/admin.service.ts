@@ -1375,7 +1375,6 @@ export class AdminService {
   }
 
   async resolveSuspenseTransaction(adminId: string, transactionId: string, dto: ResolveSuspenseDto) {
-    // 1. Fetch orphaned transaction with forensic context
     const tx = await this.prisma.walletTransaction.findUnique({
       where: { id: transactionId },
       include: { wallet: true },
@@ -1427,6 +1426,28 @@ export class AdminService {
         throw new BadRequestException(
           `Accounting Error: Total split sum (${totalAllocated.toString()}) must match orphaned capital (${tx.amount.toString()})`
         );
+      }
+
+      // NEW: STRICT CAPACITY GUARD
+      // Pre-validate all target projects to ensure we don't trap capital or overfund
+      for (const split of dto.allocations) {
+        const targetProj = await this.prisma.project.findUnique({
+          where: { id: split.projectId }
+        });
+
+        if (!targetProj) throw new BadRequestException(`Project ${split.projectId} not found.`);
+
+        const isClosed = ([ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED] as ProjectStatus[]).includes(targetProj.status);
+        if (isClosed) {
+          throw new BadRequestException(`Cannot allocate to "${targetProj.title}" because it is already closed or suspended.`);
+        }
+
+        const remaining = targetProj.targetAmount - targetProj.raisedAmount;
+        if (BigInt(split.amount) > remaining) {
+          throw new BadRequestException(
+            `Allocation to "${targetProj.title}" exceeds its remaining goal. It only needs ₦${(Number(remaining) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}. Please adjust your splits.`
+          );
+        }
       }
 
       return this.prisma.$transaction(async (txPrisma) => {
@@ -1519,7 +1540,7 @@ export class AdminService {
           await txPrisma.notification.create({
             data: {
               userId: updatedProject.userId,
-              type: 'DONATION_RECEIVED', // Re-using donation type for consistency
+              type: 'DONATION_RECEIVED',
               title: 'Capital reallocation received',
               content: `Your project "${updatedProject.title}" received a system allocation of ${tx.currency} ${(Number(splitAmount) / 100).toLocaleString()}.`,
               link: `/dashboard/projects/${updatedProject.id}/manage`
