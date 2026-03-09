@@ -15,7 +15,7 @@ export const ProjectCard = memo(function ProjectCard({
   onDonate,
   onShare,
   isPublic = false,
-  hideKobo = true // Changed default to true to enforce kobo hiding for all cards in feeds
+  hideKobo = true
 }: ProjectCardProps) {
   const raised = Number(project.raisedAmount || 0);
   const target = Number(project.targetAmount || 0);
@@ -88,11 +88,12 @@ export const ProjectCard = memo(function ProjectCard({
                   <span className="text-foreground truncate">
                     <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
                   </span>
-                  <span className="text-muted-foreground text-[10px] font-medium shrink-0">of</span>
+                  <span className="text-muted-foreground text-[11px] font-medium shrink-0">of</span>
                   <span className="text-muted-foreground opacity-60 truncate font-medium">
                     <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
                   </span>
                 </div>
+                <span className="text-primary shrink-0 ml-2">{percent.toFixed(0)}%</span>
               </div>
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                 <motion.div
