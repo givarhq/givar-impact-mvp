@@ -143,7 +143,7 @@ export class RecommendationsService {
             where: { id: { in: allSelectedIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
-                user: { select: { role: true, organization: { select: { status: true, legalName: true } } } }
+                user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
             }
         });
 
@@ -161,6 +161,7 @@ export class RecommendationsService {
                 categoryName: hydrated.category?.name || 'General Impact',
                 isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
                 organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
+                organizerType: isSystem ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
             };
         }));
 
@@ -380,7 +381,7 @@ export class RecommendationsService {
             where: { id: { in: topIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
-                user: { select: { role: true, organization: { select: { status: true, legalName: true } } } }
+                user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
             }
         });
 
@@ -402,6 +403,7 @@ export class RecommendationsService {
                 categoryName: hydrated.category?.name || 'General Impact',
                 isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
                 organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
+                organizerType: isSystem ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
             };
         }));
 

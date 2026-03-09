@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Share2, Check, MapPin, UserCheck, Building2, BadgeCheck } from 'lucide-react';
+import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck, Building2 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Project, ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
@@ -25,8 +25,9 @@ export const ProjectCard = memo(function ProjectCard({
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
   // Logic: Map specific verification icons to the entity type for higher forensic clarity
+  // Add an explicit fallback check for "Givar" as the name just in case cache is stale
   const getVerIcon = () => {
-    if (project.organizerType === 'SYSTEM') return BadgeCheck;
+    if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') return BadgeCheck;
     if (project.organizerType === 'ORGANIZATION') return Building2;
     return UserCheck; // Default for INDIVIDUAL
   };
