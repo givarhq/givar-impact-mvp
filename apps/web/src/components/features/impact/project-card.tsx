@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { Badge } from '../../ui/badge';
 import { Project } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
@@ -95,7 +94,6 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
                     <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" />
                   </span>
                 </div>
-                <span className="text-primary shrink-0 ml-2">{percent.toFixed(0)}%</span>
               </div>
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                 <motion.div
@@ -115,9 +113,9 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
                 e.stopPropagation();
                 onShare(project);
               }}
-              className="h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-full border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:scale-90 transition-all bg-background"
+              className="hidden sm:inline-flex h-9 w-9 shrink-0 rounded-full border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:scale-90 transition-all bg-background"
             >
-              <Share2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <Share2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
