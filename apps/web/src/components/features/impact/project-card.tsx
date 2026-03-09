@@ -112,9 +112,9 @@ export const ProjectCard = memo(function ProjectCard({
                 e.stopPropagation();
                 onShare(project);
               }}
-              className="hidden sm:inline-flex h-9 w-9 shrink-0 rounded-full border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:scale-90 transition-all bg-background"
+              className="hidden sm:inline-flex h-8 w-8 shrink-0 rounded-full border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:scale-90 transition-all bg-background"
             >
-              <Share2 className="h-3.5 w-3.5" />
+              <Share2 className="h-3 w-3" />
             </Button>
           </div>
         </div>
