@@ -94,14 +94,31 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         delay={0.2}
                     />
                     <KPICard
-                        title="Platform Revenue"
+                        title="Total Revenue"
                         value={report.overview.platformRevenue}
                         subValue={
-                            <span className="flex items-center gap-1.5 flex-wrap leading-tight mt-0.5">
-                                Fees: <SmartCurrency amount={report?.overview?.platformFees || '0'} currency="NGN" visible={true} size="small" className="text-foreground" />
-                                <span className="text-border hidden xl:inline">•</span>
-                                <span className="xl:hidden w-full" />
-                                Tips: <SmartCurrency amount={report?.overview?.platformTips || '0'} currency="NGN" visible={true} size="small" className="text-foreground" />
+                            <span className="flex flex-col leading-tight mt-0.5">
+                                <span className="flex items-center gap-1.5">
+                                    Fees:
+                                    <SmartCurrency
+                                        amount={report?.overview?.platformFees || '0'}
+                                        currency="NGN"
+                                        visible={true}
+                                        size="small"
+                                        className="text-foreground"
+                                    />
+                                </span>
+
+                                <span className="flex items-center gap-1.5">
+                                    Tips:
+                                    <SmartCurrency
+                                        amount={report?.overview?.platformTips || '0'}
+                                        currency="NGN"
+                                        visible={true}
+                                        size="small"
+                                        className="text-foreground"
+                                    />
+                                </span>
                             </span>
                         }
                         icon={Landmark}
