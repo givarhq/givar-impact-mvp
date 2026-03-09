@@ -29,6 +29,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { generateImpactReceipt } from '../../../lib/utils/receipt-generator';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Badge } from '../../ui/badge';
 
 const typeStyles: Record<TxType, { icon: React.ElementType, bg: string, text: string, sign: string }> = {
     DEBIT: { icon: ArrowUpRight, bg: 'bg-rose-500/10', text: 'text-rose-500', sign: '-' },
@@ -132,7 +133,6 @@ export const HistoryTable = memo(function HistoryTable({
                         <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-left w-[200px]">Record Date</th>
                         <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-right">Total Value</th>
                         <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-center">Record Status</th>
-                        <th className="px-6 py-3 w-[100px]"></th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40 block md:table-row-group">
@@ -148,7 +148,10 @@ export const HistoryTable = memo(function HistoryTable({
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.2, delay: index * 0.02 }}
-                                    className="hover:bg-muted/30 transition-colors group block md:table-row w-full overflow-hidden"
+                                    className="md:cursor-pointer hover:bg-muted/30 transition-colors group block md:table-row w-full overflow-hidden"
+                                    onClick={() => {
+                                        if (window.innerWidth >= 768) setSelectedTx(tx);
+                                    }}
                                 >
                                     <td className="block md:table-cell p-4 md:px-6 md:py-4 border-none w-full">
                                         <div className="flex items-center gap-3 w-full">
@@ -157,7 +160,7 @@ export const HistoryTable = memo(function HistoryTable({
                                             </div>
 
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between items-center gap-2">
+                                                <div className="flex justify-between items-center gap-2 min-w-0">
                                                     <p className="font-bold text-foreground truncate text-sm">
                                                         {tx.description}
                                                     </p>
@@ -166,11 +169,11 @@ export const HistoryTable = memo(function HistoryTable({
                                                     </p>
                                                 </div>
 
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0">
+                                                <div className="flex items-center gap-2 mt-1 min-w-0">
+                                                    <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 truncate max-w-[80px] md:max-w-none">
                                                         {displayCategory}
                                                     </span>
-                                                    <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight">
+                                                    <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
                                                         <span className="h-1 w-1 rounded-full bg-border shrink-0" />
                                                         <span className="flex items-center gap-1 shrink-0">
                                                             <Calendar className="h-3 w-3" /> {formatDate(tx.createdAt).split(',')[0]}
@@ -189,7 +192,7 @@ export const HistoryTable = memo(function HistoryTable({
                                                 variant="secondary"
                                                 size="sm"
                                                 onClick={() => setSelectedTx(tx)}
-                                                className="rounded-3xl h-9 w-full text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
+                                                className="rounded-3xl h-9 w-full mx-auto flex px-8 text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
                                             >
                                                 View details
                                             </Button>
@@ -206,16 +209,6 @@ export const HistoryTable = memo(function HistoryTable({
                                         <div className="flex justify-center">
                                             <statusStyle.icon className={cn("h-5 w-5", statusStyle.text)} />
                                         </div>
-                                    </td>
-                                    <td className="hidden md:table-cell px-6 py-4 text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => setSelectedTx(tx)}
-                                            className="rounded-3xl h-8 text-xs font-bold px-4 transition-all active:scale-95"
-                                        >
-                                            Details
-                                        </Button>
                                     </td>
                                 </motion.tr>
                             );
@@ -238,14 +231,20 @@ export const HistoryTable = memo(function HistoryTable({
                                 <div className="absolute top-0 right-0 p-4 opacity-5">
                                     <FileText className="h-12 w-12" />
                                 </div>
-                                <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5">
+
+                                <div className="absolute top-4 left-4">
+                                    <Badge variant="outline" className="rounded-full px-2 py-0.5 border-border/60 bg-background/50 text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                        {selectedTx.category?.replace(/_/g, ' ') || 'SYSTEM'}
+                                    </Badge>
+                                </div>
+
+                                <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5 mt-2">
                                     {selectedTx.type === 'CREDIT' ? 'Amount Received' : 'Total Impact Value'}
                                 </p>
                                 <div className="max-w-full overflow-hidden leading-none">
                                     <SmartCurrency amount={selectedTx.amount} currency={selectedTx.currency} visible={true} size="large" className="text-foreground" />
                                 </div>
 
-                                {/* Financial Breakdown (If Available) */}
                                 {getFinancialBreakdown(selectedTx) && (
                                     <div className="mt-4 pt-4 border-t border-border/40 space-y-2">
                                         <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
@@ -306,7 +305,6 @@ export const HistoryTable = memo(function HistoryTable({
                                             </div>
                                         </div>
 
-                                        {/* Updated Receipt Breakdown */}
                                         {getFinancialBreakdown(selectedTx) ? (
                                             <div className="space-y-3 pt-6 border-t border-emerald-200">
                                                 <div className="flex justify-between text-sm font-medium text-emerald-800">
@@ -351,7 +349,6 @@ export const HistoryTable = memo(function HistoryTable({
                                     </div>
                                 </div>
                             </div>
-                            {/* ------------------------------------- */}
 
                             <div className="space-y-1.5 min-w-0">
                                 <span className="text-xs font-bold text-muted-foreground tracking-widest block px-1">Purpose & Identification</span>
@@ -382,13 +379,13 @@ export const HistoryTable = memo(function HistoryTable({
 
                                     <div className="pt-3 border-t border-border/40 flex justify-between items-center gap-4">
                                         <div className="min-w-0 flex-1">
-                                            <span className="text-xs font-bold text-muted-foreground tracking-tighter block mb-0.5">Reference Identification</span>
-                                            <p className="font-mono text-xs truncate text-foreground/50">{selectedTx.reference}</p>
+                                            <span className="text-xs font-bold text-muted-foreground tracking-tighter block mb-0.5">Reference ID</span>
+                                            <p className="font-mono text-[10px] truncate text-foreground/50">{selectedTx.reference}</p>
                                         </div>
                                         <button
                                             onClick={() => copyReference(selectedTx.reference)}
                                             className="h-8 w-8 flex items-center justify-center rounded-3xl hover:bg-muted text-muted-foreground hover:text-primary transition-colors border border-border/50 shrink-0 active:scale-90"
-                                            title="Copy Reference Identification"
+                                            title="Copy"
                                         >
                                             <Copy className="h-3.5 w-3.5" />
                                         </button>
@@ -397,28 +394,22 @@ export const HistoryTable = memo(function HistoryTable({
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 min-w-0">
-                                <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0 col-span-2">
-                                    <span className="text-xs font-bold text-muted-foreground block mb-1">Financial Category</span>
-                                    <div className="flex items-center gap-2 font-bold text-sm truncate">
-                                        <span className="truncate">{selectedTx.category?.replace(/_/g, ' ') || 'SYSTEM ENTRY'}</span>
-                                    </div>
-                                </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">Record Status</span>
-                                    <div className={cn("flex items-center gap-2 font-bold text-xs md:text-xs truncate", statusStyles[selectedTx.status].text)}>
+                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">Status</span>
+                                    <div className={cn("flex items-center gap-2 font-bold text-xs truncate", statusStyles[selectedTx.status].text)}>
                                         {React.createElement(statusStyles[selectedTx.status].icon, { className: "h-3.5 w-3.5 shrink-0" })}
                                         <span className="truncate">{selectedTx.status.charAt(0) + selectedTx.status.slice(1).toLowerCase()}</span>
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">{getPaymentContext(selectedTx).label}</span>
+                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">Method</span>
                                     <div className="flex items-center gap-2">
                                         {selectedTx.type === 'DEBIT' && !selectedTx.reference.startsWith('DON-') ? (
-                                            <CreditCard className="h-3.5 w-3.5 text-primary" />
+                                            <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
                                         ) : (
-                                            <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+                                            <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                         )}
-                                        <p className="text-xs md:text-xs font-bold text-foreground truncate ">
+                                        <p className="text-xs font-bold text-foreground truncate ">
                                             {getPaymentContext(selectedTx).method}
                                         </p>
                                     </div>
@@ -429,7 +420,7 @@ export const HistoryTable = memo(function HistoryTable({
                                 <Button
                                     onClick={() => handleDownloadReceipt(selectedTx)}
                                     disabled={isGenerating || selectedTx.status !== 'COMPLETED'}
-                                    className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg shadow-primary/20 border-0 active:scale-95 transition-all"
+                                    className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg shadow-primary/20 border-0 active:scale-[0.98] transition-all"
                                 >
                                     {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                                     Download Receipt
