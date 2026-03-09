@@ -15,7 +15,7 @@ export const ProjectCard = memo(function ProjectCard({
   onDonate,
   onShare,
   isPublic = false,
-  hideKobo = false // NEW PROP
+  hideKobo = true // Changed default to true to enforce kobo hiding for all cards in feeds
 }: ProjectCardProps) {
   const raised = Number(project.raisedAmount || 0);
   const target = Number(project.targetAmount || 0);

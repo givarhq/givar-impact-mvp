@@ -42,10 +42,11 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
   if (numericAmount >= 100_000_000) {
     // Condition 3: >= 100M -> Abbreviated (e.g., 253.44 M)
     const abbreviated = numericAmount / 1_000_000;
-    // Format to max 2 decimal places, remove trailing zeros (e.g. 100.00 -> 100)
+
+    // LOGIC FIX: We ignore hideKobo here because these decimals represent hundreds of thousands, not kobo.
     const formatted = new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
-      maximumFractionDigits: hideKobo ? 0 : 2
+      maximumFractionDigits: 2
     }).format(abbreviated);
 
     mainPart = formatted;
@@ -57,10 +58,11 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(numericAmount);
-    secondaryPart = ''; // No decimals
+    secondaryPart = '';
 
   } else {
-    // Condition 1: < 10M -> Full amount WITH kobo
+    // Condition 1: < 10M -> Full amount. 
+    // If hideKobo is true, we set decimals to 0 (which triggers rounding, e.g., 50.60 -> 51).
     const formattedTotal = new Intl.NumberFormat('en-US', {
       minimumFractionDigits: hideKobo ? 0 : 2,
       maximumFractionDigits: hideKobo ? 0 : 2
