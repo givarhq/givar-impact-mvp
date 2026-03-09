@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { Heart, Share2, Check, MapPin, UserCheck, Building2, BadgeCheck } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Project, ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
@@ -24,10 +24,11 @@ export const ProjectCard = memo(function ProjectCard({
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
+  // Logic: Map specific verification icons to the entity type for higher forensic clarity
   const getVerIcon = () => {
     if (project.organizerType === 'SYSTEM') return BadgeCheck;
-    if (project.organizerType === 'ORGANIZATION') return ShieldCheck;
-    return UserCheck;
+    if (project.organizerType === 'ORGANIZATION') return Building2;
+    return UserCheck; // Default for INDIVIDUAL
   };
 
   const VerIcon = getVerIcon();
@@ -50,8 +51,9 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
         )}
 
+        {/* Verification Icon Overlay */}
         {project.isVerifiedOrganizer && (
-          <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-md text-primary border border-border/10 shadow-sm transition-transform duration-300 group-hover:scale-110">
+          <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-md text-primary border border-border/10 shadow-sm transition-transform duration-300 group-hover:scale-110" title={project.organizerType}>
             <VerIcon className="h-3 w-3 sm:h-4 sm:w-4" />
           </div>
         )}
