@@ -37,7 +37,8 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
     const scrollRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
-    const [selectedSplits, setSelectedSplits] = useState<Array<{ id: string; title: string; amount: string }>>([]);
+    // Store remaining gap data so we can validate inputs
+    const [selectedSplits, setSelectedSplits] = useState<Array<{ id: string; title: string; amount: string; maxAllowed: bigint }>>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [isMobileLedgerOpen, setIsMobileLedgerOpen] = useState(false);
@@ -83,7 +84,16 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
         if (exists) {
             setSelectedSplits(prev => prev.filter(s => s.id !== project.id));
         } else {
-            setSelectedSplits(prev => [...prev, { id: project.id, title: project.title, amount: '' }]);
+            // Calculate exact remaining need to prevent overfunding
+            const maxAllowed = BigInt(project.targetAmount) - BigInt(project.raisedAmount);
+
+            setSelectedSplits(prev => [...prev, {
+                id: project.id,
+                title: project.title,
+                amount: '',
+                maxAllowed
+            }]);
+
             if (window.innerWidth < 1024) {
                 toast.success("Added to ledger", {
                     icon: <Plus className="h-4 w-4" />,
@@ -95,8 +105,22 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
     const updateSplitAmount = (id: string, value: string) => {
         const formatted = formatNumberInput(value);
-        const raw = parseFormattedNumber(formatted);
-        setSelectedSplits(prev => prev.map(s => s.id === id ? { ...s, amount: raw } : s));
+        const rawString = parseFormattedNumber(formatted);
+        const rawMinor = rawString === '' ? 0n : BigInt(rawString) * 100n;
+
+        setSelectedSplits(prev => prev.map(s => {
+            if (s.id !== id) return s;
+
+            // UI Guard: Automatically cap the input if it exceeds the project's remaining need
+            if (rawMinor > s.maxAllowed) {
+                toast.error(`Capped at project limit: ₦${(Number(s.maxAllowed) / 100).toLocaleString()}`);
+                // Convert the max minor units back to major units for the input field
+                const maxMajor = (Number(s.maxAllowed) / 100).toString();
+                return { ...s, amount: maxMajor };
+            }
+
+            return { ...s, amount: rawString };
+        }));
     };
 
     const currentTotalAllocatedMinor = selectedSplits.reduce((acc, curr) => {
@@ -165,38 +189,55 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                         </motion.div>
                     ) : (
                         <div className="space-y-3">
-                            {selectedSplits.map(s => (
-                                <motion.div
-                                    key={s.id}
-                                    layout
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    className="p-4 rounded-3xl bg-muted/20 border border-border/40 space-y-3 shadow-sm"
-                                >
-                                    <div className="flex justify-between items-start gap-2">
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-[9px] font-black text-primary tracking-widest  mb-0.5">Target Cause</p>
-                                            <p className="text-xs font-bold text-foreground truncate">{s.title}</p>
+                            {selectedSplits.map(s => {
+                                const currentInputMinor = BigInt(Math.round(Number(s.amount || '0') * 100));
+                                const isAtMax = currentInputMinor > 0n && currentInputMinor >= s.maxAllowed;
+
+                                return (
+                                    <motion.div
+                                        key={s.id}
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className={cn(
+                                            "p-4 rounded-3xl border space-y-3 shadow-sm transition-colors",
+                                            isAtMax ? "bg-amber-500/5 border-amber-500/20" : "bg-muted/20 border-border/40"
+                                        )}
+                                    >
+                                        <div className="flex justify-between items-start gap-2">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[9px] font-black text-primary tracking-widest  mb-0.5">Target Cause</p>
+                                                <p className="text-xs font-bold text-foreground truncate">{s.title}</p>
+                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); toggleProject({ id: s.id }); }}
+                                                className="h-7 w-7 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all bg-background border border-border/50 shadow-sm"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); toggleProject({ id: s.id }); }}
-                                            className="h-7 w-7 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all bg-background border border-border/50 shadow-sm"
-                                        >
-                                            <X className="h-3.5 w-3.5" />
-                                        </button>
-                                    </div>
-                                    <div className="relative group">
-                                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-foreground">₦</span>
-                                        <Input
-                                            placeholder="0.00"
-                                            className="h-11 pl-8 rounded-2xl bg-background border-border/60 text-sm font-bold tabular-nums shadow-inner transition-all focus:bg-white"
-                                            value={formatNumberInput(s.amount)}
-                                            onChange={(e) => updateSplitAmount(s.id, e.target.value)}
-                                        />
-                                    </div>
-                                </motion.div>
-                            ))}
+                                        <div className="relative group">
+                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-foreground">₦</span>
+                                            <Input
+                                                placeholder="0.00"
+                                                className={cn(
+                                                    "h-11 pl-8 rounded-2xl border-border/60 text-sm font-bold tabular-nums shadow-inner transition-all focus:bg-white",
+                                                    isAtMax ? "bg-amber-100/50" : "bg-background"
+                                                )}
+                                                value={formatNumberInput(s.amount)}
+                                                onChange={(e) => updateSplitAmount(s.id, e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between items-center text-[9px] font-bold">
+                                            <span className="text-muted-foreground tracking-widest">Capacity Limit:</span>
+                                            <span className={isAtMax ? "text-amber-600" : "text-muted-foreground"}>
+                                                ₦{(Number(s.maxAllowed) / 100).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </motion.div>
+                                )
+                            })}
                         </div>
                     )}
                 </AnimatePresence>
