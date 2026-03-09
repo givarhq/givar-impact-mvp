@@ -98,8 +98,6 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         value={report.overview.platformRevenue}
                         subValue={
                             <span className="flex items-center gap-1.5 flex-wrap leading-tight mt-0.5">
-                                <span className="font-bold text-purple-600">Sweepable</span>
-                                <span className="text-border">•</span>
                                 Fees: <SmartCurrency amount={report?.overview?.platformFees || '0'} currency="NGN" visible={true} size="small" className="text-foreground" />
                                 <span className="text-border hidden xl:inline">•</span>
                                 <span className="xl:hidden w-full" />
