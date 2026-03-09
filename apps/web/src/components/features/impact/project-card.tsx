@@ -26,7 +26,6 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
-  // Logic: Use specific icons to represent entity types without text badges
   const getVerIcon = () => {
     if (project.organizerType === 'SYSTEM') return BadgeCheck;
     if (project.organizerType === 'ORGANIZATION') return ShieldCheck;
@@ -53,7 +52,6 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
           </div>
         )}
 
-        {/* Verification Icon Overlay */}
         {project.isVerifiedOrganizer && (
           <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center rounded-full bg-background/90 backdrop-blur-md text-primary border border-border/10 shadow-sm transition-transform duration-300 group-hover:scale-110">
             <VerIcon className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -89,9 +87,12 @@ export const ProjectCard = memo(function ProjectCard({ project, onDonate, onShar
             <div className="space-y-1.5 flex-1 min-w-0">
               <div className="flex justify-between items-end text-xs font-bold min-w-0">
                 <div className="flex items-baseline gap-1 truncate min-w-0">
-                  <span className="text-muted-foreground shrink-0">Raised:</span>
                   <span className="text-foreground truncate">
                     <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
+                  </span>
+                  <span className="text-muted-foreground text-[10px] font-medium shrink-0">of</span>
+                  <span className="text-muted-foreground opacity-60 truncate font-medium">
+                    <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" />
                   </span>
                 </div>
                 <span className="text-primary shrink-0 ml-2">{percent.toFixed(0)}%</span>
