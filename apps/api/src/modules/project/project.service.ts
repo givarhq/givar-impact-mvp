@@ -573,7 +573,6 @@ export class ProjectService {
         amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(), // Fallback fix
         currency: d.currency,
         reference: d.transaction?.reference || d.transactionId,
-        description: 'Public Contribution',
         createdAt: d.createdAt,
         actorName: isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName),
         isYou: isRequester,
@@ -588,7 +587,6 @@ export class ProjectService {
       amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
       currency: d.currency,
       reference: d.reference,
-      description: 'Public Contribution',
       createdAt: d.createdAt,
       actorName: maskName(null, null, d.guestDonor?.name),
       projectName: d.project.title,
@@ -601,7 +599,6 @@ export class ProjectService {
       amount: d.amount.toString(),
       currency: d.currency,
       reference: d.reference,
-      description: 'Verified Payment',
       createdAt: d.createdAt,
       actorName: d.vendorName,
       receiptKey: d.receiptKey,
