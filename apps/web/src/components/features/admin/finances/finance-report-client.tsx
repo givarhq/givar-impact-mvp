@@ -5,7 +5,7 @@ import {
     TrendingUp,
     ArrowDownLeft,
     ArrowUpRight,
-    Activity,
+    Landmark,
 } from 'lucide-react';
 import { FinanceFilterBar } from './finance-filter-bar';
 import { CauseLeaderboard } from './cause-leaderboard';
@@ -19,7 +19,7 @@ interface FinanceReportClientProps {
     report: any;
 }
 
-const KPICard = memo(function KPICard({ title, value, subValue, icon: Icon, color, bg, isRawValue = false, delay = 0 }: any) {
+const KPICard = memo(function KPICard({ title, value, subValue, icon: Icon, color, bg, delay = 0 }: any) {
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -40,19 +40,13 @@ const KPICard = memo(function KPICard({ title, value, subValue, icon: Icon, colo
                 </div>
                 <div className="space-y-1">
                     <div className="min-h-[32px] flex items-baseline">
-                        {isRawValue ? (
-                            <h3 className="text-2xl font-black text-foreground tracking-tight">
-                                {value}
-                            </h3>
-                        ) : (
-                            <SmartCurrency
-                                amount={value}
-                                currency="NGN"
-                                visible={true}
-                                size="default"
-                                className="text-foreground text-xl md:text-2xl font-black"
-                            />
-                        )}
+                        <SmartCurrency
+                            amount={value}
+                            currency="NGN"
+                            visible={true}
+                            size="default"
+                            className="text-foreground text-xl md:text-2xl font-black"
+                        />
                     </div>
                     <div className="text-[10px] font-bold text-muted-foreground truncate opacity-70">
                         {subValue}
@@ -75,11 +69,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                     <KPICard
                         title="Gross Inflow"
                         value={report?.overview?.grossInflow || '0'}
-                        subValue={
-                            <span className="flex items-center gap-1">
-                                Revenue: <SmartCurrency amount={report?.overview?.platformRevenue || '0'} currency="NGN" visible={true} size="small" className="text-foreground" />
-                            </span>
-                        }
+                        subValue={`${report?.overview?.transactionCount || 0} Total Transactions`}
                         icon={ArrowDownLeft}
                         color="text-blue-500"
                         bg="bg-blue-500/10"
@@ -104,13 +94,21 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         delay={0.2}
                     />
                     <KPICard
-                        title="Efficiency Ratio"
-                        value={`${report.overview.efficiencyRatio.toFixed(1)}%`}
-                        subValue="Inflow to Deployment Ratio"
-                        icon={Activity}
+                        title="Platform Revenue"
+                        value={report.overview.platformRevenue}
+                        subValue={
+                            <span className="flex items-center gap-1.5 flex-wrap leading-tight mt-0.5">
+                                <span className="font-bold text-purple-600">Sweepable</span>
+                                <span className="text-border">•</span>
+                                Fees: <SmartCurrency amount={report?.overview?.platformFees || '0'} currency="NGN" visible={true} size="small" className="text-foreground" />
+                                <span className="text-border hidden xl:inline">•</span>
+                                <span className="xl:hidden w-full" />
+                                Tips: <SmartCurrency amount={report?.overview?.platformTips || '0'} currency="NGN" visible={true} size="small" className="text-foreground" />
+                            </span>
+                        }
+                        icon={Landmark}
                         color="text-purple-500"
                         bg="bg-purple-500/10"
-                        isRawValue
                         delay={0.3}
                     />
                 </div>

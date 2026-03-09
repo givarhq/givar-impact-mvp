@@ -2391,9 +2391,8 @@ export class AdminService {
     const categoryFilter = categoryIds && categoryIds.length > 0 ? { in: categoryIds } : undefined;
 
     // 1. Core Capital Flow Aggregates
-    const [inflowRes, donationRes, disbursementRes, revenueRes] = await Promise.all([
+    const [inflowRes, donationRes, disbursementRes, feeRes, tipRes] = await Promise.all([
       // Gross Inflow: (Funding + Direct Donations + Tips + Fees)
-      // We look at all CREDITS that are NOT internal transfers/refunds/payouts
       this.prisma.walletTransaction.aggregate({
         where: {
           type: TxType.CREDIT,
@@ -2416,18 +2415,31 @@ export class AdminService {
         _sum: { amount: true },
         _count: true
       }),
-      // Platform Revenue (Fees + Tips)
-      // Query by Category, NOT string prefix
+      // Platform Fees
       this.prisma.walletTransaction.aggregate({
         where: {
           type: TxType.CREDIT,
           createdAt: dateFilter,
           status: TxStatus.COMPLETED,
-          category: { in: [TxCategory.TRANSACTION_FEE, TxCategory.VOLUNTARY_TIP] }
+          category: TxCategory.TRANSACTION_FEE
+        },
+        _sum: { amount: true }
+      }),
+      // Platform Tips
+      this.prisma.walletTransaction.aggregate({
+        where: {
+          type: TxType.CREDIT,
+          createdAt: dateFilter,
+          status: TxStatus.COMPLETED,
+          category: TxCategory.VOLUNTARY_TIP
         },
         _sum: { amount: true }
       })
     ]);
+
+    const totalFees = feeRes._sum.amount || 0n;
+    const totalTips = tipRes._sum.amount || 0n;
+    const platformRevenue = totalFees + totalTips;
 
     // Performance Stats
     const projectStats = await this.prisma.project.findMany({
@@ -2493,11 +2505,10 @@ export class AdminService {
         grossInflow: inflowRes._sum.amount?.toString() || '0',
         committedCapital: donationRes._sum.amount?.toString() || '0',
         deployedCapital: disbursementRes._sum.amount?.toString() || '0',
-        platformRevenue: revenueRes._sum.amount?.toString() || '0',
-        transactionCount: inflowRes._count, // Count is more accurate from ledger now
-        efficiencyRatio: donationRes._sum.amount > 0n
-          ? (Number(disbursementRes._sum.amount || 0n) / Number(donationRes._sum.amount)) * 100
-          : 0
+        platformRevenue: platformRevenue.toString(),
+        platformFees: totalFees.toString(),
+        platformTips: totalTips.toString(),
+        transactionCount: inflowRes._count,
       },
       performance: {
         topPerformers: topPerformers.map(p => ({ ...p, targetAmount: p.targetAmount.toString(), raisedAmount: p.raisedAmount.toString() })),
