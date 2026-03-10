@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -16,7 +16,7 @@ interface ConfirmModalProps {
     onClose: () => void;
     onConfirm: () => void;
     title: string;
-    description: string;
+    description: string | ReactNode; // <-- updated to accept JSX
     confirmText?: string;
     cancelText?: string;
     variant?: 'default' | 'destructive' | 'warning';
@@ -67,9 +67,14 @@ export function ConfirmModal({
                                     {title}
                                 </DialogTitle>
                             </DialogHeader>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed break-words">
-                                {description}
-                            </p>
+                            <div className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                {/* Render either string or JSX */}
+                                {typeof description === 'string' ? (
+                                    <p className="break-words">{description}</p>
+                                ) : (
+                                    description
+                                )}
+                            </div>
                         </div>
                     </div>
 

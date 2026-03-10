@@ -408,7 +408,13 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 isLoading={isProcessing}
                 variant="destructive"
                 title="Trigger Audit Refund"
-                description={`Initialize an automated external refund for ${refundModal.reference}? This procedure is irreversible.`}
+                description={
+                    <>
+                        Initialize an automated external refund for{' '}
+                        <span className="break-all font-mono">{refundModal.reference}</span>
+                        ? This procedure is irreversible.
+                    </>
+                }
                 confirmText="Confirm refund"
             />
         </div>
