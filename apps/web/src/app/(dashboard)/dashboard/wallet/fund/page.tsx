@@ -6,6 +6,7 @@ import { ArrowLeft, CreditCard, Loader2, ShieldCheck, MailCheck, RefreshCw, Glob
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../components/ui/select';
 import { ApiService } from '../../../../../services/api';
 import { formatNumberInput, parseFormattedNumber } from '../../../../../lib/utils/format';
 import { getCookie } from 'cookies-next';
@@ -13,12 +14,29 @@ import { cn } from '../../../../../lib/utils/cn';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const SYMBOLS: Record<string, string> = {
+  NGN: '₦',
+  USD: '$',
+  GBP: '£',
+  EUR: '€',
+  CAD: 'C$',
+};
+
+const QUICK_AMOUNTS: Record<string, string[]> = {
+  NGN: ['2000', '5000', '10000', '25000', '50000'],
+  USD: ['20', '50', '100', '250', '500'],
+  GBP: ['20', '50', '100', '250', '500'],
+  EUR: ['20', '50', '100', '250', '500'],
+  CAD: ['20', '50', '100', '250', '500'],
+};
+
 export default function FundWalletPage() {
-  const [amount, setAmount] = useState('');
+  const [displayCurrency, setDisplayCurrency] = useState('NGN');
+  const [displayAmount, setDisplayAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUnverified, setIsUnverified] = useState(false);
-  const [fxRates, setFxRates] = useState<{ USD: number; GBP: number; EUR: number; CAD: number } | null>(null);
+  const [fxRates, setFxRates] = useState<Record<string, number> | null>(null);
 
   const checkVerification = () => {
     const userCookie = getCookie('givar_user');
@@ -35,17 +53,11 @@ export default function FundWalletPage() {
   useEffect(() => {
     checkVerification();
 
-    // Fetch Live FX Rates for International Donors
     fetch('https://open.er-api.com/v6/latest/NGN')
       .then(res => res.json())
       .then(data => {
         if (data && data.rates) {
-          setFxRates({
-            USD: data.rates.USD,
-            GBP: data.rates.GBP,
-            EUR: data.rates.EUR,
-            CAD: data.rates.CAD
-          });
+          setFxRates(data.rates);
         }
       })
       .catch(console.error);
@@ -70,27 +82,55 @@ export default function FundWalletPage() {
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isUnverified) return;
-    setAmount(parseFormattedNumber(formatNumberInput(e.target.value)));
+    setDisplayAmount(parseFormattedNumber(formatNumberInput(e.target.value)));
   };
 
   const setQuickAmount = (val: string) => {
     if (isUnverified) return;
-    setAmount(val);
+    setDisplayAmount(val);
   };
+
+  const getNGNAmount = (): number | null => {
+    const numAmount = Number(parseFormattedNumber(displayAmount));
+    if (!numAmount) return 0;
+    if (displayCurrency === 'NGN') return numAmount;
+
+    // Safety Guard: API failure resilience
+    if (!fxRates || !fxRates[displayCurrency]) return null;
+
+    return numAmount / fxRates[displayCurrency];
+  };
+
+  const ngnValue = getNGNAmount();
 
   const handleFund = async () => {
     if (isUnverified) return;
-    if (!amount || isNaN(Number(amount))) {
+
+    if (ngnValue === null) {
+      toast.error("Exchange rates are currently unavailable. Please try funding in NGN.");
+      return;
+    }
+
+    if (!displayAmount || ngnValue <= 0) {
       toast.error('Please enter a valid amount');
+      return;
+    }
+
+    // Logic Guard: Prevent tiny deposits after FX (Paystack minimum ₦100)
+    const baseAmountMinor = BigInt(Math.round(ngnValue * 100));
+    if (baseAmountMinor < 10000n) {
+      toast.error("Minimum top-up is ₦100.00 equivalent.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const minorAmount = (Number(amount) * 100).toString();
       const data = await ApiService.wallet.fund({
-        amount: minorAmount,
+        amount: baseAmountMinor.toString(),
         currency: 'NGN',
+        donorCurrency: displayCurrency,
+        donorAmount: displayAmount,
+        fxRate: fxRates ? fxRates[displayCurrency] : undefined
       });
 
       if (data.authorizationUrl) {
@@ -102,8 +142,6 @@ export default function FundWalletPage() {
       toast.error(message);
     }
   };
-
-  const numericAmount = Number(amount) || 0;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20 min-w-0">
@@ -164,55 +202,63 @@ export default function FundWalletPage() {
         )}>
           <div className="space-y-4 min-w-0">
             <label className="text-[11px] font-bold text-muted-foreground tracking-[0.2em] ml-1">
-              Deposit amount (NGN)
+              Select currency & amount
             </label>
-            <div className="relative min-w-0">
-              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground/60">₦</span>
-              <Input
-                type="text"
-                placeholder="5,000"
-                className="pl-12 h-16 text-3xl font-bold rounded-[22px] bg-muted/20 border-border/40 focus:bg-background focus:border-primary/40 transition-all tabular-nums"
-                value={formatNumberInput(amount)}
-                onChange={handleAmountChange}
-                disabled={isUnverified}
-              />
+
+            <div className="flex gap-2 min-w-0">
+              <Select value={displayCurrency} onValueChange={(v) => { setDisplayCurrency(v); setDisplayAmount(''); }}>
+                <SelectTrigger className="w-[110px] h-16 rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-sm shadow-none">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-border/40 shadow-xl">
+                  <SelectItem value="NGN" className="font-bold text-xs py-2">NGN ₦</SelectItem>
+                  <SelectItem value="USD" className="font-bold text-xs py-2">USD $</SelectItem>
+                  <SelectItem value="GBP" className="font-bold text-xs py-2">GBP £</SelectItem>
+                  <SelectItem value="EUR" className="font-bold text-xs py-2">EUR €</SelectItem>
+                  <SelectItem value="CAD" className="font-bold text-xs py-2">CAD C$</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="relative min-w-0 flex-1">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground/60">
+                  {SYMBOLS[displayCurrency]}
+                </span>
+                <Input
+                  type="text"
+                  placeholder={displayCurrency === 'NGN' ? "5,000" : "100"}
+                  className="pl-12 h-16 text-3xl font-bold rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:border-primary/40 transition-all tabular-nums"
+                  value={formatNumberInput(displayAmount)}
+                  onChange={handleAmountChange}
+                  disabled={isUnverified}
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 text-xs flex-wrap pt-2 min-w-0">
-              {['2000', '5000', '10000', '25000', '50000'].map((val) => (
+              {(QUICK_AMOUNTS[displayCurrency] || QUICK_AMOUNTS.NGN).map((val) => (
                 <button
                   key={val}
                   onClick={() => setQuickAmount(val)}
                   disabled={isUnverified}
                   className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-3xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm"
                 >
-                  ₦{Number(val).toLocaleString()}
+                  {SYMBOLS[displayCurrency]}{Number(val).toLocaleString()}
                 </button>
               ))}
             </div>
 
             <AnimatePresence>
-              {fxRates && numericAmount > 0 && (
+              {displayCurrency !== 'NGN' && ngnValue !== null && ngnValue > 0 && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="p-4 rounded-2xl bg-muted/10 border border-border/40 space-y-3 overflow-hidden"
+                  className="flex items-start gap-2 p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-blue-800 text-[11px] font-medium leading-relaxed mt-2"
                 >
-                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                    <Globe className="h-4 w-4 text-primary" /> International cards accepted.
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground">Approximate equivalent:</p>
-                    <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm font-bold text-foreground tabular-nums">
-                      <span>• ${(numericAmount * fxRates.USD).toFixed(2)} USD</span>
-                      <span>• £{(numericAmount * fxRates.GBP).toFixed(2)} GBP</span>
-                      <span>• €{(numericAmount * fxRates.EUR).toFixed(2)} EUR</span>
-                      <span>• C${(numericAmount * fxRates.CAD).toFixed(2)} CAD</span>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground italic leading-relaxed">
-                    Final amount charged may vary depending on your bank's exchange rate.
+                  <Globe className="h-4 w-4 shrink-0 mt-0.5 text-blue-600" />
+                  <p>
+                    You will be charged approximately <strong>₦{ngnValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} NGN</strong> (estimated <strong>{SYMBOLS[displayCurrency]}{displayAmount}</strong>).
+                    Final debit depends on your bank's exchange rate. International cards accepted.
                   </p>
                 </motion.div>
               )}
@@ -228,7 +274,7 @@ export default function FundWalletPage() {
 
           <Button
             onClick={handleFund}
-            disabled={isLoading || !amount || isUnverified}
+            disabled={isLoading || !displayAmount || isUnverified}
             className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-0"
           >
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
