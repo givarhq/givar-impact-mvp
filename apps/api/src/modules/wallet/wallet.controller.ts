@@ -32,6 +32,12 @@ export class WalletController {
       req.user.email,
       dto.amount,
       dto.currency,
+      // Bridge FX metadata to the initiation service for round-trip logging
+      {
+        donorCurrency: dto.donorCurrency,
+        donorAmount: dto.donorAmount,
+        fxRate: dto.fxRate,
+      }
     );
   }
 
