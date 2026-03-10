@@ -204,9 +204,20 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-2 mb-1.5">
                                                             <p className="text-xs font-bold text-amber-600">Orphaned Capital</p>
-                                                            <Badge variant="outline" className="font-mono text-[10px] bg-muted/40 border-border/40 rounded-3xl px-2 py-0.5 text-muted-foreground shadow-none">
-                                                                Ref: {item.reference.slice(0, 8)}
-                                                            </Badge>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigator.clipboard.writeText(item.reference);
+                                                                    toast.success("Reference copied");
+                                                                }}
+                                                                className="outline-none"
+                                                                title="Click to copy"
+                                                            >
+                                                                <Badge variant="outline" className="font-mono text-[10px] bg-muted/40 border-border/40 rounded-3xl px-2 py-0.5 text-muted-foreground shadow-none hover:border-primary/40 hover:text-primary transition-all cursor-pointer">
+                                                                    Ref: <span className="hidden md:inline">{item.reference}</span>
+                                                                    <span className="md:hidden">{item.reference.slice(0, 12)}...</span>
+                                                                </Badge>
+                                                            </button>
                                                         </div>
                                                         <div className="flex flex-col gap-1">
                                                             <SmartCurrency amount={item.amount} currency={item.currency} visible={true} size="large" className="text-foreground font-bold " />
@@ -397,7 +408,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                 isLoading={isProcessing}
                 variant="destructive"
                 title="Trigger Audit Refund"
-                description={`Initialize an automated external refund for ${refundModal.reference.slice(0, 8)}? This procedure is irreversible.`}
+                description={`Initialize an automated external refund for ${refundModal.reference}? This procedure is irreversible.`}
                 confirmText="Confirm refund"
             />
         </div>
