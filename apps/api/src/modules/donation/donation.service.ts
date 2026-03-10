@@ -480,6 +480,7 @@ export class DonationService {
     currency: Currency;
     reference: string;
     channel?: string;
+    authorization?: any;
     baseAmount?: bigint;
     feeAmount?: bigint;
     tipAmount?: bigint;
@@ -487,7 +488,7 @@ export class DonationService {
     feeRuleId?: string;
   }) {
     const {
-      userId, guestEmail, guestName, projectId, amount, currency, reference, channel,
+      userId, guestEmail, guestName, projectId, amount, currency, reference, channel, authorization,
       baseAmount = amount, feeAmount = 0n, tipAmount = 0n, feePercentageUsed = 0, feeRuleId = null
     } = data;
 
@@ -590,7 +591,7 @@ export class DonationService {
           description: `Direct Pay Inflow`,
           status: TxStatus.COMPLETED,
           category: TxCategory.FUNDING,
-          metadata: { channel }
+          metadata: { channel, authorization }
         }, tx);
 
         // 2. Process Outflow: Atomically decrement wallet balance
@@ -603,7 +604,7 @@ export class DonationService {
           description: `Direct donation: ${project.title}`,
           status: TxStatus.COMPLETED,
           category: TxCategory.DONATION,
-          metadata: { channel }
+          metadata: { channel, authorization }
         }, tx);
 
         if (amountToProject > 0n) {
@@ -748,7 +749,8 @@ export class DonationService {
             surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             isGoalMet,
             reference,
-            channel
+            channel,
+            authorization
           }
         }
       });

@@ -167,6 +167,7 @@ export class WalletService {
         amount_naira: (Number(data.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         currency: data.currency,
         channel: data.channel,
+        authorization: data.authorization,
       },
     });
 
@@ -191,6 +192,7 @@ export class WalletService {
           currency: data.currency as Currency,
           reference: data.reference,
           channel: data.channel,
+          authorization: data.authorization,
           // Forward frozen intent metadata for financial splits
           baseAmount: data.metadata.baseAmount ? BigInt(data.metadata.baseAmount) : undefined,
           feeAmount: data.metadata.feeAmount ? BigInt(data.metadata.feeAmount) : undefined,
@@ -205,7 +207,7 @@ export class WalletService {
   }
 
   private async processSuccessfulFunding(data: any) {
-    const { reference, amount, currency, metadata } = data;
+    const { reference, amount, currency, metadata, channel, authorization } = data;
     const userId = metadata?.userId;
 
     if (!userId) {
@@ -223,7 +225,7 @@ export class WalletService {
         status: TxStatus.COMPLETED,
         category: TxCategory.FUNDING,
         description: 'Wallet funding via Paystack',
-        metadata: { channel: data.channel }
+        metadata: { channel, authorization }
       });
 
       const user = await this.prisma.user.findUnique({
@@ -243,7 +245,8 @@ export class WalletService {
           reference,
           newBalance: result.newBalance.toString(),
           newBalance_naira: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          channel: data.channel,
+          channel,
+          authorization
         },
       });
 
