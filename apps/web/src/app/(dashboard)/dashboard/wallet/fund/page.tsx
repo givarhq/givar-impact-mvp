@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, CreditCard, Loader2, ShieldCheck, MailCheck, RefreshCw } from 'lucide-react';
+import { ArrowLeft, CreditCard, Loader2, ShieldCheck, MailCheck, RefreshCw, Globe } from 'lucide-react';
 import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../components/ui/card';
@@ -11,12 +11,14 @@ import { formatNumberInput, parseFormattedNumber } from '../../../../../lib/util
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../lib/utils/cn';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function FundWalletPage() {
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUnverified, setIsUnverified] = useState(false);
+  const [fxRates, setFxRates] = useState<{ USD: number; GBP: number; EUR: number; CAD: number } | null>(null);
 
   const checkVerification = () => {
     const userCookie = getCookie('givar_user');
@@ -32,6 +34,21 @@ export default function FundWalletPage() {
 
   useEffect(() => {
     checkVerification();
+
+    // Fetch Live FX Rates for International Donors
+    fetch('https://open.er-api.com/v6/latest/NGN')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.rates) {
+          setFxRates({
+            USD: data.rates.USD,
+            GBP: data.rates.GBP,
+            EUR: data.rates.EUR,
+            CAD: data.rates.CAD
+          });
+        }
+      })
+      .catch(console.error);
   }, []);
 
   const handleRefreshStatus = async () => {
@@ -85,6 +102,8 @@ export default function FundWalletPage() {
       toast.error(message);
     }
   };
+
+  const numericAmount = Number(amount) || 0;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20 min-w-0">
@@ -144,8 +163,8 @@ export default function FundWalletPage() {
           isUnverified && "opacity-20 grayscale blur-[1px] pointer-events-none"
         )}>
           <div className="space-y-4 min-w-0">
-            <label className="text-[11px] font-bold text-muted-foreground  tracking-[0.2em] ml-1">
-              Deposit amount
+            <label className="text-[11px] font-bold text-muted-foreground tracking-[0.2em] ml-1">
+              Deposit amount (NGN)
             </label>
             <div className="relative min-w-0">
               <span className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl font-bold text-muted-foreground/60">₦</span>
@@ -171,6 +190,33 @@ export default function FundWalletPage() {
                 </button>
               ))}
             </div>
+
+            <AnimatePresence>
+              {fxRates && numericAmount > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-4 rounded-2xl bg-muted/10 border border-border/40 space-y-3 overflow-hidden"
+                >
+                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                    <Globe className="h-4 w-4 text-primary" /> International cards accepted.
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">Approximate equivalent:</p>
+                    <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm font-bold text-foreground tabular-nums">
+                      <span>≈ ${(numericAmount * fxRates.USD).toFixed(2)} USD</span>
+                      <span>≈ £{(numericAmount * fxRates.GBP).toFixed(2)} GBP</span>
+                      <span>≈ €{(numericAmount * fxRates.EUR).toFixed(2)} EUR</span>
+                      <span>≈ C${(numericAmount * fxRates.CAD).toFixed(2)} CAD</span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic leading-relaxed">
+                    Final amount charged may vary depending on your bank's exchange rate.
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="bg-primary/5 border border-primary/20 p-5 rounded-[24px] flex items-start gap-4 shadow-inner min-w-0">

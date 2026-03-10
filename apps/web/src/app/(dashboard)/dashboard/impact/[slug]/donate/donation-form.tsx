@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
     Loader2, Wallet, CreditCard, CheckCircle2, Mail,
-    Lock, Eye, MailCheck, Plus, RefreshCw
+    Lock, Eye, MailCheck, Plus, RefreshCw, Globe
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -35,6 +35,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
     const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
     const [interval, setInterval] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
     const [selectedMethod, setSelectedMethod] = useState<'wallet' | 'direct' | null>(null);
+    const [fxRates, setFxRates] = useState<{ USD: number; GBP: number; EUR: number; CAD: number } | null>(null);
 
     // Wallet State (Client-side freshness)
     const [currentWallet, setCurrentWallet] = useState<WalletType | null>(initialWallet);
@@ -67,6 +68,21 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         setIsLoading(false);
 
         ApiService.fees.getPublicCurrent().then(setFeeRule).catch(console.error);
+
+        // Fetch Live FX Rates for International Donors
+        fetch('https://open.er-api.com/v6/latest/NGN')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.rates) {
+                    setFxRates({
+                        USD: data.rates.USD,
+                        GBP: data.rates.GBP,
+                        EUR: data.rates.EUR,
+                        CAD: data.rates.CAD
+                    });
+                }
+            })
+            .catch(console.error);
 
         if (!isAuthenticated) {
             setSelectedMethod('direct');
@@ -246,6 +262,26 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                         <span className="text-sm font-black text-primary tabular-nums">₦{(Number(totalChargeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
                 </div>
+
+                {fxRates && totalChargeMinor > 0n && (
+                    <div className="p-4 rounded-2xl bg-muted/10 border border-border/40 space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                            <Globe className="h-4 w-4 text-primary" /> International cards accepted.
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-xs font-medium text-muted-foreground">Approximate equivalent:</p>
+                            <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm font-bold text-foreground tabular-nums">
+                                <span>≈ ${(Number(totalChargeMinor) / 100 * fxRates.USD).toFixed(2)} USD</span>
+                                <span>≈ £{(Number(totalChargeMinor) / 100 * fxRates.GBP).toFixed(2)} GBP</span>
+                                <span>≈ €{(Number(totalChargeMinor) / 100 * fxRates.EUR).toFixed(2)} EUR</span>
+                                <span>≈ C${(Number(totalChargeMinor) / 100 * fxRates.CAD).toFixed(2)} CAD</span>
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground italic leading-relaxed">
+                            Final amount charged may vary depending on your bank's exchange rate.
+                        </p>
+                    </div>
+                )}
             </motion.div>
         );
     };
