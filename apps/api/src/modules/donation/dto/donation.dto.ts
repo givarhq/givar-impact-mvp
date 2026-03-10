@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNumberString, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import { IsEmail, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
 import { Currency } from '@givar/database';
 
 // Centralized Regex for Money
@@ -51,4 +51,17 @@ export class InitiateDirectDonationDto {
   @IsOptional()
   @IsString()
   guestName?: string;
+
+  // --- FX Metadata for International Donors ---
+  @IsOptional()
+  @IsString()
+  donorCurrency?: string;
+
+  @IsOptional()
+  @IsString()
+  donorAmount?: string;
+
+  @IsOptional()
+  @IsNumber()
+  fxRate?: number;
 }

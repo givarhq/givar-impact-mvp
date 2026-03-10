@@ -1,4 +1,4 @@
-import { IsEnum, IsNumberString, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsNumberString, IsOptional, IsString } from 'class-validator';
 import { Currency } from '@givar/database';
 
 export class FundWalletDto {
@@ -13,6 +13,19 @@ export class FundWalletDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  // --- FX Metadata for International Top-ups ---
+  @IsOptional()
+  @IsString()
+  donorCurrency?: string;
+
+  @IsOptional()
+  @IsString()
+  donorAmount?: string;
+
+  @IsOptional()
+  @IsNumber()
+  fxRate?: number;
 }
 
 export class WalletBalanceDto {
