@@ -67,7 +67,7 @@ export function ConfirmModal({
                                     {title}
                                 </DialogTitle>
                             </DialogHeader>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                            <p className="text-sm text-muted-foreground font-medium leading-relaxed break-words">
                                 {description}
                             </p>
                         </div>
