@@ -437,7 +437,11 @@ export class DonationService {
             feeAmount: feeAmountMinor.toString(),
             tipAmount: tipAmountBig.toString(),
             feePercentage: feeRule.percentage,
-            feeRuleId: feeRule.id
+            feeRuleId: feeRule.id,
+            // --- Push UX FX estimation to Paystack for round-trip logging ---
+            donorCurrency: dto.donorCurrency,
+            donorAmount: dto.donorAmount,
+            fxRate: dto.fxRate
           },
           callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
         },
@@ -486,11 +490,17 @@ export class DonationService {
     tipAmount?: bigint;
     feePercentageUsed?: number;
     feeRuleId?: string;
+    // --- Capture returning FX metadata ---
+    donorCurrency?: string;
+    donorAmount?: string;
+    fxRate?: number;
   }) {
     const {
       userId, guestEmail, guestName, projectId, amount, currency, reference, channel, authorization,
+      donorCurrency, donorAmount, fxRate,
       baseAmount = amount, feeAmount = 0n, tipAmount = 0n, feePercentageUsed = 0, feeRuleId = null
     } = data;
+
 
     if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money'].includes(channel)) {
       this.logger.warn(`Suspicious payment channel ignored`, { channel, reference });
@@ -591,7 +601,7 @@ export class DonationService {
           description: `Direct Pay Inflow`,
           status: TxStatus.COMPLETED,
           category: TxCategory.FUNDING,
-          metadata: { channel, authorization }
+          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
         }, tx);
 
         // 2. Process Outflow: Atomically decrement wallet balance
@@ -604,7 +614,7 @@ export class DonationService {
           description: `Direct donation: ${project.title}`,
           status: TxStatus.COMPLETED,
           category: TxCategory.DONATION,
-          metadata: { channel, authorization }
+          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
         }, tx);
 
         if (amountToProject > 0n) {
@@ -750,7 +760,10 @@ export class DonationService {
             isGoalMet,
             reference,
             channel,
-            authorization
+            authorization,
+            donorCurrency,
+            donorAmount,
+            fxRate
           }
         }
       });
@@ -810,8 +823,17 @@ export class DonationService {
     amount: bigint;
     currency: Currency;
     reference: string;
+    channel?: string;
+    authorization?: any;
+    // Capture FX metadata for forensic tracing
+    donorCurrency?: string;
+    donorAmount?: string;
+    fxRate?: number;
   }) {
-    const { userId, projectId, amount, currency, reference } = data;
+    const {
+      userId, projectId, amount, currency, reference, channel, authorization,
+      donorCurrency, donorAmount, fxRate
+    } = data;
 
     const result = await this.prisma.$transaction(async (tx) => {
       const wallet = await tx.wallet.findUniqueOrThrow({
@@ -828,6 +850,7 @@ export class DonationService {
           category: TxCategory.FUNDING,
           reference: `${reference}-CREDIT`,
           description: `Direct Donation Charge`,
+          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
         },
       });
 
@@ -841,6 +864,7 @@ export class DonationService {
           category: TxCategory.DONATION,
           reference,
           description: `Direct donation to project ${projectId}`,
+          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
         },
       });
 
@@ -887,7 +911,12 @@ export class DonationService {
             currency,
             reference,
             method: 'DIRECT_WEBHOOK',
-            isGoalMet: isNowFunded
+            isGoalMet: isNowFunded,
+            channel,
+            authorization,
+            donorCurrency,
+            donorAmount,
+            fxRate
           }
         }
       });
@@ -951,8 +980,12 @@ export class DonationService {
     amount: bigint;
     currency: Currency;
     reference: string;
+    // Add FX metadata to private signature
+    donorCurrency?: string;
+    donorAmount?: string;
+    fxRate?: number;
   }) {
-    const { email, name, projectId, amount, currency, reference } = data;
+    const { email, name, projectId, amount, currency, reference, donorCurrency, donorAmount, fxRate } = data;
     const normalizedEmail = email.toLowerCase().trim();
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -1012,7 +1045,11 @@ export class DonationService {
           projectId,
           reference,
           method: 'GUEST_WEBHOOK',
-          isGoalMet: isNowFunded
+          isGoalMet: isNowFunded,
+          // Inject FX metadata into audit trail for Guest reconciliation
+          donorCurrency,
+          donorAmount,
+          fxRate
         }
       }, tx);
 

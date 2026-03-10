@@ -62,6 +62,7 @@ export class WalletService {
     email: string,
     amount: string,
     currency: Currency,
+    fxData?: { donorCurrency?: string; donorAmount?: string; fxRate?: number }
   ) {
     // Check the user's verification status before allowing the transaction to proceed.
     const user = await this.prisma.user.findUnique({
@@ -103,6 +104,7 @@ export class WalletService {
             userId,
             action: 'wallet_funding',
             custom_fields: [{ display_name: 'Wallet Action', value: 'funding' }],
+            ...fxData
           },
           callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
         },
@@ -168,6 +170,10 @@ export class WalletService {
         currency: data.currency,
         channel: data.channel,
         authorization: data.authorization,
+        // Extract metadata returning from Paystack
+        donorCurrency: data.metadata?.donorCurrency,
+        donorAmount: data.metadata?.donorAmount,
+        fxRate: data.metadata?.fxRate
       },
     });
 
@@ -193,6 +199,10 @@ export class WalletService {
           reference: data.reference,
           channel: data.channel,
           authorization: data.authorization,
+          // Forward FX metadata
+          donorCurrency: data.metadata.donorCurrency,
+          donorAmount: data.metadata.donorAmount,
+          fxRate: data.metadata.fxRate,
           // Forward frozen intent metadata for financial splits
           baseAmount: data.metadata.baseAmount ? BigInt(data.metadata.baseAmount) : undefined,
           feeAmount: data.metadata.feeAmount ? BigInt(data.metadata.feeAmount) : undefined,
@@ -225,7 +235,14 @@ export class WalletService {
         status: TxStatus.COMPLETED,
         category: TxCategory.FUNDING,
         description: 'Wallet funding via Paystack',
-        metadata: { channel, authorization }
+        // Bundle authorization and FX metadata into the transaction
+        metadata: {
+          channel,
+          authorization,
+          donorCurrency: metadata.donorCurrency,
+          donorAmount: metadata.donorAmount,
+          fxRate: metadata.fxRate
+        }
       });
 
       const user = await this.prisma.user.findUnique({
@@ -246,7 +263,10 @@ export class WalletService {
           newBalance: result.newBalance.toString(),
           newBalance_naira: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
           channel,
-          authorization
+          authorization,
+          donorCurrency: metadata?.donorCurrency,
+          donorAmount: metadata?.donorAmount,
+          fxRate: metadata?.fxRate
         },
       });
 

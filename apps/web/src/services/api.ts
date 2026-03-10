@@ -141,7 +141,13 @@ export const ApiService = {
         })
         : apiClient.get('/wallet').then(r => r.data),
 
-    fund: (data: { amount: string; currency: string }) =>
+    fund: (data: {
+      amount: string;
+      currency: string;
+      donorCurrency?: string;
+      donorAmount?: string;
+      fxRate?: number;
+    }) =>
       apiClient.post('/wallet/fund', data).then(r => r.data),
 
     verifyTransaction: (reference: string) =>
@@ -258,10 +264,13 @@ export const ApiService = {
     direct: (data: {
       projectId: string;
       amount: string;
-      tipAmount?: string; // Optional platform tip for direct gateway payments
+      tipAmount?: string;
       currency: string;
       guestEmail?: string;
       guestName?: string;
+      donorCurrency?: string;
+      donorAmount?: string;
+      fxRate?: number;
     }) => apiClient.post('/donations/direct', data).then(r => r.data),
 
     getHistory: (token: string) =>
