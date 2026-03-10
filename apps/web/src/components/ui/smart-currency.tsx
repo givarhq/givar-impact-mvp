@@ -22,6 +22,14 @@ const sizeStyles = {
   }
 }
 
+const SYMBOL_MAP: Record<string, string> = {
+  NGN: '₦',
+  USD: '$',
+  GBP: '£',
+  EUR: '€',
+  CAD: 'C$',
+};
+
 export const SmartCurrency = ({ amount, currency, visible, className, size = 'default', hideKobo = false }: SmartCurrencyProps) => {
   if (!visible) {
     return <span className="text-muted-foreground/40 tracking-widest text-lg select-none">••••</span>;
@@ -36,7 +44,9 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
 
   let mainPart = '';
   let secondaryPart = '';
-  const currencySymbol = currency === 'NGN' ? '₦' : currency;
+
+  // Resolve standard currency symbols safely
+  const currencySymbol = SYMBOL_MAP[currency] || currency;
 
   // 2. Logic Implementation
   if (numericAmount >= 100_000_000) {

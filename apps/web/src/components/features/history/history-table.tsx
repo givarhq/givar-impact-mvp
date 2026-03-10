@@ -80,12 +80,25 @@ export const HistoryTable = memo(function HistoryTable({
         if (tx.type === 'DEBIT' && tx.reference.startsWith('DON-')) {
             return { label: 'Givar Wallet', method: 'Wallet Balance' };
         }
+
+        let methodString = 'Card';
+        if (tx.metadata?.channel) {
+            methodString = tx.metadata.channel.charAt(0).toUpperCase() + tx.metadata.channel.slice(1).replace('_', ' ');
+        }
+
+        // Logic: Extract international card details if available in the authorization object
+        if (tx.metadata?.authorization) {
+            const auth = tx.metadata.authorization;
+            const brand = auth.brand ? auth.brand.charAt(0).toUpperCase() + auth.brand.slice(1) : '';
+            const country = auth.country_code ? `(${auth.country_code})` : '';
+            if (brand) methodString = `${brand} ${country}`.trim();
+        }
+
         if (tx.type === 'DEBIT' && !tx.reference.startsWith('DON-')) {
-            return { label: 'Direct Payment', method: `Paystack • ${tx.metadata?.channel || 'Card'}` };
+            return { label: 'Direct Payment', method: `Paystack • ${methodString}` };
         }
         if (tx.type === 'CREDIT' && tx.metadata?.channel) {
-            const method = tx.metadata.channel.charAt(0).toUpperCase() + tx.metadata.channel.slice(1).replace('_', ' ');
-            return { label: 'Payment Gateway', method: `Paystack • ${method}` };
+            return { label: 'Payment Gateway', method: `Paystack • ${methodString}` };
         }
         if (tx.type === 'CREDIT') {
             return { label: 'Source', method: 'System Transfer' };
@@ -409,7 +422,7 @@ export const HistoryTable = memo(function HistoryTable({
                                         ) : (
                                             <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                         )}
-                                        <p className="text-xs font-bold text-foreground truncate ">
+                                        <p className="text-[11px] font-bold text-foreground truncate " title={getPaymentContext(selectedTx).method}>
                                             {getPaymentContext(selectedTx).method}
                                         </p>
                                     </div>
