@@ -205,10 +205,10 @@ export default function FundWalletPage() {
                   <div className="space-y-1">
                     <p className="text-xs font-medium text-muted-foreground">Approximate equivalent:</p>
                     <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm font-bold text-foreground tabular-nums">
-                      <span>≈ ${(numericAmount * fxRates.USD).toFixed(2)} USD</span>
-                      <span>≈ £{(numericAmount * fxRates.GBP).toFixed(2)} GBP</span>
-                      <span>≈ €{(numericAmount * fxRates.EUR).toFixed(2)} EUR</span>
-                      <span>≈ C${(numericAmount * fxRates.CAD).toFixed(2)} CAD</span>
+                      <span>• ${(numericAmount * fxRates.USD).toFixed(2)} USD</span>
+                      <span>• £{(numericAmount * fxRates.GBP).toFixed(2)} GBP</span>
+                      <span>• €{(numericAmount * fxRates.EUR).toFixed(2)} EUR</span>
+                      <span>• C${(numericAmount * fxRates.CAD).toFixed(2)} CAD</span>
                     </div>
                   </div>
                   <p className="text-[10px] text-muted-foreground italic leading-relaxed">

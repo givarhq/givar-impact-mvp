@@ -271,10 +271,10 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                         <div className="space-y-1">
                             <p className="text-xs font-medium text-muted-foreground">Approximate equivalent:</p>
                             <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm font-bold text-foreground tabular-nums">
-                                <span>≈ ${(Number(totalChargeMinor) / 100 * fxRates.USD).toFixed(2)} USD</span>
-                                <span>≈ £{(Number(totalChargeMinor) / 100 * fxRates.GBP).toFixed(2)} GBP</span>
-                                <span>≈ €{(Number(totalChargeMinor) / 100 * fxRates.EUR).toFixed(2)} EUR</span>
-                                <span>≈ C${(Number(totalChargeMinor) / 100 * fxRates.CAD).toFixed(2)} CAD</span>
+                                <span>• ${(Number(totalChargeMinor) / 100 * fxRates.USD).toFixed(2)} USD</span>
+                                <span>• £{(Number(totalChargeMinor) / 100 * fxRates.GBP).toFixed(2)} GBP</span>
+                                <span>• €{(Number(totalChargeMinor) / 100 * fxRates.EUR).toFixed(2)} EUR</span>
+                                <span>• C${(Number(totalChargeMinor) / 100 * fxRates.CAD).toFixed(2)} CAD</span>
                             </div>
                         </div>
                         <p className="text-[10px] text-muted-foreground italic leading-relaxed">
