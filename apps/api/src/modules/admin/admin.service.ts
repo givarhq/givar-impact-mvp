@@ -2561,19 +2561,25 @@ export class AdminService {
       orderBy: { createdAt: 'desc' }
     });
 
-    const flattened = transactions.map(tx => ({
-      Timestamp: tx.createdAt.toISOString(),
-      Reference: tx.reference,
-      Type: tx.type,
-      Financial_Category: tx.category,
-      Amount: (Number(tx.amount) / 100).toFixed(2),
-      Currency: tx.currency,
-      Status: tx.status,
-      Donor: tx.wallet.user.email,
-      Project_Category: tx.donation?.project?.category?.name || 'N/A',
-      Cause: tx.donation?.project?.title || 'System Top-up',
-      Description: tx.description
-    }));
+    const flattened = transactions.map(tx => {
+      const meta = tx.metadata as any;
+      return {
+        Timestamp: tx.createdAt.toISOString(),
+        Reference: tx.reference,
+        Type: tx.type,
+        Financial_Category: tx.category,
+        Amount: (Number(tx.amount) / 100).toFixed(2),
+        Currency: tx.currency,
+        Donor_Currency: meta?.donorCurrency || tx.currency,
+        Donor_Amount: meta?.donorAmount || (Number(tx.amount) / 100).toFixed(2),
+        FX_Rate: meta?.fxRate || '1.0',
+        Status: tx.status,
+        Donor: tx.wallet.user.email || meta?.guestEmail || 'N/A',
+        Project_Category: tx.donation?.project?.category?.name || 'N/A',
+        Cause: tx.donation?.project?.title || 'System Top-up',
+        Description: tx.description
+      };
+    });
 
     return flattened.length > 0 ? json2csv(flattened) : '';
   }

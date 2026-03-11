@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Search,
     AlertTriangle,
@@ -11,8 +11,6 @@ import {
     Database,
     Globe,
     RefreshCcw,
-    ArrowRightLeft,
-    Ban,
     Calendar,
     Wrench,
     Sparkles,
@@ -43,9 +41,11 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
     activeProjects
 }: LedgerOversightProps) {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState('suspense');
+    const searchParams = useSearchParams();
+    const searchRef = searchParams.get('search');
 
-    const [refInput, setRefInput] = useState('');
+    const [activeTab, setActiveTab] = useState(searchRef ? 'reconcile' : 'suspense');
+    const [refInput, setRefInput] = useState(searchRef || '');
     const [isVerifying, setIsVerifying] = useState(false);
     const [reconcileResult, setReconcileResult] = useState<any>(null);
 
@@ -59,6 +59,32 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
         reference: ''
     });
 
+    useEffect(() => {
+        if (searchRef && !isVerifying && !reconcileResult) {
+            handleVerifyRef(searchRef);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchRef]);
+
+    const handleVerifyRef = async (overrideRef?: string) => {
+        const targetRef = overrideRef || refInput;
+        if (!targetRef) return;
+        setIsVerifying(true);
+        setReconcileResult(null);
+        try {
+            const token = getCookie('givar_token') as string;
+            const data = await ApiService.admin.verifyExternalRef(token, targetRef.trim());
+            setReconcileResult(data);
+            if (data.canReconcile) {
+                toast.success("Transaction discrepancy detected");
+            }
+        } catch (e) {
+            toast.error('Failed to verify reference with external node');
+        } finally {
+            setIsVerifying(false);
+        }
+    };
+
     const refreshSuspense = async () => {
         const token = getCookie('givar_token') as string;
         if (!token) return;
@@ -67,24 +93,6 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
             setSuspenseItems(data || []);
         } catch (e) {
             console.error("Failed to refresh suspense queue");
-        }
-    };
-
-    const handleVerifyRef = async () => {
-        if (!refInput) return;
-        setIsVerifying(true);
-        setReconcileResult(null);
-        try {
-            const token = getCookie('givar_token') as string;
-            const data = await ApiService.admin.verifyExternalRef(token, refInput.trim());
-            setReconcileResult(data);
-            if (data.canReconcile) {
-                toast.success("Transaction discrepancy detected");
-            }
-        } catch (e) {
-            toast.error('Failed to verify reference with external gateway');
-        } finally {
-            setIsVerifying(false);
         }
     };
 
@@ -220,9 +228,16 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                             </button>
                                                         </div>
                                                         <div className="flex flex-col gap-1">
-                                                            <SmartCurrency amount={item.amount} currency={item.currency} visible={true} size="large" className="text-foreground font-bold " />
+                                                            <div className="flex items-center gap-2">
+                                                                <SmartCurrency amount={item.amount} currency={item.currency} visible={true} size="large" className="text-foreground font-bold " />
+                                                                {item.metadata?.donorCurrency && item.metadata?.donorCurrency !== 'NGN' && (
+                                                                    <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-blue-200 text-[10px] px-2 py-0.5 shadow-sm font-bold">
+                                                                        ≈ {item.metadata.donorCurrency} {item.metadata.donorAmount}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
                                                             <p className="text-xs text-muted-foreground font-medium truncate">
-                                                                Source: <span className="text-foreground font-bold">{item.wallet?.user?.email || 'External identity'}</span>
+                                                                Source: <span className="text-foreground font-bold">{item.wallet?.user?.email || item.metadata?.guestEmail || 'External identity'}</span>
                                                             </p>
                                                         </div>
                                                         <div className="flex items-center gap-2 mt-2">
@@ -273,7 +288,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                 />
                             </div>
                             <Button
-                                onClick={handleVerifyRef}
+                                onClick={() => handleVerifyRef()}
                                 disabled={isVerifying || !refInput}
                                 className="h-12 px-8 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 border-0 bg-primary hover:bg-primary/90 text-white"
                             >
@@ -297,8 +312,15 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                     </div>
                                     <div className="flex justify-between items-center py-3 border-b border-border/40">
                                         <span className="text-xs font-bold text-muted-foreground">Value</span>
-                                        <div className="text-right">
-                                            <SmartCurrency amount={reconcileResult.external.amount.toString()} currency={reconcileResult.external.currency} visible={true} size="default" className="text-foreground font-bold " />
+                                        <div className="text-right flex flex-col items-end">
+                                            <div className="flex items-center gap-2">
+                                                <SmartCurrency amount={reconcileResult.external.amount.toString()} currency={reconcileResult.external.currency} visible={true} size="default" className="text-foreground font-bold " />
+                                                {reconcileResult.external.metadata?.donorCurrency && reconcileResult.external.metadata?.donorCurrency !== 'NGN' && (
+                                                    <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-blue-200 text-[10px] px-2 py-0.5 shadow-sm font-bold">
+                                                        ≈ {reconcileResult.external.metadata.donorCurrency} {reconcileResult.external.metadata.donorAmount}
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center py-3">
