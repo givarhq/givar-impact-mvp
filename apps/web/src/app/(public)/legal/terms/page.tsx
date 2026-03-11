@@ -122,6 +122,9 @@ export default function TermsPage() {
                                 <p>
                                     Because Givar operates a transparent, triple-entry ledger system designed to provide immediate capital to critical causes, <strong>all donations are final and non-refundable</strong>. Once you confirm a transaction from your Givar Wallet or via Direct Pay, the capital is permanently locked to the target project's ledger.
                                 </p>
+                                <p>
+                                    <strong>International Payments & Exchange Rates:</strong> All transactions on the Givar platform are processed and settled in Nigerian Naira (NGN). If you select a foreign currency (e.g., USD, GBP, EUR, CAD) during checkout, the displayed value is strictly an estimate based on live market rates. Your payment provider or bank determines the final exchange rate applied to the transaction and may charge additional foreign transaction fees. Givar is not liable for discrepancies between our platform's estimated conversion and the final debit on your bank statement.
+                                </p>
 
                                 <h2>3. Overfunding, "Spillover", and Stagnant Dust</h2>
                                 <p>To maximize global impact, Givar implements automated capital efficiency protocols:</p>
