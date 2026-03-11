@@ -207,7 +207,7 @@ export default function FundWalletPage() {
 
             <div className="flex gap-2 min-w-0">
               <Select value={displayCurrency} onValueChange={(v) => { setDisplayCurrency(v); setDisplayAmount(''); }}>
-                <SelectTrigger className="w-[90px] md:w-[110px] h-14 md:h-16 rounded-2xl md:rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-xs md:text-sm shadow-none transition-all">
+                <SelectTrigger className="w-[90px] md:w-[110px] h-14 md:h-16 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-xs md:text-sm shadow-none transition-all">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-border/40 shadow-xl">
@@ -232,7 +232,7 @@ export default function FundWalletPage() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={14}
-                  className="pl-[calc(1.5rem+1ch)] md:pl-[calc(2rem+1ch)] pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
+                  className="pl-[calc(1.5rem+1ch)] md:pl-[calc(2rem+1ch)] pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
                   value={formatNumberInput(displayAmount)}
                   onChange={handleAmountChange}
                   disabled={isUnverified}
