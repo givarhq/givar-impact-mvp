@@ -273,7 +273,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
             <div className="flex gap-2 min-w-0">
                 <Select value={displayCurrency} onValueChange={(v) => { setDisplayCurrency(v); setDisplayAmount(''); }}>
-                    <SelectTrigger className="w-[100px] h-12 rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-sm shadow-none">
+                    <SelectTrigger className="w-[90px] md:w-[110px] h-14 md:h-16 rounded-2xl md:rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-xs md:text-sm shadow-none transition-all">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-border/40 shadow-xl">
@@ -286,13 +286,13 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                 </Select>
 
                 <div className="relative min-w-0 flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-muted-foreground/60">
+                    <span className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-xl md:text-2xl font-bold text-muted-foreground/60 transition-all">
                         {SYMBOLS[displayCurrency]}
                     </span>
                     <Input
                         type="text"
                         placeholder={displayCurrency === 'NGN' ? "1,000" : "50"}
-                        className="pl-9 h-12 text-lg font-bold rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums"
+                        className="pl-9 md:pl-12 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl md:rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
                         value={formatNumberInput(displayAmount)}
                         onChange={handleAmountChange}
                     />
@@ -557,7 +557,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                         onClick={handleConfirm}
                         disabled={isLoading || !displayAmount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod)}
                         className={cn(
-                            "w-[12rem] h-12 text-sm font-bold rounded-3xl shadow-sm transition-all mt-2",
+                            "w-auto h-12 text-sm font-bold rounded-3xl shadow-sm transition-all mt-2",
                             needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 border border-border/60" : "bg-primary text-white hover:bg-primary/90"
                         )}
                     >
