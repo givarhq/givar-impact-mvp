@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 
 export interface DonationFormProps {
     project: Project | null;
@@ -42,6 +43,7 @@ const QUICK_AMOUNTS: Record<string, string[]> = {
 
 export function DonationForm({ project, wallet: initialWallet, isAuthenticated }: DonationFormProps) {
     const router = useRouter();
+    const posthog = usePostHog();
 
     // State
     const [displayCurrency, setDisplayCurrency] = useState('NGN');
@@ -69,11 +71,16 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             try {
                 const user = JSON.parse(userCookie as string);
                 setIsUnverified(user.emailVerified === false);
+                // Identify user in PostHog for cross-device tracking
+                if (user.email && posthog) {
+                    posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
+                }
             } catch (e) {
                 setIsUnverified(false);
             }
         }
     };
+
 
     // Initial Setup & Wallet Refresh
     useEffect(() => {
@@ -200,6 +207,18 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             return;
         }
 
+        // Capture conversion intent in PostHog Analytics
+        posthog?.capture('donation_initiated', {
+            project_id: project.id,
+            project_title: project.title,
+            display_currency: displayCurrency,
+            display_amount: displayAmount,
+            calculated_ngn_value: ngnValue,
+            payment_method: selectedMethod,
+            donation_type: donationType,
+            is_guest: isGuest
+        });
+
         setIsLoading(true);
         try {
             const minorAmount = baseAmountMinor.toString();
@@ -272,7 +291,11 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             </div>
 
             <div className="flex gap-2 min-w-0">
-                <Select value={displayCurrency} onValueChange={(v) => { setDisplayCurrency(v); setDisplayAmount(''); }}>
+                <Select value={displayCurrency} onValueChange={(v) => {
+                    setDisplayCurrency(v);
+                    setDisplayAmount('');
+                    posthog?.capture('currency_changed', { to: v, context: 'donation' });
+                }}>
                     <SelectTrigger className="w-[90px] md:w-[110px] h-14 md:h-16 rounded-2xl md:rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-xs md:text-sm shadow-none transition-all">
                         <SelectValue />
                     </SelectTrigger>
