@@ -220,18 +220,19 @@ export default function FundWalletPage() {
               </Select>
 
               <div className="relative min-w-0 flex-1">
-                <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-xl md:text-2xl font-bold text-muted-foreground/60 pointer-events-none">
-                  {SYMBOLS[displayCurrency]}
-                </span>
                 <Input
                   type="text"
-                  placeholder={displayCurrency === 'NGN' ? "5,000" : "100"}
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={14}
-                  className="pl-6 md:pl-8 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-[25px] border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
-                  value={formatNumberInput(displayAmount)}
-                  onChange={handleAmountChange}
+                  placeholder={`${SYMBOLS[displayCurrency]} ${displayCurrency === 'NGN' ? "5,000" : "100"}`}
+                  className="pl-3 md:pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-[25px] border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
+                  value={displayAmount ? `${SYMBOLS[displayCurrency]} ${formatNumberInput(displayAmount)}` : ''}
+                  onChange={(e) => {
+                    // strip the symbol for internal state
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    setDisplayAmount(value);
+                  }}
                   disabled={isUnverified}
                 />
               </div>
