@@ -6,6 +6,7 @@ import { Modal } from '../../ui/modal';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import toast from 'react-hot-toast';
+import { usePostHog } from 'posthog-js/react';
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const Icons = {
 };
 
 export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTitle, projectSlug }: ShareModalProps) {
+  const posthog = usePostHog();
   const [copied, setCopied] = useState(false);
 
   const shareUrl = typeof window !== 'undefined'
@@ -39,6 +41,7 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     toast.success('Link copied');
+    posthog?.capture('project_shared', { platform: 'clipboard', project_slug: projectSlug });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -58,6 +61,9 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
         url = `mailto:?subject=${encodeURIComponent(`Check out ${projectTitle}`)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
         break;
     }
+
+    posthog?.capture('project_shared', { platform, project_slug: projectSlug });
+
     window.open(url, '_blank', 'width=600,height=400');
     onClose();
   };

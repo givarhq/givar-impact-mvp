@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,6 +11,7 @@ import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
+import { usePostHog } from 'posthog-js/react';
 
 const signupSchema = z.object({
   firstName: z.string().min(2, 'First name is too short'),
@@ -33,7 +33,7 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
-  const router = useRouter();
+  const posthog = usePostHog();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -67,6 +67,10 @@ export default function SignupPage() {
       const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
+
+      // Link anonymous session to the new user and log acquisition
+      posthog?.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
+      posthog?.capture('user_signup');
 
       window.location.href = '/dashboard';
     } catch (error: any) {

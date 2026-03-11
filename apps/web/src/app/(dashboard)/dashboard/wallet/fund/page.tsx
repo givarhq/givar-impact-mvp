@@ -13,6 +13,7 @@ import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../lib/utils/cn';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 
 const SYMBOLS: Record<string, string> = {
   NGN: '₦',
@@ -31,6 +32,7 @@ const QUICK_AMOUNTS: Record<string, string[]> = {
 };
 
 export default function FundWalletPage() {
+  const posthog = usePostHog();
   const [displayCurrency, setDisplayCurrency] = useState('NGN');
   const [displayAmount, setDisplayAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -122,6 +124,12 @@ export default function FundWalletPage() {
       toast.error("Minimum top-up is ₦100.00 equivalent.");
       return;
     }
+
+    posthog?.capture('wallet_funding_initiated', {
+      display_currency: displayCurrency,
+      display_amount: displayAmount,
+      calculated_ngn_value: ngnValue
+    });
 
     setIsLoading(true);
     try {
