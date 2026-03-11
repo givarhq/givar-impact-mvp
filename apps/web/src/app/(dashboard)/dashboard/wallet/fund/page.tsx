@@ -226,6 +226,8 @@ export default function FundWalletPage() {
                 <Input
                   type="text"
                   placeholder={displayCurrency === 'NGN' ? "5,000" : "100"}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   maxLength={14}
                   className="pl-6 md:pl-8 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
                   value={formatNumberInput(displayAmount)}

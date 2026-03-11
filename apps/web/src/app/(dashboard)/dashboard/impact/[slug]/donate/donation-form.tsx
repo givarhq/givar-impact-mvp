@@ -291,6 +291,8 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                     </span>
                     <Input
                         type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         placeholder={displayCurrency === 'NGN' ? "1,000" : "50"}
                         maxLength={14}
                         className="pl-6 md:pl-8 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
