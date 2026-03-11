@@ -295,7 +295,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                         pattern="[0-9]*"
                         placeholder={displayCurrency === 'NGN' ? "1,000" : "50"}
                         maxLength={14}
-                        className="pl-6 md:pl-8 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
+                        className="pl-6 md:pl-8 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-[25px] border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
                         value={formatNumberInput(displayAmount)}
                         onChange={handleAmountChange}
                     />
