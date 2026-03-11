@@ -286,16 +286,19 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                 </Select>
 
                 <div className="relative min-w-0 flex-1">
-                    <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-xl md:text-2xl font-bold text-muted-foreground/60 transition-all">
+                    {/* Currency symbol */}
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-xl md:text-2xl font-bold text-muted-foreground/60 pointer-events-none
+      pl-6 md:pl-8">
                         {SYMBOLS[displayCurrency]}
                     </span>
+
                     <Input
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         placeholder={displayCurrency === 'NGN' ? "1,000" : "50"}
                         maxLength={14}
-                        className="pl-6 md:pl-8 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
+                        className="pl-[calc(1.5rem+1ch)] md:pl-[calc(2rem+1ch)] pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
                         value={formatNumberInput(displayAmount)}
                         onChange={handleAmountChange}
                     />
