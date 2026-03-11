@@ -220,13 +220,14 @@ export default function FundWalletPage() {
               </Select>
 
               <div className="relative min-w-0 flex-1">
-                <span className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-xl md:text-2xl font-bold text-muted-foreground/60 transition-all">
+                <span className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-xl md:text-2xl font-bold text-muted-foreground/60 transition-all">
                   {SYMBOLS[displayCurrency]}
                 </span>
                 <Input
                   type="text"
                   placeholder={displayCurrency === 'NGN' ? "5,000" : "100"}
-                  className="pl-9 md:pl-12 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl md:rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:border-primary/40 transition-all tabular-nums w-full"
+                  maxLength={14}
+                  className="pl-6 md:pl-8 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
                   value={formatNumberInput(displayAmount)}
                   onChange={handleAmountChange}
                   disabled={isUnverified}
@@ -234,7 +235,7 @@ export default function FundWalletPage() {
               </div>
             </div>
 
-            <div className="flex gap-2 text-xs flex-wrap pt-2 min-w-0">
+            <div className="flex gap-2 text-xs flex-wrap pt-1 min-w-0">
               {(QUICK_AMOUNTS[displayCurrency] || QUICK_AMOUNTS.NGN).map((val) => (
                 <button
                   key={val}
@@ -253,7 +254,7 @@ export default function FundWalletPage() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="flex items-start gap-2 p-4 bg-blue-50/50 border border-blue-100 rounded-2xl text-blue-800 text-[11px] font-medium leading-relaxed mt-2"
+                  className="flex items-start gap-2 p-3 bg-blue-50/50 border border-blue-100 rounded-2xl text-blue-800 text-[11px] font-medium leading-relaxed mt-2"
                 >
                   <Globe className="h-4 w-4 shrink-0 mt-0.5 text-blue-600" />
                   <p>
@@ -272,15 +273,14 @@ export default function FundWalletPage() {
             </p>
           </div>
 
-          <div className="flex items-center justify-center">
+          <div className="flex justify-center pt-2">
             <Button
               onClick={handleFund}
               disabled={isLoading || !displayAmount || isUnverified}
-              className="w-auto h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-0"
+              className="w-auto px-10 h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-0"
             >
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (
-                isUnverified ? 'Verification Required' : 'Proceed to Gateway'
-              )}
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
+              {isUnverified ? 'Verification Required' : 'Proceed to Gateway'}
             </Button>
           </div>
         </CardContent>
