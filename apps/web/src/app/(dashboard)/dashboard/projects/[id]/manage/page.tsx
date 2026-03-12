@@ -192,7 +192,7 @@ export default async function ProjectManagePage({
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <FeedbackThread
                             projectId={project.id}
-                            title="Direct line with the Givar team"
+                            title="Verification Updates"
                         />
                     </div>
                 </div>

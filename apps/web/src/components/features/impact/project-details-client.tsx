@@ -8,7 +8,8 @@ import {
     AlertTriangle, ChevronRight, Target,
     Heart, Check, UserCheck,
     RefreshCcw,
-    Clock
+    Clock,
+    CheckCircle2
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -150,7 +151,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <Tabs defaultValue="story" className="w-full">
                     <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
                         <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
-                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Execution</TabsTrigger>
+                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Use of Funds</TabsTrigger>
                         <TabsTrigger value="updates" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
                             Updates
                             <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
@@ -226,7 +227,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
                                             <DollarSign className="h-4 w-4" />
                                         </div>
-                                        <h4 className="text-xs font-bold tracking-widest text-foreground ">Financial breakdown</h4>
+                                        <h4 className="text-xs font-bold tracking-widest text-foreground ">Verified Cost Breakdown</h4>
                                     </div>
                                     <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
                                         <table className="w-full text-left border-collapse">
@@ -255,57 +256,59 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     </div>
                                 </div>
 
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-3 px-1">
-                                        <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-                                            <Briefcase className="h-4 w-4" />
+                                {timeline.length > 0 && (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-3 px-1">
+                                            <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+                                                <Briefcase className="h-4 w-4" />
+                                            </div>
+                                            <h4 className="text-xs font-bold tracking-widest text-foreground ">Implementation roadmap</h4>
                                         </div>
-                                        <h4 className="text-xs font-bold tracking-widest text-foreground ">Implementation roadmap</h4>
-                                    </div>
-                                    <div className="grid gap-3">
-                                        {timeline.map((phase: any, i: number) => {
-                                            const isCompleted = phase.status === 'COMPLETED';
-                                            const isInProgress = phase.status === 'IN_PROGRESS';
+                                        <div className="grid gap-3">
+                                            {timeline.map((phase: any, i: number) => {
+                                                const isCompleted = phase.status === 'COMPLETED';
+                                                const isInProgress = phase.status === 'IN_PROGRESS';
 
-                                            return (
-                                                <div key={i} className="flex gap-4 group relative">
-                                                    <div className="flex flex-col items-center shrink-0">
-                                                        <div className={cn(
-                                                            "h-7 w-7 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 bg-background",
-                                                            isCompleted ? "bg-primary border-primary text-primary-foreground shadow-sm" :
-                                                                isInProgress ? "border-primary text-primary animate-pulse" :
-                                                                    "border-border text-muted-foreground"
-                                                        )}>
-                                                            {isCompleted ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
-                                                        </div>
-                                                        <div className={cn(
-                                                            "flex-1 w-0.5 group-last:hidden mt-2 mb-0.5 transition-colors",
-                                                            isCompleted ? "bg-primary" : "bg-border/40"
-                                                        )} />
-                                                    </div>
-                                                    <div className="flex-1 pb-6 space-y-1 min-w-0">
-                                                        <div className="flex justify-between items-baseline gap-4">
-                                                            <h5 className={cn("font-bold text-sm", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
-                                                                {phase.phase}
-                                                            </h5>
-                                                            <div className="flex flex-col items-end shrink-0">
-                                                                <span className={cn(
-                                                                    "text-[11px] font-bold px-2 py-0.5 rounded-3xl  border",
-                                                                    isCompleted ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
-                                                                )}>
-                                                                    {isCompleted ? 'Complete' : phase.estimatedDate}
-                                                                </span>
+                                                return (
+                                                    <div key={i} className="flex gap-4 group relative">
+                                                        <div className="flex flex-col items-center shrink-0">
+                                                            <div className={cn(
+                                                                "h-7 w-7 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 bg-background",
+                                                                isCompleted ? "bg-primary border-primary text-primary-foreground shadow-sm" :
+                                                                    isInProgress ? "border-primary text-primary animate-pulse" :
+                                                                        "border-border text-muted-foreground"
+                                                            )}>
+                                                                {isCompleted ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
                                                             </div>
+                                                            <div className={cn(
+                                                                "flex-1 w-0.5 group-last:hidden mt-2 mb-0.5 transition-colors",
+                                                                isCompleted ? "bg-primary" : "bg-border/40"
+                                                            )} />
                                                         </div>
-                                                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium">
-                                                            {phase.deliverables}
-                                                        </p>
+                                                        <div className="flex-1 pb-6 space-y-1 min-w-0">
+                                                            <div className="flex justify-between items-baseline gap-4">
+                                                                <h5 className={cn("font-bold text-sm", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
+                                                                    {phase.phase}
+                                                                </h5>
+                                                                <div className="flex flex-col items-end shrink-0">
+                                                                    <span className={cn(
+                                                                        "text-[11px] font-bold px-2 py-0.5 rounded-3xl  border",
+                                                                        isCompleted ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
+                                                                    )}>
+                                                                        {isCompleted ? 'Complete' : phase.estimatedDate}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium">
+                                                                {phase.deliverables}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </motion.div>
                         </TabsContent>
 
@@ -433,6 +436,32 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             )}
                         </div>
                     </Card>
+
+                    {/* Expandable Verification Documents Section */}
+                    <details className="bg-card rounded-3xl border border-border/40 group overflow-hidden shadow-sm transition-all">
+                        <summary className="p-5 flex items-center justify-between cursor-pointer list-none font-bold text-sm outline-none">
+                            <span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Verification Documents</span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-open:rotate-90 transition-transform" />
+                        </summary>
+                        <div className="px-5 pb-5 space-y-3">
+                            <div className="pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Submitter Government ID</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Beneficiary Identity</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Vendor Contact Details</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Supporting Evidence</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
+                        </div>
+                    </details>
 
                     <div className="p-5 bg-muted/20 rounded-3xl border border-border/40 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />

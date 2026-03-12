@@ -128,7 +128,7 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
               <FeedbackThread
                 proposalId={proposalId}
-                title="Messages from the team"
+                title="Verification Updates"
               />
             </div>
           )}
