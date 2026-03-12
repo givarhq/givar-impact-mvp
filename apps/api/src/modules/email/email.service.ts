@@ -98,7 +98,7 @@ export class EmailService {
   }
 
   // 5. Wallet Funding
-  async sendWalletFundingEmail(email: string, data: { name: string; amount: string; currency: string; ref: string; newBalance: string }) {
+  async sendWalletFundingEmail(email: string, data: { name: string; amount: string; currency: string; ref: string; newBalance: string; donorAmount?: string; donorCurrency?: string; }) {
     const content = EmailTemplates.walletFunded(data);
     const html = EmailTemplates.base(content, 'Wallet Top-up Successful');
     return this.send(email, `Givar Impact: You added ${data.currency} ${data.amount} to your wallet`, html);

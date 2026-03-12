@@ -794,7 +794,9 @@ export class DonationService {
         amount,
         currency,
         reference,
-        result.surplus
+        result.surplus,
+        donorCurrency,
+        donorAmount
       );
 
       if (result.isGoalMet) {
