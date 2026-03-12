@@ -108,16 +108,32 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                     {/* NGN Goal (Text format) */}
-                                    <div style={{ display: 'flex', fontSize: '20px', fontWeight: 'bold', color: '#064e3b', alignItems: 'center' }}>
-                                        <span style={{ marginRight: '6px' }}>Goal:</span>
-                                        <span style={{ marginLeft: '4px' }}>NGN</span>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            gap: '6px',
+                                            fontSize: '20px',
+                                            fontWeight: 'bold',
+                                            color: '#064e3b',
+                                            alignItems: 'center'
+                                        }}
+                                    >
+                                        <span>Goal:</span>
+                                        <span>NGN</span>
                                         <span>{target.toLocaleString()}</span>
                                     </div>
 
                                     {/* USD Estimate (Text format) */}
-                                    <div style={{ display: 'flex', fontSize: '15px', fontWeight: 'bold', color: '#9ca3af', marginTop: '4px' }}>
-                                        <span style={{ marginRight: '4px' }}>~</span>
-                                        <span style={{ marginLeft: '4px' }}>USD</span>
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '4px',
+                                        fontSize: '15px',
+                                        fontWeight: 'bold',
+                                        color: '#9ca3af',
+                                        marginTop: '4px'
+                                    }}>
+                                        <span>~</span>
+                                        <span>USD</span>
                                         <span>{usdGoal.toLocaleString()}</span>
                                     </div>
                                 </div>
