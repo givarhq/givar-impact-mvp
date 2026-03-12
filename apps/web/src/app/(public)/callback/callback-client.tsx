@@ -8,8 +8,10 @@ import { CardContent } from '../../../components/ui/card';
 import { ApiService } from '../../../services/api';
 import { getCookie } from 'cookies-next';
 import Link from 'next/link';
+import { usePostHog } from 'posthog-js/react';
 
 export function CallbackClient() {
+    const posthog = usePostHog();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -30,6 +32,12 @@ export function CallbackClient() {
                 if (res.status === 'success') {
                     setResult(res);
                     setStatus('success');
+                    // Log the successful conversion
+                    posthog?.capture('payment_completed', {
+                        type: res.type,
+                        reference,
+                        project_id: res.project?.id
+                    });
                 } else if (attempts.current < MAX_ATTEMPTS) {
                     attempts.current++;
                     setTimeout(verify, 1500 * attempts.current);

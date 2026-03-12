@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,7 +11,7 @@ import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
 import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowLeft } from 'lucide-react';
-import { cn } from '../../../lib/utils/cn';
+import { usePostHog } from 'posthog-js/react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -22,7 +22,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 function LoginComponent() {
-  const router = useRouter();
+  const posthog = usePostHog();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -62,6 +62,10 @@ function LoginComponent() {
       const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
+
+      // Log successful login and identify the user session
+      posthog?.identify(user.id, { email: user.email });
+      posthog?.capture('user_login');
 
       if (typeof window !== 'undefined') {
         localStorage.setItem('givar_last_activity', Date.now().toString());

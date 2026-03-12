@@ -9,6 +9,7 @@ import { Project, ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
 import { motion } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 
 export const ProjectCard = memo(function ProjectCard({
   project,
@@ -33,9 +34,21 @@ export const ProjectCard = memo(function ProjectCard({
   };
 
   const VerIcon = getVerIcon();
+  const posthog = usePostHog();
+
+  const handleProjectClick = () => {
+    posthog?.capture('project_clicked', {
+      project_id: project.id,
+      project_title: project.title,
+      is_verified: project.isVerifiedOrganizer
+    });
+  };
 
   return (
-    <Card className="group flex flex-row sm:flex-col rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none">
+    <Card
+      onClick={handleProjectClick}
+      className="group flex flex-row sm:flex-col rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none"
+    >
       {/* Visual Header */}
       <Link href={detailsLink} className="relative block w-[110px] sm:w-full shrink-0 sm:aspect-video bg-muted border-r sm:border-r-0 sm:border-b border-border/40 overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
         {project.imageUrl ? (
