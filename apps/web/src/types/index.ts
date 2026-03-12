@@ -40,6 +40,21 @@ export interface Project {
   organizerType?: 'INDIVIDUAL' | 'ORGANIZATION' | 'SYSTEM';
   categoryName?: string;
   donorCount?: number;
+
+  // Alignment Fields
+  beneficiaryName?: string | null;
+  beneficiaryAge?: number | null;
+  beneficiaryRelationship?: string | null;
+  vendorName?: string | null;
+  vendorContactPerson?: string | null;
+  vendorEmail?: string | null;
+  vendorPhone?: string | null;
+  vendorAddress?: string | null;
+  hasPreCollectedFunds?: boolean;
+  preCollectedAmount?: string | null;
+  preCollectedHeldAt?: string | null;
+  preCollectedProofKey?: string | null;
+  preCollectedVerified?: boolean;
 }
 
 export interface ProjectUpdate {
@@ -47,7 +62,7 @@ export interface ProjectUpdate {
   title: string;
   content: string;
   imageUrl?: string | null;
-  type: 'MILESTONE' | 'ANNOUNCEMENT' | 'IMPACT_REPORT';
+  type: 'MILESTONE' | 'ANNOUNCEMENT' | 'IMPACT_REPORT' | 'VERIFICATION_UPDATE' | 'GOAL_ADJUSTMENT' | 'MILESTONE_UPDATE' | 'FUNDS_DISBURSED' | 'IMPACT_ACHIEVED';
   createdAt: string;
 }
 
@@ -70,7 +85,6 @@ export interface MilestoneProof {
   imageKeys: string[];
   submittedAt: string;
 }
-
 
 export interface ProjectManagementView extends Project {
   disbursements: Disbursement[];
@@ -152,10 +166,17 @@ export interface ProjectProposal {
   gallery: { url: string; type: 'IMAGE' | 'VIDEO' | 'DOCUMENT'; caption?: string }[];
 
   budgetBreakdown: {
-    item: string;
-    cost: number;
-    vendor: string;
-    type: string
+    id?: string;
+    payTo?: string;
+    costType?: string;
+    amount?: number;
+    description?: string;
+    stage?: string;
+    // Legacy support types
+    item?: string;
+    cost?: number;
+    vendor?: string;
+    type?: string;
   }[];
 
   executionTimeline: {
@@ -170,6 +191,20 @@ export interface ProjectProposal {
   organizationName: string | null;
   contactPhone: string | null;
   beneficiaryContact: string | null;
+
+  // Alignment Fields
+  beneficiaryName?: string | null;
+  beneficiaryAge?: number | null;
+  beneficiaryRelationship?: string | null;
+  vendorName?: string | null;
+  vendorContactPerson?: string | null;
+  vendorEmail?: string | null;
+  vendorPhone?: string | null;
+  vendorAddress?: string | null;
+  hasPreCollectedFunds?: boolean;
+  preCollectedAmount?: string | null;
+  preCollectedHeldAt?: string | null;
+  preCollectedProofKey?: string | null;
 
   status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
   submittedAt: string;
@@ -198,11 +233,6 @@ export interface ProjectWithDetails extends Project {
   organizerName: string;
 }
 
-export interface ProjectUpdate {
-  title: string;
-  content: string;
-  createdAt: string;
-}
 export interface OrganizationProfile {
   id: string;
   userId: string;

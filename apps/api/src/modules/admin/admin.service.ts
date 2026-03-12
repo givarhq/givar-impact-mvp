@@ -432,6 +432,24 @@ export class AdminService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+
+      // Auto-generate execution timeline from budget stages if none exists
+      const budget = (proposal.budgetBreakdown as any[]) || [];
+      let generatedTimeline = proposal.executionTimeline as any[];
+
+      if (!generatedTimeline || generatedTimeline.length === 0) {
+        const stages = [...new Set(budget.map(b => b.stage).filter(s => s && s.trim() !== ''))];
+        if (stages.length > 0) {
+          generatedTimeline = stages.map((stage, index) => ({
+            id: `auto-stage-${index}`,
+            phase: stage,
+            estimatedDate: 'TBD',
+            status: 'PENDING',
+            deliverables: budget.filter(b => b.stage === stage).map(b => b.description || b.item).join(', '),
+          }));
+        }
+      }
+
       const project = await tx.project.create({
         data: {
           proposalId: proposal.id,
@@ -450,8 +468,23 @@ export class AdminService {
           tags: ['Verified'],
           isActive: true,
           budgetBreakdown: proposal.budgetBreakdown ?? [],
-          executionTimeline: proposal.executionTimeline ?? [],
+          executionTimeline: generatedTimeline ?? [],
           riskAnalysis: proposal.riskAnalysis,
+
+          // New Alignment Mappings
+          beneficiaryName: proposal.beneficiaryName,
+          beneficiaryAge: proposal.beneficiaryAge,
+          beneficiaryRelationship: proposal.beneficiaryRelationship,
+          vendorName: proposal.vendorName,
+          vendorContactPerson: proposal.vendorContactPerson,
+          vendorEmail: proposal.vendorEmail,
+          vendorPhone: proposal.vendorPhone,
+          vendorAddress: proposal.vendorAddress,
+          hasPreCollectedFunds: proposal.hasPreCollectedFunds,
+          preCollectedAmount: proposal.preCollectedAmount,
+          preCollectedHeldAt: proposal.preCollectedHeldAt,
+          preCollectedProofKey: proposal.preCollectedProofKey,
+          preCollectedVerified: proposal.hasPreCollectedFunds ? true : false, // Verified upon admin promotion
         },
       });
 
