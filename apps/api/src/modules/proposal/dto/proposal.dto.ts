@@ -1,30 +1,30 @@
 import { Type } from 'class-transformer';
-import { 
-  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min 
+import {
+  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsBoolean
 } from 'class-validator';
 import { Currency } from '@givar/database';
 
-// 1. Budget Item Structure
+// 1. Budget Item Structure (Aligned to Spec)
 class BudgetItem {
   @IsString()
   id!: string;
 
   @IsString()
-  item!: string;
+  payTo!: string;
+
+  @IsString()
+  costType!: string;
 
   @IsNumber()
   @Min(0)
-  cost!: number;
+  amount!: number;
 
   @IsString()
-  vendor!: string;
+  description!: string;
 
   @IsOptional()
   @IsString()
-  vendorContact?: string;
-
-  @IsEnum(['SERVICE', 'GOODS', 'LOGISTICS', 'OTHER'])
-  type!: string;
+  stage?: string;
 }
 
 class MediaItemDto {
@@ -42,16 +42,16 @@ class MediaItemDto {
   caption?: string;
 }
 
-// 2. Timeline Item Structure
+// 2. Timeline Item Structure (Maintained for legacy compatibility during transition)
 class TimelineItem {
-  @IsString() 
+  @IsString()
   id!: string;
 
   @IsString()
   phase!: string;
 
   @IsString()
-  estimatedDate!: string; 
+  estimatedDate!: string;
 
   @IsString()
   deliverables!: string;
@@ -70,16 +70,16 @@ export class UpdateProposalDto {
   @IsOptional() @IsString() shortDesc?: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() location?: string;
-  @IsOptional() @IsNumber() targetAmount?: number; 
+  @IsOptional() @IsNumber() targetAmount?: number;
   @IsOptional() @IsEnum(Currency) currency?: Currency;
-  
-  @IsOptional() @IsString() coverImage?: string; 
+
+  @IsOptional() @IsString() coverImage?: string;
   @IsOptional() @IsString() videoUrl?: string;
 
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => MediaItemDto) 
+  @Type(() => MediaItemDto)
   gallery?: MediaItemDto[];
 
   @IsOptional()
@@ -100,4 +100,19 @@ export class UpdateProposalDto {
   @IsOptional() @IsString() organizationName?: string;
   @IsOptional() @IsString() contactPhone?: string;
   @IsOptional() @IsString() beneficiaryContact?: string;
+
+  @IsOptional() @IsString() beneficiaryName?: string;
+  @IsOptional() @IsNumber() beneficiaryAge?: number;
+  @IsOptional() @IsString() beneficiaryRelationship?: string;
+
+  @IsOptional() @IsString() vendorName?: string;
+  @IsOptional() @IsString() vendorContactPerson?: string;
+  @IsOptional() @IsString() vendorEmail?: string;
+  @IsOptional() @IsString() vendorPhone?: string;
+  @IsOptional() @IsString() vendorAddress?: string;
+
+  @IsOptional() @IsBoolean() hasPreCollectedFunds?: boolean;
+  @IsOptional() @IsNumber() preCollectedAmount?: number;
+  @IsOptional() @IsString() preCollectedHeldAt?: string;
+  @IsOptional() @IsString() preCollectedProofKey?: string;
 }

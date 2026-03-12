@@ -4,10 +4,11 @@ import { Currency } from '../types';
 
 export interface BudgetItem {
   id: string;
-  item: string;
-  cost: number;
-  vendor: string;
-  type: 'SERVICE' | 'GOODS' | 'LOGISTICS' | 'OTHER';
+  payTo: string;
+  costType: string;
+  amount: number;
+  description: string;
+  stage?: string;
 }
 
 export interface TimelineItem {
@@ -28,7 +29,7 @@ export interface MediaItem {
 
 interface ProposalState {
   id: string | null;
-  status: string | null; // Added to track lock state
+  status: string | null;
   title: string;
   shortDesc: string | null;
   description: string | null;
@@ -50,6 +51,22 @@ interface ProposalState {
   organizationName: string | null;
   contactPhone: string | null;
   beneficiaryContact: string | null;
+
+  // --- NEW ALIGNMENT FIELDS ---
+  beneficiaryName: string | null;
+  beneficiaryAge: number | null;
+  beneficiaryRelationship: string | null;
+
+  vendorName: string | null;
+  vendorContactPerson: string | null;
+  vendorEmail: string | null;
+  vendorPhone: string | null;
+  vendorAddress: string | null;
+
+  hasPreCollectedFunds: boolean;
+  preCollectedAmount: number | null;
+  preCollectedHeldAt: string | null;
+  preCollectedProofKey: string | null;
 
   setProposal: (proposal: any) => void;
   updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem'>>(
@@ -94,6 +111,21 @@ export const useProposalStore = create<ProposalState>()(
     contactPhone: null,
     beneficiaryContact: null,
 
+    beneficiaryName: null,
+    beneficiaryAge: null,
+    beneficiaryRelationship: null,
+
+    vendorName: null,
+    vendorContactPerson: null,
+    vendorEmail: null,
+    vendorPhone: null,
+    vendorAddress: null,
+
+    hasPreCollectedFunds: false,
+    preCollectedAmount: null,
+    preCollectedHeldAt: null,
+    preCollectedProofKey: null,
+
     setProposal: (proposal) => set(state => {
       const gallery = Array.isArray(proposal.gallery)
         ? proposal.gallery.map((item: any) => ({
@@ -102,7 +134,19 @@ export const useProposalStore = create<ProposalState>()(
           url: '',
         }))
         : [];
-      const budget = proposal.budgetBreakdown && typeof proposal.budgetBreakdown === 'object' ? proposal.budgetBreakdown : [];
+
+      // Dynamic mapping to bridge legacy schema to new Use of Funds schema
+      const budget = Array.isArray(proposal.budgetBreakdown)
+        ? proposal.budgetBreakdown.map((item: any) => ({
+          id: item.id || crypto.randomUUID(),
+          payTo: item.payTo || item.vendor || '',
+          costType: item.costType || item.type || 'GOODS',
+          amount: item.amount !== undefined ? item.amount : (item.cost || 0),
+          description: item.description || item.item || '',
+          stage: item.stage || ''
+        }))
+        : [];
+
       const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object' ? proposal.executionTimeline : [];
 
       return {
@@ -110,6 +154,7 @@ export const useProposalStore = create<ProposalState>()(
         ...proposal,
         status: proposal.status || null,
         targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
+        preCollectedAmount: proposal.preCollectedAmount ? Number(proposal.preCollectedAmount) / 100 : null,
         coverImageKey: proposal.coverImage,
         gallery,
         budgetBreakdown: budget,

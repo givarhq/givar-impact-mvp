@@ -95,6 +95,11 @@ enum UpdateType {
   MILESTONE
   ANNOUNCEMENT
   IMPACT_REPORT
+  VERIFICATION_UPDATE
+  GOAL_ADJUSTMENT
+  MILESTONE_UPDATE
+  FUNDS_DISBURSED
+  IMPACT_ACHIEVED
 }
 
 enum AuditAction {
@@ -351,6 +356,22 @@ model Project {
   fundedAt      DateTime?
   riskAnalysis      String?  @db.Text
 
+  beneficiaryName         String?
+  beneficiaryAge          Int?
+  beneficiaryRelationship String?
+
+  vendorName              String?
+  vendorContactPerson     String?
+  vendorEmail             String?
+  vendorPhone             String?
+  vendorAddress           String?
+
+  hasPreCollectedFunds    Boolean  @default(false)
+  preCollectedAmount      BigInt?
+  preCollectedHeldAt      String?
+  preCollectedProofKey    String?
+  preCollectedVerified    Boolean  @default(false)
+
   donations    Donation[]
   subscriptions Subscription[]
   guestDonations GuestDonation[]
@@ -585,6 +606,21 @@ model ProjectProposal {
   kycDocuments      String[]     
   organizationName  String?
   contactPhone      String?
+
+  beneficiaryName         String?
+  beneficiaryAge          Int?
+  beneficiaryRelationship String?
+
+  vendorName              String?
+  vendorContactPerson     String?
+  vendorEmail             String?
+  vendorPhone             String?
+  vendorAddress           String?
+
+  hasPreCollectedFunds    Boolean  @default(false)
+  preCollectedAmount      BigInt?
+  preCollectedHeldAt      String?
+  preCollectedProofKey    String?
 
   // --- 5. State Machine ---
   status        ProposalStatus  @default(DRAFT)
