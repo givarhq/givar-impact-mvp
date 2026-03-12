@@ -22,7 +22,7 @@ import { TransparencyCard } from './transparency-card';
 import { ShareModal } from './share-modal';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card } from '../../ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/card';
 
 interface ProjectDetailsClientProps {
     project: ProjectWithDetails;
@@ -50,7 +50,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
 
-    // Hybrid Badge Logic
     const getVerificationMeta = () => {
         if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') {
             return { label: 'Givar Team', icon: BadgeCheck, color: 'text-primary', badgeStyle: 'bg-primary/10 text-primary border-primary/20' };
@@ -63,6 +62,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const verMeta = getVerificationMeta();
     const VerIcon = verMeta.icon;
+
+    // Isolate the final impact report if the project is completed
+    const finalUpdate = project.updates?.find(u => u.type === 'IMPACT_ACHIEVED' || u.type === 'IMPACT_REPORT');
+
+    const formatUpdateType = (type: string) => {
+        return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    };
 
     return (
         <motion.div
@@ -106,6 +112,47 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     </div>
                 </div>
 
+                {/* Impact Completion Banner (Rendered dynamically if status is COMPLETED) */}
+                <AnimatePresence>
+                    {isCompleted && finalUpdate && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0, y: 20 }}
+                            animate={{ opacity: 1, height: 'auto', y: 0 }}
+                            className="pt-2"
+                        >
+                            <Card className="rounded-3xl border-emerald-500/20 bg-emerald-500/[0.03] shadow-sm overflow-hidden">
+                                <CardHeader className="bg-emerald-500/10 border-b border-emerald-500/10 py-4 px-6 flex flex-row items-center gap-3">
+                                    <div className="h-11 w-11 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 shrink-0 shadow-inner">
+                                        <CheckCircle2 className="h-6 w-6" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <CardTitle className="text-sm font-bold text-emerald-800 tracking-tight">{completedText}</CardTitle>
+                                        <p className="text-[11px] text-emerald-700/80 font-bold ">Final evidence & verification report</p>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-6 md:p-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                        <div className="space-y-4">
+                                            <h4 className="text-lg font-bold text-emerald-950 dark:text-emerald-50 leading-tight">{finalUpdate.title}</h4>
+                                            <p className="text-sm text-emerald-900/80 dark:text-emerald-100/80 leading-relaxed font-medium">
+                                                {finalUpdate.content}
+                                            </p>
+                                            <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 w-fit px-3 py-1.5 rounded-full border border-emerald-500/20">
+                                                <ShieldCheck className="h-4 w-4" /> Verified by Givar Audit
+                                            </div>
+                                        </div>
+                                        {finalUpdate.imageUrl && (
+                                            <div className="relative aspect-video rounded-2xl overflow-hidden border border-emerald-500/20 shadow-md bg-muted">
+                                                <Image src={finalUpdate.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover hover:scale-105 transition-transform duration-700" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* Media Section */}
                 <div className="space-y-3">
                     <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-muted shadow-sm">
@@ -120,7 +167,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10">
-                                <span className="text-xs font-bold tracking-widest opacity-40 ">Pending visuals</span>
+                                <span className="text-xs font-bold  opacity-40 ">Pending visuals</span>
                             </div>
                         )}
                     </div>
@@ -233,7 +280,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
                                             <DollarSign className="h-4 w-4" />
                                         </div>
-                                        <h4 className="text-xs font-bold tracking-widest text-foreground ">Verified Cost Breakdown</h4>
+                                        <h4 className="text-xs font-bold  text-foreground ">Verified Cost Breakdown</h4>
                                     </div>
                                     <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
                                         <table className="w-full text-left border-collapse">
@@ -248,12 +295,12 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 {budget.map((item: any, i: number) => (
                                                     <tr key={i} className="hover:bg-muted/10 transition-colors">
                                                         <td className="px-6 py-4 font-bold text-foreground">
-                                                            {item.item}
-                                                            <div className="md:hidden text-[11px] text-muted-foreground font-medium  mt-0.5">{item.type}</div>
+                                                            {item.description || item.item}
+                                                            <div className="md:hidden text-[11px] text-muted-foreground font-medium  mt-0.5">{item.costType || item.type}</div>
                                                         </td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium  text-[11px]">{item.type}</td>
+                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium  text-[11px]">{item.costType || item.type}</td>
                                                         <td className="px-6 py-4 text-right font-bold tabular-nums text-foreground">
-                                                            {new Intl.NumberFormat('en-NG', { style: 'currency', currency: project.currency }).format(item.cost)}
+                                                            {new Intl.NumberFormat('en-NG', { style: 'currency', currency: project.currency }).format(item.amount || item.cost || 0)}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -268,7 +315,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                             <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
                                                 <Briefcase className="h-4 w-4" />
                                             </div>
-                                            <h4 className="text-xs font-bold tracking-widest text-foreground ">Implementation roadmap</h4>
+                                            <h4 className="text-xs font-bold  text-foreground ">Implementation roadmap</h4>
                                         </div>
                                         <div className="grid gap-3">
                                             {timeline.map((phase: any, i: number) => {
@@ -328,17 +375,18 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             >
                                 {project.updates && project.updates.length > 0 ? (
                                     project.updates.map((update, idx) => {
-                                        const isAdjustment = update.title === 'Financial Goal Adjusted';
+                                        const isAdjustment = update.type === 'GOAL_ADJUSTMENT' || update.title === 'Financial Goal Adjusted';
+                                        const isImpact = update.type === 'IMPACT_ACHIEVED';
                                         return (
                                             <Card
                                                 key={idx}
                                                 className={cn(
                                                     "relative flex flex-col gap-4 p-5 md:p-6 rounded-3xl border shadow-sm transition-all",
-                                                    isAdjustment ? "bg-amber-50 border-amber-100" : "bg-card border-border/40"
+                                                    isAdjustment ? "bg-amber-50 border-amber-100" : isImpact ? "bg-emerald-50 border-emerald-100" : "bg-card border-border/40"
                                                 )}
                                             >
                                                 {update.imageUrl && (
-                                                    <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted border border-border/10">
+                                                    <div className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted border border-border/10 shadow-inner">
                                                         <Image
                                                             src={update.imageUrl}
                                                             alt=""
@@ -351,23 +399,27 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="space-y-1">
-                                                        <div className="flex items-center gap-3">
-                                                            <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold  tracking-wider border-none", isAdjustment ? "bg-amber-500/10 text-amber-600" : "bg-primary/10 text-primary")}>
-                                                                {isAdjustment ? 'Amendment' : update.type.replace('_', ' ')}
+                                                        <div className="flex items-center gap-3 mb-1">
+                                                            <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold tracking-wider border-none",
+                                                                isAdjustment ? "bg-amber-500/10 text-amber-700" :
+                                                                    isImpact ? "bg-emerald-500/10 text-emerald-700" :
+                                                                        "bg-primary/10 text-primary")}>
+                                                                {isAdjustment ? 'Amendment' : formatUpdateType(update.type)}
                                                             </Badge>
                                                             <span className="text-[11px] font-bold text-muted-foreground  flex items-center gap-1">
                                                                 <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
                                                             </span>
                                                         </div>
-                                                        <h4 className={cn("text-lg font-bold tracking-tight", isAdjustment ? "text-amber-800" : "text-foreground")}>{update.title}</h4>
+                                                        <h4 className={cn("text-lg font-bold tracking-tight", isAdjustment ? "text-amber-900" : isImpact ? "text-emerald-900" : "text-foreground")}>{update.title}</h4>
                                                     </div>
                                                     {isAdjustment && <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />}
+                                                    {isImpact && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
                                                 </div>
 
-                                                <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/70" : "text-muted-foreground")}>{update.content}</p>
+                                                <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/80" : isImpact ? "text-emerald-900/80" : "text-muted-foreground")}>{update.content}</p>
 
-                                                <div className="pt-4 border-t border-border/40 text-[10px] font-bold  tracking-widest text-muted-foreground flex items-center gap-1.5">
-                                                    <ShieldCheck className="h-3 w-3 text-primary" /> Verified entry
+                                                <div className="pt-4 border-t border-border/40 text-[10px] font-bold   text-muted-foreground flex items-center gap-1.5">
+                                                    <ShieldCheck className={cn("h-3 w-3", isImpact ? "text-emerald-600" : "text-primary")} /> Verified entry
                                                 </div>
                                             </Card>
                                         );
@@ -375,7 +427,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 ) : (
                                     <div className="text-center py-16 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                         <Clock className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
-                                        <p className="text-xs font-bold text-muted-foreground  tracking-widest">No activity logged</p>
+                                        <p className="text-xs font-bold text-muted-foreground  ">No activity logged</p>
                                     </div>
                                 )}
                             </motion.div>
@@ -425,7 +477,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1 mb-0.5">
-                                    <p className="text-[11px] text-muted-foreground font-bold  tracking-widest">Entity</p>
+                                    <p className="text-[11px] text-muted-foreground font-bold  ">Entity</p>
                                     {project.isVerifiedOrganizer && <BadgeCheck className="h-3 w-3 text-primary" />}
                                 </div>
                                 <p className="font-bold text-foreground truncate text-sm ">

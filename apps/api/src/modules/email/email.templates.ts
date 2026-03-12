@@ -338,6 +338,37 @@ export const EmailTemplates = {
     <p style="font-size: 14px; color: #6b7280;">Thank you for your generosity and for being part of this impact journey.</p>
   `,
 
+  impactAchievedDonor: (data: { name: string; projectTitle: string; projectUrl: string; mediaThumbnail?: string; disbursementSummary?: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>We are thrilled to announce that the impact you supported has been fully realized!</p>
+    
+    <div class="stat-box" style="text-align: center; background-color: #f0fdf4; border-color: #bbf7d0;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Impact Achieved</div>
+      <div style="font-size: 24px; font-weight: 800; color: #064e3b; line-height: 1.3;">${data.projectTitle}</div>
+    </div>
+
+    ${data.mediaThumbnail ? `
+      <div style="margin: 24px 0; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+        <img src="${data.mediaThumbnail}" alt="Impact Evidence" style="width: 100%; max-height: 300px; object-fit: cover; display: block;" />
+      </div>
+    ` : ''}
+
+    <p>Thank you for making this possible. All project milestones are now verified and finalized on the Givar immutable ledger.</p>
+
+    ${data.disbursementSummary ? `
+      <div style="margin: 24px 0; padding: 20px; border-radius: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; font-size: 13px; color: #475569;">
+        <strong style="color: #0f172a; font-size: 14px;">Funds Disbursement Summary:</strong><br/>
+        <div style="margin-top: 8px;">${data.disbursementSummary}</div>
+      </div>
+    ` : ''}
+
+    <div style="text-align: center; margin: 36px 0;">
+      <a href="${data.projectUrl}" class="button" style="background-color: #10b981;">View Final Impact Report</a>
+    </div>
+
+    <p style="font-size: 14px; color: #6b7280;">Your generosity changes lives. We look forward to building a transparent future with you.</p>
+  `,
+
   feedbackReceived: (data: {
     userName: string;
     projectTitle: string;

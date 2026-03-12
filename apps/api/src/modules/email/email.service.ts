@@ -194,7 +194,16 @@ export class EmailService {
     return this.send(email, `Givar Impact: The project you supported is fully funded!`, html);
   }
 
-  // 15. Dispatches a friendly notification when an Admin leaves feedback.
+  // 15. Impact Achieved Alert (To Donors)
+  async sendImpactAchievedDonorAlert(email: string, data: { name: string; projectTitle: string; projectSlug: string; mediaThumbnail?: string; disbursementSummary?: string }) {
+    const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${data.projectSlug}`;
+    const content = EmailTemplates.impactAchievedDonor({ ...data, projectUrl });
+    const html = EmailTemplates.base(content, 'Impact Successfully Achieved');
+    return this.send(email, `Givar Impact: Mission Accomplished for ${data.projectTitle}!`, html);
+  }
+
+
+  // 16. Dispatches a friendly notification when an Admin leaves feedback.
   async sendFeedbackNotification(
     email: string,
     data: {
@@ -221,7 +230,7 @@ export class EmailService {
     return this.send(email, `New message regarding ${data.projectTitle}`, html);
   }
 
-  // 16. Broadcasts an alert to all Administrators when new evidence is uploaded.
+  // 17. Broadcasts an alert to all Administrators when new evidence is uploaded.
   async sendAdminEvidenceAlert(data: { projectTitle: string; milestonePhase: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -248,7 +257,7 @@ export class EmailService {
     );
   }
 
-  // 17. Broadcasts to all admins when a new project is proposed.
+  // 18. Broadcasts to all admins when a new project is proposed.
   async sendAdminProposalAlert(data: { projectTitle: string; proposerName: string; proposalId: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -270,7 +279,7 @@ export class EmailService {
     );
   }
 
-  // 18. Broadcasts to all admins when an entity submits KYC for the first time or updates it.
+  // 19. Broadcasts to all admins when an entity submits KYC for the first time or updates it.
   async sendAdminKycAlert(data: { orgName: string; proposerName: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -292,7 +301,7 @@ export class EmailService {
     );
   }
 
-  // 19. Alerts admins when a project owner replies to a thread.
+  // 20. Alerts admins when a project owner replies to a thread.
   async sendAdminMessageAlert(data: { senderName: string; projectTitle: string; content: string; contextId: string; isProposal: boolean }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -317,7 +326,7 @@ export class EmailService {
     );
   }
 
-  //20. Broadcasts to all admins when funds hit the Suspense Ledger.
+  //21. Broadcasts to all admins when funds hit the Suspense Ledger.
   async sendAdminSuspenseAlert(data: { amount: string; currency: string; reference: string; reason: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -341,7 +350,7 @@ export class EmailService {
     );
   }
 
-  // 21. Broadcasts to all admins when a high-capital transaction is attempted/blocked.
+  // 22. Broadcasts to all admins when a high-capital transaction is attempted/blocked.
   async sendAdminHighCapitalAlert(data: { userEmail: string; amount: string; currency: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -361,7 +370,7 @@ export class EmailService {
     );
   }
 
-  // 22. Dispatches a confirmation to the proposer upon successful submission.
+  // 23. Dispatches a confirmation to the proposer upon successful submission.
   async sendProposalSubmittedConfirmation(email: string, data: { name: string; projectTitle: string }) {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
     const content = EmailTemplates.proposalSubmitted({ ...data, url });

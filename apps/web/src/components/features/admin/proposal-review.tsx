@@ -34,7 +34,7 @@ const AssistiveChecklist = ({ title, items }: { title: string, items: string[] }
 
     return (
         <div className="space-y-3 p-4 rounded-2xl bg-muted/20 border border-border/40 shadow-inner">
-            <h4 className="text-[11px] font-bold text-foreground tracking-widest uppercase">{title}</h4>
+            <h4 className="text-xs font-bold text-foreground text-[11px] text-[11px]">{title}</h4>
             <div className="space-y-2.5">
                 {items.map((item, i) => (
                     <div
@@ -157,7 +157,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             <h1 className="text-lg font-bold tracking-tight text-foreground truncate max-w-full leading-tight">
                                 {proposal.title || 'Untitled Project Proposal'}
                             </h1>
-                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px] tracking-wider border shrink-0", statusColor)}>
+                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-xs tracking-wider border shrink-0", statusColor)}>
                                 {displayStatus}
                             </Badge>
                         </div>
@@ -184,7 +184,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     <DialogHeader><DialogTitle className="text-lg font-bold">Feedback Narrative</DialogTitle></DialogHeader>
                                     <div className="space-y-6 pt-4">
                                         <div className="space-y-2">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 tracking-widest">Audit Instructions</label>
+                                            <label className="text-xs font-bold text-muted-foreground ml-1 text-[11px]">Audit Instructions</label>
                                             <textarea
                                                 className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
                                                 placeholder="Specify the additional information required..."
@@ -192,7 +192,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                 onChange={(e) => setFeedback(e.target.value)}
                                             />
                                         </div>
-                                        <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/20 border-0">
+                                        <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs text-[11px] shadow-lg shadow-primary/20 border-0">
                                             Submit Feedback
                                         </Button>
                                     </div>
@@ -221,7 +221,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived & the owner notified.</p>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 tracking-widest">Rejection Reason</label>
+                                            <label className="text-xs font-bold text-muted-foreground ml-1 text-[11px]">Rejection Reason</label>
                                             <Input
                                                 placeholder="State The Basis For This Decision..."
                                                 value={feedback}
@@ -229,7 +229,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                 className="h-12 rounded-3xl"
                                             />
                                         </div>
-                                        <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-md border-0">
+                                        <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs text-[11px] shadow-md border-0">
                                             Finalize Rejection
                                         </Button>
                                     </div>
@@ -238,7 +238,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </div>
                     ) : (
                         <div className="flex items-center gap-3 px-5 py-2 bg-muted/20 rounded-3xl border border-border/40 w-full sm:w-auto justify-center shadow-inner">
-                            <span className="text-[11px] font-bold tracking-widest text-muted-foreground">Decision Logged</span>
+                            <span className="text-xs font-bold text-[11px] text-muted-foreground">Decision Logged</span>
                             {proposal.status === 'APPROVED' ? <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" /> : <ShieldAlert className="h-4.5 w-4.5 text-destructive" />}
                         </div>
                     )}
@@ -253,7 +253,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {/* Visual Media Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                 <ImageIcon className="h-3.5 w-3.5 text-primary" /> Visual Assets
                             </CardTitle>
                         </CardHeader>
@@ -269,17 +269,17 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             className="object-cover transition-transform group-hover:scale-105 duration-700"
                                         />
                                     ) : (
-                                        <div className="flex items-center justify-center h-full text-muted-foreground/30 text-xs font-bold tracking-widest">Pending Media</div>
+                                        <div className="flex items-center justify-center h-full text-muted-foreground/30 text-xs font-bold text-[11px]">Pending Media</div>
                                     )}
                                 </div>
                                 <div className="p-6 md:p-8 flex flex-col justify-center bg-card/50">
-                                    <h4 className="text-[11px] font-bold text-primary tracking-widest mb-2">Elevator Pitch</h4>
+                                    <h4 className="text-xs font-bold text-primary text-[11px] mb-2">Elevator Pitch</h4>
                                     <p className="text-sm md:text-base leading-relaxed text-foreground font-medium italic">
                                         &quot;{proposal.shortDesc || "No elevator pitch provided for this proposal."}&quot;
                                     </p>
                                     {proposal.gallery && (proposal.gallery as any[]).length > 0 && (
                                         <div className="mt-8">
-                                            <h4 className="text-[11px] font-bold text-muted-foreground tracking-widest mb-3">Supporting Gallery</h4>
+                                            <h4 className="text-xs font-bold text-muted-foreground text-[11px] mb-3">Supporting Gallery</h4>
                                             <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2">
                                                 {(proposal.gallery as any[]).map((item, i) => (
                                                     <button key={i} onClick={() => window.open(item.url, '_blank')} className="relative h-14 w-14 rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 hover:ring-2 ring-primary/20 transition-all shadow-sm active:scale-95">
@@ -303,7 +303,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {/* Detailed Narrative Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                 <FileText className="h-3.5 w-3.5 text-blue-500" /> Full Narrative
                             </CardTitle>
                         </CardHeader>
@@ -338,22 +338,22 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                                <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                                <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                     <User className="h-3.5 w-3.5 text-primary" /> Beneficiary Context
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 space-y-4">
                                 <div>
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Full Name</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground text-[11px] mb-0.5">Full Name</p>
                                     <p className="text-sm font-bold text-foreground">{proposal.beneficiaryName || 'Not Provided'}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Age</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground text-[11px] mb-0.5">Age</p>
                                         <p className="text-sm font-bold text-foreground">{proposal.beneficiaryAge || 'N/A'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Relationship</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground text-[11px] mb-0.5">Relationship</p>
                                         <p className="text-sm font-bold text-foreground">{proposal.beneficiaryRelationship || 'N/A'}</p>
                                     </div>
                                 </div>
@@ -362,27 +362,27 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
                         <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                                <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                                <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                     <Building className="h-3.5 w-3.5 text-blue-500" /> Vendor / Provider
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 space-y-4">
                                 <div>
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Organization</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground text-[11px] mb-0.5">Organization</p>
                                     <p className="text-sm font-bold text-foreground">{proposal.vendorName || 'Not Provided'}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Contact Person</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground text-[11px] mb-0.5">Contact Person</p>
                                         <p className="text-xs font-bold text-foreground truncate">{proposal.vendorContactPerson || 'N/A'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Phone</p>
+                                        <p className="text-[11px] font-bold text-muted-foreground text-[11px] mb-0.5">Phone</p>
                                         <p className="text-xs font-bold text-foreground truncate">{proposal.vendorPhone || 'N/A'}</p>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Address</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground text-[11px] mb-0.5">Address</p>
                                     <p className="text-xs font-bold text-foreground">{proposal.vendorAddress || 'N/A'}</p>
                                 </div>
                             </CardContent>
@@ -392,17 +392,17 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {/* Financial Budget Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 flex flex-row items-center justify-between">
-                            <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                 <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> Use of Funds
                             </CardTitle>
                             <div className="flex items-center gap-2 bg-background border border-border/60 px-3 py-1 rounded-3xl shadow-sm">
-                                <span className="text-[10px] font-bold text-muted-foreground tracking-tighter">Total:</span>
+                                <span className="text-[11px] font-bold text-muted-foreground tracking-tighter">Total:</span>
                                 <SmartCurrency amount={(budgetTotal * 100).toString()} currency="NGN" visible={true} size="small" className="text-foreground" />
                             </div>
                         </CardHeader>
                         <div className="p-0 overflow-x-auto no-scrollbar">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-muted/10 text-[10px] font-bold text-muted-foreground border-b border-border/40 tracking-widest ">
+                                <thead className="bg-muted/10 text-[11px] font-bold text-muted-foreground border-b border-border/40 text-[11px] ">
                                     <tr>
                                         <th className="px-6 py-4">Description</th>
                                         <th className="px-6 py-4 hidden md:table-cell">Cost Type</th>
@@ -416,7 +416,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                         budgetBreakdown.map((item, i) => (
                                             <tr key={i} className="hover:bg-muted/20 transition-colors">
                                                 <td className="px-6 py-4 font-bold text-foreground">{item.description || item.item}</td>
-                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground text-[10px] font-bold tracking-wider">{item.costType || item.type}</td>
+                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground text-[11px] font-bold tracking-wider">{item.costType || item.type}</td>
                                                 <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.payTo || item.vendor}</td>
                                                 <td className="px-6 py-4 hidden lg:table-cell text-muted-foreground">
                                                     {item.stage ? <Badge variant="secondary" className="text-[9px] px-2 py-0 h-5 font-bold rounded-3xl shadow-none">{item.stage}</Badge> : '-'}
@@ -438,13 +438,13 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {proposal.hasPreCollectedFunds && (
                         <Card className="rounded-3xl border-blue-500/20 bg-blue-500/[0.02] overflow-hidden shadow-sm">
                             <CardHeader className="bg-blue-500/5 border-b border-blue-500/10 py-4 px-6 flex flex-row items-center justify-between">
-                                <CardTitle className="text-[11px] font-bold text-blue-700 flex items-center gap-2 tracking-widest">
+                                <CardTitle className="text-xs font-bold text-blue-700 flex items-center gap-2 text-[11px]">
                                     <Landmark className="h-3.5 w-3.5" /> Pre-Collected Funds Declared
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                                 <div className="space-y-1">
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest">Amount Raised Externally</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground text-[11px]">Amount Raised Externally</p>
                                     <p className="text-xl font-black text-foreground">
                                         <SmartCurrency amount={((Number(proposal.preCollectedAmount) || 0) * 100).toString()} currency="NGN" visible={true} size="default" />
                                     </p>
@@ -467,7 +467,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {/* Proposer Information Card */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                 <User className="h-3.5 w-3.5 text-primary" /> Proposer Identity
                             </CardTitle>
                         </CardHeader>
@@ -478,7 +478,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="text-sm font-bold text-foreground truncate">{proposal.user?.firstName} {proposal.user?.lastName}</div>
-                                    <div className="text-[11px] text-muted-foreground truncate font-medium opacity-80">{proposal.user?.email}</div>
+                                    <div className="text-xs text-muted-foreground truncate font-medium opacity-80">{proposal.user?.email}</div>
                                 </div>
                             </div>
                         </CardContent>
@@ -491,10 +491,10 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <div className="flex justify-between items-center">
-                                <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                                <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Cause Evidence Vault
                                 </CardTitle>
-                                <Badge variant="secondary" className="text-[10px] font-bold rounded-3xl px-2.5 h-5 bg-background shadow-sm border-border/40">
+                                <Badge variant="secondary" className="text-[11px] font-bold rounded-3xl px-2.5 h-5 bg-background shadow-sm border-border/40">
                                     {proposal.kycDocuments?.length || 0} Records
                                 </Badge>
                             </div>
@@ -513,7 +513,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             </div>
                                             <div className="text-left min-w-0">
                                                 <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">Legal Record {i + 1}</p>
-                                                <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate">Secure Link</p>
+                                                <p className="text-[11px] text-muted-foreground font-mono opacity-60 truncate">Secure Link</p>
                                             </div>
                                         </div>
                                         <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
@@ -522,7 +522,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             ) : (
                                 <div className="text-center py-10 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                     <AlertCircle className="h-7 w-7 mx-auto text-destructive/40 mb-2" />
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Vault Empty</p>
+                                    <p className="text-[11px] font-bold text-muted-foreground text-[11px] ">Vault Empty</p>
                                 </div>
                             )}
                         </CardContent>
@@ -532,12 +532,12 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {!isTerminalState && (
                         <Card className="rounded-3xl border-primary/20 bg-primary/[0.02] overflow-hidden shadow-sm">
                             <CardHeader className="bg-primary/5 border-b border-primary/10 py-4 px-6">
-                                <CardTitle className="text-[11px] font-bold text-primary flex items-center gap-2 tracking-widest">
+                                <CardTitle className="text-xs font-bold text-primary flex items-center gap-2 text-[11px]">
                                     <ListChecks className="h-3.5 w-3.5" /> Admin Review Framework
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-5 space-y-4">
-                                <p className="text-[10px] text-primary/70 font-bold uppercase tracking-widest mb-2 text-center">Assistive Checklists</p>
+                                <p className="text-[11px] text-primary/70 font-bold text-[11px] text-[11px] mb-2 text-center">Assistive Checklists</p>
 
                                 <AssistiveChecklist
                                     title="Beneficiary Verification"
@@ -564,7 +564,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {/* NEW: Risk Indicators */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
+                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 text-[11px]">
                                 <Search className="h-3.5 w-3.5 text-amber-500" /> Risk Indicators
                             </CardTitle>
                         </CardHeader>

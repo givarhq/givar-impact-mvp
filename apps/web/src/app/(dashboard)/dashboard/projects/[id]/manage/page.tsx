@@ -103,7 +103,7 @@ export default async function ProjectManagePage({
                                 <FileX className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <h4 className="text-xs font-bold text-destructive  tracking-widest leading-none">Evidence Rejected</h4>
+                                <h4 className="text-xs font-bold text-destructive   leading-none">Evidence Rejected</h4>
                                 <p className="text-sm text-foreground/80 font-medium italic">
                                     &quot;{latestProof.adminFeedback}&quot;
                                 </p>
@@ -147,7 +147,7 @@ export default async function ProjectManagePage({
                     {/* Implementation Roadmap */}
                     <Card className="rounded-3xl border-border/40 bg-card/30 shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 pb-2">
-                            <CardTitle className="text-sm font-bold flex items-center gap-2 tracking-widest text-muted-foreground">
+                            <CardTitle className="text-sm font-bold flex items-center gap-2  text-muted-foreground">
                                 <TrendingUp className="h-4 w-4 text-primary" />
                                 Execution Roadmap
                             </CardTitle>
@@ -208,7 +208,7 @@ export default async function ProjectManagePage({
                                 <ShieldCheck className="h-6 w-6" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <p className="text-[11px] font-bold text-primary  tracking-widest leading-none">Procurement</p>
+                                <p className="text-[11px] font-bold text-primary   leading-none">Procurement</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                                     Givar Management handles all vendor payments directly to maintain financial integrity.
                                 </p>
@@ -218,7 +218,7 @@ export default async function ProjectManagePage({
 
                     <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold  tracking-widest text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold   text-muted-foreground flex items-center gap-2">
                                 <Database className="h-3.5 w-3.5" /> Disbursement history
                             </CardTitle>
                         </CardHeader>
@@ -260,7 +260,7 @@ export default async function ProjectManagePage({
                                         <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 min-w-0 hover:border-primary/20 transition-all">
                                             <div className="flex justify-between items-start gap-2 min-w-0">
                                                 <div className="min-w-0">
-                                                    <p className="text-[11px] font-bold text-primary  tracking-widest">Outflow</p>
+                                                    <p className="text-[11px] font-bold text-primary  ">Outflow</p>
                                                     <span className="text-[11px] font-mono text-muted-foreground">{formatDate(d.createdAt).split(',')[0]}</span>
                                                 </div>
 
