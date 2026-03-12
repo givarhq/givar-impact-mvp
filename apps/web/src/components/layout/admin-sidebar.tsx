@@ -15,6 +15,7 @@ import { deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
 import { ApiService } from '../../services/api';
 import toast from 'react-hot-toast';
+import { usePostHog } from 'posthog-js/react';
 
 const navItems = [
   { title: 'Platform Overview', href: '/admin', icon: LayoutDashboard },
@@ -28,11 +29,14 @@ const navItems = [
 ];
 
 export function AdminSidebar({ user }: { user: any }) {
+  const posthog = usePostHog();
   const pathname = usePathname();
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
+      posthog?.capture('user_logout', { context: 'admin_sidebar' });
+      posthog?.reset();
       await ApiService.auth.logout();
       deleteCookie('givar_token');
       deleteCookie('givar_user');

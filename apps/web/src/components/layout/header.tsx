@@ -26,6 +26,7 @@ import { WalletWidget } from './wallet-widget';
 import { UserGlobalSearch } from '../features/dashboard/user-global-search';
 import { NotificationBell } from './notification-bell';
 import { Skeleton } from '../ui/skeleton';
+import { usePostHog } from 'posthog-js/react';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
@@ -36,6 +37,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 export function Header({ user }: { user: any }) {
+  const posthog = usePostHog();
   const pathname = usePathname();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
@@ -51,6 +53,8 @@ export function Header({ user }: { user: any }) {
 
   const handleLogout = async () => {
     try {
+      posthog?.capture('user_logout');
+      posthog?.reset(); // Clear user identity from the browser session
       await ApiService.auth.logout();
       deleteCookie('givar_token');
       deleteCookie('givar_user');

@@ -28,6 +28,7 @@ import {
 import { GlobalSearch } from '../features/admin/global-search';
 import { NotificationBell } from './notification-bell';
 import { Skeleton } from '../ui/skeleton';
+import { usePostHog } from 'posthog-js/react';
 
 const PAGE_TITLES: Record<string, string> = {
   '/admin': 'Platform Overview',
@@ -42,6 +43,7 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 export function AdminHeader({ user }: { user: any }) {
+  const posthog = usePostHog();
   const pathname = usePathname();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
@@ -50,7 +52,6 @@ export function AdminHeader({ user }: { user: any }) {
     setIsClient(true);
   }, []);
 
-  const isImpersonating = getCookie('givar_is_impersonating') === 'true';
   const isSuperAdmin = user?.role === 'SUPERADMIN';
 
   const currentTitle = PAGE_TITLES[pathname] || 'Admin Console';
@@ -59,6 +60,8 @@ export function AdminHeader({ user }: { user: any }) {
 
   const handleLogout = async () => {
     try {
+      posthog?.capture('user_logout', { context: 'admin' });
+      posthog?.reset();
       await ApiService.auth.logout();
       deleteCookie('givar_token');
       deleteCookie('givar_user');
