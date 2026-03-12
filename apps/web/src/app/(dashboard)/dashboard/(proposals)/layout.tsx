@@ -7,7 +7,6 @@ import { Check } from 'lucide-react';
 import { useProposalAutoSave } from '../../../../hooks/use-proposal-auto-save';
 import { motion } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
-import { FeedbackThread } from '../../../../components/features/communication/feedback-thread';
 import { useEffect } from 'react';
 
 const steps = [
@@ -123,15 +122,6 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
           <div className="min-w-0 w-full">
             {children}
           </div>
-
-          {isEditPage && proposalId && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <FeedbackThread
-                proposalId={proposalId}
-                title="Verification Updates"
-              />
-            </div>
-          )}
         </div>
       </main>
     </div>

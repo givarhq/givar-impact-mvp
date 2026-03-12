@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import { cn } from '../../../../../../../../lib/utils/cn';
 import { formatNumberInput, parseFormattedNumber } from '../../../../../../../../lib/utils/format';
 import { AnimatePresence, motion } from 'framer-motion';
+import { FeedbackThread } from 'apps/web/src/components/features/communication/feedback-thread';
 
 export default function TrustPage() {
   const router = useRouter();
@@ -68,6 +69,7 @@ export default function TrustPage() {
 
   const isVerified = orgProfile?.status === 'VERIFIED';
   const isKycPending = orgProfile?.status === 'PENDING';
+  const showFeedback = store.status === 'CHANGES_REQUESTED';
 
   if (isLoading) {
     return (
@@ -377,6 +379,15 @@ export default function TrustPage() {
           )}
         </CardContent>
       </Card>
+      {/* Gated Feedback Thread: Only shown if revisions are requested */}
+      {showFeedback && (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <FeedbackThread
+            proposalId={proposalId}
+            title="Verification updates"
+          />
+        </div>
+      )}
     </div>
   );
 }
