@@ -35,6 +35,7 @@ interface ProposalState {
   description: string | null;
   categoryId: string | null;
   location: string | null;
+  endDate: string | null;
   targetAmount: number | null;
   currency: Currency;
 
@@ -94,6 +95,7 @@ export const useProposalStore = create<ProposalState>()(
     description: null,
     categoryId: null,
     location: null,
+    endDate: null,
     targetAmount: null,
     currency: Currency.NGN,
 
@@ -155,6 +157,7 @@ export const useProposalStore = create<ProposalState>()(
         status: proposal.status || null,
         targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
         preCollectedAmount: proposal.preCollectedAmount ? Number(proposal.preCollectedAmount) / 100 : null,
+        endDate: proposal.endDate || null,
         coverImageKey: proposal.coverImage,
         gallery,
         budgetBreakdown: budget,

@@ -70,6 +70,7 @@ export class UpdateProposalDto {
   @IsOptional() @IsString() shortDesc?: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() location?: string;
+  @IsOptional() @IsString() endDate?: string;
   @IsOptional() @IsNumber() targetAmount?: number;
   @IsOptional() @IsEnum(Currency) currency?: Currency;
 

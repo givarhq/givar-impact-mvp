@@ -18,7 +18,7 @@ export default function HookPage() {
   const proposalId = params.id as string;
 
   const {
-    title, shortDesc, description, location,
+    title, shortDesc, description, location, endDate,
     setProposal, updateField
   } = useProposalStore();
 
@@ -54,7 +54,7 @@ export default function HookPage() {
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
             <Sparkles className="h-4 w-4 shrink-0" />
-            <span className="text-[11px] font-bold  tracking-[0.2em]">Storytelling</span>
+            <span className="text-[11px] font-bold">Storytelling</span>
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Craft your cause narrative</CardTitle>
           <CardDescription className="text-xs font-medium">
@@ -90,18 +90,31 @@ export default function HookPage() {
               />
             </div>
 
-            <Input
-              label="Primary Location"
-              placeholder="e.g. Lagos, Nigeria"
-              value={location || ''}
-              onChange={(e) => updateField('location', e.target.value)}
-              className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
+              <Input
+                label="Primary Location"
+                placeholder="e.g. Lagos, Nigeria"
+                value={location || ''}
+                onChange={(e) => updateField('location', e.target.value)}
+                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
+              />
+
+              <Input
+                label="Deadline optional"
+                type="date"
+                value={endDate ? new Date(endDate).toISOString().split('T')[0] : ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField('endDate', val ? new Date(val).toISOString() : null);
+                }}
+                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end pt-6 border-t border-border/40 min-w-0">
             <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+              className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
             >
               <span className="truncate">Next: Media</span> <ArrowRight className="h-4 w-4 shrink-0" />
