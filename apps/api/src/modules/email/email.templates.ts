@@ -83,12 +83,20 @@ export const EmailTemplates = {
     ref: string;
     surplus?: string;
     applied?: string;
+    donorAmount?: string;
+    donorCurrency?: string;
   }) => `
     <p>Your donation has been successfully verified and recorded on the <strong>Givar Impact</strong> public ledger.</p>
     
     <div class="stat-box">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total Contribution</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
+      
+      ${data.donorCurrency && data.donorCurrency !== data.currency ? `
+        <div style="font-size: 13px; font-weight: 700; color: #059669; margin-top: 4px; opacity: 0.8;">
+          (Estimated value: ${data.donorCurrency === 'CAD' ? 'C$' : data.donorCurrency === 'USD' ? '$' : data.donorCurrency === 'GBP' ? '£' : data.donorCurrency === 'EUR' ? '€' : data.donorCurrency} ${data.donorAmount})
+        </div>
+      ` : ''}
       
       ${data.surplus && data.surplus !== '0.00' ? `
         <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>

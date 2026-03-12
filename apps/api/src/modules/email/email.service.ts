@@ -71,6 +71,8 @@ export class EmailService {
       ref: string;
       surplus?: string;
       applied?: string;
+      donorAmount?: string;
+      donorCurrency?: string;
     }
   ) {
     const content = EmailTemplates.receipt(data);

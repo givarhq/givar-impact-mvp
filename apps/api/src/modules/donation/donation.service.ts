@@ -46,7 +46,9 @@ export class DonationService {
     amount: bigint,
     currency: Currency,
     reference: string,
-    surplus: bigint = 0n
+    surplus: bigint = 0n,
+    donorCurrency?: string,
+    donorAmount?: string
   ) {
     try {
       const project = await this.prisma.project.findUnique({
@@ -76,7 +78,9 @@ export class DonationService {
           date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
           ref: reference,
           surplus: surplus > 0n ? (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined,
-          applied: surplus > 0n ? (Number(appliedAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined
+          applied: surplus > 0n ? (Number(appliedAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined,
+          donorAmount,
+          donorCurrency
         });
       }
     } catch (err) {
