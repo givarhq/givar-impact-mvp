@@ -52,6 +52,10 @@ export const AdminProposalTable = memo(function AdminProposalTable({
         if (longPressTimer.current) clearTimeout(longPressTimer.current);
     };
 
+    const formatStatus = (status: string) => {
+        return status === 'CHANGES_REQUESTED' ? 'More Info Required' : status.replace(/_/g, ' ');
+    };
+
     if (proposals.length === 0) {
         return (
             <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
@@ -130,7 +134,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                             variant="outline"
                                                             className={cn("text-[10px] px-2 py-0 rounded-3xl font-semibold tracking-tight border", statusStyles[p.status] || 'bg-muted')}
                                                         >
-                                                            {p.status.replace('_', ' ')}
+                                                            {formatStatus(p.status)}
                                                         </Badge>
                                                     </div>
                                                 </div>
@@ -255,7 +259,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                 variant="outline"
                                                 className={cn("text-[11px] font-semibold tracking-tight px-2 py-0 rounded-3xl border shadow-none", statusStyles[p.status] || 'bg-muted')}
                                             >
-                                                {p.status.replace('_', ' ')}
+                                                {formatStatus(p.status)}
                                             </Badge>
                                         </td>
                                         <td className="px-5 py-4 text-right whitespace-nowrap">

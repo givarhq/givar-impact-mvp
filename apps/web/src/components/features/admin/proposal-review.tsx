@@ -66,7 +66,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 toast.success('Proposal Rejected', { id: toastId });
             } else {
                 await ApiService.admin.requestChanges(proposal.id, feedback);
-                toast.success('Changes Requested', { id: toastId });
+                toast.success('More Info Requested', { id: toastId });
             }
             router.push('/admin/projects?tab=proposals');
             router.refresh();
@@ -114,6 +114,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
         AWAITING_VERIFICATION: 'bg-orange-500/10 text-orange-600 border-orange-500/20'
     }[proposal.status] || 'bg-muted';
 
+    const displayStatus = proposal.status === 'CHANGES_REQUESTED' ? 'MORE INFO REQUIRED' : proposal.status.replace(/_/g, ' ');
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -133,7 +135,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 {proposal.title || 'Untitled Project Proposal'}
                             </h1>
                             <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px] tracking-wider border shrink-0", statusColor)}>
-                                {proposal.status.replace(/_/g, ' ')}
+                                {displayStatus}
                             </Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">
@@ -152,7 +154,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button variant="outline" onClick={() => setActionType('changes')} className="h-11 px-6 rounded-3xl border-border/60 text-foreground font-bold text-xs transition-all active:scale-95">
-                                        Request Modifications
+                                        Request More Info
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
@@ -162,7 +164,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             <label className="text-[11px] font-bold text-muted-foreground ml-1 tracking-widest">Audit Instructions</label>
                                             <textarea
                                                 className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
-                                                placeholder="Specify The Required Changes For Re-Submission..."
+                                                placeholder="Specify the additional information required..."
                                                 value={feedback}
                                                 onChange={(e) => setFeedback(e.target.value)}
                                             />
@@ -418,7 +420,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     </Card>
 
                     {/* Integrated Dialogue Hub */}
-                    <FeedbackThread proposalId={proposal.id} title="Administrative Dialogue" />
+                    <FeedbackThread proposalId={proposal.id} title="Verification Updates" />
 
                     {/* Compliance Asset Vault */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
@@ -465,7 +467,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 tracking-widest">
-                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Risk Assessment
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Additional Notes
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-5 bg-amber-500/[0.02]">
@@ -485,7 +487,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 />
                             ) : (
                                 <p className="text-xs text-muted-foreground font-medium italic">
-                                    No specific implementation risks identified by the proposer.
+                                    No additional notes provided.
                                 </p>
                             )}
                         </CardContent>

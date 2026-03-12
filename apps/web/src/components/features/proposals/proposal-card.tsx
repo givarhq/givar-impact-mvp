@@ -31,7 +31,7 @@ const statusConfig: Record<string, { color: string, icon: any, label: string }> 
   AWAITING_VERIFICATION: { color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: Clock, label: 'Pending KYC' },
   SUBMITTED: { color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: Clock, label: 'Submitted' },
   UNDER_REVIEW: { color: 'text-blue-600 bg-blue-600/10 border-blue-600/20', icon: Clock, label: 'In Review' },
-  CHANGES_REQUESTED: { color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: AlertCircle, label: 'Needs Edits' },
+  CHANGES_REQUESTED: { color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: AlertCircle, label: 'More Info Required' },
   APPROVED: { color: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20', icon: CheckCircle2, label: 'Live' },
   REJECTED: { color: 'text-destructive bg-destructive/10 border-destructive/20', icon: XCircle, label: 'Rejected' },
 };
@@ -46,9 +46,9 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
 
   if (proposal.status === 'APPROVED' && proposal.projectStatus) {
     if (proposal.projectStatus === 'FUNDED') {
-      config.label = 'Funded';
+      config.label = 'Goal Reached';
     } else if (proposal.projectStatus === 'COMPLETED') {
-      config.label = 'Completed';
+      config.label = 'Impact Achieved';
     } else if (proposal.projectStatus === 'SUSPENDED') {
       config.label = 'Suspended';
       config.color = 'text-amber-500 bg-amber-500/10 border-amber-500/20';
