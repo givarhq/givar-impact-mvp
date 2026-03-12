@@ -9,7 +9,8 @@ import {
     ArrowDown,
     Calendar,
     TrendingUp,
-    Flag
+    Flag,
+    Clock
 } from 'lucide-react';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Badge } from '../../ui/badge';
@@ -69,7 +70,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
         return (
             <th
                 className={cn(
-                    "px-5 py-3 font-semibold tracking-wider text-xs cursor-pointer hover:text-primary transition-colors group select-none",
+                    "px-5 py-3 font-semibold text-xs cursor-pointer hover:text-primary transition-colors group select-none",
                     className
                 )}
                 onClick={() => handleSort(column)}
@@ -94,7 +95,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
         return (
             <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                <h3 className="text-sm font-semibold text-foreground opacity-60 tracking-widest">No Projects Identified</h3>
+                <h3 className="text-sm font-semibold text-foreground opacity-60">No Projects Identified</h3>
                 <p className="text-xs text-muted-foreground mt-1 font-medium">Try adjusting your active filters.</p>
             </div>
         );
@@ -114,7 +115,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                         checked={isAllSelected}
                         onChange={(e) => onSelectAll(e.target.checked)}
                     />
-                    <span className="text-xs font-semibold text-muted-foreground tracking-widest">Select All</span>
+                    <span className="text-xs font-semibold text-muted-foreground">Select All</span>
                 </div>
                 <AnimatePresence mode="popLayout">
                     {projects.map((project) => {
@@ -163,8 +164,8 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                         <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                             ID: {project.id.split('-')[0]}
                                                         </span>
-                                                        <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold tracking-tight border-primary/20 bg-primary/5 text-primary shadow-none">
-                                                            {project.status}
+                                                        <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold border-primary/20 bg-primary/5 text-primary shadow-none">
+                                                            {project.status.replace(/_/g, ' ')}
                                                         </Badge>
                                                     </div>
                                                 </div>
@@ -175,15 +176,22 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                         </div>
                                         <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
                                             <div className="space-y-1 min-w-0">
-                                                <p className="text-[11px] font-semibold text-muted-foreground tracking-widest">Raised / Target</p>
+                                                <p className="text-[11px] font-semibold text-muted-foreground">Raised / Target</p>
                                                 <div className="flex items-center gap-1.5 flex-wrap">
                                                     <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" />
                                                     <span className="text-muted-foreground/50 text-[11px]">Of</span>
                                                     <span className="text-xs font-semibold text-muted-foreground">{formatCurrency(project.targetAmount, project.currency)}</span>
                                                 </div>
                                             </div>
-                                            <div className="text-right shrink-0">
-                                                <p className="text-[11px] font-semibold text-muted-foreground tabular-nums">{formatDate(project.createdAt).split(',')[0]}</p>
+                                            <div className="text-right shrink-0 flex flex-col items-end gap-1">
+                                                <p className="text-[11px] font-semibold text-muted-foreground tabular-nums flex items-center gap-1">
+                                                    <Calendar className="h-3 w-3 opacity-60" /> {formatDate(project.createdAt).split(',')[0]}
+                                                </p>
+                                                {project.endDate && (
+                                                    <p className="text-[11px] font-bold text-primary tabular-nums flex items-center gap-1">
+                                                        <Clock className="h-3 w-3" /> {formatDate(project.endDate).split(',')[0]}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </CardContent>
@@ -215,8 +223,8 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                 </th>
                                 <SortHeader title="Cause Details" column="title" />
                                 <SortHeader title="Status" column="status" />
-                                <SortHeader title="Launched Date" column="createdAt" />
-                                <th className="px-5 py-3 font-semibold tracking-wider text-xs text-right">
+                                <SortHeader title="Timeline" column="createdAt" />
+                                <th className="px-5 py-3 font-semibold text-xs text-right">
                                     <div className="flex items-center justify-end gap-1.5">
                                         <TrendingUp className="h-3 w-3" /> Financials
                                     </div>
@@ -259,7 +267,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                         ID: {project.id.split('-')[0]}
                                                     </span>
                                                     {project.categoryName && (
-                                                        <span className="text-[11px] font-semibold text-primary/70 tracking-tight">
+                                                        <span className="text-[11px] font-semibold text-primary/70">
                                                             {project.categoryName}
                                                         </span>
                                                     )}
@@ -271,13 +279,26 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                 variant={project.status === 'ACTIVE' ? 'success' : 'outline'}
                                                 className="text-[11px] font-semibold px-2 py-0 rounded-3xl shadow-none"
                                             >
-                                                {project.status}
+                                                {project.status.replace(/_/g, ' ')}
                                             </Badge>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <div className="flex items-center gap-1.5 text-muted-foreground font-medium text-xs whitespace-nowrap">
-                                                <Calendar className="h-3.5 w-3.5 opacity-40" />
-                                                {formatDate(project.createdAt).split(',')[0]}
+                                            <div className="flex flex-col gap-1 text-xs whitespace-nowrap">
+                                                <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                                                    <Calendar className="h-3.5 w-3.5 opacity-40" />
+                                                    Launched: {formatDate(project.createdAt).split(',')[0]}
+                                                </div>
+                                                {project.endDate ? (
+                                                    <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                                                        <Clock className="h-3.5 w-3.5 opacity-60 text-primary" />
+                                                        Deadline: {formatDate(project.endDate).split(',')[0]}
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-1.5 text-muted-foreground font-medium opacity-60">
+                                                        <Clock className="h-3.5 w-3.5 opacity-40" />
+                                                        No deadline
+                                                    </div>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 text-right">
@@ -290,7 +311,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                         size="small"
                                                     />
                                                 </div>
-                                                <div className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground tracking-tighter">
+                                                <div className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
                                                     <Flag className="h-3 w-3 opacity-50" />
                                                     {formatCurrency(project.targetAmount, project.currency)}
                                                 </div>

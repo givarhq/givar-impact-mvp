@@ -27,6 +27,7 @@ export interface Project {
   imageUrl?: string;
   status: ProjectStatus;
   isActive: boolean;
+  endDate?: string;
   gallery: MediaItem[];
   createdAt: string;
   updatedAt: string;
