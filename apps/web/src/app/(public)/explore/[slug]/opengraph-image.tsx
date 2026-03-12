@@ -109,13 +109,13 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                     <div style={{ display: 'flex', fontSize: '22px', fontWeight: 'bold', color: '#064e3b', alignItems: 'center' }}>
                                         <span style={{ marginRight: '4px' }}>Goal:</span>
-                                        <span style={{ marginRight: '2px' }}>₦</span>
+                                        <span style={{ marginRight: '4px' }}>{'\u20A6'}</span>
                                         <span>{target.toLocaleString()}</span>
                                     </div>
 
                                     <div style={{ display: 'flex', fontSize: '16px', fontWeight: 'bold', color: '#9ca3af', marginTop: '4px' }}>
                                         <span style={{ marginRight: '2px' }}>≈</span>
-                                        <span style={{ marginRight: '2px' }}>$</span>
+                                        <span style={{ marginRight: '2px' }}>{'\u0024'}</span>
                                         <span>{usdGoal.toLocaleString()}</span>
                                         <span style={{ marginLeft: '4px' }}>USD</span>
                                     </div>
