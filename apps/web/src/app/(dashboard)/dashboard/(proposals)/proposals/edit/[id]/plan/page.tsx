@@ -49,7 +49,7 @@ export default function PlanPage() {
             <ClipboardList className="h-4 w-4 shrink-0" />
             <span className="text-[11px] font-bold  tracking-[0.2em]">Strategy</span>
           </div>
-          <CardTitle className="text-lg md:text-xl font-bold">Plan your execution</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-bold">Use of Funds</CardTitle>
           <CardDescription className="text-xs font-medium">
             Define your budget & roadmap. Precision here is critical for administrative audit approval.
           </CardDescription>
@@ -89,7 +89,7 @@ export default function PlanPage() {
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
-                Risk assessment
+                Additional Notes optional
               </h3>
               <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks & mitigation protocols.</p>
             </div>

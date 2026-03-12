@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 const steps = [
   { href: '/hook', name: 'Hook', number: 1 },
   { href: '/media', name: 'Media', number: 2 },
-  { href: '/plan', name: 'Plan', number: 3 },
+  { href: '/plan', name: 'Use of Funds', number: 3 },
   { href: '/trust', name: 'Trust', number: 4 },
 ];
 
