@@ -352,7 +352,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
 
               <div className="flex flex-col gap-2 pt-2">
                 <Button
-                  className="w-full h-14 rounded-3xl font-bold text-sm shadow-xl shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-[0.98]"
+                  className="w-full h-12 rounded-3xl font-bold text-sm shadow-xl shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-[0.98]"
                   onClick={handleFinalizeProject}
                   disabled={isFinalizing || !completionNote.trim()}
                 >
