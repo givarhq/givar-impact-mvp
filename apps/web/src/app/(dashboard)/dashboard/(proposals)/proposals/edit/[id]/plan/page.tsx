@@ -8,7 +8,6 @@ import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
 import { ArrowLeft, ArrowRight, ClipboardList, Loader2, ShieldCheck, Target } from 'lucide-react';
 import { BudgetEditor } from '../../../../../../../../components/features/proposals/budget-editor';
-import { TimelineEditor } from '../../../../../../../../components/features/proposals/timeline-editor';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import toast from 'react-hot-toast';
 
@@ -51,7 +50,7 @@ export default function PlanPage() {
           </div>
           <CardTitle className="text-lg md:text-xl font-bold">Use of Funds</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Define your budget & roadmap. Precision here is critical for administrative audit approval.
+            Define your budget entries. Precision here is critical for administrative audit approval. Optional stage labels will auto-generate your project roadmap.
           </CardDescription>
         </CardHeader>
 
@@ -61,37 +60,23 @@ export default function PlanPage() {
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary" />
-                Budget
+                Budget Breakdown
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Itemize every requirement for the project procurement.</p>
+              <p className="text-xs text-muted-foreground font-medium">Itemize every requirement and vendor for the project procurement.</p>
             </div>
             <div className="min-w-0">
               <BudgetEditor />
             </div>
           </div>
 
-          {/* Timeline Section */}
-          <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">
-            <div className="px-1 space-y-1">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-primary" />
-                Implementation roadmap
-              </h3>
-              <p className="text-xs text-muted-foreground font-medium">Define key phases & verifiable deliverables.</p>
-            </div>
-            <div className="min-w-0">
-              <TimelineEditor />
-            </div>
-          </div>
-
-          {/* Risks Section */}
+          {/* Additional Notes Section */}
           <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
                 Additional Notes optional
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks & mitigation protocols.</p>
+              <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks, mitigation protocols, or extra details.</p>
             </div>
             <RichTextEditor
               placeholder="e.g. Potential weather delays, vendor availability, logistical bottlenecks..."

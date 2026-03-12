@@ -37,7 +37,7 @@ export const BudgetEditor = memo(function BudgetEditor({
     if (isLocked) return;
     let processedValue = value;
 
-    if (field === 'cost') {
+    if (field === 'amount') {
       const raw = parseFormattedNumber(String(value));
       processedValue = raw === '' ? 0 : Number(raw);
       if (isNaN(processedValue)) processedValue = 0;
@@ -53,10 +53,11 @@ export const BudgetEditor = memo(function BudgetEditor({
     if (isLocked) return;
     const newItem: BudgetItem = {
       id: crypto.randomUUID(),
-      item: '',
-      cost: 0,
-      vendor: '',
-      type: 'GOODS',
+      payTo: '',
+      costType: 'GOODS',
+      amount: 0,
+      description: '',
+      stage: '',
     };
     updateField([...budgetBreakdown, newItem]);
   };
@@ -68,15 +69,15 @@ export const BudgetEditor = memo(function BudgetEditor({
 
   useEffect(() => {
     if (!onChange) {
-      const total = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
+      const total = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
       store.updateField('targetAmount', total);
     }
   }, [budgetBreakdown, onChange]);
 
-  const totalCost = budgetBreakdown.reduce((sum, item) => sum + item.cost, 0);
+  const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
   const fieldContainerClass = cn(
-    "py-2.5 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
+    "py-3 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
     isLocked && "border-border/60"
   );
 
@@ -101,60 +102,72 @@ export const BudgetEditor = memo(function BudgetEditor({
               transition={{ duration: 0.2 }}
               className={fieldContainerClass}
             >
-              {/* ITEM DESCRIPTION */}
-              <div className="md:col-span-4 space-y-1">
-                <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Item</label>
+              {/* PAY TO */}
+              <div className="md:col-span-3 space-y-1">
+                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay To</label>
                 <Input
-                  placeholder="Description..."
-                  value={item.item}
-                  onChange={(e) => handleUpdate(item.id, 'item', e.target.value)}
+                  placeholder="Vendor or recipient..."
+                  value={item.payTo}
+                  onChange={(e) => handleUpdate(item.id, 'payTo', e.target.value)}
                   readOnly={isLocked}
                   className={inputStyle}
                 />
               </div>
 
-              {/* UNIT COST */}
+              {/* COST TYPE */}
               <div className="md:col-span-2 space-y-1">
-                <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Cost</label>
+                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Cost Type</label>
+                <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
+                  <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-3xl shadow-xl">
+                    <SelectItem value="GOODS" className="rounded-3xl text-xs">Goods</SelectItem>
+                    <SelectItem value="SERVICE" className="rounded-3xl text-xs">Service</SelectItem>
+                    <SelectItem value="LOGISTICS" className="rounded-3xl text-xs">Logistics</SelectItem>
+                    <SelectItem value="OTHER" className="rounded-3xl text-xs">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* AMOUNT */}
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Amount</label>
                 <div className="relative">
                   {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
                   <Input
                     placeholder="0"
-                    className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums")}
-                    value={item.cost === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.cost))}` : formatNumberInput(String(item.cost)))}
-                    onChange={(e) => handleUpdate(item.id, 'cost', e.target.value)}
+                    className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums font-bold")}
+                    value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
+                    onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
                     readOnly={isLocked}
                   />
                 </div>
               </div>
 
-              {/* VENDOR */}
+              {/* DESCRIPTION */}
               <div className="md:col-span-3 space-y-1">
-                <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Vendor</label>
+                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Description</label>
                 <Input
-                  placeholder="Payee..."
-                  value={item.vendor}
-                  onChange={(e) => handleUpdate(item.id, 'vendor', e.target.value)}
+                  placeholder="Details..."
+                  value={item.description}
+                  onChange={(e) => handleUpdate(item.id, 'description', e.target.value)}
                   readOnly={isLocked}
                   className={inputStyle}
                 />
               </div>
 
-              {/* CATEGORY & DELETE */}
-              <div className="md:col-span-3 flex gap-2 items-end">
+              {/* OPTIONAL STAGE & DELETE */}
+              <div className="md:col-span-2 flex gap-2 items-end">
                 <div className="flex-1 space-y-1">
-                  <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Category</label>
-                  <Select value={item.type} onValueChange={(v) => handleUpdate(item.id, 'type', v)} disabled={isLocked}>
-                    <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-3xl shadow-xl">
-                      <SelectItem value="GOODS" className="rounded-3xl text-xs">Goods</SelectItem>
-                      <SelectItem value="SERVICE" className="rounded-3xl text-xs">Service</SelectItem>
-                      <SelectItem value="LOGISTICS" className="rounded-3xl text-xs">Logistics</SelectItem>
-                      <SelectItem value="OTHER" className="rounded-3xl text-xs">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Stage (Optional)</label>
+                  <Input
+                    placeholder="e.g. Phase 1"
+                    value={item.stage || ''}
+                    onChange={(e) => handleUpdate(item.id, 'stage', e.target.value)}
+                    readOnly={isLocked}
+                    className={inputStyle}
+                  />
                 </div>
                 {!isLocked && (
                   <Button
@@ -162,7 +175,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                     size="icon"
                     variant="ghost"
                     onClick={() => removeItem(item.id)}
-                    className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors active:scale-90"
+                    className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors active:scale-90 mb-[1px]"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -180,12 +193,12 @@ export const BudgetEditor = memo(function BudgetEditor({
           onClick={addItem}
           className="w-full border-dashed rounded-3xl h-10 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98]"
         >
-          <PlusCircle className="h-3.5 w-3.5" /> Add Budget Item
+          <PlusCircle className="h-3.5 w-3.5" /> Add Budget Entry
         </Button>
       )}
 
       <div className={cn(
-        "flex justify-between items-center px-5 py-3 rounded-3xl border transition-all",
+        "flex justify-between items-center px-5 py-3 rounded-3xl border transition-all mt-4",
         isLocked ? "bg-primary/5 border-primary/20" : "bg-muted/10 border-border/40"
       )}>
         <span className="text-xs font-bold tracking-widest text-primary">Budget Total</span>
