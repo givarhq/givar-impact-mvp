@@ -306,7 +306,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                             <Wallet className="h-6 w-6 text-primary" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground mb-2">You Contribute</h3>
-                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified community cause instantly through your dedicated smart wallet.</p>
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified cause instantly through your dedicated smart wallet.</p>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 dark:bg-zinc-800 rounded-xl border border-border/60 dark:border-white/10 text-[10px] font-bold text-foreground w-fit">
                             <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Capital Deployed
                         </div>
