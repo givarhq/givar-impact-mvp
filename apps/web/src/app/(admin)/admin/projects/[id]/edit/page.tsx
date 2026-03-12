@@ -13,7 +13,7 @@ import { FeedbackThread } from '../../../../../../components/features/communicat
 
 export const metadata = {
   title: 'Edit Project',
-  description: 'Manage project details, disbursements, & discovery visibility.',
+  description: 'Manage project details, disbursements, and discovery visibility.',
 };
 
 export default async function EditProjectPage({
@@ -28,8 +28,6 @@ export default async function EditProjectPage({
   if (!token) redirect('/login');
 
   try {
-    // 1. Parallel Data Ingestion
-    // We fetch the project, global discovery config (for formula transparency), & categories.
     const [project, categories, globalConfig] = await Promise.all([
       ApiService.admin.getProjectById(token, id),
       ApiService.projects.getCategories(token),
@@ -41,7 +39,6 @@ export default async function EditProjectPage({
     return (
       <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
 
-        {/* --- PAGE NAVIGATION --- */}
         <div className="flex flex-col gap-4 px-1 min-w-0">
           <Link href="/admin/projects" className="w-fit">
             <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">
@@ -52,7 +49,7 @@ export default async function EditProjectPage({
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-bold tracking-tight text-foreground md:hidden truncate">
+              <h1 className="text-lg font-bold text-foreground md:hidden truncate">
                 {project.title}
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
@@ -65,41 +62,40 @@ export default async function EditProjectPage({
           </div>
         </div>
 
-        {/* --- MANAGEMENT TERMINAL --- */}
         <Tabs defaultValue="details" className="w-full space-y-8 min-w-0">
           <div className="border-b border-border/40 pb-1 overflow-x-auto no-scrollbar">
             <TabsList className="bg-transparent h-12 w-full justify-start gap-8 p-0 border-none shadow-none rounded-none">
               <TabsTrigger
                 value="details"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs   text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Settings className="mr-2 h-3.5 w-3.5" /> Project Details
               </TabsTrigger>
 
               <TabsTrigger
                 value="disbursements"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs   text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Wallet className="mr-2 h-3.5 w-3.5" /> Disbursements
               </TabsTrigger>
 
               <TabsTrigger
                 value="execution"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs   text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Activity className="mr-2 h-3.5 w-3.5" /> Execution
               </TabsTrigger>
 
               <TabsTrigger
                 value="discovery"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs   text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <Sparkles className="mr-2 h-3.5 w-3.5" /> Discovery
               </TabsTrigger>
 
               <TabsTrigger
                 value="communication"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs   text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
+                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
                 <MessageSquare className="mr-2 h-3.5 w-3.5" /> Communication
               </TabsTrigger>
@@ -107,12 +103,10 @@ export default async function EditProjectPage({
           </div>
 
           <div className="w-full min-w-0">
-            {/* 1. Core Metadata Tab */}
             <TabsContent value="details" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
               <AdminProjectForm initialData={project} categories={categories || []} />
             </TabsContent>
 
-            {/* 2. Outflow Ledger Tab */}
             <TabsContent value="disbursements" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="max-w-4xl min-w-0">
                 <DisbursementForm
@@ -123,17 +117,16 @@ export default async function EditProjectPage({
               </div>
             </TabsContent>
 
-            {/* 3. Operational Timeline Tab */}
             <TabsContent value="execution" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="max-w-4xl min-w-0">
                 <MilestoneManager
                   projectId={id}
                   timeline={project.executionTimeline || []}
+                  projectStatus={project.status}
                 />
               </div>
             </TabsContent>
 
-            {/* 4. discovery Algorithm Tab */}
             <TabsContent value="discovery" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
               <ProjectVisibilityForm
                 project={project}
@@ -141,7 +134,6 @@ export default async function EditProjectPage({
               />
             </TabsContent>
 
-            {/* 5. Communication Tab */}
             <TabsContent value="communication" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="max-w-4xl min-w-0">
                 <FeedbackThread
@@ -155,7 +147,6 @@ export default async function EditProjectPage({
       </div>
     );
   } catch (error) {
-    console.error("[EditProjectPage] Fatal resolution error:", error);
     notFound();
   }
 }

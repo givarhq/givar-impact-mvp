@@ -349,6 +349,10 @@ export const ApiService = {
     suspendProject: (id: string) =>
       apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
 
+    // Endpoint to finalize a project and trigger donor notifications
+    finalizeProject: (id: string, data: { completionNote: string; imageUrl?: string }) =>
+      apiClient.post(`/admin/projects/${id}/finalize`, data).then(r => r.data),
+
     getAuditLogs: (token: string, params: URLSearchParams) =>
       serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token, { tags: ['admin-audit'] }),
 
