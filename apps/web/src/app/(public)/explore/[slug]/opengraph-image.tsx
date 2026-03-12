@@ -11,7 +11,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.givarapp.com/api';
     const v1ApiUrl = apiUrl.endsWith('/v1') ? apiUrl : `${apiUrl}/v1`;
 
-    // Logic: Use revalidate: 0 to ensure the OG image pulls live ledger data
+    // Parallel fetch: Project Details + Live FX Rates
     const [project, fxData] = await Promise.all([
         fetch(`${v1ApiUrl}/projects/${slug}`, { next: { revalidate: 0 } })
             .then(res => res.ok ? res.json() : null)
@@ -29,13 +29,12 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         );
     }
 
-    // Forensic Parsing: Ensure we handle stringified BigInts (Minor Units) correctly
+    // Defensive Parsing for Edge Runtime
     const rawRaised = project.raisedAmount ? String(project.raisedAmount).replace(/[^0-9]/g, '') : '0';
     const rawTarget = project.targetAmount ? String(project.targetAmount).replace(/[^0-9]/g, '') : '0';
 
     const raised = Number(rawRaised) / 100;
     const target = Number(rawTarget) / 100;
-
     const percent = target > 0 ? Math.min(100, Math.floor((raised / target) * 100)) : 0;
 
     const usdRate = fxData?.rates?.USD || 0.00065;
@@ -67,7 +66,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                         backgroundColor: '#fafafa',
                     }}
                 >
-                    {/* Left: Project Image */}
+                    {/* Left Column: Image */}
                     <div style={{ display: 'flex', width: '50%', height: '100%', backgroundColor: '#f1f5f9' }}>
                         <img
                             src={project.imageUrl || 'https://givarapp.com/Givar1.png'}
@@ -75,7 +74,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                         />
                     </div>
 
-                    {/* Right: Project Stats */}
+                    {/* Right Column: Stats */}
                     <div
                         style={{
                             display: 'flex',
@@ -97,16 +96,29 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                                 {project.title}
                             </div>
                             <div style={{ display: 'flex', marginTop: '16px' }}>
-                                <div style={{ fontSize: '20px', color: '#6b7280', fontWeight: 600 }}>{project.location || 'Verified Cause'}</div>
+                                <div style={{ display: 'flex', fontSize: '20px', color: '#6b7280', fontWeight: 600 }}>{project.location || 'Verified Cause'}</div>
                             </div>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                             <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
                                 <div style={{ display: 'flex', fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>{percent}% Funded</div>
+
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                    <div style={{ display: 'flex', fontSize: '22px', fontWeight: 'bold', color: '#064e3b' }}>Goal: ₦{target.toLocaleString()}</div>
-                                    <div style={{ display: 'flex', fontSize: '16px', fontWeight: 'bold', color: '#9ca3af', marginTop: '4px' }}>≈ ${usdGoal.toLocaleString()} USD</div>
+                                    {/* Financial Goal with explicit Symbol handling */}
+                                    <div style={{ display: 'flex', fontSize: '22px', fontWeight: 'bold', color: '#064e3b', alignItems: 'center' }}>
+                                        <span style={{ marginRight: '2px' }}>Goal:</span>
+                                        <span style={{ marginRight: '1px' }}>₦</span>
+                                        <span>{target.toLocaleString()}</span>
+                                    </div>
+
+                                    {/* USD Estimate */}
+                                    <div style={{ display: 'flex', fontSize: '16px', fontWeight: 'bold', color: '#9ca3af', marginTop: '4px' }}>
+                                        <span style={{ marginRight: '2px' }}>≈</span>
+                                        <span style={{ marginRight: '1px' }}>$</span>
+                                        <span>{usdGoal.toLocaleString()}</span>
+                                        <span style={{ marginLeft: '4px' }}>USD</span>
+                                    </div>
                                 </div>
                             </div>
 
