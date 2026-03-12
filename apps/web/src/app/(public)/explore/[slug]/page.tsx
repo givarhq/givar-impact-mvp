@@ -5,10 +5,45 @@ import { Button } from '../../../../components/ui/button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
-export const metadata = {
-  title: 'Cause Details',
-  description: 'Learn about the mission, execution roadmap, & real-time updates for this verified project.',
-};
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<any> {
+  const { slug } = await params;
+  const project = await getProject(slug);
+
+  if (!project) return { title: 'Project Not Found' };
+
+  const raised = Number(project.raisedAmount || 0) / 100;
+  const target = Number(project.targetAmount || 0) / 100;
+  const percent = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
+
+  const title = `${project.title} | Givar`;
+  const description = `${percent}% funded. ${project.shortDesc || `Join me in supporting ${project.title} on Givar.`}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/explore/${slug}`,
+      siteName: 'Givar Impact',
+      images: [
+        {
+          url: `/explore/${slug}/opengraph-image`,
+          width: 1200,
+          height: 630,
+          alt: project.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`/explore/${slug}/opengraph-image`],
+    },
+  };
+}
 
 async function getProject(slug: string) {
   try {

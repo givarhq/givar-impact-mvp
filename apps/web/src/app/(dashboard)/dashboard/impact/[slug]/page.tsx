@@ -6,10 +6,35 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { ApiService } from '../../../../../services/api';
 
-export const metadata = {
-  title: 'Cause Details',
-  description: 'View project narrative, execution plans, & real-time impact updates.',
-};
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<any> {
+  const { slug } = await params;
+  const project = await getProject(slug);
+
+  if (!project) return { title: 'Project Not Found' };
+
+  const raised = Number(project.raisedAmount || 0) / 100;
+  const target = Number(project.targetAmount || 0) / 100;
+  const percent = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
+
+  const title = `${project.title} | Givar`;
+  const description = `${percent}% funded. ${project.shortDesc || `Help us reach our goal for ${project.title}.`}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [`/explore/${slug}/opengraph-image`],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`/explore/${slug}/opengraph-image`],
+    },
+  };
+}
 
 async function getProject(slug: string) {
   const cookieStore = await cookies();
