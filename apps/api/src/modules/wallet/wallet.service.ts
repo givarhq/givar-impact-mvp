@@ -276,7 +276,9 @@ export class WalletService {
           amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
           currency: currency,
           ref: reference,
-          newBalance: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })
+          newBalance: (Number(result.newBalance) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+          donorAmount: metadata?.donorAmount,
+          donorCurrency: metadata?.donorCurrency
         }).catch(err => this.logger.error(`Funding Email Failed: ${err.message}`));
       }
 
