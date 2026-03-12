@@ -164,6 +164,19 @@ export class AdminController {
     return this.service.suspendProject(id);
   }
 
+  /**
+   * Impact Confirmation Flow
+   * Posts final completion evidence and triggers the donor impact notification email.
+   */
+  @Post('projects/:id/finalize')
+  finalizeProject(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: { completionNote: string; imageUrl?: string }
+  ) {
+    return this.service.finalizeProject(req.user.id, id, dto);
+  }
+
   // Single Proposal Detail (Admins see everything including KYC)
   @Get('proposals/:id')
   async getProposalDetail(@Param('id') id: string) {

@@ -581,6 +581,7 @@ model ProjectProposal {
   categoryId    String?
   category      Category?       @relation(fields: [categoryId], references: [id])
   location      String?
+  endDate       DateTime?
   beneficiaryContact String?
   targetAmount  BigInt?         
   currency      Currency        @default(NGN)

@@ -463,6 +463,7 @@ export class AdminService {
           imageUrl: proposal.coverImage,
           gallery: proposal.gallery || [],
           location: proposal.location,
+          endDate: proposal.endDate, // Maps the optional deadline from proposal
           status: ProjectStatus.ACTIVE,
           categoryId: proposal.categoryId,
           tags: ['Verified'],
@@ -471,7 +472,7 @@ export class AdminService {
           executionTimeline: generatedTimeline ?? [],
           riskAnalysis: proposal.riskAnalysis,
 
-          // New Alignment Mappings
+          // Alignment Mappings
           beneficiaryName: proposal.beneficiaryName,
           beneficiaryAge: proposal.beneficiaryAge,
           beneficiaryRelationship: proposal.beneficiaryRelationship,
@@ -484,7 +485,7 @@ export class AdminService {
           preCollectedAmount: proposal.preCollectedAmount,
           preCollectedHeldAt: proposal.preCollectedHeldAt,
           preCollectedProofKey: proposal.preCollectedProofKey,
-          preCollectedVerified: proposal.hasPreCollectedFunds ? true : false, // Verified upon admin promotion
+          preCollectedVerified: proposal.hasPreCollectedFunds ? true : false,
         },
       });
 
@@ -512,7 +513,6 @@ export class AdminService {
         },
       });
 
-      // Notify the project owner that their cause is now live
       await tx.notification.create({
         data: {
           userId: proposal.userId,
@@ -532,6 +532,100 @@ export class AdminService {
       }).catch(e => this.logger.error(`Approval Email Failed: ${e.message}`));
 
       return project;
+    });
+  }
+
+  /**
+   * Finalizes a project, records the final impact achievement update, 
+   * and dispatches the donor summary email.
+   */
+  async finalizeProject(adminId: string, projectId: string, dto: { completionNote: string; imageUrl?: string }) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { disbursements: true, user: true }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.status === ProjectStatus.COMPLETED) throw new BadRequestException('Project is already marked as completed');
+
+    return this.prisma.$transaction(async (tx) => {
+      const updatedProject = await tx.project.update({
+        where: { id: projectId },
+        data: { status: ProjectStatus.COMPLETED }
+      });
+
+      await tx.projectUpdate.create({
+        data: {
+          projectId,
+          title: 'Impact Achieved',
+          content: dto.completionNote,
+          type: 'IMPACT_ACHIEVED',
+          imageUrl: dto.imageUrl || null
+        }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.PROJECT_UPDATED,
+          entityId: projectId,
+          entityType: 'Project',
+          metadata: {
+            action: 'IMPACT_ACHIEVED',
+            status: 'COMPLETED'
+          }
+        }
+      });
+
+      return updatedProject;
+    }).then(async (updated) => {
+      // Broadcast to donors
+      const userDonors = await this.prisma.donation.findMany({
+        where: { projectId },
+        select: { user: { select: { email: true, firstName: true, preferences: true } } },
+        distinct: ['userId'],
+      });
+
+      const guestDonors = await this.prisma.guestDonation.findMany({
+        where: { projectId },
+        select: { guestDonor: { select: { email: true, name: true } } },
+        distinct: ['guestDonorId'],
+      });
+
+      const recipients = [
+        ...userDonors
+          .filter(d => (d.user?.preferences as any)?.milestoneUpdates !== false)
+          .map(d => ({ email: d.user!.email, name: d.user!.firstName })),
+        ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
+      ].filter((v, i, a) => a.findIndex(t => t.email === v.email) === i);
+
+      const disbursementSummary = project.disbursements.map(d =>
+        `• ${d.vendorName}: ${(Number(d.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })} ${d.currency}`
+      ).join('<br/>');
+
+      let signedImageUrl: string | undefined = undefined;
+      if (dto.imageUrl) {
+        try {
+          const { viewUrl } = await this.storage.getPresignedViewUrl(dto.imageUrl);
+          signedImageUrl = viewUrl;
+        } catch (e) {
+          this.logger.warn('Failed to sign completion image for impact email');
+        }
+      }
+
+      Promise.allSettled(
+        recipients.map(r =>
+          this.emailService.sendImpactAchievedDonorAlert(r.email, {
+            name: r.name,
+            projectTitle: project.title,
+            projectSlug: project.slug,
+            mediaThumbnail: signedImageUrl,
+            disbursementSummary
+          })
+        )
+      ).catch(err => this.logger.error('Final Impact Broadcast Failed', err));
+
+      return updated;
     });
   }
 
