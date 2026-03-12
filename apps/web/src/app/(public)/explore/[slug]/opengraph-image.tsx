@@ -110,15 +110,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                                     {/* NGN Goal (Text format) */}
                                     <div style={{ display: 'flex', fontSize: '20px', fontWeight: 'bold', color: '#064e3b', alignItems: 'center' }}>
                                         <span style={{ marginRight: '6px' }}>Goal:</span>
-                                        <span>{target.toLocaleString()}</span>
                                         <span style={{ marginLeft: '4px' }}>NGN</span>
+                                        <span>{target.toLocaleString()}</span>
                                     </div>
 
                                     {/* USD Estimate (Text format) */}
                                     <div style={{ display: 'flex', fontSize: '15px', fontWeight: 'bold', color: '#9ca3af', marginTop: '4px' }}>
-                                        <span style={{ marginRight: '4px' }}>≈</span>
-                                        <span>{usdGoal.toLocaleString()}</span>
+                                        <span style={{ marginRight: '4px' }}>~</span>
                                         <span style={{ marginLeft: '4px' }}>USD</span>
+                                        <span>{usdGoal.toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
