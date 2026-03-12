@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
 import { motion } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 
 const iconMap: Record<string, React.ElementType> = {
     water: Droplets,
@@ -47,6 +48,7 @@ interface CategoryBrowserProps {
 }
 
 export const CategoryBrowser = memo(function CategoryBrowser({ categories, selected, onSelect }: CategoryBrowserProps) {
+    const posthog = usePostHog();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
@@ -180,7 +182,10 @@ export const CategoryBrowser = memo(function CategoryBrowser({ categories, selec
                             aria-selected={isActive}
                             tabIndex={isActive ? 0 : -1}
                             data-active={isActive}
-                            onClick={() => onSelect(cat.slug)}
+                            onClick={() => {
+                                onSelect(cat.slug);
+                                posthog?.capture('category_clicked', { category_slug: cat.slug, category_name: cat.name });
+                            }}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary relative",

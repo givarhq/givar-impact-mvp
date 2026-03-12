@@ -23,6 +23,7 @@ import { formatDate } from '../../../lib/utils/format';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Badge } from '../../ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 
 interface UserSearchResults {
     projects: any[];
@@ -45,6 +46,7 @@ const FILTERS: { id: FilterType; label: string; icon: any }[] = [
 ];
 
 export const UserGlobalSearch = memo(function UserGlobalSearch() {
+    const posthog = usePostHog();
     const router = useRouter();
     const [query, setQuery] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +62,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                 setIsLoading(true);
                 try {
                     const data = await ApiService.projects.globalSearch(query.trim());
+                    posthog?.capture('search_performed', { query: query.trim(), results_count: Object.values(data).flat().length });
                     setResults(data);
                     setIsOpen(true);
                 } catch (error) {

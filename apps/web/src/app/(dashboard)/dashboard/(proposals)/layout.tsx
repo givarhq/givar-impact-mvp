@@ -6,7 +6,9 @@ import { cn } from '../../../../lib/utils/cn';
 import { Check } from 'lucide-react';
 import { useProposalAutoSave } from '../../../../hooks/use-proposal-auto-save';
 import { motion } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 import { FeedbackThread } from '../../../../components/features/communication/feedback-thread';
+import { useEffect } from 'react';
 
 const steps = [
   { href: '/hook', name: 'Hook', number: 1 },
@@ -16,6 +18,7 @@ const steps = [
 ];
 
 export default function ProposalLayout({ children }: { children: React.ReactNode }) {
+  const posthog = usePostHog();
   const pathname = usePathname();
   const isEditPage = pathname.includes('/edit/');
 
@@ -26,6 +29,16 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
   const currentStepPath = `/${pathname.split('/').pop()}`;
   const currentStepIndex = steps.findIndex((step) => step.href === currentStepPath);
   const activeIndex = currentStepIndex === -1 ? 0 : currentStepIndex;
+
+  useEffect(() => {
+    if (isEditPage && proposalId) {
+      posthog?.capture('proposal_step_viewed', {
+        proposal_id: proposalId,
+        step_name: steps[activeIndex].name,
+        step_number: steps[activeIndex].number
+      });
+    }
+  }, [activeIndex, proposalId, isEditPage]);
 
   useProposalAutoSave();
 
