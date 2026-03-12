@@ -74,7 +74,7 @@ export function Sidebar({ user }: { user: any }) {
           </nav>
         </div>
 
-        {/* Action Card: Start a Cause */}
+        {/* Action Card: Submit a cause */}
         <div className="p-2 mt-auto shrink-0 border-border/40">
           <Link href="/dashboard/proposals/start" className="block group">
             <div className="relative overflow-hidden rounded-3xl bg-muted/30 border border-border/50 p-4 transition-all hover:bg-muted/50">
@@ -84,7 +84,7 @@ export function Sidebar({ user }: { user: any }) {
                     <Rocket className="h-3 w-3" />
                   </div>
                   <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
-                    Start a cause
+                    Submit a cause
                   </span>
                 </div>
                 <ArrowRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
