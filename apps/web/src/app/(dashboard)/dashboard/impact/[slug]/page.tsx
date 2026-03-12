@@ -25,13 +25,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title,
       description,
-      images: [`/explore/${slug}/opengraph-image`],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [`/explore/${slug}/opengraph-image`],
     },
   };
 }

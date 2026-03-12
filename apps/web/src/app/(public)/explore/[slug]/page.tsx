@@ -27,20 +27,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: 'website',
       url: `${process.env.NEXT_PUBLIC_APP_URL}/explore/${slug}`,
       siteName: 'Givar Impact',
-      images: [
-        {
-          url: `/explore/${slug}/opengraph-image`,
-          width: 1200,
-          height: 630,
-          alt: project.title,
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [`/explore/${slug}/opengraph-image`],
     },
   };
 }
