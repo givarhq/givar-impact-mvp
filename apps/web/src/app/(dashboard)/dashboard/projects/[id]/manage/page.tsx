@@ -59,6 +59,9 @@ export default async function ProjectManagePage({
     const latestProof = project.milestoneProofs?.find((p: any) => p.milestoneId === currentMilestone?.id);
     const isRejected = latestProof?.status === 'REJECTED';
 
+    const isMedical = project.category?.name?.toLowerCase() === 'medical';
+    const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
+
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-24">
 
@@ -81,7 +84,7 @@ export default async function ProjectManagePage({
                                 Management Console
                             </Badge>
                             {isFullyCompleted && (
-                                <Badge className="bg-emerald-500 text-white font-bold text-[10px]  rounded-3xl border-0">Mission Complete</Badge>
+                                <Badge className="bg-emerald-500 text-white font-bold text-[10px]  rounded-3xl border-0">{completedText}</Badge>
                             )}
                         </div>
                     </div>
@@ -134,7 +137,7 @@ export default async function ProjectManagePage({
                             <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                                 <CheckCircle2 className="h-10 w-10" />
                             </div>
-                            <h3 className="text-xl font-bold text-foreground tracking-tight">Mission Accomplished</h3>
+                            <h3 className="text-xl font-bold text-foreground tracking-tight">{completedText}</h3>
                             <p className="text-xs text-muted-foreground mt-2 max-w-xs mx-auto leading-relaxed font-medium">
                                 Every phase of this cause has been executed & verified. Thank you for your work on the ground.
                             </p>

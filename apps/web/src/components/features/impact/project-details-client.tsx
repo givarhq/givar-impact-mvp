@@ -42,7 +42,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const raised = Number(project.raisedAmount || 0);
     const target = Number(project.targetAmount || 0);
-    const isFunded = (raised >= target && target > 0) || project.status === 'FUNDED' || project.status === 'COMPLETED';
+    const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
+
+    const isCompleted = project.status === 'COMPLETED';
+    const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
+
+    const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
+    const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
 
     // Hybrid Badge Logic
     const getVerificationMeta = () => {
@@ -266,7 +272,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </div>
                                         <div className="grid gap-3">
                                             {timeline.map((phase: any, i: number) => {
-                                                const isCompleted = phase.status === 'COMPLETED';
+                                                const isCompletedPhase = phase.status === 'COMPLETED';
                                                 const isInProgress = phase.status === 'IN_PROGRESS';
 
                                                 return (
@@ -274,28 +280,28 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                         <div className="flex flex-col items-center shrink-0">
                                                             <div className={cn(
                                                                 "h-7 w-7 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 bg-background",
-                                                                isCompleted ? "bg-primary border-primary text-primary-foreground shadow-sm" :
+                                                                isCompletedPhase ? "bg-primary border-primary text-primary-foreground shadow-sm" :
                                                                     isInProgress ? "border-primary text-primary animate-pulse" :
                                                                         "border-border text-muted-foreground"
                                                             )}>
-                                                                {isCompleted ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
+                                                                {isCompletedPhase ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
                                                             </div>
                                                             <div className={cn(
                                                                 "flex-1 w-0.5 group-last:hidden mt-2 mb-0.5 transition-colors",
-                                                                isCompleted ? "bg-primary" : "bg-border/40"
+                                                                isCompletedPhase ? "bg-primary" : "bg-border/40"
                                                             )} />
                                                         </div>
                                                         <div className="flex-1 pb-6 space-y-1 min-w-0">
                                                             <div className="flex justify-between items-baseline gap-4">
-                                                                <h5 className={cn("font-bold text-sm", isCompleted || isInProgress ? "text-foreground" : "text-muted-foreground")}>
+                                                                <h5 className={cn("font-bold text-sm", isCompletedPhase || isInProgress ? "text-foreground" : "text-muted-foreground")}>
                                                                     {phase.phase}
                                                                 </h5>
                                                                 <div className="flex flex-col items-end shrink-0">
                                                                     <span className={cn(
                                                                         "text-[11px] font-bold px-2 py-0.5 rounded-3xl  border",
-                                                                        isCompleted ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
+                                                                        isCompletedPhase ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
                                                                     )}>
-                                                                        {isCompleted ? 'Complete' : phase.estimatedDate}
+                                                                        {isCompletedPhase ? 'Complete' : phase.estimatedDate}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -384,9 +390,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     <TransparencyCard project={project} />
 
                     <div className="space-y-3 hidden md:block">
-                        {isFunded ? (
+                        {isCompleted ? (
                             <Button size="lg" disabled className="w-full h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
-                                <Check className="mr-2 h-4 w-4" /> Mission funded
+                                <Check className="mr-2 h-4 w-4" /> {completedText}
+                            </Button>
+                        ) : isFundedState ? (
+                            <Button size="lg" disabled className="w-full h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
+                                <Check className="mr-2 h-4 w-4" /> Goal Reached
                             </Button>
                         ) : (
                             <Link href={donateLink} className="block w-full">
@@ -477,13 +487,21 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
                 isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
             )}>
-                {isFunded ? (
+                {isCompleted ? (
                     <Button
                         size="lg"
                         disabled
                         className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm pointer-events-auto"
                     >
-                        <Check className="mr-2 h-4 w-4" /> Mission funded
+                        <Check className="mr-2 h-4 w-4" /> {completedText}
+                    </Button>
+                ) : isFundedState ? (
+                    <Button
+                        size="lg"
+                        disabled
+                        className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm pointer-events-auto"
+                    >
+                        <Check className="mr-2 h-4 w-4" /> Goal Reached
                     </Button>
                 ) : (
                     <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">

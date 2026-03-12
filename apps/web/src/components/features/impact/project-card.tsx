@@ -21,7 +21,12 @@ export const ProjectCard = memo(function ProjectCard({
   const raised = Number(project.raisedAmount || 0);
   const target = Number(project.targetAmount || 0);
   const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
-  const isFunded = project.status === 'FUNDED' || project.status === 'COMPLETED' || (raised >= target && target > 0);
+
+  const isCompleted = project.status === 'COMPLETED';
+  const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
+
+  const isMedical = project.categoryName?.toLowerCase() === 'medical';
+  const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
@@ -92,9 +97,9 @@ export const ProjectCard = memo(function ProjectCard({
 
         {/* Impact Progress & Actions */}
         <div className="space-y-2 sm:space-y-3 mt-auto min-w-0">
-          {isFunded && (
+          {(isCompleted || isFundedState) && (
             <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
-              <Check className="h-3 w-3" /> Fully Funded
+              <Check className="h-3 w-3" /> {isCompleted ? completedText : 'Goal Reached'}
             </div>
           )}
           <div className="flex justify-between items-end gap-3 min-w-0">
