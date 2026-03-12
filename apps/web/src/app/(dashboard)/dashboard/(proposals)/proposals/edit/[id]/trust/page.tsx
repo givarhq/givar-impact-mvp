@@ -57,7 +57,7 @@ export default function TrustPage() {
     try {
       await ApiService.proposals.submit(proposalId);
       toast.success('Submitted for formal review');
-      router.push('/dashboard/proposals');
+      router.push(`/dashboard/proposals/status/${proposalId}`);
     } catch (error: any) {
       store.updateField('status', 'DRAFT');
       const message = error.response?.data?.message || 'Please verify all required fields.';
@@ -85,7 +85,7 @@ export default function TrustPage() {
       return ['Medical report or diagnosis', 'Hospital invoice or estimate', 'Treatment recommendation or admission letter'];
     }
     if (categoryName.includes('education')) {
-      return ['Admission letter', 'Fee invoice'];
+      return ['Admission letter or School Board Approval', 'Fee invoice'];
     }
     if (categoryName.includes('community')) {
       return ['Quotation or estimate', 'Project description'];
@@ -145,7 +145,7 @@ export default function TrustPage() {
                     className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
                   />
                   <Input
-                    label="Phone optional"
+                    label="Phone (Optional)"
                     placeholder="Direct contact number"
                     value={store.contactPhone || ''}
                     onChange={(e) => store.updateField('contactPhone', e.target.value)}
@@ -338,7 +338,7 @@ export default function TrustPage() {
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Send className="h-4 w-4 shrink-0" />}
-                  <span className="truncate">Submit Cause for Review</span>
+                  <span className="truncate">Submit Cause</span>
                 </Button>
               </div>
             </div>
