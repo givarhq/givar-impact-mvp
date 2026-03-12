@@ -9,7 +9,8 @@ import {
     Heart, Check, UserCheck,
     RefreshCcw,
     Clock,
-    CheckCircle2
+    CheckCircle2,
+    Landmark
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -42,7 +43,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const raised = Number(project.raisedAmount || 0);
     const target = Number(project.targetAmount || 0);
-    const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
+    const percent = target > 0 ? Math.min(100, Math.floor((raised / target) * 100)) : 0;
 
     const isCompleted = project.status === 'COMPLETED';
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
@@ -63,7 +64,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const verMeta = getVerificationMeta();
     const VerIcon = verMeta.icon;
 
-    // Isolate the final impact report if the project is completed
     const finalUpdate = project.updates?.find(u => u.type === 'IMPACT_ACHIEVED' || u.type === 'IMPACT_REPORT');
 
     const formatUpdateType = (type: string) => {
@@ -84,17 +84,17 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 {/* Header Metadata */}
                 <div className="space-y-2.5 text-left">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="secondary" className="rounded-3xl font-bold text-xs tracking-tight px-3 py-1 border-none bg-muted">
+                        <Badge variant="secondary" className="rounded-3xl font-bold text-xs px-3 py-1 border-none bg-muted">
                             {project.category?.name || 'General impact'}
                         </Badge>
 
                         {project.isVerifiedOrganizer && (
-                            <Badge variant="outline" className={cn("rounded-3xl font-bold text-xs tracking-tight px-3 py-1 border gap-1.5", verMeta.badgeStyle)}>
+                            <Badge variant="outline" className={cn("rounded-3xl font-bold text-xs px-3 py-1 border gap-1.5", verMeta.badgeStyle)}>
                                 <VerIcon className="h-3 w-3" /> {verMeta.label}
                             </Badge>
                         )}
                     </div>
-                    <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground leading-tight">
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
                         {project.title}
                     </h1>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs font-medium text-muted-foreground">
@@ -112,7 +112,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     </div>
                 </div>
 
-                {/* Impact Completion Banner (Rendered dynamically if status is COMPLETED) */}
                 <AnimatePresence>
                     {isCompleted && finalUpdate && (
                         <motion.div
@@ -126,8 +125,8 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         <CheckCircle2 className="h-6 w-6" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <CardTitle className="text-sm font-bold text-emerald-800 tracking-tight">{completedText}</CardTitle>
-                                        <p className="text-[11px] text-emerald-700/80 font-bold ">Final evidence & verification report</p>
+                                        <CardTitle className="text-sm font-bold text-emerald-800">{completedText}</CardTitle>
+                                        <p className="text-[11px] text-emerald-700/80 font-bold">Final evidence and verification report</p>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-6 md:p-8">
@@ -167,7 +166,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10">
-                                <span className="text-xs font-bold  opacity-40 ">Pending visuals</span>
+                                <span className="text-xs font-bold opacity-40">Pending visuals</span>
                             </div>
                         )}
                     </div>
@@ -200,7 +199,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     )}
                 </div>
 
-                {/* Navigation Tabs - Unified Pill Style */}
+                {/* Navigation Tabs */}
                 <Tabs defaultValue="story" className="w-full">
                     <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
                         <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
@@ -231,11 +230,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:tracking-tight[&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5[&_h3]:mb-2",
+                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4[&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal [&_ol]:pl-5[&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
@@ -248,14 +247,14 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                                 {project.riskAnalysis && (
                                     <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
-                                        <h4 className="text-sm font-bold tracking-tight text-amber-700 flex items-center gap-2 mb-3">
-                                            <AlertTriangle className="h-4 w-4" /> Risk Assessment & Mitigation
+                                        <h4 className="text-sm font-bold text-amber-700 flex items-center gap-2 mb-3">
+                                            <AlertTriangle className="h-4 w-4" /> Risk Assessment and Mitigation
                                         </h4>
                                         <div
                                             className={cn(
                                                 "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
                                                 "[&_p]:mb-2 [&_p]:last:mb-0",
-                                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2[&_ul]:space-y-1",
+                                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
                                                 "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
@@ -275,16 +274,29 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
                             >
+                                {/* NEW: Pre-Collected Funds Note */}
+                                {project.hasPreCollectedFunds && project.preCollectedAmount && (
+                                    <div className="mb-8 p-5 rounded-3xl bg-blue-50/50 border border-blue-100 shadow-sm">
+                                        <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-1">
+                                            <Landmark className="h-4 w-4" /> Previously Raised Funds
+                                        </h4>
+                                        <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                                            This cause has already raised <span className="font-bold">{formatCurrency(project.preCollectedAmount, project.currency)}</span> externally.
+                                            {project.preCollectedVerified && " These funds have been verified by Givar."}
+                                        </p>
+                                    </div>
+                                )}
+
                                 <div className="space-y-4 mb-10">
                                     <div className="flex items-center gap-3 px-1">
                                         <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
                                             <DollarSign className="h-4 w-4" />
                                         </div>
-                                        <h4 className="text-xs font-bold  text-foreground ">Verified Cost Breakdown</h4>
+                                        <h4 className="text-xs font-bold text-foreground">Verified Cost Breakdown</h4>
                                     </div>
                                     <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
                                         <table className="w-full text-left border-collapse">
-                                            <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground  tracking-wider">
+                                            <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground">
                                                 <tr>
                                                     <th className="px-6 py-4">Item</th>
                                                     <th className="px-6 py-4 hidden md:table-cell">Type</th>
@@ -296,9 +308,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     <tr key={i} className="hover:bg-muted/10 transition-colors">
                                                         <td className="px-6 py-4 font-bold text-foreground">
                                                             {item.description || item.item}
-                                                            <div className="md:hidden text-[11px] text-muted-foreground font-medium  mt-0.5">{item.costType || item.type}</div>
+                                                            <div className="md:hidden text-[11px] text-muted-foreground font-medium mt-0.5">{item.costType || item.type}</div>
                                                         </td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium  text-[11px]">{item.costType || item.type}</td>
+                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium text-[11px]">{item.costType || item.type}</td>
                                                         <td className="px-6 py-4 text-right font-bold tabular-nums text-foreground">
                                                             {new Intl.NumberFormat('en-NG', { style: 'currency', currency: project.currency }).format(item.amount || item.cost || 0)}
                                                         </td>
@@ -315,7 +327,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                             <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
                                                 <Briefcase className="h-4 w-4" />
                                             </div>
-                                            <h4 className="text-xs font-bold  text-foreground ">Implementation roadmap</h4>
+                                            <h4 className="text-xs font-bold text-foreground">Implementation roadmap</h4>
                                         </div>
                                         <div className="grid gap-3">
                                             {timeline.map((phase: any, i: number) => {
@@ -345,7 +357,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                                 </h5>
                                                                 <div className="flex flex-col items-end shrink-0">
                                                                     <span className={cn(
-                                                                        "text-[11px] font-bold px-2 py-0.5 rounded-3xl  border",
+                                                                        "text-[11px] font-bold px-2 py-0.5 rounded-3xl border",
                                                                         isCompletedPhase ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
                                                                     )}>
                                                                         {isCompletedPhase ? 'Complete' : phase.estimatedDate}
@@ -400,17 +412,17 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="space-y-1">
                                                         <div className="flex items-center gap-3 mb-1">
-                                                            <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold tracking-wider border-none",
+                                                            <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold border-none",
                                                                 isAdjustment ? "bg-amber-500/10 text-amber-700" :
                                                                     isImpact ? "bg-emerald-500/10 text-emerald-700" :
                                                                         "bg-primary/10 text-primary")}>
                                                                 {isAdjustment ? 'Amendment' : formatUpdateType(update.type)}
                                                             </Badge>
-                                                            <span className="text-[11px] font-bold text-muted-foreground  flex items-center gap-1">
+                                                            <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
                                                                 <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
                                                             </span>
                                                         </div>
-                                                        <h4 className={cn("text-lg font-bold tracking-tight", isAdjustment ? "text-amber-900" : isImpact ? "text-emerald-900" : "text-foreground")}>{update.title}</h4>
+                                                        <h4 className={cn("text-lg font-bold", isAdjustment ? "text-amber-900" : isImpact ? "text-emerald-900" : "text-foreground")}>{update.title}</h4>
                                                     </div>
                                                     {isAdjustment && <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />}
                                                     {isImpact && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
@@ -418,7 +430,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                                                 <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/80" : isImpact ? "text-emerald-900/80" : "text-muted-foreground")}>{update.content}</p>
 
-                                                <div className="pt-4 border-t border-border/40 text-[10px] font-bold   text-muted-foreground flex items-center gap-1.5">
+                                                <div className="pt-4 border-t border-border/40 text-[10px] font-bold text-muted-foreground flex items-center gap-1.5">
                                                     <ShieldCheck className={cn("h-3 w-3", isImpact ? "text-emerald-600" : "text-primary")} /> Verified entry
                                                 </div>
                                             </Card>
@@ -427,7 +439,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 ) : (
                                     <div className="text-center py-16 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                         <Clock className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
-                                        <p className="text-xs font-bold text-muted-foreground  ">No activity logged</p>
+                                        <p className="text-xs font-bold text-muted-foreground">No activity logged</p>
                                     </div>
                                 )}
                             </motion.div>
@@ -477,22 +489,22 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1 mb-0.5">
-                                    <p className="text-[11px] text-muted-foreground font-bold  ">Entity</p>
+                                    <p className="text-[11px] text-muted-foreground font-bold">Entity</p>
                                     {project.isVerifiedOrganizer && <BadgeCheck className="h-3 w-3 text-primary" />}
                                 </div>
-                                <p className="font-bold text-foreground truncate text-sm ">
+                                <p className="font-bold text-foreground truncate text-sm">
                                     {project.organizerName}
                                 </p>
                             </div>
                         </div>
 
                         <div className="pt-4 border-t border-border/40 flex items-center justify-between">
-                            <div className={cn("flex items-center gap-1.5 font-bold text-[11px]  tracking-wider", verMeta.color)}>
+                            <div className={cn("flex items-center gap-1.5 font-bold text-[11px]", verMeta.color)}>
                                 <VerIcon className="h-3.5 w-3.5" />
                                 {verMeta.label}
                             </div>
                             {project.organizerType !== 'SYSTEM' && (
-                                <button className="text-[11px] font-bold  text-muted-foreground hover:text-primary transition-colors">
+                                <button className="text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors">
                                     Profile
                                 </button>
                             )}

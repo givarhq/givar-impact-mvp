@@ -1649,18 +1649,32 @@ export class AdminService {
         }
       });
 
-      await this.audit.log({
-        userId: adminId,
-        action: AuditAction.DISBURSEMENT_RECORDED,
-        entityId: disbursement.id,
-        entityType: 'Disbursement',
-        metadata: {
-          vendor: dto.vendorName,
-          milestone: milestone?.phase || 'Unknown',
-          amount_naira: (Number(dto.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          hasReceipt: !!dto.receiptKey
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.DISBURSEMENT_RECORDED,
+          entityId: disbursement.id,
+          entityType: 'Disbursement',
+          metadata: {
+            vendor: dto.vendorName,
+            milestone: milestone?.phase || 'Unknown',
+            amount_naira: (Number(dto.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            hasReceipt: !!dto.receiptKey
+          }
         }
-      }, tx);
+      });
+
+      // Automatically generate a public Project Update for the disbursement
+      await tx.projectUpdate.create({
+        data: {
+          projectId,
+          title: 'Funds Disbursed',
+          content: `A payment of ${(Number(dto.amount) / 100).toLocaleString()} ${project.currency} has been securely disbursed to ${dto.vendorName} for the execution of the "${milestone?.phase || 'Current Phase'}" phase.`,
+          type: 'FUNDS_DISBURSED',
+          // Optionally link the receipt if it exists
+          imageUrl: dto.receiptKey ? dto.receiptKey : null
+        }
+      });
 
       // Notify the organizer to provide proof of work for this disbursement
       await tx.notification.create({
