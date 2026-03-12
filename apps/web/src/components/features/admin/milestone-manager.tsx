@@ -226,7 +226,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
               onClick={() => setShowFinalizeModal(true)}
               className="w-full md:w-auto h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-3xl px-8 font-bold shadow-md border-0 active:scale-95 transition-all"
             >
-              Finalize Project Impact
+              Finalize Project
             </Button>
           </motion.div>
         )}
@@ -275,7 +275,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
 
               <div className="flex flex-col gap-2 pt-2">
                 <Button
-                  className="w-full h-14 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 bg-primary text-white border-0 transition-all active:scale-[0.98]"
+                  className="w-full h-12 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 bg-primary text-white border-0 transition-all active:scale-[0.98]"
                   onClick={() => updateMilestone(activeMilestone!.id, 'COMPLETED', proofImage?.key || undefined)}
                   disabled={processingId === activeMilestone?.id}
                 >
