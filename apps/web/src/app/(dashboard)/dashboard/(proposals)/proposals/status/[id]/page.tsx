@@ -1,0 +1,293 @@
+import { cookies } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
+import { ApiService } from '../../../../../../../services/api';
+import { Button } from '../../../../../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../../../../components/ui/card';
+import { Badge } from '../../../../../../../components/ui/badge';
+import { FeedbackThread } from '../../../../../../../components/features/communication/feedback-thread';
+import { ArrowLeft, Clock, CheckCircle2, AlertCircle, FileSearch, ShieldCheck, Check, Fingerprint, FileText, ArrowRight } from 'lucide-react';
+import { cn } from '../../../../../../../lib/utils/cn';
+
+export const metadata = {
+    title: 'Cause Status',
+    description: 'Track the verification and review status of your proposed cause.',
+};
+
+export default async function ProposalStatusPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('givar_token')?.value;
+
+    if (!token) redirect('/login');
+
+    try {
+        const proposal = await ApiService.proposals.get(id, token);
+
+        if (!proposal) {
+            notFound();
+        }
+
+        // Logic: Construct the current stage logic
+        const currentStatus = proposal.status;
+
+        const isIdentityPending = currentStatus === 'AWAITING_VERIFICATION';
+        const isTechnicalReview = currentStatus === 'SUBMITTED' || currentStatus === 'UNDER_REVIEW' || currentStatus === 'CHANGES_REQUESTED';
+        const isFinalized = currentStatus === 'APPROVED' || currentStatus === 'REJECTED';
+
+        const stages = [
+            {
+                label: 'Cause Submitted',
+                desc: 'Proposal received',
+                icon: FileText,
+                isCompleted: true,
+                isActive: false
+            },
+            {
+                label: 'Identity Audit',
+                desc: 'Verifying advocate profile',
+                icon: ShieldCheck,
+                isCompleted: isTechnicalReview || isFinalized,
+                isActive: isIdentityPending
+            },
+            {
+                label: 'Technical Review',
+                desc: 'Evaluating implementation plan',
+                icon: FileSearch,
+                isCompleted: isFinalized,
+                isActive: isTechnicalReview
+            },
+            {
+                label: 'Final Decision',
+                desc: currentStatus === 'APPROVED' ? 'Approved & Live' : currentStatus === 'REJECTED' ? 'Rejected' : 'Pending outcome',
+                icon: currentStatus === 'APPROVED' ? CheckCircle2 : currentStatus === 'REJECTED' ? XCircle : CheckCircle2,
+                isCompleted: isFinalized,
+                isActive: isFinalized
+            }
+        ];
+
+        let actionRequired = null;
+
+        if (currentStatus === 'CHANGES_REQUESTED') {
+            actionRequired = {
+                title: 'Additional Details Required',
+                description: 'The review team has requested updates to your proposal before it can be approved.',
+                feedback: proposal.adminFeedback,
+                link: `/dashboard/proposals/edit/${id}/hook`,
+                buttonText: 'Edit Proposal',
+                icon: AlertCircle,
+                color: 'amber'
+            };
+        } else if (currentStatus === 'AWAITING_VERIFICATION') {
+            actionRequired = {
+                title: 'Identity Verification Pending',
+                description: 'Your proposal is paused. You must complete the organization verification process to proceed.',
+                link: `/dashboard/settings?tab=org`,
+                buttonText: 'Complete Verification',
+                icon: ShieldCheck,
+                color: 'blue'
+            };
+        } else if (currentStatus === 'REJECTED') {
+            actionRequired = {
+                title: 'Proposal Declined',
+                description: 'This cause was not approved for publication on the platform.',
+                feedback: proposal.adminFeedback,
+                link: `/dashboard/proposals`,
+                buttonText: 'Return to Dashboard',
+                icon: AlertCircle,
+                color: 'destructive'
+            };
+        }
+
+        const getStatusColor = (status: string) => {
+            switch (status) {
+                case 'APPROVED': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+                case 'REJECTED': return 'bg-destructive/10 text-destructive border-destructive/20';
+                case 'CHANGES_REQUESTED': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+                case 'AWAITING_VERIFICATION': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+                default: return 'bg-primary/10 text-primary border-primary/20';
+            }
+        };
+
+        const displayStatus = currentStatus === 'CHANGES_REQUESTED' ? 'ACTION REQUIRED' : currentStatus.replace(/_/g, ' ');
+
+        return (
+            <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-500 pb-20">
+
+                <div className="flex flex-col gap-4 px-1 min-w-0">
+                    <Link href="/dashboard/proposals" className="w-fit">
+                        <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">
+                            <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                            Back to My Causes
+                        </Button>
+                    </Link>
+
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 min-w-0">
+                        <div className="min-w-0 flex-1">
+                            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground truncate">
+                                {proposal.title || 'Untitled Proposal'}
+                            </h1>
+                            <div className="flex items-center gap-3 mt-2">
+                                <Badge variant="outline" className={cn("px-2.5 py-0.5 rounded-3xl font-bold text-[11px]  border", getStatusColor(currentStatus))}>
+                                    {displayStatus}
+                                </Badge>
+                                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-3xl bg-muted border border-border/40 text-[11px] font-mono text-muted-foreground shrink-0">
+                                    <Fingerprint className="h-3 w-3" />
+                                    {id.split('-')[0]}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start min-w-0">
+                    <div className="lg:col-span-8 space-y-6 min-w-0">
+
+                        {/* Action Required Banner */}
+                        {actionRequired && (
+                            <Card className={cn(
+                                "rounded-3xl border shadow-sm overflow-hidden animate-in slide-in-from-top-2",
+                                actionRequired.color === 'amber' ? "bg-amber-50/50 border-amber-200" :
+                                    actionRequired.color === 'blue' ? "bg-blue-50/50 border-blue-200" :
+                                        "bg-destructive/5 border-destructive/20"
+                            )}>
+                                <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                                    <div className={cn(
+                                        "h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner",
+                                        actionRequired.color === 'amber' ? "bg-amber-100 text-amber-600" :
+                                            actionRequired.color === 'blue' ? "bg-blue-100 text-blue-600" :
+                                                "bg-destructive/10 text-destructive"
+                                    )}>
+                                        <actionRequired.icon className="h-6 w-6" />
+                                    </div>
+                                    <div className="flex-1 min-w-0 space-y-1">
+                                        <h3 className={cn(
+                                            "text-base font-bold",
+                                            actionRequired.color === 'amber' ? "text-amber-900" :
+                                                actionRequired.color === 'blue' ? "text-blue-900" :
+                                                    "text-destructive"
+                                        )}>
+                                            {actionRequired.title}
+                                        </h3>
+                                        <p className={cn(
+                                            "text-xs font-medium leading-relaxed",
+                                            actionRequired.color === 'amber' ? "text-amber-800" :
+                                                actionRequired.color === 'blue' ? "text-blue-800" :
+                                                    "text-destructive/80"
+                                        )}>
+                                            {actionRequired.description}
+                                        </p>
+                                        {actionRequired.feedback && (
+                                            <div className={cn(
+                                                "mt-3 p-3 rounded-2xl text-xs italic font-medium border-l-4",
+                                                actionRequired.color === 'amber' ? "bg-amber-100/50 border-amber-400 text-amber-900" :
+                                                    "bg-destructive/10 border-destructive text-destructive"
+                                            )}>
+                                                "{actionRequired.feedback}"
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
+                                        <Link href={actionRequired.link} className="block w-full">
+                                            <Button
+                                                className={cn(
+                                                    "w-full sm:w-auto h-11 rounded-3xl font-bold text-xs shadow-md border-0 active:scale-95 transition-all",
+                                                    actionRequired.color === 'amber' ? "bg-amber-500 hover:bg-amber-600 text-white" :
+                                                        actionRequired.color === 'blue' ? "bg-blue-600 hover:bg-blue-700 text-white" :
+                                                            "bg-destructive hover:bg-destructive/90 text-white"
+                                                )}
+                                            >
+                                                {actionRequired.buttonText} <ArrowRight className="ml-2 h-4 w-4" />
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Communication Panel */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <FeedbackThread
+                                proposalId={proposal.id}
+                                title="Verification Updates"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="lg:col-span-4 space-y-6 min-w-0">
+                        <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
+                            <CardHeader className="bg-muted/30 border-b border-border/40 py-5 px-6">
+                                <CardTitle className="text-xs font-bold text-muted-foreground  flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-primary" /> Application Timeline
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6 md:p-8">
+                                <div className="space-y-8 relative min-w-0">
+                                    <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border/60" />
+
+                                    {stages.map((stage, i) => {
+                                        const isDone = stage.isCompleted;
+                                        const isCurrent = stage.isActive;
+                                        const StageIcon = stage.icon;
+
+                                        return (
+                                            <div key={i} className="flex gap-5 relative group min-w-0">
+                                                <div className="flex flex-col items-center shrink-0 z-10">
+                                                    <div className={cn(
+                                                        "h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all duration-500 bg-background shadow-sm",
+                                                        isDone ? "bg-emerald-50 border-emerald-500 text-emerald-600" :
+                                                            isCurrent ? "border-primary text-primary ring-4 ring-primary/10" :
+                                                                "border-border text-muted-foreground/40"
+                                                    )}>
+                                                        {isDone ? <Check className="h-4 w-4" /> : <StageIcon className="h-3.5 w-3.5" />}
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 min-w-0 pt-1 space-y-0.5">
+                                                    <h4 className={cn("font-bold text-sm truncate", isDone || isCurrent ? "text-foreground" : "text-muted-foreground")}>
+                                                        {stage.label}
+                                                    </h4>
+                                                    <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                                        {stage.desc}
+                                                    </p>
+                                                    {isCurrent && currentStatus === 'UNDER_REVIEW' && i === 2 && (
+                                                        <div className="mt-2 text-[11px] font-bold text-blue-600 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200 w-fit animate-pulse">
+                                                            Review in progress
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        );
+    } catch (error) {
+        notFound();
+    }
+}
+
+// Fallback for missing icon
+function XCircle(props: any) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <circle cx="12" cy="12" r="10" />
+            <path d="m15 9-6 6" />
+            <path d="m9 9 6 6" />
+        </svg>
+    )
+}

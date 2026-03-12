@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   FileText, Clock, CheckCircle2, AlertCircle,
   MoreHorizontal, Trash2, Edit2, ArrowRight, XCircle,
-  LayoutDashboard
+  LayoutDashboard, Info
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -79,7 +79,7 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
     ? `/dashboard/projects/${proposal.id}/manage`
     : isEditable
       ? `/dashboard/proposals/edit/${proposal.id}/hook`
-      : '#';
+      : `/dashboard/proposals/status/${proposal.id}`;
 
   return (
     <>
@@ -112,6 +112,11 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
                     <Edit2 className="h-4 w-4" /> Edit Proposal
                   </DropdownMenuItem>
                 )}
+                {!isApproved && !isEditable && (
+                  <DropdownMenuItem onClick={() => router.push(linkTarget)} className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5">
+                    <Info className="h-4 w-4" /> View Status
+                  </DropdownMenuItem>
+                )}
                 {(proposal.status === 'DRAFT' || proposal.status === 'REJECTED' || proposal.status === 'CHANGES_REQUESTED') && (
                   <DropdownMenuItem
                     onClick={() => setIsConfirmOpen(true)}
@@ -126,7 +131,7 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
 
           {/* Content Body: Narrative */}
           <div className="flex-1 min-w-0">
-            <Link href={linkTarget} className={cn("block space-y-1.5 min-w-0", (proposal.status !== 'APPROVED' && !isEditable) && "cursor-default")}>
+            <Link href={linkTarget} className={cn("block space-y-1.5 min-w-0", (proposal.status !== 'APPROVED' && !isEditable && proposal.status !== 'CHANGES_REQUESTED') && "cursor-pointer")}>
               <h3 className="font-bold text-sm leading-snug text-foreground line-clamp-2 group-hover:text-primary transition-colors min-w-0">
                 {proposal.title || 'Untitled Draft'}
               </h3>
@@ -160,9 +165,11 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
                 </Button>
               </Link>
             ) : (
-              <div className="flex items-center justify-center gap-2 h-10 w-full rounded-3xl border border-dashed border-border/60 bg-muted/10 text-xs font-bold text-muted-foreground tracking-widest">
-                <Clock className="h-3.5 w-3.5" /> In Review
-              </div>
+              <Link href={linkTarget} className="block w-full">
+                <div className="flex items-center justify-center gap-2 h-10 w-full rounded-3xl border border-dashed border-border/60 bg-muted/10 text-xs font-bold text-muted-foreground hover:bg-muted/30 transition-colors active:scale-[0.98] cursor-pointer">
+                  <Clock className="h-3.5 w-3.5" /> View Status
+                </div>
+              </Link>
             )}
           </div>
         </CardContent>
