@@ -74,6 +74,7 @@ const projectSchema = z.object({
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
   reasonForGoalAdjustment: z.string().optional(),
+  endDate: z.string().optional().nullable(), // Added to support optional deadline
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -103,12 +104,14 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       budgetBreakdown: initialData.budgetBreakdown || [],
       executionTimeline: initialData.executionTimeline || [],
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
+      endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '', // Pre-fill date properly
       reasonForGoalAdjustment: '',
     } : {
       currency: 'NGN',
       gallery: [],
       budgetBreakdown: [],
       executionTimeline: [],
+      endDate: '',
     }
   });
 
@@ -125,7 +128,14 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     setIsSubmitting(true);
     const toastId = toast.loading(status === 'DRAFT' ? "Saving your progress..." : "Publishing cause...");
     try {
-      const payload = { ...data, targetAmount: data.targetAmount * 100, status };
+      // Map endDate to full ISO string or null before sending to API
+      const payload = {
+        ...data,
+        targetAmount: data.targetAmount * 100,
+        status,
+        endDate: data.endDate ? new Date(data.endDate).toISOString() : null
+      };
+
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
         toast.success(status === 'DRAFT' ? 'Changes saved as draft' : 'Project successfully published', { id: toastId });
@@ -178,7 +188,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/20 text-primary shadow-sm">
             <ShieldCheck className="h-4.5 w-4.5 shrink-0" />
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold tracking-widest">Verified Origin:</span>
+              <span className="text-[11px] font-bold">Verified Origin:</span>
               <Link href={`/admin/proposals/${initialData.proposalId}`} className="text-xs font-black underline hover:text-primary/80 flex items-center gap-1.5 transition-colors">
                 Proposal #{initialData.proposalId.split('-')[0]} <ExternalLink className="h-3 w-3" />
               </Link>
@@ -208,7 +218,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             <div className="space-y-2">
               <div className="flex justify-between items-end px-1">
-                <label className="text-[10px] font-black text-amber-800 tracking-widest">Narrative</label>
+                <label className="text-[10px] font-bold text-amber-800">Narrative</label>
                 <span className={cn(
                   "text-[10px] font-bold px-2 py-0.5 rounded-full",
                   (reason?.length || 0) < 10 ? "text-destructive bg-destructive/5" : "text-emerald-600 bg-emerald-50"
@@ -240,12 +250,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-base text-foreground leading-none">Project Identity</h3>
-            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Essential project metadata & classification</p>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Essential project metadata and classification</p>
           </div>
         </div>
 
         <div className="md:col-span-8 space-y-1.5">
-          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Cause Headline</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Cause Headline</label>
           {readOnly ? (
             <div
               className="h-12 flex items-center px-5 rounded-3xl 
@@ -260,21 +270,21 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             <Input
               {...register('title')}
               className={getInputClass()}
-              placeholder="Enter A Compelling Title..."
+              placeholder="Enter a compelling title..."
               error={errors.title?.message}
             />
           )}
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Sector Classification</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Sector Classification</label>
           <Controller
             control={control}
             name="categoryId"
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
                 <SelectTrigger className={cn(getInputClass(), "bg-muted/10")}>
-                  <SelectValue placeholder="Select A Sector" />
+                  <SelectValue placeholder="Select a sector" />
                 </SelectTrigger>
                 <SelectContent className="rounded-3xl shadow-2xl border-border/40 p-2">
                   {categories.map((c: any) => (
@@ -289,7 +299,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
-          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Short Elevator Pitch</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Short Elevator Pitch</label>
           <Textarea
             className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")}
             {...register('shortDesc')}
@@ -300,7 +310,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
-          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Project Mission Narrative</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Project Mission Narrative</label>
           <RichTextEditor
             content={description || ''}
             onChange={(val) => setValue('description', val, { shouldDirty: true })}
@@ -309,8 +319,9 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           {errors.description && <p className="text-xs text-destructive mt-2 font-bold px-2">{errors.description.message}</p>}
         </div>
 
-        <div className="md:col-span-6 space-y-1.5">
-          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Primary Location</label>
+        {/* 3-Column Layout for Location, Deadline, and Goal */}
+        <div className="md:col-span-4 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Location</label>
           <div className="relative group">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input
@@ -322,8 +333,18 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </div>
         </div>
 
-        <div className="md:col-span-6 space-y-1.5">
-          <label className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Capital Funding Goal (NGN)</label>
+        <div className="md:col-span-4 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Deadline optional</label>
+          <Input
+            type="date"
+            {...register('endDate')}
+            className={getInputClass()}
+            readOnly={readOnly}
+          />
+        </div>
+
+        <div className="md:col-span-4 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Capital Funding Goal (NGN)</label>
           <Controller
             control={control}
             name="targetAmount"
@@ -354,13 +375,13 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </div>
           <div className="min-w-0">
             <h3 className="font-bold text-base text-foreground leading-none">Visual Assets</h3>
-            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Photos & documents for proof of impact</p>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Photos and documents for proof of impact</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           <div className="lg:col-span-5 space-y-3">
-            <p className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Primary Showcase Image</p>
+            <p className="text-[11px] font-bold text-muted-foreground ml-1">Primary Showcase Image</p>
             {coverPreview || coverImage ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-md group/img bg-muted">
                 <Image
@@ -394,7 +415,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
           <div className="lg:col-span-7 space-y-3">
             <div className="flex justify-between items-center px-1">
-              <p className="text-[11px] font-black text-muted-foreground tracking-widest">Supporting Gallery ({gallery.length}/10)</p>
+              <p className="text-[11px] font-bold text-muted-foreground">Supporting Gallery ({gallery.length}/10)</p>
             </div>
             <div className={cn("transition-opacity duration-500", readOnly && "pointer-events-none opacity-90")}>
               <MediaManager
@@ -421,7 +442,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             <div>
               <h3 className="font-bold text-base text-foreground leading-none">Financial Ledger</h3>
-              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed procurement & budget items</p>
+              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed procurement and budget items</p>
             </div>
           </div>
           <BudgetEditor items={budget as any} onChange={(items) => setValue('budgetBreakdown', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
@@ -437,7 +458,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             <div>
               <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
-              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Key milestones & delivery schedule</p>
+              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Key milestones and delivery schedule</p>
             </div>
           </div>
           <TimelineEditor items={timeline as any} onChange={(items) => setValue('executionTimeline', items as any)} readOnly={readOnly} isLive={isLive} isAdjustmentMode={isAdjustmentMode} />
@@ -468,9 +489,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   disabled={isSubmitting}
                   onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
                   variant="secondary"
-                  className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px]
-               border border-border/60 bg-muted/40 shadow-none 
-               hover:bg-muted truncate"
+                  className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px] border border-border/60 bg-muted/40 shadow-none hover:bg-muted truncate"
                 >
                   {isSubmitting ? (
                     <Loader2 className="animate-spin h-4 w-4" />
@@ -486,9 +505,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   type="button"
                   disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
                   onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
-                  className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px]
-               shadow-xl shadow-primary/30 active:scale-[0.98] 
-               transition-all bg-primary text-white border-0 truncate"
+                  className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0 truncate"
                 >
                   {isSubmitting ? (
                     <Loader2 className="animate-spin h-5 w-5" />
@@ -512,9 +529,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   type="button"
                   variant="outline"
                   onClick={handleStartEditing}
-                  className="rounded-3xl h-11 px-8 font-bold gap-3 text-xs 
-                 border-border/60 text-primary hover:bg-muted 
-                 shadow-lg bg-background transition-all active:scale-[0.98]"
+                  className="rounded-3xl h-11 px-8 font-bold gap-3 text-xs border-border/60 text-primary hover:bg-muted shadow-lg bg-background transition-all active:scale-[0.98]"
                 >
                   <LockOpen className="h-4 w-4" />
                   Unlock for modification
