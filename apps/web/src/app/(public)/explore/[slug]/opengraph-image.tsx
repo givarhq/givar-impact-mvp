@@ -5,25 +5,39 @@ export const alt = 'Givar Project Preview';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default async function Image({ params }: { params: { slug: string } }) {
-    const { slug } = params;
+export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
 
-    // Parallel fetch: Project Details + Live FX Rates
-    // Note: Using standard fetch for Edge Runtime compatibility
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.givarapp.com/api';
+    const v1ApiUrl = apiUrl.endsWith('/v1') ? apiUrl : `${apiUrl}/v1`;
+
+    // Logic: Use revalidate: 0 to ensure the OG image pulls live ledger data
     const [project, fxData] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${slug}`).then(res => res.json()),
-        fetch('https://open.er-api.com/v6/latest/NGN').then(res => res.json()).catch(() => null)
+        fetch(`${v1ApiUrl}/projects/${slug}`, { next: { revalidate: 0 } })
+            .then(res => res.ok ? res.json() : null)
+            .catch(() => null),
+        fetch('https://open.er-api.com/v6/latest/NGN', { next: { revalidate: 3600 } })
+            .then(res => res.json())
+            .catch(() => null)
     ]);
 
     if (!project) {
-        return new Response('Project not found', { status: 404 });
+        return new ImageResponse(
+            <div style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
+                <img src="https://givarapp.com/Givar1.png" width="120" height="120" />
+            </div>
+        );
     }
 
-    const raised = Number(project.raisedAmount || 0) / 100;
-    const target = Number(project.targetAmount || 0) / 100;
-    const percent = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
+    // Forensic Parsing: Ensure we handle stringified BigInts (Minor Units) correctly
+    const rawRaised = project.raisedAmount ? String(project.raisedAmount).replace(/[^0-9]/g, '') : '0';
+    const rawTarget = project.targetAmount ? String(project.targetAmount).replace(/[^0-9]/g, '') : '0';
 
-    // Calculate USD approx for the card using er-api NGN base
+    const raised = Number(rawRaised) / 100;
+    const target = Number(rawTarget) / 100;
+
+    const percent = target > 0 ? Math.min(100, Math.floor((raised / target) * 100)) : 0;
+
     const usdRate = fxData?.rates?.USD || 0.00065;
     const usdGoal = Math.round(target * usdRate);
 
@@ -37,7 +51,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#fff',
+                    backgroundColor: '#ffffff',
                     padding: '40px',
                 }}
             >
@@ -53,15 +67,15 @@ export default async function Image({ params }: { params: { slug: string } }) {
                         backgroundColor: '#fafafa',
                     }}
                 >
-                    {/* Left Column: Cover Image */}
-                    <div style={{ display: 'flex', width: '50%', height: '100%', position: 'relative' }}>
+                    {/* Left: Project Image */}
+                    <div style={{ display: 'flex', width: '50%', height: '100%', backgroundColor: '#f1f5f9' }}>
                         <img
                             src={project.imageUrl || 'https://givarapp.com/Givar1.png'}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                     </div>
 
-                    {/* Right Column: Information & Progress */}
+                    {/* Right: Project Stats */}
                     <div
                         style={{
                             display: 'flex',
@@ -72,47 +86,31 @@ export default async function Image({ params }: { params: { slug: string } }) {
                             backgroundColor: '#ffffff',
                         }}
                     >
-                        {/* Top Section: Branding & Title */}
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-                                <img
-                                    src="https://givarapp.com/Givar1.png"
-                                    width="48"
-                                    height="48"
-                                    style={{ borderRadius: '12px' }}
-                                />
-                                <span style={{ marginLeft: '16px', fontSize: '28px', fontWeight: 'bold', color: '#10b981', letterSpacing: '-0.02em' }}>
-                                    Givar<span style={{ color: '#064e3b' }}>.</span>
-                                </span>
+                                <img src="https://givarapp.com/Givar1.png" width="48" height="48" style={{ borderRadius: '12px' }} />
+                                <div style={{ display: 'flex', marginLeft: '16px', fontSize: '28px', fontWeight: 'bold', color: '#10b981' }}>
+                                    Givar.
+                                </div>
                             </div>
-                            <h1 style={{ fontSize: '44px', fontWeight: 900, color: '#064e3b', lineHeight: 1.1, margin: 0 }}>
+                            <div style={{ display: 'flex', fontSize: '44px', fontWeight: 900, color: '#064e3b', lineHeight: 1.1 }}>
                                 {project.title}
-                            </h1>
-                            <div style={{ display: 'flex', alignItems: 'center', marginTop: '16px' }}>
-                                <span style={{ fontSize: '20px', color: '#6b7280', fontWeight: 600 }}>{project.location || 'Verified Cause'}</span>
+                            </div>
+                            <div style={{ display: 'flex', marginTop: '16px' }}>
+                                <div style={{ fontSize: '20px', color: '#6b7280', fontWeight: 600 }}>{project.location || 'Verified Cause'}</div>
                             </div>
                         </div>
 
-                        {/* Bottom Section: Progress Bar & Monetary Goals */}
                         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                             <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
                                 <div style={{ display: 'flex', fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>{percent}% Funded</div>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                    <div style={{ display: 'flex', fontSize: '22px', fontWeight: 'bold', color: '#064e3b' }}>Goal: ₦{(target).toLocaleString()}</div>
+                                    <div style={{ display: 'flex', fontSize: '22px', fontWeight: 'bold', color: '#064e3b' }}>Goal: ₦{target.toLocaleString()}</div>
                                     <div style={{ display: 'flex', fontSize: '16px', fontWeight: 'bold', color: '#9ca3af', marginTop: '4px' }}>≈ ${usdGoal.toLocaleString()} USD</div>
                                 </div>
                             </div>
 
-                            {/* Progress Bar Container */}
-                            <div style={{
-                                display: 'flex',
-                                width: '100%',
-                                height: '16px',
-                                backgroundColor: '#e2e8f0',
-                                borderRadius: '8px',
-                                overflow: 'hidden'
-                            }}>
-                                {/* Active Progress Fill */}
+                            <div style={{ display: 'flex', width: '100%', height: '16px', backgroundColor: '#e2e8f0', borderRadius: '8px' }}>
                                 <div style={{
                                     display: 'flex',
                                     width: `${percent}%`,
