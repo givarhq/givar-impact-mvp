@@ -29,13 +29,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         );
     }
 
-    // Defensive Parsing for Edge Runtime
+    // Defensive Parsing
     const rawRaised = project.raisedAmount ? String(project.raisedAmount).replace(/[^0-9]/g, '') : '0';
     const rawTarget = project.targetAmount ? String(project.targetAmount).replace(/[^0-9]/g, '') : '0';
 
     const raised = Number(rawRaised) / 100;
     const target = Number(rawTarget) / 100;
-    const percent = target > 0 ? Math.min(100, Math.floor((raised / target) * 100)) : 0;
+
+    // Logic Fix: Use Math.round to match the 22% behavior of the main UI
+    const percent = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
 
     const usdRate = fxData?.rates?.USD || 0.00065;
     const usdGoal = Math.round(target * usdRate);
@@ -66,7 +68,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                         backgroundColor: '#fafafa',
                     }}
                 >
-                    {/* Left Column: Image */}
+                    {/* Left Column */}
                     <div style={{ display: 'flex', width: '50%', height: '100%', backgroundColor: '#f1f5f9' }}>
                         <img
                             src={project.imageUrl || 'https://givarapp.com/Givar1.png'}
@@ -74,7 +76,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                         />
                     </div>
 
-                    {/* Right Column: Stats */}
+                    {/* Right Column */}
                     <div
                         style={{
                             display: 'flex',
@@ -96,7 +98,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                                 {project.title}
                             </div>
                             <div style={{ display: 'flex', marginTop: '16px' }}>
-                                <div style={{ display: 'flex', fontSize: '20px', color: '#6b7280', fontWeight: 600 }}>{project.location || 'Verified Cause'}</div>
+                                <div style={{ fontSize: '20px', color: '#6b7280', fontWeight: 600 }}>{project.location || 'Verified Cause'}</div>
                             </div>
                         </div>
 
@@ -105,17 +107,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                                 <div style={{ display: 'flex', fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>{percent}% Funded</div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                                    {/* Financial Goal with explicit Symbol handling */}
                                     <div style={{ display: 'flex', fontSize: '22px', fontWeight: 'bold', color: '#064e3b', alignItems: 'center' }}>
-                                        <span style={{ marginRight: '2px' }}>Goal:</span>
-                                        <span style={{ marginRight: '1px' }}>₦</span>
+                                        <span style={{ marginRight: '4px' }}>Goal:</span>
+                                        <span style={{ marginRight: '2px' }}>₦</span>
                                         <span>{target.toLocaleString()}</span>
                                     </div>
 
-                                    {/* USD Estimate */}
                                     <div style={{ display: 'flex', fontSize: '16px', fontWeight: 'bold', color: '#9ca3af', marginTop: '4px' }}>
                                         <span style={{ marginRight: '2px' }}>≈</span>
-                                        <span style={{ marginRight: '1px' }}>$</span>
+                                        <span style={{ marginRight: '2px' }}>$</span>
                                         <span>{usdGoal.toLocaleString()}</span>
                                         <span style={{ marginLeft: '4px' }}>USD</span>
                                     </div>
