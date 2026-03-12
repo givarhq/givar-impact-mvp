@@ -32,7 +32,7 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
   const [copied, setCopied] = useState(false);
 
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/dashboard/impact/${projectSlug}`
+    ? `${window.location.origin}/explore/${projectSlug}`
     : '';
 
   const shareText = `Join me in supporting ${projectTitle} on Givar. It's transparent & impactful.`;

@@ -6,13 +6,19 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function Image({ params }: { params: { slug: string } }) {
-    const project = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${params.slug}`).then((res) =>
-        res.json()
-    );
+    // Parallel fetch: Project Details + Live FX Rates
+    const [project, fxData] = await Promise.all([
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/projects/${params.slug}`).then(res => res.json()),
+        fetch('https://open.er-api.com/v6/latest/NGN').then(res => res.json()).catch(() => null)
+    ]);
 
     const raised = Number(project.raisedAmount || 0) / 100;
     const target = Number(project.targetAmount || 0) / 100;
     const percent = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
+
+    // Calculate USD approx for the card
+    const usdRate = fxData?.rates?.USD || 0.00065;
+    const usdGoal = Math.round(target * usdRate);
 
     return new ImageResponse(
         (
@@ -73,7 +79,10 @@ export default async function Image({ params }: { params: { slug: string } }) {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                                 <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#10b981' }}>{percent}% Funded</span>
-                                <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#9ca3af' }}>Goal: ₦{(target).toLocaleString()}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                    <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#064e3b' }}>₦{(target).toLocaleString()}</span>
+                                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#9ca3af' }}>≈ ${usdGoal.toLocaleString()} USD</span>
+                                </div>
                             </div>
                             <div style={{ width: '100%', height: '12px', backgroundColor: '#e2e8f0', borderRadius: '6px', overflow: 'hidden', display: 'flex' }}>
                                 <div style={{ width: `${percent}%`, height: '100%', backgroundColor: '#10b981' }} />

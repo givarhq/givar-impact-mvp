@@ -26,6 +26,7 @@ export const viewport: Viewport = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const cookieStore = await cookies();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://givarapp.com';
   const userCookie = cookieStore.get('givar_user')?.value;
 
   let isAdmin = false;
@@ -40,6 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   return {
+    metadataBase: new URL(baseUrl),
     title: {
       template: isAdmin ? 'Admin Panel | Givar' : '%s | Givar',
       default: isAdmin ? 'Givar - Admin Panel' : 'Givar - Transparent Giving',
