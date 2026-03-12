@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   const raised = Number(project.raisedAmount || 0) / 100;
   const target = Number(project.targetAmount || 0) / 100;
-  const percent = target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0;
+  const percent = target > 0 ? Math.min(100, Math.floor((raised / target) * 100)) : 0;
 
   const title = `${project.title} | Givar`;
   const description = `${percent}% funded. ${project.shortDesc || `Join me in supporting ${project.title} on Givar.`}`;
