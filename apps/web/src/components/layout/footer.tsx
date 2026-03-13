@@ -27,7 +27,7 @@ export const Footer = memo(function Footer() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-12">
                         <div>
                             <h4 className="font-bold text-foreground mb-4">Platform</h4>
                             <ul className="space-y-3 text-sm font-medium text-muted-foreground">
