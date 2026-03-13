@@ -8,6 +8,7 @@ import { v2 as cloudinary } from 'cloudinary';
 interface Hydratable {
   imageUrl?: string;
   coverImage?: string;
+  videoUrl?: string;
   gallery?: any[];
   updates?: any[];
 }
@@ -96,6 +97,15 @@ export class StorageService {
       if (key) {
         const { viewUrl } = await this.getPresignedViewUrl(key);
         item[coverField] = viewUrl;
+      }
+    }
+
+    // Hydrate short video URL
+    if (item.videoUrl) {
+      const key = getCleanKey(item.videoUrl);
+      if (key) {
+        const { viewUrl } = await this.getPresignedViewUrl(key);
+        item.videoUrl = viewUrl;
       }
     }
 

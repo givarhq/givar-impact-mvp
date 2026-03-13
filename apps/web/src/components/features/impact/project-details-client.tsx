@@ -160,22 +160,33 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                 {/* Media Section */}
                 <div className="space-y-3">
-                    <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-muted shadow-sm">
-                        {project.imageUrl ? (
-                            <Image
-                                src={project.imageUrl}
-                                alt={project.title}
-                                fill
-                                sizes="(max-width: 1024px) 100vw, 66vw"
-                                className="object-cover"
-                                priority
+                    {(project as any).videoUrl ? (
+                        <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-black shadow-sm">
+                            <video
+                                src={(project as any).videoUrl}
+                                controls
+                                className="w-full h-full object-contain"
+                                poster={project.imageUrl}
                             />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10">
-                                <span className="text-xs font-bold opacity-40">Pending visuals</span>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-muted shadow-sm">
+                            {project.imageUrl ? (
+                                <Image
+                                    src={project.imageUrl}
+                                    alt={project.title}
+                                    fill
+                                    sizes="(max-width: 1024px) 100vw, 66vw"
+                                    className="object-cover"
+                                    priority
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10">
+                                    <span className="text-xs font-bold opacity-40">Pending visuals</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {gallery.length > 0 && (
                         <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -384,9 +395,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                                     </span>
                                                                 </div>
                                                             </div>
-                                                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium">
-                                                                {phase.deliverables}
-                                                            </p>
+                                                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium line-clamp-2">{phase.deliverables}</p>
                                                         </div>
                                                     </div>
                                                 );

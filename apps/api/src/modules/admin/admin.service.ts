@@ -397,6 +397,16 @@ export class AdminService {
       }
     }
 
+    // Sign video URL for Admin Review
+    if (proposal.videoUrl && !proposal.videoUrl.startsWith('http')) {
+      try {
+        const { viewUrl } = await this.storage.getPresignedViewUrl(proposal.videoUrl);
+        proposal.videoUrl = viewUrl;
+      } catch (e: any) {
+        this.logger.warn(`Failed to sign video url: ${e.message}`);
+      }
+    }
+
     if (proposal.gallery && Array.isArray(proposal.gallery)) {
       const signedGallery = await Promise.all(
         (proposal.gallery as any[]).map(async (item) => {
@@ -458,10 +468,11 @@ export class AdminService {
           slug: this.generateSlug(proposal.title!),
           description: proposal.description!,
           shortDesc: proposal.shortDesc,
-          personalMessage: proposal.personalMessage, // <-- Added field mapping
+          personalMessage: proposal.personalMessage,
           targetAmount: proposal.targetAmount!,
           currency: proposal.currency,
           imageUrl: proposal.coverImage,
+          videoUrl: proposal.videoUrl,
           gallery: proposal.gallery || [],
           location: proposal.location,
           endDate: proposal.endDate,
@@ -961,6 +972,7 @@ export class AdminService {
       endDate: dto.endDate ? new Date(dto.endDate) : undefined,
     };
 
+    if ((dto as any).videoUrl !== undefined) updateData.videoUrl = (dto as any).videoUrl;
     if (dto.targetAmount) updateData.targetAmount = newTarget;
     if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
     if (dto.gallery) updateData.gallery = dto.gallery as any;
@@ -1197,6 +1209,12 @@ export class AdminService {
     if (project.imageUrl && !project.imageUrl.startsWith('http')) {
       const { viewUrl } = await this.storage.getPresignedViewUrl(project.imageUrl);
       project.imageUrl = viewUrl;
+    }
+
+    // Sign video URL for Admin Edit view
+    if (project.videoUrl && !project.videoUrl.startsWith('http')) {
+      const { viewUrl } = await this.storage.getPresignedViewUrl(project.videoUrl);
+      project.videoUrl = viewUrl;
     }
 
     if (project.gallery && Array.isArray(project.gallery)) {
