@@ -171,7 +171,7 @@ export const BudgetEditor = memo(function BudgetEditor({
           {budgetBreakdown.map((item) => {
             const currentStage = item.stage || '';
             const isCustomStage = currentStage !== '' && !activeStageLabels.includes(currentStage);
-            const selectValue = isCustomStage ? 'CUSTOM' : currentStage;
+            const selectValue = isCustomStage ? 'CUSTOM' : (currentStage === '' ? 'NONE' : currentStage);
 
             return (
               <motion.div
@@ -252,6 +252,8 @@ export const BudgetEditor = memo(function BudgetEditor({
                           onValueChange={(v) => {
                             if (v === 'CUSTOM') {
                               handleUpdate(item.id, 'stage', activeStageLabels[0] || 'Phase 1');
+                            } else if (v === 'NONE') {
+                              handleUpdate(item.id, 'stage', '');
                             } else {
                               handleUpdate(item.id, 'stage', v);
                             }
@@ -261,7 +263,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                             <SelectValue placeholder="Select stage..." />
                           </SelectTrigger>
                           <SelectContent className="rounded-3xl shadow-xl">
-                            <SelectItem value="" className="rounded-3xl text-xs italic">No stage</SelectItem>
+                            <SelectItem value="NONE" className="rounded-3xl text-xs italic">No stage</SelectItem>
                             {activeStageLabels.map((label) => (
                               <SelectItem key={label} value={label} className="rounded-3xl text-xs">{label}</SelectItem>
                             ))}
