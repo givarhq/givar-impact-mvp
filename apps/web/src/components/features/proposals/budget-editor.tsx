@@ -4,7 +4,7 @@ import { BudgetItem } from '../../../stores/proposal-store';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
-import { Trash2, PlusCircle } from 'lucide-react';
+import { Trash2, PlusCircle, PenTool } from 'lucide-react';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 import { useEffect, memo } from 'react';
 import { useProposalStore } from '../../../stores/proposal-store';
@@ -41,11 +41,40 @@ const CATEGORY_COST_TYPES: Record<string, { label: string; value: string }[]> = 
   ],
 };
 
+const CATEGORY_STAGE_LABELS: Record<string, string[]> = {
+  medical: [
+    'Pre-treatment',
+    'Clinical procedures',
+    'Medication',
+    'Recovery',
+    'Follow-up'
+  ],
+  education: [
+    'Registration',
+    'Tuition',
+    'Resources',
+    'Assessment'
+  ],
+  community: [
+    'Phase 1: Setup',
+    'Phase 2: Execution',
+    'Phase 3: Launch',
+    'Phase 4: Impact'
+  ]
+};
+
 const DEFAULT_COST_TYPES = [
   { label: 'Goods', value: 'GOODS' },
   { label: 'Service', value: 'SERVICE' },
   { label: 'Logistics', value: 'LOGISTICS' },
   { label: 'Other', value: 'OTHER' },
+];
+
+const DEFAULT_STAGE_LABELS = [
+  'Phase 1',
+  'Phase 2',
+  'Phase 3',
+  'Phase 4'
 ];
 
 interface BudgetEditorProps {
@@ -75,6 +104,10 @@ export const BudgetEditor = memo(function BudgetEditor({
   const activeCostTypes = categorySlug && CATEGORY_COST_TYPES[categorySlug]
     ? CATEGORY_COST_TYPES[categorySlug]
     : DEFAULT_COST_TYPES;
+
+  const activeStageLabels = categorySlug && CATEGORY_STAGE_LABELS[categorySlug]
+    ? CATEGORY_STAGE_LABELS[categorySlug]
+    : DEFAULT_STAGE_LABELS;
 
   const handleUpdate = (id: string, field: keyof BudgetItem, value: any) => {
     if (isLocked) return;
@@ -135,98 +168,137 @@ export const BudgetEditor = memo(function BudgetEditor({
     <div className="space-y-4">
       <div className="space-y-1">
         <AnimatePresence initial={false} mode="popLayout">
-          {budgetBreakdown.map((item) => (
-            <motion.div
-              key={item.id}
-              layout
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-              transition={{ duration: 0.2 }}
-              className={fieldContainerClass}
-            >
-              {/* PAY TO */}
-              <div className="md:col-span-3 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay to</label>
-                <Input
-                  placeholder="Vendor or recipient..."
-                  value={item.payTo}
-                  onChange={(e) => handleUpdate(item.id, 'payTo', e.target.value)}
-                  readOnly={isLocked}
-                  className={inputStyle}
-                />
-              </div>
+          {budgetBreakdown.map((item) => {
+            const currentStage = item.stage || '';
+            const isCustomStage = currentStage !== '' && !activeStageLabels.includes(currentStage);
+            const selectValue = isCustomStage ? 'CUSTOM' : currentStage;
 
-              {/* COST TYPE */}
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Cost type</label>
-                <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
-                  <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-3xl shadow-xl">
-                    {activeCostTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value} className="rounded-3xl text-xs">
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* AMOUNT */}
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Amount</label>
-                <div className="relative">
-                  {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
+            return (
+              <motion.div
+                key={item.id}
+                layout
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                transition={{ duration: 0.2 }}
+                className={fieldContainerClass}
+              >
+                {/* PAY TO */}
+                <div className="md:col-span-3 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay to</label>
                   <Input
-                    placeholder="0"
-                    className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums font-bold")}
-                    value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
-                    onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
-                    readOnly={isLocked}
-                  />
-                </div>
-              </div>
-
-              {/* DESCRIPTION */}
-              <div className="md:col-span-3 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Description</label>
-                <Input
-                  placeholder="Details..."
-                  value={item.description}
-                  onChange={(e) => handleUpdate(item.id, 'description', e.target.value)}
-                  readOnly={isLocked}
-                  className={inputStyle}
-                />
-              </div>
-
-              {/* OPTIONAL STAGE & DELETE */}
-              <div className="md:col-span-2 flex gap-2 items-end">
-                <div className="flex-1 space-y-1">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Stage (Optional)</label>
-                  <Input
-                    placeholder="e.g. Phase 1"
-                    value={item.stage || ''}
-                    onChange={(e) => handleUpdate(item.id, 'stage', e.target.value)}
+                    placeholder="Vendor or recipient..."
+                    value={item.payTo}
+                    onChange={(e) => handleUpdate(item.id, 'payTo', e.target.value)}
                     readOnly={isLocked}
                     className={inputStyle}
                   />
                 </div>
-                {!isLocked && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => removeItem(item.id)}
-                    className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors active:scale-90 mb-[1px]"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                )}
-              </div>
-            </motion.div>
-          ))}
+
+                {/* COST TYPE */}
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Cost type</label>
+                  <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
+                    <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-3xl shadow-xl">
+                      {activeCostTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value} className="rounded-3xl text-xs">
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* AMOUNT */}
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Amount</label>
+                  <div className="relative">
+                    {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
+                    <Input
+                      placeholder="0"
+                      className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums font-bold")}
+                      value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
+                      onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
+                      readOnly={isLocked}
+                    />
+                  </div>
+                </div>
+
+                {/* DESCRIPTION */}
+                <div className="md:col-span-3 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Description</label>
+                  <Input
+                    placeholder="Details..."
+                    value={item.description}
+                    onChange={(e) => handleUpdate(item.id, 'description', e.target.value)}
+                    readOnly={isLocked}
+                    className={inputStyle}
+                  />
+                </div>
+
+                {/* OPTIONAL STAGE & DELETE */}
+                <div className="md:col-span-2 flex gap-2 items-end">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Stage (Optional)</label>
+                    {isLocked ? (
+                      <Input value={item.stage} readOnly className={inputStyle} />
+                    ) : (
+                      <div className="space-y-2">
+                        <Select
+                          value={selectValue}
+                          onValueChange={(v) => {
+                            if (v === 'CUSTOM') {
+                              handleUpdate(item.id, 'stage', activeStageLabels[0] || 'Phase 1');
+                            } else {
+                              handleUpdate(item.id, 'stage', v);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={cn(inputStyle, "bg-muted/20")}>
+                            <SelectValue placeholder="Select stage..." />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-3xl shadow-xl">
+                            <SelectItem value="" className="rounded-3xl text-xs italic">No stage</SelectItem>
+                            {activeStageLabels.map((label) => (
+                              <SelectItem key={label} value={label} className="rounded-3xl text-xs">{label}</SelectItem>
+                            ))}
+                            <SelectItem value="CUSTOM" className="rounded-3xl text-xs font-bold text-primary border-t border-border/40 mt-1">
+                              + Custom stage
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {isCustomStage && (
+                          <div className="relative animate-in slide-in-from-top-1">
+                            <PenTool className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                              placeholder="Name..."
+                              value={item.stage}
+                              onChange={(e) => handleUpdate(item.id, 'stage', e.target.value)}
+                              className={cn(inputStyle, "pl-8 bg-primary/5 border-primary/20")}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {!isLocked && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeItem(item.id)}
+                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors active:scale-90 mb-[1px]"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
 
