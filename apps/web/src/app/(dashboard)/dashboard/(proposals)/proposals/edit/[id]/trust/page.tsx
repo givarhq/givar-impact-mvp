@@ -98,10 +98,6 @@ export default function TrustPage() {
 
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-          <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
-            <ShieldCheck className="h-4 w-4 shrink-0" />
-            <span className="text-[11px] font-bold tracking-[0.2em]">Compliance</span>
-          </div>
           <CardTitle className="text-lg md:text-xl font-bold">Beneficiary and Vendor Details</CardTitle>
           <CardDescription className="text-xs font-medium">
             Provide verifiable details for the final recipients and execution partners of this cause.
@@ -333,7 +329,7 @@ export default function TrustPage() {
                   <span>Back</span>
                 </Button>
                 <Button
-                  className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+                  className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
                   onClick={handleSubmitForReview}
                   disabled={isSubmitting}
                 >
