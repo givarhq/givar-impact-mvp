@@ -10,7 +10,8 @@ import {
     RefreshCcw,
     Clock,
     CheckCircle2,
-    Landmark
+    Landmark,
+    Quote
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -230,6 +231,20 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     <p className="text-foreground/90 text-md font-medium leading-relaxed italic border-l-4 border-primary/30 pl-6 py-1">
                                         {project.shortDesc}
                                     </p>
+                                )}
+
+                                {project.personalMessage && (
+                                    <div className="bg-primary/[0.03] border border-primary/20 rounded-3xl p-6 relative overflow-hidden">
+                                        <Quote className="absolute -top-2 -left-2 h-16 w-16 text-primary/10 -rotate-12" />
+                                        <div className="relative z-10 pl-2 space-y-2">
+                                            <h4 className="text-[10px] font-bold text-primary tracking-widest uppercase">
+                                                Message from Organizer
+                                            </h4>
+                                            <p className="text-sm md:text-base text-foreground/90 font-medium leading-relaxed italic">
+                                                "{project.personalMessage}"
+                                            </p>
+                                        </div>
+                                    </div>
                                 )}
 
                                 <div

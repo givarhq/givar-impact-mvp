@@ -32,6 +32,7 @@ export class CreateAdminProjectDto {
   @IsString() title!: string;
   @IsString() description!: string;
   @IsOptional() @IsString() shortDesc?: string;
+  @IsOptional() @IsString() personalMessage?: string;
   @IsUUID() categoryId!: string;
   @IsString() location!: string;
 

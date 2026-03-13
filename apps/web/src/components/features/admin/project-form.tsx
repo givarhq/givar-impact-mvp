@@ -65,6 +65,7 @@ const projectSchema = z.object({
   title: z.string().min(5, "The title is a bit too short"),
   description: z.string().min(10, "Please provide a more detailed description"),
   shortDesc: z.string().optional(),
+  personalMessage: z.string().optional().nullable(),
   categoryId: z.string().uuid("Please select a category"),
   location: z.string().min(2, "A location is required"),
   targetAmount: z.number().min(100, "Minimum goal amount is 100"),
@@ -103,6 +104,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       gallery: initialData.gallery || [],
       budgetBreakdown: initialData.budgetBreakdown || [],
       executionTimeline: initialData.executionTimeline || [],
+      personalMessage: initialData.personalMessage || '',
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       reasonForGoalAdjustment: '',
@@ -111,6 +113,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       gallery: [],
       budgetBreakdown: [],
       executionTimeline: [],
+      personalMessage: '',
       endDate: '',
     }
   });
@@ -305,6 +308,17 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             readOnly={readOnly}
             placeholder="A brief summary for donor lists..."
             maxLength={140}
+          />
+        </div>
+
+        <div className="md:col-span-12 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Personal Message</label>
+          <Textarea
+            className={cn(getAreaClass("min-h-[100px]"), "resize-none rounded-3xl")}
+            {...register('personalMessage')}
+            readOnly={readOnly}
+            placeholder="A direct, human appeal..."
+            maxLength={500}
           />
         </div>
 
