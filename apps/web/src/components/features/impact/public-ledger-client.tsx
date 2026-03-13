@@ -29,6 +29,7 @@ import { Pagination } from '../history/pagination';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TxStatus, TxType } from '../../../types';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 interface PublicLedgerClientProps {
     project?: any;
@@ -51,12 +52,12 @@ const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> 
     SUSPENSE: { icon: Clock, text: 'text-amber-500' },
 };
 
-
 export const PublicLedgerClient = memo(function PublicLedgerClient({ project, initialData }: PublicLedgerClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [selectedEntry, setSelectedEntry] = useState<any>(null);
+    const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
     const activeType = searchParams.get('type') || 'all';
     const isGlobalView = !project || project.id === 'global';
@@ -79,7 +80,12 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
             const { ApiService } = await import('../../../services/api');
             const contextId = isGlobalView ? selectedEntry?.projectId : project.id;
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, contextId);
-            window.open(viewUrl, '_blank');
+            const isDoc = key.toLowerCase().includes('.pdf');
+            setLightboxState({
+                isOpen: true,
+                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Transaction Receipt' }],
+                index: 0
+            });
             toast.dismiss(toastId);
         } catch (e) {
             toast.error('Access restricted', { id: toastId });
@@ -339,6 +345,13 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                     )}
                 </DialogContent>
             </Dialog>
+
+            <ImageLightbox
+                isOpen={lightboxState.isOpen}
+                onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+                items={lightboxState.items}
+                initialIndex={lightboxState.index}
+            />
         </div>
     );
 });
