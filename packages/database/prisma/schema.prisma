@@ -631,6 +631,9 @@ model ProjectProposal {
   preCollectedHeldAt      String?
   preCollectedProofKey    String?
 
+  // Admin Operational Signal for Beneficiary Awareness
+  awarenessStatus         String?
+
   // --- 5. State Machine ---
   status        ProposalStatus  @default(DRAFT)
   adminFeedback String?         @db.Text 

@@ -1,3 +1,4 @@
+// apps/web/src/components/features/admin/proposal-review.tsx
 'use client';
 
 import React, { useState, memo } from 'react';
@@ -19,6 +20,7 @@ import { formatDate, formatCurrency } from '../../../lib/utils/format';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { ConfirmModal } from '../../ui/confirm-modal';
 import { Input } from '../../ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
@@ -70,10 +72,24 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const [showApproveConfirm, setShowApproveConfirm] = useState(false);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
+    // Operational Signal State
+    const [awarenessStatus, setAwarenessStatus] = useState((proposal as any).awarenessStatus || '');
+
     const budgetBreakdown = proposal.budgetBreakdown || [];
     const budgetTotal = budgetBreakdown.reduce((sum, item) => sum + (item.amount || item.cost || 0), 0);
 
     const isTerminalState = proposal.status === 'APPROVED' || proposal.status === 'REJECTED';
+
+    const handleAwarenessChange = async (val: string) => {
+        setAwarenessStatus(val);
+        const toastId = toast.loading('Saving status...');
+        try {
+            await ApiService.admin.updateAwarenessStatus(proposal.id, val);
+            toast.success('Operational status updated', { id: toastId });
+        } catch (e) {
+            toast.error('Failed to update status', { id: toastId });
+        }
+    };
 
     const handleDecision = async () => {
         if (!actionType) return;
@@ -142,14 +158,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
     const displayStatus = proposal.status === 'CHANGES_REQUESTED' ? 'More Info Required' : proposal.status.replace(/_/g, ' ');
 
-    // Dynamic Risk Evaluation
     const missingDocs = !proposal.kycDocuments || proposal.kycDocuments.length === 0;
     const vendorUnreachable = !proposal.vendorPhone && !proposal.vendorEmail;
-
-    // Heuristic: Does the sum of the budget explicitly match the overall requested target?
     const inconsistentInfo = budgetTotal * 100 !== Number(proposal.targetAmount);
-
-    // Heuristic: Is the title suspiciously short or does it match generic test patterns?
     const titleLower = proposal.title?.toLowerCase() || '';
     const duplicateRisk = titleLower.includes('test') || titleLower.length < 10;
 
@@ -371,32 +382,48 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
                     {/* Beneficiary & Vendor Details Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
-                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm flex flex-col h-full">
+                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 shrink-0">
                                 <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
                                     <User className="h-3.5 w-3.5 text-primary" /> Beneficiary Context
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="p-6 space-y-4">
-                                <div>
-                                    <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Full Name</p>
-                                    <p className="text-sm font-bold text-foreground">{proposal.beneficiaryName || 'Not Provided'}</p>
+                            <CardContent className="p-6 flex flex-col justify-between flex-1 min-h-0">
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Full Name</p>
+                                        <p className="text-sm font-bold text-foreground">{proposal.beneficiaryName || 'Not Provided'}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Age</p>
+                                            <p className="text-sm font-bold text-foreground">{proposal.beneficiaryAge || 'N/A'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Relationship</p>
+                                            <p className="text-sm font-bold text-foreground">{proposal.beneficiaryRelationship || 'N/A'}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Age</p>
-                                        <p className="text-sm font-bold text-foreground">{proposal.beneficiaryAge || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Relationship</p>
-                                        <p className="text-sm font-bold text-foreground">{proposal.beneficiaryRelationship || 'N/A'}</p>
-                                    </div>
+
+                                <div className="pt-4 mt-4 border-t border-border/40 shrink-0">
+                                    <label className="text-[11px] font-bold text-muted-foreground mb-1.5 block">Beneficiary Awareness Status</label>
+                                    <Select value={awarenessStatus} onValueChange={handleAwarenessChange} disabled={isTerminalState}>
+                                        <SelectTrigger className="h-10 rounded-2xl bg-muted/20 border-border/60 text-xs font-bold focus:ring-primary/20 transition-all">
+                                            <SelectValue placeholder="Select operational status..." />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-2xl border-border/40 shadow-xl">
+                                            <SelectItem value="Confirmed" className="text-xs font-bold py-2">Confirmed</SelectItem>
+                                            <SelectItem value="Unable to confirm due to medical condition" className="text-xs font-bold py-2">Unable to confirm (Medical)</SelectItem>
+                                            <SelectItem value="Requires follow-up" className="text-xs font-bold py-2 text-amber-600">Requires follow-up</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
-                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm flex flex-col h-full">
+                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 shrink-0">
                                 <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
                                     <Building className="h-3.5 w-3.5 text-blue-500" /> Vendor Provider
                                 </CardTitle>
