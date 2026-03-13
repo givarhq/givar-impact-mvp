@@ -2724,4 +2724,87 @@ export class AdminService {
 
     return flattened.length > 0 ? json2csv(flattened) : '';
   }
+
+  // --- CATEGORY MANAGEMENT ---
+
+  async createCategory(adminId: string, dto: { name: string; description?: string; icon?: string }) {
+    const slug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+    return this.prisma.$transaction(async (tx) => {
+      const category = await tx.category.create({
+        data: {
+          name: dto.name,
+          slug,
+          description: dto.description,
+          icon: dto.icon,
+        }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.CATEGORY_CREATED,
+        entityId: category.id,
+        entityType: 'Category',
+        metadata: { name: category.name }
+      }, tx);
+
+      return category;
+    });
+  }
+
+  async updateCategory(adminId: string, id: string, dto: { name?: string; description?: string; icon?: string }) {
+    return this.prisma.$transaction(async (tx) => {
+      const data: any = { ...dto };
+      if (dto.name) {
+        data.slug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      }
+
+      const category = await tx.category.update({
+        where: { id },
+        data
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.CATEGORY_UPDATED,
+        entityId: category.id,
+        entityType: 'Category',
+        metadata: { updates: dto }
+      }, tx);
+
+      return category;
+    });
+  }
+
+  async deleteCategory(adminId: string, id: string) {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { projects: true, proposals: true } }
+      }
+    });
+
+    if (!category) throw new NotFoundException('Category not found');
+
+    // Forensic Guard: Prevent deletion of categories with attached nodes
+    if (category._count.projects > 0 || category._count.proposals > 0) {
+      throw new BadRequestException(
+        `Cannot delete category: It is currently linked to ${category._count.projects} projects and ${category._count.proposals} proposals.`
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.category.delete({ where: { id } });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.CATEGORY_DELETED,
+        entityId: id,
+        entityType: 'Category',
+        metadata: { name: category.name }
+      }, tx);
+
+      return { success: true };
+    });
+  }
 }

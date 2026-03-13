@@ -169,6 +169,11 @@ enum AuditAction {
   // Fee Governance
   FEE_RULE_CREATED
   FEE_RULE_DEACTIVATED
+
+  // Category Management Actions
+  CATEGORY_CREATED
+  CATEGORY_UPDATED
+  CATEGORY_DELETED
 }
 
 enum ProposalStatus {

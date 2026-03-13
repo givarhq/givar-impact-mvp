@@ -345,4 +345,28 @@ export class AdminController {
     res.attachment(filename);
     return res.send(csv);
   }
+
+  // --- CATEGORY MANAGEMENT ---
+
+  @Post('categories')
+  createCategory(
+    @Req() req: any,
+    @Body() dto: { name: string; description?: string; icon?: string }
+  ) {
+    return this.service.createCategory(req.user.id, dto);
+  }
+
+  @Patch('categories/:id')
+  updateCategory(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: { name?: string; description?: string; icon?: string }
+  ) {
+    return this.service.updateCategory(req.user.id, id, dto);
+  }
+
+  @Delete('categories/:id')
+  deleteCategory(@Req() req: any, @Param('id') id: string) {
+    return this.service.deleteCategory(req.user.id, id);
+  }
 }
