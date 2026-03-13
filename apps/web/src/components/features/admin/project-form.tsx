@@ -74,7 +74,7 @@ const projectSchema = z.object({
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
   reasonForGoalAdjustment: z.string().optional(),
-  endDate: z.string().optional().nullable(), // Added to support optional deadline
+  endDate: z.string().optional().nullable(),
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -104,7 +104,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       budgetBreakdown: initialData.budgetBreakdown || [],
       executionTimeline: initialData.executionTimeline || [],
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
-      endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '', // Pre-fill date properly
+      endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       reasonForGoalAdjustment: '',
     } : {
       currency: 'NGN',
@@ -128,7 +128,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     setIsSubmitting(true);
     const toastId = toast.loading(status === 'DRAFT' ? "Saving your progress..." : "Publishing cause...");
     try {
-      // Map endDate to full ISO string or null before sending to API
       const payload = {
         ...data,
         targetAmount: data.targetAmount * 100,
@@ -319,7 +318,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           {errors.description && <p className="text-xs text-destructive mt-2 font-bold px-2">{errors.description.message}</p>}
         </div>
 
-        {/* 3-Column Layout for Location, Deadline, and Goal */}
         <div className="md:col-span-4 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Location</label>
           <div className="relative group">
@@ -430,8 +428,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       </section>
 
-      {/* Financial & Strategic Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+      {/* Financial & Strategic Sections (Un-Gridded / Stacked Vertically) */}
+      <div className="space-y-6 md:space-y-8">
         <Card className={cn(
           "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
           readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
