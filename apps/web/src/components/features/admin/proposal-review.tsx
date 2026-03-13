@@ -433,7 +433,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                 <td className="px-6 py-4 hidden md:table-cell text-muted-foreground text-[11px] font-bold">{item.costType || item.type}</td>
                                                 <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.payTo || item.vendor}</td>
                                                 <td className="px-6 py-4 hidden lg:table-cell text-muted-foreground">
-                                                    {item.stage ? <Badge variant="secondary" className="text-[9px] px-2 py-0 h-5 font-bold rounded-3xl shadow-none">{item.stage}</Badge> : '-'}
+                                                    {item.stage ? <Badge variant="secondary" className="text-[9px] px-2.5 py-0.5 h-auto font-bold rounded-3xl shadow-none whitespace-nowrap w-fit inline-flex">{item.stage}</Badge> : '-'}
                                                 </td>
                                                 <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold">
                                                     {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
