@@ -125,13 +125,13 @@ export default function MediaPage() {
               className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/hook`)}
             >
-              <ArrowLeft className="mr-2 h-4 w-4 shrink-0" /> <span className="truncate">Back</span>
+              <span>Back</span>
             </Button>
             <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+              className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)}
             >
-              <span className="truncate">Next: Execution</span> <ArrowRight className="h-4 w-4 shrink-0" />
+              <span>Execution</span> <ArrowRight className="h-4 w-4 shrink-0" />
             </Button>
           </div>
         </CardContent>
