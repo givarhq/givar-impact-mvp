@@ -162,7 +162,10 @@ export default function TermsPage() {
 
                                 <h2>7. Administrative Rights & Platform Changes</h2>
                                 <p>
-                                    We reserve the right to suspend projects, request modifications to proposals, or remove features at any time without prior notice. Givar Administrators utilize a transparent communication thread to deliver feedback directly to your Organizer dashboard.
+                                    Givar reserves the right to pause, suspend, or remove causes at its absolute discretion. We may hold or reallocate funds where verification concerns arise to protect donor capital. Givar is not liable for vendor service outcomes once funds have been disbursed to a verified vendor on behalf of a project. Organisers remain solely responsible for the accuracy and legality of all submitted information.
+                                </p>
+                                <p>
+                                    Givar Administrators utilize a transparent communication thread to deliver feedback directly to your Organizer dashboard.
                                 </p>
                                 <p>
                                     <strong>Amendments to Live Projects:</strong> Organizers may request to update a live project's financial goal or roadmap. This requires submitting a mandatory "Amendment Narrative" explaining the change to donors. Givar will automatically broadcast this amendment to all project stakeholders to maintain ledger transparency.

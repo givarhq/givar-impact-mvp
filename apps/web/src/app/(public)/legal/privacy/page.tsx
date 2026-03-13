@@ -115,6 +115,7 @@ export default function PrivacyPage() {
                                 <p>We collect information necessary to operate our platform securely and transparently. This includes:</p>
                                 <ul>
                                     <li><strong>Identity Data:</strong> Your first name, last name, email address, and account password.</li>
+                                    <li><strong>Beneficiary Data:</strong> Identity information and supporting documents for beneficiaries may be collected and processed strictly for verification purposes.</li>
                                     <li><strong>Verification (KYC) Data:</strong> If you register as an Organizer, we collect legal names, registration numbers (e.g., RC or TIN), and government/corporate documents. These are stored in encrypted, private data vaults.</li>
                                     <li><strong>Financial Ledger Data:</strong> Records of your donations, wallet balances, and funding history. We track the movement of capital in our system. <strong>We do not collect or store your credit card numbers.</strong> All direct payment processing is securely handled by Paystack.</li>
                                     <li><strong>System Audit Data:</strong> To prevent fraud, our Watchtower system automatically logs your IP address, User-Agent (browser details), and timestamps when you take critical actions (e.g., logging in, initiating a transfer, or changing a password).</li>
@@ -131,7 +132,7 @@ export default function PrivacyPage() {
                                 <h2>3. Public vs. Private Information</h2>
                                 <p>Givar is built on the principle of transparency. However, we carefully balance public accountability with personal privacy.</p>
                                 <ul>
-                                    <li><strong>Public Information:</strong> Project details, funding goals, execution timelines, vendor names for disbursements, and visual proof-of-work are always public. The <em>fact</em> that a donation occurred, its amount, and its timestamp are public. To protect donors, your name is automatically masked (e.g., "M*** T.") on the public ledger unless you are a verified Organizer.</li>
+                                    <li><strong>Public Information:</strong> Project details, funding goals, execution timelines, vendor names for disbursements, and visual proof-of-work are always public. The <em>fact</em> that a donation occurred, its amount, and its timestamp are public. Limited beneficiary details may be displayed publicly as part of our transparency and verification requirements. To protect donors, your name is automatically masked (e.g., "M*** T.") on the public ledger unless you are a verified Organizer.</li>
                                     <li><strong>Private Information:</strong> Your exact email address, encrypted account passwords, detailed KYC documents, and granular audit logs are kept strictly confidential and are only accessible by our administrative compliance team.</li>
                                 </ul>
 
