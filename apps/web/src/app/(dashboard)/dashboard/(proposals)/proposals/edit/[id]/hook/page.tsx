@@ -18,7 +18,7 @@ export default function HookPage() {
   const proposalId = params.id as string;
 
   const {
-    title, shortDesc, description, location, endDate,
+    title, shortDesc, description, personalMessage, location, endDate,
     setProposal, updateField
   } = useProposalStore();
 
@@ -85,6 +85,14 @@ export default function HookPage() {
                 placeholder="Tell the full story. Who are the beneficiaries & what is the solution?"
               />
             </div>
+
+            <Textarea
+              label="Personal Message"
+              placeholder="A direct, human appeal to your potential donors..."
+              value={personalMessage || ''}
+              onChange={(e) => updateField('personalMessage', e.target.value)}
+              className="h-32 rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none"
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
               <Input

@@ -458,12 +458,13 @@ export class AdminService {
           slug: this.generateSlug(proposal.title!),
           description: proposal.description!,
           shortDesc: proposal.shortDesc,
+          personalMessage: proposal.personalMessage, // <-- Added field mapping
           targetAmount: proposal.targetAmount!,
           currency: proposal.currency,
           imageUrl: proposal.coverImage,
           gallery: proposal.gallery || [],
           location: proposal.location,
-          endDate: proposal.endDate, // Maps the optional deadline from proposal
+          endDate: proposal.endDate,
           status: ProjectStatus.ACTIVE,
           categoryId: proposal.categoryId,
           tags: ['Verified'],

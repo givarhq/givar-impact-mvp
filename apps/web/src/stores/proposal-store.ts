@@ -33,6 +33,7 @@ interface ProposalState {
   title: string;
   shortDesc: string | null;
   description: string | null;
+  personalMessage: string | null;
   categoryId: string | null;
   location: string | null;
   endDate: string | null;
@@ -93,6 +94,7 @@ export const useProposalStore = create<ProposalState>()(
     title: '',
     shortDesc: null,
     description: null,
+    personalMessage: null,
     categoryId: null,
     location: null,
     endDate: null,
@@ -158,6 +160,7 @@ export const useProposalStore = create<ProposalState>()(
         targetAmount: proposal.targetAmount ? Number(proposal.targetAmount) / 100 : null,
         preCollectedAmount: proposal.preCollectedAmount ? Number(proposal.preCollectedAmount) / 100 : null,
         endDate: proposal.endDate || null,
+        personalMessage: proposal.personalMessage || null,
         coverImageKey: proposal.coverImage,
         gallery,
         budgetBreakdown: budget,
