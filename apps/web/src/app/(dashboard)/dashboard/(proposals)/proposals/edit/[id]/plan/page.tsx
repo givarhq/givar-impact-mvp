@@ -16,20 +16,30 @@ export default function PlanPage() {
   const params = useParams();
   const proposalId = params.id as string;
 
-  const { setProposal, riskAnalysis, updateField } = useProposalStore();
+  const { setProposal, riskAnalysis, updateField, categoryId } = useProposalStore();
   const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
-    ApiService.proposals.get(proposalId)
-      .then(data => {
-        setProposal(data);
-        setIsLoading(false);
-      })
-      .catch(() => {
+    const fetchData = async () => {
+      try {
+        const [proposalData, categoriesData] = await Promise.all([
+          ApiService.proposals.get(proposalId),
+          ApiService.projects.getCategories()
+        ]);
+        setProposal(proposalData);
+        setCategories(categoriesData || []);
+      } catch (error) {
         toast.error("Draft failed to load");
         router.push('/dashboard/proposals');
-      });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, [proposalId, setProposal, router]);
+
+  const activeCategorySlug = categories.find(c => c.id === categoryId)?.slug;
 
   if (isLoading) {
     return (
@@ -65,7 +75,7 @@ export default function PlanPage() {
               <p className="text-xs text-muted-foreground font-medium">Itemize every requirement and vendor for the project procurement.</p>
             </div>
             <div className="min-w-0">
-              <BudgetEditor />
+              <BudgetEditor categorySlug={activeCategorySlug} />
             </div>
           </div>
 
@@ -92,13 +102,13 @@ export default function PlanPage() {
               className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
             >
-              <span>Back</span>
+              <ArrowLeft className="mr-2 h-4 w-4 shrink-0" /> <span className="truncate">Back</span>
             </Button>
             <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+              className="h-12 rounded-3xl px-10 font-bold text-sm tracking-widest shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/trust`)}
             >
-              <span>Verification</span> <ArrowRight className="h-4 w-4 shrink-0" />
+              <span className="truncate">Next: Verification</span> <ArrowRight className="h-4 w-4 shrink-0" />
             </Button>
           </div>
         </CardContent>

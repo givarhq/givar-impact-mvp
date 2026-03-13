@@ -11,12 +11,50 @@ import { useProposalStore } from '../../../stores/proposal-store';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const CATEGORY_COST_TYPES: Record<string, { label: string; value: string }[]> = {
+  medical: [
+    { label: 'Surgery', value: 'SURGERY' },
+    { label: 'Medication', value: 'MEDICATION' },
+    { label: 'Hospital stay', value: 'HOSPITAL_STAY' },
+    { label: 'Diagnostics', value: 'DIAGNOSTICS' },
+    { label: 'Equipment', value: 'EQUIPMENT' },
+    { label: 'Logistics', value: 'LOGISTICS' },
+    { label: 'Other', value: 'OTHER' },
+  ],
+  education: [
+    { label: 'Tuition fees', value: 'TUITION' },
+    { label: 'Books and materials', value: 'MATERIALS' },
+    { label: 'Accommodation', value: 'ACCOMMODATION' },
+    { label: 'Research and projects', value: 'RESEARCH' },
+    { label: 'Infrastructure', value: 'INFRASTRUCTURE' },
+    { label: 'Logistics', value: 'LOGISTICS' },
+    { label: 'Other', value: 'OTHER' },
+  ],
+  community: [
+    { label: 'Infrastructure', value: 'INFRASTRUCTURE' },
+    { label: 'Relief goods', value: 'RELIEF_GOODS' },
+    { label: 'Training and workshops', value: 'TRAINING' },
+    { label: 'Tools and equipment', value: 'TOOLS' },
+    { label: 'Operations', value: 'OPERATIONS' },
+    { label: 'Logistics', value: 'LOGISTICS' },
+    { label: 'Other', value: 'OTHER' },
+  ],
+};
+
+const DEFAULT_COST_TYPES = [
+  { label: 'Goods', value: 'GOODS' },
+  { label: 'Service', value: 'SERVICE' },
+  { label: 'Logistics', value: 'LOGISTICS' },
+  { label: 'Other', value: 'OTHER' },
+];
+
 interface BudgetEditorProps {
   items?: BudgetItem[];
   onChange?: (items: BudgetItem[]) => void;
   readOnly?: boolean;
   isLive?: boolean;
   isAdjustmentMode?: boolean;
+  categorySlug?: string;
 }
 
 export const BudgetEditor = memo(function BudgetEditor({
@@ -24,7 +62,8 @@ export const BudgetEditor = memo(function BudgetEditor({
   onChange,
   readOnly = false,
   isLive = false,
-  isAdjustmentMode = false
+  isAdjustmentMode = false,
+  categorySlug
 }: BudgetEditorProps) {
   const store = useProposalStore();
 
@@ -32,6 +71,10 @@ export const BudgetEditor = memo(function BudgetEditor({
   const updateField = onChange ? (val: any) => onChange(val) : (val: any) => store.updateField('budgetBreakdown', val);
 
   const isLocked = readOnly || (isLive && !isAdjustmentMode);
+
+  const activeCostTypes = categorySlug && CATEGORY_COST_TYPES[categorySlug]
+    ? CATEGORY_COST_TYPES[categorySlug]
+    : DEFAULT_COST_TYPES;
 
   const handleUpdate = (id: string, field: keyof BudgetItem, value: any) => {
     if (isLocked) return;
@@ -54,7 +97,7 @@ export const BudgetEditor = memo(function BudgetEditor({
     const newItem: BudgetItem = {
       id: crypto.randomUUID(),
       payTo: '',
-      costType: 'GOODS',
+      costType: activeCostTypes[0].value,
       amount: 0,
       description: '',
       stage: '',
@@ -104,7 +147,7 @@ export const BudgetEditor = memo(function BudgetEditor({
             >
               {/* PAY TO */}
               <div className="md:col-span-3 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay To</label>
+                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay to</label>
                 <Input
                   placeholder="Vendor or recipient..."
                   value={item.payTo}
@@ -116,16 +159,17 @@ export const BudgetEditor = memo(function BudgetEditor({
 
               {/* COST TYPE */}
               <div className="md:col-span-2 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Cost Type</label>
+                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Cost type</label>
                 <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
                   <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-3xl shadow-xl">
-                    <SelectItem value="GOODS" className="rounded-3xl text-xs">Goods</SelectItem>
-                    <SelectItem value="SERVICE" className="rounded-3xl text-xs">Service</SelectItem>
-                    <SelectItem value="LOGISTICS" className="rounded-3xl text-xs">Logistics</SelectItem>
-                    <SelectItem value="OTHER" className="rounded-3xl text-xs">Other</SelectItem>
+                    {activeCostTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value} className="rounded-3xl text-xs">
+                        {type.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -193,7 +237,7 @@ export const BudgetEditor = memo(function BudgetEditor({
           onClick={addItem}
           className="w-full border-dashed rounded-3xl h-10 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98]"
         >
-          <PlusCircle className="h-3.5 w-3.5" /> Add Budget Entry
+          <PlusCircle className="h-3.5 w-3.5" /> Add budget entry
         </Button>
       )}
 
@@ -201,7 +245,7 @@ export const BudgetEditor = memo(function BudgetEditor({
         "flex justify-between items-center px-5 py-3 rounded-3xl border transition-all mt-4",
         isLocked ? "bg-primary/5 border-primary/20" : "bg-muted/10 border-border/40"
       )}>
-        <span className="text-xs font-bold tracking-widest text-primary">Budget Total</span>
+        <span className="text-xs font-bold tracking-widest text-primary">Budget total</span>
         <span className="text-xl font-bold text-foreground tabular-nums">₦ {formatNumberInput(String(totalCost))}</span>
       </div>
     </div>
