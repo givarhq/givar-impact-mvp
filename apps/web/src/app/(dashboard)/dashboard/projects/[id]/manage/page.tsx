@@ -247,7 +247,7 @@ export default async function ProjectManagePage({
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <FeedbackThread
                             projectId={project.id}
-                            title="Verification updates"
+                            title="Verification Updates"
                         />
                     </div>
                 </div>

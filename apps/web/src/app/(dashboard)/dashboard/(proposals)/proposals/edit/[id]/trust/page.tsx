@@ -85,7 +85,7 @@ export default function TrustPage() {
       return ['Medical report or diagnosis', 'Hospital invoice or estimate', 'Treatment recommendation or admission letter'];
     }
     if (categoryName.includes('education')) {
-      return ['Admission letter or School Board Approval', 'Fee invoice'];
+      return ['Admission letter or school board approval', 'Fee invoice'];
     }
     if (categoryName.includes('community')) {
       return ['Quotation or estimate', 'Project description'];
@@ -384,7 +384,7 @@ export default function TrustPage() {
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <FeedbackThread
             proposalId={proposalId}
-            title="Verification updates"
+            title="Verification Updates"
           />
         </div>
       )}

@@ -248,7 +248,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 {project.riskAnalysis && (
                                     <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
                                         <h4 className="text-sm font-bold text-amber-700 flex items-center gap-2 mb-3">
-                                            <AlertTriangle className="h-4 w-4" /> Risk Assessment and Mitigation
+                                            <AlertTriangle className="h-4 w-4" /> Additional Notes
                                         </h4>
                                         <div
                                             className={cn(
