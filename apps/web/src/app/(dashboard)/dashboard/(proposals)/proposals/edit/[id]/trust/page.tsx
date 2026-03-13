@@ -329,7 +329,7 @@ export default function TrustPage() {
 
               {/* NAVIGATION AND SUBMIT */}
               <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
-                <Button variant="outline" className="rounded-3xl w-auto h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)} disabled={isSubmitting}>
+                <Button variant="outline" className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)} disabled={isSubmitting}>
                   <span>Back</span>
                 </Button>
                 <Button
