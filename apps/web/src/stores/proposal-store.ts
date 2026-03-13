@@ -69,6 +69,7 @@ interface ProposalState {
   preCollectedAmount: number | null;
   preCollectedHeldAt: string | null;
   preCollectedProofKey: string | null;
+  awarenessStatus: string | null;
 
   setProposal: (proposal: any) => void;
   updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem'>>(
@@ -129,6 +130,7 @@ export const useProposalStore = create<ProposalState>()(
     preCollectedAmount: null,
     preCollectedHeldAt: null,
     preCollectedProofKey: null,
+    awarenessStatus: null,
 
     setProposal: (proposal) => set(state => {
       const gallery = Array.isArray(proposal.gallery)
@@ -161,6 +163,7 @@ export const useProposalStore = create<ProposalState>()(
         preCollectedAmount: proposal.preCollectedAmount ? Number(proposal.preCollectedAmount) / 100 : null,
         endDate: proposal.endDate || null,
         personalMessage: proposal.personalMessage || null,
+        awarenessStatus: proposal.awarenessStatus || null,
         coverImageKey: proposal.coverImage,
         gallery,
         budgetBreakdown: budget,

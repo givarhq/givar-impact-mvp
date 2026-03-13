@@ -210,6 +210,7 @@ export interface ProjectProposal {
   preCollectedAmount?: string | null;
   preCollectedHeldAt?: string | null;
   preCollectedProofKey?: string | null;
+  awarenessStatus?: string | null;
 
   status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
   submittedAt: string;
