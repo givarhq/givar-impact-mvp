@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { Card, CardContent } from '../../ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 interface EvidenceQueueTableProps {
     proofs: any[];
@@ -35,6 +36,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [processedIds, setProcessedIds] = useState<Set<string>>(new Set());
     const [feedback, setFeedback] = useState('');
+    const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
     const toggleExpand = (id: string) => {
         setExpandedId(expandedId === id ? null : id);
@@ -125,7 +127,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-2">
                                                             {proof.imageUrls?.map((url: string, i: number) => (
-                                                                <button key={i} onClick={() => window.open(url, '_blank')} className="aspect-square rounded-2xl overflow-hidden border border-border/40 bg-muted shadow-inner active:scale-95 transition-transform relative">
+                                                                <button key={i} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxState({ isOpen: true, items: proof.imageUrls.map((u: string) => ({ url: u, type: 'IMAGE' })), index: i }); }} className="aspect-square rounded-2xl overflow-hidden border border-border/40 bg-muted shadow-inner active:scale-95 transition-transform relative">
                                                                     <Image src={url} fill sizes="(max-width: 768px) 33vw, 20vw" className="object-cover" alt="Impact Proof" />
                                                                 </button>
                                                             ))}
@@ -229,7 +231,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                             <h4 className="text-[11px] font-bold text-muted-foreground tracking-widest ">Evidence Media</h4>
                                                                             <div className="flex flex-wrap gap-3">
                                                                                 {proof.imageUrls?.map((url: string, i: number) => (
-                                                                                    <button key={i} onClick={() => window.open(url, '_blank')} className="relative h-24 w-24 rounded-[22px] overflow-hidden border border-border/40 bg-muted hover:ring-4 ring-primary/10 transition-all shadow-md group">
+                                                                                    <button key={i} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxState({ isOpen: true, items: proof.imageUrls.map((u: string) => ({ url: u, type: 'IMAGE' })), index: i }); }} className="relative h-24 w-24 rounded-[22px] overflow-hidden border border-border/40 bg-muted hover:ring-4 ring-primary/10 transition-all shadow-md group">
                                                                                         <Image src={url} fill sizes="96px" className="object-cover transition-transform group-hover:scale-110 duration-500" alt="Proof" />
                                                                                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                                                             <ExternalLink className="h-5 w-5 text-white" />
@@ -261,6 +263,9 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                                                                     <DialogTitle className="text-xl font-bold tracking-tight">Decline Evidence</DialogTitle>
                                                                                                 </DialogHeader>
                                                                                                 <div className="space-y-6 pt-4">
+                                                                                                    <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                                                                                                        Provide specific instructions for the project owner. They will need to re-submit proof before the next tranche can be disbursed.
+                                                                                                    </p>
                                                                                                     <textarea
                                                                                                         className="w-full h-40 rounded-3xl border border-border bg-muted/20 p-5 text-sm font-medium outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none shadow-inner"
                                                                                                         placeholder="State specific reason for declining this proof..."
@@ -305,6 +310,13 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                     </table>
                 </div>
             </Card>
+
+            <ImageLightbox
+                isOpen={lightboxState.isOpen}
+                onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+                items={lightboxState.items}
+                initialIndex={lightboxState.index}
+            />
         </div>
     );
 });

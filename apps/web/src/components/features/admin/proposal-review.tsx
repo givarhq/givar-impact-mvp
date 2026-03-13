@@ -23,6 +23,7 @@ import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
 import { motion } from 'framer-motion';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 interface ProposalReviewProps {
     proposal: ProjectProposal;
@@ -67,6 +68,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const [feedback, setFeedback] = useState('');
     const [actionType, setActionType] = useState<'reject' | 'changes' | null>(null);
     const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+    const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
     const budgetBreakdown = proposal.budgetBreakdown || [];
     const budgetTotal = budgetBreakdown.reduce((sum, item) => sum + (item.amount || item.cost || 0), 0);
@@ -116,7 +118,12 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
         const toastId = toast.loading('Decrypting asset...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposal.id);
-            window.open(viewUrl, '_blank');
+            const isDoc = key.toLowerCase().includes('.pdf');
+            setLightboxState({
+                isOpen: true,
+                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Secure Document' }],
+                index: 0
+            });
             toast.dismiss(toastId);
         } catch (e) {
             toast.error('Asset access denied', { id: toastId });
@@ -289,7 +296,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             <h4 className="text-xs font-bold text-muted-foreground mb-3">Supporting Gallery</h4>
                                             <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2">
                                                 {(proposal.gallery as any[]).map((item, i) => (
-                                                    <button key={i} onClick={() => window.open(item.url, '_blank')} className="relative h-14 w-14 rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 hover:ring-2 ring-primary/20 transition-all shadow-sm active:scale-95">
+                                                    <button key={i} onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxState({ isOpen: true, items: (proposal.gallery as any[]).map(g => ({ url: g.url, type: g.type, alt: g.caption })), index: i }); }} className="relative h-14 w-14 rounded-2xl bg-muted border border-border/40 overflow-hidden shrink-0 hover:ring-2 ring-primary/20 transition-all shadow-sm active:scale-95">
                                                         <Image
                                                             src={item.url}
                                                             alt={`Gallery ${i}`}
@@ -609,6 +616,13 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 title="Approve Impact?"
                 description={`Promote the proposal "${proposal.title}" to a live platform project? This action migrates all narrative and financial data to the public discovery feed.`}
                 confirmText="Approve"
+            />
+
+            <ImageLightbox
+                isOpen={lightboxState.isOpen}
+                onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+                items={lightboxState.items}
+                initialIndex={lightboxState.index}
             />
         </motion.div>
     );
