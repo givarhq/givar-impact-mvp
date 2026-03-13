@@ -1,3 +1,4 @@
+// apps/web/src/components/features/admin/project-form.tsx
 'use client';
 
 import React, { useState, memo } from 'react';
@@ -13,6 +14,7 @@ import {
   Save,
   X,
   Image as ImageIcon,
+  Video,
   Briefcase,
   Clock,
   MapPin,
@@ -21,7 +23,8 @@ import {
   LockOpen,
   Fingerprint,
   FileText,
-  Send
+  Send,
+  Trash2
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -30,7 +33,7 @@ import { RichTextEditor } from '../../ui/rich-text-editor';
 import { ApiService } from '../../../services/api';
 import { BudgetEditor } from '../proposals/budget-editor';
 import { TimelineEditor } from '../proposals/timeline-editor';
-import { MediaManager, ImageUploader } from '../proposals/media-uploader';
+import { MediaManager, ImageUploader, VideoUploader } from '../proposals/media-uploader';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Textarea } from '../../ui/textarea';
@@ -71,6 +74,7 @@ const projectSchema = z.object({
   targetAmount: z.number().min(100, "Minimum goal amount is 100"),
   currency: z.enum(['NGN', 'USD', 'GBP']),
   coverImage: z.string().min(1, "A primary image is required"),
+  videoUrl: z.string().optional().nullable(),
   gallery: z.array(mediaItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
@@ -91,6 +95,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const [isEditing, setIsEditing] = useState(false);
 
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.imageUrl || null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(initialData?.videoUrl || null);
 
   const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
   const readOnly = initialData ? !isEditing : false;
@@ -101,6 +106,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     defaultValues: initialData ? {
       ...initialData,
       coverImage: initialData.imageUrl || '',
+      videoUrl: initialData.videoUrl || '',
       gallery: initialData.gallery || [],
       budgetBreakdown: initialData.budgetBreakdown || [],
       executionTimeline: initialData.executionTimeline || [],
@@ -118,14 +124,20 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     }
   });
 
-  const [gallery, budget, timeline, coverImage, reason, description] = watch([
+  const [gallery, budget, timeline, coverImage, videoUrl, reason, description] = watch([
     'gallery',
     'budgetBreakdown',
     'executionTimeline',
     'coverImage',
+    'videoUrl',
     'reasonForGoalAdjustment',
     'description'
   ]);
+
+  const handleVideoUpload = (data: { key: string; previewUrl: string }) => {
+    setValue('videoUrl', data.key, { shouldDirty: true });
+    setVideoPreview(data.previewUrl);
+  };
 
   const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
     setIsSubmitting(true);
@@ -159,6 +171,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     if (initialData) {
       reset();
       setCoverPreview(initialData.imageUrl || null);
+      setVideoPreview(initialData.videoUrl || null);
       setIsEditing(false);
     }
   };
@@ -382,7 +395,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         readOnly ? "border-border/40" : "border-primary/30 ring-4 ring-primary/5"
       )}>
         <div className="flex items-center gap-4">
-          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary border border-primary/20")}>
+          <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary border border-primary/20")}>
             <ImageIcon className="h-6 w-6" />
           </div>
           <div className="min-w-0">
@@ -391,31 +404,35 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          <div className="lg:col-span-5 space-y-3">
-            <p className="text-[11px] font-bold text-muted-foreground ml-1">Primary Showcase Image</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
+          {/* Cover Asset Section */}
+          <div className="space-y-3 min-w-0">
+            <div className="flex items-center gap-2 px-1">
+              <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Primary hero image</label>
+            </div>
             {coverPreview || coverImage ? (
-              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-md group/img bg-muted">
+              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted">
                 <Image
                   src={coverPreview || coverImage}
                   alt="Project Hero"
                   fill
                   sizes="(max-width: 768px) 100vw, 800px"
-                  className="object-cover transition-transform duration-700 group-hover/img:scale-105"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 {!readOnly && (
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
                     <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => {
                       setValue('coverImage', '', { shouldDirty: true });
                       setCoverPreview(null);
                     }}>
-                      <X className="h-4 w-4 mr-2" /> Remove Image
+                      <X className="h-4 w-4 mr-2" /> Remove
                     </Button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="h-56">
+              <div className="aspect-video">
                 <ImageUploader label="Upload image" onUploadComplete={(data) => {
                   setValue('coverImage', data.key, { shouldDirty: true });
                   setCoverPreview(data.previewUrl);
@@ -425,19 +442,65 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             {errors.coverImage && <p className="text-[11px] font-bold text-destructive px-2 mt-1">{errors.coverImage.message}</p>}
           </div>
 
-          <div className="lg:col-span-7 space-y-3">
-            <div className="flex justify-between items-center px-1">
-              <p className="text-[11px] font-bold text-muted-foreground">Supporting Gallery ({gallery.length}/10)</p>
+          {/* Elevator Pitch Video Section */}
+          <div className="space-y-3 min-w-0">
+            <div className="flex items-center gap-2 px-1">
+              <Video className="h-3.5 w-3.5 text-muted-foreground" />
+              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Pitch Video (Optional)</label>
             </div>
-            <div className={cn("transition-opacity duration-500", readOnly && "pointer-events-none opacity-90")}>
-              <MediaManager
-                items={gallery as any}
-                onAdd={(item) => !readOnly && setValue('gallery', [...gallery, item])}
-                onRemove={(id) => !readOnly && setValue('gallery', gallery.filter((i) => i.id !== id))}
-                onUpdate={(id, updates) => !readOnly && setValue('gallery', gallery.map((i) => i.id === id ? { ...i, ...updates } : i))}
-                readOnly={readOnly}
-              />
-            </div>
+            {videoPreview ? (
+              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-black">
+                <video
+                  src={videoPreview}
+                  controls
+                  className="w-full h-full object-contain"
+                />
+                {!readOnly && (
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="rounded-full h-8 w-8 shadow-lg"
+                      onClick={() => {
+                        setValue('videoUrl', null, { shouldDirty: true });
+                        setVideoPreview(null);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : readOnly ? (
+              <div className="aspect-video flex items-center justify-center rounded-3xl border border-border/40 bg-muted/10">
+                <span className="text-xs font-bold text-muted-foreground/40">No video attached</span>
+              </div>
+            ) : (
+              <div className="aspect-video">
+                <VideoUploader
+                  useCase="public"
+                  onUploadComplete={handleVideoUpload}
+                  label="Upload short video"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
+          <div className="flex justify-between items-center px-1">
+            <label className="text-[11px] font-bold text-muted-foreground  tracking-widest">Supporting Gallery</label>
+            <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
+          </div>
+
+          <div className={cn("transition-opacity duration-500", readOnly && "pointer-events-none opacity-90")}>
+            <MediaManager
+              items={gallery as any}
+              onAdd={(item) => !readOnly && setValue('gallery', [...gallery, item])}
+              onRemove={(id) => !readOnly && setValue('gallery', gallery.filter((i) => i.id !== id))}
+              onUpdate={(id, updates) => !readOnly && setValue('gallery', gallery.map((i) => i.id === id ? { ...i, ...updates } : i))}
+              readOnly={readOnly}
+            />
           </div>
         </div>
       </section>

@@ -1,3 +1,4 @@
+// apps/web/src/components/ui/image-lightbox.tsx
 'use client';
 
 import React, { useEffect, useCallback } from 'react';
@@ -65,6 +66,45 @@ export function ImageLightbox({ isOpen, onClose, items, initialIndex = 0 }: Imag
 
     const currentItem = items[currentIndex];
 
+    // Safe Video Renderer: Handles raw HTML5 files and External Embeds (YouTube/Vimeo)
+    const renderVideo = (url: string) => {
+        const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+        const isVimeo = url.includes('vimeo.com');
+
+        if (isYouTube || isVimeo) {
+            let embedUrl = url;
+            if (url.includes('youtube.com/watch?v=')) {
+                embedUrl = url.replace('watch?v=', 'embed/');
+            } else if (url.includes('youtu.be/')) {
+                embedUrl = url.replace('youtu.be/', 'youtube.com/embed/');
+            } else if (url.includes('vimeo.com/') && !url.includes('player.vimeo.com')) {
+                embedUrl = url.replace('vimeo.com/', 'player.vimeo.com/video/');
+            }
+
+            return (
+                <iframe
+                    src={embedUrl}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full aspect-video max-w-5xl rounded-3xl shadow-2xl border border-white/10"
+                    onPointerDownCapture={(e) => e.stopPropagation()} // Isolate controls from drag
+                />
+            );
+        }
+
+        return (
+            <video
+                src={url}
+                controls
+                autoPlay
+                playsInline // Crucial for iOS Safari inline playback
+                className="max-w-full max-h-full rounded-3xl shadow-2xl border border-white/10"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDownCapture={(e) => e.stopPropagation()} // Isolate timeline scrubbing from drag
+            />
+        );
+    };
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md">
             {/* Header controls */}
@@ -97,13 +137,7 @@ export function ImageLightbox({ isOpen, onClose, items, initialIndex = 0 }: Imag
                         className="absolute inset-0 flex flex-col items-center justify-center p-4 md:p-12 cursor-grab active:cursor-grabbing"
                     >
                         {currentItem.type === 'VIDEO' ? (
-                            <video
-                                src={currentItem.url}
-                                controls
-                                autoPlay
-                                className="max-w-full max-h-full rounded-3xl shadow-2xl border border-white/10"
-                                onClick={(e) => e.stopPropagation()}
-                            />
+                            renderVideo(currentItem.url)
                         ) : currentItem.type === 'DOCUMENT' ? (
                             <div className="flex flex-col items-center gap-5 text-white">
                                 <div className="h-24 w-24 rounded-3xl bg-white/10 flex items-center justify-center border border-white/20">
