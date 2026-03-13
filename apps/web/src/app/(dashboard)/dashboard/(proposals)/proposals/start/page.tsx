@@ -172,7 +172,7 @@ export default function StartProposalPage() {
 
                                 <Button
                                     type="submit"
-                                    className="w-full h-14 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
+                                    className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
                                     disabled={isLoading || categories.length === 0}
                                 >
                                     {isLoading ? (
