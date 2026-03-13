@@ -122,13 +122,13 @@ export default function MediaPage() {
           <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
             <Button
               variant="outline"
-              className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
+              className="rounded-3xl w-auto h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/hook`)}
             >
               <span>Back</span>
             </Button>
             <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+              className="h-12 w-auto rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)}
             >
               <span>Execution</span> <ArrowRight className="h-4 w-4 shrink-0" />
