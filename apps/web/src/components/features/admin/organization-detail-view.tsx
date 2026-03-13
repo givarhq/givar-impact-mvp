@@ -10,7 +10,6 @@ import {
     ExternalLink,
     Calendar,
     LayoutGrid,
-    Loader2,
     UserCheck,
     Fingerprint
 } from 'lucide-react';
@@ -24,13 +23,15 @@ import { formatDate } from '../../../lib/utils/format';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 export const OrganizationDetailView = memo(function OrganizationDetailView({ profile }: { profile: any }) {
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
     const [feedback, setFeedback] = useState('');
     const [showVerifyConfirm, setShowVerifyConfirm] = useState(false);
+    const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
     const isIndividual = profile.kycType === 'INDIVIDUAL';
 
@@ -55,7 +56,12 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
         const toastId = toast.loading('Decrypting secure document...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, 'admin-org-context');
-            window.open(viewUrl, '_blank');
+            const isDoc = key.toLowerCase().includes('.pdf');
+            setLightboxState({
+                isOpen: true,
+                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Secure Document' }],
+                index: 0
+            });
             toast.dismiss(toastId);
         } catch (e) {
             toast.error('Access to secure vault denied', { id: toastId });
@@ -255,6 +261,13 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                 description={`Establish ${profile.legalName} as a verified ${isIndividual ? 'individual advocate' : 'registered partner'}? This grants permission to launch public causes on the discovery feed.`}
                 confirmText="Confirm Verification"
                 cancelText="Cancel Audit"
+            />
+
+            <ImageLightbox
+                isOpen={lightboxState.isOpen}
+                onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+                items={lightboxState.items}
+                initialIndex={lightboxState.index}
             />
         </motion.div>
     );

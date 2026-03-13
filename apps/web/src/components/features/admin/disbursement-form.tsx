@@ -31,6 +31,7 @@ import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../.
 import { ImageUploader } from '../proposals/media-uploader';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 interface DisbursementFormProps {
     projectId: string;
@@ -58,6 +59,7 @@ export const DisbursementForm = memo(function DisbursementForm({
     const [receipt, setReceipt] = useState<{ key: string; previewUrl: string } | null>(null);
 
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'createdAt', direction: 'desc' });
+    const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
     const handleSort = (key: string) => {
         setSortConfig((prev) => ({
@@ -116,7 +118,12 @@ export const DisbursementForm = memo(function DisbursementForm({
         const toastId = toast.loading('Opening vault asset...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, projectId);
-            window.open(viewUrl, '_blank');
+            const isDoc = key.toLowerCase().includes('.pdf');
+            setLightboxState({
+                isOpen: true,
+                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Secure Receipt' }],
+                index: 0
+            });
             toast.dismiss(toastId);
         } catch (e) {
             toast.error('Access denied', { id: toastId });
@@ -318,6 +325,13 @@ export const DisbursementForm = memo(function DisbursementForm({
                     </div>
                 </Card>
             </div>
+
+            <ImageLightbox
+                isOpen={lightboxState.isOpen}
+                onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+                items={lightboxState.items}
+                initialIndex={lightboxState.index}
+            />
         </div>
     );
 });
