@@ -21,6 +21,26 @@ interface MediaManagerProps {
     readOnly?: boolean;
 }
 
+// Helper to extract exact video duration before initiating an expensive upload
+const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+
+        video.onloadedmetadata = () => {
+            URL.revokeObjectURL(video.src);
+            resolve(video.duration);
+        };
+
+        video.onerror = () => {
+            URL.revokeObjectURL(video.src);
+            reject(new Error('Invalid video format'));
+        };
+
+        video.src = URL.createObjectURL(file);
+    });
+};
+
 export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove, onUpdate, readOnly = false }: MediaManagerProps) {
     const [activeTab, setActiveTab] = useState('upload');
     const params = useParams();
@@ -46,9 +66,40 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
         const file = e.target.files?.[0];
         if (!file) return;
 
+        const isVideo = file.type.startsWith('video/');
+        const isImage = file.type.startsWith('image/');
+        const type = isVideo ? 'VIDEO' : (isImage ? 'IMAGE' : 'DOCUMENT');
+
+        // Size validation constraints
+        const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for image
+
+        if (file.size > maxSize) {
+            toast.error(`File size limit exceeded (max ${isVideo ? '50MB' : '10MB'})`);
+            e.target.value = '';
+            return;
+        }
+
         setIsLoading(true);
+
+        // Strict constraint: Video duration validation (15s to 60s)
+        if (isVideo) {
+            try {
+                const duration = await getVideoDuration(file);
+                if (duration < 15 || duration > 60) {
+                    toast.error(`Video must be between 15 and 60 seconds (Current: ${Math.round(duration)}s)`);
+                    setIsLoading(false);
+                    e.target.value = '';
+                    return;
+                }
+            } catch (error) {
+                toast.error("Could not read video metadata");
+                setIsLoading(false);
+                e.target.value = '';
+                return;
+            }
+        }
+
         try {
-            const type = file.type.startsWith('image/') ? 'IMAGE' : 'DOCUMENT';
             const { uploadUrl, key, publicUrl, provider, uploadData } = await ApiService.proposals.getUploadUrl({
                 fileType: file.type,
                 useCase: 'public',
@@ -88,11 +139,12 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
                 caption: ''
             });
 
-            toast.success('File Added To Gallery');
+            toast.success(isVideo ? 'Video added to gallery' : 'Image added to gallery');
         } catch (error) {
-            toast.error('Upload Failed');
+            toast.error('Upload failed');
         } finally {
             setIsLoading(false);
+            e.target.value = '';
         }
     };
 
@@ -109,7 +161,7 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
             caption: ''
         });
         setUrlInput('');
-        toast.success('Link Added');
+        toast.success('Link added');
     };
 
     return (
@@ -138,9 +190,10 @@ export const MediaManager = memo(function MediaManager({ items, onAdd, onRemove,
                                         ) : (
                                             <Plus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                                         )}
-                                        <p className="mt-1.5 text-xs font-bold text-muted-foreground">Select Local File</p>
+                                        <p className="mt-1 text-xs font-bold text-muted-foreground">Select Local File</p>
+                                        <p className="mt-0.5 text-[9px] text-muted-foreground/60 tracking-widest uppercase">Images & Video (15-60s)</p>
                                     </div>
-                                    <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} disabled={isLoading} />
+                                    <input type="file" className="hidden" accept="image/*,video/mp4,video/quicktime,video/webm" onChange={handleFileUpload} disabled={isLoading} />
                                 </label>
                             </TabsContent>
 
@@ -275,11 +328,12 @@ export const ImageUploader = memo(function ImageUploader({
             }
 
             onUploadComplete({ key: finalKey, previewUrl: finalPreview });
-            toast.success('Uploaded Successfully');
+            toast.success('Uploaded successfully');
         } catch (e) {
-            toast.error('Upload Failed');
+            toast.error('Upload failed');
         } finally {
             setIsLoading(false);
+            e.target.value = '';
         }
     };
 
@@ -299,6 +353,100 @@ export const ImageUploader = memo(function ImageUploader({
                 <span className="text-xs font-bold text-muted-foreground tracking-widest">{label}</span>
             </div>
             <input type="file" className="hidden" accept="image/*" onChange={handleUpload} disabled={isLoading} />
+        </label>
+    );
+});
+
+export const VideoUploader = memo(function VideoUploader({
+    onUploadComplete,
+    label,
+    useCase = 'public'
+}: {
+    onUploadComplete: (data: { key: string; previewUrl: string }) => void,
+    label: string,
+    useCase?: 'public' | 'kyc' | 'docs'
+}) {
+    const params = useParams();
+    const proposalId = params.id as string;
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // 50MB Limit
+        if (file.size > 50 * 1024 * 1024) {
+            toast.error('Video size limit exceeded (max 50MB)');
+            e.target.value = '';
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const duration = await getVideoDuration(file);
+            if (duration < 15 || duration > 60) {
+                toast.error(`Video must be between 15 and 60 seconds (Current: ${Math.round(duration)}s)`);
+                setIsLoading(false);
+                e.target.value = '';
+                return;
+            }
+
+            const { uploadUrl, key, publicUrl, provider, uploadData } = await ApiService.proposals.getUploadUrl({ fileType: file.type, useCase });
+
+            let finalPreview = publicUrl;
+            let finalKey = key;
+
+            if (provider === 'cloudinary') {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', uploadData.apiKey);
+                formData.append('timestamp', uploadData.timestamp.toString());
+                formData.append('signature', uploadData.signature);
+                formData.append('folder', uploadData.folder);
+
+                const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+                if (!res.ok) throw new Error('Cloudinary upload failed');
+                const data = await res.json();
+
+                finalPreview = data.secure_url;
+                finalKey = data.secure_url;
+            } else {
+                await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+
+                if (!finalPreview) {
+                    const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposalId);
+                    finalPreview = viewUrl;
+                }
+            }
+
+            onUploadComplete({ key: finalKey, previewUrl: finalPreview });
+            toast.success('Video uploaded successfully');
+        } catch (e) {
+            toast.error('Upload failed');
+        } finally {
+            setIsLoading(false);
+            e.target.value = '';
+        }
+    };
+
+    return (
+        <label className={cn(
+            "flex flex-col items-center justify-center w-full h-full min-h-[120px] border-2 border-dashed border-border/60 rounded-3xl cursor-pointer bg-muted/10 hover:bg-muted/20 hover:border-primary/30 transition-all shadow-sm group",
+            isLoading && "opacity-50 cursor-wait pointer-events-none"
+        )}>
+            <div className="flex flex-col items-center justify-center px-4 text-center">
+                {isLoading ? (
+                    <Loader2 className="animate-spin text-primary h-6 w-6" />
+                ) : (
+                    <div className="h-10 w-10 rounded-2xl bg-background border border-border/40 flex items-center justify-center mb-3 shadow-sm group-hover:scale-105 transition-transform">
+                        <Video className="text-muted-foreground h-5 w-5 group-hover:text-primary transition-colors" />
+                    </div>
+                )}
+                <span className="text-xs font-bold text-muted-foreground tracking-widest">{label}</span>
+                <span className="text-[9px] font-bold text-muted-foreground/60 tracking-widest uppercase mt-1">15 - 60 Seconds</span>
+            </div>
+            <input type="file" className="hidden" accept="video/mp4,video/quicktime,video/webm" onChange={handleUpload} disabled={isLoading} />
         </label>
     );
 });

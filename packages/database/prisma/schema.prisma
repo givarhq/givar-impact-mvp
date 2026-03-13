@@ -335,6 +335,7 @@ model Project {
   shortDesc   String? 
   personalMessage String? @db.Text
   imageUrl      String?  // Main Hero Image
+  videoUrl      String?
   gallery       Json?    @default("[]")
 
   targetAmount BigInt
