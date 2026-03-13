@@ -269,6 +269,15 @@ export class AdminController {
     return this.service.requestChanges(id, req.user.id, feedback);
   }
 
+  @Patch('proposals/:id/awareness')
+  updateAwarenessStatus(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body('status') status: string
+  ) {
+    return this.service.updateAwarenessStatus(id, req.user.id, status);
+  }
+
   /**
    * Targeted User Impersonation
    * Generates a restricted forensic session for a specific user ID.

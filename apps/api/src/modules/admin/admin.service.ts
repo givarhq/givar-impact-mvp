@@ -2828,4 +2828,30 @@ export class AdminService {
       return { success: true };
     });
   }
+
+  async updateAwarenessStatus(id: string, adminId: string, status: string) {
+    const proposal = await this.prisma.projectProposal.findUnique({
+      where: { id }
+    });
+
+    if (!proposal) throw new NotFoundException('Proposal not found');
+
+    const updated = await this.prisma.projectProposal.update({
+      where: { id },
+      data: { awarenessStatus: status }
+    });
+
+    await this.audit.log({
+      userId: adminId,
+      action: AuditAction.PROJECT_UPDATED,
+      entityId: id,
+      entityType: 'ProjectProposal',
+      metadata: {
+        action: 'UPDATE_AWARENESS_STATUS',
+        newStatus: status
+      }
+    });
+
+    return updated;
+  }
 }

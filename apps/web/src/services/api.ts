@@ -379,6 +379,9 @@ export const ApiService = {
     requestChanges: (id: string, feedback: string) =>
       apiClient.patch(`/admin/proposals/${id}/request-changes`, { feedback }).then(r => r.data),
 
+    updateAwarenessStatus: (id: string, status: string) =>
+      apiClient.patch(`/admin/proposals/${id}/awareness`, { status }).then(r => r.data),
+
     createProject: (data: any) =>
       apiClient.post('/admin/projects', data).then(r => r.data),
 
