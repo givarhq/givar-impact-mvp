@@ -31,6 +31,10 @@ export default function TrustPage() {
   const [orgProfile, setOrgProfile] = useState<OrganizationProfile | null>(null);
   const [categoryName, setCategoryName] = useState('');
 
+  // Legal Consent States
+  const [hasBeneficiaryConsent, setHasBeneficiaryConsent] = useState(false);
+  const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -72,6 +76,9 @@ export default function TrustPage() {
   const isKycPending = orgProfile?.status === 'PENDING';
   const showFeedback = store.status === 'CHANGES_REQUESTED';
 
+  const isThirdParty = store.beneficiaryRelationship !== 'Self' && store.beneficiaryRelationship !== null && store.beneficiaryRelationship !== '';
+  const canSubmit = !isSubmitting && hasAgreedToTerms && (!isThirdParty || hasBeneficiaryConsent);
+
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center text-muted-foreground min-w-0">
@@ -80,7 +87,6 @@ export default function TrustPage() {
     );
   }
 
-  // Dynamic Category Rendering Logic
   const getDynamicDocuments = () => {
     if (categoryName.includes('medical')) {
       return ['Medical report or diagnosis', 'Hospital invoice or estimate', 'Treatment recommendation or admission letter'];
@@ -281,6 +287,50 @@ export default function TrustPage() {
                 </AnimatePresence>
               </div>
 
+              {/* SECTION 4: LEGAL & CONSENT DECLARATIONS */}
+              <div className="space-y-4 pt-6 border-t border-border/40">
+                <div className="flex items-center gap-3 pb-3 px-1">
+                  <ShieldCheck className="h-4.5 w-4.5 text-primary" />
+                  <h3 className="font-bold text-base text-foreground">Declarations & Agreements</h3>
+                </div>
+
+                {isThirdParty && (
+                  <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 cursor-pointer hover:bg-muted/20 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                      checked={hasBeneficiaryConsent}
+                      onChange={(e) => setHasBeneficiaryConsent(e.target.checked)}
+                      disabled={isSubmitting}
+                    />
+                    <span className="text-sm font-medium text-foreground leading-relaxed select-none">
+                      I confirm the beneficiary (or their legal guardian) is aware of and has authorised this fundraising effort.
+                    </span>
+                  </label>
+                )}
+
+                <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 cursor-pointer hover:bg-muted/20 transition-colors">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                    checked={hasAgreedToTerms}
+                    onChange={(e) => setHasAgreedToTerms(e.target.checked)}
+                    disabled={isSubmitting}
+                  />
+                  <div className="space-y-1.5 select-none">
+                    <span className="text-sm font-medium text-foreground leading-relaxed block">
+                      I agree to the Cause Organiser Agreement.
+                    </span>
+                    <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
+                      <li>Organiser responsibilities</li>
+                      <li>Information accuracy obligations</li>
+                      <li>Platform rights to pause or remove causes</li>
+                      <li>Vendor payment structure</li>
+                    </ul>
+                  </div>
+                </label>
+              </div>
+
               {/* NAVIGATION AND SUBMIT */}
               <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
                 <Button variant="outline" className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)} disabled={isSubmitting}>
@@ -289,7 +339,7 @@ export default function TrustPage() {
                 <Button
                   className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
                   onClick={handleSubmitForReview}
-                  disabled={isSubmitting}
+                  disabled={!canSubmit}
                 >
                   {isSubmitting ? <Loader2 className="h-4 w-4 shrink-0 animate-spin" /> : <Send className="h-4 w-4 shrink-0" />}
                   <span className="truncate">Submit Cause</span>
