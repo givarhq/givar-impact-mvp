@@ -1,3 +1,4 @@
+// apps/web/src/app/(dashboard)/dashboard/(proposals)/proposals/edit/[id]/trust/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../../../../../../../components/ui/button';
 import { Input } from '../../../../../../../../components/ui/input';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, Send, Loader2, ShieldCheck, Lock, Clock, CheckCircle2, User, Building, Landmark, FileText, Check, Plus } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, ShieldCheck, Lock, Clock, CheckCircle2, Building, Landmark, FileText } from 'lucide-react';
 import { DocumentUploader } from '../../../../../../../../components/features/proposals/document-uploader';
 import { ImageUploader } from '../../../../../../../../components/features/proposals/media-uploader';
 import { OrganizationProfile } from '../../../../../../../../types';
@@ -98,9 +99,9 @@ export default function TrustPage() {
 
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-          <CardTitle className="text-lg md:text-xl font-bold">Beneficiary and Vendor Details</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-bold">Execution Partners & Evidence</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Provide verifiable details for the final recipients and execution partners of this cause.
+            Provide verifiable details for the execution partners and upload structural evidence for this cause.
           </CardDescription>
         </CardHeader>
 
@@ -108,50 +109,7 @@ export default function TrustPage() {
           {isVerified ? (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300 min-w-0">
 
-              {/* SECTION 1: BENEFICIARY DETAILS */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
-                  <User className="h-4.5 w-4.5 text-primary" />
-                  <h3 className="font-bold text-base text-foreground">Beneficiary Information</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <Input
-                    label="Full Name"
-                    placeholder="Legal name of beneficiary"
-                    value={store.beneficiaryName || ''}
-                    onChange={(e) => store.updateField('beneficiaryName', e.target.value)}
-                    disabled={isSubmitting}
-                    className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                  />
-                  <Input
-                    label="Age"
-                    type="number"
-                    placeholder="Current age"
-                    value={store.beneficiaryAge || ''}
-                    onChange={(e) => store.updateField('beneficiaryAge', parseInt(e.target.value) || null)}
-                    disabled={isSubmitting}
-                    className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                  />
-                  <Input
-                    label="Relationship to Submitter"
-                    placeholder="e.g. Self, Parent, Community Member"
-                    value={store.beneficiaryRelationship || ''}
-                    onChange={(e) => store.updateField('beneficiaryRelationship', e.target.value)}
-                    disabled={isSubmitting}
-                    className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                  />
-                  <Input
-                    label="Phone (Optional)"
-                    placeholder="Direct contact number"
-                    value={store.contactPhone || ''}
-                    onChange={(e) => store.updateField('contactPhone', e.target.value)}
-                    disabled={isSubmitting}
-                    className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                  />
-                </div>
-              </div>
-
-              {/* SECTION 2: VENDOR DETAILS */}
+              {/* SECTION 1: VENDOR DETAILS */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                   <Building className="h-4.5 w-4.5 text-primary" />
@@ -203,7 +161,7 @@ export default function TrustPage() {
                 </div>
               </div>
 
-              {/* SECTION 3: EVIDENCE AND VERIFICATION DOCUMENTS */}
+              {/* SECTION 2: EVIDENCE AND VERIFICATION DOCUMENTS */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                   <FileText className="h-4.5 w-4.5 text-primary" />
@@ -238,7 +196,7 @@ export default function TrustPage() {
                 </div>
               </div>
 
-              {/* SECTION 4: PRE-COLLECTED FUNDS DECLARATION */}
+              {/* SECTION 3: PRE-COLLECTED FUNDS DECLARATION */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                   <Landmark className="h-4.5 w-4.5 text-primary" />
