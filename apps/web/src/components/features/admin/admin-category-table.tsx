@@ -110,7 +110,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
         return (
             <div className="flex flex-col items-center justify-center py-24 text-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary opacity-50 mb-4" />
-                <p className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Syncing Taxonomy Database</p>
+                <p className="text-xs font-bold text-muted-foreground">Loading...</p>
             </div>
         );
     }
@@ -118,21 +118,15 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
     return (
         <div className="space-y-6 w-full min-w-0">
             <div className="flex justify-between items-center px-1 mb-2">
-                <div className="space-y-1">
-                    <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                        <FolderTree className="h-4 w-4 text-primary" /> Sector Taxonomy
-                    </h2>
-                    <p className="text-xs text-muted-foreground font-medium hidden md:block">Manage the core categories used to organize impact projects.</p>
-                </div>
                 <Button onClick={openCreateModal} className="rounded-3xl h-10 px-5 font-bold text-xs bg-primary text-white shadow-lg shadow-primary/20 border-0 active:scale-95 transition-all">
-                    <Plus className="h-4 w-4 mr-1.5" /> Create Sector
+                    <Plus className="h-4 w-4 mr-1.5" /> Create Category
                 </Button>
             </div>
 
             {categories.length === 0 ? (
                 <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                     <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                    <h3 className="text-sm font-bold text-foreground opacity-60">No Sectors Configured</h3>
+                    <h3 className="text-sm font-bold text-foreground opacity-60">No Categories Configured</h3>
                     <p className="text-xs text-muted-foreground mt-1 font-medium">Create a category to begin organizing projects.</p>
                 </div>
             ) : (
@@ -141,10 +135,10 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                         <table className="w-full text-sm text-left border-collapse min-w-full">
                             <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                                 <tr>
-                                    <th className="px-6 py-4 font-bold text-[10px] tracking-widest uppercase">Sector Identity</th>
-                                    <th className="px-6 py-4 font-bold text-[10px] tracking-widest uppercase">URL Slug</th>
-                                    <th className="px-6 py-4 font-bold text-[10px] tracking-widest uppercase">Visibility Weight</th>
-                                    <th className="px-6 py-4 font-bold text-[10px] tracking-widest uppercase text-right">Actions</th>
+                                    <th className="px-6 py-4 font-bold text-xs">Category</th>
+                                    <th className="px-6 py-4 font-bold text-xs">URL Slug</th>
+                                    <th className="px-6 py-4 font-bold text-xs">Visibility Weight</th>
+                                    <th className="px-6 py-4 font-bold text-xs text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/40">
@@ -174,7 +168,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <Badge variant="outline" className="font-mono text-[10px] bg-muted/30 border-border/40 text-muted-foreground shadow-none">
+                                                <Badge variant="outline" className="font-mono text-[11px] bg-muted/30 border-border/40 text-muted-foreground shadow-none">
                                                     /{cat.slug}
                                                 </Badge>
                                             </td>
@@ -215,7 +209,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                     <DialogHeader className="mb-4">
                         <DialogTitle className="text-xl font-bold flex items-center gap-3">
                             <FolderTree className="h-5 w-5 text-primary" />
-                            {editingCategory ? 'Update Sector' : 'Register New Sector'}
+                            {editingCategory ? 'Update Category' : 'Register New Category'}
                         </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -229,7 +223,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                         />
                         <Textarea
                             label="Brief Description (Optional)"
-                            placeholder="Define the scope of this sector..."
+                            placeholder="Define the scope of this category..."
                             {...register('description')}
                             error={errors.description?.message}
                             disabled={isSubmitting}
@@ -246,7 +240,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
 
                         <div className="pt-4 flex gap-3">
                             <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 border-0 bg-primary text-white hover:bg-primary/90 active:scale-[0.98] transition-all">
-                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingCategory ? "Save Changes" : "Register Sector")}
+                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingCategory ? "Save Changes" : "Register Category")}
                             </Button>
                         </div>
                     </form>
@@ -259,9 +253,9 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                 onConfirm={handleDelete}
                 isLoading={isSubmitting}
                 variant="destructive"
-                title="Delete Category Node"
-                description="Are you sure you want to remove this sector taxonomy? This action will be blocked by the system if any active projects or proposals are currently utilizing it."
-                confirmText="Execute Deletion"
+                title="Remove Category?"
+                description="Are you sure you want to remove this category? This action will be blocked by the system if any active projects or proposals are currently utilizing it."
+                confirmText="Remove"
             />
         </div>
     );
