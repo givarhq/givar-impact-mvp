@@ -54,10 +54,6 @@ export default function PlanPage() {
 
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-          <div className="flex items-center gap-2 text-primary mb-1 min-w-0">
-            <ClipboardList className="h-4 w-4 shrink-0" />
-            <span className="text-[11px] font-bold  tracking-[0.2em]">Strategy</span>
-          </div>
           <CardTitle className="text-lg md:text-xl font-bold">Use of Funds</CardTitle>
           <CardDescription className="text-xs font-medium">
             Define your budget entries. Precision here is critical for administrative audit approval. Optional stage labels will auto-generate your project roadmap.
