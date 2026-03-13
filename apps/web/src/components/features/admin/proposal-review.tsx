@@ -8,7 +8,7 @@ import {
     Check, X, FileText, Calendar, DollarSign, User, Phone,
     Building, AlertTriangle, Clock, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
-    AlertCircle, ShieldCheck, ListChecks, Landmark, Search
+    AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -273,14 +273,21 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="grid grid-cols-1 md:grid-cols-2">
-                                <div className="relative aspect-video bg-muted group overflow-hidden md:border-r border-border/40">
-                                    {proposal.coverImage ? (
+                                <div className="relative aspect-video bg-black md:border-r border-border/40 overflow-hidden">
+                                    {proposal.videoUrl ? (
+                                        <video
+                                            src={proposal.videoUrl}
+                                            controls
+                                            className="w-full h-full object-contain"
+                                            poster={proposal.coverImage || undefined}
+                                        />
+                                    ) : proposal.coverImage ? (
                                         <Image
                                             src={proposal.coverImage}
                                             alt="Hero"
                                             fill
                                             sizes="(max-width: 768px) 100vw, 600px"
-                                            className="object-cover transition-transform group-hover:scale-105 duration-700"
+                                            className="object-cover"
                                         />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-muted-foreground/30 text-xs font-bold">Pending Media</div>
@@ -321,7 +328,21 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 <FileText className="h-3.5 w-3.5 text-blue-500" /> Full Narrative
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-6 md:p-8">
+                        <CardContent className="p-6 md:p-8 space-y-6">
+                            {proposal.personalMessage && (
+                                <div className="bg-primary/[0.03] border border-primary/20 rounded-3xl p-6 relative overflow-hidden">
+                                    <Quote className="absolute -top-2 -left-2 h-16 w-16 text-primary/10 -rotate-12" />
+                                    <div className="relative z-10 pl-2 space-y-2">
+                                        <h4 className="text-[10px] font-bold text-primary tracking-widest uppercase">
+                                            Message from Organizer
+                                        </h4>
+                                        <p className="text-sm md:text-base text-foreground/90 font-medium leading-relaxed italic">
+                                            "{proposal.personalMessage}"
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
                             {proposal.description ? (
                                 <div
                                     className={cn(

@@ -41,6 +41,8 @@ export class CreateAdminProjectDto {
 
   @IsUrl() coverImage!: string;
 
+  @IsOptional() @IsString() videoUrl?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AdminMediaItem)

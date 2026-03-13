@@ -26,6 +26,7 @@ export interface Project {
   currency: string;
   percentFunded: number;
   imageUrl?: string;
+  videoUrl?: string | null;
   status: ProjectStatus;
   isActive: boolean;
   endDate?: string;
@@ -167,6 +168,7 @@ export interface ProjectProposal {
 
   coverImage: string | null;
   gallery: { url: string; type: 'IMAGE' | 'VIDEO' | 'DOCUMENT'; caption?: string }[];
+  videoUrl: string | null;
 
   budgetBreakdown: {
     id?: string;
