@@ -333,6 +333,7 @@ model Project {
   title       String
   description String  
   shortDesc   String? 
+  personalMessage String? @db.Text
   imageUrl      String?  // Main Hero Image
   gallery       Json?    @default("[]")
 
@@ -583,6 +584,7 @@ model ProjectProposal {
   title         String?
   shortDesc     String?
   description   String?         @db.Text
+  personalMessage String?       @db.Text
   categoryId    String?
   category      Category?       @relation(fields: [categoryId], references: [id])
   location      String?

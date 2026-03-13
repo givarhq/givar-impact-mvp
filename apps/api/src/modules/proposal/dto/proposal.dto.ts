@@ -4,7 +4,7 @@ import {
 } from 'class-validator';
 import { Currency } from '@givar/database';
 
-// 1. Budget Item Structure (Aligned to Spec)
+// 1. Budget Item Structure
 class BudgetItem {
   @IsString()
   id!: string;
@@ -42,7 +42,7 @@ class MediaItemDto {
   caption?: string;
 }
 
-// 2. Timeline Item Structure (Maintained for legacy compatibility during transition)
+// 2. Timeline Item Structure (Maintained for legacy compatibility)
 class TimelineItem {
   @IsString()
   id!: string;
@@ -69,6 +69,7 @@ export class UpdateProposalDto {
   @IsOptional() @IsString() title?: string;
   @IsOptional() @IsString() shortDesc?: string;
   @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsString() personalMessage?: string;
   @IsOptional() @IsString() location?: string;
   @IsOptional() @IsString() endDate?: string;
   @IsOptional() @IsNumber() targetAmount?: number;

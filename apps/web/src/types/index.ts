@@ -20,6 +20,7 @@ export interface Project {
   userId: string;
   description: string;
   shortDesc?: string;
+  personalMessage?: string | null;
   targetAmount: string;
   raisedAmount: string;
   currency: string;
@@ -159,6 +160,7 @@ export interface ProjectProposal {
   title: string;
   shortDesc: string;
   description: string;
+  personalMessage: string | null;
   location: string;
   targetAmount: string; // Serialized BigInt
   currency: 'NGN' | 'USD' | 'GBP';
