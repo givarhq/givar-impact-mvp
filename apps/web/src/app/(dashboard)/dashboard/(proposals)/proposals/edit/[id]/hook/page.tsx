@@ -100,7 +100,7 @@ export default function HookPage() {
               />
 
               <Input
-                label="Deadline optional"
+                label="Deadline (Optional)"
                 type="date"
                 value={endDate ? new Date(endDate).toISOString().split('T')[0] : ''}
                 onChange={(e) => {

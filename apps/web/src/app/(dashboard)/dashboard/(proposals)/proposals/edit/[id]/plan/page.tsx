@@ -74,7 +74,7 @@ export default function PlanPage() {
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
-                Additional Notes optional
+                Additional Notes (Optional)
               </h3>
               <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks, mitigation protocols, or extra details.</p>
             </div>

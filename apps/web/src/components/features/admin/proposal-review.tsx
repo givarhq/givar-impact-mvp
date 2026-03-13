@@ -606,9 +606,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 onConfirm={handleApprove}
                 isLoading={isProcessing}
                 variant="default"
-                title="Approve Impact"
-                description={`Promote the proposal "${proposal.title}" to a live platform project? This action migrates all narrative and financial data to the public discovery feed and creates an immutable ledger entry. This procedure is irreversible.`}
-                confirmText="Authorize Project"
+                title="Approve Impact?"
+                description={`Promote the proposal "${proposal.title}" to a live platform project? This action migrates all narrative and financial data to the public discovery feed.`}
+                confirmText="Approve"
             />
         </motion.div>
     );

@@ -334,7 +334,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Deadline optional</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Deadline (Optional)</label>
           <Input
             type="date"
             {...register('endDate')}
