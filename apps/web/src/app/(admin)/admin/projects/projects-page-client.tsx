@@ -3,9 +3,10 @@
 import React, { useState, useEffect, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, ClipboardList, TrendingUp, FileBox } from 'lucide-react';
+import { Plus, ClipboardList, TrendingUp, FileBox, FolderTree } from 'lucide-react';
 import { AdminProjectTable } from '../../../../components/features/admin/admin-project-table';
 import { AdminProposalTable } from '../../../../components/features/admin/admin-proposal-table';
+import { AdminCategoryTable } from '../../../../components/features/admin/admin-category-table';
 import { Pagination } from '../../../../components/features/history/pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs';
 import { BulkActionsToolbar } from '../../../../components/features/admin/bulk-actions-toolbar';
@@ -62,13 +63,18 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
                         <TabsTrigger value="proposals" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
                             <ClipboardList className="h-3.5 w-3.5" /> Proposals
                         </TabsTrigger>
+                        <TabsTrigger value="categories" className="flex-1 md:w-[120px] px-4 h-full rounded-2xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                            <FolderTree className="h-3.5 w-3.5" /> Categories
+                        </TabsTrigger>
                     </TabsList>
 
-                    <Link href="/admin/projects/new" className="shrink-0 w-full md:w-auto">
-                        <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
-                            <Plus className="mr-2 h-4 w-4" /> New Project
-                        </Button>
-                    </Link>
+                    {activeTab !== 'categories' && (
+                        <Link href="/admin/projects/new" className="shrink-0 w-full md:w-auto">
+                            <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
+                                <Plus className="mr-2 h-4 w-4" /> New Project
+                            </Button>
+                        </Link>
+                    )}
                 </div>
 
                 <div className="w-full min-w-0 overflow-hidden">
@@ -102,18 +108,26 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
                             onSelectAll={(checked) => handleSelectAll(checked, proposalData.data)}
                         />
                     </TabsContent>
+
+                    <TabsContent value="categories" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <AdminCategoryTable />
+                    </TabsContent>
                 </div>
 
-                <div className="pt-4 border-t border-border/40 min-w-0">
-                    <Pagination currentPage={activeMeta.page} totalPages={activeMeta.lastPage} />
-                </div>
+                {activeTab !== 'categories' && (
+                    <div className="pt-4 border-t border-border/40 min-w-0">
+                        <Pagination currentPage={activeMeta.page} totalPages={activeMeta.lastPage} />
+                    </div>
+                )}
             </Tabs>
 
-            <BulkActionsToolbar
-                selectedIds={selectedIds}
-                onClear={() => setSelectedIds([])}
-                context={activeTab === 'proposals' ? 'PROPOSAL' : 'PROJECT'}
-            />
+            {activeTab !== 'categories' && (
+                <BulkActionsToolbar
+                    selectedIds={selectedIds}
+                    onClear={() => setSelectedIds([])}
+                    context={activeTab === 'proposals' ? 'PROPOSAL' : 'PROJECT'}
+                />
+            )}
         </div>
     );
 });

@@ -447,6 +447,15 @@ export const ApiService = {
         responseType: 'blob',
       }),
 
+    createCategory: (data: { name: string; description?: string; icon?: string }) =>
+      apiClient.post('/admin/categories', data).then(r => r.data),
+
+    updateCategory: (id: string, data: { name?: string; description?: string; icon?: string }) =>
+      apiClient.patch(`/admin/categories/${id}`, data).then(r => r.data),
+
+    deleteCategory: (id: string) =>
+      apiClient.delete(`/admin/categories/${id}`).then(r => r.data),
+
     getConfig: (token: string) =>
       serverFetch<any>('/recommendations/admin/config', token, {
         tags: ['recommendation-config'],
