@@ -202,7 +202,7 @@ export default function StartProposalPage() {
                                                 onClick={() => handleTargetTypeChange('SELF')}
                                                 className={cn(
                                                     "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
-                                                    targetType === 'SELF' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                    targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                 )}
                                             >
                                                 <User className="h-4 w-4" /> Myself
@@ -212,7 +212,7 @@ export default function StartProposalPage() {
                                                 onClick={() => handleTargetTypeChange('OTHER')}
                                                 className={cn(
                                                     "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
-                                                    targetType === 'OTHER' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                    targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/40 hover:bg-muted"
                                                 )}
                                             >
                                                 <Users className="h-4 w-4" /> Someone else
@@ -257,20 +257,21 @@ export default function StartProposalPage() {
                                         </AnimatePresence>
                                     </div>
                                 </div>
-
-                                <Button
-                                    type="submit"
-                                    className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
-                                    disabled={isLoading || categories.length === 0}
-                                >
-                                    {isLoading ? (
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                    ) : (
-                                        <>
-                                            Continue to setup <ArrowRight className="ml-1 h-4 w-4" />
-                                        </>
-                                    )}
-                                </Button>
+                                <div className="flex items-center justify-center">
+                                    <Button
+                                        type="submit"
+                                        className="w-auto h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
+                                        disabled={isLoading || categories.length === 0}
+                                    >
+                                        {isLoading ? (
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                        ) : (
+                                            <>
+                                                Continue to setup <ArrowRight className="ml-1 h-4 w-4" />
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </form>
                         </CardContent>
                     </Card>
