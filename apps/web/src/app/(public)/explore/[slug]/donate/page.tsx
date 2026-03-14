@@ -58,7 +58,7 @@ export default async function PublicDonationPage({ params }: { params: Promise<{
                 </div>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed font-medium line-clamp-6 italic min-w-0">
-                {project.description?.replace(/<[^>]*>?/gm, '')}
+                {project.shortDesc || project.description}
               </p>
             </div>
           </div>
