@@ -147,7 +147,7 @@ export function HowItWorksContent() {
                                                 viewport={{ once: true, margin: "-100px" }}
                                                 transition={{ duration: 0.5, delay: 0.1 }}
                                                 className={cn(
-                                                    "relative z-10 w-[94%] mx-auto -mt-10 md:absolute md:mt-0 md:top-1/2 md:-translate-y-1/2 md:w-[100%]",
+                                                    "relative z-10 w-[94%] mx-auto -mt-8 md:absolute md:mt-0 md:top-1/2 md:-translate-y-1/2 md:w-[100%]",
                                                     isEven
                                                         ? "md:left-[-22%] lg:left-[-30%]"
                                                         : "md:right-[-22%] lg:right-[-30%]"
