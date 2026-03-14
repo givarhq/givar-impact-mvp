@@ -23,17 +23,11 @@ const SYMBOLS: Record<string, string> = {
   CAD: 'C$',
 };
 
-const QUICK_AMOUNTS: Record<string, string[]> = {
-  NGN: ['2000', '5000', '10000', '25000', '50000'],
-  USD: ['20', '50', '100', '250', '500'],
-  GBP: ['20', '50', '100', '250', '500'],
-  EUR: ['20', '50', '100', '250', '500'],
-  CAD: ['20', '50', '100', '250', '500'],
-};
+const QUICK_AMOUNTS = ['2000', '5000', '10000', '25000', '50000'];
 
 export default function FundWalletPage() {
   const posthog = usePostHog();
-  const [displayCurrency, setDisplayCurrency] = useState('NGN');
+  const [detectedCurrency, setDetectedCurrency] = useState('NGN');
   const [displayAmount, setDisplayAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -54,6 +48,20 @@ export default function FundWalletPage() {
 
   useEffect(() => {
     checkVerification();
+
+    try {
+      const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
+      const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : 'USD';
+
+      if (['USD', 'GBP', 'EUR', 'CAD'].includes(userCurrency)) {
+        setDetectedCurrency(userCurrency);
+      } else if (userCurrency !== 'NGN') {
+        setDetectedCurrency('USD');
+      }
+    } catch (e) {
+      setDetectedCurrency('USD');
+    }
+
 
     fetch('https://open.er-api.com/v6/latest/NGN')
       .then(res => res.json())
@@ -82,52 +90,41 @@ export default function FundWalletPage() {
     }
   };
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isUnverified) return;
-    setDisplayAmount(parseFormattedNumber(formatNumberInput(e.target.value)));
-  };
-
   const setQuickAmount = (val: string) => {
     if (isUnverified) return;
     setDisplayAmount(val);
   };
 
-  const getNGNAmount = (): number | null => {
-    const numAmount = Number(parseFormattedNumber(displayAmount));
-    if (!numAmount) return 0;
-    if (displayCurrency === 'NGN') return numAmount;
-
-    // Safety Guard: API failure resilience
-    if (!fxRates || !fxRates[displayCurrency]) return null;
-
-    return numAmount / fxRates[displayCurrency];
-  };
-
-  const ngnValue = getNGNAmount();
+  // Base logic uses strictly NGN, FX is for display and payload intent tracking
+  const ngnValue = Number(parseFormattedNumber(displayAmount)) || 0;
+  const baseAmountMinor = BigInt(Math.round(ngnValue * 100));
 
   const handleFund = async () => {
     if (isUnverified) return;
 
-    if (ngnValue === null) {
-      toast.error("Exchange rates are currently unavailable. Please try funding in NGN.");
-      return;
-    }
-
     if (!displayAmount || ngnValue <= 0) {
-      toast.error('Please enter a valid amount');
+      toast.error('Please enter a valid amount.');
       return;
     }
 
-    // Logic Guard: Prevent tiny deposits after FX (Paystack minimum ₦100)
-    const baseAmountMinor = BigInt(Math.round(ngnValue * 100));
     if (baseAmountMinor < 10000n) {
-      toast.error("Minimum top-up is ₦100.00 equivalent.");
+      toast.error("Minimum top-up is ₦100.00.");
       return;
+    }
+
+    let finalDonorCurrency = undefined;
+    let finalDonorAmount = undefined;
+    let finalFxRate = undefined;
+
+    if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
+      finalDonorCurrency = detectedCurrency;
+      finalDonorAmount = (ngnValue * fxRates[detectedCurrency]).toFixed(2);
+      finalFxRate = fxRates[detectedCurrency];
     }
 
     posthog?.capture('wallet_funding_initiated', {
-      display_currency: displayCurrency,
-      display_amount: displayAmount,
+      display_currency: detectedCurrency,
+      display_amount: finalDonorAmount || displayAmount,
       calculated_ngn_value: ngnValue
     });
 
@@ -136,9 +133,9 @@ export default function FundWalletPage() {
       const data = await ApiService.wallet.fund({
         amount: baseAmountMinor.toString(),
         currency: 'NGN',
-        donorCurrency: displayCurrency,
-        donorAmount: displayAmount,
-        fxRate: fxRates ? fxRates[displayCurrency] : undefined
+        donorCurrency: finalDonorCurrency,
+        donorAmount: finalDonorAmount,
+        fxRate: finalFxRate
       });
 
       if (data.authorizationUrl) {
@@ -210,71 +207,70 @@ export default function FundWalletPage() {
         )}>
           <div className="space-y-4 min-w-0">
             <label className="text-xs font-bold text-muted-foreground ml-1">
-              Select currency & amount
+              Enter amount (NGN)
             </label>
 
-            <div className="flex gap-2 min-w-0">
-              <Select value={displayCurrency} onValueChange={(v) => { setDisplayCurrency(v); setDisplayAmount(''); }}>
-                <SelectTrigger className="w-[90px] md:w-[110px] h-14 md:h-16 rounded-2xl bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-xs md:text-sm shadow-none transition-all">
+            <div className="relative min-w-0">
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={14}
+                placeholder="₦ 5,000"
+                className="pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
+                value={displayAmount ? `₦ ${formatNumberInput(displayAmount)}` : ''}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setDisplayAmount(value);
+                }}
+                disabled={isUnverified}
+              />
+            </div>
+
+            <div className="flex items-center justify-between px-1 mt-1 text-xs">
+              <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                {detectedCurrency !== 'NGN' ? (
+                  <>
+                    <Globe className="h-3.5 w-3.5" />
+                    <span>Estimated equivalent:</span>
+                    {fxRates && ngnValue > 0 ? (
+                      <span className="font-bold text-foreground">
+                        {SYMBOLS[detectedCurrency]}{(ngnValue * fxRates[detectedCurrency]).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </span>
+                    ) : (
+                      <span>--</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-[10px]">All transactions are processed in NGN.</span>
+                )}
+              </div>
+              <Select value={detectedCurrency} onValueChange={setDetectedCurrency} disabled={isUnverified}>
+                <SelectTrigger className="h-7 px-2 py-0 border-none bg-transparent shadow-none text-xs font-bold text-primary focus:ring-0 w-auto gap-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl border-border/40 shadow-xl">
-                  <SelectItem value="NGN" className="font-bold text-xs py-2">NGN ₦</SelectItem>
-                  <SelectItem value="USD" className="font-bold text-xs py-2">USD $</SelectItem>
-                  <SelectItem value="GBP" className="font-bold text-xs py-2">GBP £</SelectItem>
-                  <SelectItem value="EUR" className="font-bold text-xs py-2">EUR €</SelectItem>
-                  <SelectItem value="CAD" className="font-bold text-xs py-2">CAD C$</SelectItem>
+                <SelectContent className="rounded-xl border-border/40 shadow-xl min-w-[80px]">
+                  <SelectItem value="NGN" className="text-xs font-bold">NGN</SelectItem>
+                  <SelectItem value="USD" className="text-xs font-bold">USD</SelectItem>
+                  <SelectItem value="GBP" className="text-xs font-bold">GBP</SelectItem>
+                  <SelectItem value="EUR" className="text-xs font-bold">EUR</SelectItem>
+                  <SelectItem value="CAD" className="text-xs font-bold">CAD</SelectItem>
                 </SelectContent>
               </Select>
-
-              <div className="relative min-w-0 flex-1">
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={14}
-                  placeholder={`${SYMBOLS[displayCurrency]} ${displayCurrency === 'NGN' ? "5,000" : "100"}`}
-                  className="pl-3 md:pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
-                  value={displayAmount ? `${SYMBOLS[displayCurrency]} ${formatNumberInput(displayAmount)}` : ''}
-                  onChange={(e) => {
-                    // strip the symbol for internal state
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setDisplayAmount(value);
-                  }}
-                  disabled={isUnverified}
-                />
-              </div>
             </div>
 
             <div className="flex gap-2 text-xs flex-wrap pt-1 min-w-0">
-              {(QUICK_AMOUNTS[displayCurrency] || QUICK_AMOUNTS.NGN).map((val) => (
+              {QUICK_AMOUNTS.map((val) => (
                 <button
                   key={val}
                   onClick={() => setQuickAmount(val)}
                   disabled={isUnverified}
                   className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-3xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm"
                 >
-                  {SYMBOLS[displayCurrency]}{Number(val).toLocaleString()}
+                  ₦{Number(val).toLocaleString()}
                 </button>
               ))}
             </div>
-
-            <AnimatePresence>
-              {displayCurrency !== 'NGN' && ngnValue !== null && ngnValue > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="flex items-start gap-2 p-3 bg-blue-50/50 border border-blue-100 rounded-2xl text-blue-800 text-[11px] font-medium leading-relaxed mt-2"
-                >
-                  <Globe className="h-4 w-4 shrink-0 mt-0.5 text-blue-600" />
-                  <p>
-                    You will be charged approximately <strong>₦{ngnValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} NGN</strong> (estimated <strong>{SYMBOLS[displayCurrency]}{displayAmount}</strong>).
-                    Final debit depends on your bank's exchange rate. International cards accepted.
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
           <div className="bg-primary/5 border border-primary/20 p-5 rounded-[24px] flex items-start gap-4 shadow-inner min-w-0">

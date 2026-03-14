@@ -33,20 +33,14 @@ const SYMBOLS: Record<string, string> = {
     CAD: 'C$',
 };
 
-const QUICK_AMOUNTS: Record<string, string[]> = {
-    NGN: ['1000', '5000', '10000', '25000'],
-    USD: ['10', '25', '50', '100'],
-    GBP: ['10', '25', '50', '100'],
-    EUR: ['10', '25', '50', '100'],
-    CAD: ['10', '25', '50', '100'],
-};
+const QUICK_AMOUNTS = ['1000', '5000', '10000', '25000'];
 
 export function DonationForm({ project, wallet: initialWallet, isAuthenticated }: DonationFormProps) {
     const router = useRouter();
     const posthog = usePostHog();
 
     // State
-    const [displayCurrency, setDisplayCurrency] = useState('NGN');
+    const [detectedCurrency, setDetectedCurrency] = useState('NGN');
     const [displayAmount, setDisplayAmount] = useState('');
     const [tipAmount, setTipAmount] = useState('');
     const [feeRule, setFeeRule] = useState<{ percentage: number; optionalTipEnabled: boolean } | null>(null);
@@ -71,7 +65,6 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             try {
                 const user = JSON.parse(userCookie as string);
                 setIsUnverified(user.emailVerified === false);
-                // Identify user in PostHog for cross-device tracking
                 if (user.email && posthog) {
                     posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
                 }
@@ -80,7 +73,6 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             }
         }
     };
-
 
     // Initial Setup & Wallet Refresh
     useEffect(() => {
@@ -91,6 +83,20 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         setDisplayAmount('');
         setTipAmount('');
         setIsLoading(false);
+
+        // Auto-detect donor currency context
+        try {
+            const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
+            const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : 'USD';
+
+            if (['USD', 'GBP', 'EUR', 'CAD'].includes(userCurrency)) {
+                setDetectedCurrency(userCurrency);
+            } else if (userCurrency !== 'NGN') {
+                setDetectedCurrency('USD');
+            }
+        } catch (e) {
+            setDetectedCurrency('USD');
+        }
 
         ApiService.fees.getPublicCurrent().then(setFeeRule).catch(console.error);
 
@@ -138,23 +144,9 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         }
     };
 
-    // Financial Conversion Logic
-    const getNGNAmount = (): number | null => {
-        const numAmount = Number(parseFormattedNumber(displayAmount));
-        if (!numAmount) return 0;
-        if (displayCurrency === 'NGN') return numAmount;
-
-        // Safety Guard: If API failed and we are not in NGN, return null to disable submission
-        if (!fxRates || !fxRates[displayCurrency]) return null;
-
-        // Math: er-api returns 1 NGN = X USD. So NGN = UserAmount / X.
-        return numAmount / fxRates[displayCurrency];
-    };
-
-    const ngnValue = getNGNAmount();
-
-    // Technical Fix: Multiply before rounding to preserve Kobo precision
-    const baseAmountMinor = ngnValue !== null ? BigInt(Math.round(ngnValue * 100)) : 0n;
+    // Financial calculations (Pure NGN Source of Truth)
+    const ngnValue = Number(parseFormattedNumber(displayAmount)) || 0;
+    const baseAmountMinor = BigInt(Math.round(ngnValue * 100));
     const tipAmountMinor = BigInt(parseFormattedNumber(tipAmount) || '0') * 100n;
 
     const feePercentage = feeRule?.percentage || 0;
@@ -175,10 +167,6 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
     if (!project) return null;
 
-    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setDisplayAmount(parseFormattedNumber(formatNumberInput(e.target.value)));
-    };
-
     const setQuickAmount = (val: string) => {
         setDisplayAmount(val);
     };
@@ -191,28 +179,31 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             return;
         }
 
-        if (ngnValue === null) {
-            toast.error("Exchange rates are currently unavailable. Please try donating in NGN.");
+        if (!selectedMethod || !displayAmount || ngnValue <= 0) {
+            toast.error("Please provide a valid amount.");
             return;
         }
 
-        if (!selectedMethod || !displayAmount) {
-            toast.error("Please provide an amount.");
-            return;
-        }
-
-        // Logic Guard: Prevent tiny donations after FX conversion (Paystack minimum is ₦100)
         if (baseAmountMinor < 10000n) {
-            toast.error("Minimum donation is ₦100.00 equivalent.");
+            toast.error("Minimum donation is ₦100.00.");
             return;
         }
 
-        // Capture conversion intent in PostHog Analytics
+        let finalDonorCurrency = undefined;
+        let finalDonorAmount = undefined;
+        let finalFxRate = undefined;
+
+        if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
+            finalDonorCurrency = detectedCurrency;
+            finalDonorAmount = (ngnValue * fxRates[detectedCurrency]).toFixed(2);
+            finalFxRate = fxRates[detectedCurrency];
+        }
+
         posthog?.capture('donation_initiated', {
             project_id: project.id,
             project_title: project.title,
-            display_currency: displayCurrency,
-            display_amount: displayAmount,
+            display_currency: detectedCurrency,
+            display_amount: finalDonorAmount || displayAmount,
             calculated_ngn_value: ngnValue,
             payment_method: selectedMethod,
             donation_type: donationType,
@@ -255,9 +246,9 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                     amount: minorAmount,
                     tipAmount: minorTipAmount,
                     currency: project.currency,
-                    donorCurrency: displayCurrency,
-                    donorAmount: displayAmount,
-                    fxRate: fxRates ? fxRates[displayCurrency] : undefined
+                    donorCurrency: finalDonorCurrency,
+                    donorAmount: finalDonorAmount,
+                    fxRate: finalFxRate
                 };
                 if (isGuest) {
                     payload.guestEmail = guestEmail.toLowerCase().trim();
@@ -273,83 +264,78 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         }
     };
 
-    // Calculate dynamic goal approximation for foreign donors
     let goalApprox = '';
-    if (displayCurrency !== 'NGN' && fxRates && fxRates[displayCurrency]) {
+    if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         const goalNgnMajor = Number(remainingNeededMinor) / 100;
-        const convertedGoal = goalNgnMajor * fxRates[displayCurrency];
-        goalApprox = `(≈ ${SYMBOLS[displayCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
+        const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
+        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
     }
 
     const renderInputArea = () => (
         <div className="space-y-2.5">
             <div className="flex justify-between items-center px-1">
-                <label className="text-xs font-bold text-muted-foreground">Select currency & amount</label>
+                <label className="text-xs font-bold text-muted-foreground">Enter amount (NGN)</label>
                 <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
                     Remaining: {formatCurrency(remainingNeededMinor, project.currency)} {goalApprox}
                 </span>
             </div>
 
-            <div className="flex gap-2 min-w-0">
-                <Select value={displayCurrency} onValueChange={(v) => {
-                    setDisplayCurrency(v);
-                    setDisplayAmount('');
-                    posthog?.capture('currency_changed', { to: v, context: 'donation' });
-                }}>
-                    <SelectTrigger className="w-[90px] md:w-[110px] h-14 md:h-16 rounded-2xl md:rounded-[22px] bg-muted/30 border-transparent focus:bg-background focus:ring-primary/20 font-bold text-xs md:text-sm shadow-none transition-all">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-border/40 shadow-xl">
-                        <SelectItem value="NGN" className="font-bold text-xs py-2">NGN ₦</SelectItem>
-                        <SelectItem value="USD" className="font-bold text-xs py-2">USD $</SelectItem>
-                        <SelectItem value="GBP" className="font-bold text-xs py-2">GBP £</SelectItem>
-                        <SelectItem value="EUR" className="font-bold text-xs py-2">EUR €</SelectItem>
-                        <SelectItem value="CAD" className="font-bold text-xs py-2">CAD C$</SelectItem>
-                    </SelectContent>
-                </Select>
-
-                <div className="relative min-w-0 flex-1">
-                    <Input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={14}
-                        placeholder={`${SYMBOLS[displayCurrency]} ${displayCurrency === 'NGN' ? "1,000" : "50"}`}
-                        className="pl-3 md:pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
-                        value={displayAmount ? `${SYMBOLS[displayCurrency]} ${formatNumberInput(displayAmount)}` : ''}
-                        onChange={(e) => {
-                            // Strip symbol & spaces for internal state
-                            const value = e.target.value.replace(/[^0-9]/g, '');
-                            setDisplayAmount(value);
-                        }}
-                    />
-                </div>
+            <div className="relative min-w-0">
+                <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={14}
+                    placeholder="₦ 5,000"
+                    className="pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
+                    value={displayAmount ? `₦ ${formatNumberInput(displayAmount)}` : ''}
+                    onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        setDisplayAmount(value);
+                    }}
+                    disabled={isUnverified}
+                />
             </div>
 
-            <div className="flex gap-2 text-xs flex-wrap">
-                {(QUICK_AMOUNTS[displayCurrency] || QUICK_AMOUNTS.NGN).map((val) => (
-                    <button key={val} onClick={() => setQuickAmount(val)} className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-3 py-1.5 rounded-3xl transition-all font-semibold">
-                        {SYMBOLS[displayCurrency]}{Number(val).toLocaleString()}
+            <div className="flex items-center justify-between px-1 mt-1 text-xs">
+                <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                    {detectedCurrency !== 'NGN' ? (
+                        <>
+                            <Globe className="h-3.5 w-3.5" />
+                            <span>Estimated equivalent:</span>
+                            {fxRates && ngnValue > 0 ? (
+                                <span className="font-bold text-foreground">
+                                    {SYMBOLS[detectedCurrency]}{(ngnValue * fxRates[detectedCurrency]).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                </span>
+                            ) : (
+                                <span>--</span>
+                            )}
+                        </>
+                    ) : (
+                        <span className="text-[10px]">All transactions are processed in NGN.</span>
+                    )}
+                </div>
+                <Select value={detectedCurrency} onValueChange={setDetectedCurrency} disabled={isUnverified}>
+                    <SelectTrigger className="h-7 px-2 py-0 border-none bg-transparent shadow-none text-xs font-bold text-primary focus:ring-0 w-auto gap-1">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-border/40 shadow-xl min-w-[80px]">
+                        <SelectItem value="NGN" className="text-xs font-bold">NGN</SelectItem>
+                        <SelectItem value="USD" className="text-xs font-bold">USD</SelectItem>
+                        <SelectItem value="GBP" className="text-xs font-bold">GBP</SelectItem>
+                        <SelectItem value="EUR" className="text-xs font-bold">EUR</SelectItem>
+                        <SelectItem value="CAD" className="text-xs font-bold">CAD</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="flex gap-2 text-xs flex-wrap pt-2">
+                {QUICK_AMOUNTS.map((val) => (
+                    <button key={val} onClick={() => setQuickAmount(val)} disabled={isUnverified} className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-3 py-1.5 rounded-3xl transition-all font-semibold disabled:opacity-50">
+                        ₦{Number(val).toLocaleString()}
                     </button>
                 ))}
             </div>
-
-            <AnimatePresence>
-                {displayCurrency !== 'NGN' && ngnValue !== null && ngnValue > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="flex items-start gap-2 p-3 bg-blue-50/50 border border-blue-100 rounded-2xl text-blue-800 text-[11px] font-medium leading-relaxed mt-2"
-                    >
-                        <Globe className="h-4 w-4 shrink-0 mt-0.5 text-blue-600" />
-                        <p>
-                            You will be charged approximately <strong>₦{ngnValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} NGN</strong> (estimated <strong>{SYMBOLS[displayCurrency]}{displayAmount}</strong>).
-                            Final debit depends on your bank's exchange rate. International cards accepted.
-                        </p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 
@@ -364,7 +350,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             >
                 {feeRule?.optionalTipEnabled && (
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-muted-foreground ml-1">Optional Tip (Helps cover platform costs)</label>
+                        <label className="text-xs font-bold text-muted-foreground ml-1">Optional tip (Helps cover platform costs)</label>
                         <div className="relative">
                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">₦</span>
                             <Input
@@ -381,21 +367,21 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
                 <div className="p-4 rounded-[20px] bg-muted/20 border border-border/40 space-y-2.5 shadow-inner">
                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                        <span>Project Impact</span>
+                        <span>Project impact</span>
                         <span className="tabular-nums font-bold text-foreground">₦{(Number(baseAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                        <span>Platform Fee ({feePercentage}%)</span>
+                        <span>Platform fee ({feePercentage}%)</span>
                         <span className="tabular-nums font-bold text-foreground">₦{(Number(feeAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
                     {tipAmountMinor > 0n && (
                         <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                            <span>Platform Tip</span>
+                            <span>Platform tip</span>
                             <span className="tabular-nums font-bold text-foreground">₦{(Number(tipAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         </div>
                     )}
                     <div className="pt-2.5 border-t border-border/40 flex justify-between items-center">
-                        <span className="text-sm font-bold text-foreground">Total Charge</span>
+                        <span className="text-sm font-bold text-foreground">Total charge</span>
                         <span className="text-sm font-black text-primary tabular-nums">₦{(Number(totalChargeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                     </div>
                 </div>
