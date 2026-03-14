@@ -57,6 +57,13 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
         fetchCategories();
     }, []);
 
+    useEffect(() => {
+        const handleOpen = () => openCreateModal();
+        window.addEventListener('open-category-modal', handleOpen);
+        return () => window.removeEventListener('open-category-modal', handleOpen);
+    }, []);
+
+
     const openCreateModal = () => {
         setEditingCategory(null);
         reset({ name: '', description: '', icon: '' });
@@ -93,7 +100,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
     const handleDelete = async () => {
         if (!deletingId) return;
         setIsSubmitting(true);
-        const toastId = toast.loading("Executing forensic deletion...");
+        const toastId = toast.loading("Deleting category...");
         try {
             await ApiService.admin.deleteCategory(deletingId);
             toast.success("Category deleted successfully", { id: toastId });
@@ -117,12 +124,6 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
 
     return (
         <div className="space-y-6 w-full min-w-0">
-            <div className="flex justify-between items-center px-1 mb-2">
-                <Button onClick={openCreateModal} className="rounded-3xl h-10 px-5 font-bold text-xs bg-primary text-white shadow-lg shadow-primary/20 border-0 active:scale-95 transition-all">
-                    <Plus className="h-4 w-4 mr-1.5" /> Create Category
-                </Button>
-            </div>
-
             {categories.length === 0 ? (
                 <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                     <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
@@ -135,7 +136,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                         <table className="w-full text-sm text-left border-collapse min-w-full">
                             <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                                 <tr>
-                                    <th className="px-6 py-4 font-bold text-xs">Category</th>
+                                    <th className="px-6 py-4 font-bold text-xs">Category Name</th>
                                     <th className="px-6 py-4 font-bold text-xs">URL Slug</th>
                                     <th className="px-6 py-4 font-bold text-xs">Visibility Weight</th>
                                     <th className="px-6 py-4 font-bold text-xs text-right">Actions</th>
@@ -154,9 +155,6 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                                         >
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shadow-inner">
-                                                        {cat.icon ? cat.icon.charAt(0) : cat.name.charAt(0)}
-                                                    </div>
                                                     <div className="space-y-0.5">
                                                         <p className="font-bold text-foreground leading-tight text-sm">
                                                             {cat.name}

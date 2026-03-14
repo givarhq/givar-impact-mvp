@@ -68,13 +68,22 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
                         </TabsTrigger>
                     </TabsList>
 
-                    {activeTab !== 'categories' && (
-                        <Link href="/admin/projects/new" className="shrink-0 w-full md:w-auto">
-                            <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
-                                <Plus className="mr-2 h-4 w-4" /> New Project
+                    <div className="shrink-0 w-full md:w-auto">
+                        {activeTab === 'categories' ? (
+                            <Button
+                                onClick={() => window.dispatchEvent(new CustomEvent('open-category-modal'))}
+                                className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all"
+                            >
+                                <Plus className="mr-2 h-4 w-4" /> Create Category
                             </Button>
-                        </Link>
-                    )}
+                        ) : (
+                            <Link href="/admin/projects/new">
+                                <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
+                                    <Plus className="mr-2 h-4 w-4" /> New Project
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
                 </div>
 
                 <div className="w-full min-w-0 overflow-hidden">
