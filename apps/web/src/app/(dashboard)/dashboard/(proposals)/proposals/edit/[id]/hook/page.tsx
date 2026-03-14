@@ -87,7 +87,7 @@ export default function HookPage() {
             </div>
 
             <Textarea
-              label="Personal Message"
+              label="Personal Message (Optional)"
               placeholder="A direct, human appeal to your potential donors..."
               value={personalMessage || ''}
               onChange={(e) => updateField('personalMessage', e.target.value)}
