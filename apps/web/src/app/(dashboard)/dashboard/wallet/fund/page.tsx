@@ -49,18 +49,31 @@ export default function FundWalletPage() {
   useEffect(() => {
     checkVerification();
 
-    try {
-      const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
-      const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : 'USD';
-
-      if (['USD', 'GBP', 'EUR', 'CAD'].includes(userCurrency)) {
-        setDetectedCurrency(userCurrency);
-      } else if (userCurrency !== 'NGN') {
-        setDetectedCurrency('USD');
+    // Auto-detect currency via IP, fallback to Browser Locale
+    const detectCurrency = async () => {
+      let finalCurrency = 'USD';
+      try {
+        const res = await fetch('https://ipapi.co/currency/');
+        const ipCurrency = await res.text();
+        if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(ipCurrency.trim())) {
+          setDetectedCurrency(ipCurrency.trim());
+          return;
+        }
+      } catch (e) {
+        // Ignore and fallback
       }
-    } catch (e) {
-      setDetectedCurrency('USD');
-    }
+
+      try {
+        const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
+        const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : 'USD';
+        if (['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(userCurrency)) {
+          finalCurrency = userCurrency;
+        }
+      } catch (e) { }
+
+      setDetectedCurrency(finalCurrency);
+    };
+    detectCurrency();
 
 
     fetch('https://open.er-api.com/v6/latest/NGN')
