@@ -10,6 +10,8 @@ export const metadata = {
   description: 'Manage your project proposals & track live impact.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function MyProposalsPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;

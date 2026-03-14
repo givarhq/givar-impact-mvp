@@ -183,7 +183,7 @@ export const ApiService = {
       apiClient.patch(`/proposals/${id}/submit`).then(r => r.data),
 
     getMyProposals: (token: string) =>
-      serverFetch<any[]>(`/proposals`, token, { tags: ['my-proposals'] }),
+      serverFetch<any[]>(`/proposals`, token, { tags: ['my-proposals'], next: { revalidate: 0 } }),
 
     getUploadUrl: (data: { fileType: string; useCase: 'public' | 'kyc' | 'docs' }) =>
       apiClient.post('/proposals/upload-url', data).then(r => r.data),
