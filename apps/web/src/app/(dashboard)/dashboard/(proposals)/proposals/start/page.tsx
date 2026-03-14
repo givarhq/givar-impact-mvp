@@ -1,3 +1,4 @@
+// apps/web/src/app/(dashboard)/dashboard/(proposals)/proposals/start/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,14 +13,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ApiService } from '../../../../../../services/api';
 import { getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User } from 'lucide-react';
+import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User, Users } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const startSchema = z.object({
     title: z.string().min(10, 'Title must be at least 10 characters'),
     categoryId: z.string().uuid('Please select a category'),
+    beneficiaryRelationship: z.string().optional().nullable(),
+    beneficiaryName: z.string().optional().nullable(),
+    beneficiaryAge: z.coerce.number().optional().nullable(),
+    beneficiaryContact: z.string().optional().nullable(),
 });
 
 type StartFormValues = z.infer<typeof startSchema>;
@@ -34,6 +39,7 @@ export default function StartProposalPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isUnverified, setIsUnverified] = useState(false);
+    const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | null>(null);
 
     const userCookie = getCookie('givar_user');
     const user = userCookie ? JSON.parse(userCookie as string) : null;
@@ -54,6 +60,7 @@ export default function StartProposalPage() {
         handleSubmit,
         control,
         watch,
+        setValue,
         formState: { errors },
     } = useForm<StartFormValues>({
         resolver: zodResolver(startSchema),
@@ -61,6 +68,18 @@ export default function StartProposalPage() {
 
     const selectedCategoryId = watch('categoryId');
     const selectedCategoryName = categories.find(c => c.id === selectedCategoryId)?.name?.toLowerCase() || '';
+
+    const handleTargetTypeChange = (type: 'SELF' | 'OTHER') => {
+        setTargetType(type);
+        if (type === 'SELF') {
+            setValue('beneficiaryRelationship', 'Self', { shouldValidate: true });
+            setValue('beneficiaryName', null, { shouldValidate: true });
+            setValue('beneficiaryAge', null, { shouldValidate: true });
+            setValue('beneficiaryContact', null, { shouldValidate: true });
+        } else {
+            setValue('beneficiaryRelationship', '', { shouldValidate: true });
+        }
+    };
 
     // Dynamic Logic for Document Requirements
     let dynamicDocRequirements = "Government ID, vendor invoices, and supporting proof.";
@@ -74,6 +93,12 @@ export default function StartProposalPage() {
 
     const onSubmit = async (data: StartFormValues) => {
         if (isUnverified) return;
+
+        if (targetType === null) {
+            toast.error('Please indicate who this cause is for.');
+            return;
+        }
+
         setIsLoading(true);
         try {
             const newProposal = await ApiService.proposals.create(data);
@@ -127,7 +152,7 @@ export default function StartProposalPage() {
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-                            <CardTitle className="text-lg md:text-xl font-bold">Start a new cause</CardTitle>
+                            <CardTitle className="text-lg md:text-xl font-bold">Start a New Cause</CardTitle>
                             <CardDescription className="text-xs font-medium">
                                 Begin with a compelling title and industry category.
                             </CardDescription>
@@ -167,6 +192,69 @@ export default function StartProposalPage() {
                                             )}
                                         />
                                         {errors.categoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.categoryId.message}</p>}
+                                    </div>
+
+                                    <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
+                                        <label className="text-[11px] font-bold text-muted-foreground">Who is this cause for?</label>
+                                        <div className="flex gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleTargetTypeChange('SELF')}
+                                                className={cn(
+                                                    "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                    targetType === 'SELF' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                )}
+                                            >
+                                                <User className="h-4 w-4" /> Myself
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleTargetTypeChange('OTHER')}
+                                                className={cn(
+                                                    "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                    targetType === 'OTHER' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                )}
+                                            >
+                                                <Users className="h-4 w-4" /> Someone else
+                                            </button>
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {targetType === 'OTHER' && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                                                >
+                                                    <Input
+                                                        label="Beneficiary full name"
+                                                        placeholder="Legal name of beneficiary"
+                                                        {...register('beneficiaryName')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                    <Input
+                                                        label="Age"
+                                                        type="number"
+                                                        placeholder="Current age"
+                                                        {...register('beneficiaryAge')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                    <Input
+                                                        label="Relationship to submitter"
+                                                        placeholder="e.g. Parent, Sibling, Community member"
+                                                        {...register('beneficiaryRelationship')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                    <Input
+                                                        label="Phone number (optional)"
+                                                        placeholder="Direct contact number"
+                                                        {...register('beneficiaryContact')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 </div>
 

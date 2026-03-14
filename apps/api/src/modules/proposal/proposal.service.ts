@@ -38,6 +38,10 @@ export class ProposalService {
         title: dto.title,
         categoryId: dto.categoryId,
         status: ProposalStatus.DRAFT,
+        beneficiaryName: dto.beneficiaryName,
+        beneficiaryAge: dto.beneficiaryAge,
+        beneficiaryRelationship: dto.beneficiaryRelationship,
+        beneficiaryContact: dto.beneficiaryContact,
         // Initialize empty structures
         budgetBreakdown: [],
         executionTimeline: [],
@@ -46,6 +50,8 @@ export class ProposalService {
       },
     });
   }
+
+  // ... [Other existing methods remain exactly the same] ...
 
   // 2. Update Draft (Auto-save)
   async updateDraft(userId: string, proposalId: string, dto: UpdateProposalDto) {
@@ -133,13 +139,13 @@ export class ProposalService {
       // BROADCAST TO ADMINS
       this.emailService.sendAdminProposalAlert({
         projectTitle: proposal.title || 'Untitled',
-        proposerName: `${user.firstName} ${user.lastName}`,
+        proposerName: `${user?.firstName} ${user?.lastName}`,
         proposalId: result.id
       }).catch(err => this.logger.error(`Admin Proposal Alert Failed: ${err.message}`));
 
       // DISPATCH TO PROPOSER
-      this.emailService.sendProposalSubmittedConfirmation(user.email, {
-        name: user.firstName,
+      this.emailService.sendProposalSubmittedConfirmation(user!.email, {
+        name: user!.firstName,
         projectTitle: proposal.title || 'Untitled'
       }).catch(err => this.logger.error(`Proposer Confirmation Email Failed: ${err.message}`));
 

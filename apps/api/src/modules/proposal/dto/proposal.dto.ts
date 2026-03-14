@@ -63,6 +63,11 @@ export class CreateProposalDto {
 
   @IsUUID()
   categoryId!: string;
+
+  @IsOptional() @IsString() beneficiaryName?: string;
+  @IsOptional() @IsNumber() beneficiaryAge?: number;
+  @IsOptional() @IsString() beneficiaryRelationship?: string;
+  @IsOptional() @IsString() beneficiaryContact?: string;
 }
 
 export class UpdateProposalDto {
