@@ -431,6 +431,7 @@ export class DonationService {
           email: emailToCharge,
           amount: Number(totalCharge),
           currency: dto.currency,
+          channels: ['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money', 'apple_pay'],
           metadata: {
             donationType: 'DIRECT',
             userId: internalUserId ?? 'GUEST',
@@ -442,7 +443,6 @@ export class DonationService {
             tipAmount: tipAmountBig.toString(),
             feePercentage: feeRule.percentage,
             feeRuleId: feeRule.id,
-            // --- Push UX FX estimation to Paystack for round-trip logging ---
             donorCurrency: dto.donorCurrency,
             donorAmount: dto.donorAmount,
             fxRate: dto.fxRate
@@ -494,7 +494,6 @@ export class DonationService {
     tipAmount?: bigint;
     feePercentageUsed?: number;
     feeRuleId?: string;
-    // --- Capture returning FX metadata ---
     donorCurrency?: string;
     donorAmount?: string;
     fxRate?: number;
@@ -505,8 +504,7 @@ export class DonationService {
       baseAmount = amount, feeAmount = 0n, tipAmount = 0n, feePercentageUsed = 0, feeRuleId = null
     } = data;
 
-
-    if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money'].includes(channel)) {
+    if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money', 'apple_pay'].includes(channel)) {
       this.logger.warn(`Suspicious payment channel ignored`, { channel, reference });
       return { status: 'ignored_channel', reference };
     }

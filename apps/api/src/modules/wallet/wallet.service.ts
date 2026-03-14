@@ -100,6 +100,7 @@ export class WalletService {
           email,
           amount: amountInMinor,
           currency,
+          channels: ['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money', 'apple_pay'],
           metadata: {
             userId,
             action: 'wallet_funding',
@@ -178,7 +179,7 @@ export class WalletService {
     });
 
     if (event === 'charge.success') {
-      const allowedChannels = ['card', 'bank', 'bank_transfer', 'ussd', 'mobile_money', 'qr'];
+      const allowedChannels = ['card', 'bank', 'bank_transfer', 'ussd', 'mobile_money', 'qr', 'apple_pay'];
 
       if (!allowedChannels.includes(data.channel)) {
         this.logger.warn(`Suspicious channel ignored: ${data.channel}`, { reference: data.reference });
