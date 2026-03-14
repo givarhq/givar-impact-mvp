@@ -63,114 +63,106 @@ export function HowItWorksContent() {
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.7, scale: 1, y: [0, 40, 0] }}
+                    animate={{ opacity: 0.5, scale: 1, y: [0, 40, 0] }}
                     transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-0 left-[-10%] w-[600px] h-[600px] bg-gradient-to-br from-emerald-500/20 via-teal-400/15 to-transparent backdrop-blur-[100px] rounded-full"
+                    className="absolute top-0 left-[-10%] w-[500px] h-[500px] bg-gradient-to-br from-emerald-500/15 via-teal-400/10 to-transparent backdrop-blur-[100px] rounded-full"
                 />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.6, scale: 1, y: [0, -30, 0] }}
+                    animate={{ opacity: 0.4, scale: 1, y: [0, -30, 0] }}
                     transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                    className="absolute top-[30%] right-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-blue-500/15 via-emerald-400/10 to-transparent backdrop-blur-[100px] rounded-full"
-                />
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.7, scale: 1, y: [0, 50, 0] }}
-                    transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className="absolute bottom-[10%] left-[20%] w-[700px] h-[700px] bg-gradient-to-br from-teal-500/15 via-primary/10 to-transparent backdrop-blur-[120px] rounded-full"
+                    className="absolute top-[20%] right-[-5%] w-[400px] h-[400px] bg-gradient-to-br from-blue-500/10 via-emerald-400/8 to-transparent backdrop-blur-[100px] rounded-full"
                 />
             </div>
 
-            <div className="container mx-auto px-4 py-16 md:py-24 max-w-5xl relative z-10">
+            <div className="container mx-auto px-4 py-10 md:py-16 max-w-5xl relative z-10">
 
-                {/* Hero Section */}
+                {/* Hero Section - Condensed */}
                 <motion.section
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center space-y-6 max-w-3xl mx-auto"
+                    transition={{ duration: 0.4 }}
+                    className="text-center space-y-4 max-w-2xl mx-auto"
                 >
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground leading-[1.1]">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.15]">
                         Experience How <span className="text-primary italic">Givar</span> Works
                     </h1>
-                    <p className="text-base md:text-lg text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto">
-                        Follow your donation from the moment you give to the moment it creates real impact — with transparency and proof every step of the way.
+                    <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-xl mx-auto">
+                        Follow your donation journey from the moment you give to the moment it creates real, verifiable impact.
                     </p>
                 </motion.section>
 
-                {/* Timeline Journey */}
-                <div className="relative mt-24 md:mt-32 pb-16">
-                    {/* Central Vertical Dashed Line (Desktop only) */}
+                {/* Timeline Journey - Condensed Spacing */}
+                <div className="relative mt-16 md:mt-24 pb-8">
+                    {/* Central Vertical Dashed Line */}
                     <svg className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[100px] h-full hidden md:block pointer-events-none" preserveAspectRatio="none">
-                        <line x1="50" y1="0" x2="50" y2="100%" stroke="url(#glowGradient)" strokeWidth="2" strokeDasharray="8 8" />
+                        <line x1="50" y1="0" x2="50" y2="100%" stroke="url(#glowGradient)" strokeWidth="1.5" strokeDasharray="6 6" />
                         <defs>
                             <linearGradient id="glowGradient" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0%" stopColor="transparent" />
-                                <stop offset="10%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
-                                <stop offset="90%" stopColor="hsl(var(--primary))" stopOpacity="0.4" />
+                                <stop offset="10%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                                <stop offset="90%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
                                 <stop offset="100%" stopColor="transparent" />
                             </linearGradient>
                         </defs>
                     </svg>
 
-                    <div className="space-y-24 md:space-y-32">
+                    <div className="space-y-16 md:space-y-24">
                         {steps.map((step, index) => {
                             const isEven = index % 2 === 0;
 
                             return (
-                                <div key={step.num} className={cn("flex flex-col md:flex-row items-center gap-0 md:gap-16 lg:gap-24 relative", !isEven ? "md:flex-row-reverse" : "")}>
+                                <div key={step.num} className={cn("flex flex-col md:flex-row items-center gap-0 md:gap-12 lg:gap-20 relative", !isEven ? "md:flex-row-reverse" : "")}>
 
-                                    {/* Central Number Node (Desktop) */}
-                                    <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white items-center justify-center font-black shadow-lg shadow-primary/40 z-20 text-lg">
+                                    {/* Central Number Node */}
+                                    <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white items-center justify-center font-black shadow-md z-20 text-sm">
                                         {step.num}
                                     </div>
 
-                                    {/* Empty Space for Alternating Layout */}
                                     <div className="hidden md:block flex-1" />
 
                                     {/* Content Block */}
                                     <div className="w-full md:w-1/2 flex-1 relative flex justify-center">
-                                        <div className="relative w-full max-w-sm lg:max-w-md">
+                                        <div className="relative w-full max-w-[320px] lg:max-w-sm">
 
-                                            {/* Number Node (Mobile) */}
-                                            <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white flex md:hidden items-center justify-center font-black shadow-lg shadow-primary/40 z-20 text-base">
+                                            <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white flex md:hidden items-center justify-center font-black shadow-md z-20 text-xs">
                                                 {step.num}
                                             </div>
 
-                                            {/* Image */}
+                                            {/* Image - Smaller Scale */}
                                             <motion.div
-                                                initial={{ opacity: 0, y: 20 }}
-                                                whileInView={{ opacity: 1, y: 0 }}
+                                                initial={{ opacity: 0, scale: 0.98 }}
+                                                whileInView={{ opacity: 1, scale: 1 }}
                                                 viewport={{ once: true, margin: "-100px" }}
-                                                transition={{ duration: 0.6 }}
-                                                className="relative aspect-[4/3] rounded-[32px] overflow-hidden shadow-xl border border-white/10 dark:border-white/5"
+                                                transition={{ duration: 0.5 }}
+                                                className="relative aspect-[4/3] rounded-[28px] overflow-hidden shadow-lg border border-white/10"
                                             >
                                                 <Image src={step.img} alt={step.title} fill className="object-cover" />
                                             </motion.div>
 
-                                            {/* Overlapping Detail Card */}
+                                            {/* Overlapping Detail Card - Shifted Outward */}
                                             <motion.div
-                                                initial={{ opacity: 0, y: 20 }}
+                                                initial={{ opacity: 0, y: 15 }}
                                                 whileInView={{ opacity: 1, y: 0 }}
                                                 viewport={{ once: true, margin: "-100px" }}
-                                                transition={{ duration: 0.6, delay: 0.2 }}
+                                                transition={{ duration: 0.5, delay: 0.1 }}
                                                 className={cn(
-                                                    "relative z-10 w-[92%] mx-auto -mt-16 md:absolute md:mt-0 md:top-1/2 md:-translate-y-1/2 md:w-[115%]",
-                                                    isEven ? "md:left-[-25%] lg:left-[-35%]" : "md:right-[-25%] lg:right-[-35%]"
+                                                    "relative z-10 w-[94%] mx-auto -mt-10 md:absolute md:mt-0 md:top-1/2 md:-translate-y-1/2 md:w-[110%]",
+                                                    isEven ? "md:left-[-15%] lg:left-[-25%]" : "md:right-[-15%] lg:right-[-25%]"
                                                 )}
                                             >
-                                                <Card className="p-6 md:p-8 rounded-[32px] bg-card border-border/40 shadow-2xl">
-                                                    <div className="flex items-center gap-4 mb-4">
-                                                        <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm", step.bg, step.color, step.border)}>
-                                                            <step.icon className="w-6 h-6" />
+                                                <Card className="p-5 md:p-6 rounded-[28px] bg-card/95 backdrop-blur-md border-border/40 shadow-xl">
+                                                    <div className="flex items-center gap-3 mb-3">
+                                                        <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm", step.bg, step.color, step.border)}>
+                                                            <step.icon className="w-5 h-5" />
                                                         </div>
-                                                        <h3 className="text-xl font-bold text-foreground tracking-tight">{step.title}</h3>
+                                                        <h3 className="text-lg font-bold text-foreground tracking-tight">{step.title}</h3>
                                                     </div>
-                                                    <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                                                    <p className="text-xs text-muted-foreground leading-relaxed font-medium">
                                                         {step.desc}
                                                     </p>
-                                                    <div className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-bold w-fit mt-5 shadow-sm", step.bg, step.color, step.border)}>
-                                                        <span className={cn("h-1.5 w-1.5 rounded-full", step.color.replace('text', 'bg'))} /> {step.badge}
+                                                    <div className={cn("inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-[10px] font-bold w-fit mt-4 shadow-sm", step.bg, step.color, step.border)}>
+                                                        <span className={cn("h-1 w-1 rounded-full", step.color.replace('text', 'bg'))} /> {step.badge}
                                                     </div>
                                                 </Card>
                                             </motion.div>
@@ -182,31 +174,31 @@ export function HowItWorksContent() {
                     </div>
                 </div>
 
-                {/* Final CTA */}
+                {/* Final CTA - Compact */}
                 <motion.section
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
-                    className="mt-16 md:mt-24 mb-16 text-center max-w-2xl mx-auto space-y-8 relative z-10"
+                    transition={{ duration: 0.4 }}
+                    className="mt-12 md:mt-20 mb-8 text-center max-w-xl mx-auto space-y-6 relative z-10"
                 >
-                    <div className="space-y-3">
-                        <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground leading-tight">
+                    <div className="space-y-2">
+                        <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
                             Start Making an Impact Today
                         </h2>
-                        <p className="text-base text-muted-foreground font-medium">
-                            Support a verified cause and experience transparent giving with confidence.
+                        <p className="text-sm text-muted-foreground font-medium">
+                            Support a verified cause with absolute confidence.
                         </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
                         <Link href="/explore" className="w-full sm:w-auto">
-                            <Button size="lg" className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-10 shadow-lg shadow-primary/20 active:scale-95 transition-all border-0">
-                                Explore Causes <ArrowRight className="ml-2 h-5 w-5" />
+                            <Button className="w-full h-12 rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-8 shadow-md active:scale-95 transition-all border-0 text-xs">
+                                Explore Causes <ArrowRight className="ml-1.5 h-4 w-4" />
                             </Button>
                         </Link>
                         <Link href="/signup" className="w-full sm:w-auto">
-                            <Button size="lg" variant="outline" className="w-full h-14 rounded-full bg-card hover:bg-muted text-foreground font-bold px-10 border-border/60 shadow-sm active:scale-95 transition-all">
+                            <Button variant="outline" className="w-full h-12 rounded-full bg-card hover:bg-muted text-foreground font-bold px-8 border-border/60 shadow-sm active:scale-95 transition-all text-xs">
                                 Create Account
                             </Button>
                         </Link>
