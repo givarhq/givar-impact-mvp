@@ -9,7 +9,7 @@ export const Footer = memo(function Footer() {
     return (
         <footer className="bg-zinc-50 dark:bg-zinc-900/50 border-t border-border/40 py-16 transition-colors duration-300">
             <div className="container mx-auto px-6 max-w-6xl">
-                <div className="flex flex-col md:flex-row justify-between items-start gap-12">
+                <div className="flex flex-col md:flex-row justify-between items-start gap-10">
                     <div className="space-y-6 max-w-sm">
                         <div className="flex items-center gap-2">
                             <div className="relative h-10 w-10">
@@ -27,7 +27,7 @@ export const Footer = memo(function Footer() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-12">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
                         <div>
                             <h4 className="font-bold text-foreground mb-4">Platform</h4>
                             <ul className="space-y-3 text-sm font-medium text-muted-foreground">
