@@ -85,7 +85,7 @@ export function HowItWorksContent() {
                     className="text-center space-y-4 max-w-2xl mx-auto"
                 >
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.15]">
-                        Experience How <span className="text-primary italic">Givar</span> Works
+                        How <span className="text-primary italic">Givar</span> Works
                     </h1>
                     <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-xl mx-auto">
                         Follow your donation journey from the moment you give to the moment it creates real, verifiable impact.
