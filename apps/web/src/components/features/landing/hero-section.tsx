@@ -306,7 +306,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                             <Wallet className="h-6 w-6 text-primary" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground mb-2">You Contribute</h3>
-                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified cause instantly through your dedicated smart wallet.</p>
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified cause instantly using card, bank transfer or your Givar wallet.</p>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 dark:bg-zinc-800 rounded-xl border border-border/60 dark:border-white/10 text-[10px] font-bold text-foreground w-fit">
                             <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Capital Deployed
                         </div>
@@ -320,7 +320,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         transition={{ delay: 0.1 }}
                         className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
                     >
-                        <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-blue-500 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-110">2</div>
+                        <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-blue-50 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-110">2</div>
                         <div className="h-12 w-12 bg-blue-50 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center mb-4 border border-blue-100 dark:border-blue-900/20">
                             <Activity className="h-6 w-6 text-blue-500" />
                         </div>
@@ -414,7 +414,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         { icon: ShieldCheck, title: 'Verified Causes', desc: 'Every campaign vetted', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/10' },
                         { icon: Wallet, title: 'Direct Payments', desc: 'No middlemen', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/10' },
                         { icon: Activity, title: 'Transparent Tracking', desc: 'See every update', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/10' },
-                        { icon: Heart, title: 'Real Impact', desc: 'Proof delivered', color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/10' }
+                        { icon: Heart, title: 'Real Impact', desc: 'Proof delivered', color: 'text-rose-500', bg: 'bg-rose-900/10' }
                     ].map((item, i) => (
                         <div key={i} className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
                             <div className={cn("h-10 w-10 rounded-full flex items-center justify-center shrink-0", item.bg, item.color)}>

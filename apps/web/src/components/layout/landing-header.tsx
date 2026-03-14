@@ -57,9 +57,9 @@ export const LandingHeader = memo(function LandingHeader({
           <Link href="/explore" className="hover:text-primary transition-colors">
             Explore Causes
           </Link>
-          <a href="/#how-it-works" className="hover:text-primary transition-colors">
+          <Link href="/how-it-works" className="hover:text-primary transition-colors">
             How It Works
-          </a>
+          </Link>
           <Link href="/about" className="hover:text-primary transition-colors">
             About
           </Link>
