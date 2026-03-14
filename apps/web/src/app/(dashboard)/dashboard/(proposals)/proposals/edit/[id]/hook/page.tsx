@@ -1,4 +1,3 @@
-// apps/web/src/app/(dashboard)/dashboard/(proposals)/proposals/edit/[id]/hook/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,10 +9,8 @@ import { Input } from '../../../../../../../../components/ui/input';
 import { Textarea } from '../../../../../../../../components/ui/textarea';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowRight, Loader2, Sparkles, User, Users } from 'lucide-react';
+import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { cn } from '../../../../../../../../lib/utils/cn';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function HookPage() {
   const router = useRouter();
@@ -22,25 +19,10 @@ export default function HookPage() {
 
   const {
     title, shortDesc, description, personalMessage, location, endDate,
-    beneficiaryName, beneficiaryAge, beneficiaryRelationship, beneficiaryContact,
     setProposal, updateField
   } = useProposalStore();
 
   const [isLoading, setIsLoading] = useState(true);
-
-  // Infer the target type from the relationship field
-  const targetType = beneficiaryRelationship === 'Self' ? 'SELF' : (beneficiaryRelationship !== null && beneficiaryRelationship !== '' ? 'OTHER' : null);
-
-  const handleTargetTypeChange = (type: 'SELF' | 'OTHER') => {
-    if (type === 'SELF') {
-      updateField('beneficiaryRelationship', 'Self');
-      updateField('beneficiaryName', '');
-      updateField('beneficiaryAge', null);
-      updateField('beneficiaryContact', '');
-    } else {
-      updateField('beneficiaryRelationship', '');
-    }
-  };
 
   useEffect(() => {
     const fetchProposal = async () => {
@@ -78,74 +60,6 @@ export default function HookPage() {
 
         <CardContent className="p-6 md:p-8 pt-6 space-y-8 min-w-0">
           <div className="space-y-6 min-w-0">
-
-            <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm">
-              <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Who is this cause for?</label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleTargetTypeChange('SELF')}
-                  className={cn(
-                    "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
-                    targetType === 'SELF' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
-                  )}
-                >
-                  <User className="h-4 w-4" /> Myself
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleTargetTypeChange('OTHER')}
-                  className={cn(
-                    "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
-                    targetType === 'OTHER' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
-                  )}
-                >
-                  <Users className="h-4 w-4" /> Someone else
-                </button>
-              </div>
-
-              <AnimatePresence>
-                {targetType === 'OTHER' && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
-                  >
-                    <Input
-                      label="Beneficiary Full Name"
-                      placeholder="Legal name of beneficiary"
-                      value={beneficiaryName || ''}
-                      onChange={(e) => updateField('beneficiaryName', e.target.value)}
-                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                    />
-                    <Input
-                      label="Age"
-                      type="number"
-                      placeholder="Current age"
-                      value={beneficiaryAge || ''}
-                      onChange={(e) => updateField('beneficiaryAge', parseInt(e.target.value) || null)}
-                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                    />
-                    <Input
-                      label="Relationship to Submitter"
-                      placeholder="e.g. Parent, Sibling, Community Member"
-                      value={beneficiaryRelationship || ''}
-                      onChange={(e) => updateField('beneficiaryRelationship', e.target.value)}
-                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                    />
-                    <Input
-                      label="Phone Number (Optional)"
-                      placeholder="Direct contact number"
-                      value={beneficiaryContact || ''}
-                      onChange={(e) => updateField('beneficiaryContact', e.target.value)}
-                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
             <Input
               label="Cause Title"
               placeholder="e.g. Clean water for Owerri communities"
