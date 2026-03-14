@@ -76,7 +76,7 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
               </div>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed font-medium line-clamp-6 italic">
-              {project.description}
+              {project.description?.replace(/<[^>]*>?/gm, '')}
             </p>
           </div>
         </div>
