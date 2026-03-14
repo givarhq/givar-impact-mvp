@@ -83,7 +83,11 @@ export const HistoryTable = memo(function HistoryTable({
 
         let methodString = 'Card';
         if (tx.metadata?.channel) {
-            methodString = tx.metadata.channel.charAt(0).toUpperCase() + tx.metadata.channel.slice(1).replace('_', ' ');
+            if (tx.metadata.channel === 'apple_pay') {
+                methodString = 'Apple Pay';
+            } else {
+                methodString = tx.metadata.channel.charAt(0).toUpperCase() + tx.metadata.channel.slice(1).replace('_', ' ');
+            }
         }
 
         // Logic: Extract international card details if available in the authorization object
@@ -183,7 +187,7 @@ export const HistoryTable = memo(function HistoryTable({
                                                 </div>
 
                                                 <div className="flex items-center gap-3 mt-2 min-w-0">
-                                                    <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 truncate max-w-[80px] md:max-w-none mr-1">
+                                                    <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[11px] font-bold text-muted-foreground shrink-0 truncate max-w-[80px] md:max-w-none mr-1">
                                                         {displayCategory}
                                                     </span>
                                                     <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
@@ -246,7 +250,7 @@ export const HistoryTable = memo(function HistoryTable({
                                 </div>
 
                                 <div className="absolute top-3 left-4">
-                                    <Badge variant="outline" className="rounded-full px-2 py-0.5 border-border/60 bg-background/60 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                                    <Badge variant="outline" className="rounded-full px-2 py-0.5 border-border/60 bg-background/60 text-[11px] font-bold text-muted-foreground">
                                         {selectedTx.category?.replace(/_/g, ' ') || 'SYSTEM'}
                                     </Badge>
                                 </div>

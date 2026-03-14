@@ -70,7 +70,7 @@ export default function SmartWalletsPage() {
                             <h2 className="text-2xl font-bold tracking-tight text-foreground">How it <span className="text-primary italic">works</span>.</h2>
                             <div className="space-y-4 text-muted-foreground font-medium leading-relaxed">
                                 <p>1. <span className="text-foreground font-bold">Quick Setup:</span> Create your account and confirm your email.</p>
-                                <p>2. <span className="text-foreground font-bold">Add Funds:</span> Put some money in your wallet using your card or bank transfer.</p>
+                                <p>2. <span className="text-foreground font-bold">Add Funds:</span> Put some money in your wallet using your card, Apple Pay, or bank transfer.</p>
                                 <p>3. <span className="text-foreground font-bold">Choose a Cause:</span> Browse verified projects that need your help.</p>
                                 <p>4. <span className="text-foreground font-bold">See the Change:</span> Send your gift and get updates as the project happens.</p>
                             </div>

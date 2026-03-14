@@ -546,7 +546,10 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                                                     )}
                                                 >
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-muted mr-3 text-muted-foreground border border-border/40 shrink-0"><CreditCard className="h-4.5 w-4.5" /></div>
-                                                    <div className="text-left flex-1 min-w-0"><p className="font-bold text-sm text-foreground truncate">Direct Pay</p><p className="text-xs font-medium text-muted-foreground truncate">Card, bank transfer</p></div>
+                                                    <div className="text-left flex-1 min-w-0">
+                                                        <p className="font-bold text-sm text-foreground truncate">Direct Pay</p>
+                                                        <p className="text-xs font-medium text-muted-foreground truncate">Card, Apple Pay, bank transfer</p>
+                                                    </div>
                                                     {selectedMethod === 'direct' && <CheckCircle2 className="ml-2 h-5 w-5 text-primary shrink-0" />}
                                                 </button>
                                             </motion.div>
