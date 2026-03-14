@@ -295,7 +295,7 @@ export default function TrustPage() {
                 </div>
 
                 {isThirdParty && (
-                  <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 cursor-pointer hover:bg-muted/20 transition-colors">
+                  <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
                     <input
                       type="checkbox"
                       className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
@@ -306,10 +306,10 @@ export default function TrustPage() {
                     <span className="text-sm font-medium text-foreground leading-relaxed select-none">
                       I confirm the beneficiary (or their legal guardian) is aware of and has authorised this fundraising effort.
                     </span>
-                  </label>
+                  </div>
                 )}
 
-                <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 cursor-pointer hover:bg-muted/20 transition-colors">
+                <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
                   <input
                     type="checkbox"
                     className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
@@ -319,7 +319,7 @@ export default function TrustPage() {
                   />
                   <div className="space-y-1.5 select-none">
                     <span className="text-sm font-medium text-foreground leading-relaxed block">
-                      I agree to the Cause Organiser Agreement.
+                      I agree to the <Link href="/legal/agreement" className="text-primary hover:underline">Cause Organiser Agreement</Link>.
                     </span>
                     <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
                       <li>Organiser responsibilities</li>
@@ -328,7 +328,7 @@ export default function TrustPage() {
                       <li>Vendor payment structure</li>
                     </ul>
                   </div>
-                </label>
+                </div>
               </div>
 
               {/* NAVIGATION AND SUBMIT */}
