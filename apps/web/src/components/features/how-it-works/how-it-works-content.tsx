@@ -1,5 +1,4 @@
 'use client';
-
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -74,9 +73,7 @@ export function HowItWorksContent() {
                     className="absolute top-[20%] right-[-5%] w-[400px] h-[400px] bg-gradient-to-br from-blue-500/10 via-emerald-400/8 to-transparent backdrop-blur-[100px] rounded-full"
                 />
             </div>
-
             <div className="container mx-auto px-4 py-10 md:py-16 max-w-5xl relative z-10">
-
                 {/* Hero Section - Condensed */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
@@ -91,7 +88,6 @@ export function HowItWorksContent() {
                         Follow your donation journey from the moment you give to the moment it creates real, verifiable impact.
                     </p>
                 </motion.section>
-
                 {/* Timeline Journey - Condensed Spacing */}
                 <div className="relative mt-10 md:mt-14 pb-8">
                     {/* Central Vertical Dashed Line */}
@@ -106,29 +102,22 @@ export function HowItWorksContent() {
                             </linearGradient>
                         </defs>
                     </svg>
-
                     <div className="space-y-16 md:space-y-24">
                         {steps.map((step, index) => {
                             const isEven = index % 2 === 0;
-
                             return (
                                 <div key={step.num} className={cn("flex flex-col md:flex-row items-center gap-0 md:gap-12 lg:gap-20 relative", !isEven ? "md:flex-row-reverse" : "")}>
-
                                     {/* Central Number Node */}
                                     <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white items-center justify-center font-black shadow-md z-20 text-sm">
                                         {step.num}
                                     </div>
-
                                     <div className="hidden md:block flex-1" />
-
                                     {/* Content Block */}
                                     <div className="w-full md:w-1/2 flex-1 relative flex justify-center">
                                         <div className="relative w-full max-w-[320px] lg:max-w-sm">
-
                                             <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white flex md:hidden items-center justify-center font-black shadow-md z-20 text-xs">
                                                 {step.num}
                                             </div>
-
                                             {/* Image - Smaller Scale */}
                                             <motion.div
                                                 initial={{ opacity: 0, scale: 0.98 }}
@@ -139,7 +128,6 @@ export function HowItWorksContent() {
                                             >
                                                 <Image src={step.img} alt={step.title} fill className="object-cover" />
                                             </motion.div>
-
                                             {/* Overlapping Detail Card - Shifted Outward */}
                                             <motion.div
                                                 initial={{ opacity: 0, y: 15 }}
@@ -147,10 +135,10 @@ export function HowItWorksContent() {
                                                 viewport={{ once: true, margin: "-100px" }}
                                                 transition={{ duration: 0.5, delay: 0.1 }}
                                                 className={cn(
-                                                    "relative z-10 w-[94%] mx-auto -mt-8 md:absolute md:mt-0 md:top-1/2 md:-translate-y-1/2 md:w-[100%]",
+                                                    "relative z-10 w-[94%] mx-auto -mt-8 md:absolute md:mt-0 md:top-[60%] md:-translate-y-1/2 md:w-[100%]",
                                                     isEven
-                                                        ? "md:left-[-45%] lg:left-[-55%]"
-                                                        : "md:right-[-45%] lg:right-[-55%]"
+                                                        ? "md:left-[-55%] lg:left-[-65%]"
+                                                        : "md:right-[-55%] lg:right-[-65%]"
                                                 )}
                                             >
                                                 <Card className="p-5 md:p-6 rounded-[28px] bg-card/95 backdrop-blur-md border-border/40 shadow-xl">
@@ -175,7 +163,6 @@ export function HowItWorksContent() {
                         })}
                     </div>
                 </div>
-
                 {/* Final CTA - Compact */}
                 <motion.section
                     initial={{ opacity: 0, scale: 0.98 }}
@@ -192,7 +179,6 @@ export function HowItWorksContent() {
                             Support a verified cause with absolute confidence.
                         </p>
                     </div>
-
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
                         <Link href="/explore" className="w-full sm:w-auto">
                             <Button className="w-full h-12 rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-8 shadow-md active:scale-95 transition-all border-0 text-xs">
