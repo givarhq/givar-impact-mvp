@@ -535,11 +535,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <VerIcon className="h-3.5 w-3.5" />
                                 {verMeta.label}
                             </div>
-                            {project.organizerType !== 'SYSTEM' && (
-                                <button className="text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors">
-                                    Profile
-                                </button>
-                            )}
                         </div>
                     </Card>
 
