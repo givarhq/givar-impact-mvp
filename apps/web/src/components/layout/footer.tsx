@@ -27,32 +27,34 @@ export const Footer = memo(function Footer() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-                        <div>
-                            <h4 className="font-bold text-foreground mb-4">Platform</h4>
-                            <ul className="space-y-3 text-sm font-medium text-muted-foreground">
-                                <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
-                                <li><Link href="/docs/records" className="hover:text-primary transition-colors">Public Ledger</Link></li>
-                            </ul>
-                        </div>
+                    <div className="w-full md:w-auto">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-10 gap-y-10">
+                            <div>
+                                <h4 className="font-bold text-foreground mb-4">Platform</h4>
+                                <ul className="space-y-3 text-sm font-medium text-muted-foreground">
+                                    <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
+                                    <li><Link href="/docs/records" className="hover:text-primary transition-colors">Public Ledger</Link></li>
+                                </ul>
+                            </div>
 
-                        <div>
-                            <h4 className="font-bold text-foreground mb-4">Company</h4>
-                            <ul className="space-y-3 text-sm font-medium text-muted-foreground">
-                                <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-                                <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
-                            </ul>
-                        </div>
+                            <div>
+                                <h4 className="font-bold text-foreground mb-4">Company</h4>
+                                <ul className="space-y-3 text-sm font-medium text-muted-foreground">
+                                    <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+                                    <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Support</Link></li>
+                                </ul>
+                            </div>
 
-                        <div>
-                            <h4 className="font-bold text-foreground mb-4">Legal</h4>
-                            <ul className="space-y-3 text-sm font-medium text-muted-foreground">
-                                <li><Link href="/legal/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                                <li><Link href="/legal/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-                                <li><Link href="/legal/refund" className="hover:text-primary transition-colors">Refund Policy</Link></li>
-                                <li><Link href="/legal/cancellation" className="hover:text-primary transition-colors">Cancellation Policy</Link></li>
-                                <li><Link href="/legal/agreement" className="hover:text-primary transition-colors">Cause Organiser Agreement</Link></li>
-                            </ul>
+                            <div>
+                                <h4 className="font-bold text-foreground mb-4">Legal</h4>
+                                <ul className="space-y-3 text-sm font-medium text-muted-foreground">
+                                    <li><Link href="/legal/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                                    <li><Link href="/legal/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                                    <li><Link href="/legal/refund" className="hover:text-primary transition-colors">Refund Policy</Link></li>
+                                    <li><Link href="/legal/cancellation" className="hover:text-primary transition-colors">Cancellation Policy</Link></li>
+                                    <li><Link href="/legal/agreement" className="hover:text-primary transition-colors">Cause Organiser Agreement</Link></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
