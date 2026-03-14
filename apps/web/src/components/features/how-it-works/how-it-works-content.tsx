@@ -93,7 +93,7 @@ export function HowItWorksContent() {
                 </motion.section>
 
                 {/* Timeline Journey - Condensed Spacing */}
-                <div className="relative mt-16 md:mt-24 pb-8">
+                <div className="relative mt-10 md:mt-14 pb-8">
                     {/* Central Vertical Dashed Line */}
                     <svg className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[100px] h-full hidden md:block pointer-events-none" preserveAspectRatio="none">
                         <line x1="50" y1="0" x2="50" y2="100%" stroke="url(#glowGradient)" strokeWidth="1.5" strokeDasharray="6 6" />
@@ -147,8 +147,10 @@ export function HowItWorksContent() {
                                                 viewport={{ once: true, margin: "-100px" }}
                                                 transition={{ duration: 0.5, delay: 0.1 }}
                                                 className={cn(
-                                                    "relative z-10 w-[94%] mx-auto -mt-10 md:absolute md:mt-0 md:top-1/2 md:-translate-y-1/2 md:w-[110%]",
-                                                    isEven ? "md:left-[-15%] lg:left-[-25%]" : "md:right-[-15%] lg:right-[-25%]"
+                                                    "relative z-10 w-[94%] mx-auto -mt-10 md:absolute md:mt-0 md:top-1/2 md:-translate-y-1/2 md:w-[100%]",
+                                                    isEven
+                                                        ? "md:left-[-22%] lg:left-[-30%]"
+                                                        : "md:right-[-22%] lg:right-[-30%]"
                                                 )}
                                             >
                                                 <Card className="p-5 md:p-6 rounded-[28px] bg-card/95 backdrop-blur-md border-border/40 shadow-xl">
