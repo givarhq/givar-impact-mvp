@@ -25,18 +25,22 @@ export const ReceiptButton = memo(function ReceiptButton({ receiptKey, projectId
         if (isLoading) return;
         setIsLoading(true);
 
-        const toastId = toast.loading('Opening Receipt...');
+        const toastId = toast.loading('Opening receipt...');
 
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(receiptKey, projectId);
-            const isDoc = receiptKey.toLowerCase().includes('.pdf');
-            setLightboxState({
-                isOpen: true,
-                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Transaction Receipt' }]
-            });
             toast.dismiss(toastId);
+            const isDoc = receiptKey.toLowerCase().includes('.pdf') || receiptKey.toLowerCase().includes('.doc');
+            if (isDoc) {
+                window.open(viewUrl, '_blank');
+            } else {
+                setLightboxState({
+                    isOpen: true,
+                    items: [{ url: viewUrl, type: 'IMAGE', alt: 'Transaction Receipt' }]
+                });
+            }
         } catch (error) {
-            toast.error('Access Denied', { id: toastId });
+            toast.error('Access denied', { id: toastId });
         } finally {
             setIsLoading(false);
         }

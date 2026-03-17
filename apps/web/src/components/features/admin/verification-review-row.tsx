@@ -6,7 +6,6 @@ import { Check, X, FileText, Loader2, CheckCircle2, ShieldAlert, Eye } from 'luc
 import { Button } from '../../ui/button';
 import { ApiService } from '../../../services/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
-import { Input } from '../../ui/input';
 import { Badge } from '../../ui/badge';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
@@ -21,36 +20,40 @@ export const VerificationReviewRow = memo(function VerificationReviewRow({ profi
 
   const handleReview = async (status: 'VERIFIED' | 'REJECTED') => {
     if (status === 'REJECTED' && !feedback.trim()) {
-      return toast.error("Please Provide A Reason For This Decision.");
+      return toast.error("Please provide a reason for this decision.");
     }
 
     setIsLoading(true);
-    const toastId = toast.loading("Updating Organization Status...");
+    const toastId = toast.loading("Updating organization status...");
     try {
       await ApiService.organizations.review(profile.id, { status, feedback });
-      toast.success(`Organization ${status === 'VERIFIED' ? 'Verified' : 'Rejected'} Successfully`, { id: toastId });
+      toast.success(`Organization ${status === 'VERIFIED' ? 'Verified' : 'Rejected'} successfully`, { id: toastId });
       setIsProcessed(true);
       router.refresh();
     } catch (error) {
-      toast.error("We Encountered A Problem Updating This Account", { id: toastId });
+      toast.error("We encountered a problem updating this account", { id: toastId });
     } finally {
       setIsLoading(false);
     }
   };
 
   const viewDoc = async (key: string) => {
-    const toastId = toast.loading("Opening Document...");
+    const toastId = toast.loading("Opening document...");
     try {
       const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, 'admin-org-context');
-      const isDoc = key.toLowerCase().includes('.pdf');
-      setLightboxState({
-        isOpen: true,
-        items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Verification Document' }],
-        index: 0
-      });
       toast.dismiss(toastId);
+      const isDoc = key.toLowerCase().includes('.pdf') || key.toLowerCase().includes('.doc');
+      if (isDoc) {
+        window.open(viewUrl, '_blank');
+      } else {
+        setLightboxState({
+          isOpen: true,
+          items: [{ url: viewUrl, type: 'IMAGE', alt: 'Verification Document' }],
+          index: 0
+        });
+      }
     } catch (e) {
-      toast.error("Could Not Open This Document Safely", { id: toastId });
+      toast.error("Could not open this document safely", { id: toastId });
     }
   };
 

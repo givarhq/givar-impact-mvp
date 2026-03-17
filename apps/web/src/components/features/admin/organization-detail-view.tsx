@@ -56,15 +56,19 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
         const toastId = toast.loading('Decrypting secure document...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, 'admin-org-context');
-            const isDoc = key.toLowerCase().includes('.pdf');
-            setLightboxState({
-                isOpen: true,
-                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Secure Document' }],
-                index: 0
-            });
             toast.dismiss(toastId);
+            const isDoc = key.toLowerCase().includes('.pdf') || key.toLowerCase().includes('.doc');
+            if (isDoc) {
+                window.open(viewUrl, '_blank');
+            } else {
+                setLightboxState({
+                    isOpen: true,
+                    items: [{ url: viewUrl, type: 'IMAGE', alt: 'Secure Document' }],
+                    index: 0
+                });
+            }
         } catch (e) {
-            toast.error('Access to secure vault denied', { id: toastId });
+            toast.error('Access denied', { id: toastId });
         }
     };
 

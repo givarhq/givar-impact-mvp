@@ -134,15 +134,19 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
         const toastId = toast.loading('Decrypting asset...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposal.id);
-            const isDoc = key.toLowerCase().includes('.pdf');
-            setLightboxState({
-                isOpen: true,
-                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Secure Document' }],
-                index: 0
-            });
             toast.dismiss(toastId);
+            const isDoc = key.toLowerCase().includes('.pdf') || key.toLowerCase().includes('.doc');
+            if (isDoc) {
+                window.open(viewUrl, '_blank');
+            } else {
+                setLightboxState({
+                    isOpen: true,
+                    items: [{ url: viewUrl, type: 'IMAGE', alt: 'Secure Document' }],
+                    index: 0
+                });
+            }
         } catch (e) {
-            toast.error('Asset access denied', { id: toastId });
+            toast.error('Access denied', { id: toastId });
         }
     };
 

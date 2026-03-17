@@ -80,13 +80,17 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
             const { ApiService } = await import('../../../services/api');
             const contextId = isGlobalView ? selectedEntry?.projectId : project.id;
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, contextId);
-            const isDoc = key.toLowerCase().includes('.pdf');
-            setLightboxState({
-                isOpen: true,
-                items: [{ url: viewUrl, type: isDoc ? 'DOCUMENT' : 'IMAGE', alt: 'Transaction Receipt' }],
-                index: 0
-            });
             toast.dismiss(toastId);
+            const isDoc = key.toLowerCase().includes('.pdf') || key.toLowerCase().includes('.doc');
+            if (isDoc) {
+                window.open(viewUrl, '_blank');
+            } else {
+                setLightboxState({
+                    isOpen: true,
+                    items: [{ url: viewUrl, type: 'IMAGE', alt: 'Transaction Receipt' }],
+                    index: 0
+                });
+            }
         } catch (e) {
             toast.error('Access restricted', { id: toastId });
         }
