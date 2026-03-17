@@ -44,8 +44,12 @@ export function useProposalAutoSave() {
         gallery: mappedGallery
       };
 
-      if (payload.targetAmount) {
+      if (payload.targetAmount !== undefined && payload.targetAmount !== null) {
         (payload as any).targetAmount = payload.targetAmount * 100;
+      }
+
+      if (payload.preCollectedAmount !== undefined && payload.preCollectedAmount !== null) {
+        (payload as any).preCollectedAmount = payload.preCollectedAmount * 100;
       }
 
       try {

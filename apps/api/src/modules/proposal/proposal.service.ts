@@ -51,8 +51,6 @@ export class ProposalService {
     });
   }
 
-  // ... [Other existing methods remain exactly the same] ...
-
   // 2. Update Draft (Auto-save)
   async updateDraft(userId: string, proposalId: string, dto: UpdateProposalDto) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);
@@ -63,8 +61,13 @@ export class ProposalService {
 
     // Handle BigInt conversion for targetAmount if present
     const data: Prisma.ProjectProposalUpdateInput = { ...dto } as any;
-    if (dto.targetAmount) {
+
+    if (dto.targetAmount !== undefined && dto.targetAmount !== null) {
       data.targetAmount = BigInt(dto.targetAmount);
+    }
+
+    if (dto.preCollectedAmount !== undefined && dto.preCollectedAmount !== null) {
+      data.preCollectedAmount = BigInt(dto.preCollectedAmount);
     }
 
     return this.prisma.projectProposal.update({
