@@ -56,7 +56,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const getVerificationMeta = () => {
         if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') {
-            return { label: 'Givar Team', icon: BadgeCheck, color: 'text-primary', badgeStyle: 'bg-primary/10 text-primary border-primary/20' };
+            return { label: 'Platform', icon: BadgeCheck, color: 'text-primary', badgeStyle: 'bg-primary/10 text-primary border-primary/20' };
         }
         if (project.organizerType === 'ORGANIZATION') {
             return { label: 'Verified Organization', icon: ShieldCheck, color: 'text-blue-600', badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200' };
@@ -509,7 +509,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                     {/* Organizer Identity Card */}
                     <Card className={cn(
-                        "rounded-3xl border p-5 flex flex-col gap-4 transition-all relative overflow-hidden shadow-sm",
+                        "rounded-3xl border p-5 flex flex-col transition-all relative overflow-hidden shadow-sm",
                         project.isVerifiedOrganizer ? "border-primary/20 bg-primary/5" : "bg-card border-border/40"
                     )}>
                         <div className="flex items-center gap-4 relative z-10">
@@ -521,19 +521,14 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1 mb-0.5">
-                                    <p className="text-[11px] text-muted-foreground font-bold">Entity</p>
-                                    {project.isVerifiedOrganizer && <BadgeCheck className="h-3 w-3 text-primary" />}
+                                    <div className={cn("flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-widest", verMeta.color)}>
+                                        <VerIcon className="h-3 w-3" />
+                                        {verMeta.label}
+                                    </div>
                                 </div>
-                                <p className="font-bold text-foreground truncate text-sm">
+                                <p className="font-bold text-foreground truncate text-sm mt-0.5">
                                     {project.organizerName}
                                 </p>
-                            </div>
-                        </div>
-
-                        <div className="pt-4 border-t border-border/40 flex items-center justify-between">
-                            <div className={cn("flex items-center gap-1.5 font-bold text-[11px]", verMeta.color)}>
-                                <VerIcon className="h-3.5 w-3.5" />
-                                {verMeta.label}
                             </div>
                         </div>
                     </Card>
