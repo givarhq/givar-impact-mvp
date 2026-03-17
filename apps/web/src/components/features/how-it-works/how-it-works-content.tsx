@@ -181,12 +181,12 @@ export function HowItWorksContent() {
                     </div>
                     <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
                         <Link href="/explore" className="w-full sm:w-auto">
-                            <Button className="w-full h-12 rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-8 shadow-md active:scale-95 transition-all border-0 text-xs">
+                            <Button className="w-full h-12 rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-8 shadow-md active:scale-95 transition-all border-0 text-sm">
                                 Explore Causes <ArrowRight className="ml-1.5 h-4 w-4" />
                             </Button>
                         </Link>
                         <Link href="/signup" className="w-full sm:w-auto">
-                            <Button variant="outline" className="w-full h-12 rounded-full bg-card hover:bg-muted text-foreground font-bold px-8 border-border/60 shadow-sm active:scale-95 transition-all text-xs">
+                            <Button variant="outline" className="w-full h-12 rounded-full bg-card hover:bg-muted text-foreground font-bold px-8 border-border/60 shadow-sm active:scale-95 transition-all text-sm">
                                 Create Account
                             </Button>
                         </Link>

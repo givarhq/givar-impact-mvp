@@ -165,7 +165,7 @@ export default function FundWalletPage() {
     <div className="max-w-2xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20 min-w-0">
 
       <div className="flex flex-col gap-4 px-1 min-w-0">
-        <Link href="/dashboard/history">
+        <Link href="/dashboard/?tab=portfolio" prefetch={false}>
           <Button
             variant="ghost"
             className="w-fit pl-0 text-muted-foreground hover:text-foreground group rounded-3xl"
