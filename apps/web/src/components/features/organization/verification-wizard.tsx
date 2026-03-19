@@ -173,7 +173,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
             <div className="space-y-1">
               <h2 className="text-xl font-bold tracking-tight text-foreground">Review in progress</h2>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed font-medium">
-                Our compliance team is currently auditing your documents. This process ensures the integrity of our platform and usually takes 24 to 48 hours.
+                We are currently reviewing your documents. This process ensures the integrity of our platform and usually takes 24 to 48 hours.
               </p>
             </div>
           </CardContent>
