@@ -272,17 +272,6 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
 
           {/* Document Uploads */}
           <div className="space-y-6">
-            <div className="flex items-center gap-3 border-b border-border/40 pb-4">
-              <div className="h-9 w-9 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
-                <ShieldCheck className="h-4.5 w-4.5" />
-              </div>
-              <div className="space-y-0.5">
-                <h3 className="font-bold text-sm text-foreground">Secure document vault</h3>
-                <p className="text-xs text-muted-foreground font-medium">
-                  These files are encrypted and only accessible by authorized compliance personnel.
-                </p>
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Slot 1 */}
