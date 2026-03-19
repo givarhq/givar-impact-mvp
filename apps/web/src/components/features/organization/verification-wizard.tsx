@@ -26,6 +26,7 @@ import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 import { Badge } from '../../ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 interface VerificationWizardProps {
   user: any;
@@ -37,12 +38,10 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingSlot, setUploadingSlot] = useState<'primary' | 'secondary' | null>(null);
 
-  // LOGIC: Automatically determine the default path
-  // 1. If they have an existing kycType record, use that.
-  // 2. Otherwise, use their current accountType (INDIVIDUAL -> INDIVIDUAL, ORGANIZER -> ORGANIZATION).
-  const defaultKycType = (initialProfile as any)?.kycType || (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL');
+  // LOGIC: Strictly bind the verification path to their account type setting.
+  // If they previously submitted as one type, we respect that historic submission.
+  const kycType = (initialProfile as any)?.kycType || (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL');
 
-  const [kycType, setKycType] = useState<'INDIVIDUAL' | 'ORGANIZATION'>(defaultKycType);
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
   const [regNumber, setRegNumber] = useState(initialProfile?.registrationNumber || '');
 
@@ -220,34 +219,23 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
       <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
         <CardContent className="p-5 md:p-8 space-y-8">
 
-          {/* Identity Type Selector */}
+          {/* Fixed Identity Type Display */}
           <div className="space-y-4 border-b border-border/40 pb-6">
             <div className="space-y-1">
-              <h3 className="font-bold text-sm text-foreground">Account Classification</h3>
-              <p className="text-xs text-muted-foreground font-medium">Are you verifying as an individual advocate or a registered corporate entity?</p>
+              <h3 className="font-bold text-sm text-foreground">Account classification</h3>
+              <p className="text-xs text-muted-foreground font-medium">
+                You are verifying as {kycType === 'INDIVIDUAL' ? 'an individual advocate' : 'a registered corporate entity'}. If this is incorrect, you can change your account mode in the <Link href="/dashboard/settings?tab=profile" className="text-primary hover:underline font-bold">Profile</Link> tab.
+              </p>
             </div>
-            <div className="flex bg-muted/30 p-1.5 rounded-3xl border border-border/40 w-full md:w-fit shadow-inner">
-              <button
-                onClick={() => setKycType('INDIVIDUAL')}
-                className={cn(
-                  "flex-1 md:flex-none px-6 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2",
-                  kycType === 'INDIVIDUAL' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <UserCheck className="h-4 w-4" /> Individual
-              </button>
-              <button
-                onClick={() => setKycType('ORGANIZATION')}
-                className={cn(
-                  "flex-1 md:flex-none px-6 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2",
-                  kycType === 'ORGANIZATION' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                )}
-              >
-                <Building2 className="h-4 w-4" /> Organization
-              </button>
+            <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-muted/30 border border-border/40 shadow-inner">
+              {kycType === 'INDIVIDUAL' ? <UserCheck className="h-4 w-4 text-muted-foreground" /> : <Building2 className="h-4 w-4 text-muted-foreground" />}
+              <span className="text-xs font-bold text-foreground">
+                {kycType === 'INDIVIDUAL' ? 'Individual account' : 'Organization account'}
+              </span>
             </div>
           </div>
 
+          {/* Basic Info */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 border-b border-border/40 pb-4">
               <div className="h-9 w-9 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
@@ -283,6 +271,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
             </div>
           </div>
 
+          {/* Document Uploads */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 border-b border-border/40 pb-4">
               <div className="h-9 w-9 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
@@ -297,6 +286,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Slot 1 */}
               <div className="space-y-3">
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-foreground">
@@ -344,6 +334,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                 )}
               </div>
 
+              {/* Slot 2 */}
               <div className="space-y-3">
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-foreground">
@@ -409,7 +400,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
           className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Submit
+          Submit identity for audit
         </Button>
       </div>
     </motion.div>

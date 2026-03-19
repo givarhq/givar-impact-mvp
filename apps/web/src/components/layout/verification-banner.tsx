@@ -56,7 +56,6 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
     let linkTab = 'profile';
     let Icon = ShieldAlert;
 
-    // EXPLICIT TYPE DEFINITION ADDED HERE to fix TS Build Error
     let colorTheme: 'amber' | 'rose' | 'blue' = 'amber';
 
     // Hierarchy of needs: Email > Rejected KYC > Pending KYC > Unsubmitted Organizer KYC
@@ -66,7 +65,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
         title = 'Verification declined';
         description = 'Please review the feedback and resubmit your identity documents.';
         buttonText = 'Review feedback';
-        linkTab = 'org';
+        linkTab = 'verification';
         colorTheme = 'rose';
     } else if (orgStatus === 'PENDING') {
         title = 'Identity audit in progress';

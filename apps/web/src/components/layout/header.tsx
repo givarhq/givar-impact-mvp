@@ -54,7 +54,7 @@ export function Header({ user }: { user: any }) {
   const handleLogout = async () => {
     try {
       posthog?.capture('user_logout');
-      posthog?.reset(); // Clear user identity from the browser session
+      posthog?.reset();
       await ApiService.auth.logout();
       deleteCookie('givar_token');
       deleteCookie('givar_user');
@@ -168,14 +168,12 @@ export function Header({ user }: { user: any }) {
               <span className="font-semibold text-sm">Settings</span>
             </DropdownMenuItem>
 
-            {user?.accountType === 'ORGANIZER' && (
-              <DropdownMenuItem className="rounded-3xl cursor-pointer py-2.5 gap-3" onClick={() => router.push('/dashboard/settings?tab=org')}>
-                <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
-                  <ShieldCheck className="h-4 w-4" />
-                </div>
-                <span className="font-semibold text-sm">Organization</span>
-              </DropdownMenuItem>
-            )}
+            <DropdownMenuItem className="rounded-3xl cursor-pointer py-2.5 gap-3" onClick={() => router.push('/dashboard/settings?tab=verification')}>
+              <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <span className="font-semibold text-sm">Verification</span>
+            </DropdownMenuItem>
 
             <DropdownMenuSeparator />
 
