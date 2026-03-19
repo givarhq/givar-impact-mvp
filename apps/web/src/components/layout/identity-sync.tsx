@@ -13,6 +13,10 @@ interface IdentitySyncProps {
         role: string;
         accountType: string;
         emailVerified: boolean;
+        organization?: {
+            status: string;
+            legalName: string;
+        } | null;
     } | null;
 }
 
@@ -22,8 +26,6 @@ export function IdentitySync({ user }: IdentitySyncProps) {
     useEffect(() => {
         if (!user) return;
 
-        // Logic: Disable sync logic on auth pages to prevent the re-render flash 
-        // while the router is transitioning during signup/login.
         if (pathname === '/login' || pathname === '/signup') return;
 
         const userCookie = getCookie('givar_user');
@@ -32,11 +34,12 @@ export function IdentitySync({ user }: IdentitySyncProps) {
             try {
                 const localUser = JSON.parse(userCookie as string);
 
-                // Check for critical state drift (Verification or Account Type)
+                // Check for critical state drift, including KYC Verification status
                 const hasDrifted =
                     localUser.emailVerified !== user.emailVerified ||
                     localUser.accountType !== user.accountType ||
-                    localUser.role !== user.role;
+                    localUser.role !== user.role ||
+                    localUser.organization?.status !== user.organization?.status;
 
                 if (hasDrifted) {
                     // Force synchronization of the local cookie with server truth

@@ -10,7 +10,7 @@ import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../components/ui/select';
 import { ApiService } from '../../../../../../services/api';
-import { getCookie } from 'cookies-next';
+import { getCookie, setCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User, Users, Clock, ShieldAlert } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
@@ -41,22 +41,46 @@ export default function StartProposalPage() {
     const [isEmailUnverified, setIsEmailUnverified] = useState(false);
     const [orgStatus, setOrgStatus] = useState<string>('NOT_SUBMITTED');
     const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | null>(null);
+    const [isGateCheckComplete, setIsGateCheckComplete] = useState(false);
 
     useEffect(() => {
         const userCookie = getCookie('givar_user');
+        let parsedUser: any = null;
+
         if (userCookie) {
             try {
-                const user = JSON.parse(userCookie as string);
-                setIsEmailUnverified(user.emailVerified === false);
-                setOrgStatus(user.organization?.status || 'NOT_SUBMITTED');
+                parsedUser = JSON.parse(userCookie as string);
+                setIsEmailUnverified(parsedUser.emailVerified === false);
+                // Set optimistic status from cookie
+                setOrgStatus(parsedUser.organization?.status || 'NOT_SUBMITTED');
             } catch (e) {
                 setIsEmailUnverified(false);
             }
         }
 
+        // Fetch definitive categories
         ApiService.projects.getCategories()
             .then(setCategories)
             .catch(() => toast.error('Categories offline'));
+
+        // Real-time fetch of the organization status to prevent stale cookie blocks
+        ApiService.organizations.getMe()
+            .then((profile) => {
+                if (profile) {
+                    setOrgStatus(profile.status);
+                    // Silently heal the cookie if it was stale
+                    if (parsedUser && parsedUser.organization?.status !== profile.status) {
+                        parsedUser.organization = { ...parsedUser.organization, status: profile.status };
+                        setCookie('givar_user', JSON.stringify(parsedUser), { maxAge: 604800, path: '/' });
+                    }
+                }
+            })
+            .catch(() => {
+                setOrgStatus('NOT_SUBMITTED');
+            })
+            .finally(() => {
+                setIsGateCheckComplete(true);
+            });
 
     }, []);
 
@@ -115,6 +139,18 @@ export default function StartProposalPage() {
     };
 
     // --- GATEKEEPER UI RENDERING ---
+
+    // Don't flash the form until we have confirmed the real-time state from the backend
+    if (!isGateCheckComplete) {
+        return (
+            <div className="max-w-5xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
+                <div className="flex flex-col items-center justify-center min-h-[400px] border border-border/40 bg-card rounded-3xl shadow-sm space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary opacity-50" />
+                    <p className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Securing Workspace...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (isEmailUnverified) {
         return (
