@@ -176,11 +176,6 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                 Our compliance team is currently auditing your documents. This process ensures the integrity of our platform and usually takes 24 to 48 hours.
               </p>
             </div>
-            <div className="pt-2">
-              <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-amber-500/20 px-4 py-1.5 rounded-3xl font-bold text-[11px] tracking-wider">
-                Being checked
-              </Badge>
-            </div>
           </CardContent>
         </Card>
       </motion.div>
