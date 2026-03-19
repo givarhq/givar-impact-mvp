@@ -71,7 +71,7 @@ export function AdminHeader({ user }: { user: any }) {
       deleteCookie('givar_admin_backup_user');
 
       router.push('/login');
-      toast.success("Session Terminated Securely");
+      toast.success("Session terminated");
     } catch (error) {
       deleteCookie('givar_token');
       deleteCookie('givar_user');
