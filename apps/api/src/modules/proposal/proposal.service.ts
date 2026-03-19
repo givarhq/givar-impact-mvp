@@ -32,6 +32,18 @@ export class ProposalService {
     if (!user?.emailVerified) {
       throw new ForbiddenException('EMAIL_NOT_VERIFIED');
     }
+
+    // Organization Verification Check
+    const orgProfile = await this.prisma.organizationProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!orgProfile || orgProfile.status !== 'VERIFIED') {
+      throw new BadRequestException(
+        'Your identity must be verified before you can start a cause.'
+      );
+    }
+
     return this.prisma.projectProposal.create({
       data: {
         userId,

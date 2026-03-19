@@ -1,4 +1,3 @@
-// apps/web/src/app/(dashboard)/dashboard/(proposals)/proposals/start/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ApiService } from '../../../../../../services/api';
 import { getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User, Users } from 'lucide-react';
+import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User, Users, Clock, ShieldAlert } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,15 +37,21 @@ export default function StartProposalPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
-    const [isUnverified, setIsUnverified] = useState(false);
+
+    const [isEmailUnverified, setIsEmailUnverified] = useState(false);
+    const [orgStatus, setOrgStatus] = useState<string>('NOT_SUBMITTED');
     const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | null>(null);
 
-    const userCookie = getCookie('givar_user');
-    const user = userCookie ? JSON.parse(userCookie as string) : null;
-
     useEffect(() => {
-        if (user) {
-            setIsUnverified(user.emailVerified === false);
+        const userCookie = getCookie('givar_user');
+        if (userCookie) {
+            try {
+                const user = JSON.parse(userCookie as string);
+                setIsEmailUnverified(user.emailVerified === false);
+                setOrgStatus(user.organization?.status || 'NOT_SUBMITTED');
+            } catch (e) {
+                setIsEmailUnverified(false);
+            }
         }
 
         ApiService.projects.getCategories()
@@ -82,17 +87,17 @@ export default function StartProposalPage() {
     };
 
     // Dynamic Logic for Document Requirements
-    let dynamicDocRequirements = "Government ID, vendor invoices, and supporting proof.";
+    let dynamicDocRequirements = "Vendor invoices and supporting proof.";
     if (selectedCategoryName.includes('medical')) {
-        dynamicDocRequirements = "Government ID, medical report, and hospital estimate.";
+        dynamicDocRequirements = "Medical report and hospital estimate.";
     } else if (selectedCategoryName.includes('education')) {
-        dynamicDocRequirements = "Government ID, admission letter or school board approval, and fee invoice.";
+        dynamicDocRequirements = "Admission letter or school board approval, and fee invoice.";
     } else if (selectedCategoryName.includes('community')) {
-        dynamicDocRequirements = "Government ID, project description, and vendor quotations.";
+        dynamicDocRequirements = "Project description and vendor quotations.";
     }
 
     const onSubmit = async (data: StartFormValues) => {
-        if (isUnverified) return;
+        if (isEmailUnverified || orgStatus !== 'VERIFIED') return;
 
         if (targetType === null) {
             toast.error('Please indicate who this cause is for.');
@@ -103,20 +108,22 @@ export default function StartProposalPage() {
         try {
             const newProposal = await ApiService.proposals.create(data);
             router.push(`/dashboard/proposals/edit/${newProposal.id}/hook`);
-        } catch (error) {
-            toast.error('Failed to initialize');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Failed to initialize');
             setIsLoading(false);
         }
     };
 
-    if (isUnverified) {
+    // --- GATEKEEPER UI RENDERING ---
+
+    if (isEmailUnverified) {
         return (
             <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
                 <div className="text-center space-y-2 py-2">
                     <div className="h-16 w-16 rounded-[24px] bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-500/20 shadow-inner">
                         <MailCheck className="h-8 w-8" />
                     </div>
-                    <h2 className="text-2xl font-bold text-foreground">Verify your identity</h2>
+                    <h2 className="text-2xl font-bold text-foreground">Verify your email</h2>
                     <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
                         To maintain a secure environment, you must verify your email address before proposing causes.
                     </p>
@@ -136,6 +143,78 @@ export default function StartProposalPage() {
                         <Link href="/dashboard/settings?tab=profile" className="block">
                             <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white border-0 gap-2 shadow-lg shadow-rose-600/20">
                                 Verify profile <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (orgStatus === 'PENDING') {
+        return (
+            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
+                <div className="text-center space-y-2 py-2">
+                    <div className="h-16 w-16 rounded-[24px] bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-500/20 shadow-inner">
+                        <Clock className="h-8 w-8 animate-pulse" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-foreground">Review in progress</h2>
+                    <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
+                        Your identity documents are currently being reviewed. You can start a cause once approved.
+                    </p>
+                </div>
+
+                <Card className="border-amber-200 bg-amber-50/30 rounded-3xl overflow-hidden shadow-sm">
+                    <CardContent className="p-6 space-y-6 flex flex-col items-center">
+                        <Link href="/dashboard/settings?tab=org" className="block">
+                            <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-amber-600 hover:bg-amber-700 text-white border-0 gap-2 shadow-lg shadow-amber-600/20">
+                                View status <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (orgStatus === 'NOT_SUBMITTED' || orgStatus === 'REJECTED') {
+        return (
+            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
+                <div className="text-center space-y-2 py-2">
+                    <div className="h-16 w-16 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">
+                        <ShieldCheck className="h-8 w-8" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-foreground">Verify your identity</h2>
+                    <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
+                        We require all cause organizers to verify their identity once before they can publish projects on the ledger.
+                    </p>
+                </div>
+
+                <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm">
+                    <CardContent className="p-6 space-y-6 flex flex-col items-center">
+                        {orgStatus === 'REJECTED' && (
+                            <div className="flex items-start gap-3 w-full p-4 rounded-2xl bg-destructive/5 border border-destructive/10 mb-2">
+                                <ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                                <div className="space-y-1">
+                                    <p className="text-xs font-bold text-destructive">Previous submission declined</p>
+                                    <p className="text-xs text-foreground/80 leading-relaxed font-medium">
+                                        Your previous verification documents were not accepted. Please review the feedback in your settings and try again.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex items-start gap-3 w-full">
+                            <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                                <p className="text-xs font-bold text-foreground">One-time setup</p>
+                                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                                    You only need to do this once. Once approved, you can launch as many causes as you want without re-verifying.
+                                </p>
+                            </div>
+                        </div>
+                        <Link href="/dashboard/settings?tab=org" className="block">
+                            <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-primary hover:bg-primary/90 text-white border-0 gap-2 shadow-lg shadow-primary/20">
+                                Verify identity <ArrowRight className="h-4 w-4" />
                             </Button>
                         </Link>
                     </CardContent>
@@ -309,7 +388,7 @@ export default function StartProposalPage() {
                                 <ShieldCheck className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 pt-0.5">
-                                <p className="text-sm font-bold text-foreground">Evidence Documents</p>
+                                <p className="text-sm font-bold text-foreground">Cause Evidence</p>
                                 <motion.p
                                     key={dynamicDocRequirements}
                                     initial={{ opacity: 0 }}
