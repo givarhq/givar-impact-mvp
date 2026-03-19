@@ -1,4 +1,3 @@
-// apps/web/src/components/features/admin/proposal-review.tsx
 'use client';
 
 import React, { useState, memo } from 'react';
@@ -18,7 +17,6 @@ import { ApiService } from '../../../services/api';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { formatDate, formatCurrency } from '../../../lib/utils/format';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
-import { ConfirmModal } from '../../ui/confirm-modal';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { ProjectProposal } from '../../../types';
@@ -26,12 +24,12 @@ import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
 import { motion } from 'framer-motion';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
+import { ConfirmModal } from '../../ui/confirm-modal';
 
 interface ProposalReviewProps {
     proposal: ProjectProposal;
 }
 
-// Assistive Checklist Component
 const AssistiveChecklist = ({ title, items }: { title: string, items: string[] }) => {
     const [checked, setChecked] = useState<Record<number, boolean>>({});
 
@@ -72,7 +70,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const [showApproveConfirm, setShowApproveConfirm] = useState(false);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
-    // Operational Signal State
     const [awarenessStatus, setAwarenessStatus] = useState((proposal as any).awarenessStatus || '');
 
     const budgetBreakdown = proposal.budgetBreakdown || [];
@@ -163,7 +160,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const displayStatus = proposal.status === 'CHANGES_REQUESTED' ? 'More Info Required' : proposal.status.replace(/_/g, ' ');
 
     const missingDocs = !proposal.kycDocuments || proposal.kycDocuments.length === 0;
-    const vendorUnreachable = !proposal.vendorPhone && !proposal.vendorEmail;
     const inconsistentInfo = budgetTotal * 100 !== Number(proposal.targetAmount);
     const titleLower = proposal.title?.toLowerCase() || '';
     const duplicateRisk = titleLower.includes('test') || titleLower.length < 10;
@@ -175,7 +171,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             transition={{ duration: 0.2, ease: "circOut" }}
             className="space-y-4 md:space-y-6 pb-20 w-full overflow-hidden"
         >
-            {/* 1. CORE IDENTITY HEADER */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-5 relative z-10 w-full lg:w-auto min-w-0">
                     <div className="hidden md:flex h-16 w-16 rounded-3xl bg-primary/10 items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
@@ -274,10 +269,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 </div>
             </div>
 
-            {/* 2. GRID ARCHITECTURE */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-
-                {/* LEFT: DETAILED DOCUMENTATION */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     {/* Visual Media Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
@@ -384,9 +376,12 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
-                    {/* Beneficiary & Vendor Details Section */}
+                    {/* Beneficiary & Pre-Collected Funds Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm flex flex-col h-full">
+                        <Card className={cn(
+                            "rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm flex flex-col h-full",
+                            !proposal.hasPreCollectedFunds && "md:col-span-2"
+                        )}>
                             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 shrink-0">
                                 <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
                                     <User className="h-3.5 w-3.5 text-primary" /> Beneficiary Context
@@ -426,33 +421,32 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </CardContent>
                         </Card>
 
-                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm flex flex-col h-full">
-                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 shrink-0">
-                                <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                    <Building className="h-3.5 w-3.5 text-blue-500" /> Vendor Provider
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-4">
-                                <div>
-                                    <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Organization</p>
-                                    <p className="text-sm font-bold text-foreground">{proposal.vendorName || 'Not Provided'}</p>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Contact Person</p>
-                                        <p className="text-xs font-bold text-foreground truncate">{proposal.vendorContactPerson || 'N/A'}</p>
+                        {/* Pre-Collected Funds */}
+                        {proposal.hasPreCollectedFunds && (
+                            <Card className="rounded-3xl border-blue-500/20 bg-blue-500/[0.02] overflow-hidden shadow-sm flex flex-col h-full">
+                                <CardHeader className="bg-blue-500/5 border-b border-blue-500/10 py-4 px-6 flex flex-row items-center justify-between shrink-0">
+                                    <CardTitle className="text-xs font-bold text-blue-700 flex items-center gap-2">
+                                        <Landmark className="h-3.5 w-3.5" /> Pre-Collected Funds Declared
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-6 flex flex-col justify-between flex-1 min-h-0 gap-6">
+                                    <div className="space-y-1">
+                                        <p className="text-[11px] font-bold text-muted-foreground">Amount Raised Externally</p>
+                                        <p className="text-xl font-black text-foreground">
+                                            <SmartCurrency amount={((Number(proposal.preCollectedAmount) || 0) * 100).toString()} currency="NGN" visible={true} size="default" />
+                                        </p>
+                                        <p className="text-xs text-muted-foreground font-medium pt-1">
+                                            Held at: <span className="font-bold text-foreground">{proposal.preCollectedHeldAt || 'Unknown'}</span>
+                                        </p>
                                     </div>
-                                    <div>
-                                        <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Phone</p>
-                                        <p className="text-xs font-bold text-foreground truncate">{proposal.vendorPhone || 'N/A'}</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Address</p>
-                                    <p className="text-xs font-bold text-foreground">{proposal.vendorAddress || 'N/A'}</p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                    {proposal.preCollectedProofKey && (
+                                        <Button onClick={() => viewSecureDoc(proposal.preCollectedProofKey!)} variant="outline" className="rounded-3xl font-bold text-xs h-10 border-blue-500/30 text-blue-700 hover:bg-blue-50 w-full mt-auto">
+                                            <ExternalLink className="h-4 w-4 mr-2" /> View Proof
+                                        </Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
 
                     {/* Financial Budget Section */}
@@ -472,7 +466,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     <tr>
                                         <th className="px-6 py-4">Description</th>
                                         <th className="px-6 py-4 hidden md:table-cell">Cost Type</th>
-                                        <th className="px-6 py-4 hidden md:table-cell">Pay To</th>
+                                        <th className="px-6 py-4 hidden md:table-cell">Pay To (Vendor)</th>
                                         <th className="px-6 py-4 hidden lg:table-cell">Stage</th>
                                         <th className="px-6 py-4 text-right">Allocation</th>
                                     </tr>
@@ -499,33 +493,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </table>
                         </div>
                     </Card>
-
-                    {/* Pre-Collected Funds */}
-                    {proposal.hasPreCollectedFunds && (
-                        <Card className="rounded-3xl border-blue-500/20 bg-blue-500/[0.02] overflow-hidden shadow-sm">
-                            <CardHeader className="bg-blue-500/5 border-b border-blue-500/10 py-4 px-6 flex flex-row items-center justify-between">
-                                <CardTitle className="text-xs font-bold text-blue-700 flex items-center gap-2">
-                                    <Landmark className="h-3.5 w-3.5" /> Pre-Collected Funds Declared
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                                <div className="space-y-1">
-                                    <p className="text-[11px] font-bold text-muted-foreground">Amount Raised Externally</p>
-                                    <p className="text-xl font-black text-foreground">
-                                        <SmartCurrency amount={((Number(proposal.preCollectedAmount) || 0) * 100).toString()} currency="NGN" visible={true} size="default" />
-                                    </p>
-                                    <p className="text-xs text-muted-foreground font-medium pt-1">
-                                        Held at: <span className="font-bold text-foreground">{proposal.preCollectedHeldAt || 'Unknown'}</span>
-                                    </p>
-                                </div>
-                                {proposal.preCollectedProofKey && (
-                                    <Button onClick={() => viewSecureDoc(proposal.preCollectedProofKey!)} variant="outline" className="rounded-3xl font-bold text-xs h-10 border-blue-500/30 text-blue-700 hover:bg-blue-50">
-                                        <ExternalLink className="h-4 w-4 mr-2" /> View Proof
-                                    </Button>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
 
                 {/* RIGHT: IDENTITY, AUDIT CHECKLISTS & RISK */}
@@ -611,7 +578,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 />
                                 <AssistiveChecklist
                                     title="Vendor Verification"
-                                    items={["Vendor exists and contact details are valid", "Invoice authenticity", "Cost reasonableness", "Payment routing feasibility"]}
+                                    items={["Vendor details exist in Budget", "Invoice authenticity", "Cost reasonableness", "Payment routing feasibility"]}
                                 />
                                 <AssistiveChecklist
                                     title="Cause Evidence"
@@ -641,16 +608,12 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     <span className={cn("text-xs font-bold", missingDocs ? "text-destructive" : "text-foreground")}>Missing documentation</span>
                                 </li>
                                 <li className="flex items-center gap-3">
-                                    {vendorUnreachable ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                                    <span className={cn("text-xs font-bold", vendorUnreachable ? "text-amber-600" : "text-foreground")}>Vendor unreachable</span>
+                                    {inconsistentInfo ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                                    <span className={cn("text-xs font-bold", inconsistentInfo ? "text-amber-600" : "text-foreground")}>Inconsistent information</span>
                                 </li>
                                 <li className="flex items-center gap-3">
                                     {duplicateRisk ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                                     <span className={cn("text-xs font-bold", duplicateRisk ? "text-amber-600" : "text-foreground")}>Duplicate submission risk</span>
-                                </li>
-                                <li className="flex items-center gap-3">
-                                    {inconsistentInfo ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                                    <span className={cn("text-xs font-bold", inconsistentInfo ? "text-amber-600" : "text-foreground")}>Inconsistent information</span>
                                 </li>
                             </ul>
                         </CardContent>

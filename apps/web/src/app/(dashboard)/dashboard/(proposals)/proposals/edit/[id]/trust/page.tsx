@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../../../../../../../components/ui/button';
 import { Input } from '../../../../../../../../components/ui/input';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, Send, Loader2, ShieldCheck, CheckCircle2, Building, Landmark, FileText } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, ShieldCheck, CheckCircle2, Landmark, FileText } from 'lucide-react';
 import { DocumentUploader } from '../../../../../../../../components/features/proposals/document-uploader';
 import { ImageUploader } from '../../../../../../../../components/features/proposals/media-uploader';
 import toast from 'react-hot-toast';
@@ -95,68 +95,16 @@ export default function TrustPage() {
 
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-          <CardTitle className="text-lg md:text-xl font-bold">Execution Partners & Evidence</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-bold">Evidence & Declarations</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Provide verifiable details for the execution partners and upload structural evidence for this cause.
+            Provide verifiable structural evidence for this cause and confirm your legal declarations.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="p-6 md:p-8 pt-8 space-y-10 min-w-0">
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300 min-w-0">
 
-            {/* SECTION 1: VENDOR DETAILS */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
-                <Building className="h-4.5 w-4.5 text-primary" />
-                <h3 className="font-bold text-base text-foreground">Vendor Details</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
-                  <Input
-                    label="Organisation or Provider Name"
-                    placeholder="e.g. City General Hospital, ABC Drilling"
-                    value={store.vendorName || ''}
-                    onChange={(e) => store.updateField('vendorName', e.target.value)}
-                    disabled={isSubmitting}
-                    className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                  />
-                </div>
-                <Input
-                  label="Contact Person"
-                  placeholder="Representative name"
-                  value={store.vendorContactPerson || ''}
-                  onChange={(e) => store.updateField('vendorContactPerson', e.target.value)}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                />
-                <Input
-                  label="Phone"
-                  placeholder="Vendor contact number"
-                  value={store.vendorPhone || ''}
-                  onChange={(e) => store.updateField('vendorPhone', e.target.value)}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                />
-                <Input
-                  label="Email"
-                  placeholder="Vendor email address"
-                  value={store.vendorEmail || ''}
-                  onChange={(e) => store.updateField('vendorEmail', e.target.value)}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                />
-                <Input
-                  label="Address"
-                  placeholder="Physical location of vendor"
-                  value={store.vendorAddress || ''}
-                  onChange={(e) => store.updateField('vendorAddress', e.target.value)}
-                  disabled={isSubmitting}
-                  className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
-                />
-              </div>
-            </div>
-
-            {/* SECTION 2: EVIDENCE AND VERIFICATION DOCUMENTS */}
+            {/* SECTION 1: EVIDENCE AND VERIFICATION DOCUMENTS */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                 <FileText className="h-4.5 w-4.5 text-primary" />
@@ -182,7 +130,7 @@ export default function TrustPage() {
               </div>
             </div>
 
-            {/* SECTION 3: PRE-COLLECTED FUNDS DECLARATION */}
+            {/* SECTION 2: PRE-COLLECTED FUNDS DECLARATION */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                 <Landmark className="h-4.5 w-4.5 text-primary" />
@@ -267,7 +215,7 @@ export default function TrustPage() {
               </AnimatePresence>
             </div>
 
-            {/* SECTION 4: LEGAL & CONSENT DECLARATIONS */}
+            {/* SECTION 3: LEGAL & CONSENT DECLARATIONS */}
             <div className="space-y-4 pt-6 border-t border-border/40">
               <div className="flex items-center gap-3 pb-3 px-1">
                 <ShieldCheck className="h-4.5 w-4.5 text-primary" />
@@ -329,7 +277,7 @@ export default function TrustPage() {
         </CardContent>
       </Card>
 
-      {/* Gated Feedback Thread: Only shown if revisions are requested */}
+      {/* Gated Feedback Thread */}
       {showFeedback && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <FeedbackThread

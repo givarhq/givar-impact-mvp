@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ApiService } from '../../../../../../services/api';
 import { getCookie, setCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User, Users, Clock, ShieldAlert } from 'lucide-react';
+import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User, Users, Clock, ShieldAlert, Database } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -110,7 +110,6 @@ export default function StartProposalPage() {
         }
     };
 
-    // Dynamic Logic for Document Requirements
     let dynamicDocRequirements = "Vendor invoices and supporting proof.";
     if (selectedCategoryName.includes('medical')) {
         dynamicDocRequirements = "Medical report and hospital estimate.";
@@ -138,9 +137,6 @@ export default function StartProposalPage() {
         }
     };
 
-    // --- GATEKEEPER UI RENDERING ---
-
-    // Don't flash the form until we have confirmed the real-time state from the backend
     if (!isGateCheckComplete) {
         return (
             <div className="max-w-5xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
@@ -438,11 +434,11 @@ export default function StartProposalPage() {
 
                         <div className="bg-card border border-border/40 p-5 rounded-3xl flex items-start gap-4 shadow-sm hover:shadow-md transition-shadow">
                             <div className="h-10 w-10 rounded-2xl bg-purple-500/10 flex items-center justify-center shrink-0 text-purple-600 border border-purple-500/10">
-                                <User className="h-5 w-5" />
+                                <Database className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 pt-0.5">
-                                <p className="text-sm font-bold text-foreground">Vendor Details</p>
-                                <p className="text-xs text-muted-foreground font-medium leading-relaxed">Names, contacts, and bank information of the people doing the work.</p>
+                                <p className="text-sm font-bold text-foreground">Budget Estimates</p>
+                                <p className="text-xs text-muted-foreground font-medium leading-relaxed">Clear breakdown of costs and the vendors you intend to use.</p>
                             </div>
                         </div>
                     </div>
