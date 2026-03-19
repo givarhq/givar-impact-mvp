@@ -28,19 +28,24 @@ import { Badge } from '../../ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VerificationWizardProps {
+  user: any;
   initialProfile: OrganizationProfile | null;
 }
 
-export const VerificationWizard = memo(function VerificationWizard({ initialProfile }: VerificationWizardProps) {
+export const VerificationWizard = memo(function VerificationWizard({ user, initialProfile }: VerificationWizardProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingSlot, setUploadingSlot] = useState<'primary' | 'secondary' | null>(null);
 
-  const [kycType, setKycType] = useState<'INDIVIDUAL' | 'ORGANIZATION'>((initialProfile as any)?.kycType || 'INDIVIDUAL');
+  // LOGIC: Automatically determine the default path
+  // 1. If they have an existing kycType record, use that.
+  // 2. Otherwise, use their current accountType (INDIVIDUAL -> INDIVIDUAL, ORGANIZER -> ORGANIZATION).
+  const defaultKycType = (initialProfile as any)?.kycType || (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL');
+
+  const [kycType, setKycType] = useState<'INDIVIDUAL' | 'ORGANIZATION'>(defaultKycType);
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
   const [regNumber, setRegNumber] = useState(initialProfile?.registrationNumber || '');
 
-  // Strict Two-Slot Document System
   const [primaryDoc, setPrimaryDoc] = useState<{ key: string, name: string } | null>(
     initialProfile?.documentKeys?.[0] ? { key: initialProfile.documentKeys[0], name: 'Uploaded document 1' } : null
   );
@@ -130,7 +135,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
                 {kycType === 'INDIVIDUAL' ? 'Identity verified' : 'Organization verified'}
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto font-medium">
-                Your account is a recognized & trusted partner. You can now launch public causes on the platform seamlessly.
+                Your account is a recognized and trusted partner. You can now launch public causes on the platform seamlessly.
               </p>
             </div>
             <div className="inline-flex flex-col items-center p-6 rounded-3xl bg-card border border-primary/10 shadow-sm min-w-[280px]">
@@ -243,7 +248,6 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
             </div>
           </div>
 
-          {/* Basic Info */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 border-b border-border/40 pb-4">
               <div className="h-9 w-9 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
@@ -279,7 +283,6 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
             </div>
           </div>
 
-          {/* Document Uploads */}
           <div className="space-y-6">
             <div className="flex items-center gap-3 border-b border-border/40 pb-4">
               <div className="h-9 w-9 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground">
@@ -294,7 +297,6 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Slot 1 */}
               <div className="space-y-3">
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-foreground">
@@ -342,7 +344,6 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
                 )}
               </div>
 
-              {/* Slot 2 */}
               <div className="space-y-3">
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-foreground">
@@ -408,7 +409,7 @@ export const VerificationWizard = memo(function VerificationWizard({ initialProf
           className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Submit identity for audit
+          Submit
         </Button>
       </div>
     </motion.div>

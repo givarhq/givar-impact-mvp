@@ -125,7 +125,7 @@ export default function StartProposalPage() {
                     </div>
                     <h2 className="text-2xl font-bold text-foreground">Verify your email</h2>
                     <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
-                        To maintain a secure environment, you must verify your email address before proposing causes.
+                        To maintain a secure environment, please verify your email address before proposing causes.
                     </p>
                 </div>
 
@@ -158,15 +158,15 @@ export default function StartProposalPage() {
                     <div className="h-16 w-16 rounded-[24px] bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-500/20 shadow-inner">
                         <Clock className="h-8 w-8 animate-pulse" />
                     </div>
-                    <h2 className="text-2xl font-bold text-foreground">Review in progress</h2>
+                    <h2 className="text-2xl font-bold text-foreground">Identity audit in progress</h2>
                     <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
-                        Your identity documents are currently being reviewed. You can start a cause once approved.
+                        Your identity documents are currently being verified by our compliance team. You can start a cause once approved.
                     </p>
                 </div>
 
                 <Card className="border-amber-200 bg-amber-50/30 rounded-3xl overflow-hidden shadow-sm">
                     <CardContent className="p-6 space-y-6 flex flex-col items-center">
-                        <Link href="/dashboard/settings?tab=org" className="block">
+                        <Link href="/dashboard/settings?tab=verification" className="block">
                             <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-amber-600 hover:bg-amber-700 text-white border-0 gap-2 shadow-lg shadow-amber-600/20">
                                 View status <ArrowRight className="h-4 w-4" />
                             </Button>
@@ -212,7 +212,7 @@ export default function StartProposalPage() {
                                 </p>
                             </div>
                         </div>
-                        <Link href="/dashboard/settings?tab=org" className="block">
+                        <Link href="/dashboard/settings?tab=verification" className="block">
                             <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-primary hover:bg-primary/90 text-white border-0 gap-2 shadow-lg shadow-primary/20">
                                 Verify identity <ArrowRight className="h-4 w-4" />
                             </Button>

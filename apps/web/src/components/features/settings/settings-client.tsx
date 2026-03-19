@@ -7,11 +7,11 @@ import {
     Shield,
     Bell,
     Activity,
-    Building2,
     ChevronRight,
     ChevronLeft,
     Repeat,
-    Inbox
+    Inbox,
+    ShieldCheck
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { ProfileForm } from './profile-form';
@@ -39,9 +39,9 @@ const SETTINGS_OPTIONS = [
         description: 'Manage your public identity.'
     },
     {
-        id: 'org',
-        label: 'Verification', // Logic: Renamed from 'Organization' to reflect Hybrid Model
-        icon: Building2,
+        id: 'verification',
+        label: 'Verification',
+        icon: ShieldCheck,
         color: 'text-emerald-500',
         bg: 'bg-emerald-500/10',
         description: 'Identity & trust documents.'
@@ -110,7 +110,6 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
                 <Tabs value={effectiveTab} onValueChange={handleTabChange} className="w-full space-y-6">
                     <div className="overflow-x-auto no-scrollbar pb-1">
                         <TabsList className="h-11 bg-muted/50 p-1 rounded-3xl w-fit border border-border/40 shadow-inner inline-flex">
-                            {/* Logic: Removed the filter that hid 'org' tab for Individuals. Everyone can verify now. */}
                             {SETTINGS_OPTIONS.map((opt) => (
                                 <TabsTrigger
                                     key={opt.id}
@@ -126,8 +125,9 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
 
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <TabsContent value="profile" className="mt-0 outline-none"><ProfileForm user={user} /></TabsContent>
-                        {/* Logic: Enabled Verification Wizard for everyone */}
-                        <TabsContent value="org" className="mt-0 outline-none"><VerificationWizard initialProfile={orgProfile} /></TabsContent>
+                        <TabsContent value="verification" className="mt-0 outline-none">
+                            <VerificationWizard user={user} initialProfile={orgProfile} />
+                        </TabsContent>
                         <TabsContent value="recurring" className="mt-0 outline-none">
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
@@ -137,7 +137,7 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
                                 {subscriptions.length === 0 ? (
                                     <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                                         <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                                        <p className="text-xs font-bold text-muted-foreground tracking-widest">No Recurring Plans</p>
+                                        <p className="text-xs font-bold text-muted-foreground tracking-widest">No recurring plans</p>
                                     </div>
                                 ) : (
                                     <div className="grid gap-4">
@@ -167,12 +167,11 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
             <div className="md:hidden">
                 {!activeTab ? (
                     <div className="grid gap-2 animate-in fade-in duration-200">
-                        {/* Logic: Removed filter here too */}
                         {SETTINGS_OPTIONS.map((opt) => (
                             <button
                                 key={opt.id}
                                 onClick={() => handleTabChange(opt.id)}
-                                className="flex items-center justify-between p-4 bg-card border border-border/40 rounded-3xl active:bg-muted transition-all text-left"
+                                className="flex items-center justify-between p-4 bg-card border border-border/40 rounded-3xl active:bg-muted transition-all group text-left"
                             >
                                 <div className="flex items-center gap-4 min-w-0">
                                     <div className={cn("h-10 w-10 rounded-3xl flex items-center justify-center border border-border/10 shrink-0", opt.bg, opt.color)}>
@@ -189,17 +188,17 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
                     </div>
                 ) : (
                     <div className="space-y-4 animate-in slide-in-from-right-2 duration-300">
-                        <button onClick={clearTab} className="flex items-center gap-2 text-xs font-bold text-muted-foreground px-1">
-                            <ChevronLeft className="h-4 w-4" /> Back To Settings
+                        <button onClick={clearTab} className="flex items-center gap-2 text-xs font-bold text-muted-foreground px-1 hover:text-primary transition-colors">
+                            <ChevronLeft className="h-4 w-4" /> Back to settings
                         </button>
                         <div>
                             {activeTab === 'profile' && <ProfileForm user={user} />}
-                            {activeTab === 'org' && <VerificationWizard initialProfile={orgProfile} />}
+                            {activeTab === 'verification' && <VerificationWizard user={user} initialProfile={orgProfile} />}
                             {activeTab === 'recurring' && (
                                 <div className="space-y-3">
                                     {subscriptions.length === 0 ? (
                                         <div className="py-12 text-center bg-muted/20 rounded-3xl border-2 border-dashed border-border/40">
-                                            <p className="text-xs font-bold text-muted-foreground tracking-widest">No Plans</p>
+                                            <p className="text-xs font-bold text-muted-foreground tracking-widest">No plans</p>
                                         </div>
                                     ) : (
                                         subscriptions.map(sub => <SubscriptionCard key={sub.id} subscription={sub} />)
