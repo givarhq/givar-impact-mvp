@@ -3,7 +3,6 @@
 import React, { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-    ShieldCheck,
     Building2,
     User,
     FileText,
@@ -36,10 +35,10 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
     const isIndividual = profile.kycType === 'INDIVIDUAL';
 
     const handleReview = async (status: 'VERIFIED' | 'REJECTED') => {
-        if (status === 'REJECTED' && !feedback.trim()) return toast.error("Please Provide Rejection Feedback.");
+        if (status === 'REJECTED' && !feedback.trim()) return toast.error("Please provide rejection feedback.");
 
         setIsProcessing(true);
-        const toastId = toast.loading(`Processing ${status === 'VERIFIED' ? 'Verification' : 'Rejection'}...`);
+        const toastId = toast.loading(`Processing ${status === 'VERIFIED' ? 'verification' : 'rejection'}...`);
         try {
             await ApiService.organizations.review(profile.id, { status, feedback });
             toast.success(`Identity status successfully updated to ${status.toLowerCase()}`, { id: toastId });
@@ -52,7 +51,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
         }
     };
 
-    const viewDoc = async (key: string) => {
+    const viewDoc = async (key: string, docName: string) => {
         const toastId = toast.loading('Decrypting secure document...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, 'admin-org-context');
@@ -63,13 +62,19 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
             } else {
                 setLightboxState({
                     isOpen: true,
-                    items: [{ url: viewUrl, type: 'IMAGE', alt: 'Secure Document' }],
+                    items: [{ url: viewUrl, type: 'IMAGE', alt: docName }],
                     index: 0
                 });
             }
         } catch (e) {
             toast.error('Access denied', { id: toastId });
         }
+    };
+
+    const getDocumentName = (index: number) => {
+        if (index === 0) return isIndividual ? 'Government ID' : 'Registration document';
+        if (index === 1) return isIndividual ? 'Liveness check' : "Director's ID";
+        return `Document ${index + 1}`;
     };
 
     const statusColor = {
@@ -98,15 +103,15 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                     <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-3">
                             <h1 className="text-lg font-bold tracking-tight text-foreground truncate max-w-full">{profile.legalName}</h1>
-                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[10px] tracking-widest border  shrink-0", statusColor)}>
+                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[10px] tracking-widest border shrink-0", statusColor)}>
                                 {profile.status}
                             </Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
-                            <span className="flex items-center gap-1.5 shrink-0"><Calendar className="h-3.5 w-3.5" /> Registered On {formatDate(profile.createdAt).split(',')[0]}</span>
-                            <span className="flex items-center gap-1.5 shrink-0"><Fingerprint className="h-3.5 w-3.5 text-primary" /> {isIndividual ? 'Gov ID' : 'Reg ID'}: {profile.registrationNumber || 'Not Provided'}</span>
+                            <span className="flex items-center gap-1.5 shrink-0"><Calendar className="h-3.5 w-3.5" /> Registered on {formatDate(profile.createdAt).split(',')[0]}</span>
+                            <span className="flex items-center gap-1.5 shrink-0"><Fingerprint className="h-3.5 w-3.5 text-primary" /> {isIndividual ? 'Gov ID' : 'Reg ID'}: {profile.registrationNumber || 'Not provided'}</span>
                             <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-3xl bg-muted/50 border border-border/40", isIndividual ? "text-blue-600" : "text-purple-600")}>
-                                {isIndividual ? 'Individual Account' : 'Corporate Entity'}
+                                {isIndividual ? 'Individual account' : 'Corporate entity'}
                             </span>
                         </div>
                     </div>
@@ -119,20 +124,20 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                             disabled={isProcessing}
                             className="flex-1 lg:flex-none h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs tracking-wider border-0 transition-all active:scale-95"
                         >
-                            Verify Identity
+                            Verify identity
                         </Button>
                     )}
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button variant="outline" className="flex-1 lg:flex-none h-11 px-6 rounded-3xl border-border/60 text-foreground font-bold text-xs tracking-wider hover:bg-muted transition-all active:scale-95">
-                                Audit Actions
+                                Audit actions
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
                             <DialogHeader><DialogTitle className="text-lg font-bold">Administrative Decision</DialogTitle></DialogHeader>
                             <div className="space-y-6 pt-4">
                                 <div className="space-y-2">
-                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 tracking-widest">Decision Feedback</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 tracking-widest">Decision feedback</label>
                                     <textarea
                                         className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
                                         placeholder="State specific reason for rejection or requested changes..."
@@ -141,8 +146,8 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Button variant="outline" className="rounded-3xl h-12 font-bold text-xs border-destructive/20 text-destructive hover:bg-destructive/5 transition-all active:scale-95" onClick={() => handleReview('REJECTED')} disabled={isProcessing}>Reject Identity</Button>
-                                    <Button className="rounded-3xl h-12 font-bold bg-amber-500 hover:bg-amber-600 border-0 text-xs text-white shadow-md active:scale-95" disabled={true}>Request Edits</Button>
+                                    <Button variant="outline" className="rounded-3xl h-12 font-bold text-xs border-destructive/20 text-destructive hover:bg-destructive/5 transition-all active:scale-95" onClick={() => handleReview('REJECTED')} disabled={isProcessing}>Reject identity</Button>
+                                    <Button className="rounded-3xl h-12 font-bold bg-amber-500 hover:bg-amber-600 border-0 text-xs text-white shadow-md active:scale-95" disabled={true}>Request edits</Button>
                                 </div>
                             </div>
                         </DialogContent>
@@ -155,7 +160,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                 <div className="lg:col-span-4 space-y-6">
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold tracking-widest text-muted-foreground flex items-center gap-2">
                                 <User className="h-3.5 w-3.5 text-primary" /> Proposer Account
                             </CardTitle>
                         </CardHeader>
@@ -171,11 +176,11 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center shadow-sm">
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Joined</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest">Joined</p>
                                     <p className="text-xs font-bold mt-1 tabular-nums">{formatDate(profile.user.createdAt).split(',')[0]}</p>
                                 </div>
                                 <div className="p-3 rounded-3xl bg-muted/10 border border-border/40 text-center shadow-sm">
-                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest ">Cause Count</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground tracking-widest">Cause count</p>
                                     <p className="text-xs font-bold mt-1 tabular-nums">{profile.user._count.projects}</p>
                                 </div>
                             </div>
@@ -184,29 +189,32 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
 
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold tracking-widest text-muted-foreground flex items-center gap-2">
                                 <FileText className="h-3.5 w-3.5 text-primary" /> Compliance Assets
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 space-y-2">
-                            {profile.documentKeys?.map((key: string, i: number) => (
-                                <button
-                                    key={i}
-                                    onClick={() => viewDoc(key)}
-                                    className="w-full flex items-center justify-between p-3.5 rounded-3xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
-                                >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className="h-9 w-9 rounded-2xl bg-background flex items-center justify-center shrink-0 border border-border/10 shadow-sm group-hover:border-primary/20">
-                                            <FileText className="h-4.5 w-4.5 text-primary" />
+                            {profile.documentKeys?.map((key: string, i: number) => {
+                                const docName = getDocumentName(i);
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => viewDoc(key, docName)}
+                                        className="w-full flex items-center justify-between p-3.5 rounded-3xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
+                                    >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="h-9 w-9 rounded-2xl bg-background flex items-center justify-center shrink-0 border border-border/10 shadow-sm group-hover:border-primary/20">
+                                                <FileText className="h-4.5 w-4.5 text-primary" />
+                                            </div>
+                                            <div className="text-left min-w-0">
+                                                <p className="text-xs font-bold text-foreground truncate group-hover:text-primary">{docName}</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate">Secure access</p>
+                                            </div>
                                         </div>
-                                        <div className="text-left min-w-0">
-                                            <p className="text-xs font-bold text-foreground truncate group-hover:text-primary">Legal Document {i + 1}</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate">Secure Access</p>
-                                        </div>
-                                    </div>
-                                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
-                                </button>
-                            ))}
+                                        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                                    </button>
+                                );
+                            })}
                         </CardContent>
                     </Card>
                 </div>
@@ -223,7 +231,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                         {profile.user.projects?.length === 0 ? (
                             <div className="py-24 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/10">
                                 <FileText className="h-10 w-10 mx-auto text-muted-foreground opacity-20 mb-3" />
-                                <p className="text-xs font-bold text-muted-foreground tracking-widest ">No Historic Projects Recorded</p>
+                                <p className="text-xs font-bold text-muted-foreground tracking-widest">No historic projects recorded</p>
                             </div>
                         ) : profile.user.projects.map((p: any) => {
                             const percent = Math.min(100, Math.round((Number(p.raisedAmount) / Number(p.targetAmount)) * 100)) || 0;
@@ -232,7 +240,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 min-w-0">
                                         <div className="space-y-2 flex-1 min-w-0 w-full">
                                             <div className="flex items-center gap-3">
-                                                <Badge variant="outline" className="text-[9px] font-bold rounded-3xl px-2.5 bg-primary/5 text-primary border-primary/10 shadow-none ">{p.status}</Badge>
+                                                <Badge variant="outline" className="text-[9px] font-bold rounded-3xl px-2.5 bg-primary/5 text-primary border-primary/10 shadow-none">{p.status}</Badge>
                                                 <span className="text-[10px] font-mono text-muted-foreground opacity-50 truncate">Id: {p.id.split('-')[0]}</span>
                                             </div>
                                             <h4 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">{p.title}</h4>
@@ -241,11 +249,11 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                             </div>
                                         </div>
                                         <div className="text-left md:text-right shrink-0">
-                                            <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-1 ">Total Raised</p>
+                                            <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-1">Total raised</p>
                                             <div className="font-bold text-foreground text-sm tabular-nums">
                                                 <SmartCurrency amount={p.raisedAmount} currency={p.currency} visible={true} size="default" />
                                             </div>
-                                            <p className="text-[10px] font-black text-primary mt-1 ">{percent}% Of Goal</p>
+                                            <p className="text-[10px] font-black text-primary mt-1">{percent}% of goal</p>
                                         </div>
                                     </div>
                                 </Card>
@@ -263,8 +271,8 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                 variant="default"
                 title={`Verify ${isIndividual ? 'Identity' : 'Organization'}`}
                 description={`Establish ${profile.legalName} as a verified ${isIndividual ? 'individual advocate' : 'registered partner'}? This grants permission to launch public causes on the discovery feed.`}
-                confirmText="Confirm Verification"
-                cancelText="Cancel Audit"
+                confirmText="Confirm verification"
+                cancelText="Cancel audit"
             />
 
             <ImageLightbox
