@@ -163,41 +163,55 @@ export default function StartProposalPage() {
                         <div className="h-16 w-16 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2 border border-primary/20 shadow-inner">
                             <ShieldCheck className="h-8 w-8" />
                         </div>
-                        <h2 className="text-2xl font-bold text-foreground">Complete Your Setup</h2>
+                        <h2 className="text-2xl font-bold text-foreground">Finish Setup</h2>
                         <p className="text-sm text-muted-foreground max-w-[380px] mx-auto font-medium leading-relaxed">
-                            To maintain a secure and trusted environment, please complete these verification steps before launching your cause.
+                            Please complete verification before submitting your cause.
                         </p>
                     </div>
 
                     <CardContent className="p-6 md:p-8 space-y-4 flex flex-col">
                         {/* Step 1: Email Verification */}
-                        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10 transition-colors">
+                        <Link
+                            href="/dashboard/settings?tab=profile"
+                            className={cn(
+                                "flex items-center justify-between gap-4 p-4 rounded-2xl border bg-muted/10 transition-all group active:scale-[0.99] cursor-pointer",
+                                isEmailUnverified ? "border-border/40 hover:bg-muted/20 hover:border-primary/30" : "border-border/40 hover:bg-muted/20"
+                            )}
+                        >
                             <div className="flex items-center gap-4">
-                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
+                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-colors",
                                     !isEmailUnverified ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
                                 )}>
                                     {!isEmailUnverified ? <CheckCircle2 className="h-5 w-5" /> : <Hourglass className="h-5 w-5" />}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-foreground">Email Verification</p>
+                                    <p className={cn("text-sm font-bold transition-colors", isEmailUnverified ? "text-foreground group-hover:text-primary" : "text-foreground")}>
+                                        Email Verification
+                                    </p>
                                     <p className="text-xs text-muted-foreground font-medium">Confirm your email address</p>
                                 </div>
                             </div>
                             {!isEmailUnverified ? (
                                 <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-2.5 py-1 rounded-full">Verified</Badge>
                             ) : (
-                                <Link href="/dashboard/settings?tab=profile" className="shrink-0">
-                                    <span className="flex items-center gap-0.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors">
-                                        Verify <ChevronRight className="h-3.5 w-3.5" />
-                                    </span>
-                                </Link>
+                                <span className="flex items-center gap-0.5 text-xs font-bold text-primary group-hover:text-primary/80 transition-colors shrink-0">
+                                    Verify <ChevronRight className="h-3.5 w-3.5" />
+                                </span>
                             )}
-                        </div>
+                        </Link>
 
                         {/* Step 2: Identity Verification */}
-                        <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10 transition-colors">
+                        <Link
+                            href="/dashboard/settings?tab=verification"
+                            className={cn(
+                                "flex items-center justify-between gap-4 p-4 rounded-2xl border bg-muted/10 transition-all group active:scale-[0.99] cursor-pointer",
+                                orgStatus === 'VERIFIED' ? "border-border/40 hover:bg-muted/20" :
+                                    orgStatus === 'REJECTED' ? "border-border/40 hover:bg-destructive/5 hover:border-destructive/30" :
+                                        "border-border/40 hover:bg-muted/20 hover:border-primary/30"
+                            )}
+                        >
                             <div className="flex items-center gap-4">
-                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
+                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-colors",
                                     orgStatus === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
                                         orgStatus === 'PENDING' ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
                                             orgStatus === 'REJECTED' ? "bg-destructive/10 text-destructive border-destructive/20" :
@@ -209,7 +223,13 @@ export default function StartProposalPage() {
                                                 <Hourglass className="h-5 w-5" />}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-foreground">Identity Verification</p>
+                                    <p className={cn("text-sm font-bold transition-colors",
+                                        orgStatus === 'VERIFIED' || orgStatus === 'PENDING' ? "text-foreground" :
+                                            orgStatus === 'REJECTED' ? "text-foreground group-hover:text-destructive" :
+                                                "text-foreground group-hover:text-primary"
+                                    )}>
+                                        Identity Verification
+                                    </p>
                                     <p className="text-xs text-muted-foreground font-medium">Provide official identification</p>
                                 </div>
                             </div>
@@ -218,16 +238,14 @@ export default function StartProposalPage() {
                             ) : orgStatus === 'PENDING' ? (
                                 <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 shadow-none font-bold text-[11px] px-2.5 py-1 rounded-full">Pending</Badge>
                             ) : (
-                                <Link href="/dashboard/settings?tab=verification" className="shrink-0">
-                                    <span className={cn(
-                                        "flex items-center gap-0.5 text-xs font-bold transition-colors",
-                                        orgStatus === 'REJECTED' ? "text-destructive hover:text-destructive/80" : "text-primary hover:text-primary/80"
-                                    )}>
-                                        {orgStatus === 'REJECTED' ? 'Fix' : 'Submit'} <ChevronRight className="h-3.5 w-3.5" />
-                                    </span>
-                                </Link>
+                                <span className={cn(
+                                    "flex items-center gap-0.5 text-xs font-bold transition-colors shrink-0",
+                                    orgStatus === 'REJECTED' ? "text-destructive group-hover:text-destructive/80" : "text-primary group-hover:text-primary/80"
+                                )}>
+                                    {orgStatus === 'REJECTED' ? 'Fix' : 'Submit'} <ChevronRight className="h-3.5 w-3.5" />
+                                </span>
                             )}
-                        </div>
+                        </Link>
                     </CardContent>
                 </Card>
             </div>
