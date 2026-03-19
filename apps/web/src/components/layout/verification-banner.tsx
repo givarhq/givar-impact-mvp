@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldAlert, ArrowRight, Loader2, X, Clock, ShieldCheck } from 'lucide-react';
+import { ShieldAlert, ArrowRight, X, Clock, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/button';
-import { ApiService } from '../../services/api';
-import toast from 'react-hot-toast';
 import Link from 'next/link';
 
 interface VerificationBannerProps {
@@ -19,20 +17,7 @@ interface VerificationBannerProps {
 }
 
 export function VerificationBanner({ user }: VerificationBannerProps) {
-    const [isLoading, setIsLoading] = useState(false);
     const [isDismissed, setIsDismissed] = useState(false);
-
-    const handleResendEmail = async () => {
-        setIsLoading(true);
-        try {
-            await ApiService.auth.resendVerification(user.email);
-            toast.success("Verification link sent to your inbox");
-        } catch (error) {
-            toast.error("Could not send the link. Please try again.");
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     if (isDismissed) return null;
 
@@ -51,7 +36,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
     if (!needsEmail && !needsKycBanner) return null;
 
     let title = 'Verify your email address';
-    let description = 'Please check your inbox for a confirmation link to secure your account.';
+    let description = 'Please confirm your email address to secure your account.';
     let buttonText = 'Verify email';
     let linkTab = 'profile';
     let Icon = ShieldAlert;
@@ -91,7 +76,6 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
             titleText: "text-amber-900 dark:text-amber-100",
             descText: "text-amber-800/80 dark:text-amber-400/80",
             btnBg: "bg-amber-600 hover:bg-amber-700 dark:bg-amber-500 dark:hover:bg-amber-600",
-            resendText: "text-amber-700 dark:text-amber-500 hover:bg-amber-500/10",
             closeHover: "hover:bg-amber-500/10 text-amber-700/50 dark:text-amber-500/30"
         },
         rose: {
@@ -102,7 +86,6 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
             titleText: "text-rose-900 dark:text-rose-100",
             descText: "text-rose-800/80 dark:text-rose-400/80",
             btnBg: "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600",
-            resendText: "", // Not used in this state
             closeHover: "hover:bg-rose-500/10 text-rose-700/50 dark:text-rose-500/30"
         },
         blue: {
@@ -113,7 +96,6 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
             titleText: "text-blue-900 dark:text-blue-100",
             descText: "text-blue-800/80 dark:text-blue-400/80",
             btnBg: "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600",
-            resendText: "", // Not used in this state
             closeHover: "hover:bg-blue-500/10 text-blue-700/50 dark:text-blue-500/30"
         }
     }[colorTheme];
@@ -140,38 +122,22 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
 
                 {/* Right Section */}
                 <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
-
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        {needsEmail && (
-                            <button
-                                onClick={handleResendEmail}
-                                disabled={isLoading}
-                                className={`h-8 sm:h-8 px-4 rounded-3xl text-xs font-bold ${themeStyles.resendText} transition-colors disabled:opacity-50 w-full sm:w-auto flex items-center justify-center`}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                                ) : null}
-                                Resend email
-                            </button>
-                        )}
-
-                        <Link
-                            href={`/dashboard/settings?tab=${linkTab}`}
-                            className="w-full sm:w-auto"
+                    <Link
+                        href={`/dashboard/settings?tab=${linkTab}`}
+                        className="w-full sm:w-auto"
+                    >
+                        <Button
+                            size="sm"
+                            className={`h-8 sm:h-8 w-full sm:w-auto rounded-3xl text-xs font-bold ${themeStyles.btnBg} text-white border-0 px-5 shadow-sm active:scale-95 transition-all`}
                         >
-                            <Button
-                                size="sm"
-                                className={`h-8 sm:h-8 w-full sm:w-auto rounded-3xl text-xs font-bold ${themeStyles.btnBg} text-white border-0 px-5 shadow-sm active:scale-95 transition-all`}
-                            >
-                                {buttonText}
-                                <ArrowRight className="ml-1.5 h-3 w-3" />
-                            </Button>
-                        </Link>
-                    </div>
+                            {buttonText}
+                            <ArrowRight className="ml-1.5 h-3 w-3" />
+                        </Button>
+                    </Link>
 
                     <button
                         onClick={() => setIsDismissed(true)}
-                        className={`p-1 rounded-full ${themeStyles.closeHover} transition-colors`}
+                        className={`p-1.5 ml-1 rounded-full ${themeStyles.closeHover} transition-colors`}
                     >
                         <X className="h-4 w-4" />
                     </button>
