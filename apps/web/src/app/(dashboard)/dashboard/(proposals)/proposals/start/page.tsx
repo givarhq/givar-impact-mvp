@@ -220,7 +220,7 @@ export default function StartProposalPage() {
                             ) : (
                                 <Link href="/dashboard/settings?tab=verification" className="w-full sm:w-auto">
                                     <Button size="sm" variant={orgStatus === 'REJECTED' ? 'destructive' : 'default'} className="w-full sm:w-auto rounded-3xl font-bold text-xs h-9 px-5 shadow-sm active:scale-95 transition-all">
-                                        {orgStatus === 'REJECTED' ? 'Fix Issues' : 'Submit Identity'} <ArrowRight className="ml-1.5 h-3 w-3" />
+                                        {orgStatus === 'REJECTED' ? 'Fix Issues' : 'Submit'} <ArrowRight className="ml-1.5 h-3 w-3" />
                                     </Button>
                                 </Link>
                             )}
