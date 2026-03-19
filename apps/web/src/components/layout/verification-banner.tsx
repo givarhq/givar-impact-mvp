@@ -68,17 +68,17 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
         linkTab = 'verification';
         colorTheme = 'rose';
     } else if (orgStatus === 'PENDING') {
-        title = 'Identity audit in progress';
+        title = 'Verification in progress';
         description = "We're currently checking your documents. We'll notify you as soon as you're verified.";
         buttonText = 'View status';
-        linkTab = 'org';
+        linkTab = 'verification';
         Icon = Clock;
         colorTheme = 'blue';
     } else if (isOrganizerLackingKyc) {
         title = 'Verify your identity';
         description = 'Upload your identity documents to start raising funds for your causes.';
         buttonText = 'Complete setup';
-        linkTab = 'org';
+        linkTab = 'verification';
         Icon = ShieldCheck;
     }
 
