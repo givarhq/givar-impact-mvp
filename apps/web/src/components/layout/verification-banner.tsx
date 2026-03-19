@@ -55,7 +55,9 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
     let buttonText = 'Verify email';
     let linkTab = 'profile';
     let Icon = ShieldAlert;
-    let colorTheme = 'amber'; // 'amber' | 'rose' | 'blue'
+
+    // EXPLICIT TYPE DEFINITION ADDED HERE to fix TS Build Error
+    let colorTheme: 'amber' | 'rose' | 'blue' = 'amber';
 
     // Hierarchy of needs: Email > Rejected KYC > Pending KYC > Unsubmitted Organizer KYC
     if (needsEmail) {
