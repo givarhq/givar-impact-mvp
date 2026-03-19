@@ -38,21 +38,26 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingSlot, setUploadingSlot] = useState<'primary' | 'secondary' | null>(null);
 
-  // LOGIC: Strictly bind the verification path to their account type setting.
-  // If they previously submitted as one type, we respect that historic submission.
-  const kycType = (initialProfile as any)?.kycType || (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL');
+  const status = initialProfile?.status || 'NOT_SUBMITTED';
+
+  // LOGIC FIX: If the profile is actively pending or verified, lock the kycType to what was submitted.
+  // Otherwise (if they were rejected or haven't submitted), respect their current accountType setting.
+  const isLockedState = status === 'VERIFIED' || status === 'PENDING';
+  const kycType = isLockedState && (initialProfile as any)?.kycType
+    ? (initialProfile as any).kycType
+    : (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL');
 
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
   const [regNumber, setRegNumber] = useState(initialProfile?.registrationNumber || '');
 
+  // If the user switched types after a rejection, we don't automatically clear the old docs from state
+  // so they don't lose them unnecessarily, but they can easily trash them using the UI.
   const [primaryDoc, setPrimaryDoc] = useState<{ key: string, name: string } | null>(
     initialProfile?.documentKeys?.[0] ? { key: initialProfile.documentKeys[0], name: 'Uploaded document 1' } : null
   );
   const [secondaryDoc, setSecondaryDoc] = useState<{ key: string, name: string } | null>(
     initialProfile?.documentKeys?.[1] ? { key: initialProfile.documentKeys[1], name: 'Uploaded document 2' } : null
   );
-
-  const status = initialProfile?.status || 'NOT_SUBMITTED';
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, slot: 'primary' | 'secondary') => {
     const file = e.target.files?.[0];
