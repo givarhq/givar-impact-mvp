@@ -9,10 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../components/ui/select';
+import { Badge } from '../../../../../../components/ui/badge';
 import { ApiService } from '../../../../../../services/api';
 import { getCookie, setCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { Loader2, ArrowRight, ShieldCheck, MailCheck, AlertCircle, ListChecks, Image as ImageIcon, FileText, User, Users, Clock, ShieldAlert, Database } from 'lucide-react';
+import {
+    Loader2, ArrowRight, ShieldCheck, AlertCircle, ListChecks,
+    Image as ImageIcon, FileText, User, Users, Clock, Database,
+    Hourglass, CheckCircle2
+} from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -148,107 +153,78 @@ export default function StartProposalPage() {
         );
     }
 
-    if (isEmailUnverified) {
+    const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED';
+
+    if (!isReadyToStart) {
         return (
-            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
-                <div className="text-center space-y-2 py-2">
-                    <div className="h-16 w-16 rounded-[24px] bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-500/20 shadow-inner">
-                        <MailCheck className="h-8 w-8" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-foreground">Verify your email</h2>
-                    <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
-                        To maintain a secure environment, please verify your email address before proposing causes.
-                    </p>
-                </div>
-
-                <Card className="border-rose-200 bg-rose-50/30 rounded-3xl overflow-hidden shadow-sm">
-                    <CardContent className="p-6 space-y-6 flex flex-col items-center">
-                        <div className="flex items-start gap-3 w-full">
-                            <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-rose-900">Action required</p>
-                                <p className="text-xs text-rose-800 leading-relaxed font-medium">
-                                    Check your inbox for a verification link or generate a new code in your profile settings.
-                                </p>
-                            </div>
-                        </div>
-                        <Link href="/dashboard/settings?tab=profile" className="block">
-                            <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white border-0 gap-2 shadow-lg shadow-rose-600/20">
-                                Verify profile <ArrowRight className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    if (orgStatus === 'PENDING') {
-        return (
-            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
-                <div className="text-center space-y-2 py-2">
-                    <div className="h-16 w-16 rounded-[24px] bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-500/20 shadow-inner">
-                        <Clock className="h-8 w-8 animate-pulse" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-foreground">Identity audit in progress</h2>
-                    <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
-                        Your identity documents are currently being verified by our compliance team. You can start a cause once approved.
-                    </p>
-                </div>
-
-                <Card className="border-amber-200 bg-amber-50/30 rounded-3xl overflow-hidden shadow-sm">
-                    <CardContent className="p-6 space-y-6 flex flex-col items-center">
-                        <Link href="/dashboard/settings?tab=verification" className="block">
-                            <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-amber-600 hover:bg-amber-700 text-white border-0 gap-2 shadow-lg shadow-amber-600/20">
-                                View status <ArrowRight className="h-4 w-4" />
-                            </Button>
-                        </Link>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
-    if (orgStatus === 'NOT_SUBMITTED' || orgStatus === 'REJECTED') {
-        return (
-            <div className="max-w-xl mx-auto space-y-4 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
+            <div className="max-w-2xl mx-auto space-y-6 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
                 <div className="text-center space-y-2 py-2">
                     <div className="h-16 w-16 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">
                         <ShieldCheck className="h-8 w-8" />
                     </div>
-                    <h2 className="text-2xl font-bold text-foreground">Verify your identity</h2>
-                    <p className="text-sm text-muted-foreground max-w-[320px] mx-auto font-medium leading-relaxed">
-                        We require all cause organizers to verify their identity once before they can publish projects on the ledger.
+                    <h2 className="text-2xl font-bold text-foreground">Complete Your Setup</h2>
+                    <p className="text-sm text-muted-foreground max-w-[380px] mx-auto font-medium leading-relaxed">
+                        To maintain a secure and trusted environment, please complete these verification steps before launching your cause.
                     </p>
                 </div>
 
                 <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm">
-                    <CardContent className="p-6 space-y-6 flex flex-col items-center">
-                        {orgStatus === 'REJECTED' && (
-                            <div className="flex items-start gap-3 w-full p-4 rounded-2xl bg-destructive/5 border border-destructive/10 mb-2">
-                                <ShieldAlert className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-destructive">Previous submission declined</p>
-                                    <p className="text-xs text-foreground/80 leading-relaxed font-medium">
-                                        Your previous verification documents were not accepted. Please review the feedback in your settings and try again.
-                                    </p>
+                    <CardContent className="p-6 md:p-8 space-y-4 flex flex-col">
+                        {/* Step 1: Email Verification */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10 transition-colors">
+                            <div className="flex items-center gap-4">
+                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
+                                    !isEmailUnverified ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                )}>
+                                    {!isEmailUnverified ? <CheckCircle2 className="h-5 w-5" /> : <Hourglass className="h-5 w-5" />}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-foreground">Email Verification</p>
+                                    <p className="text-xs text-muted-foreground font-medium">Confirm your email address</p>
                                 </div>
                             </div>
-                        )}
-                        <div className="flex items-start gap-3 w-full">
-                            <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                            <div className="space-y-1">
-                                <p className="text-xs font-bold text-foreground">One-time setup</p>
-                                <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                                    You only need to do this once. Once approved, you can launch as many causes as you want without re-verifying.
-                                </p>
-                            </div>
+                            {!isEmailUnverified ? (
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full">Verified</Badge>
+                            ) : (
+                                <Link href="/dashboard/settings?tab=profile" className="w-full sm:w-auto">
+                                    <Button size="sm" className="w-full sm:w-auto rounded-3xl font-bold text-xs h-9 px-5 shadow-sm active:scale-95 transition-all bg-primary hover:bg-primary/90 text-white">
+                                        Verify Email <ArrowRight className="ml-1.5 h-3 w-3" />
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
-                        <Link href="/dashboard/settings?tab=verification" className="block">
-                            <Button className="w-[12rem] h-12 rounded-3xl font-bold text-xs bg-primary hover:bg-primary/90 text-white border-0 gap-2 shadow-lg shadow-primary/20">
-                                Verify identity <ArrowRight className="h-4 w-4" />
-                            </Button>
-                        </Link>
+
+                        {/* Step 2: Identity Verification */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10 transition-colors">
+                            <div className="flex items-center gap-4">
+                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
+                                    orgStatus === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                        orgStatus === 'PENDING' ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+                                            orgStatus === 'REJECTED' ? "bg-destructive/10 text-destructive border-destructive/20" :
+                                                "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                )}>
+                                    {orgStatus === 'VERIFIED' ? <CheckCircle2 className="h-5 w-5" /> :
+                                        orgStatus === 'PENDING' ? <Clock className="h-5 w-5 animate-pulse" /> :
+                                            orgStatus === 'REJECTED' ? <AlertCircle className="h-5 w-5" /> :
+                                                <Hourglass className="h-5 w-5" />}
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-foreground">Identity Verification</p>
+                                    <p className="text-xs text-muted-foreground font-medium">Provide official identification</p>
+                                </div>
+                            </div>
+                            {orgStatus === 'VERIFIED' ? (
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full">Verified</Badge>
+                            ) : orgStatus === 'PENDING' ? (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 shadow-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full">Pending Review</Badge>
+                            ) : (
+                                <Link href="/dashboard/settings?tab=verification" className="w-full sm:w-auto">
+                                    <Button size="sm" variant={orgStatus === 'REJECTED' ? 'destructive' : 'default'} className="w-full sm:w-auto rounded-3xl font-bold text-xs h-9 px-5 shadow-sm active:scale-95 transition-all">
+                                        {orgStatus === 'REJECTED' ? 'Fix Issues' : 'Submit Identity'} <ArrowRight className="ml-1.5 h-3 w-3" />
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -371,7 +347,7 @@ export default function StartProposalPage() {
                                 <div className="flex items-center justify-center">
                                     <Button
                                         type="submit"
-                                        className="w-auto h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
+                                        className="w-auto h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0 bg-primary hover:bg-primary/90 text-white"
                                         disabled={isLoading || categories.length === 0}
                                     >
                                         {isLoading ? (
