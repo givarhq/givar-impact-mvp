@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import {
     Loader2, ArrowRight, ShieldCheck, AlertCircle, ListChecks,
     Image as ImageIcon, FileText, User, Users, Clock, Database,
-    Hourglass, CheckCircle2
+    Hourglass, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 import Link from 'next/link';
@@ -157,7 +157,7 @@ export default function StartProposalPage() {
 
     if (!isReadyToStart) {
         return (
-            <div className="max-w-2xl mx-auto space-y-6 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
+            <div className="max-w-2xl mx-auto space-y-8 min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
                 <div className="text-center space-y-2 py-2">
                     <div className="h-16 w-16 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">
                         <ShieldCheck className="h-8 w-8" />
@@ -168,65 +168,66 @@ export default function StartProposalPage() {
                     </p>
                 </div>
 
-                <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm">
-                    <CardContent className="p-6 md:p-8 space-y-4 flex flex-col">
-                        {/* Step 1: Email Verification */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
-                                    !isEmailUnverified ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                                )}>
-                                    {!isEmailUnverified ? <CheckCircle2 className="h-5 w-5" /> : <Hourglass className="h-5 w-5" />}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-foreground">Email Verification</p>
-                                    <p className="text-xs text-muted-foreground font-medium">Confirm your email address</p>
-                                </div>
+                <div className="space-y-4 flex flex-col">
+                    {/* Step 1: Email Verification */}
+                    <div className="flex items-center justify-between gap-4 p-5 rounded-3xl border border-border/40 bg-card shadow-sm transition-colors">
+                        <div className="flex items-center gap-4">
+                            <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
+                                !isEmailUnverified ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                            )}>
+                                {!isEmailUnverified ? <CheckCircle2 className="h-5 w-5" /> : <Hourglass className="h-5 w-5" />}
                             </div>
-                            {!isEmailUnverified ? (
-                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full">Verified</Badge>
-                            ) : (
-                                <Link href="/dashboard/settings?tab=profile" className="w-full sm:w-auto">
-                                    <Button size="sm" className="w-full sm:w-auto rounded-3xl font-bold text-xs h-9 px-5 shadow-sm active:scale-95 transition-all bg-primary hover:bg-primary/90 text-white">
-                                        Verify Email <ArrowRight className="ml-1.5 h-3 w-3" />
-                                    </Button>
-                                </Link>
-                            )}
+                            <div>
+                                <p className="text-sm font-bold text-foreground">Email Verification</p>
+                                <p className="text-xs text-muted-foreground font-medium">Confirm your email address</p>
+                            </div>
                         </div>
+                        {!isEmailUnverified ? (
+                            <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-3 py-1 rounded-full">Verified</Badge>
+                        ) : (
+                            <Link href="/dashboard/settings?tab=profile" className="shrink-0">
+                                <span className="flex items-center gap-0.5 text-sm font-bold text-primary hover:text-primary/80 transition-colors">
+                                    Verify <ChevronRight className="h-4 w-4" />
+                                </span>
+                            </Link>
+                        )}
+                    </div>
 
-                        {/* Step 2: Identity Verification */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
-                                    orgStatus === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
-                                        orgStatus === 'PENDING' ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
-                                            orgStatus === 'REJECTED' ? "bg-destructive/10 text-destructive border-destructive/20" :
-                                                "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                                )}>
-                                    {orgStatus === 'VERIFIED' ? <CheckCircle2 className="h-5 w-5" /> :
-                                        orgStatus === 'PENDING' ? <Clock className="h-5 w-5 animate-pulse" /> :
-                                            orgStatus === 'REJECTED' ? <AlertCircle className="h-5 w-5" /> :
-                                                <Hourglass className="h-5 w-5" />}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-foreground">Identity Verification</p>
-                                    <p className="text-xs text-muted-foreground font-medium">Provide official identification</p>
-                                </div>
+                    {/* Step 2: Identity Verification */}
+                    <div className="flex items-center justify-between gap-4 p-5 rounded-3xl border border-border/40 bg-card shadow-sm transition-colors">
+                        <div className="flex items-center gap-4">
+                            <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner",
+                                orgStatus === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                    orgStatus === 'PENDING' ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+                                        orgStatus === 'REJECTED' ? "bg-destructive/10 text-destructive border-destructive/20" :
+                                            "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                            )}>
+                                {orgStatus === 'VERIFIED' ? <CheckCircle2 className="h-5 w-5" /> :
+                                    orgStatus === 'PENDING' ? <Clock className="h-5 w-5 animate-pulse" /> :
+                                        orgStatus === 'REJECTED' ? <AlertCircle className="h-5 w-5" /> :
+                                            <Hourglass className="h-5 w-5" />}
                             </div>
-                            {orgStatus === 'VERIFIED' ? (
-                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full">Verified</Badge>
-                            ) : orgStatus === 'PENDING' ? (
-                                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 shadow-none font-bold text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-full">Pending Review</Badge>
-                            ) : (
-                                <Link href="/dashboard/settings?tab=verification" className="w-full sm:w-auto">
-                                    <Button size="sm" variant={orgStatus === 'REJECTED' ? 'destructive' : 'default'} className="w-full sm:w-auto rounded-3xl font-bold text-xs h-9 px-5 shadow-sm active:scale-95 transition-all">
-                                        {orgStatus === 'REJECTED' ? 'Fix Issues' : 'Submit'} <ArrowRight className="ml-1.5 h-3 w-3" />
-                                    </Button>
-                                </Link>
-                            )}
+                            <div>
+                                <p className="text-sm font-bold text-foreground">Identity Verification</p>
+                                <p className="text-xs text-muted-foreground font-medium">Provide official identification</p>
+                            </div>
                         </div>
-                    </CardContent>
-                </Card>
+                        {orgStatus === 'VERIFIED' ? (
+                            <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-3 py-1 rounded-full">Verified</Badge>
+                        ) : orgStatus === 'PENDING' ? (
+                            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 shadow-none font-bold text-[11px] px-3 py-1 rounded-full">Pending</Badge>
+                        ) : (
+                            <Link href="/dashboard/settings?tab=verification" className="shrink-0">
+                                <span className={cn(
+                                    "flex items-center gap-0.5 text-sm font-bold transition-colors",
+                                    orgStatus === 'REJECTED' ? "text-destructive hover:text-destructive/80" : "text-primary hover:text-primary/80"
+                                )}>
+                                    {orgStatus === 'REJECTED' ? 'Fix' : 'Submit'} <ChevronRight className="h-4 w-4" />
+                                </span>
+                            </Link>
+                        )}
+                    </div>
+                </div>
             </div>
         );
     }
