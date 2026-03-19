@@ -55,6 +55,7 @@ export const Footer = memo(function Footer() {
                                 <li><Link href="/legal/refund" className="hover:text-primary transition-colors">Refund Policy</Link></li>
                                 <li><Link href="/legal/cancellation" className="hover:text-primary transition-colors">Cancellation Policy</Link></li>
                                 <li><Link href="/legal/agreement" className="hover:text-primary transition-colors">Cause Organiser Agreement</Link></li>
+                                <li><Link href="/legal/acceptable-use" className="hover:text-primary transition-colors">Acceptable Use Policy</Link></li>
                             </ul>
                         </div>
                     </div>
