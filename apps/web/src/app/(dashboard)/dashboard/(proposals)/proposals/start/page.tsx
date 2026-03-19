@@ -165,7 +165,7 @@ export default function StartProposalPage() {
                         </div>
                         <h2 className="text-2xl font-bold text-foreground">Finish Setup</h2>
                         <p className="text-sm text-muted-foreground max-w-[380px] mx-auto font-medium leading-relaxed">
-                            Please complete verification before submitting your cause.
+                            Please complete verification before submitting your cause
                         </p>
                     </div>
 
