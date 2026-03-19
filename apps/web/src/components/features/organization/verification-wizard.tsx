@@ -98,7 +98,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
     }
 
     setIsLoading(true);
-    const toastId = toast.loading("Submitting identity for audit...");
+    const toastId = toast.loading("Submitting...");
     try {
       await ApiService.organizations.submitKyc({
         legalName: legalName.trim(),
@@ -224,14 +224,13 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
             <div className="space-y-1">
               <h3 className="font-bold text-sm text-foreground">Account classification</h3>
               <p className="text-xs text-muted-foreground font-medium">
-                You are verifying as {kycType === 'INDIVIDUAL' ? 'an individual advocate' : 'a registered corporate entity'}. If this is incorrect, you can change your account mode in the <Link href="/dashboard/settings?tab=profile" className="text-primary hover:underline font-bold">Profile</Link> tab.
+                You are verifying as {kycType === 'INDIVIDUAL' ? (
+                  <strong>an individual advocate</strong>
+                ) : (
+                  <strong>a registered corporation</strong>
+                )}
+                . If this is incorrect, you can change your account mode in the <Link href="/dashboard/settings?tab=profile" className="text-primary hover:underline font-bold">Profile</Link> tab.
               </p>
-            </div>
-            <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-muted/30 border border-border/40 shadow-inner">
-              {kycType === 'INDIVIDUAL' ? <UserCheck className="h-4 w-4 text-muted-foreground" /> : <Building2 className="h-4 w-4 text-muted-foreground" />}
-              <span className="text-xs font-bold text-foreground">
-                {kycType === 'INDIVIDUAL' ? 'Individual account' : 'Organization account'}
-              </span>
             </div>
           </div>
 
@@ -400,7 +399,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
           className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Submit identity for audit
+          Submit
         </Button>
       </div>
     </motion.div>
