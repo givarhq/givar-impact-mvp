@@ -206,7 +206,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
           <div className="space-y-1">
             <h4 className="font-bold text-blue-900 text-sm">Corporate Verification Upgrade Required</h4>
             <p className="text-xs text-blue-800 leading-relaxed font-medium">
-              You recently switched your account mode to Organizer. Because your previous verification was for an Individual, you must now supply valid corporate registration documents to verify your organization's identity.
+              You recently switched your account mode to Organization. Because your previous verification was for an Individual, you must now supply valid corporate registration documents to verify your organization's identity.
             </p>
           </div>
         </div>
