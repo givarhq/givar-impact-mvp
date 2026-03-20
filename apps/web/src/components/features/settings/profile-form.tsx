@@ -323,24 +323,30 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                 onClose={() => setSwitchModal({ isOpen: false, type: null })}
                 onConfirm={executeAccountSwitch}
                 isLoading={isLoading}
-                title="Switch Workspace Mode"
+                title={`Switch to ${switchModal.type === 'ORGANIZER' ? 'Organization' : 'Personal'} Mode?`}
                 variant={isCurrentlyVerified ? 'warning' : 'default'}
                 description={
                     <div className="space-y-3">
-                        <p>Switch your account to <strong>{switchModal.type === 'ORGANIZER' ? 'Organization Account' : 'Personal Account'}</strong>?</p>
-                        <p>Organization mode is for managing verified entities, while Personal mode is for individual impact.</p>
+                        <p className="text-sm text-gray-600">
+                            {switchModal.type === 'ORGANIZER'
+                                ? 'Organization mode lets you manage verified entities and run causes on their behalf.'
+                                : 'Personal mode is designed for individual use and personal impact.'}
+                        </p>
 
                         {isCurrentlyVerified && (
                             <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3 mt-4">
                                 <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                                <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                                    <strong>Compliance Notice:</strong> Switching your account type will invalidate your current {user.accountType === 'INDIVIDUAL' ? 'individual' : 'corporate'} verification. You will be required to submit new legal documents corresponding to your new account type to launch causes.
-                                </p>
+                                <div className="text-xs text-amber-800 leading-relaxed">
+                                    <strong>Verification will be reset.</strong>
+                                    <p className="mt-1">
+                                        You'll need to submit new {user.accountType === 'INDIVIDUAL' ? 'individual' : 'corporate'} documents to continue creating causes.
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </div>
                 }
-                confirmText="Confirm Switch"
+                confirmText="Switch"
             />
         </div>
     );
