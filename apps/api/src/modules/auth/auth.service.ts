@@ -16,7 +16,7 @@ import { PrismaService } from '../../common/prisma.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
-import { AccountType, AuditAction } from '@givar/database';
+import { AccountType, AuditAction, VerificationStatus } from '@givar/database';
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import * as crypto from 'crypto';
