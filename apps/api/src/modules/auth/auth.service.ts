@@ -634,7 +634,10 @@ export class AuthService {
   async switchAccountType(userId: string, targetType: AccountType) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { _count: { select: { projects: true } } }
+      include: {
+        _count: { select: { projects: true } },
+        organization: true // Include the KYC profile to check for drift
+      }
     });
 
     if (!user) throw new NotFoundException('User not found');
@@ -648,22 +651,65 @@ export class AuthService {
       throw new BadRequestException('Cannot downgrade to Individual account while you have existing projects. Please suspend them first.');
     }
 
-    const updated = await this.prisma.user.update({
-      where: { id: userId },
-      data: { accountType: targetType },
+    let keysToPurge: string[] = [];
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      // 1. Update the User's core account mode
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: { accountType: targetType },
+      });
+
+      // 2. COMPLIANCE GUARD: Invalidate existing KYC if it doesn't match the new account tier
+      if (user.organization && (user.organization.kycType as string) !== targetType) {
+        // Queue old documents for secure deletion
+        keysToPurge = user.organization.documentKeys || [];
+
+        await tx.organizationProfile.update({
+          where: { userId },
+          data: {
+            kycType: targetType as any,
+            status: VerificationStatus.NOT_SUBMITTED,
+            adminFeedback: 'System Reset: Account type changed. Please submit documents matching your new account tier.',
+            verifiedAt: null,
+            documentKeys: [], // Sever access to old documents
+          }
+        });
+
+        await this.audit.log({
+          userId,
+          action: AuditAction.PROFILE_UPDATED,
+          entityId: user.organization.id,
+          entityType: 'OrganizationProfile',
+          metadata: {
+            reason: 'ACCOUNT_TYPE_SWITCH',
+            note: `KYC invalidated due to account type change from ${user.accountType} to ${targetType}`
+          }
+        }, tx);
+      }
+
+      // 3. Log the actual account switch
+      await this.audit.log({
+        userId,
+        action: AuditAction.ACCOUNT_TYPE_CHANGED,
+        entityId: userId,
+        entityType: 'User',
+        metadata: {
+          previous: user.accountType,
+          new: targetType,
+          reason: 'USER_INITIATED_SWITCH'
+        }
+      }, tx);
+
+      return updatedUser;
     });
 
-    await this.audit.log({
-      userId,
-      action: AuditAction.ACCOUNT_TYPE_CHANGED,
-      entityId: userId,
-      entityType: 'User',
-      metadata: {
-        previous: user.accountType,
-        new: targetType,
-        reason: 'USER_INITIATED_SWITCH'
-      }
-    });
+    // 4. Asynchronously purge the old identity documents from the S3 Vault to prevent data leaks
+    if (keysToPurge.length > 0) {
+      this.storage.deleteFiles(keysToPurge).catch(err =>
+        this.logger.error(`Failed to purge old KYC docs after account switch: ${err.message}`)
+      );
+    }
 
     return updated;
   }
