@@ -16,6 +16,7 @@ interface IdentitySyncProps {
         organization?: {
             status: string;
             legalName: string;
+            kycType: string;
         } | null;
     } | null;
 }
@@ -34,19 +35,19 @@ export function IdentitySync({ user }: IdentitySyncProps) {
             try {
                 const localUser = JSON.parse(userCookie as string);
 
-                // Check for critical state drift, including KYC Verification status
                 const hasDrifted =
                     localUser.emailVerified !== user.emailVerified ||
                     localUser.accountType !== user.accountType ||
                     localUser.role !== user.role ||
-                    localUser.organization?.status !== user.organization?.status;
+                    localUser.organization?.status !== user.organization?.status ||
+                    localUser.organization?.kycType !== user.organization?.kycType;
 
                 if (hasDrifted) {
                     // Force synchronization of the local cookie with server truth
                     setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
 
                     // Trigger a silent refresh of the current page to update all 
-                    // dependent UI overlays immediately.
+                    // dependent UI overlays (like the Verification Banner) immediately.
                     window.location.reload();
                 }
             } catch (e) {

@@ -421,6 +421,7 @@ export class AuthService {
           select: {
             status: true,
             legalName: true,
+            kycType: true,
           }
         },
       },
