@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldAlert, ArrowRight, X, Clock, ShieldCheck } from 'lucide-react';
+import { ShieldAlert, ArrowRight, X, Clock, ShieldCheck, Building2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import Link from 'next/link';
 
@@ -12,6 +12,7 @@ interface VerificationBannerProps {
         accountType: 'INDIVIDUAL' | 'ORGANIZER';
         organization?: {
             status: 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+            kycType?: 'INDIVIDUAL' | 'ORGANIZATION';
         } | null;
     };
 }
@@ -23,16 +24,17 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
 
     const needsEmail = !user.emailVerified;
     const orgStatus = user.organization?.status || 'NOT_SUBMITTED';
+    const orgKycType = user.organization?.kycType;
 
-    // Logic: Do not aggressively prompt pure donors for KYC. 
-    // Only prompt for KYC if they have an active pending/rejected state,
-    // OR if they specifically toggled their account to ORGANIZER but haven't submitted.
     const isActivelySeekingKyc = orgStatus === 'PENDING' || orgStatus === 'REJECTED';
     const isOrganizerLackingKyc = user.accountType === 'ORGANIZER' && orgStatus === 'NOT_SUBMITTED';
 
-    const needsKycBanner = isActivelySeekingKyc || isOrganizerLackingKyc;
+    // COMPLIANCE GUARD: 
+    // Trigger the banner if they switched to an Organization account but their verified profile is still an Individual.
+    const isOrganizerNeedingUpgrade = user.accountType === 'ORGANIZER' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
 
-    // If they don't need email verification and don't fall into the KYC banner criteria, render nothing.
+    const needsKycBanner = isActivelySeekingKyc || isOrganizerLackingKyc || isOrganizerNeedingUpgrade;
+
     if (!needsEmail && !needsKycBanner) return null;
 
     let title = 'Verify your email address';
@@ -43,7 +45,6 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
 
     let colorTheme: 'amber' | 'rose' | 'blue' = 'amber';
 
-    // Hierarchy of needs: Email > Rejected KYC > Pending KYC > Unsubmitted Organizer KYC
     if (needsEmail) {
         // Defaults apply (Amber)
     } else if (orgStatus === 'REJECTED') {
@@ -58,6 +59,13 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
         buttonText = 'View status';
         linkTab = 'verification';
         Icon = Clock;
+        colorTheme = 'blue';
+    } else if (isOrganizerNeedingUpgrade) {
+        title = 'Upgrade your verification';
+        description = 'You switched to an Organization account. Please supply corporate documents.';
+        buttonText = 'Upgrade now';
+        linkTab = 'verification';
+        Icon = Building2;
         colorTheme = 'blue';
     } else if (isOrganizerLackingKyc) {
         title = 'Verify your identity';
@@ -103,8 +111,6 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
     return (
         <div className={`w-full ${themeStyles.bg} border-b ${themeStyles.border} px-4 py-2 sm:py-2.5 animate-in slide-in-from-top duration-500 z-40 transition-colors`}>
             <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-
-                {/* Left Section */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                     <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-xl sm:rounded-2xl ${themeStyles.iconBg} flex items-center justify-center ${themeStyles.iconText} shrink-0 shadow-inner`}>
                         <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -120,7 +126,6 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
                     </div>
                 </div>
 
-                {/* Right Section */}
                 <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-between sm:justify-end">
                     <Link
                         href={`/dashboard/settings?tab=${linkTab}`}

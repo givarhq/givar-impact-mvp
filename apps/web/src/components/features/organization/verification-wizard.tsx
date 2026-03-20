@@ -25,7 +25,7 @@ import { OrganizationProfile } from '../../../types';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
 import { Badge } from '../../ui/badge';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 interface VerificationWizardProps {
@@ -39,24 +39,30 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
   const [uploadingSlot, setUploadingSlot] = useState<'primary' | 'secondary' | null>(null);
 
   const status = initialProfile?.status || 'NOT_SUBMITTED';
+  const profileKycType = (initialProfile as any)?.kycType;
 
-  // LOGIC FIX: If the profile is actively pending or verified, lock the kycType to what was submitted.
-  // Otherwise (if they were rejected or haven't submitted), respect their current accountType setting.
-  const isLockedState = status === 'VERIFIED' || status === 'PENDING';
-  const kycType = isLockedState && (initialProfile as any)?.kycType
-    ? (initialProfile as any).kycType
-    : (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL');
+  // COMPLIANCE GUARD: If they are verified as an INDIVIDUAL but switched their account to ORGANIZER,
+  // they MUST submit new corporate documents. Their previous verification is insufficient.
+  const isUpgradeRequired = user.accountType === 'ORGANIZER' && profileKycType === 'INDIVIDUAL' && status === 'VERIFIED';
+  const effectiveStatus = isUpgradeRequired ? 'NOT_SUBMITTED' : status;
+
+  const isLockedState = effectiveStatus === 'VERIFIED' || effectiveStatus === 'PENDING';
+
+  const kycType = isUpgradeRequired ? 'ORGANIZATION' : (
+    isLockedState && profileKycType
+      ? profileKycType
+      : (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL')
+  );
 
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
   const [regNumber, setRegNumber] = useState(initialProfile?.registrationNumber || '');
 
-  // If the user switched types after a rejection, we don't automatically clear the old docs from state
-  // so they don't lose them unnecessarily, but they can easily trash them using the UI.
+  // Wipe previous docs from state if an upgrade is required so they don't accidentally re-submit their personal ID
   const [primaryDoc, setPrimaryDoc] = useState<{ key: string, name: string } | null>(
-    initialProfile?.documentKeys?.[0] ? { key: initialProfile.documentKeys[0], name: 'Uploaded document 1' } : null
+    !isUpgradeRequired && initialProfile?.documentKeys?.[0] ? { key: initialProfile.documentKeys[0], name: 'Uploaded document 1' } : null
   );
   const [secondaryDoc, setSecondaryDoc] = useState<{ key: string, name: string } | null>(
-    initialProfile?.documentKeys?.[1] ? { key: initialProfile.documentKeys[1], name: 'Uploaded document 2' } : null
+    !isUpgradeRequired && initialProfile?.documentKeys?.[1] ? { key: initialProfile.documentKeys[1], name: 'Uploaded document 2' } : null
   );
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, slot: 'primary' | 'secondary') => {
@@ -121,7 +127,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
     }
   };
 
-  if (status === 'VERIFIED') {
+  if (effectiveStatus === 'VERIFIED') {
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -162,7 +168,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
     );
   }
 
-  if (status === 'PENDING') {
+  if (effectiveStatus === 'PENDING') {
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -194,17 +200,29 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
       transition={{ duration: 0.3 }}
       className="max-w-5xl mx-auto space-y-4 md:space-y-6"
     >
-      <div className="p-5 rounded-3xl bg-blue-50 border border-blue-100 flex items-start gap-4 shadow-sm animate-in slide-in-from-top-2">
-        <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <h4 className="font-bold text-blue-900 text-sm">One-time identity verification</h4>
-          <p className="text-xs text-blue-800 leading-relaxed font-medium">
-            This is a strict, one-time verification process. Once your identity is approved by our audit team, you will be able to launch as many causes as you want without needing to re-verify who you are.
-          </p>
+      {isUpgradeRequired ? (
+        <div className="p-5 rounded-3xl bg-blue-50 border border-blue-100 flex items-start gap-4 shadow-sm animate-in slide-in-from-top-2">
+          <Building2 className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="font-bold text-blue-900 text-sm">Corporate Verification Upgrade Required</h4>
+            <p className="text-xs text-blue-800 leading-relaxed font-medium">
+              You recently switched your account mode to Organizer. Because your previous verification was for an Individual, you must now supply valid corporate registration documents to verify your organization's identity.
+            </p>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="p-5 rounded-3xl bg-blue-50 border border-blue-100 flex items-start gap-4 shadow-sm animate-in slide-in-from-top-2">
+          <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <h4 className="font-bold text-blue-900 text-sm">One-time identity verification</h4>
+            <p className="text-xs text-blue-800 leading-relaxed font-medium">
+              This is a strict, one-time verification process. Once your identity is approved by our audit team, you will be able to launch as many causes as you want without needing to re-verify who you are.
+            </p>
+          </div>
+        </div>
+      )}
 
-      {status === 'REJECTED' && (
+      {effectiveStatus === 'REJECTED' && (
         <div className="p-5 rounded-3xl bg-destructive/5 border border-destructive/10 flex items-start gap-4 shadow-sm">
           <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
           <div className="space-y-1">
@@ -388,7 +406,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
           className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          Submit
+          {isUpgradeRequired ? 'Submit Corporate Verification' : 'Submit'}
         </Button>
       </div>
     </motion.div>

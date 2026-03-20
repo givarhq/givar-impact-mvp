@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import {
     Loader2, ArrowRight, ShieldCheck, AlertCircle, ListChecks,
     Image as ImageIcon, FileText, User, Users, Clock, Database,
-    Hourglass, CheckCircle2, ChevronRight
+    Hourglass, CheckCircle2, ChevronRight, Building2
 } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 import Link from 'next/link';
@@ -45,6 +45,8 @@ export default function StartProposalPage() {
 
     const [isEmailUnverified, setIsEmailUnverified] = useState(false);
     const [orgStatus, setOrgStatus] = useState<string>('NOT_SUBMITTED');
+    const [orgKycType, setOrgKycType] = useState<string | null>(null);
+    const [userAccountType, setUserAccountType] = useState<string>('INDIVIDUAL');
     const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | null>(null);
     const [isGateCheckComplete, setIsGateCheckComplete] = useState(false);
 
@@ -56,8 +58,9 @@ export default function StartProposalPage() {
             try {
                 parsedUser = JSON.parse(userCookie as string);
                 setIsEmailUnverified(parsedUser.emailVerified === false);
-                // Set optimistic status from cookie
                 setOrgStatus(parsedUser.organization?.status || 'NOT_SUBMITTED');
+                setOrgKycType(parsedUser.organization?.kycType || null);
+                setUserAccountType(parsedUser.accountType || 'INDIVIDUAL');
             } catch (e) {
                 setIsEmailUnverified(false);
             }
@@ -73,10 +76,21 @@ export default function StartProposalPage() {
             .then((profile) => {
                 if (profile) {
                     setOrgStatus(profile.status);
-                    // Silently heal the cookie if it was stale
-                    if (parsedUser && parsedUser.organization?.status !== profile.status) {
-                        parsedUser.organization = { ...parsedUser.organization, status: profile.status };
-                        setCookie('givar_user', JSON.stringify(parsedUser), { maxAge: 604800, path: '/' });
+                    setOrgKycType(profile.kycType);
+
+                    if (parsedUser) {
+                        let hasDrift = false;
+                        if (parsedUser.organization?.status !== profile.status) hasDrift = true;
+                        if (parsedUser.organization?.kycType !== profile.kycType) hasDrift = true;
+
+                        if (hasDrift) {
+                            parsedUser.organization = {
+                                ...parsedUser.organization,
+                                status: profile.status,
+                                kycType: profile.kycType
+                            };
+                            setCookie('givar_user', JSON.stringify(parsedUser), { maxAge: 604800, path: '/' });
+                        }
                     }
                 }
             })
@@ -153,7 +167,9 @@ export default function StartProposalPage() {
         );
     }
 
-    const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED';
+    // COMPLIANCE GUARD: Prevent "VERIFIED" individuals from starting corporate projects
+    const isUpgradeRequired = userAccountType === 'ORGANIZER' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
+    const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED' && !isUpgradeRequired;
 
     if (!isReadyToStart) {
         return (
@@ -192,7 +208,7 @@ export default function StartProposalPage() {
                                 </div>
                             </div>
                             {!isEmailUnverified ? (
-                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-2.5 py-1 rounded-full">Verified</Badge>
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-3 py-1 rounded-full">Verified</Badge>
                             ) : (
                                 <span className="flex items-center gap-0.5 text-xs font-bold text-primary group-hover:text-primary/80 transition-colors shrink-0">
                                     Verify <ChevronRight className="h-3.5 w-3.5" />
@@ -205,44 +221,50 @@ export default function StartProposalPage() {
                             href="/dashboard/settings?tab=verification"
                             className={cn(
                                 "flex items-center justify-between gap-4 p-4 rounded-2xl border bg-muted/10 transition-all group active:scale-[0.99] cursor-pointer",
-                                orgStatus === 'VERIFIED' ? "border-border/40 hover:bg-muted/20" :
+                                orgStatus === 'VERIFIED' && !isUpgradeRequired ? "border-border/40 hover:bg-muted/20" :
                                     orgStatus === 'REJECTED' ? "border-border/40 hover:bg-destructive/5 hover:border-destructive/30" :
                                         "border-border/40 hover:bg-muted/20 hover:border-primary/30"
                             )}
                         >
                             <div className="flex items-center gap-4">
                                 <div className={cn("h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-colors",
-                                    orgStatus === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
-                                        orgStatus === 'PENDING' ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
-                                            orgStatus === 'REJECTED' ? "bg-destructive/10 text-destructive border-destructive/20" :
-                                                "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                    isUpgradeRequired ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+                                        orgStatus === 'VERIFIED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                                            orgStatus === 'PENDING' ? "bg-blue-500/10 text-blue-600 border-blue-500/20" :
+                                                orgStatus === 'REJECTED' ? "bg-destructive/10 text-destructive border-destructive/20" :
+                                                    "bg-amber-500/10 text-amber-600 border-amber-500/20"
                                 )}>
-                                    {orgStatus === 'VERIFIED' ? <CheckCircle2 className="h-5 w-5" /> :
-                                        orgStatus === 'PENDING' ? <Clock className="h-5 w-5 animate-pulse" /> :
-                                            orgStatus === 'REJECTED' ? <AlertCircle className="h-5 w-5" /> :
-                                                <Hourglass className="h-5 w-5" />}
+                                    {isUpgradeRequired ? <Building2 className="h-5 w-5" /> :
+                                        orgStatus === 'VERIFIED' ? <CheckCircle2 className="h-5 w-5" /> :
+                                            orgStatus === 'PENDING' ? <Clock className="h-5 w-5 animate-pulse" /> :
+                                                orgStatus === 'REJECTED' ? <AlertCircle className="h-5 w-5" /> :
+                                                    <Hourglass className="h-5 w-5" />}
                                 </div>
                                 <div>
                                     <p className={cn("text-sm font-bold transition-colors",
-                                        orgStatus === 'VERIFIED' || orgStatus === 'PENDING' ? "text-foreground" :
-                                            orgStatus === 'REJECTED' ? "text-foreground group-hover:text-destructive" :
-                                                "text-foreground group-hover:text-primary"
+                                        isUpgradeRequired ? "text-foreground group-hover:text-blue-600" :
+                                            orgStatus === 'VERIFIED' || orgStatus === 'PENDING' ? "text-foreground" :
+                                                orgStatus === 'REJECTED' ? "text-foreground group-hover:text-destructive" :
+                                                    "text-foreground group-hover:text-primary"
                                     )}>
-                                        Identity Verification
+                                        {isUpgradeRequired ? 'Corporate Upgrade' : 'Identity Verification'}
                                     </p>
-                                    <p className="text-xs text-muted-foreground font-medium">Provide official identification</p>
+                                    <p className="text-xs text-muted-foreground font-medium">
+                                        {isUpgradeRequired ? 'Supply business registration' : 'Provide official identification'}
+                                    </p>
                                 </div>
                             </div>
-                            {orgStatus === 'VERIFIED' ? (
-                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-2.5 py-1 rounded-full">Verified</Badge>
-                            ) : orgStatus === 'PENDING' ? (
-                                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 shadow-none font-bold text-[11px] px-2.5 py-1 rounded-full">Pending</Badge>
+                            {orgStatus === 'VERIFIED' && !isUpgradeRequired ? (
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-3 py-1 rounded-full">Verified</Badge>
+                            ) : orgStatus === 'PENDING' && !isUpgradeRequired ? (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-200 shadow-none font-bold text-[11px] px-3 py-1 rounded-full">Pending</Badge>
                             ) : (
                                 <span className={cn(
                                     "flex items-center gap-0.5 text-xs font-bold transition-colors shrink-0",
-                                    orgStatus === 'REJECTED' ? "text-destructive group-hover:text-destructive/80" : "text-primary group-hover:text-primary/80"
+                                    isUpgradeRequired ? "text-blue-600 group-hover:text-blue-600/80" :
+                                        orgStatus === 'REJECTED' ? "text-destructive group-hover:text-destructive/80" : "text-primary group-hover:text-primary/80"
                                 )}>
-                                    {orgStatus === 'REJECTED' ? 'Fix' : 'Submit'} <ChevronRight className="h-3.5 w-3.5" />
+                                    {isUpgradeRequired ? 'Upgrade' : orgStatus === 'REJECTED' ? 'Fix' : 'Submit'} <ChevronRight className="h-3.5 w-3.5" />
                                 </span>
                             )}
                         </Link>
