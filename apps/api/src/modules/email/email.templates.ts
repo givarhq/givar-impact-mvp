@@ -1,5 +1,5 @@
 export const EmailTemplates = {
-  base: (content: string, title: string, logoUrl = 'https://givar.vercel.app/Givar1.png') => `
+  base: (content: string, title: string, logoUrl = 'https://givarapp.com/Givar1.png') => `
     <!DOCTYPE html>
     <html lang="en">
       <head>
