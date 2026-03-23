@@ -134,7 +134,7 @@ export class OrganizationService {
             type: 'KYC_STATUS',
             title: 'Identity verified',
             content: `Your profile "${profile.legalName}" has been successfully verified. You can now launch public causes.`,
-            link: '/dashboard/settings?tab=org'
+            link: '/dashboard/settings?tab=verification'
           }
         });
       } else if (status === VerificationStatus.REJECTED) {
@@ -166,7 +166,7 @@ export class OrganizationService {
             type: 'KYC_STATUS',
             title: 'Verification rejected',
             content: `We could not verify your identity at this time. Feedback: ${feedback || 'Please review your documents.'}`,
-            link: '/dashboard/settings?tab=org'
+            link: '/dashboard/settings?tab=verification'
           }
         });
       }

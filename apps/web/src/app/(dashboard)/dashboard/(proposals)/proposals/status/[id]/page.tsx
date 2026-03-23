@@ -82,7 +82,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
             actionRequired = {
                 title: 'Identity Verification Pending',
                 description: 'Your proposal is paused. You must complete the organization verification process to proceed.',
-                link: `/dashboard/settings?tab=org`,
+                link: `/dashboard/settings?tab=verification`,
                 buttonText: 'Complete Verification',
                 icon: ShieldCheck,
                 color: 'blue'
