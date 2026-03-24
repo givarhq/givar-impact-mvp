@@ -538,6 +538,9 @@ export const ApiService = {
       ),
     getOrganizationById: (token: string, id: string) =>
       serverFetch<any>(`/organizations/admin/${id}`, token, { tags: [`admin-org-${id}`] }),
+
+    getPreviewUrl: (key: string) =>
+      apiClient.get(`/organizations/documents/preview?key=${encodeURIComponent(key)}`).then(r => r.data),
   },
 
   communication: {

@@ -53,4 +53,10 @@ export class OrganizationController {
   async getOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
+
+  @Get('documents/preview')
+  getPreviewUrl(@Req() req: any, @Query('key') key: string) {
+    if (!key) throw new BadRequestException('Document key is required');
+    return this.service.getDocumentPreviewUrl(req.user.id, key);
+  }
 }

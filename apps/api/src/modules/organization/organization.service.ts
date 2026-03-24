@@ -289,4 +289,16 @@ export class OrganizationService {
       }
     };
   }
+
+  async getDocumentPreviewUrl(userId: string, key: string) {
+    const profile = await this.prisma.organizationProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile || !profile.documentKeys.includes(key)) {
+      throw new ForbiddenException('Access denied to this document');
+    }
+
+    return this.storage.getPresignedViewUrl(key);
+  } s
 }
