@@ -377,4 +377,28 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Proposal Received');
     return this.send(email, `Givar Confirmation: ${data.projectTitle} Submitted`, html);
   }
+
+  // 24. Sends an email to the user when their KYC documents are submitted
+  async sendKycSubmittedEmail(email: string, data: { name: string; kycType: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/settings?tab=verification`;
+    const content = EmailTemplates.kycSubmitted({ ...data, url });
+    const html = EmailTemplates.base(content, 'Verification Documents Received');
+    return this.send(email, 'Givar Impact: Verification in progress', html);
+  }
+
+  // 25. Sends an email to the user when their KYC is approved
+  async sendKycApprovedEmail(email: string, data: { name: string; kycType: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals/start`; // Direct them to start a cause
+    const content = EmailTemplates.kycApproved({ ...data, url });
+    const html = EmailTemplates.base(content, 'Identity Verified');
+    return this.send(email, 'Givar Impact: Your identity has been verified', html);
+  }
+
+  // 26. Sends an email to the user when their KYC is rejected
+  async sendKycRejectedEmail(email: string, data: { name: string; feedback: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/settings?tab=verification`;
+    const content = EmailTemplates.kycRejected({ ...data, url });
+    const html = EmailTemplates.base(content, 'Verification Requires Attention');
+    return this.send(email, 'Givar Action Required: Identity Verification', html);
+  }
 }

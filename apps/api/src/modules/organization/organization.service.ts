@@ -1,19 +1,21 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { Prisma, VerificationStatus, AuditAction, ProposalStatus, AccountType, NotificationType, UserRole } from '@givar/database';
 import { AuditService } from '../audit/audit.service';
 import { OrganizationQueryDto } from './dto/organization-query.dto';
 import { NotificationService } from '../notifications/notification.service';
 import { EmailService } from '../email/email.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class OrganizationService {
   private readonly logger = new Logger(OrganizationService.name);
   constructor(
-    private prisma: PrismaService,
-    private audit: AuditService,
-    private notification: NotificationService,
-    private emailService: EmailService
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly notification: NotificationService,
+    private readonly emailService: EmailService,
+    private readonly storage: StorageService
   ) { }
 
   // 1. User: Submit KYC
@@ -32,7 +34,8 @@ export class OrganizationService {
           ...data,
           status: VerificationStatus.PENDING,
         },
-        include: { user: { select: { firstName: true, lastName: true } } }
+        // We ensure email is fetched for the user email notification
+        include: { user: { select: { email: true, firstName: true, lastName: true } } }
       });
 
       // 2. Fetch all Administrative Nodes
@@ -56,11 +59,17 @@ export class OrganizationService {
 
       return profile;
     }).then(async (profile) => {
-      // 4. Trigger External Email Broadcast (Async)
+      // 4. Trigger External Email Broadcast to Admins (Async)
       this.emailService.sendAdminKycAlert({
         orgName: data.legalName,
         proposerName: `${profile.user.firstName} ${profile.user.lastName}`
       }).catch(err => this.logger.error(`Admin KYC Email Failed: ${err.message}`));
+
+      // 5. Trigger Confirmation Email to User (Async)
+      this.emailService.sendKycSubmittedEmail(profile.user.email, {
+        name: profile.user.firstName,
+        kycType: profile.kycType
+      }).catch(err => this.logger.error(`User KYC Submitted Email Failed: ${err.message}`));
 
       return profile;
     });
@@ -84,7 +93,7 @@ export class OrganizationService {
 
     if (!profile) throw new NotFoundException('Profile not found');
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
 
       // 1. Update the Organization Profile
       const updated = await tx.organizationProfile.update({
@@ -100,19 +109,14 @@ export class OrganizationService {
       if (status === VerificationStatus.VERIFIED) {
         // --- PATH: APPROVAL ---
 
-        // HYBRID LOGIC: 
-        // If KYC Type is ORGANIZATION, upgrade AccountType to ORGANIZER.
-        // If KYC Type is INDIVIDUAL, keep AccountType as INDIVIDUAL (Personal Account).
         if (updated.kycType === 'ORGANIZATION') {
           await tx.user.update({
             where: { id: updated.userId },
             data: { accountType: AccountType.ORGANIZER },
           });
         }
-        // Note: For Individual KYC, we do NOT change the accountType. 
-        // They remain 'INDIVIDUAL' but now have a verified profile to launch projects.
 
-        const result = await tx.projectProposal.updateMany({
+        const res = await tx.projectProposal.updateMany({
           where: {
             userId: updated.userId,
             status: ProposalStatus.AWAITING_VERIFICATION
@@ -123,11 +127,11 @@ export class OrganizationService {
           }
         });
 
-        if (result.count > 0) {
-          this.logger.log(`Auto-submitted ${result.count} proposals for verified user ${updated.userId}`);
+        if (res.count > 0) {
+          this.logger.log(`Auto-submitted ${res.count} proposals for verified user ${updated.userId}`);
         }
 
-        // Logic: Notify user of successful verification
+        // Notify user of successful verification
         await tx.notification.create({
           data: {
             userId: updated.userId,
@@ -139,8 +143,6 @@ export class OrganizationService {
         });
       } else if (status === VerificationStatus.REJECTED) {
         // --- PATH: REJECTION ---
-        // Downgrade account type ONLY if they were previously an Organizer. 
-        // If they were Individual, they stay Individual (just unverified).
         if (profile.kycType === 'ORGANIZATION') {
           await tx.user.update({
             where: { id: updated.userId },
@@ -148,7 +150,6 @@ export class OrganizationService {
           });
         }
 
-        // Move "waiting" proposals back to DRAFT so user can see feedback and edit
         await tx.projectProposal.updateMany({
           where: {
             userId: updated.userId,
@@ -159,7 +160,8 @@ export class OrganizationService {
             adminFeedback: `KYC Rejected: ${feedback || 'Please review your verification documents.'}`
           }
         });
-        // Logic: Notify user of rejection with feedback
+
+        // Notify user of rejection with feedback
         await tx.notification.create({
           data: {
             userId: updated.userId,
@@ -182,6 +184,21 @@ export class OrganizationService {
 
       return updated;
     });
+
+    // 4. Trigger Email Notification to the User depending on the outcome
+    if (status === VerificationStatus.VERIFIED) {
+      this.emailService.sendKycApprovedEmail(profile.user.email, {
+        name: profile.user.firstName,
+        kycType: profile.kycType
+      }).catch(e => this.logger.error(`KYC Approved Email Failed: ${e.message}`));
+    } else if (status === VerificationStatus.REJECTED) {
+      this.emailService.sendKycRejectedEmail(profile.user.email, {
+        name: profile.user.firstName,
+        feedback: feedback || 'Please review your verification documents.'
+      }).catch(e => this.logger.error(`KYC Rejected Email Failed: ${e.message}`));
+    }
+
+    return result;
   }
 
   async getProfileByUserId(userId: string) {

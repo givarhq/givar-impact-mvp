@@ -516,4 +516,54 @@ export const EmailTemplates = {
     </div>
     <p style="font-size: 13px; color: #6b7280;">You can reply to this email if you have any questions regarding the review timeline.</p>
   `,
+
+  kycSubmitted: (data: { name: string; kycType: string; url: string }) => `
+  <p>Hi ${data.name},</p>
+  <p>Your identity documents have been submitted successfully and are now being reviewed.</p>
+  
+  <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
+    <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Status: Under Review</p>
+    <p style="font-size: 15px; color: #064e3b; line-height: 1.6; margin: 0; font-weight: 600;">
+      Our team is checking your ${data.kycType === 'INDIVIDUAL' ? 'personal ID' : 'business registration'} documents. This usually takes 24 to 48 hours.
+    </p>
+  </div>
+
+  <div style="text-align: center; margin: 32px 0;">
+    <a href="${data.url}" class="button">Track Status</a>
+  </div>
+`,
+
+  kycApproved: (data: { name: string; kycType: string; url: string }) => `
+  <p>Hi ${data.name},</p>
+  <p>Good news! Your <strong>${data.kycType === 'INDIVIDUAL' ? 'identity' : 'organization'}</strong> has been verified by the Givar team.</p>
+  
+  <div class="stat-box" style="text-align: center;">
+    <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Verification Status</div>
+    <div style="font-size: 24px; font-weight: 800; color: #064e3b;">Approved</div>
+  </div>
+  
+  <p>You can now create public causes and receive donations on the platform.</p>
+  
+  <div style="text-align: center; margin: 32px 0;">
+    <a href="${data.url}" class="button">Go to Dashboard</a>
+  </div>
+`,
+
+  kycRejected: (data: { name: string; feedback: string; url: string }) => `
+  <p>Hi ${data.name},</p>
+  <p>There was a problem reviewing your identity documents.</p>
+  
+  <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; padding: 24px; margin: 24px 0;">
+    <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #e11d48; margin-bottom: 8px; font-weight: 700;">Action Required</p>
+    <p style="font-size: 15px; color: #881337; line-height: 1.6; margin: 0; font-weight: 600;">
+      ${data.feedback}
+    </p>
+  </div>
+
+  <p>Please log in to your account to see the feedback and upload the correct documents so we can complete your verification.</p>
+  
+  <div style="text-align: center; margin: 32px 0;">
+    <a href="${data.url}" class="button" style="background-color: #e11d48;">Review & Update</a>
+  </div>
+`,
 };
