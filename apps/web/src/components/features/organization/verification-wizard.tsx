@@ -15,7 +15,9 @@ import {
   Fingerprint,
   Info,
   UserCheck,
-  Camera
+  Camera,
+  Eye,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -24,9 +26,9 @@ import { ApiService } from '../../../services/api';
 import { OrganizationProfile } from '../../../types';
 import toast from 'react-hot-toast';
 import { cn } from '../../../lib/utils/cn';
-import { Badge } from '../../ui/badge';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 interface VerificationWizardProps {
   user: any;
@@ -37,6 +39,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingSlot, setUploadingSlot] = useState<'primary' | 'secondary' | null>(null);
+  const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
   const status = initialProfile?.status || 'NOT_SUBMITTED';
   const profileKycType = (initialProfile as any)?.kycType;
@@ -127,13 +130,71 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
     }
   };
 
+  const viewDoc = async (key: string, docName: string) => {
+    const toastId = toast.loading("Opening document...");
+    try {
+      const { viewUrl } = await ApiService.organizations.getPreviewUrl(key);
+      toast.dismiss(toastId);
+      const isDoc = key.toLowerCase().includes('.pdf') || key.toLowerCase().includes('.doc');
+      if (isDoc) {
+        window.open(viewUrl, '_blank');
+      } else {
+        setLightboxState({
+          isOpen: true,
+          items: [{ url: viewUrl, type: 'IMAGE', alt: docName }],
+          index: 0
+        });
+      }
+    } catch (e) {
+      toast.error("Could not open this document securely", { id: toastId });
+    }
+  };
+
+  const renderSubmittedDocuments = () => {
+    if (!initialProfile?.documentKeys || initialProfile.documentKeys.length === 0) return null;
+
+    return (
+      <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mt-6">
+        <CardContent className="p-6 md:p-8 space-y-4">
+          <h3 className="text-sm font-bold text-foreground">Submitted documents</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {initialProfile.documentKeys.map((key: string, i: number) => {
+              const docName = i === 0
+                ? (kycType === 'INDIVIDUAL' ? 'Government ID' : 'Certificate of incorporation')
+                : (kycType === 'INDIVIDUAL' ? 'Liveness check' : "Director's ID");
+
+              return (
+                <button
+                  key={i}
+                  onClick={(e) => { e.preventDefault(); viewDoc(key, docName); }}
+                  className="w-full flex items-center justify-between p-4 rounded-3xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center shrink-0 border border-border/10 shadow-sm group-hover:border-primary/20">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-left min-w-0">
+                      <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">{docName}</p>
+                      <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate">Secure access</p>
+                    </div>
+                  </div>
+                  <ExternalLink className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all shrink-0" />
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
   if (effectiveStatus === 'VERIFIED') {
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="max-w-5xl mx-auto"
+        className="max-w-5xl mx-auto space-y-4 md:space-y-6"
       >
         <Card className="rounded-3xl border-primary/20 bg-primary/5 shadow-sm overflow-hidden">
           <CardContent className="p-6 md:p-12 text-center space-y-6">
@@ -164,6 +225,15 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
             </div>
           </CardContent>
         </Card>
+
+        {renderSubmittedDocuments()}
+
+        <ImageLightbox
+          isOpen={lightboxState.isOpen}
+          onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+          items={lightboxState.items}
+          initialIndex={lightboxState.index}
+        />
       </motion.div>
     );
   }
@@ -174,7 +244,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="max-w-5xl mx-auto"
+        className="max-w-5xl mx-auto space-y-4 md:space-y-6"
       >
         <Card className="rounded-3xl border-amber-500/20 bg-amber-500/5 shadow-sm overflow-hidden">
           <CardContent className="p-6 md:p-12 text-center space-y-4">
@@ -189,6 +259,15 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
             </div>
           </CardContent>
         </Card>
+
+        {renderSubmittedDocuments()}
+
+        <ImageLightbox
+          isOpen={lightboxState.isOpen}
+          onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+          items={lightboxState.items}
+          initialIndex={lightboxState.index}
+        />
       </motion.div>
     );
   }
@@ -316,9 +395,14 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                         </span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all" onClick={() => setPrimaryDoc(null)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" onClick={(e) => { e.preventDefault(); viewDoc(primaryDoc.key, primaryDoc.name); }}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all" onClick={() => setPrimaryDoc(null)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <label className={cn(
@@ -364,9 +448,14 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                         </span>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all" onClick={() => setSecondaryDoc(null)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" onClick={(e) => { e.preventDefault(); viewDoc(secondaryDoc.key, secondaryDoc.name); }}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all" onClick={() => setSecondaryDoc(null)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <label className={cn(
@@ -409,6 +498,13 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
           {isUpgradeRequired ? 'Submit Corporate Verification' : 'Submit'}
         </Button>
       </div>
+
+      <ImageLightbox
+        isOpen={lightboxState.isOpen}
+        onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+        items={lightboxState.items}
+        initialIndex={lightboxState.index}
+      />
     </motion.div>
   );
 });
