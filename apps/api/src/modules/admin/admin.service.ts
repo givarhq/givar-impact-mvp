@@ -811,6 +811,7 @@ export class AdminService {
           accountType: true,
           accountLockedUntil: true,
           avatarKey: true,
+          organization: { select: { status: true } }, // Fetch KYC status explicitly
           _count: { select: { donations: true, projects: true } },
           donations: { select: { amount: true } }
         },
@@ -832,6 +833,7 @@ export class AdminService {
       return {
         ...user,
         donations: undefined,
+        kycStatus: user.organization?.status || 'NOT_SUBMITTED', // Surface KYC logic
         lifetimeImpact: liv.toString(),
         isLocked: !!user.accountLockedUntil && user.accountLockedUntil > new Date(),
         accountType: user.role !== UserRole.USER ? 'SYSTEM' : user.accountType,
@@ -2158,7 +2160,6 @@ export class AdminService {
     }, { timeout: 15000 });
   }
 
-
   async exportUsersToCsv(query: {
     search?: string;
     role?: UserRole;
@@ -2189,13 +2190,13 @@ export class AdminService {
         id: true, email: true, firstName: true, lastName: true,
         role: true, accountType: true, createdAt: true,
         accountLockedUntil: true, emailVerified: true,
+        organization: { select: { status: true } }, // Include for export as well
         donations: { select: { amount: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
 
     const flattened = users.map(u => {
-      // FIX: Ensure BigInt is converted to Number/String immediately
       const livTotalMinor = u.donations.reduce((acc, d) => acc + d.amount, 0n);
       const isLocked = !!u.accountLockedUntil && u.accountLockedUntil > new Date();
 
@@ -2206,13 +2207,14 @@ export class AdminService {
         Role: String(u.role),
         Account_Type: String(u.accountType),
         LIV_NGN: (Number(livTotalMinor) / 100).toFixed(2),
-        Verified: u.emailVerified ? 'YES' : 'NO',
+        Email_Verified: u.emailVerified ? 'YES' : 'NO',
+        KYC_Status: u.organization?.status || 'NOT_SUBMITTED', // Add explicit KYC column
         Status: isLocked ? 'LOCKED' : 'ACTIVE',
         Joined_At: u.createdAt.toISOString()
       };
     });
 
-    if (flattened.length === 0) return 'Forensic_ID,Name,Email,Role,Account_Type,LIV_NGN,Verified,Status,Joined_At';
+    if (flattened.length === 0) return 'Forensic_ID,Name,Email,Role,Account_Type,LIV_NGN,Email_Verified,KYC_Status,Status,Joined_At';
 
     return json2csv(flattened);
   }

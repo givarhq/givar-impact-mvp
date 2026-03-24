@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
     Wallet, Lock, Unlock, ShieldAlert, History, Loader2, Fingerprint,
-    UserCheck, UserSearch, Shield, ShieldOff
+    UserCheck, UserSearch, Shield, ShieldOff, CheckCircle2, Clock,
+    ShieldCheck
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -33,6 +34,11 @@ interface UserForensicViewProps {
         failedLoginAttempts: number;
         lifetimeImpact: string;
         avatarUrl?: string;
+        organization?: {
+            status: string;
+            legalName: string;
+            kycType: string;
+        } | null;
         wallets: Array<{
             id: string;
             currency: string;
@@ -176,9 +182,30 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                                 <Badge variant="outline" className="rounded-3xl bg-muted/30 px-2 py-0.5 text-xs font-bold border-border/40">
                                     {user.accountType}
                                 </Badge>
-                                {user.emailVerified && (
-                                    <Badge className="rounded-3xl bg-emerald-50 text-emerald-600 border-emerald-100 text-xs font-bold">
-                                        Verified
+
+                                {user.organization?.status === 'VERIFIED' && (
+                                    <Badge className="rounded-3xl bg-emerald-50 text-emerald-600 border-emerald-100 text-xs font-bold gap-1 shadow-none">
+                                        <ShieldCheck className="h-3 w-3" /> KYC Verified
+                                    </Badge>
+                                )}
+                                {user.organization?.status === 'PENDING' && (
+                                    <Badge className="rounded-3xl bg-amber-50 text-amber-600 border-amber-100 text-xs font-bold gap-1 animate-pulse shadow-none">
+                                        <Clock className="h-3 w-3" /> KYC Pending
+                                    </Badge>
+                                )}
+                                {user.organization?.status === 'REJECTED' && (
+                                    <Badge className="rounded-3xl bg-destructive/10 text-destructive border-destructive/20 text-xs font-bold gap-1 shadow-none">
+                                        <ShieldAlert className="h-3 w-3" /> KYC Rejected
+                                    </Badge>
+                                )}
+                                {user.emailVerified && user.organization?.status !== 'VERIFIED' && (
+                                    <Badge className="rounded-3xl bg-blue-50 text-blue-600 border-blue-100 text-xs font-bold gap-1 shadow-none">
+                                        <CheckCircle2 className="h-3 w-3" /> Email Verified
+                                    </Badge>
+                                )}
+                                {!user.emailVerified && (
+                                    <Badge className="rounded-3xl bg-muted/50 text-muted-foreground border-border/40 text-xs font-bold gap-1 shadow-none">
+                                        <Clock className="h-3 w-3" /> Unverified
                                     </Badge>
                                 )}
                             </div>
@@ -248,13 +275,14 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                                 </span>
                             </div>
                             <div className="flex justify-between items-center text-xs">
-                                <span className="font-medium text-muted-foreground">Email Status</span>
-                                <span className="font-bold text-foreground">{user.emailVerified ? 'Verified' : 'Pending'}</span>
+                                <span className="font-medium text-muted-foreground">Identity Profile</span>
+                                <span className="font-bold text-foreground">{user.organization?.status || 'NOT SUBMITTED'}</span>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
+                {/* Ledger & Audit Info Sections unchanged */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-3xl">
@@ -273,6 +301,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                         </div>
                     </div>
 
+                    {/* ... existing wallets table ... */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
                             <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
@@ -302,6 +331,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                         </div>
                     </Card>
 
+                    {/* ... existing audit logs table ... */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
                             <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">

@@ -23,7 +23,6 @@ interface UserTableProps {
     onSelectRow: (id: string, checked: boolean) => void;
 }
 
-// Logic: Use memoization to prevent heavy table re-renders during bulk selection or sidebar toggles.
 export const UserTable = memo(function UserTable({
     users,
     currentSort,
@@ -123,6 +122,7 @@ export const UserTable = memo(function UserTable({
                     {users.map((user) => {
                         const isSelected = selectedIds.includes(user.id);
                         const isLocked = user.isLocked;
+                        const kycStatus = user.kycStatus || 'NOT_SUBMITTED';
 
                         return (
                             <motion.div
@@ -188,8 +188,12 @@ export const UserTable = memo(function UserTable({
                                                 <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="small" />
                                             </div>
                                             <Badge variant="outline" className={cn(
-                                                "text-[11px] px-1.5 py-0 rounded-3xl mt-1 font-semibold whitespace-nowrap",
-                                                user.emailVerified ? "text-emerald-600 border-emerald-100" : "text-amber-600 border-amber-100"
+                                                "text-[11px] px-1.5 py-0 rounded-3xl mt-1 font-semibold whitespace-nowrap shadow-none border",
+                                                kycStatus === 'VERIFIED' ? "text-emerald-600 border-emerald-100 bg-emerald-50" :
+                                                    kycStatus === 'PENDING' ? "text-amber-600 border-amber-100 bg-amber-50" :
+                                                        kycStatus === 'REJECTED' ? "text-destructive border-destructive/20 bg-destructive/10" :
+                                                            user.emailVerified ? "text-blue-600 border-blue-100 bg-blue-50" :
+                                                                "text-muted-foreground border-border/40 bg-muted/30"
                                             )}>
                                                 {user.accountType}
                                             </Badge>
@@ -223,7 +227,7 @@ export const UserTable = memo(function UserTable({
                                 </th>
                                 <SortHeader label="Identity" sortKey="firstName" />
                                 <SortHeader label="Account Mode" sortKey="accountType" />
-                                <SortHeader label="Verification Status" sortKey="emailVerified" />
+                                <SortHeader label="Identity Status" sortKey="emailVerified" />
                                 <SortHeader label="Lifetime Impact" sortKey="impactValue" align="right" />
                                 <SortHeader label="Joined Date" sortKey="createdAt" align="right" />
                             </tr>
@@ -232,6 +236,7 @@ export const UserTable = memo(function UserTable({
                             {users.map((user) => {
                                 const isSelected = selectedIds.includes(user.id);
                                 const isLocked = user.isLocked;
+                                const kycStatus = user.kycStatus || 'NOT_SUBMITTED';
 
                                 return (
                                     <tr
@@ -288,13 +293,25 @@ export const UserTable = memo(function UserTable({
                                                 <div className="flex items-center text-destructive text-xs font-semibold gap-1.5">
                                                     <ShieldAlert className="h-3.5 w-3.5" /> Locked
                                                 </div>
-                                            ) : user.emailVerified ? (
+                                            ) : kycStatus === 'VERIFIED' ? (
                                                 <div className="flex items-center text-emerald-600 text-xs font-semibold gap-1.5">
-                                                    <CheckCircle2 className="h-3.5 w-3.5" /> Verified
+                                                    <CheckCircle2 className="h-3.5 w-3.5" /> KYC Verified
+                                                </div>
+                                            ) : kycStatus === 'PENDING' ? (
+                                                <div className="flex items-center text-amber-600 text-xs font-semibold gap-1.5">
+                                                    <Clock className="h-3.5 w-3.5" /> KYC Pending
+                                                </div>
+                                            ) : kycStatus === 'REJECTED' ? (
+                                                <div className="flex items-center text-destructive text-xs font-semibold gap-1.5">
+                                                    <ShieldAlert className="h-3.5 w-3.5" /> KYC Rejected
+                                                </div>
+                                            ) : user.emailVerified ? (
+                                                <div className="flex items-center text-blue-600 text-xs font-semibold gap-1.5">
+                                                    <CheckCircle2 className="h-3.5 w-3.5" /> Email Verified
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center text-amber-600 text-xs font-semibold gap-1.5">
-                                                    <Clock className="h-3.5 w-3.5" /> Pending
+                                                <div className="flex items-center text-muted-foreground text-xs font-semibold gap-1.5">
+                                                    <Clock className="h-3.5 w-3.5" /> Unverified
                                                 </div>
                                             )}
                                         </td>
