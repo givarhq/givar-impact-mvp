@@ -110,7 +110,7 @@ export function AboutContent() {
                             I grew up seeing people who wanted to help, and people who needed help, but the systems connecting them were often informal or unreliable.
                         </p>
                         <p>
-                            Over time, I realized that many efforts fail because where people lack compassion — they fail because there isn’t a clear, trustworthy structure to support giving.
+                            Over time, I realized that many efforts don’t fail because people lack compassion — they fail because there isn’t a clear, trustworthy structure to support giving.
                         </p>
                         <p className="text-primary font-bold">
                             That realization became the foundation for Givar.
