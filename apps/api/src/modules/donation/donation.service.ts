@@ -150,7 +150,9 @@ export class DonationService {
         throw new BadRequestException('Project state changed during processing');
       }
 
-      const currentRemaining = txProject.targetAmount - txProject.raisedAmount;
+      // --- PHASED CAP INJECTION ---
+      const currentPhaseCap = this.calculatePhaseCap(txProject);
+      const currentRemaining = currentPhaseCap - txProject.raisedAmount;
       const actualRemaining = (txProject.status !== ProjectStatus.ACTIVE || currentRemaining <= 0n) ? 0n : currentRemaining;
 
       const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
@@ -530,12 +532,13 @@ export class DonationService {
 
       if (!project) throw new NotFoundException('Project node missing on ledger');
 
-      // 2. Refined Spillover Logic
-      // Logic: Identify if project is effectively closed to new capital.
+      // --- PHASED CAP INJECTION ---
       const isClosed = ([ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED] as ProjectStatus[]).includes(project.status);
 
-      const currentRemaining = project.targetAmount - project.raisedAmount;
-      // If the project is closed, it accepts zero. If open, it accepts up to the remaining gap.
+      const currentPhaseCap = this.calculatePhaseCap(project);
+      const currentRemaining = currentPhaseCap - project.raisedAmount;
+
+      // If the project is closed, it accepts zero. If open, it accepts up to the remaining gap of the CURRENT phase.
       const actualRemaining = isClosed ? 0n : (currentRemaining <= 0n ? 0n : currentRemaining);
 
       const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
@@ -1400,5 +1403,24 @@ export class DonationService {
         })
       )
     ).catch(err => this.logger.error('Donor Broadcast Transmission Failed', err));
+  }
+
+  private calculatePhaseCap(project: any): bigint {
+    const budget = (project.budgetBreakdown as any[]) || [];
+    let cumulativeMajor = 0;
+    const activeIndex = project.currentPhaseIndex || 0;
+
+    for (let i = 0; i <= activeIndex && i < budget.length; i++) {
+      cumulativeMajor += (budget[i].amount || budget[i].cost || 0);
+    }
+
+    let currentPhaseCap = BigInt(cumulativeMajor * 100);
+
+    // Failsafe: if timeline is exhausted or budget is empty, cap at total target
+    if (budget.length === 0 || activeIndex >= budget.length) {
+      currentPhaseCap = BigInt(project.targetAmount || '0');
+    }
+
+    return currentPhaseCap;
   }
 }
