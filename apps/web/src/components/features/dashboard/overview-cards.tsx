@@ -4,7 +4,6 @@ import React, { memo } from 'react';
 import Link from 'next/link';
 import { Heart, ArrowUpRight, Activity } from 'lucide-react';
 import { Card } from '../../ui/card';
-import { WalletCard } from '../wallet/wallet-card';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { OverviewCardsProps } from '../../../types';
 import { motion } from 'framer-motion';
@@ -50,21 +49,12 @@ const ImpactStatCard = memo(function ImpactStatCard({ value, subValue }: { value
 
 export const OverviewCards = memo(function OverviewCards({ wallet, totalImpact, donationCount }: OverviewCardsProps) {
     return (
-        <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-12">
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="lg:col-span-7 xl:col-span-8 min-h-[200px] md:h-[220px]"
-            >
-                <WalletCard balance={wallet.balance} currency={wallet.currency} />
-            </motion.div>
-
+        <div className="grid gap-4 md:gap-6 grid-cols-1">
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
-                className="lg:col-span-5 xl:col-span-4 min-h-[200px] md:h-[220px]"
+                className="w-full min-h-[200px] md:h-[220px]"
             >
                 <ImpactStatCard
                     value={totalImpact}
