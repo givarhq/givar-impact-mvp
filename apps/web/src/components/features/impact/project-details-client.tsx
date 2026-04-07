@@ -73,35 +73,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     };
 
-    // --- PHASED FUNDING MATH ---
-    const activeIndex = project.currentPhaseIndex || 0;
-    let cumulativeMajor = 0;
-    for (let i = 0; i <= activeIndex && i < budget.length; i++) {
-        cumulativeMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    let phaseCapMinor = BigInt(cumulativeMajor * 100);
-    if (budget.length === 0 || activeIndex >= budget.length) {
-        phaseCapMinor = BigInt(project.targetAmount || '0');
-    }
-
-    const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
-
-    let previousPhasesMajor = 0;
-    for (let i = 0; i < activeIndex && i < budget.length; i++) {
-        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
-
-    let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    const phasePercent = currentPhaseTargetMinor > 0n
-        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
-        : 0;
-
-    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n;
-
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -145,59 +116,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 </div>
 
                 <AnimatePresence>
-                    {!isCompleted && !isFundedState && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="pt-2"
-                        >
-                            <div className={cn(
-                                "border rounded-3xl p-5 shadow-sm space-y-4 relative overflow-hidden transition-all",
-                                isPhaseFull ? "bg-emerald-500/5 border-emerald-500/20" : "bg-card border-border/40"
-                            )}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn(
-                                            "h-10 w-10 rounded-[14px] flex items-center justify-center border shadow-inner shrink-0",
-                                            isPhaseFull ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
-                                        )}>
-                                            {isPhaseFull ? <CheckCircle2 className="h-5 w-5" /> : <Target className="h-5 w-5" />}
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{isPhaseFull ? 'Executing' : 'Active'} Funding Phase</p>
-                                            <p className="text-sm font-bold text-foreground truncate max-w-[200px] sm:max-w-none">Phase {activeIndex + 1}: {activeItemName}</p>
-                                        </div>
-                                    </div>
-                                    {isPhaseFull ? (
-                                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shadow-none font-bold text-[10px] px-3 py-1 rounded-full gap-1 hidden sm:flex">
-                                            Awaiting Verification
-                                        </Badge>
-                                    ) : (
-                                        <div className="text-right shrink-0">
-                                            <span className="text-xl font-black text-primary">{phasePercent}%</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {!isPhaseFull && (
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-[11px] font-bold text-muted-foreground px-1">
-                                            <span>{formatCurrency(raisedInCurrentPhase.toString(), project.currency)}</span>
-                                            <span>{formatCurrency(currentPhaseTargetMinor.toString(), project.currency)}</span>
-                                        </div>
-                                        <div className="h-2.5 w-full bg-muted/60 rounded-full overflow-hidden border border-border/40 shadow-inner">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${phasePercent}%` }}
-                                                className="h-full bg-primary transition-all duration-1000 shadow-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-
                     {isCompleted && finalUpdate && (
                         <motion.div
                             initial={{ opacity: 0, height: 0, y: 20 }}
@@ -387,7 +305,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
                             >
-                                {/* Pre-Collected Funds Note */}
+                                {/* NEW: Pre-Collected Funds Note */}
                                 {project.hasPreCollectedFunds && project.preCollectedAmount && (
                                     <div className="mb-8 p-5 rounded-3xl bg-blue-50/50 border border-blue-100 shadow-sm">
                                         <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-1">
@@ -413,30 +331,19 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 <tr>
                                                     <th className="px-6 py-4">Item</th>
                                                     <th className="px-6 py-4 hidden md:table-cell">Type</th>
-                                                    <th className="px-6 py-4 hidden md:table-cell">Pay To (Vendor)</th>
-                                                    <th className="px-6 py-4 hidden lg:table-cell">Stage</th>
                                                     <th className="px-6 py-4 text-right">Allocation</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-border/40 text-xs">
                                                 {budget.map((item: any, i: number) => (
-                                                    <tr key={i} className={cn("transition-colors", i === activeIndex ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
+                                                    <tr key={i} className="hover:bg-muted/10 transition-colors">
                                                         <td className="px-6 py-4 font-bold text-foreground">
-                                                            <div className="flex items-center gap-2">
-                                                                {item.description || item.item}
-                                                                {i === activeIndex && !isCompleted && !isFundedState && (
-                                                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" title="Funding Now" />
-                                                                )}
-                                                            </div>
+                                                            {item.description || item.item}
                                                             <div className="md:hidden text-[11px] text-muted-foreground font-medium mt-0.5">{item.costType || item.type}</div>
                                                         </td>
                                                         <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium text-[11px]">{item.costType || item.type}</td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.payTo || item.vendor}</td>
-                                                        <td className="px-6 py-4 hidden lg:table-cell text-muted-foreground">
-                                                            {item.stage ? <Badge variant="secondary" className="text-[9px] px-2.5 py-0.5 h-auto font-bold rounded-3xl shadow-none whitespace-nowrap w-fit inline-flex">{item.stage}</Badge> : '-'}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold">
-                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
+                                                        <td className="px-6 py-4 text-right font-bold tabular-nums text-foreground">
+                                                            {new Intl.NumberFormat('en-NG', { style: 'currency', currency: project.currency }).format(item.amount || item.cost || 0)}
                                                         </td>
                                                     </tr>
                                                 ))}

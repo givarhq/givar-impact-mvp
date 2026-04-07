@@ -610,29 +610,4 @@ export class ProjectService {
     const paginatedData = entries.slice(skip, skip + limit);
     return { data: paginatedData, meta: { total: countD + countG + countDisp, page, lastPage: Math.ceil((countD + countG + countDisp) / limit) || 1, context: projectTitleContext } };
   }
-
-  async joinWaitlist(projectId: string, email: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-      select: { waitlistEmails: true }
-    });
-
-    if (!project) throw new NotFoundException('Project not found');
-
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Prevent duplicates
-    if (project.waitlistEmails.includes(normalizedEmail)) {
-      return { success: true, message: 'Already on waitlist' };
-    }
-
-    await this.prisma.project.update({
-      where: { id: projectId },
-      data: {
-        waitlistEmails: { push: normalizedEmail }
-      }
-    });
-
-    return { success: true };
-  }
 }

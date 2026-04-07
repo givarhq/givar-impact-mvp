@@ -123,10 +123,4 @@ export class ProjectController {
       requestingUserId: req.user?.id
     });
   }
-
-  @Public()
-  @Post(':id/waitlist')
-  async joinWaitlist(@Param('id') id: string, @Body('email') email: string) {
-    return this.service.joinWaitlist(id, email);
-  }
 }

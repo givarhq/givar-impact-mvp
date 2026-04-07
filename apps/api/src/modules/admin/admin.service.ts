@@ -1329,7 +1329,7 @@ export class AdminService {
     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED',
     dto: UpdateMilestoneDto,
     adminId: string,
-    skipProofCreation: boolean = false
+    skipProofCreation: boolean = false // Added parameter to prevent duplicate proofs during manual reviews
   ) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -1337,7 +1337,6 @@ export class AdminService {
         executionTimeline: true,
         title: true,
         slug: true,
-        waitlistEmails: true, // <-- NEW: Fetch waitlist emails
         user: { select: { email: true, firstName: true } }
       }
     });
@@ -1362,19 +1361,9 @@ export class AdminService {
       ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
     };
 
-    // --- NEW: PHASED FUNDING AUTO-UNLOCK LOGIC ---
-    const updateData: any = { executionTimeline: updatedTimeline as any };
-    let emailsToNotify: string[] = [];
-
-    if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
-      updateData.currentPhaseIndex = { increment: 1 };
-      updateData.waitlistEmails = []; // Clear the queue once notified
-      emailsToNotify = project.waitlistEmails || [];
-    }
-
     const updatedProject = await this.prisma.project.update({
       where: { id: projectId },
-      data: updateData,
+      data: { executionTimeline: updatedTimeline as any },
     });
 
     await this.audit.log({
@@ -1386,8 +1375,7 @@ export class AdminService {
         action: 'MILESTONE_UPDATE',
         milestone: updatedTimeline[milestoneIndex].phase,
         previousStatus,
-        newStatus: status,
-        phaseUnlocked: emailsToNotify.length > 0
+        newStatus: status
       }
     });
 
@@ -1412,6 +1400,8 @@ export class AdminService {
         }
       });
 
+      // Logic: Auto-generate an approved proof to satisfy disbursement verification loops
+      // for admin-owned projects executing the milestone directly.
       if (!skipProofCreation) {
         await this.prisma.milestoneProof.create({
           data: {
@@ -1439,20 +1429,6 @@ export class AdminService {
         updatedTimeline[milestoneIndex].phase,
         signedProofUrl
       ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
-
-      // --- NEW: FIRE WAITLIST BROADCAST ---
-      if (emailsToNotify.length > 0) {
-        const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${project.slug}`;
-        this.logger.log(`📢 Broadcasting Next Phase Unlock to ${emailsToNotify.length} waitlisted donors.`);
-        Promise.allSettled(
-          emailsToNotify.map(email =>
-            this.emailService.sendPhaseUnlockedAlert(email, {
-              projectTitle: project.title,
-              projectUrl
-            })
-          )
-        ).catch(err => this.logger.error(`Waitlist broadcast failed: ${err.message}`));
-      }
     }
 
     return updatedProject;
