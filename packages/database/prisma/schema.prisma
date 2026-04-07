@@ -360,6 +360,8 @@ model Project {
 
   budgetBreakdown   Json?    @default("[]")
   executionTimeline Json?    @default("[]")
+  currentPhaseIndex Int      @default(0)
+  waitlistEmails    String[] @default([])
   fundedAt      DateTime?
   riskAnalysis      String?  @db.Text
 

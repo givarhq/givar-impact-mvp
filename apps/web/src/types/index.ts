@@ -58,6 +58,10 @@ export interface Project {
   preCollectedHeldAt?: string | null;
   preCollectedProofKey?: string | null;
   preCollectedVerified?: boolean;
+
+  // Phased Funding Fields
+  currentPhaseIndex?: number;
+  waitlistEmails?: string[];
 }
 
 export interface ProjectUpdate {

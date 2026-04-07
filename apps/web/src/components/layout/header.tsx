@@ -22,7 +22,6 @@ import {
 import { ApiService } from '../../services/api';
 import { useState, useEffect } from 'react';
 import { ViewModeToggle } from './view-mode-toggle';
-import { WalletWidget } from './wallet-widget';
 import { UserGlobalSearch } from '../features/dashboard/user-global-search';
 import { NotificationBell } from './notification-bell';
 import { Skeleton } from '../ui/skeleton';
@@ -114,10 +113,6 @@ export function Header({ user }: { user: any }) {
           )
         )}
 
-        <div className="hidden lg:flex">
-          {!isClient ? <Skeleton className="h-10 w-44 rounded-[22px]" /> : <WalletWidget />}
-        </div>
-
         {!isClient ? (
           <Skeleton className="h-9 w-9 rounded-xl" />
         ) : (
@@ -179,7 +174,7 @@ export function Header({ user }: { user: any }) {
 
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-3xl cursor-pointer py-2.5 gap-3">
               <LogOut className="h-4 w-4 ml-2" />
-              <span className="font-semibold text-sm">Sign Out</span>
+              <span className="font-semibold text-sm">Sign out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

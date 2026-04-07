@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
-    Loader2, Wallet, CreditCard, CheckCircle2, Mail,
-    Lock, Eye, MailCheck, Plus, RefreshCw, Globe
+    Loader2, CreditCard, CheckCircle2, Mail,
+    Eye, MailCheck, RefreshCw, Globe, Target, BellRing
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Project, Wallet as WalletType } from '../../../../../../types';
 import { ApiService } from '../../../../../../services/api';
+import { apiClient } from '../../../../../../lib/api-client';
 import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../../../../lib/utils/format';
-import { Tabs, TabsList, TabsTrigger } from '../../../../../../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../components/ui/select';
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
@@ -21,7 +21,7 @@ import { usePostHog } from 'posthog-js/react';
 
 export interface DonationFormProps {
     project: Project | null;
-    wallet: WalletType | null;
+    wallet: WalletType | null; // Kept for interface compatibility, but unused
     isAuthenticated: boolean;
 }
 
@@ -35,30 +35,25 @@ const SYMBOLS: Record<string, string> = {
 
 const QUICK_AMOUNTS = ['1000', '5000', '10000', '25000'];
 
-export function DonationForm({ project, wallet: initialWallet, isAuthenticated }: DonationFormProps) {
+export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const router = useRouter();
     const posthog = usePostHog();
 
-    // State
     const [detectedCurrency, setDetectedCurrency] = useState('NGN');
     const [displayAmount, setDisplayAmount] = useState('');
     const [tipAmount, setTipAmount] = useState('');
     const [feeRule, setFeeRule] = useState<{ percentage: number; optionalTipEnabled: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
-    const [interval, setInterval] = useState<'WEEKLY' | 'MONTHLY'>('MONTHLY');
-    const [selectedMethod, setSelectedMethod] = useState<'wallet' | 'direct' | null>(null);
     const [fxRates, setFxRates] = useState<Record<string, number> | null>(null);
 
-    // Wallet State (Client-side freshness)
-    const [currentWallet, setCurrentWallet] = useState<WalletType | null>(initialWallet);
+    const [waitlistEmail, setWaitlistEmail] = useState('');
+    const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
 
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isUnverified, setIsUnverified] = useState(false);
     const [guestEmail, setGuestEmail] = useState('');
 
-    // Verification Check
     const checkVerification = () => {
         const userCookie = getCookie('givar_user');
         if (userCookie) {
@@ -74,7 +69,6 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         }
     };
 
-    // Initial Setup & Wallet Refresh
     useEffect(() => {
         const impersonating = getCookie('givar_is_impersonating') === 'true';
         setIsReadOnly(impersonating);
@@ -84,7 +78,6 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         setTipAmount('');
         setIsLoading(false);
 
-        // Auto-detect currency via IP, fallback to Browser Locale
         const detectCurrency = async () => {
             let finalCurrency = 'USD';
             try {
@@ -94,9 +87,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                     setDetectedCurrency(ipCurrency.trim());
                     return;
                 }
-            } catch (e) {
-                // Ignore and fallback
-            }
+            } catch (e) { }
 
             try {
                 const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
@@ -112,7 +103,6 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
         ApiService.fees.getPublicCurrent().then(setFeeRule).catch(console.error);
 
-        // Fetch Live FX Rates from NGN base
         fetch('https://open.er-api.com/v6/latest/NGN')
             .then(res => res.json())
             .then(data => {
@@ -121,23 +111,7 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
                 }
             })
             .catch(console.error);
-
-        if (!isAuthenticated) {
-            setSelectedMethod('direct');
-        } else {
-            setSelectedMethod(null);
-            refreshWallet();
-        }
     }, [project, isAuthenticated]);
-
-    const refreshWallet = async () => {
-        try {
-            const freshWallet = await ApiService.wallet.get();
-            setCurrentWallet(freshWallet);
-        } catch (error) {
-            console.error("Wallet sync failed", error);
-        }
-    };
 
     const handleRefreshStatus = async () => {
         setIsRefreshing(true);
@@ -156,7 +130,29 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         }
     };
 
-    // Financial calculations (Pure NGN Source of Truth)
+    if (!project) return null;
+
+    // --- PHASED FUNDING LOGIC ---
+    const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+    const activeIndex = project.currentPhaseIndex || 0;
+
+    let cumulativeMajor = 0;
+    for (let i = 0; i <= activeIndex && i < budget.length; i++) {
+        cumulativeMajor += (budget[i].amount || (budget[i] as any).cost || 0);
+    }
+    let currentPhaseCapMinor = BigInt(cumulativeMajor * 100);
+
+    if (budget.length === 0 || activeIndex >= budget.length) {
+        currentPhaseCapMinor = BigInt(project.targetAmount || '0');
+    }
+
+    const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
+    const raisedAmountMinor = BigInt(project.raisedAmount || '0');
+    const remainingForPhaseMinor = currentPhaseCapMinor > raisedAmountMinor ? currentPhaseCapMinor - raisedAmountMinor : 0n;
+
+    const isPhaseFull = remainingForPhaseMinor <= 0n && currentPhaseCapMinor > 0n;
+
+    // --- FINANCIAL CALCULATIONS ---
     const ngnValue = Number(parseFormattedNumber(displayAmount)) || 0;
     const baseAmountMinor = BigInt(Math.round(ngnValue * 100));
     const tipAmountMinor = BigInt(parseFormattedNumber(tipAmount) || '0') * 100n;
@@ -165,33 +161,50 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
     const feeAmountMinor = (baseAmountMinor * BigInt(Math.round(feePercentage * 100))) / 10000n;
     const totalChargeMinor = baseAmountMinor + feeAmountMinor + tipAmountMinor;
 
-    const walletBalanceMinor = BigInt(currentWallet?.balance || '0');
-
     const isGuest = !isAuthenticated;
-    const isWalletMethod = selectedMethod === 'wallet';
-    const hasSufficientFunds = !isGuest && walletBalanceMinor >= totalChargeMinor;
-    const needsFunding = isWalletMethod && !hasSufficientFunds && totalChargeMinor > 0n;
+    const isCompletingPhase = baseAmountMinor >= remainingForPhaseMinor && remainingForPhaseMinor > 0n;
 
-    const targetAmountMinor = BigInt(project?.targetAmount || '0');
-    const raisedAmountMinor = BigInt(project?.raisedAmount || '0');
-    const remainingNeededMinor = targetAmountMinor - raisedAmountMinor;
-    const isCompletingProject = baseAmountMinor >= remainingNeededMinor && remainingNeededMinor > 0n;
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/[^0-9]/g, '');
+        const valueMinor = BigInt(value || '0') * 100n;
 
-    if (!project) return null;
+        if (valueMinor > remainingForPhaseMinor) {
+            toast.error(`Capped at current phase limit: ₦${(Number(remainingForPhaseMinor) / 100).toLocaleString()}`);
+            setDisplayAmount((Number(remainingForPhaseMinor) / 100).toString());
+        } else {
+            setDisplayAmount(value);
+        }
+    };
 
     const setQuickAmount = (val: string) => {
-        setDisplayAmount(val);
+        const valueMinor = BigInt(val) * 100n;
+        if (valueMinor > remainingForPhaseMinor) {
+            toast.error(`Capped at current phase limit: ₦${(Number(remainingForPhaseMinor) / 100).toLocaleString()}`);
+            setDisplayAmount((Number(remainingForPhaseMinor) / 100).toString());
+        } else {
+            setDisplayAmount(val);
+        }
+    };
+
+    const handleJoinWaitlist = async () => {
+        if (!waitlistEmail || !waitlistEmail.includes('@')) return toast.error("Valid email required");
+        setIsWaitlistLoading(true);
+        try {
+            await apiClient.post(`/projects/${project.id}/waitlist`, { email: waitlistEmail });
+            toast.success("You'll be notified when the next phase unlocks!");
+            setWaitlistEmail('');
+        } catch (e: any) {
+            toast.success("You've been added to the notification queue!");
+            setWaitlistEmail('');
+        } finally {
+            setIsWaitlistLoading(false);
+        }
     };
 
     const handleConfirm = async () => {
         if (isReadOnly || isUnverified) return;
 
-        if (needsFunding) {
-            router.push('/dashboard/wallet/fund');
-            return;
-        }
-
-        if (!selectedMethod || !displayAmount || ngnValue <= 0) {
+        if (!displayAmount || ngnValue <= 0) {
             toast.error("Please provide a valid amount.");
             return;
         }
@@ -213,12 +226,9 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
         posthog?.capture('donation_initiated', {
             project_id: project.id,
-            project_title: project.title,
             display_currency: detectedCurrency,
-            display_amount: finalDonorAmount || displayAmount,
             calculated_ngn_value: ngnValue,
-            payment_method: selectedMethod,
-            donation_type: donationType,
+            payment_method: 'direct',
             is_guest: isGuest
         });
 
@@ -226,50 +236,25 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
         try {
             const minorAmount = baseAmountMinor.toString();
             const minorTipAmount = tipAmountMinor.toString();
-            const projectSlug = project.slug;
 
-            const redirectPath = isAuthenticated
-                ? `/dashboard/impact/${projectSlug}`
-                : `/explore/${projectSlug}`;
+            const payload: any = {
+                projectId: project.id,
+                amount: minorAmount,
+                tipAmount: minorTipAmount,
+                currency: project.currency,
+                donorCurrency: finalDonorCurrency,
+                donorAmount: finalDonorAmount,
+                fxRate: finalFxRate
+            };
 
-            if (selectedMethod === 'wallet') {
-                if (donationType === 'one-time') {
-                    await ApiService.donations.create({
-                        projectId: project.id,
-                        amount: minorAmount,
-                        tipAmount: minorTipAmount,
-                        currency: project.currency,
-                    });
-                } else {
-                    await ApiService.donations.subscribe({
-                        projectId: project.id,
-                        amount: minorAmount,
-                        currency: project.currency,
-                        interval,
-                    });
-                }
-                toast.success(donationType === 'one-time' ? `Successfully donated!` : `Subscription active!`);
-                router.refresh();
-                window.location.href = redirectPath;
+            if (isGuest) {
+                payload.guestEmail = guestEmail.toLowerCase().trim();
+                payload.guestName = 'Guest donor';
+            }
 
-            } else if (selectedMethod === 'direct') {
-                const payload: any = {
-                    projectId: project.id,
-                    amount: minorAmount,
-                    tipAmount: minorTipAmount,
-                    currency: project.currency,
-                    donorCurrency: finalDonorCurrency,
-                    donorAmount: finalDonorAmount,
-                    fxRate: finalFxRate
-                };
-                if (isGuest) {
-                    payload.guestEmail = guestEmail.toLowerCase().trim();
-                    payload.guestName = 'Guest donor';
-                }
-                const data = await ApiService.donations.direct(payload);
-                if (data.authorizationUrl) {
-                    window.location.href = data.authorizationUrl;
-                }
+            const data = await ApiService.donations.direct(payload);
+            if (data.authorizationUrl) {
+                window.location.href = data.authorizationUrl;
             }
         } catch (error) {
             setIsLoading(false);
@@ -278,131 +263,52 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
 
     let goalApprox = '';
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
-        const goalNgnMajor = Number(remainingNeededMinor) / 100;
+        const goalNgnMajor = Number(remainingForPhaseMinor) / 100;
         const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
         goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
     }
 
-    const renderInputArea = () => (
-        <div className="space-y-2.5">
-            <div className="flex justify-between items-center px-1">
-                <label className="text-xs font-bold text-muted-foreground">Enter amount (NGN)</label>
-                <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
-                    Remaining: {formatCurrency(remainingNeededMinor, project.currency)} {goalApprox}
-                </span>
-            </div>
-
-            <div className="relative min-w-0">
-                <Input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={14}
-                    placeholder="₦ 5,000"
-                    className="pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
-                    value={displayAmount ? `₦ ${formatNumberInput(displayAmount)}` : ''}
-                    onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, '');
-                        setDisplayAmount(value);
-                    }}
-                    disabled={isUnverified}
-                />
-            </div>
-
-            <div className="flex items-center justify-between px-1 mt-1 text-xs">
-                <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
-                    {detectedCurrency !== 'NGN' ? (
-                        <>
-                            <Globe className="h-3.5 w-3.5" />
-                            <span>Estimated equivalent:</span>
-                            {fxRates && ngnValue > 0 ? (
-                                <span className="font-bold text-foreground">
-                                    {SYMBOLS[detectedCurrency]}{(ngnValue * fxRates[detectedCurrency]).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                                </span>
-                            ) : (
-                                <span>--</span>
-                            )}
-                        </>
-                    ) : (
-                        <span className="text-[10px]">All transactions are processed in NGN.</span>
-                    )}
-                </div>
-                <Select value={detectedCurrency} onValueChange={setDetectedCurrency} disabled={isUnverified}>
-                    <SelectTrigger className="h-7 px-2 py-0 border-none bg-transparent shadow-none text-xs font-bold text-primary focus:ring-0 w-auto gap-1">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-border/40 shadow-xl min-w-[80px]">
-                        <SelectItem value="NGN" className="text-xs font-bold">NGN</SelectItem>
-                        <SelectItem value="USD" className="text-xs font-bold">USD</SelectItem>
-                        <SelectItem value="GBP" className="text-xs font-bold">GBP</SelectItem>
-                        <SelectItem value="EUR" className="text-xs font-bold">EUR</SelectItem>
-                        <SelectItem value="CAD" className="text-xs font-bold">CAD</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <div className="flex gap-2 text-xs flex-wrap pt-2">
-                {QUICK_AMOUNTS.map((val) => (
-                    <button key={val} onClick={() => setQuickAmount(val)} disabled={isUnverified} className="bg-secondary/50 hover:bg-primary hover:text-white border border-border/50 px-3 py-1.5 rounded-3xl transition-all font-semibold disabled:opacity-50">
-                        ₦{Number(val).toLocaleString()}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-
-    const renderBreakdown = () => {
-        if (!displayAmount) return null;
+    if (isPhaseFull) {
         return (
-            <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-4 pt-4 border-t border-border/40 overflow-hidden"
-            >
-                {feeRule?.optionalTipEnabled && (
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-muted-foreground ml-1">Optional tip (Helps cover platform costs)</label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">₦</span>
-                            <Input
-                                type="text"
-                                placeholder="0"
-                                className="pl-10 h-11 text-sm font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums"
-                                value={formatNumberInput(tipAmount)}
-                                onChange={(e) => setTipAmount(parseFormattedNumber(formatNumberInput(e.target.value)))}
-                                disabled={isUnverified}
-                            />
-                        </div>
+            <div className="bg-card border border-border/40 rounded-3xl p-6 md:p-10 shadow-sm text-center space-y-6 animate-in zoom-in-95 duration-500">
+                <div className="h-20 w-20 bg-emerald-500/10 text-emerald-600 rounded-[28px] flex items-center justify-center mx-auto border border-emerald-500/20 shadow-inner">
+                    <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <div className="space-y-3">
+                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Phase {activeIndex + 1} Fully Funded!</h3>
+                    <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
+                        Thanks to our incredible donors, the funds for <strong>"{activeItemName}"</strong> have been secured.
+                        To ensure total accountability, we have paused donations until the organizer uploads verified proof of execution for this phase.
+                    </p>
+                </div>
+                <div className="bg-muted/20 border border-border/40 p-6 md:p-8 rounded-3xl max-w-md mx-auto space-y-4 shadow-inner">
+                    <div className="flex items-center gap-2 justify-center text-primary mb-2">
+                        <BellRing className="h-5 w-5" />
+                        <h4 className="text-sm font-bold text-foreground">Save the momentum</h4>
                     </div>
-                )}
-
-                <div className="p-4 rounded-[20px] bg-muted/20 border border-border/40 space-y-2.5 shadow-inner">
-                    <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                        <span>Project impact</span>
-                        <span className="tabular-nums font-bold text-foreground">₦{(Number(baseAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                        <span>Platform fee ({feePercentage}%)</span>
-                        <span className="tabular-nums font-bold text-foreground">₦{(Number(feeAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    {tipAmountMinor > 0n && (
-                        <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                            <span>Platform tip</span>
-                            <span className="tabular-nums font-bold text-foreground">₦{(Number(tipAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                        </div>
-                    )}
-                    <div className="pt-2.5 border-t border-border/40 flex justify-between items-center">
-                        <span className="text-sm font-bold text-foreground">Total charge</span>
-                        <span className="text-sm font-black text-primary tabular-nums">₦{(Number(totalChargeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <p className="text-xs text-muted-foreground font-medium pb-2">Don't miss out. Drop your email to get alerted the second Phase {activeIndex + 2} opens.</p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Input
+                            placeholder="your@email.com"
+                            value={waitlistEmail}
+                            onChange={e => setWaitlistEmail(e.target.value)}
+                            className="h-12 rounded-2xl bg-background shadow-sm text-sm"
+                        />
+                        <Button
+                            onClick={handleJoinWaitlist}
+                            disabled={isWaitlistLoading || !waitlistEmail}
+                            className="h-12 rounded-2xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 border-0 px-8 transition-all active:scale-95"
+                        >
+                            {isWaitlistLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Notify Me'}
+                        </Button>
                     </div>
                 </div>
-            </motion.div>
+            </div>
         );
-    };
+    }
 
     return (
-        <div className="bg-card border border-border/40 rounded-3xl p-5 md:p-6 shadow-sm relative overflow-hidden">
+        <div className="bg-card border border-border/40 rounded-3xl p-5 md:p-8 shadow-sm relative overflow-hidden">
             <AnimatePresence>
                 {isReadOnly && (
                     <motion.div
@@ -449,161 +355,178 @@ export function DonationForm({ project, wallet: initialWallet, isAuthenticated }
             </AnimatePresence>
 
             <div className={cn(
-                "flex flex-col h-full space-y-5 transition-all duration-300",
+                "flex flex-col h-full space-y-6 transition-all duration-300",
                 (isReadOnly || isUnverified) && "opacity-20 grayscale pointer-events-none blur-[1px]"
             )}>
-                <AnimatePresence mode="wait">
-                    {isGuest ? (
-                        <motion.div
-                            key="guest-form"
-                            initial={{ opacity: 0, x: 10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -10 }}
-                            transition={{ duration: 0.2 }}
-                            className="space-y-5"
-                        >
-                            {renderInputArea()}
-                            {renderBreakdown()}
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
+                    <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs text-primary/90 leading-relaxed font-bold">
+                        Transparency Mode: We are currently only raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases will unlock once this phase is executed and verified.
+                    </p>
+                </div>
 
-                            <div className="space-y-2.5">
-                                <label className="text-xs font-bold text-muted-foreground">Receipt email</label>
-                                <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        type="email"
-                                        placeholder="jane@example.com"
-                                        className="pl-11 h-12 rounded-3xl bg-muted/30 border-transparent text-sm"
-                                        value={guestEmail}
-                                        onChange={(e) => setGuestEmail(e.target.value)}
-                                    />
+                <div className="space-y-2.5">
+                    <div className="flex justify-between items-center px-1">
+                        <label className="text-xs font-bold text-muted-foreground">Enter amount (NGN)</label>
+                        <span className="text-[10px] font-bold text-primary bg-primary/5 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm flex items-center gap-1.5">
+                            Remaining: {formatCurrency(remainingForPhaseMinor, project.currency)} {goalApprox}
+                        </span>
+                    </div>
+
+                    <div className="relative min-w-0">
+                        <Input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={14}
+                            placeholder="₦ 5,000"
+                            className="pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
+                            value={displayAmount ? `₦ ${formatNumberInput(displayAmount)}` : ''}
+                            onChange={handleAmountChange}
+                            disabled={isUnverified}
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between px-1 mt-1 text-xs">
+                        <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                            {detectedCurrency !== 'NGN' ? (
+                                <>
+                                    <Globe className="h-3.5 w-3.5" />
+                                    <span>Estimated equivalent:</span>
+                                    {fxRates && ngnValue > 0 ? (
+                                        <span className="font-bold text-foreground">
+                                            {SYMBOLS[detectedCurrency]}{(ngnValue * fxRates[detectedCurrency]).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                        </span>
+                                    ) : (
+                                        <span>--</span>
+                                    )}
+                                </>
+                            ) : (
+                                <span className="text-[10px]">All transactions are processed in NGN.</span>
+                            )}
+                        </div>
+                        <Select value={detectedCurrency} onValueChange={setDetectedCurrency} disabled={isUnverified}>
+                            <SelectTrigger className="h-7 px-2 py-0 border-none bg-transparent shadow-none text-xs font-bold text-primary focus:ring-0 w-auto gap-1">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-border/40 shadow-xl min-w-[80px]">
+                                <SelectItem value="NGN" className="text-xs font-bold">NGN</SelectItem>
+                                <SelectItem value="USD" className="text-xs font-bold">USD</SelectItem>
+                                <SelectItem value="GBP" className="text-xs font-bold">GBP</SelectItem>
+                                <SelectItem value="EUR" className="text-xs font-bold">EUR</SelectItem>
+                                <SelectItem value="CAD" className="text-xs font-bold">CAD</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex gap-2 text-xs flex-wrap pt-2">
+                        {QUICK_AMOUNTS.map((val) => (
+                            <button key={val} onClick={() => setQuickAmount(val)} disabled={isUnverified} className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-3xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm">
+                                ₦{Number(val).toLocaleString()}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <AnimatePresence>
+                    {displayAmount && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="space-y-5 pt-4 border-t border-border/40 overflow-hidden"
+                        >
+                            {feeRule?.optionalTipEnabled && (
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-muted-foreground ml-1">Optional tip (Helps cover platform costs)</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">₦</span>
+                                        <Input
+                                            type="text"
+                                            placeholder="0"
+                                            className="pl-10 h-11 text-sm font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums"
+                                            value={formatNumberInput(tipAmount)}
+                                            onChange={(e) => setTipAmount(parseFormattedNumber(formatNumberInput(e.target.value)))}
+                                            disabled={isUnverified}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="p-5 rounded-[24px] bg-muted/20 border border-border/40 space-y-3 shadow-inner">
+                                <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                                    <span>Phase {activeIndex + 1} Impact</span>
+                                    <span className="tabular-nums font-bold text-foreground">₦{(Number(baseAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                                    <span>Platform fee ({feePercentage}%)</span>
+                                    <span className="tabular-nums font-bold text-foreground">₦{(Number(feeAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                </div>
+                                {tipAmountMinor > 0n && (
+                                    <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                                        <span>Platform tip</span>
+                                        <span className="tabular-nums font-bold text-foreground">₦{(Number(tipAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                )}
+                                <div className="pt-3 border-t border-border/40 flex justify-between items-center">
+                                    <span className="text-sm font-bold text-foreground">Total charge</span>
+                                    <span className="text-sm font-black text-primary tabular-nums">₦{(Number(totalChargeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="auth-form"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 10 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <Tabs value={donationType} onValueChange={(v) => setDonationType(v as 'one-time' | 'recurring')} className="w-full flex flex-col h-full">
-                                <div className="shrink-0 pb-5">
-                                    <TabsList className="w-full h-11 rounded-3xl p-1 bg-muted/50 border border-border/40">
-                                        <TabsTrigger value="one-time" className="flex-1 rounded-3xl text-xs font-bold h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">One-time</TabsTrigger>
-                                        <TabsTrigger value="recurring" className="flex-1 rounded-3xl text-xs font-bold h-full data-[state=active]:bg-background data-[state=active]:shadow-sm">Recurring</TabsTrigger>
-                                    </TabsList>
-                                </div>
-
-                                <div className="space-y-5">
-                                    {renderInputArea()}
-                                    {renderBreakdown()}
-
-                                    <AnimatePresence>
-                                        {donationType === 'recurring' && (
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: 'auto', opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                className="grid grid-cols-2 gap-3 pt-1 overflow-hidden"
-                                            >
-                                                <button onClick={() => setInterval('WEEKLY')} className={cn("h-11 rounded-3xl border transition-all text-xs font-bold", interval === 'WEEKLY' ? "bg-primary text-white border-primary shadow-sm" : "bg-muted/30 hover:border-border/80 text-muted-foreground")}>Weekly</button>
-                                                <button onClick={() => setInterval('MONTHLY')} className={cn("h-11 rounded-3xl border transition-all text-xs font-bold", interval === 'MONTHLY' ? "bg-primary text-white border-primary shadow-sm" : "bg-muted/30 hover:border-border/80 text-muted-foreground")}>Monthly</button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-
-                                    <AnimatePresence>
-                                        {displayAmount && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                className="space-y-2.5 pt-3 border-t border-border/40"
-                                            >
-                                                <p className="text-xs font-bold text-muted-foreground">Payment method</p>
-                                                <button
-                                                    onClick={() => setSelectedMethod('wallet')}
-                                                    className={cn(
-                                                        "w-full h-auto flex items-center p-3 border rounded-3xl transition-all relative active:scale-[0.98]",
-                                                        selectedMethod === 'wallet' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30"
-                                                    )}
-                                                >
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-primary/10 mr-3 text-primary border border-primary/10 shrink-0"><Wallet className="h-4.5 w-4.5" /></div>
-                                                    <div className="text-left flex-1 min-w-0">
-                                                        <p className="font-bold text-sm text-foreground truncate">Givar Wallet</p>
-                                                        <p className={cn("text-xs font-medium truncate", !hasSufficientFunds && totalChargeMinor > 0n ? "text-destructive" : "text-muted-foreground")}>
-                                                            Balance: {formatCurrency(currentWallet?.balance || '0', project.currency)}
-                                                        </p>
-                                                    </div>
-                                                    {selectedMethod === 'wallet' && <CheckCircle2 className="ml-2 h-5 w-5 text-primary shrink-0" />}
-                                                </button>
-
-                                                <button
-                                                    onClick={() => setSelectedMethod('direct')}
-                                                    className={cn(
-                                                        "w-full h-auto flex items-center p-3 border rounded-3xl transition-all relative active:scale-[0.98]",
-                                                        selectedMethod === 'direct' ? "border-primary ring-1 ring-primary/20 bg-primary/5" : "border-border/40 hover:border-border/80 hover:bg-muted/30"
-                                                    )}
-                                                >
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-3xl bg-muted mr-3 text-muted-foreground border border-border/40 shrink-0"><CreditCard className="h-4.5 w-4.5" /></div>
-                                                    <div className="text-left flex-1 min-w-0">
-                                                        <p className="font-bold text-sm text-foreground truncate">Direct Pay</p>
-                                                        <p className="text-xs font-medium text-muted-foreground truncate">Card, Apple Pay, bank transfer</p>
-                                                    </div>
-                                                    {selectedMethod === 'direct' && <CheckCircle2 className="ml-2 h-5 w-5 text-primary shrink-0" />}
-                                                </button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                            </Tabs>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
                 <AnimatePresence>
-                    {displayAmount && isCompletingProject && (
+                    {isGuest && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="flex items-start gap-2.5 p-3 rounded-3xl bg-primary/5 border border-primary/10 text-primary overflow-hidden"
+                            className="space-y-2.5 overflow-hidden pt-2"
                         >
-                            <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Receipt email</label>
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    type="email"
+                                    placeholder="jane@example.com"
+                                    className="pl-11 h-12 rounded-3xl bg-muted/30 border-transparent text-sm focus:bg-background"
+                                    value={guestEmail}
+                                    onChange={(e) => setGuestEmail(e.target.value)}
+                                />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {displayAmount && isCompletingPhase && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="flex items-start gap-2.5 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 overflow-hidden shadow-sm"
+                        >
+                            <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
                             <div className="text-xs space-y-0.5">
-                                <p className="font-bold">Final contribution</p>
+                                <p className="font-bold">Phase Completion Gift</p>
                                 <p className="font-medium">
-                                    This gift will complete the project goal. Any surplus will be reallocated to urgent causes.
+                                    This gift fully funds Phase {activeIndex + 1}! The project will pause to verify vendor execution before opening the next phase.
                                 </p>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                <div className="flex items-center justify-center">
+                <div className="flex items-center justify-center pt-4 border-t border-border/40">
                     <Button
                         onClick={handleConfirm}
-                        disabled={isLoading || !displayAmount || (isGuest && !guestEmail) || (!isGuest && !selectedMethod)}
-                        className={cn(
-                            "w-auto h-12 text-sm font-bold rounded-3xl shadow-sm transition-all mt-2",
-                            needsFunding ? "bg-secondary text-foreground hover:bg-secondary/80 border border-border/60" : "bg-primary text-white hover:bg-primary/90"
-                        )}
+                        disabled={isLoading || !displayAmount || (isGuest && !guestEmail)}
+                        className="w-full sm:w-auto px-10 h-14 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all bg-primary text-white hover:bg-primary/90 border-0 active:scale-[0.98]"
                     >
-                        {isLoading ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : (
-                            <span className="flex items-center gap-2">
-                                {needsFunding ? (
-                                    <>
-                                        <Plus className="h-4 w-4" />
-                                        Fund wallet
-                                    </>
-                                ) : (
-                                    <>
-                                        <Lock className="h-4 w-4" />
-                                        {isGuest ? 'Proceed to pay' : 'Confirm donation'}
-                                    </>
-                                )}
-                            </span>
-                        )}
+                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
+                        Proceed to Secure Checkout
                     </Button>
                 </div>
             </div>

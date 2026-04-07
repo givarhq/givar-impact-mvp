@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, HttpCode, Post, Query, Req, UseGuards, Res, Param, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Post, Query, Req, UseGuards, Res, Param, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { WalletService } from './wallet.service';
 import { FundWalletDto } from './dto/wallet.dto';
@@ -27,17 +27,10 @@ export class WalletController {
   @UseGuards(AuthGuard('jwt'))
   @Post('fund')
   async fundWallet(@Req() req: any, @Body() dto: FundWalletDto) {
-    return this.walletService.initiateFunding(
-      req.user.id,
-      req.user.email,
-      dto.amount,
-      dto.currency,
-      // Bridge FX metadata to the initiation service for round-trip logging
-      {
-        donorCurrency: dto.donorCurrency,
-        donorAmount: dto.donorAmount,
-        fxRate: dto.fxRate,
-      }
+    // COMPLIANCE LOCK: Wallet funding is strictly disabled at the API level 
+    // to comply with CBN/Paystack non-custodial regulations.
+    throw new ForbiddenException(
+      'Wallet funding is currently disabled for compliance purposes. Please use direct checkout on the cause page.'
     );
   }
 
