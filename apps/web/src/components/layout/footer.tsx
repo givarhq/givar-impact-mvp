@@ -34,7 +34,7 @@ export const Footer = memo(function Footer() {
                             <h4 className="font-bold text-foreground mb-4">Platform</h4>
                             <ul className="space-y-3 text-sm font-medium text-muted-foreground">
                                 <li><Link href="/how-it-works" className="hover:text-primary transition-colors">How It Works</Link></li>
-                                <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">Smart Wallets</Link></li>
+                                <li><Link href="/docs/wallets" className="hover:text-primary transition-colors">Direct Payments</Link></li>
                                 <li><Link href="/docs/records" className="hover:text-primary transition-colors">Public Ledger</Link></li>
                             </ul>
                         </div>
@@ -55,6 +55,7 @@ export const Footer = memo(function Footer() {
                                 <li><Link href="/legal/refund" className="hover:text-primary transition-colors">Refund Policy</Link></li>
                                 <li><Link href="/legal/cancellation" className="hover:text-primary transition-colors">Cancellation Policy</Link></li>
                                 <li><Link href="/legal/agreement" className="hover:text-primary transition-colors">Cause Organiser Agreement</Link></li>
+                                <li><Link href="/legal/partner-agreement" className="hover:text-primary transition-colors">Partner Agreement</Link></li>
                                 <li><Link href="/legal/acceptable-use" className="hover:text-primary transition-colors">Acceptable Use Policy</Link></li>
                             </ul>
                         </div>

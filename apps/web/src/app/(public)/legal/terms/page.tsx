@@ -58,7 +58,7 @@ export default function TermsPage() {
                                     <h3 className="text-lg font-bold text-foreground">Prohibited conduct</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    We have zero tolerance for fraud. Creating fake projects, misrepresenting identity, or attempting to exploit the wallet system will result in immediate account termination.
+                                    We have zero tolerance for fraud. Creating fake projects, misrepresenting identity, or attempting to exploit the payment system will result in immediate account termination.
                                 </p>
                             </CardContent>
                         </Card>
@@ -113,14 +113,14 @@ export default function TermsPage() {
 
                                 <h2>1. Account Types & Verification</h2>
                                 <ul>
-                                    <li><strong>Individual Accounts:</strong> Designed for personal giving. Individuals must verify their email addresses before funding their wallets or making direct contributions.</li>
+                                    <li><strong>Individual Accounts:</strong> Designed for personal giving. Individuals must verify their email addresses before making direct contributions.</li>
                                     <li><strong>Organizer Accounts:</strong> Designed for individuals or corporate entities looking to launch public causes. To launch a project, Organizers must successfully pass our Know Your Customer (KYC) audit by uploading valid government IDs or corporate registration documents.</li>
                                 </ul>
                                 <p>Givar retains absolute discretion to approve, reject, or revoke Organizer verification status based on our internal risk assessments.</p>
 
                                 <h2>2. Immutable Donations & Finality</h2>
                                 <p>
-                                    Because Givar operates a transparent, triple-entry ledger system designed to provide immediate capital to critical causes, <strong>all donations are final and non-refundable</strong>. Once you confirm a transaction from your Givar Wallet or via Direct Pay, the capital is permanently locked to the target project's ledger.
+                                    Because Givar operates a transparent, triple-entry ledger system designed to provide immediate capital to critical causes, <strong>all donations are final and non-refundable</strong>. Once you confirm a transaction via our secure checkout, the capital is permanently locked to the target project's ledger.
                                 </p>
                                 <p>
                                     <strong>International Payments & Exchange Rates:</strong> All transactions on the Givar platform are processed and settled in Nigerian Naira (NGN). If you select a foreign currency (e.g., USD, GBP, EUR, CAD) during checkout, the displayed value is strictly an estimate based on live market rates. Your payment provider or bank determines the final exchange rate applied to the transaction and may charge additional foreign transaction fees. Givar is not liable for discrepancies between our platform's estimated conversion and the final debit on your bank statement.
@@ -129,7 +129,7 @@ export default function TermsPage() {
                                 <h2>3. Overfunding, "Spillover", and Stagnant Dust</h2>
                                 <p>To maximize global impact, Givar implements automated capital efficiency protocols:</p>
                                 <ul>
-                                    <li><strong>Spillover Protocol:</strong> If a donation exceeds the remaining financial goal of a project, the exact required amount is allocated to complete the project. The excess funds (the "spillover") are automatically routed to the Givar Suspense Ledger. From there, Givar Administrators manually reallocate the funds to other active, verified causes.</li>
+                                    <li><strong>Spillover Protocol:</strong> If a donation exceeds the remaining financial requirement for a specific active phase, the exact required amount is allocated to complete the phase. The excess funds (the "spillover") are automatically routed to the Givar Suspense Ledger. From there, Givar Administrators manually reallocate the funds to other active, verified causes.</li>
                                     <li><strong>Dust Sweep Protocol:</strong> If a project is effectively completed but has a minute remaining balance (under ₦100) and has been inactive for over 30 days, Givar Administrators may execute a "Dust Sweep." This permanently aligns the project goal to match the raised amount and closes the project to free up platform resources.</li>
                                 </ul>
 
@@ -137,8 +137,8 @@ export default function TermsPage() {
                                 <p>Givar does not hand cash to Project Organizers. To ensure total accountability:</p>
                                 <ul>
                                     <li>Organizers must define an Execution Roadmap and Budget Ledger during the proposal phase.</li>
-                                    <li>When a project is funded, the Givar Treasury team disburses capital <strong>directly to the verified vendors</strong> listed in the budget.</li>
-                                    <li>Organizers are required to upload visual Proof of Progress (photos, documents, and narrative updates) to the platform. Only when Givar Administrators approve this evidence will subsequent funding tranches be released.</li>
+                                    <li>When a project phase is funded, the Givar Treasury team disburses capital <strong>directly to the verified vendors</strong> listed in the budget.</li>
+                                    <li>Organizers are required to upload visual Proof of Progress (photos, documents, and narrative updates) to the platform. Only when Givar Administrators approve this evidence will subsequent funding tranches be unlocked for the public to fund.</li>
                                 </ul>
 
                                 <h2>5. Platform Fees & Governance</h2>
@@ -157,7 +157,7 @@ export default function TermsPage() {
                                     <li>Creating fraudulent or deceptive project proposals.</li>
                                     <li>Submitting forged or altered KYC documents or Milestone Proofs.</li>
                                     <li>Attempting to collude with vendors for kickbacks or circumventing our direct-payment architecture.</li>
-                                    <li>Attempting to manipulate, hack, or reverse-engineer the Givar wallet, payment webhooks, or ledger infrastructure.</li>
+                                    <li>Attempting to manipulate, hack, or reverse-engineer the Givar payment infrastructure, webhooks, or ledger.</li>
                                 </ul>
 
                                 <h2>7. Administrative Rights & Platform Changes</h2>
