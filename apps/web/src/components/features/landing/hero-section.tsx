@@ -288,7 +288,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
             <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6 scroll-mt-28">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See Real-Time Impact</h2>
-                    <p className="text-muted-foreground font-medium mt-4 max-w-xl mx-auto">Follow your donation from the moment it leaves your wallet to the exact moment it changes a life.</p>
+                    <p className="text-muted-foreground font-medium mt-4 max-w-xl mx-auto">Follow your donation from the moment it leaves your account to the exact moment it changes a life.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
@@ -306,7 +306,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                             <Wallet className="h-6 w-6 text-primary" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground mb-2">You Contribute</h3>
-                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified cause instantly using card, bank transfer or your Givar wallet.</p>
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified cause instantly using your card, Apple Pay, or direct bank transfer.</p>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 dark:bg-zinc-800 rounded-xl border border-border/60 dark:border-white/10 text-[10px] font-bold text-foreground w-fit">
                             <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Capital Deployed
                         </div>

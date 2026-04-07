@@ -12,7 +12,7 @@ const steps = [
     {
         num: 1,
         title: "You Give",
-        desc: "Support a verified cause instantly using card, bank transfer or your Givar wallet.",
+        desc: "Support a verified cause instantly using your card, Apple Pay, or direct bank transfer.",
         badge: "Capital Deployed",
         img: "/howphone.png",
         icon: Wallet,

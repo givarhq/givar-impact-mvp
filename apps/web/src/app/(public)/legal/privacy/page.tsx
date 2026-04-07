@@ -100,7 +100,7 @@ export default function PrivacyPage() {
                                 "[&_h2]:font-black [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-2xl [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40",
                                 "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground[&_h3]:text-lg [&_h3]:mt-6 [&_h3]:mb-3",
                                 "[&_p]:text-muted-foreground [&_p]:mb-4 [&_p]:last:mb-0",
-                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6[&_ul]:space-y-2 [&_ul]:text-muted-foreground [&_ul_li::marker]:text-primary/50",
+                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-2 [&_ul]:text-muted-foreground [&_ul_li::marker]:text-primary/50",
                                 "[&_strong]:font-bold [&_strong]:text-foreground",
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
@@ -117,14 +117,14 @@ export default function PrivacyPage() {
                                     <li><strong>Identity Data:</strong> Your first name, last name, email address, and account password.</li>
                                     <li><strong>Beneficiary Data:</strong> Identity information and supporting documents for beneficiaries may be collected and processed strictly for verification purposes.</li>
                                     <li><strong>Verification (KYC) Data:</strong> If you register as an Organizer, we collect legal names, registration numbers (e.g., RC or TIN), and government/corporate documents. These are stored in encrypted, private data vaults.</li>
-                                    <li><strong>Financial Ledger Data:</strong> Records of your donations, wallet balances, and funding history. We track the movement of capital in our system. <strong>We do not collect or store your credit card numbers.</strong> All direct payment processing is securely handled by Paystack.</li>
+                                    <li><strong>Financial Ledger Data:</strong> Records of your donations, and funding history. We track the movement of capital in our system. <strong>We do not collect or store your credit card numbers.</strong> All direct payment processing is securely handled by Paystack.</li>
                                     <li><strong>System Audit Data:</strong> To prevent fraud, our Watchtower system automatically logs your IP address, User-Agent (browser details), and timestamps when you take critical actions (e.g., logging in, initiating a transfer, or changing a password).</li>
                                 </ul>
 
                                 <h2>2. How We Use Your Information</h2>
                                 <p>We use the data we collect strictly to provide and improve the Givar platform:</p>
                                 <ul>
-                                    <li><strong>To Operate the Ledger:</strong> Processing your donations, maintaining your wallet balance, and issuing immutable impact receipts.</li>
+                                    <li><strong>To Operate the Ledger:</strong> Processing your donations and issuing immutable impact receipts.</li>
                                     <li><strong>For Compliance & Security:</strong> Verifying the legal identity of project organizers to prevent fraud. Our administrative team reviews your KYC documents before you can launch public causes.</li>
                                     <li><strong>To Communicate:</strong> Sending you transactional emails such as security alerts, password resets, donation receipts, and milestone updates about the projects you support.</li>
                                 </ul>
@@ -139,7 +139,7 @@ export default function PrivacyPage() {
                                 <h2>4. Data Sharing and Third-Party Services</h2>
                                 <p>We do not sell your data. We share information only with trusted infrastructure partners necessary to operate the platform:</p>
                                 <ul>
-                                    <li><strong>Payment Gateways (Paystack):</strong> To process your wallet funding and direct donations securely.</li>
+                                    <li><strong>Payment Gateways (Paystack):</strong> To process your direct donations securely.</li>
                                     <li><strong>Cloud Storage (iDrive e2 / Cloudinary):</strong> To store project gallery images publicly, and to store your sensitive KYC documents in heavily restricted, private encrypted buckets accessed only via short-lived security tokens.</li>
                                     <li><strong>Communication Providers (Resend):</strong> To securely deliver system emails and receipts to your inbox.</li>
                                 </ul>
@@ -148,7 +148,7 @@ export default function PrivacyPage() {
                                 <p>Because Givar operates a triple-entry accounting system designed to be an immutable public record, <strong>financial transactions cannot be deleted</strong>. If you choose to delete your account via the Danger Zone in your settings:</p>
                                 <ul>
                                     <li>Your personal profile (name, email, password, active sessions) will be permanently destroyed.</li>
-                                    <li>Any unallocated wallet balances must be withdrawn or donated prior to deletion.</li>
+                                    <li>Any pending transactions must be completed prior to deletion.</li>
                                     <li>Your historical donation records will remain on the public ledger permanently, but will be entirely anonymized and disconnected from your identity.</li>
                                 </ul>
                                 <p>Note: Accounts that have actively launched projects cannot be deleted to ensure we maintain a permanent, auditable record for our donors. Such accounts can only be suspended.</p>
