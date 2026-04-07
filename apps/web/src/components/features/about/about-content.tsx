@@ -63,7 +63,7 @@ export function AboutContent() {
                             We provide a trusted, structured platform that makes giving clear, direct, and trackable.
                         </p>
                         <p>
-                            By combining a secure wallet system with verified causes and transparent activity tracking, we create an environment where generosity can move with confidence.
+                            By combining a secure direct-payment system with verified causes and transparent activity tracking, we create an environment where generosity can move with confidence.
                         </p>
                     </div>
                 </div>
