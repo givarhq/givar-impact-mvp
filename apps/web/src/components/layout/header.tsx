@@ -113,6 +113,8 @@ export function Header({ user }: { user: any }) {
           )
         )}
 
+        {/* --- CRITICAL UX FIX: The <WalletWidget /> is completely removed --- */}
+
         {!isClient ? (
           <Skeleton className="h-9 w-9 rounded-xl" />
         ) : (
@@ -174,7 +176,7 @@ export function Header({ user }: { user: any }) {
 
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10 focus:text-destructive rounded-3xl cursor-pointer py-2.5 gap-3">
               <LogOut className="h-4 w-4 ml-2" />
-              <span className="font-semibold text-sm">Sign out</span>
+              <span className="font-semibold text-sm">Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

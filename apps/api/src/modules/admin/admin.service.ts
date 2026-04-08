@@ -43,10 +43,11 @@ export class AdminService {
     const [
       totalUsers,
       prevUsers,
-      wallets,
       projects,
       donations,
       suspenseCount,
+      suspenseVolume, // <-- NEW: Fetch Suspense Ledger volume
+      systemWallets,  // <-- NEW: Fetch Platform Revenue (Admin wallets)
       pendingKyc,
       organizationStats,
       proposalStats,
@@ -57,7 +58,6 @@ export class AdminService {
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { createdAt: { lt: thirtyDaysAgo } } }),
-      this.prisma.wallet.findMany({ select: { balance: true, currency: true } }),
       this.prisma.project.findMany({
         include: { category: true, _count: { select: { donations: true } } },
         where: { isActive: true }
@@ -67,6 +67,13 @@ export class AdminService {
         orderBy: { createdAt: 'asc' }
       }),
       this.prisma.walletTransaction.count({ where: { status: TxStatus.SUSPENSE } }),
+      this.prisma.walletTransaction.aggregate({
+        where: { status: TxStatus.SUSPENSE, type: TxType.CREDIT },
+        _sum: { amount: true }
+      }),
+      this.prisma.wallet.findMany({
+        where: { user: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } } }
+      }),
       this.prisma.organizationProfile.count({ where: { status: VerificationStatus.PENDING } }),
       this.prisma.organizationProfile.groupBy({ by: ['status'], _count: true }),
       this.prisma.projectProposal.groupBy({ by: ['status'], _count: true }),
@@ -82,7 +89,6 @@ export class AdminService {
       return { category: cat.name, count: relevant.length, volume: vol.toString() };
     });
 
-    // 2. Financial Logic - Trend Calculation (Last 30 Days)
     const dailyMap = new Map<string, { volume: bigint; count: number }>();
     donations.forEach(d => {
       const day = format(d.createdAt, 'yyyy-MM-dd');
@@ -96,33 +102,31 @@ export class AdminService {
       return { date, volume: stats.volume.toString(), donations: stats.count };
     }).reverse();
 
-    // 3. User Distribution Analysis
     const [roleDist, typeDist, verificationStates] = await Promise.all([
       this.prisma.user.groupBy({ by: ['role'], _count: true }),
       this.prisma.user.groupBy({ by: ['accountType'], _count: true }),
       this.prisma.organizationProfile.groupBy({ by: ['status'], _count: true })
     ]);
 
-    // 4. Project Performance Metrics
     const sortedByFunding = [...projects].sort((a, b) => Number(b.raisedAmount - a.raisedAmount)).slice(0, 5);
     const sortedByActivity = [...projects].sort((a, b) => b._count.donations - a._count.donations).slice(0, 5);
 
-    // 5. Proposal Funnel Logic
     const proposalMap = new Map(proposalStats.map(p => [p.status, p._count]));
     const totalSubmitted = (proposalMap.get('SUBMITTED') || 0) + (proposalMap.get('UNDER_REVIEW') || 0) + (proposalMap.get('APPROVED') || 0) + (proposalMap.get('REJECTED') || 0);
     const totalApproved = proposalMap.get('APPROVED') || 0;
 
-    // 6. Organization Logic
     const orgMap = new Map(organizationStats.map(o => [o.status, o._count]));
 
-    // 7. Calculate Summaries
-    const totalVolumeNGN = wallets
-      .filter(w => w.currency === 'NGN')
-      .reduce((acc, w) => acc + w.balance, 0n);
+    // --- CRITICAL BUG FIX: Accurate Liquidity Calculation ---
+    // True liquidity under Direct Payment architecture:
+    // (Total Active Project Funds) + (Orphaned Suspense Funds) + (Admin Platform Fees/Tips)
+    const projectVolume = projects.reduce((acc, p) => acc + p.raisedAmount, 0n);
+    const orphanedVolume = suspenseVolume._sum.amount || 0n;
+    const revenueVolume = systemWallets.reduce((acc, w) => acc + w.balance, 0n);
+    const totalVolumeNGN = projectVolume + orphanedVolume + revenueVolume;
 
     const growth = prevUsers === 0 ? 100 : ((totalUsers - prevUsers) / prevUsers) * 100;
 
-    // --- NEW: Dynamic Risk Analysis ---
     let dominantRisk = 'NONE';
     let riskCount = 0;
     let riskLabel = 'System healthy';
@@ -1548,13 +1552,15 @@ export class AdminService {
       );
       return response.data;
     } catch (error: any) {
-      // Extract Paystack specific error message if available
       const message = error.response?.data?.message || error.message;
       this.logger.error(`Paystack Refund Failed: ${message}`);
       throw new BadRequestException(`Paystack Refund Failed: ${message}`);
     }
   }
 
+  /**
+   * Handles Manual Audits, Refunds, and Phased Capital Re-allocation
+   */
   async resolveSuspenseTransaction(adminId: string, transactionId: string, dto: ResolveSuspenseDto) {
     const tx = await this.prisma.walletTransaction.findUnique({
       where: { id: transactionId },
@@ -1574,7 +1580,7 @@ export class AdminService {
           where: { id: transactionId },
           data: {
             status: TxStatus.REVERSED,
-            description: `${tx.description} [GATEWAY-REFUNDED]`
+            description: `${tx.description}[GATEWAY-REFUNDED]`
           },
         });
 
@@ -1609,7 +1615,6 @@ export class AdminService {
         );
       }
 
-      // NEW: STRICT CAPACITY GUARD
       // Pre-validate all target projects to ensure we don't trap capital or overfund
       for (const split of dto.allocations) {
         const targetProj = await this.prisma.project.findUnique({
@@ -1623,10 +1628,22 @@ export class AdminService {
           throw new BadRequestException(`Cannot allocate to "${targetProj.title}" because it is already closed or suspended.`);
         }
 
-        const remaining = targetProj.targetAmount - targetProj.raisedAmount;
-        if (BigInt(split.amount) > remaining) {
+        // Enforce Phase Cap during Admin Reallocation
+        const budget = (targetProj.budgetBreakdown as any[]) || [];
+        let cumulativeMajor = 0;
+        for (let i = 0; i <= (targetProj.currentPhaseIndex || 0) && i < budget.length; i++) {
+          cumulativeMajor += (budget[i].amount || budget[i].cost || 0);
+        }
+        let currentPhaseCapMinor = BigInt(cumulativeMajor * 100);
+        if (budget.length === 0 || (targetProj.currentPhaseIndex || 0) >= budget.length) {
+          currentPhaseCapMinor = BigInt(targetProj.targetAmount || '0');
+        }
+
+        const remainingForPhase = currentPhaseCapMinor - targetProj.raisedAmount;
+
+        if (BigInt(split.amount) > remainingForPhase) {
           throw new BadRequestException(
-            `Allocation to "${targetProj.title}" exceeds its remaining goal. It only needs ₦${(Number(remaining) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}. Please adjust your splits.`
+            `Allocation to "${targetProj.title}" exceeds its CURRENT PHASE goal. It only needs ₦${(Number(remainingForPhase) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}. Please adjust your splits to respect the phase limit.`
           );
         }
       }
@@ -1705,10 +1722,10 @@ export class AdminService {
           const updatedProject = await txPrisma.project.update({
             where: { id: split.projectId },
             data: { raisedAmount: { increment: splitAmount } },
-            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true }
+            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, budgetBreakdown: true }
           });
 
-          // Logic: Check Goal Completion
+          // Check Goal Completion
           const isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
           if (isGoalMet) {
             await txPrisma.project.update({
@@ -1717,7 +1734,17 @@ export class AdminService {
             });
           }
 
-          // Logic: Notify Owner of Reallocation
+          // Trigger Admin Phase Alerts for Reallocations
+          const budget = (updatedProject.budgetBreakdown as any[]) || [];
+          let cumulativeMajor = 0;
+          for (let idx = 0; idx <= (updatedProject.currentPhaseIndex || 0) && idx < budget.length; idx++) {
+            cumulativeMajor += (budget[idx].amount || budget[idx].cost || 0);
+          }
+          let phaseCap = BigInt(cumulativeMajor * 100);
+          if (budget.length === 0 || (updatedProject.currentPhaseIndex || 0) >= budget.length) phaseCap = updatedProject.targetAmount;
+
+          const isPhaseNewlyMet = !isGoalMet && (updatedProject.raisedAmount >= phaseCap);
+
           await txPrisma.notification.create({
             data: {
               userId: updatedProject.userId,
@@ -1738,9 +1765,26 @@ export class AdminService {
                 link: `/dashboard/projects/${updatedProject.id}/manage`
               }
             });
+          } else if (isPhaseNewlyMet) {
+            // Alert Admin that the Phase filled up via Reallocation
+            const admins = await txPrisma.user.findMany({
+              where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+              select: { id: true }
+            });
+
+            if (admins.length > 0) {
+              await txPrisma.notification.createMany({
+                data: admins.map(admin => ({
+                  userId: admin.id,
+                  type: 'PROJECT_STATUS' as NotificationType,
+                  title: 'Phase Fully Funded via Reallocation',
+                  content: `Phase ${(updatedProject.currentPhaseIndex || 0) + 1} for "${updatedProject.title}" is fully funded. Ready for vendor disbursement.`,
+                  link: `/admin/projects/${updatedProject.id}/edit`
+                }))
+              });
+            }
           }
 
-          // Forensic update: Log both raw and human-readable amounts
           forensicAllocationLog.push({
             projectId: updatedProject.id,
             projectTitle: updatedProject.title,
