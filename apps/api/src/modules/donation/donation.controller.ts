@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DonationService } from './donation.service';
 import { CreateDonationDto, InitiateDirectDonationDto } from './dto/donation.dto';
@@ -8,7 +8,7 @@ import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt.guard';
 
 @Controller('donations')
 export class DonationController {
-  constructor(private service: DonationService) {}
+  constructor(private service: DonationService) { }
 
   // 1. Standard User Donation (Strict Auth)
   @UseGuards(AuthGuard('jwt'))
@@ -37,7 +37,9 @@ export class DonationController {
   @UseGuards(AuthGuard('jwt'))
   @Post('subscribe')
   createSubscription(@Req() req: any, @Body() dto: CreateSubscriptionDto) {
-    return this.service.createSubscription(req.user.id, dto);
+    // COMPLIANCE LOCK: Recurring subscriptions are disabled because they rely on 
+    // custodial wallet balances which are turned off for regulatory compliance.
+    throw new ForbiddenException('Recurring donations are temporarily paused. Please use one-time direct payments.');
   }
 
   // 5. Subscription List (Strict Auth)
@@ -46,6 +48,7 @@ export class DonationController {
   getMySubscriptions(@Req() req: any) {
     return this.service.getMySubscriptions(req.user.id);
   }
+
   // 6. Update Subscription Status (Strict Auth)
   @UseGuards(AuthGuard('jwt'))
   @Patch('subscriptions/:id')

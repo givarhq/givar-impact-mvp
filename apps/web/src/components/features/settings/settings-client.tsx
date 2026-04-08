@@ -9,8 +9,6 @@ import {
     Activity,
     ChevronRight,
     ChevronLeft,
-    Repeat,
-    Inbox,
     ShieldCheck
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
@@ -19,14 +17,13 @@ import { SecurityForm } from './security-form';
 import { PreferencesForm } from './preferences-form';
 import { UserAuditView } from './user-audit-view';
 import { VerificationWizard } from '../organization/verification-wizard';
-import { SubscriptionCard } from '../subscriptions/subscription-card';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SettingsClientProps {
     user: any;
     orgProfile: any;
-    subscriptions: any[];
+    subscriptions: any[]; // Kept for interface compatibility but unused in UI
 }
 
 const SETTINGS_OPTIONS = [
@@ -46,14 +43,7 @@ const SETTINGS_OPTIONS = [
         bg: 'bg-emerald-500/10',
         description: 'Identity & trust documents.'
     },
-    {
-        id: 'recurring',
-        label: 'Recurring',
-        icon: Repeat,
-        color: 'text-blue-500',
-        bg: 'bg-blue-500/10',
-        description: 'Manage automated impact plans.'
-    },
+    // COMPLIANCE: 'Recurring' tab removed to reflect phased funding model
     {
         id: 'security',
         label: 'Security',
@@ -80,7 +70,7 @@ const SETTINGS_OPTIONS = [
     },
 ];
 
-export const SettingsClient = memo(function SettingsClient({ user, orgProfile, subscriptions }: SettingsClientProps) {
+export const SettingsClient = memo(function SettingsClient({ user, orgProfile }: SettingsClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const activeTab = searchParams.get('tab');
@@ -128,35 +118,6 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
                         <TabsContent value="verification" className="mt-0 outline-none">
                             <VerificationWizard user={user} initialProfile={orgProfile} />
                         </TabsContent>
-                        <TabsContent value="recurring" className="mt-0 outline-none">
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="max-w-5xl mx-auto space-y-4"
-                            >
-                                {subscriptions.length === 0 ? (
-                                    <div className="py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
-                                        <Inbox className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
-                                        <p className="text-xs font-bold text-muted-foreground tracking-widest">No recurring plans</p>
-                                    </div>
-                                ) : (
-                                    <div className="grid gap-4">
-                                        <AnimatePresence>
-                                            {subscriptions.map((sub, i) => (
-                                                <motion.div
-                                                    key={sub.id}
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: i * 0.05 }}
-                                                >
-                                                    <SubscriptionCard subscription={sub} />
-                                                </motion.div>
-                                            ))}
-                                        </AnimatePresence>
-                                    </div>
-                                )}
-                            </motion.div>
-                        </TabsContent>
                         <TabsContent value="security" className="mt-0 outline-none"><SecurityForm user={user} /></TabsContent>
                         <TabsContent value="activity" className="mt-0 outline-none"><UserAuditView /></TabsContent>
                         <TabsContent value="preferences" className="mt-0 outline-none"><PreferencesForm user={user} /></TabsContent>
@@ -194,17 +155,6 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile, s
                         <div>
                             {activeTab === 'profile' && <ProfileForm user={user} />}
                             {activeTab === 'verification' && <VerificationWizard user={user} initialProfile={orgProfile} />}
-                            {activeTab === 'recurring' && (
-                                <div className="space-y-3">
-                                    {subscriptions.length === 0 ? (
-                                        <div className="py-12 text-center bg-muted/20 rounded-3xl border-2 border-dashed border-border/40">
-                                            <p className="text-xs font-bold text-muted-foreground tracking-widest">No plans</p>
-                                        </div>
-                                    ) : (
-                                        subscriptions.map(sub => <SubscriptionCard key={sub.id} subscription={sub} />)
-                                    )}
-                                </div>
-                            )}
                             {activeTab === 'security' && <SecurityForm user={user} />}
                             {activeTab === 'activity' && <UserAuditView />}
                             {activeTab === 'preferences' && <PreferencesForm user={user} />}
