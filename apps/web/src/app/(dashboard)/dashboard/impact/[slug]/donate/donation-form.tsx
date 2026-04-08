@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
-import { Project, Wallet as WalletType } from '../../../../../../types';
+import { Project } from '../../../../../../types';
 import { ApiService } from '../../../../../../services/api';
 import { apiClient } from '../../../../../../lib/api-client';
 import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../../../../lib/utils/format';
@@ -21,7 +21,6 @@ import { usePostHog } from 'posthog-js/react';
 
 export interface DonationFormProps {
     project: Project | null;
-    wallet: WalletType | null;
     isAuthenticated: boolean;
 }
 
@@ -204,6 +203,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const handleConfirm = async () => {
         if (isReadOnly || isUnverified) return;
 
+        // --- BUG FIX: Removed the flawed `!selectedMethod` check. 
+        // This form is now purely a Direct Pay engine. ---
         if (!displayAmount || ngnValue <= 0) {
             toast.error("Please provide a valid amount.");
             return;
@@ -358,7 +359,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 "flex flex-col h-full space-y-6 transition-all duration-300",
                 (isReadOnly || isUnverified) && "opacity-20 grayscale pointer-events-none blur-[1px]"
             )}>
-                {/* Phase Capping Notification */}
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">

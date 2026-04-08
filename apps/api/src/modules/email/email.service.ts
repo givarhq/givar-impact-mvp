@@ -404,24 +404,7 @@ export class EmailService {
 
   // 27. Phase Unlocked Alert (Waitlist Broadcast)
   async sendPhaseUnlockedAlert(email: string, data: { projectTitle: string; projectUrl: string }) {
-    // Logic: We use the raw base template directly to avoid cluttering email.templates.ts 
-    // for this highly specific waitlist blast.
-    const content = `
-      <p>Hi there,</p>
-      <p>Great news! The previous phase for <strong>${data.projectTitle}</strong> has been successfully executed and verified by the Givar Audit team.</p>
-      
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0; text-align: center;">
-        <p style="font-size: 18px; color: #064e3b; font-weight: 800; margin: 0;">The next funding phase is now OPEN!</p>
-      </div>
-
-      <p>Because you asked to be notified, you're the first to know. You can now return to the cause and help fund this next critical step.</p>
-      
-      <div style="text-align: center; margin: 32px 0;">
-        <a href="${data.projectUrl}" class="button" style="background-color: #10b981;">Fund next phase</a>
-      </div>
-      
-      <p style="font-size: 13px; color: #6b7280;">Thank you for your commitment to transparent impact.</p>
-    `;
+    const content = EmailTemplates.sendPhaseUnlockedAlert(data);
     const html = EmailTemplates.base(content, 'Next phase unlocked!');
     return this.send(email, `Givar Impact: Next phase unlocked for ${data.projectTitle}`, html);
   }

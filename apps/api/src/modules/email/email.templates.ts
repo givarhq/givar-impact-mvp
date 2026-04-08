@@ -113,7 +113,7 @@ export const EmailTemplates = {
         </div>
         
         <p style="font-size: 11px; color: #059669; margin-top: 12px; font-style: italic; line-height: 1.4;">
-          Note: This project was completed by your gift. The surplus has been moved to our community fund for reallocation to active causes.
+          Note: This phase was completed by your gift. The surplus has been moved to our community fund for reallocation to active causes.
         </p>
       ` : `
         <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
@@ -132,7 +132,7 @@ export const EmailTemplates = {
       <p style="margin: 0; font-size: 14px;"><strong>Time:</strong> ${data.time}</p>
       <p style="margin: 8px 0 0 0; font-size: 14px;"><strong>IP Address:</strong> ${data.ip}</p>
     </div>
-    <p>If this was you, no action is needed. If not, please contact Givar Security immediately to lock your wallet.</p>
+    <p>If this was you, no action is needed. If not, please contact Givar Security immediately to lock your account.</p>
   `,
 
   subscriptionUpdate: (data: { name: string; project: string; status: string }) => `
@@ -154,9 +154,9 @@ export const EmailTemplates = {
 
   walletFunded: (data: { name: string; amount: string; currency: string; ref: string; newBalance: string; donorAmount?: string; donorCurrency?: string; }) => `
     <p>Hi ${data.name},</p>
-    <p>Your <strong>Givar Impact</strong> wallet has been successfully topped up.</p>
+    <p>Your <strong>Givar Impact</strong> account has received a direct deposit.</p>
     <div class="stat-box">
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Amount Added</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Amount Received</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
       
       ${data.donorCurrency && data.donorCurrency !== data.currency ? `
@@ -164,13 +164,8 @@ export const EmailTemplates = {
           (Estimated value: ${data.donorCurrency === 'CAD' ? 'C$' : data.donorCurrency === 'USD' ? '$' : data.donorCurrency === 'GBP' ? '£' : data.donorCurrency === 'EUR' ? '€' : data.donorCurrency} ${data.donorAmount})
         </div>
       ` : ''}
-
-      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">New Ledger Balance</div>
-      <div style="font-size: 20px; font-weight: 700; color: #065f46;">${data.currency} ${data.newBalance}</div>
     </div>
     <p><strong>Reference:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-family: monospace;">${data.ref}</code></p>
-    <p>You can now use these funds to support any active cause on the platform.</p>
   `,
 
   passwordReset: (url: string, name: string) => `
@@ -484,7 +479,7 @@ export const EmailTemplates = {
 
   adminHighCapitalIntent: (data: { adminName: string; userEmail: string; amount: string; currency: string }) => `
     <p>Hi ${data.adminName},</p>
-    <p><strong>Institutional Intent Detected:</strong> A user has attempted a high-value wallet deposit that exceeds the standard threshold.</p>
+    <p><strong>Institutional Intent Detected:</strong> A user has attempted a high-value direct payment that exceeds the standard threshold.</p>
     
     <div class="stat-box" style="background-color: #f0f9ff; border: 1px solid #bae6fd;">
       <div style="font-size: 11px; text-transform: uppercase; color: #0369a1; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Attempted Amount</div>
@@ -566,4 +561,21 @@ export const EmailTemplates = {
     <a href="${data.url}" class="button" style="background-color: #e11d48;">Review & Update</a>
   </div>
 `,
+
+  sendPhaseUnlockedAlert: (data: { projectTitle: string; projectUrl: string }) => `
+      <p>Hi there,</p>
+      <p>Great news! The previous phase for <strong>${data.projectTitle}</strong> has been successfully executed and verified by the Givar Audit team.</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0; text-align: center;">
+        <p style="font-size: 18px; color: #064e3b; font-weight: 800; margin: 0;">The next funding phase is now OPEN!</p>
+      </div>
+
+      <p>Because you asked to be notified, you're the first to know. You can now return to the cause and help fund this next critical step.</p>
+      
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${data.projectUrl}" class="button" style="background-color: #10b981;">Fund next phase</a>
+      </div>
+      
+      <p style="font-size: 13px; color: #6b7280;">Thank you for your commitment to transparent impact.</p>
+  `,
 };

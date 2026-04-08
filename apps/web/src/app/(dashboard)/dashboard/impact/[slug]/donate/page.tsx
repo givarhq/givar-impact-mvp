@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { ApiService } from '../../../../../../services/api';
-import { Wallet } from '../../../../../../types';
 import { DonationForm } from './donation-form';
 import { ArrowLeft, Target } from 'lucide-react';
 import Link from 'next/link';
@@ -29,11 +28,7 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
   const project = await ApiService.projects.get(token || '', slug);
   if (!project) notFound();
 
-  // Fetch Wallet if authenticated
-  let wallet: Wallet | null = null;
-  if (isAuthenticated && token) {
-    wallet = await ApiService.wallet.get(token);
-  }
+  // --- BUG FIX: Completely removed the useless Wallet API fetch to improve server response time ---
 
   const backLink = isAuthenticated
     ? `/dashboard/impact/${slug}`
@@ -85,7 +80,6 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
         <div className="lg:col-span-8 min-w-0">
           <DonationForm
             project={project}
-            wallet={wallet}
             isAuthenticated={isAuthenticated}
           />
         </div>
