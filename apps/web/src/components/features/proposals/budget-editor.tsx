@@ -1,306 +1,230 @@
 'use client';
 
-import { BudgetItem } from '../../../stores/proposal-store';
+import { BudgetItem, TimelineItem } from '../../../stores/proposal-store';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
-import { Trash2, PlusCircle, PenTool } from 'lucide-react';
+import { Textarea } from '../../ui/textarea';
+import { Trash2, PlusCircle, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 import { useEffect, memo } from 'react';
 import { useProposalStore } from '../../../stores/proposal-store';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CATEGORY_COST_TYPES: Record<string, { label: string; value: string }[]> = {
-  medical: [
-    { label: 'Surgery', value: 'SURGERY' },
-    { label: 'Medication', value: 'MEDICATION' },
-    { label: 'Hospital stay', value: 'HOSPITAL_STAY' },
-    { label: 'Diagnostics', value: 'DIAGNOSTICS' },
-    { label: 'Equipment', value: 'EQUIPMENT' },
-    { label: 'Logistics', value: 'LOGISTICS' },
-    { label: 'Other', value: 'OTHER' },
-  ],
-  education: [
-    { label: 'Tuition fees', value: 'TUITION' },
-    { label: 'Books and materials', value: 'MATERIALS' },
-    { label: 'Accommodation', value: 'ACCOMMODATION' },
-    { label: 'Research and projects', value: 'RESEARCH' },
-    { label: 'Infrastructure', value: 'INFRASTRUCTURE' },
-    { label: 'Logistics', value: 'LOGISTICS' },
-    { label: 'Other', value: 'OTHER' },
-  ],
-  community: [
-    { label: 'Infrastructure', value: 'INFRASTRUCTURE' },
-    { label: 'Relief goods', value: 'RELIEF_GOODS' },
-    { label: 'Training and workshops', value: 'TRAINING' },
-    { label: 'Tools and equipment', value: 'TOOLS' },
-    { label: 'Operations', value: 'OPERATIONS' },
-    { label: 'Logistics', value: 'LOGISTICS' },
-    { label: 'Other', value: 'OTHER' },
-  ],
-};
-
-const CATEGORY_STAGE_LABELS: Record<string, string[]> = {
-  medical: [
-    'Pre-treatment',
-    'Clinical procedures',
-    'Medication',
-    'Recovery',
-    'Follow-up'
-  ],
-  education: [
-    'Registration',
-    'Tuition',
-    'Resources',
-    'Assessment'
-  ],
-  community: [
-    'Phase 1: Setup',
-    'Phase 2: Execution',
-    'Phase 3: Launch',
-    'Phase 4: Impact'
-  ]
-};
-
-const DEFAULT_COST_TYPES = [
-  { label: 'Goods', value: 'GOODS' },
-  { label: 'Service', value: 'SERVICE' },
-  { label: 'Logistics', value: 'LOGISTICS' },
-  { label: 'Other', value: 'OTHER' },
-];
-
-const DEFAULT_STAGE_LABELS = [
-  'Phase 1',
-  'Phase 2',
-  'Phase 3',
-  'Phase 4'
-];
-
 interface BudgetEditorProps {
-  items?: BudgetItem[];
-  onChange?: (items: BudgetItem[]) => void;
+  budgetItems?: BudgetItem[];
+  timelineItems?: TimelineItem[];
+  onBudgetChange?: (items: BudgetItem[]) => void;
+  onTimelineChange?: (items: TimelineItem[]) => void;
   readOnly?: boolean;
   isLive?: boolean;
   isAdjustmentMode?: boolean;
-  categorySlug?: string;
+  categorySlug?: string; // Kept for interface compatibility but unused in the unified view
 }
 
 export const BudgetEditor = memo(function BudgetEditor({
-  items,
-  onChange,
+  budgetItems,
+  timelineItems,
+  onBudgetChange,
+  onTimelineChange,
   readOnly = false,
   isLive = false,
-  isAdjustmentMode = false,
-  categorySlug
+  isAdjustmentMode = false
 }: BudgetEditorProps) {
   const store = useProposalStore();
 
-  const budgetBreakdown = items || store.budgetBreakdown;
-  const updateField = onChange ? (val: any) => onChange(val) : (val: any) => store.updateField('budgetBreakdown', val);
+  const budgetBreakdown = budgetItems || store.budgetBreakdown;
+  const executionTimeline = timelineItems || store.executionTimeline;
+
+  const updateBudget = onBudgetChange ? onBudgetChange : (val: any) => store.updateField('budgetBreakdown', val);
+  const updateTimeline = onTimelineChange ? onTimelineChange : (val: any) => store.updateField('executionTimeline', val);
 
   const isLocked = readOnly || (isLive && !isAdjustmentMode);
 
-  const activeCostTypes = categorySlug && CATEGORY_COST_TYPES[categorySlug]
-    ? CATEGORY_COST_TYPES[categorySlug]
-    : DEFAULT_COST_TYPES;
+  // We derive the combined "phases" for the UI by matching indices.
+  const maxLength = Math.max(budgetBreakdown.length, executionTimeline.length);
+  const phases = Array.from({ length: maxLength }).map((_, i) => {
+    const b = budgetBreakdown[i] || { id: crypto.randomUUID(), payTo: '', costType: 'SERVICE', amount: 0, description: '' };
+    const t = executionTimeline[i] || { id: b.id, phase: '', estimatedDate: '', deliverables: '' };
+    return { budget: b, timeline: t, index: i };
+  });
 
-  const activeStageLabels = categorySlug && CATEGORY_STAGE_LABELS[categorySlug]
-    ? CATEGORY_STAGE_LABELS[categorySlug]
-    : DEFAULT_STAGE_LABELS;
-
-  const handleUpdate = (id: string, field: keyof BudgetItem, value: any) => {
+  const handleUpdate = (index: number, field: string, value: any) => {
     if (isLocked) return;
-    let processedValue = value;
 
-    if (field === 'amount') {
+    const newBudget = [...budgetBreakdown];
+    const newTimeline = [...executionTimeline];
+
+    if (!newBudget[index]) newBudget[index] = { id: crypto.randomUUID(), payTo: '', costType: 'SERVICE', amount: 0, description: '' };
+    if (!newTimeline[index]) newTimeline[index] = { id: newBudget[index].id, phase: '', estimatedDate: '', deliverables: '' };
+
+    if (field === 'title') {
+      newBudget[index].description = value;
+      newTimeline[index].phase = value;
+    } else if (field === 'amount') {
       const raw = parseFormattedNumber(String(value));
-      processedValue = raw === '' ? 0 : Number(raw);
-      if (isNaN(processedValue)) processedValue = 0;
+      let num = raw === '' ? 0 : Number(raw);
+      if (isNaN(num)) num = 0;
+      newBudget[index].amount = num;
+    } else if (field === 'vendor') {
+      newBudget[index].payTo = value;
+    } else if (field === 'deliverables') {
+      newTimeline[index].deliverables = value;
+    } else if (field === 'estimatedDate') {
+      newTimeline[index].estimatedDate = value;
     }
 
-    const updatedBudget = budgetBreakdown.map(item =>
-      item.id === id ? { ...item, [field]: processedValue } : item
-    );
-    updateField(updatedBudget);
+    updateBudget(newBudget);
+    updateTimeline(newTimeline);
   };
 
   const addItem = () => {
     if (isLocked) return;
-    const newItem: BudgetItem = {
-      id: crypto.randomUUID(),
-      payTo: '',
-      costType: activeCostTypes[0].value,
-      amount: 0,
-      description: '',
-      stage: '',
-    };
-    updateField([...budgetBreakdown, newItem]);
+    const newId = crypto.randomUUID();
+    updateBudget([...budgetBreakdown, { id: newId, payTo: '', costType: 'SERVICE', amount: 0, description: '' }]);
+    updateTimeline([...executionTimeline, { id: newId, phase: '', estimatedDate: '', deliverables: '' }]);
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (index: number) => {
     if (isLocked) return;
-    updateField(budgetBreakdown.filter(item => item.id !== id));
+    const newBudget = [...budgetBreakdown];
+    const newTimeline = [...executionTimeline];
+    newBudget.splice(index, 1);
+    newTimeline.splice(index, 1);
+    updateBudget(newBudget);
+    updateTimeline(newTimeline);
   };
 
   useEffect(() => {
-    if (!onChange) {
+    if (!onBudgetChange) {
       const total = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
       store.updateField('targetAmount', total);
     }
-  }, [budgetBreakdown, onChange]);
+  }, [budgetBreakdown, onBudgetChange, store]);
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
-  const fieldContainerClass = cn(
-    "py-3 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
-    isLocked && "border-border/60"
-  );
-
   const inputStyle = cn(
-    "h-9 text-xs rounded-3xl transition-all duration-200 w-full",
+    "h-10 text-sm rounded-2xl transition-all duration-200 w-full",
     isLocked
       ? "bg-transparent border-transparent shadow-none font-bold text-foreground cursor-default focus-visible:ring-0 px-1"
       : "bg-muted/20 border-border/50 focus:bg-background focus:border-primary/50"
   );
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-1">
+    <div className="space-y-6">
+      <div className="space-y-4">
         <AnimatePresence initial={false} mode="popLayout">
-          {budgetBreakdown.map((item) => {
-            const currentStage = item.stage || '';
-            const isCustomStage = currentStage !== '' && !activeStageLabels.includes(currentStage);
-            const selectValue = isCustomStage ? 'CUSTOM' : (currentStage === '' ? 'NONE' : currentStage);
+          {phases.map(({ budget, timeline, index }) => (
+            <motion.div
+              key={budget.id}
+              layout
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, height: 0, overflow: 'hidden' }}
+              transition={{ duration: 0.2 }}
+              className={cn(
+                "p-5 md:p-6 rounded-3xl border transition-all relative group",
+                isLocked ? "bg-muted/5 border-border/40" : "bg-card border-border/60 hover:border-primary/30 shadow-sm"
+              )}
+            >
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2.5">
+                  <div className={cn(
+                    "h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-black border",
+                    isLocked ? "bg-primary text-white border-primary" : "bg-primary/10 text-primary border-primary/20"
+                  )}>
+                    {isLocked ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                  </div>
+                  <h4 className="text-sm font-bold text-foreground">Phase {index + 1}</h4>
+                </div>
+                {!isLocked && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => removeItem(index)}
+                    className="text-destructive hover:bg-destructive/10 rounded-2xl h-8 w-8 shrink-0 transition-colors active:scale-90 opacity-0 group-hover:opacity-100"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-            return (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-                transition={{ duration: 0.2 }}
-                className={fieldContainerClass}
-              >
-                {/* PAY TO */}
-                <div className="md:col-span-3 space-y-1">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay to</label>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                {/* Phase Title */}
+                <div className="md:col-span-8 space-y-1.5">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Phase Objective</label>
                   <Input
-                    placeholder="Vendor or recipient..."
-                    value={item.payTo}
-                    onChange={(e) => handleUpdate(item.id, 'payTo', e.target.value)}
+                    placeholder="e.g. Foundation Construction"
+                    value={budget.description}
+                    onChange={(e) => handleUpdate(index, 'title', e.target.value)}
                     readOnly={isLocked}
                     className={inputStyle}
                   />
                 </div>
 
-                {/* COST TYPE */}
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Cost type</label>
-                  <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
-                    <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-3xl shadow-xl">
-                      {activeCostTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value} className="rounded-3xl text-xs">
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* AMOUNT */}
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Amount</label>
+                {/* Phase Cost */}
+                <div className="md:col-span-4 space-y-1.5">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Capital Required (NGN)</label>
                   <div className="relative">
-                    {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
+                    {!isLocked && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
                     <Input
                       placeholder="0"
-                      className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums font-bold")}
-                      value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
-                      onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
+                      className={cn(inputStyle, !isLocked && "pl-8", "tabular-nums font-bold")}
+                      value={budget.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(budget.amount))}` : formatNumberInput(String(budget.amount)))}
+                      onChange={(e) => handleUpdate(index, 'amount', e.target.value)}
                       readOnly={isLocked}
                     />
                   </div>
                 </div>
 
-                {/* DESCRIPTION */}
-                <div className="md:col-span-3 space-y-1">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Description</label>
+                {/* Vendor Allocation */}
+                <div className="md:col-span-6 space-y-1.5">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Assigned Vendor / Payee</label>
                   <Input
-                    placeholder="Details..."
-                    value={item.description}
-                    onChange={(e) => handleUpdate(item.id, 'description', e.target.value)}
+                    placeholder="e.g. ABC Engineering Ltd"
+                    value={budget.payTo}
+                    onChange={(e) => handleUpdate(index, 'vendor', e.target.value)}
                     readOnly={isLocked}
                     className={inputStyle}
                   />
                 </div>
 
-                {/* OPTIONAL STAGE & DELETE */}
-                <div className="md:col-span-2 flex gap-2 items-end">
-                  <div className="flex-1 space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Stage (Optional)</label>
-                    {isLocked ? (
-                      <Input value={item.stage} readOnly className={inputStyle} />
-                    ) : (
-                      <div className="space-y-2">
-                        <Select
-                          value={selectValue}
-                          onValueChange={(v) => {
-                            if (v === 'CUSTOM') {
-                              handleUpdate(item.id, 'stage', activeStageLabels[0] || 'Phase 1');
-                            } else if (v === 'NONE') {
-                              handleUpdate(item.id, 'stage', '');
-                            } else {
-                              handleUpdate(item.id, 'stage', v);
-                            }
-                          }}
-                        >
-                          <SelectTrigger className={cn(inputStyle, "bg-muted/20")}>
-                            <SelectValue placeholder="Select stage..." />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-3xl shadow-xl">
-                            <SelectItem value="NONE" className="rounded-3xl text-xs italic">No stage</SelectItem>
-                            {activeStageLabels.map((label) => (
-                              <SelectItem key={label} value={label} className="rounded-3xl text-xs">{label}</SelectItem>
-                            ))}
-                            <SelectItem value="CUSTOM" className="rounded-3xl text-xs font-bold text-primary border-t border-border/40 mt-1">
-                              + Custom stage
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {isCustomStage && (
-                          <div className="relative animate-in slide-in-from-top-1">
-                            <PenTool className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                            <Input
-                              placeholder="Name..."
-                              value={item.stage}
-                              onChange={(e) => handleUpdate(item.id, 'stage', e.target.value)}
-                              className={cn(inputStyle, "pl-8 bg-primary/5 border-primary/20")}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    )}
+                {/* Estimated Date */}
+                <div className="md:col-span-6 space-y-1.5">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Estimated Completion Date (Optional)</label>
+                  <div className="relative">
+                    {!isLocked && <CalendarIcon className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />}
+                    <Input
+                      type={isLocked ? "text" : "date"}
+                      value={timeline.estimatedDate}
+                      onChange={(e) => handleUpdate(index, 'estimatedDate', e.target.value)}
+                      readOnly={isLocked}
+                      className={cn(inputStyle, isLocked && "text-primary font-bold")}
+                    />
                   </div>
-                  {!isLocked && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeItem(item.id)}
-                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors active:scale-90 mb-[1px]"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
                 </div>
-              </motion.div>
-            );
-          })}
+
+                {/* Deliverables */}
+                <div className="md:col-span-12 space-y-1.5">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Expected Deliverables (Proof of Work)</label>
+                  <Textarea
+                    placeholder="What specific visual proof will the vendor provide upon completion?"
+                    value={timeline.deliverables}
+                    onChange={(e) => handleUpdate(index, 'deliverables', e.target.value)}
+                    readOnly={isLocked}
+                    className={cn(
+                      "min-h-[80px] text-sm rounded-2xl transition-all duration-200 resize-none",
+                      isLocked
+                        ? "bg-transparent border-transparent shadow-none font-medium italic text-muted-foreground p-1"
+                        : "bg-muted/20 border-border/50 focus:bg-background focus:border-primary/50 p-3.5"
+                    )}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </AnimatePresence>
       </div>
 
@@ -309,18 +233,18 @@ export const BudgetEditor = memo(function BudgetEditor({
           type="button"
           variant="outline"
           onClick={addItem}
-          className="w-full border-dashed rounded-3xl h-10 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98]"
+          className="w-full border-dashed border-2 rounded-3xl h-14 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98] bg-muted/10 hover:bg-primary/5 hover:border-primary/30"
         >
-          <PlusCircle className="h-3.5 w-3.5" /> Add budget entry
+          <PlusCircle className="h-4 w-4" /> Add Execution Phase
         </Button>
       )}
 
       <div className={cn(
-        "flex justify-between items-center px-5 py-3 rounded-3xl border transition-all mt-4",
-        isLocked ? "bg-primary/5 border-primary/20" : "bg-muted/10 border-border/40"
+        "flex justify-between items-center px-6 py-4 rounded-3xl border transition-all mt-8 shadow-sm",
+        isLocked ? "bg-primary/5 border-primary/20" : "bg-card border-border/40"
       )}>
-        <span className="text-xs font-bold tracking-widest text-primary">Budget total</span>
-        <span className="text-xl font-bold text-foreground tabular-nums">₦ {formatNumberInput(String(totalCost))}</span>
+        <span className="text-sm font-bold tracking-widest text-primary uppercase">Total Capital Goal</span>
+        <span className="text-2xl font-black text-foreground tabular-nums tracking-tight">₦ {formatNumberInput(String(totalCost))}</span>
       </div>
     </div>
   );

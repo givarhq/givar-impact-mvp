@@ -6,7 +6,7 @@ import { useProposalStore } from '../../../../../../../../stores/proposal-store'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, ArrowRight, ClipboardList, Loader2, ShieldCheck, Target } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, ShieldCheck, Briefcase } from 'lucide-react';
 import { BudgetEditor } from '../../../../../../../../components/features/proposals/budget-editor';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import toast from 'react-hot-toast';
@@ -16,19 +16,14 @@ export default function PlanPage() {
   const params = useParams();
   const proposalId = params.id as string;
 
-  const { setProposal, riskAnalysis, updateField, categoryId } = useProposalStore();
+  const { setProposal, riskAnalysis, updateField } = useProposalStore();
   const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [proposalData, categoriesData] = await Promise.all([
-          ApiService.proposals.get(proposalId),
-          ApiService.projects.getCategories()
-        ]);
+        const proposalData = await ApiService.proposals.get(proposalId);
         setProposal(proposalData);
-        setCategories(categoriesData || []);
       } catch (error) {
         toast.error("Draft failed to load");
         router.push('/dashboard/proposals');
@@ -38,8 +33,6 @@ export default function PlanPage() {
     };
     fetchData();
   }, [proposalId, setProposal, router]);
-
-  const activeCategorySlug = categories.find(c => c.id === categoryId)?.slug;
 
   if (isLoading) {
     return (
@@ -51,31 +44,28 @@ export default function PlanPage() {
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
-
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-          <CardTitle className="text-lg md:text-xl font-bold">Use of Funds</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-bold">Phased Execution Plan</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Define your budget entries. Precision here is critical for administrative audit approval. Optional stage labels will auto-generate your project roadmap.
+            Define your execution phases. Each phase acts as a funding milestone. Precision here is critical for administrative audit approval.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="p-6 md:p-8 pt-8 space-y-12 min-w-0">
-          {/* Budget Section */}
           <div className="space-y-4 min-w-0">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" />
-                Budget Breakdown
+                <Briefcase className="h-4 w-4 text-primary" />
+                Implementation Roadmap
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Itemize every requirement and vendor for the project procurement.</p>
+              <p className="text-xs text-muted-foreground font-medium">Itemize every phase requirement and vendor for project execution.</p>
             </div>
             <div className="min-w-0">
-              <BudgetEditor categorySlug={activeCategorySlug} />
+              <BudgetEditor />
             </div>
           </div>
 
-          {/* Additional Notes Section */}
           <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -91,7 +81,6 @@ export default function PlanPage() {
             />
           </div>
 
-          {/* Navigation Controls */}
           <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
             <Button
               variant="outline"
