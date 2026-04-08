@@ -27,16 +27,16 @@ export default function AgreementPage() {
                         <div className="p-8 md:p-12">
                             <div className={cn(
                                 "max-w-none text-sm text-foreground/80 leading-relaxed font-medium",
-                                "[&_h2]:font-black [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-2xl [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40",
-                                "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-lg [&_h3]:mt-6 [&_h3]:mb-3",
+                                "[&_h2]:font-black [&_h2]:tracking-tight[&_h2]:text-foreground [&_h2]:text-2xl [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40",
+                                "[&_h3]:font-bold[&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-lg[&_h3]:mt-6 [&_h3]:mb-3",
                                 "[&_p]:text-muted-foreground [&_p]:mb-4 [&_p]:last:mb-0",
-                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-2 [&_ul]:text-muted-foreground [&_ul_li::marker]:text-primary/50",
+                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6[&_ul]:space-y-2 [&_ul]:text-muted-foreground [&_ul_li::marker]:text-primary/50",
                                 "[&_strong]:font-bold [&_strong]:text-foreground",
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Version: 1.1<br />
-                                    Effective Date: <strong>March 13, 2026</strong>
+                                    Version: 1.2<br />
+                                    Effective Date: <strong>March 2026</strong>
                                 </p>
                                 <p>
                                     By submitting a cause on Givar, you agree to the following terms.
@@ -56,15 +56,20 @@ export default function AgreementPage() {
                                 <h2>4. Platform Discretion</h2>
                                 <p>Givar reserves the right to approve, reject, pause, or remove causes at its discretion where verification concerns, policy issues, or fraud risks arise.</p>
 
-                                <h2>5. Vendor Disbursement</h2>
-                                <p>You understand that funds raised on Givar are not paid to organisers personally. Payments are made directly to verified vendors or service providers.</p>
-                                <p>Givar is not responsible for the quality, timing, or outcome of services delivered by vendors once payment has been made.</p>
+                                <h2>5. Phased Vendor Disbursements</h2>
+                                <p>You understand that funds raised on Givar are <strong>never paid to organisers personally</strong>. All donations are collected directly by Givar and are legally bound to the platform treasury.</p>
+                                <ul>
+                                    <li><strong>Phased Funding:</strong> Campaigns are funded in distinct phases according to the approved budget roadmap. Inbound donations will pause automatically when an active phase is fully funded.</li>
+                                    <li><strong>Direct Payment:</strong> Givar will disburse funds directly to verified vendors or service providers for the completion of that specific phase.</li>
+                                    <li><strong>Proof of Work:</strong> You are strictly required to upload visual proof of progress (receipts, photos) upon the completion of a phase. Givar will not unlock funding for subsequent phases until this proof is audited and approved by our compliance team.</li>
+                                </ul>
+                                <p>Givar is not responsible for the quality, timing, or outcome of services delivered by vendors once payment has been disbursed.</p>
 
                                 <h2>6. Updates and Transparency</h2>
                                 <p>You agree to provide truthful updates, supporting evidence, and reasonable cooperation to maintain transparency for donors.</p>
 
                                 <h2>7. Misrepresentation</h2>
-                                <p>Knowingly submitting false, misleading, or unauthorised causes may result in account suspension and potential legal action.</p>
+                                <p>Knowingly submitting false, misleading, or unauthorised causes may result in account suspension and potential legal reporting.</p>
 
                                 <h2>8. Contact</h2>
                                 <p>For questions regarding cause submissions, please contact: <strong>support@givarapp.com</strong></p>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, memo } from 'react';
-import { ShieldCheck, TrendingUp, Users, AlertCircle, ArrowRight, X, Copy, Check } from 'lucide-react';
+import { ShieldCheck, TrendingUp, Users, AlertCircle, ArrowRight, X, Copy, Check, Lock } from 'lucide-react';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { SmartCurrency } from '../../ui/smart-currency';
@@ -43,11 +43,12 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // Logic: Dynamically construct the records link based on current path to prevent middleware 404/redirects.
     const isDashboard = pathname.startsWith('/dashboard');
     const recordsLink = isDashboard
         ? `/dashboard/impact/${project.slug}/records`
         : `/explore/${project.slug}/records`;
+
+    const budgetLength = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown.length : 0;
 
     return (
         <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 shadow-sm">
@@ -73,7 +74,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
             {/* Primary Metrics */}
             <div className="space-y-1 mb-5">
-                <p className="text-xs font-medium text-muted-foreground">Total raised</p>
+                <p className="text-xs font-medium text-muted-foreground">Total capital raised</p>
                 <div className="flex items-baseline gap-2">
                     <h3 className="text-2xl font-bold tracking-tight text-foreground">
                         <SmartCurrency amount={raised.toString()} currency={project.currency} visible={true} size="default" />
@@ -85,7 +86,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-xs font-bold">
                     <span className="text-primary">{percent}% funded</span>
-                    <span className="text-muted-foreground">Target</span>
+                    <span className="text-muted-foreground">Total Target</span>
                 </div>
                 <div className="h-2.5 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
                     <motion.div
@@ -169,9 +170,20 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 <motion.div layout className="col-span-2 p-3 rounded-3xl bg-muted/20 border border-border/40 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                         <Users className="h-3 w-3 text-blue-500" />
-                        <span className="text-xs font-bold text-muted-foreground ">Donors</span>
+                        <span className="text-xs font-bold text-muted-foreground ">Verified Donors</span>
                     </div>
                     <p className="font-bold text-sm text-foreground">{project.donorCount || 0}</p>
+                </motion.div>
+
+                {/* Phased Funding Notice */}
+                <motion.div layout className="col-span-2 p-3.5 rounded-3xl bg-primary/5 border border-primary/20 flex items-start gap-3 shadow-inner">
+                    <Lock className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                        <p className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Execution</p>
+                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                            This project is secured across {budgetLength || 'multiple'} execution phases. Capital is released to vendors strictly upon audited proof of work.
+                        </p>
+                    </div>
                 </motion.div>
             </div>
 
