@@ -11,13 +11,14 @@ import {
     Clock,
     Database,
     ShieldCheck,
-    AlertCircle,
     TrendingUp,
     FileX,
     FileSearch,
     Check,
     ChevronRight,
-    Megaphone
+    Megaphone,
+    Target,
+    AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -50,10 +51,12 @@ export default async function ProjectManagePage({
     if (!project) notFound();
 
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
+    const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const updates: ProjectUpdate[] = Array.isArray(project.updates) ? project.updates : [];
 
-    const defaultMilestone = timeline.find((m: any) => m.status === 'IN_PROGRESS') ||
-        timeline.find((m: any) => m.status === 'PENDING');
+    const currentPhaseIndex = project.currentPhaseIndex || 0;
+
+    const defaultMilestone = timeline[currentPhaseIndex] || timeline[timeline.length - 1];
 
     const currentMilestone = focusedMilestoneId
         ? timeline.find((m: any) => m.id === focusedMilestoneId)
@@ -141,15 +144,15 @@ export default async function ProjectManagePage({
                     )}
 
                     {!isFullyCompleted && currentMilestone ? (
-                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm min-w-0">
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm min-w-0 border-2 hover:border-primary/30 transition-colors">
                             <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10">
                                 <div className="flex items-center justify-between gap-4 min-w-0">
                                     <CardTitle className="text-base font-bold flex items-center gap-3 truncate">
                                         <Camera className={cn("h-5 w-5 shrink-0", isRejected ? "text-destructive" : "text-primary")} />
-                                        <span>{isRejected ? 'Resubmit proof' : 'Post impact update'}</span>
+                                        <span>{isRejected ? 'Resubmit proof' : `Upload proof for Phase ${timeline.findIndex((t: any) => t.id === currentMilestone.id) + 1}`}</span>
                                     </CardTitle>
-                                    <Badge variant="outline" className="rounded-3xl border-primary/20 bg-primary/5 text-primary font-bold text-[11px] shrink-0">
-                                        {currentMilestone.phase}
+                                    <Badge variant="outline" className="rounded-3xl border-primary/20 bg-primary/5 text-primary font-bold text-[11px] shrink-0 uppercase tracking-widest">
+                                        Active Phase
                                     </Badge>
                                 </div>
                             </CardHeader>
@@ -157,7 +160,7 @@ export default async function ProjectManagePage({
                                 <EvidenceSubmission
                                     key={currentMilestone.id}
                                     projectId={id}
-                                    milestone={currentMilestone}
+                                    milestone={{ ...currentMilestone, index: timeline.findIndex((t: any) => t.id === currentMilestone.id) }}
                                 />
                             </CardContent>
                         </Card>
@@ -202,7 +205,7 @@ export default async function ProjectManagePage({
                         <CardHeader className="p-6 md:p-8 pb-2">
                             <CardTitle className="text-sm font-bold flex items-center gap-2 text-muted-foreground">
                                 <TrendingUp className="h-4 w-4 text-primary" />
-                                Execution roadmap
+                                Phased Execution Roadmap
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8 pt-4 min-w-0">
@@ -210,9 +213,14 @@ export default async function ProjectManagePage({
                                 <div className="absolute left-[13px] top-2 bottom-2 w-0.5 bg-border/60" />
                                 {timeline.map((m: any, i: number) => {
                                     const isDone = m.status === 'COMPLETED';
-                                    const isCurrent = m.id === currentMilestone?.id;
+                                    const isCurrent = i === currentPhaseIndex;
+                                    const isLocked = i > currentPhaseIndex;
+
+                                    const bItem = budget[i] || {};
+                                    const cost = bItem.amount || bItem.cost || 0;
+
                                     return (
-                                        <div key={i} className="flex gap-4 md:gap-6 relative min-w-0 group">
+                                        <div key={i} className={cn("flex gap-4 md:gap-6 relative min-w-0 group transition-opacity", isLocked && "opacity-50")}>
                                             <div className="flex flex-col items-center shrink-0 z-10">
                                                 <div className={cn(
                                                     "h-7 w-7 rounded-full border-2 flex items-center justify-center transition-all duration-500 bg-background shadow-sm",
@@ -220,22 +228,35 @@ export default async function ProjectManagePage({
                                                         isCurrent ? "border-primary text-primary ring-4 ring-primary/10" :
                                                             "border-border text-muted-foreground"
                                                 )}>
-                                                    {isDone ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
+                                                    {isDone ? <Check className="h-4 w-4 stroke-[3px]" /> : <span className="text-[11px] font-bold">{i + 1}</span>}
                                                 </div>
                                             </div>
                                             <div className="flex-1 min-w-0 pb-2">
                                                 <div className="flex justify-between items-baseline gap-4 min-w-0">
-                                                    <h4 className={cn("font-bold text-sm truncate", isDone || isCurrent ? "text-foreground" : "text-muted-foreground")}>
-                                                        {m.phase}
-                                                    </h4>
-                                                    <Badge variant="outline" className={cn(
-                                                        "text-[10px] font-bold px-2 rounded-3xl shrink-0 border",
-                                                        isDone ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "bg-muted/30 border-border/60 text-muted-foreground"
-                                                    )}>
-                                                        {m.status?.replace('_', ' ') || 'PENDING'}
-                                                    </Badge>
+                                                    <div className="flex flex-col">
+                                                        <p className="text-[10px] font-bold text-primary tracking-widest uppercase mb-0.5">Phase {i + 1}</p>
+                                                        <h4 className={cn("font-bold text-sm truncate", isDone || isCurrent ? "text-foreground" : "text-muted-foreground")}>
+                                                            {m.phase}
+                                                        </h4>
+                                                    </div>
+                                                    <div className="flex flex-col items-end shrink-0 text-right">
+                                                        <span className="text-xs font-bold text-foreground tabular-nums">
+                                                            {formatCurrency((cost * 100).toString(), project.currency)}
+                                                        </span>
+                                                        <Badge variant="outline" className={cn(
+                                                            "text-[9px] font-bold px-2 py-0 mt-1 rounded-3xl shrink-0 border uppercase tracking-widest",
+                                                            isDone ? "text-emerald-600 bg-emerald-50 border-emerald-100" :
+                                                                isCurrent ? "text-primary bg-primary/5 border-primary/20" :
+                                                                    "bg-muted/30 border-border/60 text-muted-foreground"
+                                                        )}>
+                                                            {isDone ? 'Verified' : isCurrent ? 'Funding Now' : 'Locked'}
+                                                        </Badge>
+                                                    </div>
                                                 </div>
-                                                <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium line-clamp-2">{m.deliverables}</p>
+                                                <div className="mt-3 p-3 rounded-2xl bg-muted/20 border border-border/40 space-y-1.5">
+                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Expected Deliverable</p>
+                                                    <p className="text-xs text-foreground/80 leading-relaxed font-medium line-clamp-2">{m.deliverables}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     );
@@ -253,15 +274,15 @@ export default async function ProjectManagePage({
                 </div>
 
                 <div className="lg:col-span-4 space-y-6 min-w-0">
-                    <Card className="rounded-3xl border-border/40 bg-primary/5 p-6 border-2 border-dashed min-w-0">
+                    <Card className="rounded-3xl border-border/40 bg-primary/5 p-6 border-2 border-dashed min-w-0 shadow-inner">
                         <div className="flex items-start gap-4">
-                            <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-inner">
-                                <ShieldCheck className="h-6 w-6" />
+                            <div className="h-10 w-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-sm border border-primary/10">
+                                <Target className="h-6 w-6" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <p className="text-[11px] font-bold text-primary leading-none">Procurement</p>
+                                <p className="text-[11px] font-bold text-primary leading-none uppercase tracking-widest">Phased Funding</p>
                                 <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                                    Givar Management handles all vendor payments directly to maintain financial integrity.
+                                    Donations are securely held and automatically assigned to the current active phase.
                                 </p>
                             </div>
                         </div>
@@ -269,7 +290,7 @@ export default async function ProjectManagePage({
 
                     <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-[11px] font-bold text-muted-foreground flex items-center gap-2 uppercase tracking-widest">
                                 <Database className="h-3.5 w-3.5" /> Disbursement history
                             </CardTitle>
                         </CardHeader>
@@ -280,6 +301,9 @@ export default async function ProjectManagePage({
                                     const isVerified = satisfactionStatus === 'VERIFIED';
                                     const isPendingAudit = satisfactionStatus === 'AUDITING';
 
+                                    const phaseIndex = timeline.findIndex((t: any) => t.id === d.milestoneId);
+                                    const phaseName = phaseIndex !== -1 ? `Phase ${phaseIndex + 1}` : 'General';
+
                                     let bottomSection = (
                                         <div className={cn(
                                             "mt-2 -mx-4 -mb-4 px-4 py-3 border-t border-border/40 flex justify-between items-center",
@@ -287,10 +311,10 @@ export default async function ProjectManagePage({
                                         )}>
                                             <div className="min-w-0 flex-1">
                                                 <p className="text-[11px] font-bold text-foreground truncate">
-                                                    <span className="text-muted-foreground">Vendor:</span> {d.vendorName}
+                                                    <span className="text-muted-foreground font-medium">Vendor:</span> {d.vendorName}
                                                 </p>
-                                                <p className="text-[10px] text-muted-foreground font-bold truncate mt-0.5">
-                                                    Phase: {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
+                                                <p className="text-[10px] text-muted-foreground font-bold truncate mt-0.5 uppercase tracking-widest">
+                                                    {phaseName}
                                                 </p>
                                             </div>
                                             {!isVerified && !isPendingAudit && (

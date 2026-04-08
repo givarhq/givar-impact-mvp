@@ -21,7 +21,7 @@ import { usePostHog } from 'posthog-js/react';
 
 export interface DonationFormProps {
     project: Project | null;
-    wallet: WalletType | null; // Kept for interface compatibility, but unused
+    wallet: WalletType | null;
     isAuthenticated: boolean;
 }
 
@@ -111,7 +111,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 }
             })
             .catch(console.error);
-    }, [project, isAuthenticated]);
+    }, [project, isAuthenticated, posthog]);
 
     const handleRefreshStatus = async () => {
         setIsRefreshing(true);
@@ -358,6 +358,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 "flex flex-col h-full space-y-6 transition-all duration-300",
                 (isReadOnly || isUnverified) && "opacity-20 grayscale pointer-events-none blur-[1px]"
             )}>
+                {/* Phase Capping Notification */}
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
@@ -472,6 +473,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                     <span className="text-sm font-bold text-foreground">Total charge</span>
                                     <span className="text-sm font-black text-primary tabular-nums">₦{(Number(totalChargeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                                 </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 px-1 opacity-70">
+                                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-[11px] font-bold text-muted-foreground">Secure one-time direct payment</span>
                             </div>
                         </motion.div>
                     )}
