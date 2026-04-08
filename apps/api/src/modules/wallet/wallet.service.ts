@@ -315,6 +315,8 @@ export class WalletService {
 
     const skip = (page - 1) * limit;
 
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+
     const where: Prisma.WalletTransactionWhereInput = {
       wallet: { userId },
       ...(type && { type }),
@@ -334,6 +336,13 @@ export class WalletService {
         ],
       }),
     };
+
+    // --- BUG FIX: Hide technical funding legs for standard users ---
+    // Since wallets are disabled, any FUNDING transaction is just the technical inflow
+    // of a Direct Payment. We hide it so the user only sees the clean DONATION outflow.
+    if (user?.role === 'USER') {
+      where.category = { not: TxCategory.FUNDING };
+    }
 
     const orderBy: Prisma.WalletTransactionOrderByWithRelationInput =
       sortBy && sortOrder ? { [sortBy]: sortOrder } : { createdAt: 'desc' };
@@ -369,7 +378,6 @@ export class WalletService {
         isDonation: !!context,
         projectName: context?.project?.title ?? null,
         project: context?.project ?? null,
-        // Serializing BigInts for JSON transport
         financials: context ? {
           baseAmount: context.baseAmount.toString(),
           feeAmount: context.feeAmount.toString(),
@@ -392,6 +400,11 @@ export class WalletService {
   async exportTransactionsToCsv(userId: string, query: TransactionQueryDto) {
     const { search, type, status, startDate, endDate } = query;
 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+
     const where: Prisma.WalletTransactionWhereInput = {
       wallet: { userId },
       ...(type && { type }),
@@ -408,6 +421,11 @@ export class WalletService {
         ],
       }),
     };
+
+    // --- GHOST FIX: Hide technical funding legs for standard users in CSV Exports ---
+    if (user?.role === 'USER') {
+      where.category = { not: TxCategory.FUNDING };
+    }
 
     const transactions = await this.prisma.walletTransaction.findMany({
       where,
