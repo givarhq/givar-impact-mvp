@@ -413,7 +413,8 @@ export class ProjectService {
       a.toLowerCase().includes(searchTerm.toLowerCase()),
     ) as AuditAction[];
 
-    const [projects, proposals, transactions, subscriptions, auditLogs] = await Promise.all([
+    // --- GHOST FIX: Removed the costly Subscription database query entirely ---
+    const [projects, proposals, transactions, auditLogs] = await Promise.all([
       this.prisma.project.findMany({
         where: {
           status: ProjectStatus.ACTIVE,
@@ -433,7 +434,7 @@ export class ProjectService {
           OR: [{ title: textFilter }, { shortDesc: textFilter }],
         },
         take: 5,
-        select: { id: true, title: true, status: true },
+        select: { id: true, title: true, status: true, category: { select: { name: true } } }
       }),
       this.prisma.walletTransaction.findMany({
         where: {
@@ -442,11 +443,6 @@ export class ProjectService {
         },
         take: 5,
         select: { id: true, reference: true, amount: true, currency: true, createdAt: true, description: true },
-      }),
-      this.prisma.subscription.findMany({
-        where: { userId, project: { title: textFilter } },
-        take: 3,
-        include: { project: { select: { title: true, slug: true } } },
       }),
       this.prisma.auditLog.findMany({
         where: {
@@ -462,7 +458,6 @@ export class ProjectService {
       }),
     ]);
 
-    // --- BUG FIX: Scrubbed "Fund Wallet" and "Subscriptions" shortcuts ---
     const nav: any[] = [];
     const q = searchTerm.toLowerCase();
     if ('profile'.includes(q)) nav.push({ label: 'Edit Profile', path: '/dashboard/settings?tab=profile' });
@@ -474,11 +469,11 @@ export class ProjectService {
       projects,
       proposals,
       transactions,
-      subscriptions,
       auditLogs,
       navigation: nav,
     };
   }
+
 
   /**
    * Public Ledger Aggregation Engine

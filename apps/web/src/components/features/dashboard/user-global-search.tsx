@@ -9,13 +9,11 @@ import {
     FileText,
     Database,
     History,
-    Repeat,
     Compass,
     Settings,
     X,
     ChevronRight,
     LayoutGrid,
-    ArrowRight
 } from 'lucide-react';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
@@ -29,19 +27,18 @@ interface UserSearchResults {
     projects: any[];
     proposals: any[];
     transactions: any[];
-    subscriptions: any[];
     auditLogs: any[];
     navigation: Array<{ label: string; path: string }>;
 }
 
-type FilterType = 'all' | 'projects' | 'proposals' | 'transactions' | 'subscriptions' | 'auditLogs';
+type FilterType = 'all' | 'projects' | 'proposals' | 'transactions' | 'auditLogs';
 
+// --- GHOST FIX: Removed "Recurring Support" from the UI filter options ---
 const FILTERS: { id: FilterType; label: string; icon: any }[] = [
     { id: 'all', label: 'All Results', icon: LayoutGrid },
     { id: 'projects', label: 'Verified Causes', icon: Compass },
     { id: 'proposals', label: 'My Proposals', icon: FileText },
     { id: 'transactions', label: 'Transaction History', icon: Database },
-    { id: 'subscriptions', label: 'Recurring Support', icon: Repeat },
     { id: 'auditLogs', label: 'Activity Logs', icon: History },
 ];
 
@@ -77,7 +74,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [query]);
+    }, [query, posthog]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -97,12 +94,11 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
     };
 
     const hasResults = results && (
-        results.projects.length > 0 ||
-        results.proposals.length > 0 ||
-        results.transactions.length > 0 ||
-        results.subscriptions.length > 0 ||
-        results.auditLogs.length > 0 ||
-        results.navigation.length > 0
+        results.projects?.length > 0 ||
+        results.proposals?.length > 0 ||
+        results.transactions?.length > 0 ||
+        results.auditLogs?.length > 0 ||
+        results.navigation?.length > 0
     );
 
     const getFilteredResults = () => {
@@ -113,7 +109,6 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
             projects: activeFilter === 'projects' ? results.projects : [],
             proposals: activeFilter === 'proposals' ? results.proposals : [],
             transactions: activeFilter === 'transactions' ? results.transactions : [],
-            subscriptions: activeFilter === 'subscriptions' ? results.subscriptions : [],
             auditLogs: activeFilter === 'auditLogs' ? results.auditLogs : [],
             navigation: []
         };
@@ -122,10 +117,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
     const displayData = getFilteredResults();
 
     return (
-        <div
-            ref={containerRef}
-            className="relative w-full hidden md:block z-50 min-w-0"
-        >
+        <div ref={containerRef} className="relative w-full hidden md:block z-50 min-w-0">
             <div className="relative group min-w-0">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -202,7 +194,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                 </div>
                             ) : displayData && (
                                 <div className="space-y-4 pb-2 min-w-0">
-                                    {activeFilter === 'all' && displayData.navigation.length > 0 && (
+                                    {activeFilter === 'all' && displayData.navigation?.length > 0 && (
                                         <div className="space-y-1 min-w-0">
                                             <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Shortcuts</div>
                                             {displayData.navigation.map((nav, i) => (
@@ -219,7 +211,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                         </div>
                                     )}
 
-                                    {displayData.projects.length > 0 && (
+                                    {displayData.projects?.length > 0 && (
                                         <div className="space-y-1 min-w-0">
                                             <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Verified Causes</div>
                                             {displayData.projects.map(p => (
@@ -239,7 +231,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                         </div>
                                     )}
 
-                                    {displayData.proposals.length > 0 && (
+                                    {displayData.proposals?.length > 0 && (
                                         <div className="space-y-1 min-w-0">
                                             <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">My Proposals</div>
                                             {displayData.proposals.map(p => (
@@ -256,7 +248,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                         </div>
                                     )}
 
-                                    {displayData.transactions.length > 0 && (
+                                    {displayData.transactions?.length > 0 && (
                                         <div className="space-y-1 min-w-0">
                                             <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Transaction History</div>
                                             {displayData.transactions.map(tx => (
@@ -276,24 +268,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                         </div>
                                     )}
 
-                                    {displayData.subscriptions.length > 0 && (
-                                        <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Recurring Support</div>
-                                            {displayData.subscriptions.map(s => (
-                                                <button key={s.id} onClick={() => handleNavigate(`/dashboard/subscriptions`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left group min-w-0 active:scale-[0.99]">
-                                                    <div className="h-10 w-10 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 shadow-inner">
-                                                        <Repeat className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className="font-semibold text-sm text-foreground truncate block group-hover:text-primary">{s.project.title}</span>
-                                                        <p className="text-xs text-muted-foreground font-semibold tracking-tight">{s.interval} Contribution</p>
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {displayData.auditLogs.length > 0 && (
+                                    {displayData.auditLogs?.length > 0 && (
                                         <div className="space-y-1 min-w-0">
                                             <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">Account Activity</div>
                                             {displayData.auditLogs.map(log => (
@@ -311,6 +286,12 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
                                     )}
                                 </div>
                             )}
+                        </div>
+
+                        <div className="p-3 bg-muted/20 border-t border-border/40 text-center">
+                            <p className="text-[10px] font-semibold text-muted-foreground tracking-widest ">
+                                System Consensus Database Scanned
+                            </p>
                         </div>
                     </motion.div>
                 )}

@@ -16,11 +16,10 @@ export default async function SettingsPage() {
         redirect('/login');
     }
 
-    // Fetch User, Org Profile, & Subscriptions in parallel
-    const [user, orgProfile, subscriptions] = await Promise.all([
+    // --- GHOST FIX: Removed the API call to fetch subscriptions entirely ---
+    const [user, orgProfile] = await Promise.all([
         ApiService.auth.getMe(token),
-        ApiService.organizations.getMe(token),
-        ApiService.donations.getSubscriptions(token)
+        ApiService.organizations.getMe(token)
     ]);
 
     if (!user) {
@@ -33,7 +32,6 @@ export default async function SettingsPage() {
                 <SettingsClient
                     user={user}
                     orgProfile={orgProfile}
-                    subscriptions={subscriptions || []}
                 />
             </div>
         </div>

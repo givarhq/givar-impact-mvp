@@ -23,7 +23,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface SettingsClientProps {
     user: any;
     orgProfile: any;
-    subscriptions: any[]; // Kept for interface compatibility but unused in UI
 }
 
 const SETTINGS_OPTIONS = [
@@ -43,7 +42,6 @@ const SETTINGS_OPTIONS = [
         bg: 'bg-emerald-500/10',
         description: 'Identity & trust documents.'
     },
-    // COMPLIANCE: 'Recurring' tab removed to reflect phased funding model
     {
         id: 'security',
         label: 'Security',
@@ -118,6 +116,7 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile }:
                         <TabsContent value="verification" className="mt-0 outline-none">
                             <VerificationWizard user={user} initialProfile={orgProfile} />
                         </TabsContent>
+                        {/* --- GHOST FIX: Removed the dead TabsContent for 'recurring' --- */}
                         <TabsContent value="security" className="mt-0 outline-none"><SecurityForm user={user} /></TabsContent>
                         <TabsContent value="activity" className="mt-0 outline-none"><UserAuditView /></TabsContent>
                         <TabsContent value="preferences" className="mt-0 outline-none"><PreferencesForm user={user} /></TabsContent>
