@@ -11,7 +11,8 @@ import {
   Calendar,
   RotateCcw,
   Check,
-  Send
+  Send,
+  Unlock
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -43,7 +44,7 @@ interface MilestoneManagerProps {
 export const MilestoneManager = memo(function MilestoneManager({ projectId, timeline, projectStatus }: MilestoneManagerProps) {
   const router = useRouter();
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [activeMilestone, setActiveMilestone] = useState<Milestone | null>(null);
+  const [activeMilestone, setActiveMilestone] = useState<Milestone & { index: number } | null>(null);
   const [proofImage, setProofImage] = useState<{ key: string; url: string } | null>(null);
 
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
@@ -53,10 +54,10 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
 
   const isFullyCompleted = timeline.length > 0 && timeline.every(m => m.status === 'COMPLETED');
 
-  const handleStatusChange = async (milestoneId: string, newStatus: Milestone['status']) => {
+  const handleStatusChange = async (milestoneId: string, newStatus: Milestone['status'], index: number) => {
     if (newStatus === 'COMPLETED') {
       const milestone = timeline.find(m => m.id === milestoneId);
-      setActiveMilestone(milestone || null);
+      setActiveMilestone(milestone ? { ...milestone, index } : null);
       return;
     }
     await updateMilestone(milestoneId, newStatus);
@@ -64,13 +65,13 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
 
   const updateMilestone = async (milestoneId: string, status: Milestone['status'], imageUrl?: string) => {
     setProcessingId(milestoneId);
-    const toastId = toast.loading("Updating project timeline...");
+    const toastId = toast.loading("Updating phase status...");
     try {
       await ApiService.admin.updateMilestone(projectId, milestoneId, status, imageUrl);
-      toast.success('Project milestone successfully updated', { id: toastId });
+      toast.success('Phase verified and locked', { id: toastId });
       router.refresh();
     } catch (error) {
-      toast.error('We could not update this phase at the moment', { id: toastId });
+      toast.error('Failed to verify phase', { id: toastId });
     } finally {
       setProcessingId(null);
       setActiveMilestone(null);
@@ -103,9 +104,9 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-base font-bold text-foreground">Execution Tracking</h3>
+        <h3 className="text-base font-bold text-foreground">Execution Auditing</h3>
         <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] px-3 py-1 shadow-none">
-          {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Completed
+          {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Verified
         </Badge>
       </div>
 
@@ -116,6 +117,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
           {timeline.map((milestone, index) => {
             const isProcessing = processingId === milestone.id;
             const status = milestone.status;
+            const isLastPhase = index === timeline.length - 1;
 
             return (
               <motion.div
@@ -145,7 +147,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
 
                       <div className="flex-1 min-w-0 space-y-1.5">
                         <div className="flex items-center gap-3 mb-1">
-                          <span className="text-[10px] font-black text-muted-foreground">Phase {index + 1}</span>
+                          <span className="text-[10px] font-black text-primary tracking-widest uppercase">Phase {index + 1}</span>
                           <AnimatePresence>
                             {status === 'COMPLETED' && milestone.completedAt && (
                               <motion.span
@@ -153,7 +155,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                                 animate={{ opacity: 1, x: 0 }}
                                 className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/10"
                               >
-                                Completed On {new Date(milestone.completedAt).toLocaleDateString()}
+                                Verified On {new Date(milestone.completedAt).toLocaleDateString()}
                               </motion.span>
                             )}
                           </AnimatePresence>
@@ -164,7 +166,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                         <div className="flex items-center gap-4 mt-4 pt-3.5 border-t border-border/40">
                           <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
                             <Calendar className="h-4 w-4 opacity-50" />
-                            Target Date: <span className="text-foreground">{milestone.estimatedDate}</span>
+                            Target Date: <span className="text-foreground">{milestone.estimatedDate || 'TBD'}</span>
                           </div>
                         </div>
                       </div>
@@ -176,18 +178,19 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                               <Button
                                 variant="outline"
                                 className="flex-1 md:flex-none rounded-3xl h-11 text-[11px] font-bold border-primary/20 text-primary hover:bg-primary/5 px-5 active:scale-95 transition-all"
-                                onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS')}
+                                onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS', index)}
                                 disabled={!!processingId}
                               >
-                                Start This Phase
+                                Allow Proof Upload
                               </Button>
                             )}
                             <Button
                               className="flex-1 md:flex-none rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 h-11 px-7 text-[11px] border-0 active:scale-95 transition-all"
-                              onClick={() => handleStatusChange(milestone.id, 'COMPLETED')}
+                              onClick={() => handleStatusChange(milestone.id, 'COMPLETED', index)}
                               disabled={!!processingId}
                             >
-                              Mark as Completed
+                              <Unlock className="h-3.5 w-3.5 mr-1.5" />
+                              {isLastPhase ? 'Verify Final Phase' : `Verify & Unlock Phase ${index + 2}`}
                             </Button>
                           </div>
                         )}
@@ -196,7 +199,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                             variant="ghost"
                             size="sm"
                             className="text-[11px] font-bold text-muted-foreground hover:text-primary h-10 rounded-3xl gap-2 transition-all active:scale-95"
-                            onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS')}
+                            onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS', index)}
                             disabled={!!processingId}
                           >
                             <RotateCcw className="h-3.5 w-3.5" /> Re-Open Phase
@@ -211,7 +214,6 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
           })}
         </AnimatePresence>
 
-        {/* Impact Finalization Section */}
         {isFullyCompleted && projectStatus !== 'COMPLETED' && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -219,7 +221,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
             className="mt-8 p-6 bg-emerald-50 border border-emerald-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-5 shadow-sm"
           >
             <div>
-              <h4 className="text-base font-bold text-emerald-900">All phases completed</h4>
+              <h4 className="text-base font-bold text-emerald-900">All phases verified</h4>
               <p className="text-xs font-medium text-emerald-800 mt-1">Ready to officially close this project and notify donors of the final impact.</p>
             </div>
             <Button
@@ -235,12 +237,12 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
           <DialogContent className="rounded-3xl border-none shadow-2xl p-8 bg-card max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-3">
-                <CheckCircle2 className="h-6 w-6 text-primary" /> Confirm Phase Completion
+                <CheckCircle2 className="h-6 w-6 text-primary" /> Confirm Phase {activeMilestone ? activeMilestone.index + 1 : ''}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6 pt-4">
               <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                Please share a photo of your progress to show the successful execution. This visual proof will be shared with donors to maintain transparency.
+                Verifying this phase will automatically lock it, send a notification to donors, and unlock funding for the next phase. You can optionally upload a proof image to attach to the ledger.
               </p>
 
               <AnimatePresence mode="wait">
@@ -257,7 +259,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                       sizes="(max-width: 768px) 100vw, 400px"
                       className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Button variant="destructive" size="sm" className="rounded-full h-9 px-4" onClick={() => setProofImage(null)}>
                         Change Image
                       </Button>
@@ -279,7 +281,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                   onClick={() => updateMilestone(activeMilestone!.id, 'COMPLETED', proofImage?.key || undefined)}
                   disabled={processingId === activeMilestone?.id}
                 >
-                  {processingId === activeMilestone?.id ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm and Finalize Phase'}
+                  {processingId === activeMilestone?.id ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm and Unlock Next Phase'}
                 </Button>
                 <Button
                   variant="ghost"
@@ -292,7 +294,6 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
             </div>
           </DialogContent>
         </Dialog>
-
         {/* Finalize Project Dialog */}
         <Dialog open={showFinalizeModal} onOpenChange={setShowFinalizeModal}>
           <DialogContent className="rounded-3xl border-none shadow-2xl p-8 bg-card max-w-md">
