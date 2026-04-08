@@ -20,14 +20,13 @@ export default async function DashboardPage({
   const resolvedParams = await searchParams;
   const activeTab = resolvedParams.tab || 'discovery';
 
-  // Logic: Parallel fetch for high-intent dashboard discovery
+  // --- GHOST FIX: Removed the ApiService.wallet.get() call to improve load times ---
   const [
     dbUser,
     history,
     featuredResponse,
     groupedFeed,
     completedResponse,
-    wallet,
     activeGoal
   ] = await Promise.all([
     ApiService.auth.getMe(token),
@@ -35,7 +34,6 @@ export default async function DashboardPage({
     ApiService.recommendations.getFeatured(token),
     ApiService.recommendations.getGroupedFeed(token),
     ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
-    ApiService.wallet.get(token),
     ApiService.goals.getActive(token, 'MONTHLY'),
   ]);
 
@@ -60,10 +58,8 @@ export default async function DashboardPage({
         />
 
         <TabsContent value="discovery" className="space-y-4 md:space-y-6 outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          {/* Main Hero discovery */}
           <FeaturedCarousel projects={featuredProjects} />
 
-          {/* Junior discovery extension: Grouped Categories */}
           <DiscoveryFeed
             groupedTrending={groupedFeed}
             completed={completedProjects}
@@ -81,7 +77,7 @@ export default async function DashboardPage({
 
         <TabsContent value="portfolio" className="outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <PortfolioView
-            wallet={wallet || { balance: '0', currency: 'NGN' }}
+            wallet={{ balance: '0', currency: 'NGN', id: '', userId: '' }} // Mocked to satisfy interface, no longer fetching DB
             history={history || []}
             activeGoal={activeGoal}
           />
