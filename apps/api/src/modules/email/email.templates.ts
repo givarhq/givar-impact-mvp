@@ -58,7 +58,7 @@ export const EmailTemplates = {
 
   verification: (url: string, name: string, code?: string) => `
     <p>Hi ${name},</p>
-    <p>Welcome to <strong>Givar Impact</strong>. To ensure the security of your impact wallet and verify your identity on the ledger, please verify your email address.</p>
+    <p>Welcome to <strong>Givar Impact</strong>. To ensure the security of your account and verify your identity on the public ledger, please verify your email address.</p>
     
     ${code ? `
     <div style="text-align: center; margin: 32px 0;">

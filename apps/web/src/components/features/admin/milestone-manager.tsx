@@ -12,7 +12,8 @@ import {
   RotateCcw,
   Check,
   Send,
-  Unlock
+  Unlock,
+  Users
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -39,9 +40,10 @@ interface MilestoneManagerProps {
   projectId: string;
   timeline: Milestone[];
   projectStatus?: string;
+  waitlistCount?: number;
 }
 
-export const MilestoneManager = memo(function MilestoneManager({ projectId, timeline, projectStatus }: MilestoneManagerProps) {
+export const MilestoneManager = memo(function MilestoneManager({ projectId, timeline, projectStatus, waitlistCount = 0 }: MilestoneManagerProps) {
   const router = useRouter();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [activeMilestone, setActiveMilestone] = useState<Milestone & { index: number } | null>(null);
@@ -105,9 +107,17 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
     <div className="space-y-6">
       <div className="flex items-center justify-between px-1">
         <h3 className="text-base font-bold text-foreground">Execution Auditing</h3>
-        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] px-3 py-1 shadow-none">
-          {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Verified
-        </Badge>
+        <div className="flex items-center gap-3">
+          {/* --- NEW: High-Visibility Waitlist Indicator --- */}
+          {waitlistCount > 0 && !isFullyCompleted && (
+            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-bold text-[11px] gap-1.5 shadow-none animate-pulse px-3 py-1">
+              <Users className="h-3 w-3" /> {waitlistCount} Donors Waiting
+            </Badge>
+          )}
+          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] px-3 py-1 shadow-none">
+            {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Verified
+          </Badge>
+        </div>
       </div>
 
       <div className="relative space-y-4">
@@ -214,6 +224,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
           })}
         </AnimatePresence>
 
+        {/* Impact Finalization Section */}
         {isFullyCompleted && projectStatus !== 'COMPLETED' && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -294,6 +305,7 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
             </div>
           </DialogContent>
         </Dialog>
+
         {/* Finalize Project Dialog */}
         <Dialog open={showFinalizeModal} onOpenChange={setShowFinalizeModal}>
           <DialogContent className="rounded-3xl border-none shadow-2xl p-8 bg-card max-w-md">

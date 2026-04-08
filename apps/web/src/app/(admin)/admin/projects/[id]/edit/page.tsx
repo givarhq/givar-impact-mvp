@@ -123,6 +123,7 @@ export default async function EditProjectPage({
                   projectId={id}
                   timeline={project.executionTimeline || []}
                   projectStatus={project.status}
+                  waitlistCount={project.waitlistEmails?.length || 0}
                 />
               </div>
             </TabsContent>
