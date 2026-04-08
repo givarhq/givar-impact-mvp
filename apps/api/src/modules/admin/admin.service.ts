@@ -1342,7 +1342,7 @@ export class AdminService {
         executionTimeline: true,
         title: true,
         slug: true,
-        waitlistEmails: true, // <-- NEW: Fetch waitlist emails
+        waitlistEmails: true,
         user: { select: { email: true, firstName: true } }
       }
     });
@@ -1357,6 +1357,7 @@ export class AdminService {
     }
 
     const previousStatus = timeline[milestoneIndex].status;
+    const isLastPhase = milestoneIndex === timeline.length - 1; // <--- NEW: Identify if it's the final phase
 
     const updatedTimeline = [...timeline];
     updatedTimeline[milestoneIndex] = {
@@ -1367,14 +1368,16 @@ export class AdminService {
       ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
     };
 
-    // --- NEW: PHASED FUNDING AUTO-UNLOCK LOGIC ---
     const updateData: any = { executionTimeline: updatedTimeline as any };
     let emailsToNotify: string[] = [];
 
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
-      updateData.currentPhaseIndex = { increment: 1 };
-      updateData.waitlistEmails = []; // Clear the queue once notified
-      emailsToNotify = project.waitlistEmails || [];
+      // --- BUG FIX: Only unlock the next phase if one actually exists! ---
+      if (!isLastPhase) {
+        updateData.currentPhaseIndex = { increment: 1 };
+        updateData.waitlistEmails = [];
+        emailsToNotify = project.waitlistEmails || [];
+      }
     }
 
     const updatedProject = await this.prisma.project.update({
@@ -1445,7 +1448,6 @@ export class AdminService {
         signedProofUrl
       ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
 
-      // --- NEW: FIRE WAITLIST BROADCAST ---
       if (emailsToNotify.length > 0) {
         const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${project.slug}`;
         this.logger.log(`📢 Broadcasting Next Phase Unlock to ${emailsToNotify.length} waitlisted donors.`);
