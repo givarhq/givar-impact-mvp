@@ -512,7 +512,6 @@ export class DonationService {
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
-      // 1. Idempotency Guard
       const existingUserDonation = await tx.donation.findFirst({
         where: { transaction: { reference } },
         select: { id: true }
@@ -532,13 +531,11 @@ export class DonationService {
 
       if (!project) throw new NotFoundException('Project node missing on ledger');
 
-      // --- PHASED CAP INJECTION ---
       const isClosed = ([ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED] as ProjectStatus[]).includes(project.status);
 
       const currentPhaseCap = this.calculatePhaseCap(project);
       const currentRemaining = currentPhaseCap - project.raisedAmount;
 
-      // If the project is closed, it accepts zero. If open, it accepts up to the remaining gap of the CURRENT phase.
       const actualRemaining = isClosed ? 0n : (currentRemaining <= 0n ? 0n : currentRemaining);
 
       const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
@@ -546,8 +543,8 @@ export class DonationService {
 
       let processedDonationId: string;
       let isGoalMet = false;
+      let isPhaseNewlyMet = false; // --- NEW: Track if this specific donation filled the phase
 
-      // Platform Revenue Routing for Direct Pays
       if (feeAmount > 0n || tipAmount > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -594,9 +591,6 @@ export class DonationService {
       }
 
       if (userId !== 'GUEST') {
-        // --- PATH: REGISTERED USER (FIXED FOR SYMMETRY) ---
-
-        // 1. Process Inflow: Atomically increment wallet balance
         await this.walletRepo.processTransaction({
           userId,
           amount,
@@ -609,7 +603,6 @@ export class DonationService {
           metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
         }, tx);
 
-        // 2. Process Outflow: Atomically decrement wallet balance
         const { transaction: donationTx } = await this.walletRepo.processTransaction({
           userId,
           amount,
@@ -643,7 +636,6 @@ export class DonationService {
           processedDonationId = donationTx.id;
         }
       } else {
-        // --- PATH: GUEST DONOR ---
         const normalizedEmail = guestEmail!.toLowerCase().trim();
         const guestDonor = await tx.guestDonor.upsert({
           where: { email: normalizedEmail },
@@ -678,7 +670,6 @@ export class DonationService {
         processedDonationId = guestDonation.id;
       }
 
-      // 3. Ledger Sync: Update Project State uses baseAmount To Project
       if (amountToProject > 0n) {
         const updatedProject = await tx.project.update({
           where: { id: projectId },
@@ -687,7 +678,9 @@ export class DonationService {
 
         isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
 
-        // Logic: Only flip status to Funded if it was previously Active.
+        // --- NEW: Phase Filled Check ---
+        isPhaseNewlyMet = !isGoalMet && (updatedProject.raisedAmount >= currentPhaseCap);
+
         if (isGoalMet && updatedProject.status === ProjectStatus.ACTIVE) {
           await tx.project.update({
             where: { id: projectId },
@@ -695,7 +688,6 @@ export class DonationService {
           });
         }
 
-        // Logic: Notify owner of incoming direct donation
         await tx.notification.create({
           data: {
             userId: project.userId,
@@ -716,10 +708,27 @@ export class DonationService {
               link: `/dashboard/impact/${project.slug}`
             }
           });
+        } else if (isPhaseNewlyMet) {
+          // --- NEW: Alert Admin that Phase is Ready for Disbursement ---
+          const admins = await tx.user.findMany({
+            where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+            select: { id: true }
+          });
+
+          if (admins.length > 0) {
+            await tx.notification.createMany({
+              data: admins.map(admin => ({
+                userId: admin.id,
+                type: 'PROJECT_STATUS' as NotificationType,
+                title: 'Phase Fully Funded',
+                content: `Phase ${project.currentPhaseIndex + 1} for "${project.title}" is fully funded. Ready for vendor disbursement.`,
+                link: `/admin/projects/${project.id}/edit`
+              }))
+            });
+          }
         }
       }
 
-      // 4. Surplus Routing: Move only the true excess to the Suspense Ledger
       if (surplus > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -763,6 +772,7 @@ export class DonationService {
             surplus: surplus.toString(),
             surplus_naira: (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             isGoalMet,
+            isPhaseNewlyMet,
             reference,
             channel,
             authorization,

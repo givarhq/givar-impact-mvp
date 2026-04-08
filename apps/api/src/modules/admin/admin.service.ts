@@ -443,7 +443,6 @@ export class AdminService {
 
     return this.prisma.$transaction(async (tx) => {
 
-      // Auto-generate execution timeline from budget stages if none exists
       const budget = (proposal.budgetBreakdown as any[]) || [];
       let generatedTimeline = proposal.executionTimeline as any[];
 
@@ -459,6 +458,12 @@ export class AdminService {
           }));
         }
       }
+
+      // --- DATA SAFETY FIX: Ensure 'PENDING' status exists on all timeline items ---
+      const sanitizedTimeline = generatedTimeline.map(t => ({
+        ...t,
+        status: t.status || 'PENDING'
+      }));
 
       const project = await tx.project.create({
         data: {
@@ -481,7 +486,7 @@ export class AdminService {
           tags: ['Verified'],
           isActive: true,
           budgetBreakdown: proposal.budgetBreakdown ?? [],
-          executionTimeline: generatedTimeline ?? [],
+          executionTimeline: sanitizedTimeline, // Use sanitized timeline
           riskAnalysis: proposal.riskAnalysis,
 
           // Alignment Mappings

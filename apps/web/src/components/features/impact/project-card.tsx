@@ -3,13 +3,14 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck, Building2 } from 'lucide-react';
+import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck, Building2, Clock } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Project, ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
 import { motion } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
+import { cn } from '../../../lib/utils/cn';
 
 export const ProjectCard = memo(function ProjectCard({
   project,
@@ -25,17 +26,30 @@ export const ProjectCard = memo(function ProjectCard({
   const isCompleted = project.status === 'COMPLETED';
   const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
 
+  // --- PHASED FUNDING MATH ---
+  const activeIndex = project.currentPhaseIndex || 0;
+  const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+
+  let cumulativeMajor = 0;
+  for (let i = 0; i <= activeIndex && i < budget.length; i++) {
+    cumulativeMajor += (budget[i].amount || (budget[i] as any).cost || 0);
+  }
+  let phaseCapMinor = BigInt(cumulativeMajor * 100);
+  if (budget.length === 0 || activeIndex >= budget.length) {
+    phaseCapMinor = BigInt(project.targetAmount || '0');
+  }
+
+  const isPhaseFull = BigInt(project.raisedAmount || '0') >= phaseCapMinor && phaseCapMinor > 0n && !isFundedState && !isCompleted;
+
   const isMedical = project.categoryName?.toLowerCase() === 'medical';
   const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
-  // Logic: Map specific verification icons to the entity type for higher forensic clarity
-  // Add an explicit fallback check for "Givar" as the name just in case cache is stale
   const getVerIcon = () => {
     if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') return BadgeCheck;
     if (project.organizerType === 'ORGANIZATION') return Building2;
-    return UserCheck; // Default for INDIVIDUAL
+    return UserCheck;
   };
 
   const VerIcon = getVerIcon();
@@ -97,11 +111,16 @@ export const ProjectCard = memo(function ProjectCard({
 
         {/* Impact Progress & Actions */}
         <div className="space-y-2 sm:space-y-3 mt-auto min-w-0">
-          {(isCompleted || isFundedState) && (
+          {(isCompleted || isFundedState) ? (
             <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
               <Check className="h-3 w-3" /> {isCompleted ? completedText : 'Goal Reached'}
             </div>
-          )}
+          ) : isPhaseFull ? (
+            <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-600 mb-1 bg-amber-50 w-fit px-2 py-0.5 rounded-full border border-amber-200">
+              <Clock className="h-3 w-3" /> Awaiting Verification
+            </div>
+          ) : null}
+
           <div className="flex justify-between items-end gap-3 min-w-0">
             <div className="space-y-1.5 flex-1 min-w-0">
               <div className="flex justify-between items-end text-xs font-bold min-w-0">
