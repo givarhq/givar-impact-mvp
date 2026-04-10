@@ -28,7 +28,7 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
   const project = await ApiService.projects.get(token || '', slug);
   if (!project) notFound();
 
-  // --- BUG FIX: Completely removed the useless Wallet API fetch to improve server response time ---
+  // BUG FIX: Removed Wallet API Fetch since wallets are disabled
 
   const backLink = isAuthenticated
     ? `/dashboard/impact/${slug}`

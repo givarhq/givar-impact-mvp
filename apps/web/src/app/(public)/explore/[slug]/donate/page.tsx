@@ -67,7 +67,6 @@ export default async function PublicDonationPage({ params }: { params: Promise<{
           <div className="lg:col-span-8 min-w-0">
             <DonationForm
               project={project}
-              wallet={null}
               isAuthenticated={false}
             />
           </div>
