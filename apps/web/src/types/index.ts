@@ -43,6 +43,7 @@ export interface Project {
   organizerType?: 'INDIVIDUAL' | 'ORGANIZATION' | 'SYSTEM';
   categoryName?: string;
   donorCount?: number;
+  subcategoryId?: string;
 
   // Alignment Fields
   beneficiaryName?: string | null;
@@ -200,6 +201,9 @@ export interface ProjectProposal {
   organizationName: string | null;
   contactPhone: string | null;
   beneficiaryContact: string | null;
+
+  categoryId?: string;
+  subcategoryId?: string;
 
   // Alignment Fields
   beneficiaryName?: string | null;

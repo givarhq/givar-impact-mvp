@@ -35,6 +35,7 @@ interface ProposalState {
   description: string | null;
   personalMessage: string | null;
   categoryId: string | null;
+  subcategoryId: string | null; // <-- NEW
   location: string | null;
   endDate: string | null;
   targetAmount: number | null;
@@ -97,6 +98,7 @@ export const useProposalStore = create<ProposalState>()(
     description: null,
     personalMessage: null,
     categoryId: null,
+    subcategoryId: null, // <-- NEW
     location: null,
     endDate: null,
     targetAmount: null,
@@ -165,6 +167,8 @@ export const useProposalStore = create<ProposalState>()(
         personalMessage: proposal.personalMessage || null,
         awarenessStatus: proposal.awarenessStatus || null,
         coverImageKey: proposal.coverImage,
+        categoryId: proposal.categoryId || null,
+        subcategoryId: proposal.subcategoryId || null, // <-- NEW
         gallery,
         budgetBreakdown: budget,
         executionTimeline: timeline,
