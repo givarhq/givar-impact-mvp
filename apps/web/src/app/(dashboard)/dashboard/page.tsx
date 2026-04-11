@@ -20,7 +20,6 @@ export default async function DashboardPage({
   const resolvedParams = await searchParams;
   const activeTab = resolvedParams.tab || 'discovery';
 
-  // --- GHOST FIX: Removed the ApiService.wallet.get() call to improve load times ---
   const [
     dbUser,
     history,
@@ -33,7 +32,7 @@ export default async function DashboardPage({
     ApiService.donations.getHistory(token),
     ApiService.recommendations.getFeatured(token),
     ApiService.recommendations.getGroupedFeed(token),
-    ApiService.projects.list(token, new URLSearchParams({ limit: '3', status: 'COMPLETED' })),
+    ApiService.projects.list(token, new URLSearchParams({ limit: '4', status: 'COMPLETED' })),
     ApiService.goals.getActive(token, 'MONTHLY'),
   ]);
 
@@ -77,7 +76,7 @@ export default async function DashboardPage({
 
         <TabsContent value="portfolio" className="outline-none mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <PortfolioView
-            wallet={{ balance: '0', currency: 'NGN', id: '', userId: '' }} // Mocked to satisfy interface, no longer fetching DB
+            wallet={{ balance: '0', currency: 'NGN', id: '', userId: '' }}
             history={history || []}
             activeGoal={activeGoal}
           />

@@ -19,11 +19,17 @@ export default async function ExplorePage({
 
     let projects: any[] = [];
     let groupedProjects: any[] = [];
+    let completedProjects: any[] = [];
     let meta = { total: 0, page: 1, lastPage: 1 };
 
     // Initial Server-Side Fetch
     if (isSmartDiscovery) {
-        groupedProjects = await ApiService.recommendations.getGroupedFeed(token);
+        const [groupedFeedRes, completedRes] = await Promise.all([
+            ApiService.recommendations.getGroupedFeed(token),
+            ApiService.projects.list(token || '', new URLSearchParams({ limit: '4', status: 'COMPLETED' }))
+        ]);
+        groupedProjects = groupedFeedRes || [];
+        completedProjects = completedRes?.data || [];
     } else {
         const projectsResult = await ApiService.projects.list(token || '', params);
         projects = projectsResult?.data || [];
@@ -48,6 +54,7 @@ export default async function ExplorePage({
                     {isSmartDiscovery ? (
                         <GroupedDiscoveryFeed
                             groupedData={groupedProjects}
+                            completedProjects={completedProjects}
                             isPublic={true}
                         />
                     ) : (
