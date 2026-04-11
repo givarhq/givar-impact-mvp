@@ -67,6 +67,7 @@ export class EmailService {
       amount: string;
       currency: string;
       project: string;
+      phaseName: string;
       date: string;
       ref: string;
       surplus?: string;
