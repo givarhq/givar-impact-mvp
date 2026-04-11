@@ -49,6 +49,7 @@ export class ProposalService {
         userId,
         title: dto.title,
         categoryId: dto.categoryId,
+        subcategoryId: dto.subcategoryId, // <-- Persist selected subcategory
         status: ProposalStatus.DRAFT,
         beneficiaryName: dto.beneficiaryName,
         beneficiaryAge: dto.beneficiaryAge,
@@ -62,6 +63,7 @@ export class ProposalService {
       },
     });
   }
+
 
   // 2. Update Draft (Auto-save)
   async updateDraft(userId: string, proposalId: string, dto: UpdateProposalDto) {

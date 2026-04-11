@@ -242,6 +242,12 @@ export class ProjectService {
   async getAllCategories() {
     return this.prisma.category.findMany({
       orderBy: { name: 'asc' },
+      include: {
+        // Hydrate the associated subcategories for the cascading UI
+        subcategories: {
+          orderBy: { name: 'asc' }
+        }
+      }
     });
   }
 

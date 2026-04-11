@@ -42,7 +42,7 @@ class MediaItemDto {
   caption?: string;
 }
 
-// 2. Timeline Item Structure (Maintained for legacy compatibility)
+// 2. Timeline Item Structure
 class TimelineItem {
   @IsString()
   id!: string;
@@ -64,6 +64,9 @@ export class CreateProposalDto {
   @IsUUID()
   categoryId!: string;
 
+  @IsUUID()
+  subcategoryId!: string; // <-- New mapping requirement
+
   @IsOptional() @IsString() beneficiaryName?: string;
   @IsOptional() @IsNumber() beneficiaryAge?: number;
   @IsOptional() @IsString() beneficiaryRelationship?: string;
@@ -80,8 +83,8 @@ export class UpdateProposalDto {
   @IsOptional() @IsNumber() targetAmount?: number;
   @IsOptional() @IsEnum(Currency) currency?: Currency;
 
-  @IsOptional() @IsString() coverImage?: string;
-  @IsOptional() @IsString() videoUrl?: string;
+  @IsOptional() @IsUUID() categoryId?: string;
+  @IsOptional() @IsUUID() subcategoryId?: string; // <-- New mapping requirement
 
   @IsOptional()
   @IsArray()
