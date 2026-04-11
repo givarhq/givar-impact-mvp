@@ -1,9 +1,7 @@
 import 'dotenv/config';
 import {
   Currency, ProjectStatus, UserRole, ProposalStatus,
-  VerificationStatus, AccountType, TxType, TxStatus,
-  SubscriptionInterval, SubscriptionStatus, GoalInterval,
-  GoalStatus, AuditAction, ProofStatus, TxCategory, KycType, ModerationStatus
+  VerificationStatus, AccountType, TxType, TxStatus, AuditAction, TxCategory, KycType, ModerationStatus
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'crypto';
@@ -11,7 +9,7 @@ import { subDays } from 'date-fns';
 import { prisma } from '../src/index';
 
 async function main() {
-  console.log('🚀 Launching Optimized Alignment Seed (Medical, Education, Community)...');
+  console.log('🚀 Launching Optimized Alignment Seed with Subcategories...');
 
   // 1. FORENSIC PURGE (Order matters due to foreign keys)
   console.log('🧹 Purging ledger & clearing existing nodes...');
@@ -34,6 +32,7 @@ async function main() {
   await prisma.transactionFeeRule.deleteMany({});
   await prisma.wallet.deleteMany({});
   await prisma.guestDonor.deleteMany({});
+  await prisma.subcategory.deleteMany({}); // <-- NEW: Purge Subcategories
   await prisma.category.deleteMany({});
   await prisma.user.deleteMany({});
 
@@ -41,13 +40,42 @@ async function main() {
   const adminPass = await bcrypt.hash('Givartech1$', salt);
   const userPass = await bcrypt.hash('Password1', salt);
 
-  // 2. CORE CATEGORIES ALIGNMENT
-  console.log('📂 Initializing Core Sectors...');
-  const categories = await Promise.all([
-    prisma.category.create({ data: { name: 'Medical', slug: 'medical', icon: 'HeartPulse', visibilityWeight: 1.5 } }),
-    prisma.category.create({ data: { name: 'Education', slug: 'education', icon: 'Book', visibilityWeight: 1.2 } }),
-    prisma.category.create({ data: { name: 'Community', slug: 'community', icon: 'Building', visibilityWeight: 1.0 } }),
-  ]);
+  // 2. CORE CATEGORIES & SUBCATEGORIES ALIGNMENT
+  console.log('📂 Initializing Core Sectors and Subcategories...');
+
+  // Create Main Categories
+  const medicalCat = await prisma.category.create({ data: { name: 'Medical', slug: 'medical', icon: 'HeartPulse', visibilityWeight: 1.5 } });
+  const educationCat = await prisma.category.create({ data: { name: 'Education', slug: 'education', icon: 'Book', visibilityWeight: 1.2 } });
+  const communityCat = await prisma.category.create({ data: { name: 'Community', slug: 'community', icon: 'Building', visibilityWeight: 1.0 } });
+
+  const categories = [medicalCat, educationCat, communityCat];
+
+  // Create Subcategories
+  const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+  const medicalSubs = await Promise.all(
+    ['Surgery', 'Emergency', 'Treatment', 'Cancer', 'Maternal', 'Disability'].map(name =>
+      prisma.subcategory.create({ data: { name, slug: generateSlug(name), categoryId: medicalCat.id } })
+    )
+  );
+
+  const educationSubs = await Promise.all(
+    ['Tuition', 'Materials', 'Exams', 'Infrastructure', 'Scholarship'].map(name =>
+      prisma.subcategory.create({ data: { name, slug: generateSlug(name), categoryId: educationCat.id } })
+    )
+  );
+
+  const communitySubs = await Promise.all(
+    ['Food', 'Shelter', 'Water', 'Infrastructure', 'Emergency'].map(name =>
+      prisma.subcategory.create({ data: { name, slug: generateSlug(name), categoryId: communityCat.id } })
+    )
+  );
+
+  const subcategoryMap = {
+    [medicalCat.id]: medicalSubs,
+    [educationCat.id]: educationSubs,
+    [communityCat.id]: communitySubs,
+  };
 
   // Optimized Stock Images
   const photoParams = '?auto=format&fit=crop&q=60&w=800';
@@ -115,13 +143,18 @@ async function main() {
 
   for (let i = 0; i < 10; i++) {
     const catIndex = i % 3;
+    const activeCategory = categories[catIndex];
+    const availableSubs = subcategoryMap[activeCategory.id];
+    const activeSub = availableSubs[Math.floor(Math.random() * availableSubs.length)];
+
     await prisma.projectProposal.create({
       data: {
         userId: organizerUser.id,
-        title: `${categories[catIndex].name} ${projectNouns[i]}`,
-        shortDesc: `Proposal for regional ${categories[catIndex].name.toLowerCase()} enhancement.`,
-        description: `Full technical implementation plan for ${categories[catIndex].name}. This cause targets systemic issues within the sector using verified procurement and local stakeholder engagement.`,
-        categoryId: categories[catIndex].id,
+        title: `${activeSub.name} ${projectNouns[i]}`,
+        shortDesc: `Proposal for regional ${activeSub.name.toLowerCase()} enhancement.`,
+        description: `Full technical implementation plan for ${activeSub.name}. This cause targets systemic issues within the sector using verified procurement and local stakeholder engagement.`,
+        categoryId: activeCategory.id,
+        subcategoryId: activeSub.id, // <-- NEW: Link Subcategory
         location: 'Lagos, Nigeria',
         targetAmount: BigInt(500000000 + (i * 20000000)), // 5M to 7M
         status: propStatuses[i],
@@ -140,19 +173,24 @@ async function main() {
   for (let i = 0; i < 15; i++) {
     const ownerId = i < 5 ? organizerUser.id : adminUser.id;
     const catIndex = i % 3;
+    const activeCategory = categories[catIndex];
+    const availableSubs = subcategoryMap[activeCategory.id];
+    const activeSub = availableSubs[Math.floor(Math.random() * availableSubs.length)];
+
     const project = await prisma.project.create({
       data: {
         userId: ownerId,
-        title: `Regional ${categories[catIndex].name} ${projectNouns[(i + 5) % 10]}`,
+        title: `Regional ${activeSub.name} ${projectNouns[(i + 5) % 10]}`,
         slug: `cause-v${i + 1}-${randomUUID().slice(0, 4)}`,
-        description: `Strategic operations for ${categories[catIndex].name.toLowerCase()} services in high-density urban corridors.`,
-        shortDesc: `Active ${categories[catIndex].name.toLowerCase()} intervention.`,
+        description: `Strategic operations for ${activeSub.name.toLowerCase()} services in high-density urban corridors.`,
+        shortDesc: `Active ${activeSub.name.toLowerCase()} intervention.`,
         targetAmount: BigInt(2500000000 + (i * 100000000)), // 25M to 40M
         raisedAmount: 0n,
         currency: Currency.NGN,
         status: ProjectStatus.ACTIVE,
         moderationStatus: ModerationStatus.APPROVED,
-        categoryId: categories[catIndex].id,
+        categoryId: activeCategory.id,
+        subcategoryId: activeSub.id, // <-- NEW: Link Subcategory
         location: 'Abuja, Nigeria',
         imageUrl: stockPhotos[catIndex],
         executionTimeline: [

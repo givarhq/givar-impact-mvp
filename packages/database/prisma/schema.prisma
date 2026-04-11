@@ -345,6 +345,9 @@ model Project {
 
   categoryId    String?
   category      Category? @relation(fields: [categoryId], references: [id])
+  subcategoryId String?
+  subcategory   Subcategory? @relation("ProjectSubcategory", fields: [subcategoryId], references: [id])
+
   tags          String[]  // Simple array for "Urgent", "Verified", etc.
 
   location      String?   // "Lagos, Nigeria"
@@ -422,11 +425,27 @@ model Category {
   icon        String?   // Lucide icon name or emoji
 
   visibilityWeight Float  @default(1.0)
-  
+
+  subcategories Subcategory[]
   projects    Project[]
   proposals ProjectProposal[]
 
   @@map("categories")
+}
+
+model Subcategory {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String
+  
+  categoryId  String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  projects    Project[]           @relation("ProjectSubcategory")
+  proposals   ProjectProposal[]   @relation("ProposalSubcategory")
+
+  @@unique([categoryId, slug])
+  @@map("subcategories")
 }
 
 model Donation {
@@ -590,6 +609,8 @@ model ProjectProposal {
   personalMessage String?       @db.Text
   categoryId    String?
   category      Category?       @relation(fields: [categoryId], references: [id])
+  subcategoryId String?
+  subcategory   Subcategory?    @relation("ProposalSubcategory", fields: [subcategoryId], references: [id])
   location      String?
   endDate       DateTime?
   beneficiaryContact String?
