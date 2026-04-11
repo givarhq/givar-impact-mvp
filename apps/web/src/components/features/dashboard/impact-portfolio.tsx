@@ -21,6 +21,8 @@ interface PortfolioItem {
         raisedAmount: string;
         currency: string;
         status: string;
+        budgetBreakdown?: any[];
+        currentPhaseIndex?: number;
     };
 }
 
@@ -47,10 +49,38 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
             <div className="p-2 space-y-2">
                 <AnimatePresence>
                     {items.map((item, index) => {
-                        const raised = Number(item.project.raisedAmount);
-                        const target = Number(item.project.targetAmount);
-                        const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
-                        const isFunded = percent >= 100;
+                        const raised = BigInt(item.project.raisedAmount || '0');
+                        const target = BigInt(item.project.targetAmount || '0');
+                        const isCompleted = item.project.status === 'COMPLETED';
+                        const isFundedState = item.project.status === 'FUNDED' || (raised >= target && target > 0n && !isCompleted);
+
+                        // --- PHASED FUNDING MATH ---
+                        const activeIndex = item.project.currentPhaseIndex || 0;
+                        const budget = Array.isArray(item.project.budgetBreakdown) ? item.project.budgetBreakdown : [];
+
+                        let previousPhasesMajor = 0;
+                        for (let i = 0; i < activeIndex && i < budget.length; i++) {
+                            previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
+                        }
+                        const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+
+                        let cumulativeMajor = previousPhasesMajor;
+                        if (budget[activeIndex]) {
+                            cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+                        }
+                        const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
+                            ? BigInt(cumulativeMajor * 100)
+                            : target;
+
+                        const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+                        let raisedInCurrentPhase = raised - previousPhasesMinor;
+                        if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+                        const phasePercent = currentPhaseTargetMinor > 0n
+                            ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
+                            : 0;
+
+                        const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
                         return (
                             <motion.div
@@ -77,7 +107,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                                             ) : (
                                                 <div className="h-full w-full bg-primary/5" />
                                             )}
-                                            {isFunded && (
+                                            {(isFundedState || isCompleted) && (
                                                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center backdrop-blur-[1px]">
                                                     <CheckCircle2 className="h-6 w-6 text-white" />
                                                 </div>
@@ -105,19 +135,19 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
 
                                             <div className="space-y-1.5 w-full">
                                                 <div className="flex justify-between items-end text-[10px] font-bold">
-                                                    <span className={isFunded ? "text-emerald-600" : "text-muted-foreground"}>
-                                                        {isFunded ? 'Goal Met' : 'Project Goal'}
+                                                    <span className={isCompleted || isFundedState ? "text-emerald-600" : isPhaseFull ? "text-amber-600" : "text-muted-foreground"}>
+                                                        {isCompleted || isFundedState ? 'Goal Met' : isPhaseFull ? 'Awaiting Verification' : `Phase ${activeIndex + 1} Goal`}
                                                     </span>
-                                                    <span className="text-primary">{percent.toFixed(0)}%</span>
+                                                    <span className="text-primary">{phasePercent.toFixed(0)}%</span>
                                                 </div>
                                                 <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                                                     <motion.div
                                                         initial={{ width: 0 }}
-                                                        animate={{ width: `${percent}%` }}
+                                                        animate={{ width: `${phasePercent}%` }}
                                                         transition={{ duration: 1, ease: "easeOut" }}
                                                         className={cn(
                                                             "h-full rounded-full",
-                                                            isFunded ? "bg-emerald-500" : "bg-primary"
+                                                            isCompleted || isFundedState ? "bg-emerald-500" : "bg-primary"
                                                         )}
                                                     />
                                                 </div>

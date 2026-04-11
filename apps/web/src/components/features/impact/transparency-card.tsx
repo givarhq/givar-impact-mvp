@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, memo } from 'react';
-import { ShieldCheck, TrendingUp, Users, AlertCircle, ArrowRight, X, Copy, Check, Lock } from 'lucide-react';
+import { ShieldCheck, Target, Users, AlertCircle, ArrowRight, X, Copy, Check, Lock, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { SmartCurrency } from '../../ui/smart-currency';
@@ -18,17 +18,44 @@ interface TransparencyCardProps {
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
     const pathname = usePathname();
-    const raised = BigInt(project.raisedAmount || '0');
-    const target = BigInt(project.targetAmount || '0');
 
-    const remaining = raised >= target ? 0n : target - raised;
+    // Global Project Math
+    const totalRaised = BigInt(project.raisedAmount || '0');
+    const totalTarget = BigInt(project.targetAmount || '0');
+    const totalRemaining = totalRaised >= totalTarget ? 0n : totalTarget - totalRaised;
+    const isCompleted = project.status === 'COMPLETED';
+    const isFundedState = project.status === 'FUNDED' || (totalRaised >= totalTarget && totalTarget > 0n && !isCompleted);
 
-    const percent = target > 0n
-        ? Number((raised * 100n) / target)
+    // Phased Funding Math
+    const activeIndex = project.currentPhaseIndex || 0;
+    const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+
+    let previousPhasesMajor = 0;
+    for (let i = 0; i < activeIndex && i < budget.length; i++) {
+        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
+    }
+    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+
+    let cumulativeMajor = previousPhasesMajor;
+    if (budget[activeIndex]) {
+        cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+    }
+    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
+        ? BigInt(cumulativeMajor * 100)
+        : totalTarget;
+
+    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+    let raisedInCurrentPhase = totalRaised - previousPhasesMinor;
+    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+    const phasePercent = currentPhaseTargetMinor > 0n
+        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
         : 0;
 
-    const barWidth = Math.min(100, percent);
+    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+    const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
 
+    // State & UI Handlers
     const [expandedCard, setExpandedCard] = useState<'goal' | 'remaining' | null>(null);
     const [copied, setCopied] = useState(false);
 
@@ -48,12 +75,12 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         ? `/dashboard/impact/${project.slug}/records`
         : `/explore/${project.slug}/records`;
 
-    const budgetLength = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown.length : 0;
+    const budgetLength = budget.length;
 
     return (
         <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 shadow-sm">
             {/* Header Context */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-3xl border border-emerald-100">
                     <ShieldCheck className="h-3.5 w-3.5" />
                     <span className="text-xs font-bold tracking-tight">Verified Budget</span>
@@ -72,119 +99,179 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 </button>
             </div>
 
-            {/* Primary Metrics */}
-            <div className="space-y-1 mb-5">
-                <p className="text-xs font-medium text-muted-foreground">Total capital raised</p>
-                <div className="flex items-baseline gap-2">
-                    <h3 className="text-2xl font-bold tracking-tight text-foreground">
-                        <SmartCurrency amount={raised.toString()} currency={project.currency} visible={true} size="default" />
-                    </h3>
-                </div>
-            </div>
-
-            {/* Progress Architecture */}
-            <div className="space-y-2 mb-6">
-                <div className="flex justify-between text-xs font-bold">
-                    <span className="text-primary">{percent}% funded</span>
-                    <span className="text-muted-foreground">Total Target</span>
-                </div>
-                <div className="h-2.5 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${barWidth}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-primary rounded-3xl shadow-sm"
-                    />
-                </div>
-            </div>
-
-            {/* Information Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-5 relative">
-                <AnimatePresence>
-                    {/* Goal Insight */}
-                    {(expandedCard === null || expandedCard === 'goal') && (
-                        <motion.div
-                            layout
-                            onClick={() => toggleExpand('goal')}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.2 }}
-                            className={cn(
-                                "p-3 rounded-3xl bg-muted/20 border border-border/40 cursor-pointer hover:bg-muted/40 select-none",
-                                expandedCard === 'goal' ? "col-span-2 border-primary/30 bg-primary/5" : "col-span-1"
-                            )}
-                        >
-                            <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-1.5">
-                                    <TrendingUp className="h-3 w-3 text-muted-foreground" />
-                                    <span className="text-xs font-bold text-muted-foreground ">Goal</span>
-                                </div>
-                                {expandedCard === 'goal' && <X className="h-3 w-3 text-muted-foreground" />}
-                            </div>
-                            <p className={cn("font-bold text-sm text-foreground", expandedCard !== 'goal' && "truncate")}>
-                                <SmartCurrency
-                                    amount={target.toString()}
-                                    currency={project.currency}
-                                    visible={true}
-                                    size="small"
-                                />
+            {/* PRIMARY FOCUS: Active Phase Metrics */}
+            {(!isCompleted && !isFundedState) ? (
+                <div className={cn(
+                    "p-5 rounded-3xl mb-6 border transition-all relative overflow-hidden",
+                    isPhaseFull ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/10 border-border/40"
+                )}>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className={cn(
+                            "h-10 w-10 rounded-2xl flex items-center justify-center border shadow-inner shrink-0",
+                            isPhaseFull ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
+                        )}>
+                            {isPhaseFull ? <CheckCircle2 className="h-5 w-5" /> : <Target className="h-5 w-5" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none mb-1">
+                                {isPhaseFull ? 'Phase Execution' : 'Active Funding Phase'}
                             </p>
-                        </motion.div>
-                    )}
-
-                    {/* Remaining Insight */}
-                    {(expandedCard === null || expandedCard === 'remaining') && (
-                        <motion.div
-                            layout
-                            onClick={() => toggleExpand('remaining')}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            transition={{ duration: 0.2 }}
-                            className={cn(
-                                "p-3 rounded-3xl bg-muted/20 border border-border/40 cursor-pointer hover:bg-muted/40 select-none",
-                                expandedCard === 'remaining' ? "col-span-2 border-amber-300/40 bg-amber-50" : "col-span-1"
-                            )}
-                        >
-                            <div className="flex items-center justify-between mb-1">
-                                <div className="flex items-center gap-1.5">
-                                    <AlertCircle className="h-3 w-3 text-amber-600" />
-                                    <span className="text-xs font-bold text-muted-foreground ">Remaining</span>
-                                </div>
-                                {expandedCard === 'remaining' && <X className="h-3 w-3 text-muted-foreground" />}
-                            </div>
-                            <p className={cn("font-bold text-sm text-amber-700", expandedCard !== 'remaining' && "truncate")}>
-                                <SmartCurrency
-                                    amount={remaining.toString()}
-                                    currency={project.currency}
-                                    visible={true}
-                                    size="small"
-                                />
+                            <p className="text-sm font-bold text-foreground truncate w-full" title={`Phase ${activeIndex + 1}: ${activeItemName}`}>
+                                Phase {activeIndex + 1}: {activeItemName}
                             </p>
-                        </motion.div>
+                        </div>
+                    </div>
+
+                    {isPhaseFull ? (
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 w-fit">
+                                <Clock className="h-3.5 w-3.5" /> Awaiting Verification
+                            </div>
+                            <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                                This phase is fully funded. Donations are paused until the vendor's proof of work is verified.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-end">
+                                <div className="space-y-1">
+                                    <p className="text-xs font-medium text-muted-foreground">Raised for Phase {activeIndex + 1}</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <h3 className="text-2xl font-bold tracking-tight text-foreground">
+                                            <SmartCurrency amount={raisedInCurrentPhase.toString()} currency={project.currency} visible={true} size="default" />
+                                        </h3>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-lg font-black text-primary">{phasePercent}%</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <div className="h-2.5 w-full bg-muted rounded-3xl overflow-hidden p-0.5 border border-border/40">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${phasePercent}%` }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
+                                        className="h-full bg-primary rounded-3xl shadow-sm"
+                                    />
+                                </div>
+                                <div className="flex justify-end">
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                        Phase Target: <SmartCurrency amount={currentPhaseTargetMinor.toString()} currency={project.currency} visible={true} size="small" />
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     )}
-                </AnimatePresence>
-
-                {/* Donor Distribution */}
-                <motion.div layout className="col-span-2 p-3 rounded-3xl bg-muted/20 border border-border/40 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                        <Users className="h-3 w-3 text-blue-500" />
-                        <span className="text-xs font-bold text-muted-foreground ">Verified Donors</span>
+                </div>
+            ) : (
+                <div className="p-6 rounded-3xl mb-6 border border-emerald-500/20 bg-emerald-500/5 text-center space-y-2">
+                    <div className="h-12 w-12 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                        <CheckCircle2 className="h-6 w-6" />
                     </div>
-                    <p className="font-bold text-sm text-foreground">{project.donorCount || 0}</p>
-                </motion.div>
+                    <h3 className="text-lg font-bold text-emerald-950 dark:text-emerald-50">Campaign Fully Funded</h3>
+                    <p className="text-xs text-emerald-900/80 dark:text-emerald-100/80 font-medium">
+                        All financial requirements have been met.
+                    </p>
+                </div>
+            )}
 
-                {/* Phased Funding Notice */}
-                <motion.div layout className="col-span-2 p-3.5 rounded-3xl bg-primary/5 border border-primary/20 flex items-start gap-3 shadow-inner">
-                    <Lock className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                        <p className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Execution</p>
-                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                            This project is secured across {budgetLength || 'multiple'} execution phases. Capital is released to vendors strictly upon audited proof of work.
-                        </p>
-                    </div>
-                </motion.div>
+            {/* SECONDARY FOCUS: Global Campaign Details */}
+            <div className="space-y-3 mb-5">
+                <div className="flex items-center gap-2 px-1">
+                    <div className="h-px flex-1 bg-border/40" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Global Campaign</span>
+                    <div className="h-px flex-1 bg-border/40" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 relative">
+                    <AnimatePresence>
+                        {/* Overall Goal Insight */}
+                        {(expandedCard === null || expandedCard === 'goal') && (
+                            <motion.div
+                                layout
+                                onClick={() => toggleExpand('goal')}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.2 }}
+                                className={cn(
+                                    "p-3 rounded-2xl bg-muted/20 border border-border/40 cursor-pointer hover:bg-muted/40 select-none",
+                                    expandedCard === 'goal' ? "col-span-2 border-primary/30 bg-primary/5" : "col-span-1"
+                                )}
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Goal</span>
+                                    </div>
+                                    {expandedCard === 'goal' && <X className="h-3 w-3 text-muted-foreground" />}
+                                </div>
+                                <p className={cn("font-bold text-sm text-foreground", expandedCard !== 'goal' && "truncate")}>
+                                    <SmartCurrency
+                                        amount={totalTarget.toString()}
+                                        currency={project.currency}
+                                        visible={true}
+                                        size="small"
+                                    />
+                                </p>
+                            </motion.div>
+                        )}
+
+                        {/* Overall Remaining Insight */}
+                        {(expandedCard === null || expandedCard === 'remaining') && (
+                            <motion.div
+                                layout
+                                onClick={() => toggleExpand('remaining')}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.2 }}
+                                className={cn(
+                                    "p-3 rounded-2xl bg-muted/20 border border-border/40 cursor-pointer hover:bg-muted/40 select-none",
+                                    expandedCard === 'remaining' ? "col-span-2 border-amber-300/40 bg-amber-50" : "col-span-1"
+                                )}
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-1.5">
+                                        <AlertCircle className="h-3 w-3 text-amber-600" />
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Remaining</span>
+                                    </div>
+                                    {expandedCard === 'remaining' && <X className="h-3 w-3 text-muted-foreground" />}
+                                </div>
+                                <p className={cn("font-bold text-sm text-amber-700", expandedCard !== 'remaining' && "truncate")}>
+                                    <SmartCurrency
+                                        amount={totalRemaining.toString()}
+                                        currency={project.currency}
+                                        visible={true}
+                                        size="small"
+                                    />
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Donor Distribution */}
+                    <motion.div layout className="col-span-2 p-3 rounded-2xl bg-muted/20 border border-border/40 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                            <Users className="h-3.5 w-3.5 text-blue-500" />
+                            <span className="text-xs font-bold text-muted-foreground ">Verified Donors</span>
+                        </div>
+                        <p className="font-bold text-sm text-foreground">{project.donorCount || 0}</p>
+                    </motion.div>
+
+                    {/* Phased Funding Notice */}
+                    <motion.div layout className="col-span-2 p-3.5 rounded-2xl bg-primary/5 border border-primary/20 flex items-start gap-3 shadow-inner">
+                        <Lock className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Phased Execution</p>
+                            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                Secured across {budgetLength || 'multiple'} execution phases. Capital is released to vendors strictly upon audited proof of work.
+                            </p>
+                        </div>
+                    </motion.div>
+                </div>
             </div>
 
             {/* Ledger Navigation */}

@@ -46,7 +46,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const raised = Number(project.raisedAmount || 0);
     const target = Number(project.targetAmount || 0);
-    const percent = target > 0 ? Math.min(100, Math.floor((raised / target) * 100)) : 0;
 
     const isCompleted = project.status === 'COMPLETED';
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
@@ -73,34 +72,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     };
 
-    // --- PHASED FUNDING MATH ---
     const activeIndex = project.currentPhaseIndex || 0;
-    let cumulativeMajor = 0;
-    for (let i = 0; i <= activeIndex && i < budget.length; i++) {
-        cumulativeMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    let phaseCapMinor = BigInt(cumulativeMajor * 100);
-    if (budget.length === 0 || activeIndex >= budget.length) {
-        phaseCapMinor = BigInt(project.targetAmount || '0');
-    }
-
-    const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
-
-    let previousPhasesMajor = 0;
-    for (let i = 0; i < activeIndex && i < budget.length; i++) {
-        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
-
-    let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    const phasePercent = currentPhaseTargetMinor > 0n
-        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
-        : 0;
-
-    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n;
 
     return (
         <motion.div
@@ -145,59 +117,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 </div>
 
                 <AnimatePresence>
-                    {!isCompleted && !isFundedState && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="pt-2"
-                        >
-                            <div className={cn(
-                                "border rounded-3xl p-5 shadow-sm space-y-4 relative overflow-hidden transition-all",
-                                isPhaseFull ? "bg-emerald-500/5 border-emerald-500/20" : "bg-card border-border/40"
-                            )}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn(
-                                            "h-10 w-10 rounded-[14px] flex items-center justify-center border shadow-inner shrink-0",
-                                            isPhaseFull ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
-                                        )}>
-                                            {isPhaseFull ? <CheckCircle2 className="h-5 w-5" /> : <Target className="h-5 w-5" />}
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{isPhaseFull ? 'Executing' : 'Active'} Funding Phase</p>
-                                            <p className="text-sm font-bold text-foreground truncate max-w-[200px] sm:max-w-none">Phase {activeIndex + 1}: {activeItemName}</p>
-                                        </div>
-                                    </div>
-                                    {isPhaseFull ? (
-                                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shadow-none font-bold text-[10px] px-3 py-1 rounded-full gap-1 hidden sm:flex">
-                                            Awaiting Verification
-                                        </Badge>
-                                    ) : (
-                                        <div className="text-right shrink-0">
-                                            <span className="text-xl font-black text-primary">{phasePercent}%</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {!isPhaseFull && (
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-[11px] font-bold text-muted-foreground px-1">
-                                            <span>{formatCurrency(raisedInCurrentPhase.toString(), project.currency)}</span>
-                                            <span>{formatCurrency(currentPhaseTargetMinor.toString(), project.currency)}</span>
-                                        </div>
-                                        <div className="h-2.5 w-full bg-muted/60 rounded-full overflow-hidden border border-border/40 shadow-inner">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${phasePercent}%` }}
-                                                className="h-full bg-primary transition-all duration-1000 shadow-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    )}
-
                     {isCompleted && finalUpdate && (
                         <motion.div
                             initial={{ opacity: 0, height: 0, y: 20 }}
@@ -343,16 +262,16 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
+                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg[&_h2]:mt-6 [&_h2]:mb-3",
                                         "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
-                                        "[&_p]:mb-4 [&_p]:last:mb-0",
+                                        "[&_p]:mb-4[&_p]:last:mb-0",
                                         "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
                                         "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
                                         "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_blockquote]:border-l-4[&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-1[&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: project.description }}
@@ -368,7 +287,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
                                                 "[&_p]:mb-2 [&_p]:last:mb-0",
                                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
-                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
+                                                "[&_ol]:list-decimal[&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
                                                 "[&_em]:italic"

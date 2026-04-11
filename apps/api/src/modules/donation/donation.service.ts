@@ -1199,6 +1199,8 @@ export class DonationService {
             raisedAmount: true,
             currency: true,
             status: true,
+            budgetBreakdown: true,
+            currentPhaseIndex: true,
           },
         },
       },

@@ -8,7 +8,6 @@ import { ArrowRight, Heart, MapPin, ShieldCheck } from 'lucide-react';
 import { Project } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { cn } from '../../../lib/utils/cn';
-import { Badge } from '../../ui/badge';
 
 export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { projects: Project[] }) {
     const router = useRouter();
@@ -27,9 +26,36 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     const current = projects[index];
     if (!current) return null;
 
-    const raised = Number(current.raisedAmount || 0);
-    const target = Number(current.targetAmount || 0);
-    const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
+    // --- PHASED FUNDING MATH ---
+    const raised = BigInt(current.raisedAmount || '0');
+    const target = BigInt(current.targetAmount || '0');
+    const isCompleted = current.status === 'COMPLETED';
+    const isFundedState = current.status === 'FUNDED' || (raised >= target && target > 0n && !isCompleted);
+
+    const activeIndex = current.currentPhaseIndex || 0;
+    const budget = Array.isArray(current.budgetBreakdown) ? current.budgetBreakdown : [];
+
+    let previousPhasesMajor = 0;
+    for (let i = 0; i < activeIndex && i < budget.length; i++) {
+        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
+    }
+    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+
+    let cumulativeMajor = previousPhasesMajor;
+    if (budget[activeIndex]) {
+        cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+    }
+    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
+        ? BigInt(cumulativeMajor * 100)
+        : target;
+
+    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+    let raisedInCurrentPhase = raised - previousPhasesMinor;
+    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+    const phasePercent = currentPhaseTargetMinor > 0n
+        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
+        : 0;
 
     const handleDragEnd = (event: any, info: PanInfo) => {
         const swipeThreshold = 50;
@@ -113,22 +139,22 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             <div className="space-y-2.5">
                                 <div className="flex justify-between items-end">
                                     <div className="space-y-0.5 text-left">
-                                        <p className="text-[10px] font-bold text-muted-foreground">Progress</p>
+                                        <p className="text-[10px] font-bold text-muted-foreground">Phase {activeIndex + 1} Progress</p>
                                         <div className="flex items-baseline gap-1.5">
-                                            <SmartCurrency amount={current.raisedAmount} currency={current.currency} visible={true} size="default" className="text-foreground" />
-                                            <span className="text-xs font-bold text-primary">{percent.toFixed(0)}%</span>
+                                            <SmartCurrency amount={raisedInCurrentPhase.toString()} currency={current.currency} visible={true} size="default" className="text-foreground" />
+                                            <span className="text-xs font-bold text-primary">{phasePercent.toFixed(0)}%</span>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-bold text-muted-foreground/60">Target</p>
-                                        <SmartCurrency amount={current.targetAmount} currency={current.currency} visible={true} size="small" className="text-foreground/50" />
+                                        <p className="text-[10px] font-bold text-muted-foreground/60">Phase Target</p>
+                                        <SmartCurrency amount={currentPhaseTargetMinor.toString()} currency={current.currency} visible={true} size="small" className="text-foreground/50" />
                                     </div>
                                 </div>
 
                                 <div className="h-1 w-full bg-muted rounded-3xl overflow-hidden border border-border/40">
                                     <motion.div
                                         initial={{ width: 0 }}
-                                        animate={{ width: `${percent}%` }}
+                                        animate={{ width: `${phasePercent}%` }}
                                         transition={{ duration: 1, ease: "easeOut" }}
                                         className="h-full bg-primary rounded-3xl shadow-sm"
                                     />
