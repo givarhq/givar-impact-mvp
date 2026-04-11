@@ -26,10 +26,7 @@ export default function TermsPage() {
                     {/* Intro */}
                     <section className="text-center max-w-3xl mx-auto space-y-4">
                         <p className="text-lg md:text-xl font-medium text-foreground leading-relaxed">
-                            Givar is a community of trust. By using our platform, you agree to uphold that trust.
-                        </p>
-                        <p className="text-muted-foreground font-medium">
-                            These terms ensure that both donors and project organizers operate with absolute integrity on our immutable ledger.
+                            Givar is a platform built on trust and transparency. By using the platform, you agree to operate in good faith and in accordance with these terms.
                         </p>
                     </section>
 
@@ -44,7 +41,7 @@ export default function TermsPage() {
                                     <h3 className="text-lg font-bold text-foreground">Finality of giving</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    Donations on Givar are final. Once funds are committed to a project, they cannot be reversed. This ensures projects can execute their plans without disruption.
+                                    Contributions made on Givar are generally final once a transaction is successfully processed.
                                 </p>
                             </CardContent>
                         </Card>
@@ -58,7 +55,7 @@ export default function TermsPage() {
                                     <h3 className="text-lg font-bold text-foreground">Prohibited conduct</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    We have zero tolerance for fraud. Creating fake projects, misrepresenting identity, or attempting to exploit the payment system will result in immediate account termination.
+                                    Submitting false information, engaging in fraud, or attempting to exploit the platform will result in account suspension or removal.
                                 </p>
                             </CardContent>
                         </Card>
@@ -69,10 +66,10 @@ export default function TermsPage() {
                                     <div className="h-10 w-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 shadow-inner shrink-0">
                                         <CheckCircle2 className="h-5 w-5" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-foreground">Platform responsibility</h3>
+                                    <h3 className="text-lg font-bold text-foreground">Vendor payments</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    Funds are never paid to a project owner's personal bank account. Givar's treasury pays verified vendors directly after auditing visual proof of work.
+                                    Payments are made through third-party payment providers and directed to verified vendors or institutions supporting the cause. Givar does not store or control funds after payment has been completed.
                                 </p>
                             </CardContent>
                         </Card>
@@ -83,10 +80,10 @@ export default function TermsPage() {
                                     <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0">
                                         <Scale className="h-5 w-5" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-foreground">Disputes & Suspension</h3>
+                                    <h3 className="text-lg font-bold text-foreground">Review & intervention</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    Givar reserves the right to suspend projects, freeze ledgers, or reject proposals if our compliance team detects irregularities or violations of our rules.
+                                    Givar may review campaign activity in cases of suspected fraud, misrepresentation, technical issues, or policy violations.
                                 </p>
                             </CardContent>
                         </Card>
@@ -105,79 +102,70 @@ export default function TermsPage() {
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Effective Date: <strong>March 2026</strong>
-                                </p>
-                                <p>
-                                    These Terms of Service ("Terms") govern your access to and use of the Givar Impact Platform. By creating an account or initiating a donation, you explicitly agree to these rules.
+                                    Version: 1.1<br />
+                                    Effective Date: <strong>April 08, 2026</strong>
                                 </p>
 
-                                <h2>1. Account Types & Verification</h2>
+                                <h2>1. Platform Overview</h2>
+                                <p>Givar is a digital platform that connects donors to verified social impact causes and facilitates payments to approved vendors or institutions.</p>
+                                <p>Givar does not operate as a financial custodian of funds and does not guarantee the success or full funding of any campaign.</p>
+
+                                <h2>2. Accounts And Verification</h2>
+                                <p>Users may create accounts to support causes or submit campaigns.</p>
+                                <p>Organisers may be required to complete identity verification and provide supporting documentation before a cause is approved.</p>
+                                <p>Givar reserves the right to approve, reject, or revoke account access at its discretion.</p>
+
+                                <h2>3. Contributions And Finality</h2>
+                                <p>Contributions made on Givar are generally final once a transaction is successfully processed.</p>
+                                <p>Payments are made through third-party payment providers and directed to verified vendors or institutions supporting the cause.</p>
+                                <p>Givar does not store or control funds after payment has been completed.</p>
+
+                                <h2>4. Campaign Structure</h2>
+                                <p>Campaigns may be structured in stages or budget components.</p>
+                                <p>Only specific portions of a campaign may be open for funding at a given time. Progression may depend on verification of prior stages.</p>
+                                <p>This structure is intended to improve transparency and manage risk and does not imply that funds are held or released by Givar.</p>
+
+                                <h2>5. Vendors And Service Delivery</h2>
+                                <p>Payments are made directly to verified vendors or service providers.</p>
+                                <p>Givar is not responsible for the quality, timing, or outcome of services delivered by vendors.</p>
+                                <p>Vendors may be subject to separate agreements governing their responsibilities.</p>
+
+                                <h2>6. Platform Review And Intervention</h2>
+                                <p>Givar may review campaign activity in cases of suspected fraud, misrepresentation, technical issues, or policy violations.</p>
+                                <p>Where necessary, Givar may coordinate with payment providers, vendors, or relevant parties to determine an appropriate outcome.</p>
+
+                                <h2>7. Prohibited Conduct</h2>
+                                <p>You agree not to:</p>
                                 <ul>
-                                    <li><strong>Individual Accounts:</strong> Designed for personal giving. Individuals must verify their email addresses before making direct contributions.</li>
-                                    <li><strong>Organizer Accounts:</strong> Designed for individuals or corporate entities looking to launch public causes. To launch a project, Organizers must successfully pass our Know Your Customer (KYC) audit by uploading valid government IDs or corporate registration documents.</li>
+                                    <li>Submit false or misleading information</li>
+                                    <li>Engage in fraudulent activity</li>
+                                    <li>Attempt to exploit or manipulate the platform</li>
+                                    <li>Use the platform for prohibited or unlawful purposes</li>
                                 </ul>
-                                <p>Givar retains absolute discretion to approve, reject, or revoke Organizer verification status based on our internal risk assessments.</p>
+                                <p>Violations may result in account suspension or removal.</p>
 
-                                <h2>2. Immutable Donations & Finality</h2>
-                                <p>
-                                    Because Givar operates a transparent, triple-entry ledger system designed to provide immediate capital to critical causes, <strong>all donations are final and non-refundable</strong>. Once you confirm a transaction via our secure checkout, the capital is permanently locked to the target project's ledger.
-                                </p>
-                                <p>
-                                    <strong>International Payments & Exchange Rates:</strong> All transactions on the Givar platform are processed and settled in Nigerian Naira (NGN). If you select a foreign currency (e.g., USD, GBP, EUR, CAD) during checkout, the displayed value is strictly an estimate based on live market rates. Your payment provider or bank determines the final exchange rate applied to the transaction and may charge additional foreign transaction fees. Givar is not liable for discrepancies between our platform's estimated conversion and the final debit on your bank statement.
-                                </p>
+                                <h2>8. Platform Fees</h2>
+                                <p>Givar may apply a transparent platform fee to transactions to support infrastructure, operations, and payment processing.</p>
+                                <p>Optional contributions to support the platform may also be provided by users.</p>
 
-                                <h2>3. Overfunding, "Spillover", and Stagnant Dust</h2>
-                                <p>To maximize global impact, Givar implements automated capital efficiency protocols:</p>
+                                <h2>9. Limitation Of Liability</h2>
+                                <p>Givar provides a platform to facilitate transparent giving but does not assume liability for:</p>
                                 <ul>
-                                    <li><strong>Spillover Protocol:</strong> If a donation exceeds the remaining financial requirement for a specific active phase, the exact required amount is allocated to complete the phase. The excess funds (the "spillover") are automatically routed to the Givar Suspense Ledger. From there, Givar Administrators manually reallocate the funds to other active, verified causes.</li>
-                                    <li><strong>Dust Sweep Protocol:</strong> If a project is effectively completed but has a minute remaining balance (under ₦100) and has been inactive for over 30 days, Givar Administrators may execute a "Dust Sweep." This permanently aligns the project goal to match the raised amount and closes the project to free up platform resources.</li>
+                                    <li>Vendor performance</li>
+                                    <li>Campaign outcomes</li>
+                                    <li>Funding shortfalls</li>
                                 </ul>
 
-                                <h2>4. Project Execution & Milestone Proofs</h2>
-                                <p>Givar does not hand cash to Project Organizers. To ensure total accountability:</p>
-                                <ul>
-                                    <li>Organizers must define an Execution Roadmap and Budget Ledger during the proposal phase.</li>
-                                    <li>When a project phase is funded, the Givar Treasury team disburses capital <strong>directly to the verified vendors</strong> listed in the budget.</li>
-                                    <li>Organizers are required to upload visual Proof of Progress (photos, documents, and narrative updates) to the platform. Only when Givar Administrators approve this evidence will subsequent funding tranches be unlocked for the public to fund.</li>
-                                </ul>
+                                <h2>10. Modifications</h2>
+                                <p>Givar may update these terms from time to time. Continued use of the platform constitutes acceptance of any updates.</p>
 
-                                <h2>5. Platform Fees & Governance</h2>
-                                <p>
-                                    To maintain our engineering infrastructure, security audits, and payment gateways, Givar deducts a transparent platform fee from incoming transactions.
-                                </p>
-                                <ul>
-                                    <li>The current base fee percentage is dynamically governed by the platform SuperAdmins (historically capped at 20%, currently defaulting to lower operational margins).</li>
-                                    <li>Donors may also opt to include a voluntary tip during checkout to further support the platform.</li>
-                                    <li>Once a transaction is processed, the exact fee and tip amount taken at that specific moment is permanently snapshotted in the database to prevent historical financial drift.</li>
-                                </ul>
-
-                                <h2>6. Prohibited Conduct</h2>
-                                <p>You agree not to engage in any of the following activities. Doing so will result in an immediate account lock and potential legal reporting:</p>
-                                <ul>
-                                    <li>Creating fraudulent or deceptive project proposals.</li>
-                                    <li>Submitting forged or altered KYC documents or Milestone Proofs.</li>
-                                    <li>Attempting to collude with vendors for kickbacks or circumventing our direct-payment architecture.</li>
-                                    <li>Attempting to manipulate, hack, or reverse-engineer the Givar payment infrastructure, webhooks, or ledger.</li>
-                                </ul>
-
-                                <h2>7. Administrative Rights & Platform Changes</h2>
-                                <p>
-                                    Givar reserves the right to pause, suspend, or remove causes at its absolute discretion. We may hold or reallocate funds where verification concerns arise to protect donor capital. Givar is not liable for vendor service outcomes once funds have been disbursed to a verified vendor on behalf of a project. Organisers remain solely responsible for the accuracy and legality of all submitted information.
-                                </p>
-                                <p>
-                                    Givar Administrators utilize a transparent communication thread to deliver feedback directly to your Organizer dashboard.
-                                </p>
-                                <p>
-                                    <strong>Amendments to Live Projects:</strong> Organizers may request to update a live project's financial goal or roadmap. This requires submitting a mandatory "Amendment Narrative" explaining the change to donors. Givar will automatically broadcast this amendment to all project stakeholders to maintain ledger transparency.
-                                </p>
-
-                                <h2>8. Contact & Legal</h2>
-                                <p>If you have disputes or questions regarding these Terms, please contact <strong>support@givarapp.com</strong>. These terms are governed by the applicable laws of our operating jurisdiction.</p>
+                                <h2>11. Contact</h2>
+                                <p>For questions regarding these terms, please contact: <strong>support@givarapp.com</strong></p>
                             </div>
                         </div>
                     </Card>
                 </div>
-            </div >
-        </PublicLayout >
+            </div>
+        </PublicLayout>
     );
 }

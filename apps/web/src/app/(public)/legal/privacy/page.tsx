@@ -18,7 +18,7 @@ export default function PrivacyPage() {
                     {/* Header */}
                     <div className="text-center space-y-3 pt-2">
                         <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground leading-[0.95]">
-                            Your <span className="text-primary italic">Privacy</span>.
+                            Privacy <span className="text-primary italic">Policy</span>.
                         </h1>
                         <div className="h-1 w-16 bg-primary/20 mx-auto rounded-full" />
                     </div>
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
                             We are building a transparent world, but that doesn't mean you lose your privacy.
                         </p>
                         <p className="text-muted-foreground font-medium">
-                            Givar distinguishes strictly between <strong>Public Ledger Data</strong> (where the money goes) and <strong>Private Identity Data</strong> (who you are).
+                            Givar distinguishes strictly between <strong>public ledger data</strong> (where funds are used) and <strong>private identity data</strong> (who you are).
                         </p>
                     </section>
 
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
                                     <h3 className="text-lg font-bold text-foreground">What is public?</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    To prove impact, we show transaction amounts, dates, and project receipts. However, your donor name is masked (e.g., "J*** D.") on public pages to protect your identity.
+                                    To prove impact, we display transaction amounts, dates, and project receipts. However, your donor name is masked (e.g., "J*** D.") on public pages to protect your identity.
                                 </p>
                             </CardContent>
                         </Card>
@@ -58,7 +58,7 @@ export default function PrivacyPage() {
                                     <h3 className="text-lg font-bold text-foreground">What is private?</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    Your email address, phone number, password, and KYC documents are strictly private. We never sell your personal contact information to advertisers.
+                                    Your email address, phone number, password, and verification documents are strictly private. We do not sell your personal contact information.
                                 </p>
                             </CardContent>
                         </Card>
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
                                     <h3 className="text-lg font-bold text-foreground">Data retention</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    Because we operate an immutable ledger, financial records cannot be deleted. If you delete your account, your personal profile is removed, but the transaction history remains as an anonymous entry.
+                                    To maintain transparency and accountability, transaction records are retained as part of the platform's audit history. If you delete your account, your personal profile is removed, but your transaction history remains as an anonymized record.
                                 </p>
                             </CardContent>
                         </Card>
@@ -83,10 +83,10 @@ export default function PrivacyPage() {
                                     <div className="h-10 w-10 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-600 shadow-inner shrink-0">
                                         <Shield className="h-5 w-5" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-foreground">Security first</h3>
+                                    <h3 className="text-lg font-bold text-foreground">Security</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    We use industry-standard encryption. Payment processing is handled by compliant gateways (Paystack), meaning your card data never touches or rests on our servers.
+                                    We use industry-standard security measures. Payment processing is handled by compliant third-party providers such as Paystack, meaning your card data does not pass through or remain on our servers.
                                 </p>
                             </CardContent>
                         </Card>
@@ -98,71 +98,68 @@ export default function PrivacyPage() {
                             <div className={cn(
                                 "max-w-none text-sm text-foreground/80 leading-relaxed font-medium",
                                 "[&_h2]:font-black [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-2xl [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40",
-                                "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground[&_h3]:text-lg [&_h3]:mt-6 [&_h3]:mb-3",
+                                "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-lg [&_h3]:mt-6 [&_h3]:mb-3",
                                 "[&_p]:text-muted-foreground [&_p]:mb-4 [&_p]:last:mb-0",
                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-2 [&_ul]:text-muted-foreground [&_ul_li::marker]:text-primary/50",
                                 "[&_strong]:font-bold [&_strong]:text-foreground",
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Effective Date: <strong>March 2026</strong>
-                                </p>
-                                <p>
-                                    Givar Impact ("Givar," "we," "us," or "our") operates a transparent, ledger-based platform connecting donors with verified community causes. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+                                    Version: 1.1<br />
+                                    Effective Date: <strong>April 08, 2026</strong>
                                 </p>
 
                                 <h2>1. Information We Collect</h2>
-                                <p>We collect information necessary to operate our platform securely and transparently. This includes:</p>
+                                <p>We collect information necessary to operate the platform securely and transparently:</p>
                                 <ul>
-                                    <li><strong>Identity Data:</strong> Your first name, last name, email address, and account password.</li>
-                                    <li><strong>Beneficiary Data:</strong> Identity information and supporting documents for beneficiaries may be collected and processed strictly for verification purposes.</li>
-                                    <li><strong>Verification (KYC) Data:</strong> If you register as an Organizer, we collect legal names, registration numbers (e.g., RC or TIN), and government/corporate documents. These are stored in encrypted, private data vaults.</li>
-                                    <li><strong>Financial Ledger Data:</strong> Records of your donations, and funding history. We track the movement of capital in our system. <strong>We do not collect or store your credit card numbers.</strong> All direct payment processing is securely handled by Paystack.</li>
-                                    <li><strong>System Audit Data:</strong> To prevent fraud, our Watchtower system automatically logs your IP address, User-Agent (browser details), and timestamps when you take critical actions (e.g., logging in, initiating a transfer, or changing a password).</li>
+                                    <li><strong>Identity data:</strong> Your name, email address, and account credentials.</li>
+                                    <li><strong>Beneficiary data:</strong> Information and supporting documents related to beneficiaries for verification purposes.</li>
+                                    <li><strong>Verification (KYC) data:</strong> For organisers, we collect legal and registration information, which is stored securely and accessed only for compliance purposes.</li>
+                                    <li><strong>Transaction data:</strong> Records of your contributions and activity on the platform.</li>
+                                    <li><strong>System audit data:</strong> Technical data such as IP address, device information, and timestamps for security and fraud prevention.</li>
                                 </ul>
 
                                 <h2>2. How We Use Your Information</h2>
-                                <p>We use the data we collect strictly to provide and improve the Givar platform:</p>
+                                <p>We use your information to:</p>
                                 <ul>
-                                    <li><strong>To Operate the Ledger:</strong> Processing your donations and issuing immutable impact receipts.</li>
-                                    <li><strong>For Compliance & Security:</strong> Verifying the legal identity of project organizers to prevent fraud. Our administrative team reviews your KYC documents before you can launch public causes.</li>
-                                    <li><strong>To Communicate:</strong> Sending you transactional emails such as security alerts, password resets, donation receipts, and milestone updates about the projects you support.</li>
+                                    <li><strong>Operate the platform:</strong> Process contributions and maintain accurate records of platform activity.</li>
+                                    <li><strong>Compliance and security:</strong> Verify identities and prevent fraud.</li>
+                                    <li><strong>Communication:</strong> Send transactional messages such as confirmations, updates, and alerts.</li>
                                 </ul>
 
-                                <h2>3. Public vs. Private Information</h2>
-                                <p>Givar is built on the principle of transparency. However, we carefully balance public accountability with personal privacy.</p>
+                                <h2>3. Public Vs Private Information</h2>
+                                <p>Givar is built on transparency while protecting personal identity.</p>
                                 <ul>
-                                    <li><strong>Public Information:</strong> Project details, funding goals, execution timelines, vendor names for disbursements, and visual proof-of-work are always public. The <em>fact</em> that a donation occurred, its amount, and its timestamp are public. Limited beneficiary details may be displayed publicly as part of our transparency and verification requirements. To protect donors, your name is automatically masked (e.g., "M*** T.") on the public ledger unless you are a verified Organizer.</li>
-                                    <li><strong>Private Information:</strong> Your exact email address, encrypted account passwords, detailed KYC documents, and granular audit logs are kept strictly confidential and are only accessible by our administrative compliance team.</li>
+                                    <li><strong>Public information:</strong> Project details, funding progress, vendor information, and proof of impact are visible. Transaction amounts and timestamps may also be displayed. Donor identities are masked by default.</li>
+                                    <li><strong>Private information:</strong> Your personal contact details, account credentials, and verification documents remain confidential and are accessible only to authorized personnel.</li>
                                 </ul>
 
-                                <h2>4. Data Sharing and Third-Party Services</h2>
-                                <p>We do not sell your data. We share information only with trusted infrastructure partners necessary to operate the platform:</p>
+                                <h2>4. Data Sharing And Third-Party Services</h2>
+                                <p>We do not sell your data. We only share information with trusted providers necessary to operate the platform:</p>
                                 <ul>
-                                    <li><strong>Payment Gateways (Paystack):</strong> To process your direct donations securely.</li>
-                                    <li><strong>Cloud Storage (iDrive e2 / Cloudinary):</strong> To store project gallery images publicly, and to store your sensitive KYC documents in heavily restricted, private encrypted buckets accessed only via short-lived security tokens.</li>
-                                    <li><strong>Communication Providers (Resend):</strong> To securely deliver system emails and receipts to your inbox.</li>
+                                    <li><strong>Payment providers (e.g., Paystack):</strong> To process transactions securely.</li>
+                                    <li><strong>Cloud storage providers:</strong> To store platform data and media.</li>
+                                    <li><strong>Communication providers:</strong> To deliver system notifications and updates.</li>
                                 </ul>
 
-                                <h2>5. Data Retention and Account Deletion</h2>
-                                <p>Because Givar operates a triple-entry accounting system designed to be an immutable public record, <strong>financial transactions cannot be deleted</strong>. If you choose to delete your account via the Danger Zone in your settings:</p>
+                                <h2>5. Data Retention And Account Deletion</h2>
+                                <p>Transaction records are retained for transparency and audit purposes. If you delete your account:</p>
                                 <ul>
-                                    <li>Your personal profile (name, email, password, active sessions) will be permanently destroyed.</li>
-                                    <li>Any pending transactions must be completed prior to deletion.</li>
-                                    <li>Your historical donation records will remain on the public ledger permanently, but will be entirely anonymized and disconnected from your identity.</li>
+                                    <li>Your personal profile will be removed.</li>
+                                    <li>Your transaction history will remain in anonymized form.</li>
                                 </ul>
-                                <p>Note: Accounts that have actively launched projects cannot be deleted to ensure we maintain a permanent, auditable record for our donors. Such accounts can only be suspended.</p>
+                                <p>Accounts associated with active or completed causes may be retained for audit and accountability purposes.</p>
 
-                                <h2>6. Administrative Support Access</h2>
-                                <p>If you require technical support, authorized Givar Administrators have the ability to initiate a "Forensic Proxy Session." This allows them to view your account exactly as you see it to troubleshoot issues. <strong>This access is strictly read-only.</strong> Administrators cannot mutate your data, spend your funds, or change your settings while in this mode, and all such sessions are logged in the platform's permanent audit trail.</p>
+                                <h2>6. Administrative Access</h2>
+                                <p>Authorized administrators may access accounts for support and troubleshooting purposes. This access is restricted, monitored, and used only when necessary.</p>
 
-                                <h2>7. Contact Us</h2>
-                                <p>If you have any questions about this Privacy Policy or how we handle your data, please contact our compliance team at <strong>support@givarapp.com</strong>.</p>
+                                <h2>7. Contact</h2>
+                                <p>If you have any questions about this privacy policy, please contact: <strong>support@givarapp.com</strong></p>
                             </div>
                         </div>
                     </Card>
                 </div>
-            </div >
-        </PublicLayout >
+            </div>
+        </PublicLayout>
     );
 }

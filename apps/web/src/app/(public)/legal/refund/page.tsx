@@ -5,7 +5,7 @@ import { cn } from '../../../../lib/utils/cn';
 
 export const metadata: Metadata = {
     title: 'Refund Policy',
-    description: 'Information regarding the finality of donations and exception handling on the Givar platform.',
+    description: 'Information regarding the finality of contributions and exception handling on the Givar platform.',
 };
 
 export default function RefundPolicyPage() {
@@ -36,25 +36,26 @@ export default function RefundPolicyPage() {
                             )}>
                                 <p>
                                     Version: 1.1<br />
-                                    Effective Date: <strong>March 13, 2026</strong>
+                                    Effective Date: <strong>April 08, 2026</strong>
                                 </p>
                                 <p>
-                                    Givar operates a transparent giving platform where funds are committed to verified causes and paid directly to approved vendors.
+                                    Givar operates a transparent giving platform where contributions are made to support verified causes.
                                 </p>
 
-                                <h2>1. Finality of Donations</h2>
-                                <p>All donations made on Givar are considered final once a transaction is successfully completed.</p>
-                                <p>Because funds are committed to specific causes and may be scheduled for vendor disbursement, donations cannot be reversed or refunded at the request of the donor.</p>
+                                <h2>1. Finality Of Contributions</h2>
+                                <p>Contributions made on Givar are generally considered final once a transaction is successfully processed.</p>
+                                <p>As payments are directed to vendors or institutions supporting a cause, refunds cannot be guaranteed after payment has been completed.</p>
 
-                                <h2>2. Platform or Compliance Intervention</h2>
-                                <p>In rare circumstances, Givar may review or intervene in a transaction where there are concerns related to fraud, misrepresentation, technical error, or legal compliance.</p>
-                                <p>Where appropriate, Givar may determine a suitable resolution which may include holding funds temporarily, reallocating funds to another verified cause, or other corrective action.</p>
+                                <h2>2. Platform Or Compliance Review</h2>
+                                <p>In limited circumstances involving confirmed fraud, misrepresentation, or technical error, Givar may review a transaction.</p>
+                                <p>Where appropriate, Givar may coordinate with payment providers, vendors, or relevant parties to determine a suitable resolution.</p>
 
                                 <h2>3. Payment Processing Errors</h2>
                                 <p>If a donor experiences a confirmed duplicate charge or payment processing error, Givar will investigate and work with the payment provider to resolve the issue.</p>
 
-                                <h2>4. Currency Conversion and Bank Fees</h2>
-                                <p>For international payments, the final amount charged may vary due to exchange rate fluctuations or bank fees. Givar is not responsible for discrepancies between estimated and final settlement amounts.</p>
+                                <h2>4. Currency Conversion And Bank Fees</h2>
+                                <p>For international payments, the final amount charged may vary due to exchange rate fluctuations or bank fees.</p>
+                                <p>Givar is not responsible for discrepancies between estimated and final settlement amounts.</p>
 
                                 <h2>5. Contact</h2>
                                 <p>For refund-related inquiries, please contact: <strong>support@givarapp.com</strong></p>
