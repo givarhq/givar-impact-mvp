@@ -57,7 +57,7 @@ export class ProjectService {
 
   // Robust Search Engine
   async findAllAdvanced(query: ProjectQueryDto) {
-    const { page = 1, limit = 9, search, category, status, sort } = query;
+    const { page = 1, limit = 9, search, category, subcategory, status, sort } = query;
     const skip = (page - 1) * limit;
 
     const config = await this.prisma.recommendationConfig.findUnique({ where: { id: 'default' } });
@@ -67,11 +67,13 @@ export class ProjectService {
       ? [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED]
       : [ProjectStatus.ACTIVE];
 
+    // 1. Dynamic Filter Construction
     const where: Prisma.ProjectWhereInput = {
       status: { in: baseStatuses },
       isActive: true,
       ...(status && { status }),
       ...(category && { category: { slug: category } }),
+      ...(subcategory && { subcategory: { slug: subcategory } }), // <-- NEW: Apply subcategory filter
       ...(search && {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },
@@ -97,7 +99,7 @@ export class ProjectService {
         orderBy,
         include: {
           category: { select: { name: true, slug: true, icon: true } },
-          subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory
+          subcategory: { select: { name: true } },
           _count: { select: { donations: true } },
           user: {
             select: {
@@ -114,7 +116,6 @@ export class ProjectService {
       const hydrated = await this.storage.hydrateEntityMedia(p);
       const raised = Number(hydrated.raisedAmount || 0n);
       const target = Number(hydrated.targetAmount || 0n);
-
       const isSystemProject = p.user?.role === 'ADMIN' || p.user?.role === 'SUPERADMIN';
 
       return {
@@ -124,7 +125,7 @@ export class ProjectService {
         percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
         categoryName: hydrated.category?.name,
         categorySlug: hydrated.category?.slug,
-        subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
+        subcategoryName: hydrated.subcategory?.name,
         isVerifiedOrganizer: isSystemProject ? true : p.user?.organization?.status === 'VERIFIED',
         organizerName: isSystemProject ? 'Givar' : (p.user?.organization?.legalName || 'Individual'),
         organizerType: isSystemProject ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),

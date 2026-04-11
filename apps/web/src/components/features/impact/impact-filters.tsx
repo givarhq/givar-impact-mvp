@@ -21,23 +21,25 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
 
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
+  const [activeSubcategory, setActiveSubcategory] = useState(searchParams.get('subcategory') || 'all');
   const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
   useEffect(() => {
     if (search === (searchParams.get('search') || '') &&
       activeCategory === (searchParams.get('category') || 'all') &&
+      activeSubcategory === (searchParams.get('subcategory') || 'all') &&
       sort === (searchParams.get('sort') || 'newest')) return;
 
     const params = new URLSearchParams(searchParams.toString());
 
     if (search) params.set('search', search); else params.delete('search');
     if (activeCategory !== 'all') params.set('category', activeCategory); else params.delete('category');
+    if (activeSubcategory !== 'all') params.set('subcategory', activeSubcategory); else params.delete('subcategory');
     if (sort !== 'newest') params.set('sort', sort); else params.delete('sort');
 
     params.delete('page');
 
-    // Logic: Increased debounce to 1000ms to prevent aggressive refreshing while typing
     const timeout = setTimeout(() => {
       if (params.toString() !== searchParams.toString()) {
         router.replace(`?${params.toString()}`, { scroll: false });
@@ -45,13 +47,18 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
     }, 1000);
 
     return () => clearTimeout(timeout);
-  }, [search, activeCategory, sort, router, searchParams]);
+  }, [search, activeCategory, activeSubcategory, sort, router, searchParams]);
 
   const clearFilters = () => {
     setSearch('');
     setActiveCategory('all');
+    setActiveSubcategory('all');
     setSort('newest');
   };
+
+  // Find the selected category object to render its subcategories
+  const selectedCategoryObj = categories.find(c => c.slug === activeCategory);
+  const availableSubcategories = selectedCategoryObj?.subcategories || [];
 
   return (
     <div className="space-y-4 md:space-y-6 w-full min-w-0">
@@ -62,7 +69,6 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
             Explore Causes
           </h1>
 
-          {/* Desktop Search */}
           <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
             <Input
@@ -74,7 +80,6 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
           </div>
         </div>
 
-        {/* Global Action Group */}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="ghost"
@@ -88,7 +93,6 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
             {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
           </Button>
 
-          {/* Desktop Sort */}
           <div className="hidden md:block">
             <Select value={sort} onValueChange={setSort}>
               <SelectTrigger className="w-[160px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
@@ -139,7 +143,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
                   <SelectItem value="ending_soon" className="text-xs font-bold">Closing soon</SelectItem>
                 </SelectContent>
               </Select>
-              {(search || activeCategory !== 'all' || sort !== 'newest') && (
+              {(search || activeCategory !== 'all' || activeSubcategory !== 'all' || sort !== 'newest') && (
                 <Button
                   variant="outline"
                   onClick={clearFilters}
@@ -154,12 +158,53 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
       </AnimatePresence>
 
       {/* Category Navigation */}
-      <div className="pt-2 w-full min-w-0 overflow-hidden">
+      <div className="pt-2 w-full min-w-0 overflow-hidden space-y-3">
         <CategoryBrowser
           categories={categories}
           selected={activeCategory}
-          onSelect={setActiveCategory}
+          onSelect={(slug) => {
+            setActiveCategory(slug);
+            setActiveSubcategory('all'); // Reset subcategory when changing primary sector
+          }}
         />
+
+        {/* Subcategory Pill Row */}
+        <AnimatePresence>
+          {activeCategory !== 'all' && availableSubcategories.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              className="flex gap-2 overflow-x-auto no-scrollbar py-1"
+            >
+              <button
+                onClick={() => setActiveSubcategory('all')}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap border shrink-0",
+                  activeSubcategory === 'all'
+                    ? "bg-primary text-white border-primary shadow-sm"
+                    : "bg-transparent text-muted-foreground border-border/60 hover:border-foreground hover:text-foreground"
+                )}
+              >
+                All {selectedCategoryObj?.name}
+              </button>
+              {availableSubcategories.map((sub: any) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setActiveSubcategory(sub.slug)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap border shrink-0",
+                    activeSubcategory === sub.slug
+                      ? "bg-primary text-white border-primary shadow-sm"
+                      : "bg-transparent text-muted-foreground border-border/60 hover:border-foreground hover:text-foreground"
+                  )}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

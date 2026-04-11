@@ -19,11 +19,15 @@ export class ProjectQueryDto {
   category?: string; // Slug
 
   @IsOptional()
+  @IsString()
+  subcategory?: string; // <-- NEW: Subcategory Slug
+
+  @IsOptional()
   @IsEnum(ProjectStatus)
   status?: ProjectStatus;
-  
-  @IsOptional() 
-  @IsEnum(ProjectSort) 
+
+  @IsOptional()
+  @IsEnum(ProjectSort)
   sort?: ProjectSort = ProjectSort.NEWEST;
 
   @IsOptional()
