@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
     Loader2, CreditCard, CheckCircle2, Mail,
-    Eye, MailCheck, RefreshCw, Globe, Target, BellRing, HandHeart
+    Eye, MailCheck, RefreshCw, Globe, Target, HandHeart
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Project } from '../../../../../../types';
 import { ApiService } from '../../../../../../services/api';
-import { apiClient } from '../../../../../../lib/api-client';
-import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../../../../lib/utils/format';
+import { formatNumberInput, parseFormattedNumber } from '../../../../../../lib/utils/format';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../components/ui/select';
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
@@ -64,9 +63,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [fxRates, setFxRates] = useState<Record<string, number> | null>(null);
 
-    const [waitlistEmail, setWaitlistEmail] = useState('');
-    const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
-
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isUnverified, setIsUnverified] = useState(false);
     const [guestEmail, setGuestEmail] = useState('');
@@ -77,11 +73,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             try {
                 const user = JSON.parse(userCookie as string);
                 setIsUnverified(user.emailVerified === false);
-                if (user.email) {
-                    setWaitlistEmail(user.email); // Auto-fill the waitlist email for seamless 1-click subscription
-                    if (posthog) {
-                        posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
-                    }
+                if (user.email && posthog) {
+                    posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
                 }
             } catch (e) {
                 setIsUnverified(false);
@@ -163,6 +156,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     if (!project) return null;
 
+    // --- PHASED FUNDING MATH ---
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const activeIndex = project.currentPhaseIndex || 0;
 
@@ -181,6 +175,33 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const remainingForPhaseMinor = currentPhaseCapMinor > raisedAmountMinor ? currentPhaseCapMinor - raisedAmountMinor : 0n;
     const isPhaseFull = remainingForPhaseMinor <= 0n && currentPhaseCapMinor > 0n;
 
+    // Edge case render: user navigated to /donate when phase is already full
+    if (isPhaseFull) {
+        return (
+            <div className="bg-card border border-border/40 rounded-3xl p-6 md:p-10 shadow-sm text-center space-y-6 animate-in zoom-in-95 duration-500">
+                <div className="h-20 w-20 bg-emerald-500/10 text-emerald-600 rounded-[28px] flex items-center justify-center mx-auto border border-emerald-500/20 shadow-inner">
+                    <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <div className="space-y-3">
+                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Phase {activeIndex + 1} Fully Funded!</h3>
+                    <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
+                        Thanks to our incredible donors, the funds for <strong>"{activeItemName}"</strong> have been secured.
+                        Donations are currently paused for this cause.
+                    </p>
+                </div>
+                <div className="pt-4">
+                    <Button
+                        onClick={() => router.push(isAuthenticated ? `/dashboard/impact/${project.slug}` : `/explore/${project.slug}`)}
+                        className="h-12 rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 border-0 px-8 transition-all active:scale-95 text-xs"
+                    >
+                        Return to Cause
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    // --- INTERNATIONAL CURRENCY CONVERSION ---
     let remainingSelectedMajor = Number(remainingForPhaseMinor) / 100;
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         remainingSelectedMajor = remainingSelectedMajor * fxRates[detectedCurrency];
@@ -233,31 +254,16 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         }
     };
 
-    const handleJoinWaitlist = async () => {
-        if (!waitlistEmail || !waitlistEmail.includes('@')) return toast.error("Valid email required");
-        setIsWaitlistLoading(true);
-        try {
-            await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
-            toast.success("You'll be notified when the next phase unlocks!");
-            if (!isAuthenticated) setWaitlistEmail('');
-        } catch (e: any) {
-            toast.success("You've been added to the notification queue!");
-            if (!isAuthenticated) setWaitlistEmail('');
-        } finally {
-            setIsWaitlistLoading(false);
-        }
-    };
-
     const handleConfirm = async () => {
         if (isReadOnly || isUnverified) return;
 
-        if (!displayAmount || ngnValue <= 0) {
+        if (!displayAmount || inputAmountNum <= 0) {
             toast.error("Please provide a valid amount.");
             return;
         }
 
         if (baseAmountMinor < 10000n) {
-            toast.error("Minimum donation is ₦100.00.");
+            toast.error(`Minimum donation is ₦100.00 (or equivalent).`);
             return;
         }
 
@@ -267,7 +273,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
         if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
             finalDonorCurrency = detectedCurrency;
-            finalDonorAmount = (ngnValue * fxRates[detectedCurrency]).toFixed(2);
+            finalDonorAmount = inputAmountNum.toString();
             finalFxRate = fxRates[detectedCurrency];
         }
 
@@ -314,45 +320,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         const goalNgnMajor = Number(remainingForPhaseMinor) / 100;
         const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
         goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
-    }
-
-    if (isPhaseFull) {
-        return (
-            <div className="bg-card border border-border/40 rounded-3xl p-6 md:p-10 shadow-sm text-center space-y-6 animate-in zoom-in-95 duration-500">
-                <div className="h-20 w-20 bg-emerald-500/10 text-emerald-600 rounded-[28px] flex items-center justify-center mx-auto border border-emerald-500/20 shadow-inner">
-                    <CheckCircle2 className="h-10 w-10" />
-                </div>
-                <div className="space-y-3">
-                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Phase {activeIndex + 1} Fully Funded!</h3>
-                    <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
-                        Thanks to our incredible donors, the funds for <strong>"{activeItemName}"</strong> have been secured.
-                        To ensure total accountability, we have paused donations until the organizer uploads verified proof of execution for this phase.
-                    </p>
-                </div>
-                <div className="bg-muted/20 border border-border/40 p-6 md:p-8 rounded-3xl max-w-md mx-auto space-y-4 shadow-inner">
-                    <div className="flex items-center gap-2 justify-center text-primary mb-2">
-                        <BellRing className="h-5 w-5" />
-                        <h4 className="text-sm font-bold text-foreground">Save the momentum</h4>
-                    </div>
-                    <p className="text-xs text-muted-foreground font-medium pb-2">Don't miss out. Drop your email to get alerted the second Phase {activeIndex + 2} opens.</p>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <Input
-                            placeholder="your@email.com"
-                            value={waitlistEmail}
-                            onChange={e => setWaitlistEmail(e.target.value)}
-                            className="h-12 rounded-2xl bg-background shadow-sm text-sm"
-                        />
-                        <Button
-                            onClick={handleJoinWaitlist}
-                            disabled={isWaitlistLoading || !waitlistEmail}
-                            className="h-12 rounded-2xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 border-0 px-8 transition-all active:scale-95"
-                        >
-                            {isWaitlistLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Notify Me'}
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        );
     }
 
     return (
@@ -409,7 +376,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        Transparency Mode: We are currently only raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases will unlock once this phase is executed and verified.
+                        Transparency Mode: We are currently raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases unlock once this is executed and verified.
                     </p>
                 </div>
 
