@@ -378,4 +378,27 @@ export class AdminController {
   deleteCategory(@Req() req: any, @Param('id') id: string) {
     return this.service.deleteCategory(req.user.id, id);
   }
+
+  @Post('categories/:id/subcategories')
+  createSubcategory(
+    @Req() req: any,
+    @Param('id') categoryId: string,
+    @Body() dto: { name: string }
+  ) {
+    return this.service.createSubcategory(req.user.id, categoryId, dto);
+  }
+
+  @Patch('subcategories/:id')
+  updateSubcategory(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: { name: string }
+  ) {
+    return this.service.updateSubcategory(req.user.id, id, dto);
+  }
+
+  @Delete('subcategories/:id')
+  deleteSubcategory(@Req() req: any, @Param('id') id: string) {
+    return this.service.deleteSubcategory(req.user.id, id);
+  }
 }

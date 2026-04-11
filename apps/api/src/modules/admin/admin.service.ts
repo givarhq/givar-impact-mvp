@@ -2932,4 +2932,82 @@ export class AdminService {
 
     return updated;
   }
+
+  async createSubcategory(adminId: string, categoryId: string, dto: { name: string }) {
+    const slug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+    return this.prisma.$transaction(async (tx) => {
+      const subcategory = await tx.subcategory.create({
+        data: {
+          name: dto.name,
+          slug,
+          categoryId,
+        }
+      });
+
+      // We log this under CATEGORY_UPDATED to maintain the existing audit taxonomy
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.CATEGORY_UPDATED,
+        entityId: categoryId,
+        entityType: 'Category',
+        metadata: { action: 'SUBCATEGORY_CREATED', name: subcategory.name }
+      }, tx);
+
+      return subcategory;
+    });
+  }
+
+  async updateSubcategory(adminId: string, id: string, dto: { name: string }) {
+    const slug = dto.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+
+    return this.prisma.$transaction(async (tx) => {
+      const subcategory = await tx.subcategory.update({
+        where: { id },
+        data: { name: dto.name, slug }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.CATEGORY_UPDATED,
+        entityId: subcategory.categoryId,
+        entityType: 'Category',
+        metadata: { action: 'SUBCATEGORY_MODIFIED', name: subcategory.name }
+      }, tx);
+
+      return subcategory;
+    });
+  }
+
+  async deleteSubcategory(adminId: string, id: string) {
+    const subcategory = await this.prisma.subcategory.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { projects: true, proposals: true } }
+      }
+    });
+
+    if (!subcategory) throw new NotFoundException('Specific focus area not found');
+
+    // Forensic Guard: Prevent deletion if attached to projects/proposals
+    if (subcategory._count.projects > 0 || subcategory._count.proposals > 0) {
+      throw new BadRequestException(
+        `Cannot delete specific focus: It is currently linked to ${subcategory._count.projects} projects and ${subcategory._count.proposals} proposals.`
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.subcategory.delete({ where: { id } });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.CATEGORY_UPDATED,
+        entityId: subcategory.categoryId,
+        entityType: 'Category',
+        metadata: { action: 'SUBCATEGORY_DELETED', name: subcategory.name }
+      }, tx);
+
+      return { success: true };
+    });
+  }
 }

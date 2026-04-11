@@ -472,6 +472,15 @@ export const ApiService = {
     deleteCategory: (id: string) =>
       apiClient.delete(`/admin/categories/${id}`).then(r => r.data),
 
+    createSubcategory: (categoryId: string, data: { name: string }) =>
+      apiClient.post(`/admin/categories/${categoryId}/subcategories`, data).then(r => r.data),
+
+    updateSubcategory: (id: string, data: { name: string }) =>
+      apiClient.patch(`/admin/subcategories/${id}`, data).then(r => r.data),
+
+    deleteSubcategory: (id: string) =>
+      apiClient.delete(`/admin/subcategories/${id}`).then(r => r.data),
+
     getConfig: (token: string) =>
       serverFetch<any>('/recommendations/admin/config', token, {
         tags: ['recommendation-config'],
