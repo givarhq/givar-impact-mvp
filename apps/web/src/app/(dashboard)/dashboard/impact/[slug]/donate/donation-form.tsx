@@ -12,6 +12,7 @@ import { Input } from '../../../../../../components/ui/input';
 import { Project } from '../../../../../../types';
 import { ApiService } from '../../../../../../services/api';
 import { apiClient } from '../../../../../../lib/api-client';
+import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../../../../lib/utils/format';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../components/ui/select';
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
@@ -31,7 +32,6 @@ const SYMBOLS: Record<string, string> = {
     CAD: 'C$',
 };
 
-// Local decimal formatter to allow cents/kobo inputs
 const formatDecimalInput = (value: string): string => {
     let cleaned = value.replace(/[^0-9.]/g, '');
     const parts = cleaned.split('.');
@@ -57,7 +57,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const [detectedCurrency, setDetectedCurrency] = useState('NGN');
     const [displayAmount, setDisplayAmount] = useState('');
     const [tipAmount, setTipAmount] = useState('');
-    const [activeTipPreset, setActiveTipPreset] = useState<number | 'custom'>(10); // Default 10% tip
+    const [activeTipPreset, setActiveTipPreset] = useState<number | 'custom' | null>(null); // Default to NO TIP
 
     const [feeRule, setFeeRule] = useState<{ percentage: number; optionalTipEnabled: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -77,8 +77,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             try {
                 const user = JSON.parse(userCookie as string);
                 setIsUnverified(user.emailVerified === false);
-                if (user.email && posthog) {
-                    posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
+                if (user.email) {
+                    setWaitlistEmail(user.email); // Auto-fill the waitlist email for seamless 1-click subscription
+                    if (posthog) {
+                        posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
+                    }
                 }
             } catch (e) {
                 setIsUnverified(false);
@@ -136,6 +139,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             const currentAmountNum = Number(parseDecimalNumber(displayAmount)) || 0;
             const newTip = (currentAmountNum * (activeTipPreset / 100)).toFixed(2);
             setTipAmount(newTip === '0.00' ? '' : formatDecimalInput(newTip));
+        } else if (activeTipPreset === null) {
+            setTipAmount('');
         }
     }, [displayAmount, activeTipPreset]);
 
@@ -158,7 +163,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     if (!project) return null;
 
-    // --- PHASED FUNDING MATH ---
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const activeIndex = project.currentPhaseIndex || 0;
 
@@ -177,21 +181,17 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const remainingForPhaseMinor = currentPhaseCapMinor > raisedAmountMinor ? currentPhaseCapMinor - raisedAmountMinor : 0n;
     const isPhaseFull = remainingForPhaseMinor <= 0n && currentPhaseCapMinor > 0n;
 
-    // --- INTERNATIONAL CURRENCY CONVERSION ---
-    // Calculate the max remaining amount in the user's natively selected currency
     let remainingSelectedMajor = Number(remainingForPhaseMinor) / 100;
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         remainingSelectedMajor = remainingSelectedMajor * fxRates[detectedCurrency];
     }
 
-    // Determine the base value based on input
     const inputAmountNum = Number(parseDecimalNumber(displayAmount)) || 0;
     const inputTipNum = Number(parseDecimalNumber(tipAmount)) || 0;
 
     let ngnValue = inputAmountNum;
     let ngnTipValue = inputTipNum;
 
-    // If typing in a foreign currency, convert back to NGN for the backend payload
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         ngnValue = inputAmountNum / fxRates[detectedCurrency];
         ngnTipValue = inputTipNum / fxRates[detectedCurrency];
@@ -207,7 +207,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const isGuest = !isAuthenticated;
     const isCompletingPhase = baseAmountMinor >= remainingForPhaseMinor && remainingForPhaseMinor > 0n;
 
-    // Dynamic quick amounts based on currency
     const QUICK_AMOUNTS = detectedCurrency === 'NGN'
         ? ['1000', '5000', '10000', '25000']
         : ['10', '25', '50', '100'];
@@ -240,10 +239,10 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         try {
             await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
             toast.success("You'll be notified when the next phase unlocks!");
-            setWaitlistEmail('');
+            if (!isAuthenticated) setWaitlistEmail('');
         } catch (e: any) {
             toast.success("You've been added to the notification queue!");
-            setWaitlistEmail('');
+            if (!isAuthenticated) setWaitlistEmail('');
         } finally {
             setIsWaitlistLoading(false);
         }
@@ -252,13 +251,13 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const handleConfirm = async () => {
         if (isReadOnly || isUnverified) return;
 
-        if (!displayAmount || inputAmountNum <= 0) {
+        if (!displayAmount || ngnValue <= 0) {
             toast.error("Please provide a valid amount.");
             return;
         }
 
         if (baseAmountMinor < 10000n) {
-            toast.error(`Minimum donation is ₦100.00 (or equivalent).`);
+            toast.error("Minimum donation is ₦100.00.");
             return;
         }
 
@@ -268,7 +267,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
         if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
             finalDonorCurrency = detectedCurrency;
-            finalDonorAmount = inputAmountNum.toString();
+            finalDonorAmount = (ngnValue * fxRates[detectedCurrency]).toFixed(2);
             finalFxRate = fxRates[detectedCurrency];
         }
 
@@ -283,10 +282,13 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
         setIsLoading(true);
         try {
+            const minorAmount = baseAmountMinor.toString();
+            const minorTipAmount = tipAmountMinor.toString();
+
             const payload: any = {
                 projectId: project.id,
-                amount: baseAmountMinor.toString(),
-                tipAmount: tipAmountMinor.toString(),
+                amount: minorAmount,
+                tipAmount: minorTipAmount,
                 currency: project.currency,
                 donorCurrency: finalDonorCurrency,
                 donorAmount: finalDonorAmount,
@@ -306,6 +308,13 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             setIsLoading(false);
         }
     };
+
+    let goalApprox = '';
+    if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
+        const goalNgnMajor = Number(remainingForPhaseMinor) / 100;
+        const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
+        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
+    }
 
     if (isPhaseFull) {
         return (
@@ -400,7 +409,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        We are currently raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases unlock once this is executed and verified.
+                        Transparency Mode: We are currently only raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases will unlock once this phase is executed and verified.
                     </p>
                 </div>
 
@@ -421,8 +430,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             inputMode="decimal"
                             maxLength={14}
                             placeholder="0.00"
-                            className="pl-14 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
-                            value={displayAmount}
+                            className="pl-14 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
+                            value={displayAmount ? `${formatNumberInput(displayAmount)}` : ''}
                             onChange={handleAmountChange}
                             disabled={isUnverified}
                         />
@@ -433,10 +442,14 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             {detectedCurrency !== 'NGN' ? (
                                 <>
                                     <Globe className="h-3.5 w-3.5" />
-                                    <span>Will be processed as:</span>
-                                    <span className="font-bold text-foreground">
-                                        ₦{ngnValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                                    </span>
+                                    <span>Estimated equivalent:</span>
+                                    {fxRates && ngnValue > 0 ? (
+                                        <span className="font-bold text-foreground">
+                                            {SYMBOLS['NGN']}{(ngnValue).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                        </span>
+                                    ) : (
+                                        <span>--</span>
+                                    )}
                                 </>
                             ) : (
                                 <span className="text-[10px]">All transactions are processed securely in NGN.</span>
@@ -487,7 +500,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                         {[5, 10, 15].map(pct => (
                                             <button
                                                 key={pct}
-                                                onClick={() => setActiveTipPreset(pct)}
+                                                onClick={() => setActiveTipPreset(prev => prev === pct ? null : pct)}
                                                 className={cn(
                                                     "flex-1 py-2.5 rounded-2xl text-xs font-bold border transition-all",
                                                     activeTipPreset === pct ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:border-primary/50"
@@ -497,7 +510,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                             </button>
                                         ))}
                                         <button
-                                            onClick={() => setActiveTipPreset('custom')}
+                                            onClick={() => setActiveTipPreset(prev => prev === 'custom' ? null : 'custom')}
                                             className={cn(
                                                 "flex-1 py-2.5 rounded-2xl text-xs font-bold border transition-all",
                                                 activeTipPreset === 'custom' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:border-primary/50"
