@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
     Loader2, CreditCard, CheckCircle2, Mail,
-    Eye, MailCheck, RefreshCw, Globe, Target, BellRing
+    Eye, MailCheck, RefreshCw, Globe, Target, BellRing, HandHeart
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Project } from '../../../../../../types';
 import { ApiService } from '../../../../../../services/api';
 import { apiClient } from '../../../../../../lib/api-client';
-import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../../../../lib/utils/format';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../components/ui/select';
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
@@ -32,7 +31,24 @@ const SYMBOLS: Record<string, string> = {
     CAD: 'C$',
 };
 
-const QUICK_AMOUNTS = ['1000', '5000', '10000', '25000'];
+// Local decimal formatter to allow cents/kobo inputs
+const formatDecimalInput = (value: string): string => {
+    let cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+        cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+    if (parts.length === 2 && parts[1].length > 2) {
+        cleaned = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    const finalParts = cleaned.split('.');
+    const major = finalParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return finalParts.length > 1 ? `${major}.${finalParts[1]}` : major;
+};
+
+const parseDecimalNumber = (value: string): string => {
+    return value.replace(/,/g, '');
+};
 
 export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const router = useRouter();
@@ -41,6 +57,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const [detectedCurrency, setDetectedCurrency] = useState('NGN');
     const [displayAmount, setDisplayAmount] = useState('');
     const [tipAmount, setTipAmount] = useState('');
+    const [activeTipPreset, setActiveTipPreset] = useState<number | 'custom'>(10); // Default 10% tip
+
     const [feeRule, setFeeRule] = useState<{ percentage: number; optionalTipEnabled: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -112,6 +130,15 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             .catch(console.error);
     }, [project, isAuthenticated, posthog]);
 
+    // Auto-calculate tip when displayAmount or activeTipPreset changes
+    useEffect(() => {
+        if (typeof activeTipPreset === 'number') {
+            const currentAmountNum = Number(parseDecimalNumber(displayAmount)) || 0;
+            const newTip = (currentAmountNum * (activeTipPreset / 100)).toFixed(2);
+            setTipAmount(newTip === '0.00' ? '' : formatDecimalInput(newTip));
+        }
+    }, [displayAmount, activeTipPreset]);
+
     const handleRefreshStatus = async () => {
         setIsRefreshing(true);
         try {
@@ -131,7 +158,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     if (!project) return null;
 
-    // --- PHASED FUNDING LOGIC ---
+    // --- PHASED FUNDING MATH ---
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const activeIndex = project.currentPhaseIndex || 0;
 
@@ -148,13 +175,30 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
     const raisedAmountMinor = BigInt(project.raisedAmount || '0');
     const remainingForPhaseMinor = currentPhaseCapMinor > raisedAmountMinor ? currentPhaseCapMinor - raisedAmountMinor : 0n;
-
     const isPhaseFull = remainingForPhaseMinor <= 0n && currentPhaseCapMinor > 0n;
 
-    // --- FINANCIAL CALCULATIONS ---
-    const ngnValue = Number(parseFormattedNumber(displayAmount)) || 0;
+    // --- INTERNATIONAL CURRENCY CONVERSION ---
+    // Calculate the max remaining amount in the user's natively selected currency
+    let remainingSelectedMajor = Number(remainingForPhaseMinor) / 100;
+    if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
+        remainingSelectedMajor = remainingSelectedMajor * fxRates[detectedCurrency];
+    }
+
+    // Determine the base value based on input
+    const inputAmountNum = Number(parseDecimalNumber(displayAmount)) || 0;
+    const inputTipNum = Number(parseDecimalNumber(tipAmount)) || 0;
+
+    let ngnValue = inputAmountNum;
+    let ngnTipValue = inputTipNum;
+
+    // If typing in a foreign currency, convert back to NGN for the backend payload
+    if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
+        ngnValue = inputAmountNum / fxRates[detectedCurrency];
+        ngnTipValue = inputTipNum / fxRates[detectedCurrency];
+    }
+
     const baseAmountMinor = BigInt(Math.round(ngnValue * 100));
-    const tipAmountMinor = BigInt(parseFormattedNumber(tipAmount) || '0') * 100n;
+    const tipAmountMinor = BigInt(Math.round(ngnTipValue * 100));
 
     const feePercentage = feeRule?.percentage || 0;
     const feeAmountMinor = (baseAmountMinor * BigInt(Math.round(feePercentage * 100))) / 10000n;
@@ -163,25 +207,30 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const isGuest = !isAuthenticated;
     const isCompletingPhase = baseAmountMinor >= remainingForPhaseMinor && remainingForPhaseMinor > 0n;
 
-    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/[^0-9]/g, '');
-        const valueMinor = BigInt(value || '0') * 100n;
+    // Dynamic quick amounts based on currency
+    const QUICK_AMOUNTS = detectedCurrency === 'NGN'
+        ? ['1000', '5000', '10000', '25000']
+        : ['10', '25', '50', '100'];
 
-        if (valueMinor > remainingForPhaseMinor) {
-            toast.error(`Capped at current phase limit: ₦${(Number(remainingForPhaseMinor) / 100).toLocaleString()}`);
-            setDisplayAmount((Number(remainingForPhaseMinor) / 100).toString());
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const formatted = formatDecimalInput(e.target.value);
+        const rawNum = Number(parseDecimalNumber(formatted));
+
+        if (rawNum > remainingSelectedMajor) {
+            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+            setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
-            setDisplayAmount(value);
+            setDisplayAmount(formatted);
         }
     };
 
     const setQuickAmount = (val: string) => {
-        const valueMinor = BigInt(val) * 100n;
-        if (valueMinor > remainingForPhaseMinor) {
-            toast.error(`Capped at current phase limit: ₦${(Number(remainingForPhaseMinor) / 100).toLocaleString()}`);
-            setDisplayAmount((Number(remainingForPhaseMinor) / 100).toString());
+        const rawNum = Number(val);
+        if (rawNum > remainingSelectedMajor) {
+            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+            setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
-            setDisplayAmount(val);
+            setDisplayAmount(formatDecimalInput(val));
         }
     };
 
@@ -203,15 +252,13 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const handleConfirm = async () => {
         if (isReadOnly || isUnverified) return;
 
-        // --- BUG FIX: Removed the flawed `!selectedMethod` check. 
-        // This form is now purely a Direct Pay engine. ---
-        if (!displayAmount || ngnValue <= 0) {
+        if (!displayAmount || inputAmountNum <= 0) {
             toast.error("Please provide a valid amount.");
             return;
         }
 
         if (baseAmountMinor < 10000n) {
-            toast.error("Minimum donation is ₦100.00.");
+            toast.error(`Minimum donation is ₦100.00 (or equivalent).`);
             return;
         }
 
@@ -221,7 +268,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
         if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
             finalDonorCurrency = detectedCurrency;
-            finalDonorAmount = (ngnValue * fxRates[detectedCurrency]).toFixed(2);
+            finalDonorAmount = inputAmountNum.toString();
             finalFxRate = fxRates[detectedCurrency];
         }
 
@@ -230,18 +277,16 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             display_currency: detectedCurrency,
             calculated_ngn_value: ngnValue,
             payment_method: 'direct',
-            is_guest: isGuest
+            is_guest: isGuest,
+            included_tip: inputTipNum > 0
         });
 
         setIsLoading(true);
         try {
-            const minorAmount = baseAmountMinor.toString();
-            const minorTipAmount = tipAmountMinor.toString();
-
             const payload: any = {
                 projectId: project.id,
-                amount: minorAmount,
-                tipAmount: minorTipAmount,
+                amount: baseAmountMinor.toString(),
+                tipAmount: tipAmountMinor.toString(),
                 currency: project.currency,
                 donorCurrency: finalDonorCurrency,
                 donorAmount: finalDonorAmount,
@@ -261,13 +306,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             setIsLoading(false);
         }
     };
-
-    let goalApprox = '';
-    if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
-        const goalNgnMajor = Number(remainingForPhaseMinor) / 100;
-        const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
-        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
-    }
 
     if (isPhaseFull) {
         return (
@@ -362,27 +400,29 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        Transparency Mode: We are currently only raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases will unlock once this phase is executed and verified.
+                        Transparency Mode: We are currently raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases unlock once this is executed and verified.
                     </p>
                 </div>
 
                 <div className="space-y-2.5">
                     <div className="flex justify-between items-center px-1">
-                        <label className="text-xs font-bold text-muted-foreground">Enter amount (NGN)</label>
+                        <label className="text-xs font-bold text-muted-foreground">Enter amount ({detectedCurrency})</label>
                         <span className="text-[10px] font-bold text-primary bg-primary/5 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm flex items-center gap-1.5">
-                            Remaining: {formatCurrency(remainingForPhaseMinor, project.currency)} {goalApprox}
+                            Remaining: {SYMBOLS[detectedCurrency] || detectedCurrency}{remainingSelectedMajor.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                         </span>
                     </div>
 
                     <div className="relative min-w-0">
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-xl md:text-3xl">
+                            {SYMBOLS[detectedCurrency] || detectedCurrency}
+                        </span>
                         <Input
                             type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
+                            inputMode="decimal"
                             maxLength={14}
-                            placeholder="₦ 5,000"
-                            className="pl-4 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
-                            value={displayAmount ? `₦ ${formatNumberInput(displayAmount)}` : ''}
+                            placeholder="0.00"
+                            className="pl-14 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all"
+                            value={displayAmount}
                             onChange={handleAmountChange}
                             disabled={isUnverified}
                         />
@@ -393,17 +433,13 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             {detectedCurrency !== 'NGN' ? (
                                 <>
                                     <Globe className="h-3.5 w-3.5" />
-                                    <span>Estimated equivalent:</span>
-                                    {fxRates && ngnValue > 0 ? (
-                                        <span className="font-bold text-foreground">
-                                            {SYMBOLS[detectedCurrency]}{(ngnValue * fxRates[detectedCurrency]).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                                        </span>
-                                    ) : (
-                                        <span>--</span>
-                                    )}
+                                    <span>Will be processed as:</span>
+                                    <span className="font-bold text-foreground">
+                                        ₦{ngnValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                    </span>
                                 </>
                             ) : (
-                                <span className="text-[10px]">All transactions are processed in NGN.</span>
+                                <span className="text-[10px]">All transactions are processed securely in NGN.</span>
                             )}
                         </div>
                         <Select value={detectedCurrency} onValueChange={setDetectedCurrency} disabled={isUnverified}>
@@ -423,7 +459,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     <div className="flex gap-2 text-xs flex-wrap pt-2">
                         {QUICK_AMOUNTS.map((val) => (
                             <button key={val} onClick={() => setQuickAmount(val)} disabled={isUnverified} className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-3xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm">
-                                ₦{Number(val).toLocaleString()}
+                                {SYMBOLS[detectedCurrency] || detectedCurrency}{Number(val).toLocaleString()}
                             </button>
                         ))}
                     </div>
@@ -438,40 +474,94 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             className="space-y-5 pt-4 border-t border-border/40 overflow-hidden"
                         >
                             {feeRule?.optionalTipEnabled && (
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-muted-foreground ml-1">Optional tip (Helps cover platform costs)</label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">₦</span>
-                                        <Input
-                                            type="text"
-                                            placeholder="0"
-                                            className="pl-10 h-11 text-sm font-bold rounded-3xl bg-muted/30 border-transparent focus:bg-background focus:border-primary/50 tabular-nums"
-                                            value={formatNumberInput(tipAmount)}
-                                            onChange={(e) => setTipAmount(parseFormattedNumber(formatNumberInput(e.target.value)))}
-                                            disabled={isUnverified}
-                                        />
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <HandHeart className="h-4 w-4 text-primary" />
+                                        <label className="text-xs font-bold text-foreground">Support Givar's Infrastructure (Optional)</label>
                                     </div>
+                                    <p className="text-[11px] text-muted-foreground font-medium px-1 leading-relaxed">
+                                        Givar operates on radical transparency. If you value our platform, please consider an optional tip to help us maintain our servers and payment gateways.
+                                    </p>
+
+                                    <div className="flex gap-2">
+                                        {[5, 10, 15].map(pct => (
+                                            <button
+                                                key={pct}
+                                                onClick={() => setActiveTipPreset(pct)}
+                                                className={cn(
+                                                    "flex-1 py-2.5 rounded-2xl text-xs font-bold border transition-all",
+                                                    activeTipPreset === pct ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:border-primary/50"
+                                                )}
+                                            >
+                                                {pct}%
+                                            </button>
+                                        ))}
+                                        <button
+                                            onClick={() => setActiveTipPreset('custom')}
+                                            className={cn(
+                                                "flex-1 py-2.5 rounded-2xl text-xs font-bold border transition-all",
+                                                activeTipPreset === 'custom' ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border/60 hover:border-primary/50"
+                                            )}
+                                        >
+                                            Custom
+                                        </button>
+                                    </div>
+
+                                    <AnimatePresence>
+                                        {activeTipPreset === 'custom' && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="relative pt-2"
+                                            >
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground mt-1">
+                                                    {SYMBOLS[detectedCurrency] || detectedCurrency}
+                                                </span>
+                                                <Input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    placeholder="0.00"
+                                                    className="pl-10 h-11 text-sm font-bold rounded-2xl bg-muted/30 border-border/40 focus:bg-background tabular-nums"
+                                                    value={tipAmount}
+                                                    onChange={(e) => {
+                                                        const val = formatDecimalInput(e.target.value);
+                                                        setTipAmount(val);
+                                                    }}
+                                                    disabled={isUnverified}
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             )}
 
                             <div className="p-5 rounded-[24px] bg-muted/20 border border-border/40 space-y-3 shadow-inner">
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                    <span>Phase {activeIndex + 1} Impact</span>
-                                    <span className="tabular-nums font-bold text-foreground">₦{(Number(baseAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span>Direct Impact</span>
+                                    <span className="tabular-nums font-bold text-foreground">
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                    <span>Platform fee ({feePercentage}%)</span>
-                                    <span className="tabular-nums font-bold text-foreground">₦{(Number(feeAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span>Payment Processing ({feePercentage}%)</span>
+                                    <span className="tabular-nums font-bold text-foreground">
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{((inputAmountNum * feePercentage) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </span>
                                 </div>
-                                {tipAmountMinor > 0n && (
+                                {inputTipNum > 0 && (
                                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                        <span>Platform tip</span>
-                                        <span className="tabular-nums font-bold text-foreground">₦{(Number(tipAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                        <span>Platform Tip</span>
+                                        <span className="tabular-nums font-bold text-foreground">
+                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        </span>
                                     </div>
                                 )}
                                 <div className="pt-3 border-t border-border/40 flex justify-between items-center">
-                                    <span className="text-sm font-bold text-foreground">Total charge</span>
-                                    <span className="text-sm font-black text-primary tabular-nums">₦{(Number(totalChargeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                    <span className="text-sm font-bold text-foreground">Total Checkout</span>
+                                    <span className="text-sm font-black text-primary tabular-nums">
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum + ((inputAmountNum * feePercentage) / 100) + inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </span>
                                 </div>
                             </div>
 
@@ -491,7 +581,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             exit={{ opacity: 0, height: 0 }}
                             className="space-y-2.5 overflow-hidden pt-2"
                         >
-                            <label className="text-xs font-bold text-muted-foreground ml-1">Receipt email</label>
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Receipt delivery email</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
