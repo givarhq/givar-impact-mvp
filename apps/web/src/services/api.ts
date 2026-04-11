@@ -168,7 +168,15 @@ export const ApiService = {
 
   // --- PROPOSALS ---
   proposals: {
-    create: (data: { title: string; categoryId: string }) =>
+    create: (data: {
+      title: string;
+      categoryId: string;
+      subcategoryId: string;
+      beneficiaryRelationship?: string | null;
+      beneficiaryName?: string | null;
+      beneficiaryAge?: number | null;
+      beneficiaryContact?: string | null;
+    }) =>
       apiClient.post('/proposals', data).then(r => r.data),
 
     get: (id: string, token?: string) =>
@@ -242,6 +250,9 @@ export const ApiService = {
 
       return apiClient.get(`${endpoint}?${params.toString()}`).then(r => r.data);
     },
+
+    joinWaitlist: (id: string, email: string) =>
+      apiClient.post(`/projects/${id}/waitlist`, { email }).then(r => r.data),
   },
 
   // --- DONATIONS ---
@@ -274,7 +285,9 @@ export const ApiService = {
     }) => apiClient.post('/donations/direct', data).then(r => r.data),
 
     getHistory: (token: string) =>
-      serverFetch<any[]>('/donations/my-history', token, { tags: ['donation-history'] }),
+      serverFetch<any[]>('/donations/my-history', token, {
+        tags: ['donation-history']
+      }),
 
     getSubscriptions: (token: string) =>
       serverFetch<any[]>('/donations/subscriptions', token, { tags: ['subscriptions'] }),

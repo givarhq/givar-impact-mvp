@@ -189,7 +189,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         if (!waitlistEmail || !waitlistEmail.includes('@')) return toast.error("Valid email required");
         setIsWaitlistLoading(true);
         try {
-            await apiClient.post(`/projects/${project.id}/waitlist`, { email: waitlistEmail });
+            await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
             toast.success("You'll be notified when the next phase unlocks!");
             setWaitlistEmail('');
         } catch (e: any) {

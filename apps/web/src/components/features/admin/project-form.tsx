@@ -11,7 +11,8 @@ import toast from 'react-hot-toast';
 import {
   Loader2, Save, X, Image as ImageIcon, Video,
   Briefcase, MapPin, ShieldCheck, ExternalLink,
-  LockOpen, Fingerprint, FileText, Send, Trash2
+  LockOpen, Fingerprint, FileText, Send, Trash2,
+  Tag
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -58,7 +59,8 @@ const projectSchema = z.object({
   description: z.string().min(10, "Please provide a more detailed description"),
   shortDesc: z.string().optional(),
   personalMessage: z.string().optional().nullable(),
-  categoryId: z.string().uuid("Please select a category"),
+  categoryId: z.string().uuid("Please select a sector"),
+  subcategoryId: z.string().uuid("Please select a specific focus").optional().nullable(),
   location: z.string().min(2, "A location is required"),
   targetAmount: z.number().min(100, "Minimum goal amount is 100"),
   currency: z.enum(['NGN', 'USD', 'GBP']),
@@ -103,6 +105,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       reasonForGoalAdjustment: '',
+      subcategoryId: initialData.subcategoryId || '',
     } : {
       currency: 'NGN',
       gallery: [],
@@ -110,18 +113,23 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       executionTimeline: [],
       personalMessage: '',
       endDate: '',
+      subcategoryId: '',
     }
   });
 
-  const [gallery, budget, timeline, coverImage, videoUrl, reason, description] = watch([
+  const [gallery, budget, timeline, coverImage, videoUrl, reason, description, selectedCategoryId] = watch([
     'gallery',
     'budgetBreakdown',
     'executionTimeline',
     'coverImage',
     'videoUrl',
     'reasonForGoalAdjustment',
-    'description'
+    'description',
+    'categoryId'
   ]);
+
+  const selectedCategoryObj = categories.find(c => c.id === selectedCategoryId);
+  const availableSubcategories = selectedCategoryObj?.subcategories || [];
 
   const handleVideoUpload = (data: { key: string; previewUrl: string }) => {
     setValue('videoUrl', data.key, { shouldDirty: true });
@@ -129,6 +137,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   };
 
   const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
+    if (!data.subcategoryId) {
+      return toast.error("Please select a specific focus area before saving.");
+    }
+
     setIsSubmitting(true);
     const toastId = toast.loading(status === 'DRAFT' ? "Saving your progress..." : "Publishing cause...");
     try {
@@ -283,7 +295,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             control={control}
             name="categoryId"
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value} disabled={readOnly}>
+              <Select onValueChange={(val) => {
+                field.onChange(val);
+                if (!readOnly) setValue('subcategoryId', '', { shouldValidate: true });
+              }} value={field.value} disabled={readOnly}>
                 <SelectTrigger className={cn(getInputClass(), "bg-muted/10")}>
                   <SelectValue placeholder="Select a sector" />
                 </SelectTrigger>
@@ -295,6 +310,68 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   ))}
                 </SelectContent>
               </Select>
+            )}
+          />
+        </div>
+
+        <div className="md:col-span-4 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
+            <Tag className="h-3 w-3" /> Specific Focus
+          </label>
+          <Controller
+            control={control}
+            name="subcategoryId"
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value || undefined} disabled={readOnly || !selectedCategoryId}>
+                <SelectTrigger className={cn(getInputClass(), "bg-muted/10 disabled:opacity-50")}>
+                  <SelectValue placeholder="Select focus..." />
+                </SelectTrigger>
+                <SelectContent className="rounded-3xl shadow-2xl border-border/40 p-2">
+                  {availableSubcategories.length === 0 ? (
+                    <div className="p-4 text-xs text-muted-foreground text-center italic">Select a sector first</div>
+                  ) : (
+                    availableSubcategories.map((sub: any) => (
+                      <SelectItem key={sub.id} value={sub.id} className="rounded-2xl text-xs font-bold py-3">
+                        {sub.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.subcategoryId && <p className="text-[11px] font-bold text-destructive px-1">{errors.subcategoryId.message}</p>}
+        </div>
+
+        <div className="md:col-span-4 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Location</label>
+          <div className="relative group">
+            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
+            <Input
+              {...register('location')}
+              placeholder="e.g. Lagos, Nigeria"
+              className={cn(getInputClass(), "pl-11")}
+              readOnly={readOnly}
+            />
+          </div>
+        </div>
+
+        <div className="md:col-span-4 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Capital Funding Goal (NGN)</label>
+          <Controller
+            control={control}
+            name="targetAmount"
+            render={({ field }) => (
+              <div className="relative group">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-sm">₦</span>
+                <Input
+                  value={formatNumberInput(String(field.value || ''))}
+                  onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
+                  className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg")}
+                  placeholder="0.00"
+                  readOnly={readOnly}
+                />
+              </div>
             )}
           />
         </div>
@@ -329,49 +406,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             readOnly={readOnly}
           />
           {errors.description && <p className="text-xs text-destructive mt-2 font-bold px-2">{errors.description.message}</p>}
-        </div>
-
-        <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Location</label>
-          <div className="relative group">
-            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
-            <Input
-              {...register('location')}
-              placeholder="e.g. Lagos, Nigeria"
-              className={cn(getInputClass(), "pl-11")}
-              readOnly={readOnly}
-            />
-          </div>
-        </div>
-
-        <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Deadline (Optional)</label>
-          <Input
-            type="date"
-            {...register('endDate')}
-            className={getInputClass()}
-            readOnly={readOnly}
-          />
-        </div>
-
-        <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Capital Funding Goal (NGN)</label>
-          <Controller
-            control={control}
-            name="targetAmount"
-            render={({ field }) => (
-              <div className="relative group">
-                <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-sm">₦</span>
-                <Input
-                  value={formatNumberInput(String(field.value || ''))}
-                  onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                  className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg")}
-                  placeholder="0.00"
-                  readOnly={readOnly}
-                />
-              </div>
-            )}
-          />
         </div>
       </section>
 
