@@ -164,6 +164,9 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                         <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                             ID: {project.id.split('-')[0]}
                                                         </span>
+                                                        <span className="text-[10px] font-bold text-primary/70 tracking-tight truncate max-w-[100px]">
+                                                            {project.subcategoryName ? `${project.categoryName} • ${project.subcategoryName}` : project.categoryName}
+                                                        </span>
                                                         <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold border-primary/20 bg-primary/5 text-primary shadow-none">
                                                             {project.status.replace(/_/g, ' ')}
                                                         </Badge>
@@ -266,9 +269,9 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                     <span className="text-[11px] font-mono bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                         ID: {project.id.split('-')[0]}
                                                     </span>
-                                                    {project.categoryName && (
+                                                    {(project.categoryName || project.subcategoryName) && (
                                                         <span className="text-[11px] font-semibold text-primary/70">
-                                                            {project.categoryName}
+                                                            {project.subcategoryName ? `${project.categoryName} • ${project.subcategoryName}` : project.categoryName}
                                                         </span>
                                                     )}
                                                 </div>

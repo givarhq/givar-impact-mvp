@@ -205,6 +205,7 @@ export interface ProjectProposal {
 
   categoryId?: string;
   subcategoryId?: string;
+  subcategoryName?: string;
 
   // Alignment Fields
   beneficiaryName?: string | null;

@@ -164,6 +164,10 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const titleLower = proposal.title?.toLowerCase() || '';
     const duplicateRisk = titleLower.includes('test') || titleLower.length < 10;
 
+    const displayCategory = proposal.subcategoryName
+        ? `${proposal.category?.name} • ${proposal.subcategoryName}`
+        : (proposal.category?.name || 'General Impact');
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -178,6 +182,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     </div>
                     <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="secondary" className="rounded-3xl px-2.5 py-0.5 font-bold text-[10px] bg-muted border-none text-muted-foreground">
+                                {displayCategory}
+                            </Badge>
                             <h1 className="text-lg font-bold text-foreground truncate max-w-full leading-tight">
                                 {proposal.title || 'Untitled Project Proposal'}
                             </h1>

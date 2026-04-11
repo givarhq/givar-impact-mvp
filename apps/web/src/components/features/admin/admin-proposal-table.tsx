@@ -123,19 +123,24 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                     />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-semibold text-foreground truncate leading-tight">
-                                                        {p.title || 'Untitled Proposal'}
-                                                    </p>
-                                                    <div className="flex items-center gap-2 mt-1.5">
-                                                        <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
-                                                            ID: {p.id.split('-')[0]}
-                                                        </span>
-                                                        <Badge
-                                                            variant="outline"
-                                                            className={cn("text-[10px] px-2 py-0 rounded-3xl font-semibold tracking-tight border", statusStyles[p.status] || 'bg-muted')}
-                                                        >
-                                                            {formatStatus(p.status)}
-                                                        </Badge>
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm font-semibold text-foreground truncate leading-tight">
+                                                            {p.title || 'Untitled Proposal'}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 mt-1.5">
+                                                            <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
+                                                                ID: {p.id.split('-')[0]}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-primary/70 tracking-tight truncate max-w-[100px]">
+                                                                {p.subcategoryName ? `${p.category?.name} • ${p.subcategoryName}` : p.category?.name}
+                                                            </span>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={cn("text-[10px] px-2 py-0 rounded-3xl font-semibold tracking-tight border", statusStyles[p.status] || 'bg-muted')}
+                                                            >
+                                                                {formatStatus(p.status)}
+                                                            </Badge>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -233,7 +238,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                         ID: {p.id.split('-')[0]}
                                                     </span>
                                                     <span className="text-[11px] font-semibold text-primary/70 tracking-tight">
-                                                        {p.category?.name}
+                                                        {p.subcategoryName ? `${p.category?.name} • ${p.subcategoryName}` : p.category?.name}
                                                     </span>
                                                 </div>
                                             </div>
