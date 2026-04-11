@@ -323,7 +323,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
                                                                             <div key={sub.id} className="flex items-center justify-between p-3 rounded-2xl border border-border/40 bg-card shadow-sm group/sub transition-all hover:border-primary/30">
                                                                                 <div className="min-w-0 flex-1">
                                                                                     <p className="text-xs font-bold text-foreground truncate">{sub.name}</p>
-                                                                                    <p className="text-[9px] text-muted-foreground font-mono truncate opacity-60">/{sub.slug}</p>
+                                                                                    <p className="text-[11px] text-muted-foreground font-mono truncate opacity-60">/{sub.slug}</p>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover/sub:opacity-100 transition-opacity">
                                                                                     <Button variant="ghost" size="icon" onClick={() => openEditSubcategory(sub)} className="h-7 w-7 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10">
