@@ -400,7 +400,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        Transparency Mode: We are currently raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases unlock once this is executed and verified.
+                        We are currently raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases unlock once this is executed and verified.
                     </p>
                 </div>
 
