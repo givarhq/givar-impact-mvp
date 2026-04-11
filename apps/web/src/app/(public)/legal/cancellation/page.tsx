@@ -35,18 +35,18 @@ export default function CancellationPolicyPage() {
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Version: 1.1<br />
-                                    Effective Date: <strong>March 13, 2026</strong>
+                                    Version: 1.0<br />
+                                    Effective Date: <strong>April 08, 2026</strong>
                                 </p>
 
                                 <h2>1. Cause Submission Withdrawal</h2>
                                 <p>Organisers may withdraw a cause submission at any time before it has been approved and published on the platform.</p>
                                 <p>Once a cause is live and receiving donations, cancellation is subject to administrative review.</p>
 
-                                <h2>2. Platform Right to Pause or Remove Causes</h2>
+                                <h2>2. Platform Right To Pause Or Remove Causes</h2>
                                 <p>Givar reserves the right to pause, suspend, reject, or remove any cause where there are concerns regarding accuracy of information, beneficiary consent, vendor verification, fraud risk, policy violations, or reputational impact.</p>
 
-                                <h2>3. Impact on Donations</h2>
+                                <h2>3. Impact On Donations</h2>
                                 <p>If a cause is paused or removed after receiving donations, Givar may hold funds temporarily while a review is conducted. Depending on the outcome, funds may be:</p>
                                 <ul>
                                     <li>Disbursed to the verified vendor</li>
