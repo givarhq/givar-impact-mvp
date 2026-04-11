@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
     Camera,
-    Send,
     Loader2,
     Trash2,
     FileText,
@@ -64,7 +63,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
         }
 
         setIsSubmitting(true);
-        const toastId = toast.loading('Syncing with ledger...');
+        const toastId = toast.loading('Posting...');
 
         try {
             await ApiService.projects.submitProof(projectId, {
@@ -73,7 +72,7 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                 imageKeys: media.map((m) => m.key),
             });
 
-            toast.success('Evidence submitted', { id: toastId });
+            toast.success('Proof submitted successfully', { id: toastId });
             setDescription('');
             setMedia([]);
             if (onSuccess) onSuccess();
@@ -85,17 +84,19 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
         }
     };
 
-    const displayPhase = milestone.index !== undefined ? `Phase ${milestone.index + 1}: ${milestone.phase}` : milestone.phase;
+    // Clean up the phase name so we don't get "Phase 1: Phase 1: ..."
+    const cleanPhaseName = milestone.phase.replace(/^Phase \d+:\s*/i, '');
+    const displayPhase = milestone.index !== undefined ? `Phase ${milestone.index + 1}: ${cleanPhaseName}` : cleanPhaseName;
 
     return (
         <div className="w-full min-w-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="flex items-center gap-4 px-1">
+            <div className="flex items-center gap-4 px-1 min-w-0">
                 <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20 shadow-inner">
                     <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-bold text-foreground">Submit progress proof</h3>
-                    <p className="text-[11px] text-muted-foreground font-bold truncate tracking-widest uppercase mt-0.5">
+                    <p className="text-xs text-muted-foreground font-medium truncate mt-0.5">
                         {displayPhase}
                     </p>
                 </div>
@@ -103,20 +104,20 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
 
             <div className="space-y-6 min-w-0">
                 <div className="space-y-2 min-w-0">
-                    <div className="flex justify-between items-center px-1">
-                        <label className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5 uppercase">
-                            <FileText className="h-3.5 w-3.5" /> Narrative update
+                    <div className="flex justify-between items-center px-1 min-w-0">
+                        <label className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                            <FileText className="h-4 w-4 text-muted-foreground" /> Narrative update
                         </label>
                         <span className={cn(
-                            "text-[11px] font-bold px-2 py-0.5 rounded-3xl transition-colors",
+                            "text-[11px] font-bold px-2 py-0.5 rounded-3xl transition-colors shrink-0",
                             description.length < 20 ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"
                         )}>
                             {description.length} chars
                         </span>
                     </div>
                     <textarea
-                        className="w-full rounded-3xl border border-border/60 bg-muted/20 p-4 text-xs font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary/40 outline-none min-h-[110px] transition-all placeholder:text-muted-foreground/40 resize-none font-sans"
-                        placeholder={`Describe work completed for "${milestone.phase}"...`}
+                        className="w-full rounded-3xl border border-border/60 bg-muted/20 p-4 text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary/40 outline-none min-h-[110px] transition-all placeholder:text-muted-foreground/50 resize-none font-sans"
+                        placeholder={`Describe the work completed for "${cleanPhaseName}"...`}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         disabled={isSubmitting}
@@ -124,8 +125,8 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                 </div>
 
                 <div className="space-y-3 min-w-0">
-                    <label className="text-[11px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5 px-1 uppercase">
-                        <Camera className="h-3.5 w-3.5" /> Visual evidence
+                    <label className="text-sm font-bold text-foreground flex items-center gap-1.5 px-1">
+                        <Camera className="h-4 w-4 text-muted-foreground" /> Visual evidence
                     </label>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 min-w-0">
@@ -172,30 +173,21 @@ export const EvidenceSubmission = memo(function EvidenceSubmission({ projectId, 
                     </div>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-100 p-4 rounded-3xl flex items-start gap-3 shadow-sm animate-in fade-in duration-500">
+                <div className="bg-amber-50 border border-amber-100 p-4 rounded-3xl flex items-start gap-3 shadow-sm min-w-0">
                     <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-700 leading-relaxed font-medium">
-                        Submissions are immutable once verified by audit & will be broadcasted to all project stakeholders.
+                    <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                        Submissions are final once verified by audit and will be broadcasted to all project stakeholders.
                     </p>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 min-w-0">
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting || description.length < 20 || media.length === 0}
-                        className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-lg shadow-primary/10 transition-all active:scale-[0.98] gap-2 border-0"
+                        className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/10 transition-all active:scale-[0.98] gap-2 border-0 bg-primary text-white hover:bg-primary/90"
                     >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                                Syncing with ledger
-                            </>
-                        ) : (
-                            <>
-                                <Send className="h-3.5 w-3.5" />
-                                Post impact update
-                            </>
-                        )}
+                        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {isSubmitting ? 'Posting...' : 'Submit proof'}
                     </Button>
                 </div>
             </div>
