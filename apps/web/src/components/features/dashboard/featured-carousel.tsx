@@ -9,7 +9,7 @@ import { Project } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { cn } from '../../../lib/utils/cn';
 
-export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { projects: Project[] }) {
+export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { projects: Project[] & { subcategoryName?: string }[] }) {
     const router = useRouter();
     const [index, setIndex] = useState(0);
 
@@ -23,7 +23,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
 
     if (!projects || projects.length === 0) return null;
 
-    const current = projects[index];
+    const current: any = projects[index];
     if (!current) return null;
 
     // --- PHASED FUNDING MATH ---
@@ -69,6 +69,11 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     const handleCardClick = () => {
         router.push(`/dashboard/impact/${current.slug}`);
     };
+
+    // --- NEW: Combine Taxonomy ---
+    const displayCategory = current.subcategoryName
+        ? `${current.categoryName || current.category?.name} • ${current.subcategoryName}`
+        : (current.categoryName || current.category?.name || 'Active cause');
 
     return (
         <div className="relative w-full rounded-3xl overflow-hidden bg-card border border-border/40 shadow-sm transition-all duration-300">
@@ -126,7 +131,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         {/* Desktop-only: Category & Description */}
                         <div className="hidden lg:flex flex-col gap-2 min-w-0">
                             <div className="w-fit bg-primary/5 text-primary border border-primary/20 rounded-3xl px-2.5 py-0.5 text-[10px] font-bold tracking-tight">
-                                {current.categoryName || 'Active cause'}
+                                {displayCategory}
                             </div>
                             {current.shortDesc && (
                                 <p className="text-[11px] font-medium text-muted-foreground line-clamp-2 leading-relaxed">

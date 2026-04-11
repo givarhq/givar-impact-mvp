@@ -100,6 +100,7 @@ export class AuthService {
         lastName: result.lastName,
         role: result.role,
         emailVerified: result.emailVerified,
+        organization: null
       },
       accessToken,
     };
@@ -108,6 +109,7 @@ export class AuthService {
   async login(dto: LoginDto, req?: Request) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      include: { organization: true }
     });
 
     // 1. Account Lockout Check
@@ -134,7 +136,7 @@ export class AuthService {
             where: { id: user.id },
             data: {
               failedLoginAttempts: newAttemptCount,
-              accountLockedUntil: add(new Date(), { minutes: 15 }),
+              accountLockedUntil: add(new Date(), { hours: 24 }),
             },
           });
         } else {
@@ -210,8 +212,13 @@ export class AuthService {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
-          accountType: user.accountType, // <-- THIS IS THE UPDATE
+          accountType: user.accountType,
           emailVerified: user.emailVerified,
+          organization: user.organization ? {
+            status: user.organization.status,
+            legalName: user.organization.legalName,
+            kycType: user.organization.kycType
+          } : null
         }
       };
 

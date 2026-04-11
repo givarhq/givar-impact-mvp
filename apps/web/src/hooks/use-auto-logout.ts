@@ -6,7 +6,8 @@ import { getCookie, deleteCookie } from 'cookies-next';
 import { ApiService } from '../services/api';
 import toast from 'react-hot-toast';
 
-const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 Minutes
+// --- UPGRADE: Extended to 24 Hours (Non-Custodial Model) ---
+const INACTIVITY_LIMIT = 24 * 60 * 60 * 1000;
 const ACTIVITY_STORAGE_KEY = 'givar_last_activity';
 
 export function useAutoLogout() {
@@ -15,13 +16,11 @@ export function useAutoLogout() {
 
     const performLogout = useCallback(async (reason: string) => {
         try {
-            // Logic: Attempt to notify backend of session termination
             await ApiService.auth.logout();
         } catch (e) {
             // Silently fail if network is down; client cleanup is priority
         }
 
-        // Logic: Hard clear all active session keys
         deleteCookie('givar_token');
         deleteCookie('givar_user');
         deleteCookie('givar_view_mode');
@@ -46,7 +45,6 @@ export function useAutoLogout() {
         const token = getCookie('givar_token');
         if (!token) return;
 
-        // Logic: Deterministic Check (Mount & Tab Focus)
         const checkExpiry = () => {
             const lastActivity = localStorage.getItem(ACTIVITY_STORAGE_KEY);
             if (lastActivity) {
@@ -59,7 +57,6 @@ export function useAutoLogout() {
             return false;
         };
 
-        // Do not record new activity if the session is already dead
         if (checkExpiry()) return;
 
         recordActivity();
@@ -72,7 +69,8 @@ export function useAutoLogout() {
             if (document.visibilityState === 'visible') checkExpiry();
         });
 
-        checkInterval.current = setInterval(checkExpiry, 10000);
+        // Dial back the interval check frequency since we are dealing with 24 hours now
+        checkInterval.current = setInterval(checkExpiry, 60000);
 
         return () => {
             events.forEach(event => window.removeEventListener(event, handleInteraction));
