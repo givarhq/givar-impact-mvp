@@ -41,7 +41,6 @@ export class RecommendationsService {
     /**
      * Grouped Discovery Feed Logic.
      * Ranks projects and groups them by category for App-Store style rows.
-     * UPDATE: Default limit increased to 4 to match XL grid layouts.
      */
     async getGroupedFeed(userId?: string, limitPerCategory: number = 4) {
         const config = await this.getInternalConfig();
@@ -55,8 +54,10 @@ export class RecommendationsService {
         // Create a Set of pinned IDs for O(1) lookup
         const pinnedIds = new Set(featuredSlots.map(s => s.projectId));
 
+        // LOGIC FIX: Always exclude COMPLETED projects from main discovery rows
+        // to reserve them for the dedicated "Mission Accomplished" query.
         const filteredCandidates = config.showFundedProjects
-            ? projects
+            ? projects.filter(p => p.status !== ProjectStatus.COMPLETED)
             : projects.filter(p => {
                 const isStatusActive = p.status === ProjectStatus.ACTIVE;
                 const isMathIncomplete = BigInt(p.raisedAmount) < BigInt(p.targetAmount);
@@ -84,7 +85,7 @@ export class RecommendationsService {
                 categoryWeight: p.category?.visibilityWeight ?? 1.0,
             }, config);
 
-            // LOGIC FIX: Apply massive boost if project is manually pinned in Featured Slots
+            // Apply massive boost if project is manually pinned in Featured Slots
             // This ensures featured items always appear at start of their category row
             if (pinnedIds.has(p.id)) {
                 baseScore += 1_000_000;
@@ -113,7 +114,7 @@ export class RecommendationsService {
         // Sort descending by score
         scored.sort((a, b) => b.score - a.score).forEach(item => {
             if (!groupedByCat[item.categoryId]) groupedByCat[item.categoryId] = [];
-            // Only keep the top 'X' projects per category (Default 4)
+            // Only keep the top 'X' projects per category
             if (groupedByCat[item.categoryId].length < limitPerCategory) {
                 groupedByCat[item.categoryId].push(item.id);
             }
@@ -318,8 +319,9 @@ export class RecommendationsService {
 
         if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
+        // LOGIC FIX: Always exclude COMPLETED projects from main discovery feeds
         const filteredCandidates = config.showFundedProjects
-            ? projects
+            ? projects.filter(p => p.status !== ProjectStatus.COMPLETED)
             : projects.filter(p => {
                 const isStatusActive = p.status === ProjectStatus.ACTIVE;
                 const isMathIncomplete = BigInt(p.raisedAmount) < BigInt(p.targetAmount);

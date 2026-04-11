@@ -5,7 +5,7 @@ import { Project } from '../../../types';
 import { ProjectCard } from './project-card';
 import { ShareModal } from './share-modal';
 import { Button } from '../../ui/button';
-import { ArrowRight, Inbox } from 'lucide-react';
+import { ArrowRight, Inbox, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../lib/utils/cn';
@@ -21,11 +21,13 @@ interface CategoryGroup {
 
 interface GroupedDiscoveryFeedProps {
     groupedData: CategoryGroup[];
+    completedProjects?: Project[];
     isPublic?: boolean;
 }
 
 export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
     groupedData,
+    completedProjects = [],
     isPublic = false,
 }: GroupedDiscoveryFeedProps) {
     const [shareProject, setShareProject] = React.useState<Project | null>(null);
@@ -36,7 +38,9 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
         setIsShareOpen(true);
     };
 
-    if (!groupedData || groupedData.length === 0) {
+    const isEmpty = (!groupedData || groupedData.length === 0) && completedProjects.length === 0;
+
+    if (isEmpty) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5 min-w-0">
                 <div className="h-14 w-14 bg-muted/50 rounded-3xl flex items-center justify-center mb-4 border border-border/40">
@@ -83,7 +87,7 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                                 </Link>
                             </div>
 
-                            {/* Project Grid - Updated to 4 cols on XL */}
+                            {/* Project Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-w-0">
                                 {group.projects.map((project, pIndex) => (
                                     <motion.div
@@ -122,6 +126,48 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                         </motion.section>
                     );
                 })}
+            </AnimatePresence>
+
+            {/* Dedicated "Hall of Fame" Section for Completed Projects */}
+            <AnimatePresence>
+                {completedProjects.length > 0 && (
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className={cn("space-y-6 min-w-0", groupedData.length > 0 && "pt-8 border-t border-border/40")}
+                    >
+                        <div className="flex items-center gap-3 px-1">
+                            <div className="h-9 w-9 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/10">
+                                <CheckCircle2 className="h-4.5 w-4.5" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Mission Accomplished</h3>
+                                <p className="text-xs text-muted-foreground font-medium tracking-tight">Verified Successes</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-w-0">
+                            {completedProjects.map((project, pIndex) => (
+                                <motion.div
+                                    key={project.id}
+                                    layout
+                                    className={cn(
+                                        "min-w-0 flex-1",
+                                        pIndex === 3 && "hidden xl:block"
+                                    )}
+                                >
+                                    <ProjectCard
+                                        project={project}
+                                        onDonate={() => { }}
+                                        onShare={handleShareClick}
+                                        isPublic={isPublic}
+                                    />
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.section>
+                )}
             </AnimatePresence>
 
             <ShareModal
