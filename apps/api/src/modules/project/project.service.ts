@@ -60,21 +60,17 @@ export class ProjectService {
     const { page = 1, limit = 9, search, category, status, sort } = query;
     const skip = (page - 1) * limit;
 
-    // Logic: Fetch the global recommendation config to respect the "showFundedProjects" toggle
-    // even when users bypass the smart feed using manual search/filters.
     const config = await this.prisma.recommendationConfig.findUnique({ where: { id: 'default' } });
     const showFunded = config?.showFundedProjects ?? false;
 
-    // Determine allowed statuses based on the admin config
     const baseStatuses = showFunded
       ? [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED]
       : [ProjectStatus.ACTIVE];
 
-    // 1. Dynamic Filter Construction
     const where: Prisma.ProjectWhereInput = {
       status: { in: baseStatuses },
       isActive: true,
-      ...(status && { status }), // If user explicitly passes a status, it overrides
+      ...(status && { status }),
       ...(category && { category: { slug: category } }),
       ...(search && {
         OR: [
@@ -85,7 +81,6 @@ export class ProjectService {
       }),
     };
 
-    // 2. Dynamic Sorting
     let orderBy: Prisma.ProjectOrderByWithRelationInput = { createdAt: 'desc' };
     switch (sort) {
       case ProjectSort.OLDEST: orderBy = { createdAt: 'asc' }; break;
@@ -94,7 +89,6 @@ export class ProjectService {
       default: orderBy = { createdAt: 'desc' };
     }
 
-    // 3. Execution
     const [projects, total] = await Promise.all([
       this.prisma.project.findMany({
         where,
@@ -103,6 +97,7 @@ export class ProjectService {
         orderBy,
         include: {
           category: { select: { name: true, slug: true, icon: true } },
+          subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory
           _count: { select: { donations: true } },
           user: {
             select: {
@@ -115,7 +110,6 @@ export class ProjectService {
       this.prisma.project.count({ where }),
     ]);
 
-    // 4. Data Transformation
     const data = await Promise.all(projects.map(async (p) => {
       const hydrated = await this.storage.hydrateEntityMedia(p);
       const raised = Number(hydrated.raisedAmount || 0n);
@@ -130,6 +124,7 @@ export class ProjectService {
         percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
         categoryName: hydrated.category?.name,
         categorySlug: hydrated.category?.slug,
+        subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
         isVerifiedOrganizer: isSystemProject ? true : p.user?.organization?.status === 'VERIFIED',
         organizerName: isSystemProject ? 'Givar' : (p.user?.organization?.legalName || 'Individual'),
         organizerType: isSystemProject ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
@@ -139,11 +134,7 @@ export class ProjectService {
 
     return {
       data,
-      meta: {
-        total,
-        page,
-        lastPage: Math.ceil(total / limit),
-      },
+      meta: { total, page, lastPage: Math.ceil(total / limit) },
     };
   }
 
@@ -153,6 +144,7 @@ export class ProjectService {
       where: { slug },
       include: {
         category: true,
+        subcategory: true, // <-- NEW: Fetch subcategory
         updates: { orderBy: { createdAt: 'desc' } },
         user: {
           select: {
@@ -167,7 +159,6 @@ export class ProjectService {
 
     const hydrated = await this.storage.hydrateEntityMedia(project);
 
-    // Count donors
     const [userDonors, guestDonors] = await Promise.all([
       this.prisma.donation.groupBy({ by: ['userId'], where: { projectId: project.id } }),
       this.prisma.guestDonation.groupBy({ by: ['guestDonorId'], where: { projectId: project.id } })
@@ -182,6 +173,7 @@ export class ProjectService {
       raisedAmount: hydrated.raisedAmount.toString(),
       percentFunded: Number(hydrated.targetAmount) > 0 ? Math.min(100, Math.round((Number(hydrated.raisedAmount) / Number(hydrated.targetAmount)) * 100)) : 0,
       donorCount,
+      subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
       isVerifiedOrganizer: isSystemProject ? true : hydrated.user?.organization?.status === 'VERIFIED',
       organizerName: isSystemProject ? 'Givar' : (hydrated.user?.organization?.legalName || 'Individual'),
       organizerType: isSystemProject ? 'SYSTEM' : (hydrated.user?.organization?.kycType || 'INDIVIDUAL'),

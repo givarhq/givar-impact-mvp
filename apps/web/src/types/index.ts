@@ -42,6 +42,7 @@ export interface Project {
   organizerName: string;
   organizerType?: 'INDIVIDUAL' | 'ORGANIZATION' | 'SYSTEM';
   categoryName?: string;
+  subcategoryName?: string;
   donorCount?: number;
   subcategoryId?: string;
 

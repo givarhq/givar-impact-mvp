@@ -51,11 +51,8 @@ export class RecommendationsService {
 
         if (projects.length === 0) return [];
 
-        // Create a Set of pinned IDs for O(1) lookup
         const pinnedIds = new Set(featuredSlots.map(s => s.projectId));
 
-        // LOGIC FIX: Always exclude COMPLETED projects from main discovery rows
-        // to reserve them for the dedicated "Mission Accomplished" query.
         const filteredCandidates = config.showFundedProjects
             ? projects.filter(p => p.status !== ProjectStatus.COMPLETED)
             : projects.filter(p => {
@@ -69,7 +66,6 @@ export class RecommendationsService {
         const projectIds = filteredCandidates.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
 
-        // 1. Score all candidates using the core engine
         let scored: ScoredItem[] = filteredCandidates.map((p: any) => {
             const raised = Number(p.raisedAmount);
             const target = Number(p.targetAmount);
@@ -85,8 +81,6 @@ export class RecommendationsService {
                 categoryWeight: p.category?.visibilityWeight ?? 1.0,
             }, config);
 
-            // Apply massive boost if project is manually pinned in Featured Slots
-            // This ensures featured items always appear at start of their category row
             if (pinnedIds.has(p.id)) {
                 baseScore += 1_000_000;
             }
@@ -98,7 +92,6 @@ export class RecommendationsService {
             };
         });
 
-        // 2. Apply Personalization Multipliers if logged in
         if (userId) {
             try {
                 const affinity = await this.repo.getUserAffinity(userId);
@@ -108,19 +101,14 @@ export class RecommendationsService {
             }
         }
 
-        // 3. Sort globally by score and bucket into categories
         const groupedByCat: Record<string, string[]> = {};
-
-        // Sort descending by score
         scored.sort((a, b) => b.score - a.score).forEach(item => {
             if (!groupedByCat[item.categoryId]) groupedByCat[item.categoryId] = [];
-            // Only keep the top 'X' projects per category
             if (groupedByCat[item.categoryId].length < limitPerCategory) {
                 groupedByCat[item.categoryId].push(item.id);
             }
         });
 
-        // 4. Fetch categories to establish global ordering based on Admin weights
         const categories = await this.prisma.category.findMany({
             orderBy: { visibilityWeight: 'desc' }
         });
@@ -136,7 +124,6 @@ export class RecommendationsService {
             }
         }
 
-        // 5. Heavy Hydration for only the selected subset (Database + S3 Pre-signing)
         const allSelectedIds = resultGroups.flatMap(g => g.projectIds);
         if (allSelectedIds.length === 0) return [];
 
@@ -144,6 +131,7 @@ export class RecommendationsService {
             where: { id: { in: allSelectedIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
+                subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory
                 user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
             }
         });
@@ -160,14 +148,13 @@ export class RecommendationsService {
                 raisedAmount: hydrated.raisedAmount.toString(),
                 percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
                 categoryName: hydrated.category?.name || 'General Impact',
+                subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
                 isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
                 organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
                 organizerType: isSystem ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
             };
         }));
 
-        // 6. Map hydrated projects back into their respective category groups
-        // Important: Preserve the scored order from step 3
         return resultGroups.map(group => ({
             category: group.category,
             projects: group.projectIds
@@ -379,10 +366,12 @@ export class RecommendationsService {
         const startIndex = (options.page - 1) * options.limit;
         const topIds = finalOrder.slice(startIndex, startIndex + options.limit).map((item) => item.id);
 
+        // Locate the hydration query at the end of the recommendPipeline method:
         const hydratedProjects = await this.prisma.project.findMany({
             where: { id: { in: topIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
+                subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory
                 user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
             }
         });
@@ -403,6 +392,7 @@ export class RecommendationsService {
                 raisedAmount: hydrated.raisedAmount.toString(),
                 percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
                 categoryName: hydrated.category?.name || 'General Impact',
+                subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
                 isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
                 organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
                 organizerType: isSystem ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),

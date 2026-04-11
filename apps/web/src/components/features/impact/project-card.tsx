@@ -10,11 +10,9 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
 import { motion } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
-import { cn } from '../../../lib/utils/cn';
 
 export const ProjectCard = memo(function ProjectCard({
   project,
-  onDonate,
   onShare,
   isPublic = false,
   hideKobo = true
@@ -76,6 +74,10 @@ export const ProjectCard = memo(function ProjectCard({
     });
   };
 
+  const displayCategory = project.subcategoryName
+    ? `${project.categoryName} • ${project.subcategoryName}`
+    : (project.categoryName || 'Active cause');
+
   return (
     <Card
       onClick={handleProjectClick}
@@ -104,13 +106,11 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
         )}
 
-        {/* Top Left Phase Indicator (Desktop Only) */}
-        {!isCompleted && !isFundedState && (
-          <div className="absolute top-3 left-3 hidden sm:flex items-center gap-1.5 bg-background/90 backdrop-blur-md text-foreground px-2.5 py-1 rounded-full border border-border/20 shadow-sm">
-            <Target className="h-3 w-3 text-primary" />
-            <span className="text-[10px] font-bold">Phase {activeIndex + 1}</span>
-          </div>
-        )}
+        {/* Top Left Category Indicator (Desktop Only) */}
+        <div className="absolute top-3 left-3 hidden sm:flex items-center gap-1.5 bg-background/90 backdrop-blur-md text-foreground px-2.5 py-1 rounded-full border border-border/20 shadow-sm">
+          <Target className="h-3 w-3 text-primary" />
+          <span className="text-[10px] font-bold truncate max-w-[140px]">{displayCategory}</span>
+        </div>
       </Link>
 
       {/* Content Body */}
@@ -141,8 +141,8 @@ export const ProjectCard = memo(function ProjectCard({
               <Clock className="h-3 w-3" /> Awaiting Verification
             </div>
           ) : (
-            <div className="flex items-center gap-1 text-[10px] sm:hidden font-bold text-primary mb-1">
-              <Target className="h-3 w-3" /> Funding Phase {activeIndex + 1}
+            <div className="flex items-center gap-1 text-[10px] sm:hidden font-bold text-primary mb-1 truncate">
+              <Target className="h-3 w-3 shrink-0" /> <span className="truncate">{displayCategory}</span>
             </div>
           )}
 
