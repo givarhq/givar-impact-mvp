@@ -90,7 +90,6 @@ export const HistoryTable = memo(function HistoryTable({
             }
         }
 
-        // Logic: Extract international card details if available in the authorization object
         if (tx.metadata?.authorization) {
             const auth = tx.metadata.authorization;
             const brand = auth.brand ? auth.brand.charAt(0).toUpperCase() + auth.brand.slice(1) : '';
@@ -319,6 +318,9 @@ export const HistoryTable = memo(function HistoryTable({
                                             <div>
                                                 <p className="text-xs font-bold text-emerald-600 mb-1">Beneficiary Cause</p>
                                                 <p className="text-xl font-black">{selectedTx.project?.title || selectedTx.description}</p>
+                                                {selectedTx.metadata?.phaseName && (
+                                                    <p className="text-sm font-bold text-emerald-700 mt-1">{selectedTx.metadata.phaseName}</p>
+                                                )}
                                             </div>
                                         </div>
 
@@ -380,6 +382,11 @@ export const HistoryTable = memo(function HistoryTable({
                                                     <p className="font-bold text-sm text-foreground leading-tight line-clamp-2 group-hover/link:text-primary transition-colors">
                                                         {selectedTx.project.title}
                                                     </p>
+                                                    {selectedTx.metadata?.phaseName && (
+                                                        <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
+                                                            {selectedTx.metadata.phaseName}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <div className="h-9 w-9 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover/link:bg-primary group-hover/link:text-white transition-all border border-primary/10 shrink-0 shadow-sm">
                                                     <ExternalLink className="h-4 w-4" />
@@ -391,6 +398,11 @@ export const HistoryTable = memo(function HistoryTable({
                                             <p className="font-bold text-sm text-foreground leading-tight">
                                                 {selectedTx.description}
                                             </p>
+                                            {selectedTx.metadata?.phaseName && (
+                                                <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
+                                                    {selectedTx.metadata.phaseName}
+                                                </p>
+                                            )}
                                         </div>
                                     )}
 

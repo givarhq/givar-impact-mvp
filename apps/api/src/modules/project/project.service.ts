@@ -506,7 +506,11 @@ export class ProjectService {
     const [donations, guestDonations, disbursements, countD, countG, countDisp] = await Promise.all([
       fetchInflows ? this.prisma.donation.findMany({
         where: donationWhere,
-        include: { user: { select: { id: true, firstName: true, lastName: true } }, project: { select: { title: true, slug: true } }, transaction: { select: { reference: true } } },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true } },
+          project: { select: { title: true, slug: true } },
+          transaction: { select: { reference: true, metadata: true } } // <-- Added metadata to extract phaseName
+        },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
       }) : Promise.resolve([]),
@@ -551,7 +555,8 @@ export class ProjectService {
         actorName: isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName),
         isYou: isRequester,
         projectName: d.project.title,
-        projectSlug: d.project.slug
+        projectSlug: d.project.slug,
+        phaseName: (d.transaction?.metadata as any)?.phaseName || null // <-- Expose Phase Name
       });
     });
 
@@ -564,7 +569,8 @@ export class ProjectService {
       createdAt: d.createdAt,
       actorName: maskName(null, null, d.guestDonor?.name),
       projectName: d.project.title,
-      projectSlug: d.project.slug
+      projectSlug: d.project.slug,
+      phaseName: d.message?.startsWith('Phase') ? d.message : null // <-- Parse Phase Name from message field
     }));
 
     disbursements.forEach(d => entries.push({

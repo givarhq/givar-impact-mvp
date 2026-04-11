@@ -282,7 +282,20 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                             <div className="space-y-1.5 min-w-0">
                                 <span className="text-xs font-bold text-muted-foreground block px-1">Identification</span>
                                 <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">
-                                    <div className="pt-3 border-border/40 flex justify-between items-center gap-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-bold text-sm text-foreground leading-tight line-clamp-2 group-hover/link:text-primary transition-colors">
+                                                {selectedEntry.projectName ? selectedEntry.projectName : selectedEntry.description}
+                                            </p>
+                                            {selectedEntry.phaseName && (
+                                                <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
+                                                    {selectedEntry.phaseName}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-3 border-t border-border/40 flex justify-between items-center gap-4">
                                         <div className="min-w-0 flex-1">
                                             <span className="text-xs font-bold text-muted-foreground tracking-tighter block mb-0.5">Reference ID</span>
                                             <p className="font-mono text-xs truncate text-foreground/50">{selectedEntry.reference}</p>
