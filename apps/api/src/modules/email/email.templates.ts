@@ -85,6 +85,7 @@ export const EmailTemplates = {
     applied?: string;
     donorAmount?: string;
     donorCurrency?: string;
+    phaseName?: string; // <-- Injected Phase Name
   }) => `
     <p>Your donation has been successfully verified and recorded on the <strong>Givar Impact</strong> public ledger.</p>
     
@@ -118,7 +119,10 @@ export const EmailTemplates = {
       ` : `
         <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
         <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Beneficiary</div>
-        <div style="font-size: 18px; font-weight: 700; color: #065f46;">${data.project}</div>
+        <div style="font-size: 16px; font-weight: 700; color: #065f46; line-height: 1.4;">
+            ${data.project}
+            ${data.phaseName ? `<br/><span style="font-size: 13px; color: #059669; font-weight: 600;">${data.phaseName}</span>` : ''}
+        </div>
       `}
     </div>
     
@@ -564,18 +568,19 @@ export const EmailTemplates = {
 
   sendPhaseUnlockedAlert: (data: { projectTitle: string; projectUrl: string }) => `
       <p>Hi there,</p>
-      <p>Great news! The previous phase for <strong>${data.projectTitle}</strong> has been successfully executed and verified by the Givar Audit team.</p>
+      <p>Incredible news! The previous phase of <strong>${data.projectTitle}</strong> has been fully executed, and the proof of work has been audited and verified by our team.</p>
       
-      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0; text-align: center;">
-        <p style="font-size: 18px; color: #064e3b; font-weight: 800; margin: 0;">The next funding phase is now OPEN!</p>
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 32px 24px; margin: 24px 0; text-align: center;">
+        <p style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Milestone Achieved</p>
+        <p style="font-size: 24px; color: #064e3b; font-weight: 800; margin: 0; line-height: 1.2;">The next funding phase is now OPEN!</p>
       </div>
 
-      <p>Because you asked to be notified, you're the first to know. You can now return to the cause and help fund this next critical step.</p>
+      <p>Because you asked to be notified, you're the first to know. The project still needs your support to reach the finish line. Let's keep the momentum going!</p>
       
-      <div style="text-align: center; margin: 32px 0;">
-        <a href="${data.projectUrl}" class="button" style="background-color: #10b981;">Fund next phase</a>
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${data.projectUrl}" class="button" style="background-color: #10b981; padding: 18px 40px; font-size: 16px;">Fund the next phase</a>
       </div>
       
-      <p style="font-size: 13px; color: #6b7280;">Thank you for your commitment to transparent impact.</p>
+      <p style="font-size: 13px; color: #6b7280;">Thank you for your commitment to transparent, milestone-driven impact.</p>
   `,
 };

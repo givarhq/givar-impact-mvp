@@ -29,18 +29,50 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         );
     }
 
-    // Defensive Parsing
-    const rawRaised = project.raisedAmount ? String(project.raisedAmount).replace(/[^0-9]/g, '') : '0';
+    // --- PHASED FUNDING MATH ---
+    const activeIndex = project.currentPhaseIndex || 0;
+    const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+
+    let previousPhasesMajor = 0;
+    for (let i = 0; i < activeIndex && i < budget.length; i++) {
+        previousPhasesMajor += (budget[i].amount || budget[i].cost || 0);
+    }
+    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+
+    let cumulativeMajor = previousPhasesMajor;
+    if (budget[activeIndex]) {
+        cumulativeMajor += (budget[activeIndex].amount || budget[activeIndex].cost || 0);
+    }
+
     const rawTarget = project.targetAmount ? String(project.targetAmount).replace(/[^0-9]/g, '') : '0';
+    const totalTarget = BigInt(rawTarget);
 
-    const raised = Number(rawRaised) / 100;
-    const target = Number(rawTarget) / 100;
+    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
+        ? BigInt(cumulativeMajor * 100)
+        : totalTarget;
 
-    // Reverted to Math.floor to match TransparencyCard BigInt division behavior
-    const percent = target > 0 ? Math.min(100, Math.floor((raised / target) * 100)) : 0;
+    const rawRaised = project.raisedAmount ? String(project.raisedAmount).replace(/[^0-9]/g, '') : '0';
+    const totalRaised = BigInt(rawRaised);
 
+    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+    let raisedInCurrentPhase = totalRaised - previousPhasesMinor;
+    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+    const phasePercent = currentPhaseTargetMinor > 0n
+        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
+        : 0;
+
+    const phaseTargetMajor = Number(currentPhaseTargetMinor) / 100;
     const usdRate = fxData?.rates?.USD || 0.00065;
-    const usdGoal = Math.round(target * usdRate);
+    const usdGoal = Math.round(phaseTargetMajor * usdRate);
+
+    const isCompleted = project.status === 'COMPLETED';
+    const isFundedState = project.status === 'FUNDED' || (totalRaised >= totalTarget && totalTarget > 0n && !isCompleted);
+    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+
+    let statusText = `${phasePercent}% Funded`;
+    if (isCompleted || isFundedState) statusText = 'Goal Reached';
+    else if (isPhaseFull) statusText = 'Phase Funded';
 
     return new ImageResponse(
         (
@@ -69,11 +101,28 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                     }}
                 >
                     {/* Left Column: Image */}
-                    <div style={{ display: 'flex', width: '50%', height: '100%', backgroundColor: '#f1f5f9' }}>
+                    <div style={{ display: 'flex', width: '50%', height: '100%', backgroundColor: '#f1f5f9', position: 'relative' }}>
                         <img
                             src={project.imageUrl || 'https://givarapp.com/Givar1.png'}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
+                        {/* Phase Badge */}
+                        {(!isCompleted && !isFundedState) && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '24px',
+                                left: '24px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                color: '#064e3b',
+                                padding: '8px 16px',
+                                borderRadius: '24px',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                border: '1px solid rgba(0,0,0,0.1)'
+                            }}>
+                                Phase {activeIndex + 1} Active
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Column: Stats */}
@@ -104,7 +153,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
                         <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                             <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
-                                <div style={{ display: 'flex', fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>{percent}% Funded</div>
+                                <div style={{ display: 'flex', fontSize: '32px', fontWeight: 'bold', color: isPhaseFull ? '#d97706' : '#10b981' }}>
+                                    {statusText}
+                                </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                                     {/* NGN Goal (Text format) */}
@@ -120,7 +171,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                                     >
                                         <span>Goal:</span>
                                         <span>NGN</span>
-                                        <span>{target.toLocaleString()}</span>
+                                        <span>{phaseTargetMajor.toLocaleString()}</span>
                                     </div>
 
                                     {/* USD Estimate (Text format) */}
@@ -142,9 +193,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                             <div style={{ display: 'flex', width: '100%', height: '16px', backgroundColor: '#e2e8f0', borderRadius: '8px' }}>
                                 <div style={{
                                     display: 'flex',
-                                    width: `${percent}%`,
+                                    width: `${phasePercent}%`,
                                     height: '100%',
-                                    backgroundColor: '#10b981',
+                                    backgroundColor: isPhaseFull ? '#f59e0b' : '#10b981',
                                     borderRadius: '8px'
                                 }} />
                             </div>

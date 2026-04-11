@@ -48,7 +48,8 @@ export class DonationService {
     reference: string,
     surplus: bigint = 0n,
     donorCurrency?: string,
-    donorAmount?: string
+    donorAmount?: string,
+    phaseName?: string
   ) {
     try {
       const project = await this.prisma.project.findUnique({
@@ -75,6 +76,7 @@ export class DonationService {
           amount: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
           currency: currency,
           project: project?.title || 'Impact Project',
+          phaseName: phaseName,
           date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
           ref: reference,
           surplus: surplus > 0n ? (Number(surplus) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined,
@@ -150,6 +152,12 @@ export class DonationService {
         throw new BadRequestException('Project state changed during processing');
       }
 
+      // --- EXTRACT PHASE CONTEXT ---
+      const activeIndex = txProject.currentPhaseIndex || 0;
+      const budget = (txProject.budgetBreakdown as any[]) || [];
+      const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
+      const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
+
       // --- PHASED CAP INJECTION ---
       const currentPhaseCap = this.calculatePhaseCap(txProject);
       const currentRemaining = currentPhaseCap - txProject.raisedAmount;
@@ -171,7 +179,8 @@ export class DonationService {
           reference,
           description: `Donation to: ${txProject.title}`,
           status: TxStatus.COMPLETED,
-          category: TxCategory.DONATION, // <--- Explicit Category
+          category: TxCategory.DONATION,
+          metadata: { phaseName: formattedPhase }
         },
         tx,
       );
@@ -346,13 +355,16 @@ export class DonationService {
         tx,
       );
 
-      return { donation, isGoalMet, project: txProject, surplus, totalCharge };
+      return { donation, isGoalMet, project: txProject, surplus, totalCharge, formattedPhase };
     }, {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable
     });
 
     // 1. Trigger Individual Receipt for the FULL amount paid (matches bank statement)
-    await this.triggerReceipt(userId, null, dto.projectId, result.totalCharge, dto.currency, `WAL-${result.project.id.slice(0, 8)}`, result.surplus);
+    await this.triggerReceipt(
+      userId, null, dto.projectId, result.totalCharge, dto.currency,
+      `WAL-${result.project.id.slice(0, 8)}`, result.surplus, undefined, undefined, result.formattedPhase
+    );
 
     // 2. Trigger "Project Funded" Alert to Organizer
     if (result.isGoalMet) {
@@ -531,6 +543,12 @@ export class DonationService {
 
       if (!project) throw new NotFoundException('Project node missing on ledger');
 
+      // --- EXTRACT PHASE CONTEXT ---
+      const activeIndex = project.currentPhaseIndex || 0;
+      const budget = (project.budgetBreakdown as any[]) || [];
+      const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
+      const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
+
       const isClosed = ([ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED] as ProjectStatus[]).includes(project.status);
 
       const currentPhaseCap = this.calculatePhaseCap(project);
@@ -612,7 +630,7 @@ export class DonationService {
           description: `Direct donation: ${project.title}`,
           status: TxStatus.COMPLETED,
           category: TxCategory.DONATION,
-          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
+          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate, phaseName: formattedPhase }
         }, tx);
 
         if (amountToProject > 0n) {
@@ -665,6 +683,7 @@ export class DonationService {
             currency,
             reference,
             status: TxStatus.COMPLETED,
+            message: formattedPhase
           }
         });
         processedDonationId = guestDonation.id;
@@ -790,6 +809,7 @@ export class DonationService {
         projectSlug: project.slug,
         projectUserId: project.userId,
         surplus,
+        formattedPhase,
         type: 'DIRECT_DONATION'
       };
     }, {
@@ -807,7 +827,8 @@ export class DonationService {
         reference,
         result.surplus,
         donorCurrency,
-        donorAmount
+        donorAmount,
+        result.formattedPhase
       );
 
       if (result.isGoalMet) {
