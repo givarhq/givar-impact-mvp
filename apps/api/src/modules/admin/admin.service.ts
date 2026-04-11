@@ -463,7 +463,6 @@ export class AdminService {
         }
       }
 
-      // --- DATA SAFETY FIX: Ensure 'PENDING' status exists on all timeline items ---
       const sanitizedTimeline = generatedTimeline.map(t => ({
         ...t,
         status: t.status || 'PENDING'
@@ -487,13 +486,13 @@ export class AdminService {
           endDate: proposal.endDate,
           status: ProjectStatus.ACTIVE,
           categoryId: proposal.categoryId,
+          subcategoryId: proposal.subcategoryId, // <-- Migrate taxonomy to Live Project
           tags: ['Verified'],
           isActive: true,
           budgetBreakdown: proposal.budgetBreakdown ?? [],
-          executionTimeline: sanitizedTimeline, // Use sanitized timeline
+          executionTimeline: sanitizedTimeline,
           riskAnalysis: proposal.riskAnalysis,
 
-          // Alignment Mappings
           beneficiaryName: proposal.beneficiaryName,
           beneficiaryAge: proposal.beneficiaryAge,
           beneficiaryRelationship: proposal.beneficiaryRelationship,
@@ -548,7 +547,7 @@ export class AdminService {
     }).then(async (project) => {
       this.emailService.sendProposalStatusUpdate(proposal.user.email, {
         name: proposal.user.firstName,
-        project: project.title,
+        project: proposal.title || 'Untitled',
         status: 'APPROVED'
       }).catch(e => this.logger.error(`Approval Email Failed: ${e.message}`));
 
