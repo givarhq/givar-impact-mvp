@@ -1210,6 +1210,9 @@ export class AdminService {
         disbursements: {
           orderBy: { createdAt: 'desc' },
         },
+        milestoneProofs: {
+          orderBy: { submittedAt: 'desc' },
+        },
         _count: {
           select: { donations: true }
         }
@@ -1223,7 +1226,6 @@ export class AdminService {
       project.imageUrl = viewUrl;
     }
 
-    // Sign video URL for Admin Edit view
     if (project.videoUrl && !project.videoUrl.startsWith('http')) {
       const { viewUrl } = await this.storage.getPresignedViewUrl(project.videoUrl);
       project.videoUrl = viewUrl;
@@ -1242,10 +1244,22 @@ export class AdminService {
       project.gallery = signedGallery as unknown as Prisma.JsonValue;
     }
 
+    const hydratedProofs = await Promise.all(
+      project.milestoneProofs.map(async (proof) => {
+        const signedImages = await Promise.all(
+          proof.imageKeys.map(key =>
+            this.storage.getPresignedViewUrl(key).then(r => r.viewUrl).catch(() => null)
+          )
+        );
+        return { ...proof, imageUrls: signedImages.filter(url => url !== null) };
+      })
+    );
+
     return {
       ...project,
       targetAmount: project.targetAmount.toString(),
       raisedAmount: project.raisedAmount.toString(),
+      milestoneProofs: hydratedProofs,
       disbursements: project.disbursements.map((d) => ({
         ...d,
         amount: d.amount.toString(),

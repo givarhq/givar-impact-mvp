@@ -124,6 +124,7 @@ export default async function EditProjectPage({
                   timeline={project.executionTimeline || []}
                   projectStatus={project.status}
                   waitlistCount={project.waitlistEmails?.length || 0}
+                  proofs={project.milestoneProofs || []}
                 />
               </div>
             </TabsContent>

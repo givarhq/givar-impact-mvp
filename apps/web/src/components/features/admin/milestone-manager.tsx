@@ -4,16 +4,8 @@ import React, { useState, memo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
-  CheckCircle2,
-  Clock,
-  PlayCircle,
-  Loader2,
-  Calendar,
-  RotateCcw,
-  Check,
-  Send,
-  Unlock,
-  Users
+  CheckCircle2, Clock, PlayCircle, Loader2, Calendar,
+  RotateCcw, Check, Send, Unlock, Users, FileSearch, X, ExternalLink
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -25,6 +17,7 @@ import { Dialog, DialogContent, DialogTitle, DialogHeader } from '../../ui/dialo
 import { ImageUploader } from '../proposals/media-uploader';
 import { Textarea } from '../../ui/textarea';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 interface Milestone {
   id: string;
@@ -41,14 +34,29 @@ interface MilestoneManagerProps {
   timeline: Milestone[];
   projectStatus?: string;
   waitlistCount?: number;
+  proofs?: any[];
 }
 
-export const MilestoneManager = memo(function MilestoneManager({ projectId, timeline, projectStatus, waitlistCount = 0 }: MilestoneManagerProps) {
+export const MilestoneManager = memo(function MilestoneManager({
+  projectId,
+  timeline,
+  projectStatus,
+  waitlistCount = 0,
+  proofs = []
+}: MilestoneManagerProps) {
   const router = useRouter();
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  // Admin Override States
   const [activeMilestone, setActiveMilestone] = useState<Milestone & { index: number } | null>(null);
   const [proofImage, setProofImage] = useState<{ key: string; url: string } | null>(null);
 
+  // Evidence Review States
+  const [rejectingProofId, setRejectingProofId] = useState<string | null>(null);
+  const [rejectFeedback, setRejectFeedback] = useState('');
+  const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
+
+  // Finalization States
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [completionNote, setCompletionNote] = useState('');
@@ -56,18 +64,30 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
 
   const isFullyCompleted = timeline.length > 0 && timeline.every(m => m.status === 'COMPLETED');
 
+  // --- ADMIN OVERRIDE (Force Verify) ---
   const handleStatusChange = async (milestoneId: string, newStatus: Milestone['status'], index: number) => {
     if (newStatus === 'COMPLETED') {
       const milestone = timeline.find(m => m.id === milestoneId);
       setActiveMilestone(milestone ? { ...milestone, index } : null);
       return;
     }
-    await updateMilestone(milestoneId, newStatus);
+    // Re-open phase
+    setProcessingId(milestoneId);
+    const toastId = toast.loading("Re-opening phase...");
+    try {
+      await ApiService.admin.updateMilestone(projectId, milestoneId, newStatus);
+      toast.success('Phase re-opened', { id: toastId });
+      router.refresh();
+    } catch (error) {
+      toast.error('Failed to update phase', { id: toastId });
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   const updateMilestone = async (milestoneId: string, status: Milestone['status'], imageUrl?: string) => {
     setProcessingId(milestoneId);
-    const toastId = toast.loading("Updating phase status...");
+    const toastId = toast.loading("Verifying phase...");
     try {
       await ApiService.admin.updateMilestone(projectId, milestoneId, status, imageUrl);
       toast.success('Phase verified and locked', { id: toastId });
@@ -78,6 +98,26 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
       setProcessingId(null);
       setActiveMilestone(null);
       setProofImage(null);
+    }
+  };
+
+  // --- NATIVE EVIDENCE REVIEW ---
+  const submitReview = async (proofId: string, status: 'APPROVED' | 'REJECTED') => {
+    if (status === 'REJECTED' && !rejectFeedback.trim()) {
+      return toast.error("Please provide a reason for declining.");
+    }
+    setProcessingId(proofId);
+    const toastId = toast.loading(`${status === 'APPROVED' ? 'Verifying' : 'Declining'} Impact Proof...`);
+    try {
+      await ApiService.admin.reviewEvidence(proofId, { status, feedback: rejectFeedback });
+      toast.success(status === 'APPROVED' ? 'Evidence Verified & Phase Unlocked' : 'Evidence Declined', { id: toastId });
+      setRejectingProofId(null);
+      setRejectFeedback('');
+      router.refresh();
+    } catch (e) {
+      toast.error('Audit Decision Failed', { id: toastId });
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -104,30 +144,32 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between px-1">
+    <div className="space-y-6 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 min-w-0">
         <h3 className="text-base font-bold text-foreground">Execution Auditing</h3>
-        <div className="flex items-center gap-3">
-          {/* --- NEW: High-Visibility Waitlist Indicator --- */}
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           {waitlistCount > 0 && !isFullyCompleted && (
-            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-bold text-[11px] gap-1.5 shadow-none animate-pulse px-3 py-1">
-              <Users className="h-3 w-3" /> {waitlistCount} Donors Waiting
+            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 font-bold text-[11px] gap-1.5 shadow-none animate-pulse px-3 py-1 shrink-0">
+              <Users className="h-3 w-3" /> {waitlistCount} Waiting
             </Badge>
           )}
-          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] px-3 py-1 shadow-none">
-            {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Phases Verified
+          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 rounded-3xl font-bold text-[11px] px-3 py-1 shadow-none shrink-0">
+            {timeline.filter(m => m.status === 'COMPLETED').length} / {timeline.length} Verified
           </Badge>
         </div>
       </div>
 
-      <div className="relative space-y-4">
+      <div className="relative space-y-4 min-w-0">
         <div className="absolute top-8 bottom-8 left-[27px] md:left-[52px] w-0.5 bg-border/40 hidden sm:block" />
 
         <AnimatePresence mode="popLayout">
           {timeline.map((milestone, index) => {
-            const isProcessing = processingId === milestone.id;
             const status = milestone.status;
             const isLastPhase = index === timeline.length - 1;
+
+            // Check for native user-submitted proof
+            const activeProof = proofs.find(p => p.milestoneId === milestone.id && p.status === 'PENDING');
+            const isProcessingCurrent = processingId === milestone.id || processingId === activeProof?.id;
 
             return (
               <motion.div
@@ -135,86 +177,122 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
+                className="min-w-0"
               >
                 <Card
                   className={cn(
-                    "rounded-3xl border-border/40 shadow-sm transition-all duration-300 relative overflow-hidden group",
+                    "rounded-3xl border-border/40 shadow-sm transition-all duration-300 relative overflow-hidden group min-w-0",
                     status === 'COMPLETED' ? "bg-emerald-500/[0.02] border-emerald-500/20" : "bg-card"
                   )}
                 >
-                  <CardContent className="p-5 md:p-7">
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-8 relative z-10">
+                  <CardContent className="p-5 md:p-7 min-w-0">
+                    <div className="flex flex-col md:flex-row items-start gap-5 md:gap-8 relative z-10 min-w-0">
 
                       <div className={cn(
-                        "h-14 w-14 rounded-2xl shrink-0 flex items-center justify-center border transition-all duration-500 z-10 bg-background shadow-inner",
+                        "h-12 w-12 md:h-14 md:w-14 rounded-2xl shrink-0 flex items-center justify-center border transition-all duration-500 z-10 bg-background shadow-inner",
                         status === 'COMPLETED' ? "border-emerald-500 text-emerald-500 scale-105" :
                           status === 'IN_PROGRESS' ? "border-primary text-primary animate-pulse" : "border-border/60 text-muted-foreground"
                       )}>
-                        {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> :
-                          status === 'COMPLETED' ? <Check className="h-7 w-7 stroke-[3px]" /> :
-                            status === 'IN_PROGRESS' ? <PlayCircle className="h-7 w-7" /> : <Clock className="h-7 w-7" />}
+                        {isProcessingCurrent ? <Loader2 className="h-5 w-5 md:h-6 md:w-6 animate-spin" /> :
+                          status === 'COMPLETED' ? <Check className="h-6 w-6 md:h-7 md:w-7 stroke-[3px]" /> :
+                            status === 'IN_PROGRESS' ? <PlayCircle className="h-6 w-6 md:h-7 md:w-7" /> : <Clock className="h-6 w-6 md:h-7 md:w-7" />}
                       </div>
 
-                      <div className="flex-1 min-w-0 space-y-1.5">
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="text-[10px] font-black text-primary tracking-widest uppercase">Phase {index + 1}</span>
+                      <div className="flex-1 min-w-0 space-y-1.5 w-full">
+                        <div className="flex items-center gap-3 mb-1 min-w-0 flex-wrap">
+                          <span className="text-[10px] font-black text-primary tracking-widest uppercase shrink-0">Phase {index + 1}</span>
                           <AnimatePresence>
                             {status === 'COMPLETED' && milestone.completedAt && (
                               <motion.span
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/10"
+                                className="text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/10 truncate"
                               >
                                 Verified On {new Date(milestone.completedAt).toLocaleDateString()}
                               </motion.span>
                             )}
                           </AnimatePresence>
                         </div>
-                        <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors">{milestone.phase}</h4>
+                        <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">{milestone.phase}</h4>
                         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 font-medium">{milestone.deliverables}</p>
 
-                        <div className="flex items-center gap-4 mt-4 pt-3.5 border-t border-border/40">
-                          <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground">
-                            <Calendar className="h-4 w-4 opacity-50" />
-                            Target Date: <span className="text-foreground">{milestone.estimatedDate || 'TBD'}</span>
+                        <div className="flex items-center gap-4 mt-4 pt-3.5 border-t border-border/40 min-w-0">
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground truncate">
+                            <Calendar className="h-4 w-4 opacity-50 shrink-0" />
+                            <span className="truncate">Target: {milestone.estimatedDate || 'TBD'}</span>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="flex items-center gap-2 w-full md:w-auto pt-4 md:pt-0 border-t md:border-none border-border/40">
-                        {status !== 'COMPLETED' && (
-                          <div className="flex gap-2.5 w-full md:w-auto">
-                            {status === 'PENDING' && (
-                              <Button
-                                variant="outline"
-                                className="flex-1 md:flex-none rounded-3xl h-11 text-[11px] font-bold border-primary/20 text-primary hover:bg-primary/5 px-5 active:scale-95 transition-all"
-                                onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS', index)}
-                                disabled={!!processingId}
-                              >
-                                Allow Proof Upload
-                              </Button>
-                            )}
+                        {/* --- ACTION AREA --- */}
+                        <div className="flex flex-col sm:flex-row items-center gap-3 w-full pt-4 min-w-0">
+                          {activeProof ? (
+                            <div className="w-full bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex flex-col gap-4 min-w-0 animate-in fade-in slide-in-from-top-2">
+                              <div className="space-y-1.5 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <FileSearch className="h-4 w-4 text-blue-600 shrink-0" />
+                                  <span className="text-xs font-bold text-blue-900 truncate">Proof submitted by organizer</span>
+                                </div>
+                                <p className="text-xs text-blue-800/80 italic font-medium leading-relaxed">"{activeProof.description}"</p>
+                              </div>
+
+                              {activeProof.imageUrls?.length > 0 && (
+                                <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                                  {activeProof.imageUrls.map((url: string, i: number) => (
+                                    <button
+                                      key={i}
+                                      onClick={(e) => { e.preventDefault(); setLightboxState({ isOpen: true, items: activeProof.imageUrls.map((u: string) => ({ url: u, type: 'IMAGE' })), index: i }); }}
+                                      className="relative h-12 w-12 rounded-xl overflow-hidden border border-blue-200 shrink-0 active:scale-95 group/img"
+                                    >
+                                      <Image src={url} fill sizes="48px" className="object-cover" alt="Proof" />
+                                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                        <ExternalLink className="h-3.5 w-3.5 text-white" />
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="flex flex-col sm:flex-row gap-2.5 w-full min-w-0 pt-1">
+                                <Button
+                                  onClick={() => submitReview(activeProof.id, 'APPROVED')}
+                                  disabled={isProcessingCurrent}
+                                  className="flex-1 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md border-0 active:scale-95 transition-all min-w-0 truncate"
+                                >
+                                  {isProcessingCurrent ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Approve & Verify Phase'}
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setRejectingProofId(activeProof.id)}
+                                  disabled={isProcessingCurrent}
+                                  className="flex-1 h-10 rounded-xl font-bold text-xs text-destructive border-destructive/20 hover:bg-destructive/5 active:scale-95 transition-all min-w-0 truncate"
+                                >
+                                  Decline Proof
+                                </Button>
+                              </div>
+                            </div>
+                          ) : status !== 'COMPLETED' ? (
                             <Button
-                              className="flex-1 md:flex-none rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 h-11 px-7 text-[11px] border-0 active:scale-95 transition-all"
+                              variant="outline"
+                              className="w-full sm:w-auto rounded-3xl font-bold border-border/60 hover:bg-muted shadow-sm h-10 px-6 text-xs transition-all active:scale-95 min-w-0 truncate"
                               onClick={() => handleStatusChange(milestone.id, 'COMPLETED', index)}
                               disabled={!!processingId}
                             >
-                              <Unlock className="h-3.5 w-3.5 mr-1.5" />
-                              {isLastPhase ? 'Verify Final Phase' : `Verify & Unlock Phase ${index + 2}`}
+                              <Unlock className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                              <span className="truncate">Admin Override: Verify Phase</span>
                             </Button>
-                          </div>
-                        )}
-                        {status === 'COMPLETED' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[11px] font-bold text-muted-foreground hover:text-primary h-10 rounded-3xl gap-2 transition-all active:scale-95"
-                            onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS', index)}
-                            disabled={!!processingId}
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" /> Re-Open Phase
-                          </Button>
-                        )}
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full sm:w-auto text-[11px] font-bold text-muted-foreground hover:text-primary h-9 rounded-3xl gap-2 transition-all active:scale-95 min-w-0 truncate"
+                              onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS', index)}
+                              disabled={!!processingId}
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">Re-Open Phase</span>
+                            </Button>
+                          )}
+                        </div>
+
                       </div>
                     </div>
                   </CardContent>
@@ -229,31 +307,32 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 p-6 bg-emerald-50 border border-emerald-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-5 shadow-sm"
+            className="mt-8 p-5 md:p-6 bg-emerald-50 border border-emerald-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-5 shadow-sm min-w-0"
           >
-            <div>
-              <h4 className="text-base font-bold text-emerald-900">All phases verified</h4>
-              <p className="text-xs font-medium text-emerald-800 mt-1">Ready to officially close this project and notify donors of the final impact.</p>
+            <div className="min-w-0 w-full text-center md:text-left">
+              <h4 className="text-base font-bold text-emerald-900 truncate">All phases verified</h4>
+              <p className="text-xs font-medium text-emerald-800 mt-1 leading-relaxed">Ready to officially close this project and notify donors of the final impact.</p>
             </div>
             <Button
               onClick={() => setShowFinalizeModal(true)}
-              className="w-full md:w-auto h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-3xl px-8 font-bold shadow-md border-0 active:scale-95 transition-all"
+              className="w-full md:w-auto h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-3xl px-8 font-bold shadow-md border-0 active:scale-95 transition-all shrink-0 min-w-0"
             >
-              Finalize Project
+              <span className="truncate">Finalize Project</span>
             </Button>
           </motion.div>
         )}
 
+        {/* Admin Override (Force Verify) Modal */}
         <Dialog open={!!activeMilestone} onOpenChange={(open) => !open && setActiveMilestone(null)}>
-          <DialogContent className="rounded-3xl border-none shadow-2xl p-8 bg-card max-w-md">
+          <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md min-w-0">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-3">
-                <CheckCircle2 className="h-6 w-6 text-primary" /> Confirm Phase {activeMilestone ? activeMilestone.index + 1 : ''}
+              <DialogTitle className="text-lg md:text-xl font-bold text-foreground flex items-center gap-3 truncate">
+                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" /> Confirm Phase {activeMilestone ? activeMilestone.index + 1 : ''}
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-6 pt-4">
+            <div className="space-y-6 pt-4 min-w-0">
               <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                Verifying this phase will automatically lock it, send a notification to donors, and unlock funding for the next phase. You can optionally upload a proof image to attach to the ledger.
+                Admin Override: Verifying this phase without organizer proof will lock it, send a notification to donors, and unlock funding for the next phase. You can optionally attach an administrative proof image to the ledger.
               </p>
 
               <AnimatePresence mode="wait">
@@ -279,25 +358,64 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                 ) : (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <ImageUploader
-                      label="Upload Proof Of Progress (Optional)"
+                      label="Upload Admin Proof (Optional)"
                       onUploadComplete={(data) => setProofImage({ key: data.key, url: data.previewUrl })}
                     />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2 min-w-0">
                 <Button
-                  className="w-full h-12 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 bg-primary text-white border-0 transition-all active:scale-[0.98]"
+                  className="w-full sm:flex-1 h-12 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 bg-primary text-white border-0 transition-all active:scale-[0.98] min-w-0 truncate"
                   onClick={() => updateMilestone(activeMilestone!.id, 'COMPLETED', proofImage?.key || undefined)}
                   disabled={processingId === activeMilestone?.id}
                 >
-                  {processingId === activeMilestone?.id ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm and Unlock Next Phase'}
+                  {processingId === activeMilestone?.id ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : 'Force Verify'}
                 </Button>
                 <Button
                   variant="ghost"
-                  className="h-10 rounded-3xl font-bold text-xs text-muted-foreground"
+                  className="w-full sm:w-auto h-12 rounded-3xl font-bold text-sm text-muted-foreground min-w-0 truncate"
                   onClick={() => setActiveMilestone(null)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Decline Proof Modal */}
+        <Dialog open={!!rejectingProofId} onOpenChange={(open) => !open && setRejectingProofId(null)}>
+          <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md min-w-0">
+            <DialogHeader>
+              <DialogTitle className="text-lg md:text-xl font-bold text-destructive flex items-center gap-3 truncate">
+                <X className="h-5 w-5 md:h-6 md:w-6 shrink-0" /> Decline Evidence
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 pt-4 min-w-0">
+              <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                Provide specific instructions for the project owner. They will need to re-submit proof before the phase is verified.
+              </p>
+              <Textarea
+                placeholder="State specific reason for declining..."
+                value={rejectFeedback}
+                onChange={(e) => setRejectFeedback(e.target.value)}
+                className="min-h-[120px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none text-sm font-medium"
+              />
+              <div className="flex flex-col sm:flex-row gap-2 pt-2 min-w-0">
+                <Button
+                  variant="destructive"
+                  className="w-full sm:flex-1 h-12 rounded-3xl font-bold text-sm shadow-md border-0 active:scale-[0.98] transition-all min-w-0 truncate"
+                  onClick={() => submitReview(rejectingProofId!, 'REJECTED')}
+                  disabled={!!processingId || !rejectFeedback.trim()}
+                >
+                  {processingId ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : 'Confirm Rejection'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full sm:w-auto h-12 rounded-3xl font-bold text-sm text-muted-foreground min-w-0 truncate"
+                  onClick={() => setRejectingProofId(null)}
                 >
                   Cancel
                 </Button>
@@ -308,29 +426,29 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
 
         {/* Finalize Project Dialog */}
         <Dialog open={showFinalizeModal} onOpenChange={setShowFinalizeModal}>
-          <DialogContent className="rounded-3xl border-none shadow-2xl p-8 bg-card max-w-md">
+          <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md min-w-0">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-3">
-                <CheckCircle2 className="h-6 w-6 text-emerald-500" /> Confirm Impact Achieved
+              <DialogTitle className="text-lg md:text-xl font-bold text-foreground flex items-center gap-3 truncate">
+                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-emerald-500 shrink-0" /> Confirm Impact Achieved
               </DialogTitle>
             </DialogHeader>
-            <div className="space-y-6 pt-4">
+            <div className="space-y-6 pt-4 min-w-0">
               <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                 This will officially close the project and email all donors a final summary of the impact they made possible.
               </p>
 
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <label className="text-xs font-bold text-muted-foreground ml-1">Final Impact Note</label>
                 <Textarea
                   placeholder="Summarize the final results and express gratitude to the donors..."
                   value={completionNote}
                   onChange={(e) => setCompletionNote(e.target.value)}
-                  className="min-h-[100px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none"
+                  className="min-h-[100px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none text-sm"
                   disabled={isFinalizing}
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <label className="text-xs font-bold text-muted-foreground ml-1">Final Evidence Photo</label>
                 <AnimatePresence mode="wait">
                   {finalProofImage ? (
@@ -363,17 +481,17 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
                 </AnimatePresence>
               </div>
 
-              <div className="flex flex-col gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2 min-w-0">
                 <Button
-                  className="w-full h-12 rounded-3xl font-bold text-sm shadow-xl shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-[0.98]"
+                  className="w-full sm:flex-1 h-12 rounded-3xl font-bold text-sm shadow-xl shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-[0.98] min-w-0 truncate"
                   onClick={handleFinalizeProject}
                   disabled={isFinalizing || !completionNote.trim()}
                 >
-                  {isFinalizing ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Send className="h-4 w-4 mr-2" /> Mark as Completed</>}
+                  {isFinalizing ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : <><Send className="h-4 w-4 mr-2 hidden sm:inline-block" /> Mark Completed</>}
                 </Button>
                 <Button
                   variant="ghost"
-                  className="h-10 rounded-3xl font-bold text-xs text-muted-foreground"
+                  className="w-full sm:w-auto h-12 rounded-3xl font-bold text-sm text-muted-foreground min-w-0 truncate"
                   onClick={() => setShowFinalizeModal(false)}
                   disabled={isFinalizing}
                 >
@@ -384,6 +502,13 @@ export const MilestoneManager = memo(function MilestoneManager({ projectId, time
           </DialogContent>
         </Dialog>
       </div>
+
+      <ImageLightbox
+        isOpen={lightboxState.isOpen}
+        onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+        items={lightboxState.items}
+        initialIndex={lightboxState.index}
+      />
     </div>
   );
 });
