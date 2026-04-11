@@ -7,12 +7,11 @@ import {
     BadgeCheck, ShieldCheck, DollarSign, Briefcase,
     AlertTriangle, ChevronRight, Target,
     Heart, Check, UserCheck,
+    RefreshCcw,
     Clock,
     CheckCircle2,
     Landmark,
-    Quote,
-    BellRing,
-    RefreshCcw
+    Quote
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -99,17 +98,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         ? `${project.category?.name || project.categoryName} • ${project.subcategoryName}`
         : (project.category?.name || project.categoryName || 'General Impact');
 
-    // Utility to smoothly scroll down to the Transparency Card waitlist
-    const scrollToWaitlist = () => {
-        const el = document.getElementById('transparency-card');
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Flash effect for attention
-            el.classList.add('ring-4', 'ring-amber-500/20');
-            setTimeout(() => el.classList.remove('ring-4', 'ring-amber-500/20'), 1500);
-        }
-    };
-
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -117,7 +105,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
             transition={{ duration: 0.3 }}
             className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-32 md:pb-20"
         >
-
             {/* LEFT COLUMN: Content */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
 
@@ -298,10 +285,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:text-foreground[&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base[&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_h2]:font-bold[&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6[&_h2]:mb-3",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc[&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5[&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5[&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
                                         "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold[&_strong]:text-foreground",
@@ -325,7 +312,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
                                                 "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
-                                                "[&_strong]:font-bold[&_strong]:text-amber-950",
+                                                "[&_strong]:font-bold [&_strong]:text-amber-950",
                                                 "[&_em]:italic"
                                             )}
                                             dangerouslySetInnerHTML={{ __html: project.riskAnalysis }}
@@ -534,21 +521,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     <TransparencyCard project={project} />
 
                     <div className="space-y-3 hidden md:block">
-                        {isCompleted ? (
-                            <Button size="lg" disabled className="w-full h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
-                                <Check className="mr-2 h-4 w-4" /> {completedText}
-                            </Button>
-                        ) : isFundedState ? (
-                            <Button size="lg" disabled className="w-full h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
-                                <Check className="mr-2 h-4 w-4" /> Goal Reached
-                            </Button>
-                        ) : isPhaseFull ? (
-                            <Button size="lg" className="w-full h-12 rounded-3xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/20 transition-all active:scale-95" onClick={scrollToWaitlist}>
-                                <BellRing className="mr-2 h-4 w-4" /> Notify me for Phase {activeIndex + 2}
-                            </Button>
-                        ) : (
+                        {(!isCompleted && !isFundedState && !isPhaseFull) && (
                             <Link href={donateLink} className="block w-full">
-                                <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95">
+                                <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
                                     Fund this impact
                                 </Button>
                             </Link>
@@ -625,46 +600,31 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
                 isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
             )}>
-                {isCompleted ? (
-                    <Button
-                        size="lg"
-                        disabled
-                        className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm pointer-events-auto"
-                    >
-                        <Check className="mr-2 h-4 w-4" /> {completedText}
-                    </Button>
-                ) : isFundedState ? (
-                    <Button
-                        size="lg"
-                        disabled
-                        className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm pointer-events-auto"
-                    >
-                        <Check className="mr-2 h-4 w-4" /> Goal Reached
-                    </Button>
-                ) : isPhaseFull ? (
-                    <Button
-                        size="lg"
-                        onClick={scrollToWaitlist}
-                        className="flex-1 h-12 rounded-3xl bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 font-bold text-sm pointer-events-auto active:scale-95 transition-all"
-                    >
-                        <BellRing className="mr-2 h-4 w-4" /> Notify me
-                    </Button>
-                ) : (
-                    <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
-                        <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
-                            Fund this impact
+                {(!isCompleted && !isFundedState && !isPhaseFull) ? (
+                    <>
+                        <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
+                            <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                                Fund this impact
+                            </Button>
+                        </Link>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setIsShareModalOpen(true)}
+                            className="h-12 w-12 rounded-3xl border-border/60 text-foreground shrink-0 bg-background shadow-lg active:scale-95 transition-all pointer-events-auto"
+                        >
+                            <Share2 className="h-5 w-5" />
                         </Button>
-                    </Link>
+                    </>
+                ) : (
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="w-full h-12 rounded-3xl border-border/60 text-foreground bg-background shadow-lg active:scale-95 transition-all pointer-events-auto font-bold text-sm gap-2"
+                    >
+                        <Share2 className="h-4 w-4" /> Share cause
+                    </Button>
                 )}
-
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsShareModalOpen(true)}
-                    className="h-12 w-12 rounded-3xl border-border/60 text-foreground shrink-0 bg-background shadow-lg active:scale-95 transition-all pointer-events-auto"
-                >
-                    <Share2 className="h-5 w-5" />
-                </Button>
             </div>
 
             <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} />

@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect, memo } from 'react';
-import { ShieldCheck, Target, Users, AlertCircle, ArrowRight, X, Copy, Check, Lock, CheckCircle2, Clock, TrendingUp, BellRing, Loader2 } from 'lucide-react';
+import { ShieldCheck, Target, Users, AlertCircle, X, Copy, Check, Lock, CheckCircle2, Clock, TrendingUp, BellRing, Loader2 } from 'lucide-react';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Project } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
-import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
@@ -63,12 +62,14 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const [copied, setCopied] = useState(false);
 
     // Waitlist State
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [waitlistEmail, setWaitlistEmail] = useState('');
     const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
 
     useEffect(() => {
         const userCookie = getCookie('givar_user');
         if (userCookie) {
+            setIsAuthenticated(true);
             try {
                 const user = JSON.parse(userCookie as string);
                 if (user.email) setWaitlistEmail(user.email);
@@ -93,19 +94,14 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         try {
             await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
             toast.success("You'll be notified when the next phase unlocks!");
-            if (!getCookie('givar_user')) setWaitlistEmail('');
+            if (!isAuthenticated) setWaitlistEmail('');
         } catch (e: any) {
             toast.success("You've been added to the notification queue!");
-            if (!getCookie('givar_user')) setWaitlistEmail('');
+            if (!isAuthenticated) setWaitlistEmail('');
         } finally {
             setIsWaitlistLoading(false);
         }
     };
-
-    const isDashboard = pathname.startsWith('/dashboard');
-    const recordsLink = isDashboard
-        ? `/dashboard/impact/${project.slug}/records`
-        : `/explore/${project.slug}/records`;
 
     const budgetLength = budget.length;
 
@@ -164,30 +160,41 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                     <Clock className="h-3.5 w-3.5" /> Awaiting Verification
                                 </div>
                                 <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
-                                    This phase is fully funded! Donations are paused while we verify the vendor's proof of work.
+                                    This phase is fully funded. Donations are paused until the vendor's proof of work is verified.
                                 </p>
                             </div>
 
                             <div className="pt-4 border-t border-amber-500/10 space-y-3">
                                 <div className="flex items-center gap-2 text-amber-700">
                                     <BellRing className="h-4 w-4" />
-                                    <h4 className="text-[11px] font-bold uppercase tracking-widest">Get notified when Phase {activeIndex + 2} opens</h4>
+                                    <h4 className="text-[11px] font-bold">Get notified when Phase {activeIndex + 2} opens</h4>
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <Input
-                                        placeholder="your@email.com"
-                                        value={waitlistEmail}
-                                        onChange={e => setWaitlistEmail(e.target.value)}
-                                        className="h-10 rounded-2xl bg-background border-border/40 text-xs shadow-inner focus:bg-white"
-                                    />
+
+                                {isAuthenticated ? (
                                     <Button
                                         onClick={handleJoinWaitlist}
-                                        disabled={isWaitlistLoading || !waitlistEmail}
+                                        disabled={isWaitlistLoading}
                                         className="h-10 rounded-2xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md border-0 w-full transition-all active:scale-95 text-xs"
                                     >
-                                        {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Join Waitlist'}
+                                        {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : `Notify me for Phase ${activeIndex + 2}`}
                                     </Button>
-                                </div>
+                                ) : (
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <Input
+                                            placeholder="your@email.com"
+                                            value={waitlistEmail}
+                                            onChange={e => setWaitlistEmail(e.target.value)}
+                                            className="h-10 rounded-2xl bg-background border-border/40 text-xs shadow-inner focus:bg-white"
+                                        />
+                                        <Button
+                                            onClick={handleJoinWaitlist}
+                                            disabled={isWaitlistLoading || !waitlistEmail}
+                                            className="h-10 rounded-2xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md border-0 px-6 transition-all active:scale-95 text-xs shrink-0"
+                                        >
+                                            {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Notify me'}
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ) : (
@@ -238,12 +245,6 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
             {/* SECONDARY FOCUS: Global Campaign Details */}
             <div className="space-y-3 mb-5">
-                <div className="flex items-center gap-2 px-1">
-                    <div className="h-px flex-1 bg-border/40" />
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Global Campaign</span>
-                    <div className="h-px flex-1 bg-border/40" />
-                </div>
-
                 <div className="grid grid-cols-2 gap-3 relative">
                     <AnimatePresence>
                         {/* Overall Goal Insight */}
@@ -332,13 +333,6 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                     </motion.div>
                 </div>
             </div>
-
-            {/* Ledger Navigation */}
-            <Link href={recordsLink}>
-                <Button variant="outline" className="w-auto mx-auto flex rounded-3xl border-border/60 hover:bg-muted text-xs h-10 font-bold gap-2 active:scale-95 transition-all">
-                    View public records <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-            </Link>
         </Card>
     );
 });
