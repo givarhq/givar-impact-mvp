@@ -11,6 +11,7 @@
         "db:push:force": "prisma db push --accept-data-loss",
         "db:studio": "prisma studio",
         "db:seed": "tsx prisma/seed.ts",
+        "db:align": "tsx scripts/align-legacy-data.ts",
         "dev": "prisma generate --watch"
     },
     "dependencies": {
