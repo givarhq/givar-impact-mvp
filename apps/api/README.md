@@ -217,4 +217,3 @@ The API is self-documenting via its NestJS modules and Swagger UI. When running 
 
 ## Final Note for Backend Developers
 This system is built for **forensic integrity**. If you are tasked with changing how money moves through the platform, your first point of reference must be the `WalletRepository`. Never modify project balances directly; always create a supporting double-entry transaction record.
-```

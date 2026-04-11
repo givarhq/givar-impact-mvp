@@ -41,4 +41,3 @@ If you need to add a new administrative view:
 1. Add the view in `apps/web/app/(admin)`.
 2. Maintain UX consistency by utilizing the `AdminDataTable` and `ConfirmModal` UI primitives.
 3. Ensure the route falls under the scope of the `AdminShell` layout to inherit the necessary role-based guards.
-```

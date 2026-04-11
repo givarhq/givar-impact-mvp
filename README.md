@@ -94,4 +94,3 @@ pnpm dev
 
 ## Security & Support
 For access to production service accounts (Vercel, Render, Paystack, Neon), refer to the **Private Handover Document** provided to the Project Owner. Always rotate API keys if they are accidentally logged or exposed in the client-side bundle.
-```
