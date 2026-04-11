@@ -7,11 +7,12 @@ import {
     BadgeCheck, ShieldCheck, DollarSign, Briefcase,
     AlertTriangle, ChevronRight, Target,
     Heart, Check, UserCheck,
-    RefreshCcw,
     Clock,
     CheckCircle2,
     Landmark,
-    Quote
+    Quote,
+    BellRing,
+    RefreshCcw
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -28,7 +29,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../../ui/card';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 interface ProjectDetailsClientProps {
-    project: ProjectWithDetails & { subcategoryName?: string }; // Extracted from API
+    project: ProjectWithDetails & { subcategoryName?: string };
     isPublic?: boolean;
 }
 
@@ -49,6 +50,28 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const isCompleted = project.status === 'COMPLETED';
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
+
+    const activeIndex = project.currentPhaseIndex || 0;
+
+    let previousPhasesMajor = 0;
+    for (let i = 0; i < activeIndex && i < budget.length; i++) {
+        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
+    }
+    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+
+    let cumulativeMajor = previousPhasesMajor;
+    if (budget[activeIndex]) {
+        cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+    }
+    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
+        ? BigInt(cumulativeMajor * 100)
+        : BigInt(project.targetAmount || '0');
+
+    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+    let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
+    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
     const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
@@ -72,11 +95,20 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     };
 
-    const activeIndex = project.currentPhaseIndex || 0;
-
     const displayCategory = project.subcategoryName
         ? `${project.category?.name || project.categoryName} • ${project.subcategoryName}`
         : (project.category?.name || project.categoryName || 'General Impact');
+
+    // Utility to smoothly scroll down to the Transparency Card waitlist
+    const scrollToWaitlist = () => {
+        const el = document.getElementById('transparency-card');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Flash effect for attention
+            el.classList.add('ring-4', 'ring-amber-500/20');
+            setTimeout(() => el.classList.remove('ring-4', 'ring-amber-500/20'), 1500);
+        }
+    };
 
     return (
         <motion.div
@@ -266,16 +298,16 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_h2]:font-bold [&_h2]:text-foreground[&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base[&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ul]:list-disc[&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5[&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
                                         "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
-                                        "[&_strong]:font-bold [&_strong]:text-foreground",
+                                        "[&_strong]:font-bold[&_strong]:text-foreground",
                                         "[&_em]:italic",
                                         "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: project.description }}
@@ -289,11 +321,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         <div
                                             className={cn(
                                                 "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
-                                                "[&_p]:mb-2 [&_p]:last:mb-0",
+                                                "[&_p]:mb-2[&_p]:last:mb-0",
                                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
                                                 "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
-                                                "[&_strong]:font-bold [&_strong]:text-amber-950",
+                                                "[&_strong]:font-bold[&_strong]:text-amber-950",
                                                 "[&_em]:italic"
                                             )}
                                             dangerouslySetInnerHTML={{ __html: project.riskAnalysis }}
@@ -347,7 +379,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                         <td className="px-6 py-4 font-bold text-foreground">
                                                             <div className="flex items-center gap-2">
                                                                 {item.description || item.item}
-                                                                {i === activeIndex && !isCompleted && !isFundedState && (
+                                                                {i === activeIndex && !isCompleted && !isFundedState && !isPhaseFull && (
                                                                     <div className="h-2 w-2 rounded-full bg-primary animate-pulse" title="Funding Now" />
                                                                 )}
                                                             </div>
@@ -510,6 +542,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             <Button size="lg" disabled className="w-full h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm">
                                 <Check className="mr-2 h-4 w-4" /> Goal Reached
                             </Button>
+                        ) : isPhaseFull ? (
+                            <Button size="lg" className="w-full h-12 rounded-3xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow-lg shadow-amber-500/20 transition-all active:scale-95" onClick={scrollToWaitlist}>
+                                <BellRing className="mr-2 h-4 w-4" /> Notify me for Phase {activeIndex + 2}
+                            </Button>
                         ) : (
                             <Link href={donateLink} className="block w-full">
                                 <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95">
@@ -604,6 +640,14 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         className="flex-1 h-12 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-100 opacity-100 cursor-default shadow-none font-bold text-sm pointer-events-auto"
                     >
                         <Check className="mr-2 h-4 w-4" /> Goal Reached
+                    </Button>
+                ) : isPhaseFull ? (
+                    <Button
+                        size="lg"
+                        onClick={scrollToWaitlist}
+                        className="flex-1 h-12 rounded-3xl bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 font-bold text-sm pointer-events-auto active:scale-95 transition-all"
+                    >
+                        <BellRing className="mr-2 h-4 w-4" /> Notify me
                     </Button>
                 ) : (
                     <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">

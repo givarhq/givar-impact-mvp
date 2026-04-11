@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, memo } from 'react';
-import { ShieldCheck, Target, Users, AlertCircle, ArrowRight, X, Copy, Check, Lock, CheckCircle2, Clock, TrendingUp } from 'lucide-react';
+import { useState, useEffect, memo } from 'react';
+import { ShieldCheck, Target, Users, AlertCircle, ArrowRight, X, Copy, Check, Lock, CheckCircle2, Clock, TrendingUp, BellRing, Loader2 } from 'lucide-react';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Project } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
@@ -11,6 +12,8 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { ApiService } from '../../../services/api';
+import { getCookie } from 'cookies-next';
 
 interface TransparencyCardProps {
     project: Project & { donorCount?: number };
@@ -59,6 +62,20 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const [expandedCard, setExpandedCard] = useState<'goal' | 'remaining' | null>(null);
     const [copied, setCopied] = useState(false);
 
+    // Waitlist State
+    const [waitlistEmail, setWaitlistEmail] = useState('');
+    const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
+
+    useEffect(() => {
+        const userCookie = getCookie('givar_user');
+        if (userCookie) {
+            try {
+                const user = JSON.parse(userCookie as string);
+                if (user.email) setWaitlistEmail(user.email);
+            } catch (e) { }
+        }
+    }, []);
+
     const toggleExpand = (card: 'goal' | 'remaining') => {
         setExpandedCard(prev => prev === card ? null : card);
     };
@@ -70,6 +87,21 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleJoinWaitlist = async () => {
+        if (!waitlistEmail || !waitlistEmail.includes('@')) return toast.error("Valid email required");
+        setIsWaitlistLoading(true);
+        try {
+            await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
+            toast.success("You'll be notified when the next phase unlocks!");
+            if (!getCookie('givar_user')) setWaitlistEmail('');
+        } catch (e: any) {
+            toast.success("You've been added to the notification queue!");
+            if (!getCookie('givar_user')) setWaitlistEmail('');
+        } finally {
+            setIsWaitlistLoading(false);
+        }
+    };
+
     const isDashboard = pathname.startsWith('/dashboard');
     const recordsLink = isDashboard
         ? `/dashboard/impact/${project.slug}/records`
@@ -78,7 +110,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const budgetLength = budget.length;
 
     return (
-        <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 shadow-sm">
+        <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 shadow-sm" id="transparency-card">
             {/* Header Context */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-3xl border border-emerald-100">
@@ -103,17 +135,20 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             {(!isCompleted && !isFundedState) ? (
                 <div className={cn(
                     "p-5 rounded-3xl mb-6 border transition-all relative overflow-hidden",
-                    isPhaseFull ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/10 border-border/40"
+                    isPhaseFull ? "bg-amber-500/5 border-amber-500/20" : "bg-muted/10 border-border/40"
                 )}>
                     <div className="flex items-center gap-3 mb-4">
                         <div className={cn(
                             "h-10 w-10 rounded-2xl flex items-center justify-center border shadow-inner shrink-0",
-                            isPhaseFull ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-primary/10 text-primary border-primary/20"
+                            isPhaseFull ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-primary/10 text-primary border-primary/20"
                         )}>
                             {isPhaseFull ? <CheckCircle2 className="h-5 w-5" /> : <Target className="h-5 w-5" />}
                         </div>
                         <div className="min-w-0 flex-1">
-                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none mb-1">
+                            <p className={cn(
+                                "text-[10px] font-bold uppercase tracking-widest leading-none mb-1",
+                                isPhaseFull ? "text-amber-600" : "text-primary"
+                            )}>
                                 {isPhaseFull ? 'Phase Execution' : 'Active Funding Phase'}
                             </p>
                             <p className="text-sm font-bold text-foreground truncate w-full" title={`Phase ${activeIndex + 1}: ${activeItemName}`}>
@@ -123,13 +158,37 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                     </div>
 
                     {isPhaseFull ? (
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 w-fit">
-                                <Clock className="h-3.5 w-3.5" /> Awaiting Verification
+                        <div className="space-y-5">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-100/50 px-3 py-1.5 rounded-xl border border-amber-200 w-fit">
+                                    <Clock className="h-3.5 w-3.5" /> Awaiting Verification
+                                </div>
+                                <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                                    This phase is fully funded! Donations are paused while we verify the vendor's proof of work.
+                                </p>
                             </div>
-                            <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
-                                This phase is fully funded. Donations are paused until the vendor's proof of work is verified.
-                            </p>
+
+                            <div className="pt-4 border-t border-amber-500/10 space-y-3">
+                                <div className="flex items-center gap-2 text-amber-700">
+                                    <BellRing className="h-4 w-4" />
+                                    <h4 className="text-[11px] font-bold uppercase tracking-widest">Get notified when Phase {activeIndex + 2} opens</h4>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <Input
+                                        placeholder="your@email.com"
+                                        value={waitlistEmail}
+                                        onChange={e => setWaitlistEmail(e.target.value)}
+                                        className="h-10 rounded-2xl bg-background border-border/40 text-xs shadow-inner focus:bg-white"
+                                    />
+                                    <Button
+                                        onClick={handleJoinWaitlist}
+                                        disabled={isWaitlistLoading || !waitlistEmail}
+                                        className="h-10 rounded-2xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md border-0 w-full transition-all active:scale-95 text-xs"
+                                    >
+                                        {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Join Waitlist'}
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-4">
