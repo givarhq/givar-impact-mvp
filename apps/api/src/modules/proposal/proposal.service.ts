@@ -175,7 +175,10 @@ export class ProposalService {
     const proposals = await this.prisma.projectProposal.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
-      include: { category: true }
+      include: {
+        category: true,
+        subcategory: { select: { name: true } }
+      }
     });
 
     const proposalIds = proposals.map(p => p.id);
@@ -186,11 +189,11 @@ export class ProposalService {
 
     const projectMap = new Map(projects.map(p => [p.proposalId, p.status]));
 
-    // Serialize BigInts and attach active project status
     return proposals.map(p => ({
       ...p,
       targetAmount: p.targetAmount?.toString() || '0',
-      projectStatus: projectMap.get(p.id) || null
+      projectStatus: projectMap.get(p.id) || null,
+      subcategoryName: p.subcategory?.name
     }));
   }
 
@@ -370,10 +373,16 @@ export class ProposalService {
   private async getProposalOrThrow(id: string, userId: string) {
     const proposal = await this.prisma.projectProposal.findUnique({
       where: { id },
-      include: { category: true }
+      include: {
+        category: true,
+        subcategory: { select: { name: true } }
+      }
     });
     if (!proposal) throw new NotFoundException('Proposal not found');
     if (proposal.userId !== userId) throw new ForbiddenException('Access Denied');
-    return proposal;
+    return {
+      ...proposal,
+      subcategoryName: proposal.subcategory?.name
+    };
   }
 }

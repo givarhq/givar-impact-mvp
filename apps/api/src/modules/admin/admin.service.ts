@@ -320,7 +320,6 @@ export class AdminService {
     const { search, status, category, page = 1, limit = 20 } = query;
     const skip = (page - 1) * limit;
 
-    // 1. Build Dynamic Filter
     const where: Prisma.ProjectProposalWhereInput = {
       status: status ? status : {
         in: [
@@ -342,7 +341,6 @@ export class AdminService {
       }),
     };
 
-    // 2. Parallel execution for performance
     const [proposals, total] = await Promise.all([
       this.prisma.projectProposal.findMany({
         where,
@@ -351,17 +349,18 @@ export class AdminService {
         include: {
           user: { select: { email: true, firstName: true, lastName: true } },
           category: { select: { name: true, slug: true } },
+          subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory for Admin review
         },
         orderBy: { submittedAt: 'desc' },
       }),
       this.prisma.projectProposal.count({ where }),
     ]);
 
-    // 3. Serialize
     return {
       data: proposals.map(p => ({
         ...p,
-        targetAmount: p.targetAmount?.toString() || '0'
+        targetAmount: p.targetAmount?.toString() || '0',
+        subcategoryName: p.subcategory?.name // <-- Map
       })),
       meta: {
         total,
@@ -385,6 +384,7 @@ export class AdminService {
           }
         },
         category: true,
+        subcategory: true,
       },
     });
 
@@ -401,7 +401,6 @@ export class AdminService {
       }
     }
 
-    // Sign video URL for Admin Review
     if (proposal.videoUrl && !proposal.videoUrl.startsWith('http')) {
       try {
         const { viewUrl } = await this.storage.getPresignedViewUrl(proposal.videoUrl);
@@ -432,7 +431,10 @@ export class AdminService {
       proposal.gallery = signedGallery;
     }
 
-    return proposal;
+    return {
+      ...proposal,
+      subcategoryName: proposal.subcategory?.name
+    };
   }
 
   async approveAndPromote(proposalId: string, adminId: string) {
