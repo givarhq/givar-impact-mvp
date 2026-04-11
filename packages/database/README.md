@@ -79,4 +79,3 @@ The core logic resides in `packages/database/prisma/seed.ts`. Key developer func
 *   **State Machine Matching**: Ensures `ProjectProposals` marked as `APPROVED` have a corresponding `Project` record with matching `proposalId` for traceability.
 
 **Developer Note:** If you modify the `schema.prisma`, you must run `pnpm db:generate` before re-running the seed to ensure the Prisma Client has the latest types for the seeding engine.
-```
