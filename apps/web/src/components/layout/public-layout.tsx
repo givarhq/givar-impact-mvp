@@ -9,8 +9,6 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
 
-  // Logic: If a session exists, intercept the public layout and wrap the content 
-  // in the authenticated shell to maintain navigation state and the standard footer.
   if (token) {
     try {
       const user = await ApiService.auth.getMe(token);
@@ -23,15 +21,17 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
         if (shouldBeInAdminEnv) {
           return <AdminShell user={user}>{children}</AdminShell>;
         } else {
+          // Logic: For static pages (About, Legal, etc.), we wrap the content in the dashboard shell.
+          // Because middleware now handles hard redirects for /explore and /records, 
+          // we no longer have to worry about conflicting props or narrow container widths here.
           return <DashboardShell user={user}>{children}</DashboardShell>;
         }
       }
     } catch (error) {
-      // If token is invalid or network fails, fall back gracefully to the guest layout
+      // Fallback gracefully to guest layout if session check fails
     }
   }
 
-  // Guest Layout Fallback
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <LandingHeader variant="auth" />

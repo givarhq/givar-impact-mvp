@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/request';
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('givar_token')?.value;
@@ -9,12 +9,9 @@ export function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Logic: Only redirect from these specific entry points if authenticated.
-  // This allows authenticated users to browse /about, /explore, /legal, etc.
   const authRedirectPaths = ['/', '/login', '/signup'];
   const isAuthRedirectPath = authRedirectPaths.includes(pathname);
 
-  // 1. Authenticated Logic
   if (token) {
     let userRole = 'USER';
     if (userCookie) {
@@ -24,19 +21,29 @@ export function middleware(request: NextRequest) {
       } catch (e) { /* ignore malformed */ }
     }
 
-    // Logic: Respect viewMode for both ADMIN and SUPERADMIN roles.
     const shouldBeInAdminEnv =
       (userRole === 'ADMIN' || userRole === 'SUPERADMIN') &&
       viewMode !== 'USER' &&
       !isImpersonating;
 
-    // Redirect away from guest entry pages to the respective dashboard
     if (isAuthRedirectPath) {
       const target = shouldBeInAdminEnv ? '/admin' : '/dashboard';
       return NextResponse.redirect(new URL(target, request.url));
     }
 
-    // Forced context switching for Admin vs Giver perspectives
+    // --- Perspective Redirection ---
+    // If an authenticated user hits a public cause or record path, move them to the dashboard equivalent
+    // to ensure the shell layout and props (like isPublic) are correctly synchronized.
+    if (!shouldBeInAdminEnv) {
+      if (pathname.startsWith('/explore')) {
+        const dashboardPath = pathname.replace('/explore', '/dashboard/impact');
+        return NextResponse.redirect(new URL(dashboardPath, request.url));
+      }
+      if (pathname === '/records') {
+        return NextResponse.redirect(new URL('/dashboard/history', request.url));
+      }
+    }
+
     if (pathname.startsWith('/dashboard') && shouldBeInAdminEnv) {
       return NextResponse.redirect(new URL('/admin', request.url));
     }
@@ -46,7 +53,6 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 2. Unauthenticated Logic
   if (!token) {
     const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin');
     if (isProtectedRoute) {
@@ -60,7 +66,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Logic: Exclude all static assets and API routes from middleware processing to minimize TTFB
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)',
   ],
