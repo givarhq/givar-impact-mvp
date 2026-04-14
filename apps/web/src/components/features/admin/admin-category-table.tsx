@@ -197,7 +197,7 @@ export const AdminCategoryTable = memo(function AdminCategoryTable() {
         return (
             <div className="flex flex-col items-center justify-center py-24 text-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary opacity-50 mb-4" />
-                <p className="text-xs font-bold text-muted-foreground">Loading taxonomy tree...</p>
+                <p className="text-xs font-bold text-muted-foreground">Loading...</p>
             </div>
         );
     }
