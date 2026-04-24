@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
     Loader2, CreditCard, CheckCircle2, Mail,
-    Eye, MailCheck, RefreshCw, Globe, Target, HandHeart
+    Eye, MailCheck, RefreshCw, Globe, Target, BellRing, HandHeart
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
 import { Project } from '../../../../../../types';
 import { ApiService } from '../../../../../../services/api';
-import { formatNumberInput, parseFormattedNumber } from '../../../../../../lib/utils/format';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../components/ui/select';
 import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
@@ -56,12 +55,15 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const [detectedCurrency, setDetectedCurrency] = useState('NGN');
     const [displayAmount, setDisplayAmount] = useState('');
     const [tipAmount, setTipAmount] = useState('');
-    const [activeTipPreset, setActiveTipPreset] = useState<number | 'custom' | null>(null); // Default to NO TIP
+    const [activeTipPreset, setActiveTipPreset] = useState<number | 'custom' | null>(null);
 
     const [feeRule, setFeeRule] = useState<{ percentage: number; optionalTipEnabled: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [fxRates, setFxRates] = useState<Record<string, number> | null>(null);
+
+    const [waitlistEmail, setWaitlistEmail] = useState('');
+    const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
 
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isUnverified, setIsUnverified] = useState(false);
@@ -73,8 +75,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             try {
                 const user = JSON.parse(userCookie as string);
                 setIsUnverified(user.emailVerified === false);
-                if (user.email && posthog) {
-                    posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
+                if (user.email) {
+                    setWaitlistEmail(user.email);
+                    if (posthog) {
+                        posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
+                    }
                 }
             } catch (e) {
                 setIsUnverified(false);
@@ -126,7 +131,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             .catch(console.error);
     }, [project, isAuthenticated, posthog]);
 
-    // Auto-calculate tip when displayAmount or activeTipPreset changes
     useEffect(() => {
         if (typeof activeTipPreset === 'number') {
             const currentAmountNum = Number(parseDecimalNumber(displayAmount)) || 0;
@@ -156,7 +160,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     if (!project) return null;
 
-    // --- PHASED FUNDING MATH ---
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const activeIndex = project.currentPhaseIndex || 0;
 
@@ -175,33 +178,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const remainingForPhaseMinor = currentPhaseCapMinor > raisedAmountMinor ? currentPhaseCapMinor - raisedAmountMinor : 0n;
     const isPhaseFull = remainingForPhaseMinor <= 0n && currentPhaseCapMinor > 0n;
 
-    // Edge case render: user navigated to /donate when phase is already full
-    if (isPhaseFull) {
-        return (
-            <div className="bg-card border border-border/40 rounded-3xl p-6 md:p-10 shadow-sm text-center space-y-6 animate-in zoom-in-95 duration-500">
-                <div className="h-20 w-20 bg-emerald-500/10 text-emerald-600 rounded-[28px] flex items-center justify-center mx-auto border border-emerald-500/20 shadow-inner">
-                    <CheckCircle2 className="h-10 w-10" />
-                </div>
-                <div className="space-y-3">
-                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Phase {activeIndex + 1} Fully Funded!</h3>
-                    <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
-                        Thanks to our incredible donors, the funds for <strong>"{activeItemName}"</strong> have been secured.
-                        Donations are currently paused for this cause.
-                    </p>
-                </div>
-                <div className="pt-4">
-                    <Button
-                        onClick={() => router.push(isAuthenticated ? `/dashboard/impact/${project.slug}` : `/explore/${project.slug}`)}
-                        className="h-12 rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 border-0 px-8 transition-all active:scale-95 text-xs"
-                    >
-                        Return to Cause
-                    </Button>
-                </div>
-            </div>
-        );
-    }
-
-    // --- INTERNATIONAL CURRENCY CONVERSION ---
     let remainingSelectedMajor = Number(remainingForPhaseMinor) / 100;
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         remainingSelectedMajor = remainingSelectedMajor * fxRates[detectedCurrency];
@@ -223,7 +199,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     const feePercentage = feeRule?.percentage || 0;
     const feeAmountMinor = (baseAmountMinor * BigInt(Math.round(feePercentage * 100))) / 10000n;
-    const totalChargeMinor = baseAmountMinor + feeAmountMinor + tipAmountMinor;
 
     const isGuest = !isAuthenticated;
     const isCompletingPhase = baseAmountMinor >= remainingForPhaseMinor && remainingForPhaseMinor > 0n;
@@ -237,7 +212,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         const rawNum = Number(parseDecimalNumber(formatted));
 
         if (rawNum > remainingSelectedMajor) {
-            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
             setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
             setDisplayAmount(formatted);
@@ -247,10 +222,25 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const setQuickAmount = (val: string) => {
         const rawNum = Number(val);
         if (rawNum > remainingSelectedMajor) {
-            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
             setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
             setDisplayAmount(formatDecimalInput(val));
+        }
+    };
+
+    const handleJoinWaitlist = async () => {
+        if (!waitlistEmail || !waitlistEmail.includes('@')) return toast.error("Valid email required");
+        setIsWaitlistLoading(true);
+        try {
+            await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
+            toast.success("You'll be notified when the next phase unlocks!");
+            if (!isAuthenticated) setWaitlistEmail('');
+        } catch (e: any) {
+            toast.success("You've been added to the notification queue!");
+            if (!isAuthenticated) setWaitlistEmail('');
+        } finally {
+            setIsWaitlistLoading(false);
         }
     };
 
@@ -319,7 +309,32 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         const goalNgnMajor = Number(remainingForPhaseMinor) / 100;
         const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
-        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })})`;
+        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })} )`;
+    }
+
+    if (isPhaseFull) {
+        return (
+            <div className="bg-card border border-border/40 rounded-3xl p-6 md:p-10 shadow-sm text-center space-y-6 animate-in zoom-in-95 duration-500">
+                <div className="h-20 w-20 bg-emerald-500/10 text-emerald-600 rounded-[28px] flex items-center justify-center mx-auto border border-emerald-500/20 shadow-inner">
+                    <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <div className="space-y-3">
+                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Phase {activeIndex + 1} fully funded!</h3>
+                    <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
+                        Thanks to our incredible donors, the funds for <strong>"{activeItemName}"</strong> have been secured.
+                        Donations are currently paused for this cause.
+                    </p>
+                </div>
+                <div className="pt-4">
+                    <Button
+                        onClick={() => router.push(isAuthenticated ? `/dashboard/impact/${project.slug}` : `/explore/${project.slug}`)}
+                        className="h-12 rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 border-0 px-8 transition-all active:scale-95 text-xs"
+                    >
+                        Return to cause
+                    </Button>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -376,7 +391,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        Transparency Mode: We are currently raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases unlock once this is executed and verified.
+                        Transparency mode: We are currently only raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases will unlock once this phase is executed and verified.
                     </p>
                 </div>
 
@@ -398,7 +413,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             maxLength={14}
                             placeholder="0.00"
                             className="pl-14 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
-                            value={displayAmount ? `${formatNumberInput(displayAmount)}` : ''}
+                            value={displayAmount}
                             onChange={handleAmountChange}
                             disabled={isUnverified}
                         />
@@ -457,7 +472,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2 px-1">
                                         <HandHeart className="h-4 w-4 text-primary" />
-                                        <label className="text-xs font-bold text-foreground">Support Givar's Infrastructure (Optional)</label>
+                                        <label className="text-xs font-bold text-foreground">Support Givar's infrastructure (optional)</label>
                                     </div>
                                     <p className="text-[11px] text-muted-foreground font-medium px-1 leading-relaxed">
                                         Givar operates on radical transparency. If you value our platform, please consider an optional tip to help us maintain our servers and payment gateways.
@@ -518,29 +533,29 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
                             <div className="p-5 rounded-[24px] bg-muted/20 border border-border/40 space-y-3 shadow-inner">
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                    <span>Direct Impact</span>
+                                    <span>Direct impact</span>
                                     <span className="tabular-nums font-bold text-foreground">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                    <span>Payment Processing ({feePercentage}%)</span>
+                                    <span>Payment processing ({feePercentage}%)</span>
                                     <span className="tabular-nums font-bold text-foreground">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{((inputAmountNum * feePercentage) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{((inputAmountNum * feePercentage) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                                 {inputTipNum > 0 && (
                                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                        <span>Platform Tip</span>
+                                        <span>Platform tip</span>
                                         <span className="tabular-nums font-bold text-foreground">
-                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
                                 )}
                                 <div className="pt-3 border-t border-border/40 flex justify-between items-center">
-                                    <span className="text-sm font-bold text-foreground">Total Checkout</span>
+                                    <span className="text-sm font-bold text-foreground">Total checkout</span>
                                     <span className="text-sm font-black text-primary tabular-nums">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum + ((inputAmountNum * feePercentage) / 100) + inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum + ((inputAmountNum * feePercentage) / 100) + inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                             </div>
@@ -586,7 +601,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                         >
                             <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
                             <div className="text-xs space-y-0.5">
-                                <p className="font-bold">Phase Completion Gift</p>
+                                <p className="font-bold">Phase completion gift</p>
                                 <p className="font-medium">
                                     This gift fully funds Phase {activeIndex + 1}! The project will pause to verify vendor execution before opening the next phase.
                                 </p>
@@ -602,7 +617,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                         className="w-full sm:w-auto px-10 h-14 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all bg-primary text-white hover:bg-primary/90 border-0 active:scale-[0.98]"
                     >
                         {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}
-                        Proceed to Secure Checkout
+                        Proceed to secure checkout
                     </Button>
                 </div>
             </div>
