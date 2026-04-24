@@ -19,7 +19,7 @@ interface BudgetEditorProps {
   readOnly?: boolean;
   isLive?: boolean;
   isAdjustmentMode?: boolean;
-  categorySlug?: string; // Kept for interface compatibility but unused in the unified view
+  categorySlug?: string;
 }
 
 export const BudgetEditor = memo(function BudgetEditor({
@@ -31,17 +31,21 @@ export const BudgetEditor = memo(function BudgetEditor({
   isLive = false,
   isAdjustmentMode = false
 }: BudgetEditorProps) {
-  const store = useProposalStore();
 
-  const budgetBreakdown = budgetItems || store.budgetBreakdown;
-  const executionTimeline = timelineItems || store.executionTimeline;
+  // CRITICAL FIX: Extract granular, stable state to prevent infinite loops
+  const storeBudget = useProposalStore(state => state.budgetBreakdown);
+  const storeTimeline = useProposalStore(state => state.executionTimeline);
+  const targetAmount = useProposalStore(state => state.targetAmount);
+  const updateField = useProposalStore(state => state.updateField);
 
-  const updateBudget = onBudgetChange ? onBudgetChange : (val: any) => store.updateField('budgetBreakdown', val);
-  const updateTimeline = onTimelineChange ? onTimelineChange : (val: any) => store.updateField('executionTimeline', val);
+  const budgetBreakdown = budgetItems || storeBudget;
+  const executionTimeline = timelineItems || storeTimeline;
+
+  const updateBudget = onBudgetChange ? onBudgetChange : (val: any) => updateField('budgetBreakdown', val);
+  const updateTimeline = onTimelineChange ? onTimelineChange : (val: any) => updateField('executionTimeline', val);
 
   const isLocked = readOnly || (isLive && !isAdjustmentMode);
 
-  // We derive the combined "phases" for the UI by matching indices.
   const maxLength = Math.max(budgetBreakdown.length, executionTimeline.length);
   const phases = Array.from({ length: maxLength }).map((_, i) => {
     const b = budgetBreakdown[i] || { id: crypto.randomUUID(), payTo: '', costType: 'SERVICE', amount: 0, description: '' };
@@ -98,9 +102,12 @@ export const BudgetEditor = memo(function BudgetEditor({
   useEffect(() => {
     if (!onBudgetChange) {
       const total = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
-      store.updateField('targetAmount', total);
+      // CRITICAL FIX: Only dispatch update if the total actually mathematically changed
+      if (total !== targetAmount) {
+        updateField('targetAmount', total);
+      }
     }
-  }, [budgetBreakdown, onBudgetChange, store]);
+  }, [budgetBreakdown, onBudgetChange, targetAmount, updateField]);
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
@@ -154,9 +161,9 @@ export const BudgetEditor = memo(function BudgetEditor({
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
                 {/* Phase Title */}
                 <div className="md:col-span-8 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Phase Objective</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Phase objective</label>
                   <Input
-                    placeholder="e.g. Foundation Construction"
+                    placeholder="e.g. Foundation construction"
                     value={budget.description}
                     onChange={(e) => handleUpdate(index, 'title', e.target.value)}
                     readOnly={isLocked}
@@ -166,7 +173,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 {/* Phase Cost */}
                 <div className="md:col-span-4 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Capital Required (NGN)</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Capital required (NGN)</label>
                   <div className="relative">
                     {!isLocked && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
                     <Input
@@ -181,7 +188,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 {/* Vendor Allocation */}
                 <div className="md:col-span-6 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Assigned Vendor / Payee</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Assigned vendor or payee</label>
                   <Input
                     placeholder="e.g. ABC Engineering Ltd"
                     value={budget.payTo}
@@ -193,7 +200,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 {/* Estimated Date */}
                 <div className="md:col-span-6 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Estimated Completion Date (Optional)</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Estimated completion date (Optional)</label>
                   <div className="relative">
                     {!isLocked && <CalendarIcon className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />}
                     <Input
@@ -208,7 +215,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 {/* Deliverables */}
                 <div className="md:col-span-12 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Expected Deliverables (Proof of Work)</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Expected deliverables (Proof of work)</label>
                   <Textarea
                     placeholder="What specific visual proof will the vendor provide upon completion?"
                     value={timeline.deliverables}
@@ -233,9 +240,9 @@ export const BudgetEditor = memo(function BudgetEditor({
           type="button"
           variant="outline"
           onClick={addItem}
-          className="w-full border-dashed border-2 rounded-3xl h-14 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98] bg-muted/10 hover:bg-primary/5 hover:border-primary/30"
+          className="w-full border-dashed border-2 rounded-3xl h-14 text-sm font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98] bg-muted/10 hover:bg-primary/5 hover:border-primary/30"
         >
-          <PlusCircle className="h-4 w-4" /> Add Execution Phase
+          <PlusCircle className="h-4 w-4" /> Add execution phase
         </Button>
       )}
 
@@ -243,7 +250,7 @@ export const BudgetEditor = memo(function BudgetEditor({
         "flex justify-between items-center px-6 py-4 rounded-3xl border transition-all mt-8 shadow-sm",
         isLocked ? "bg-primary/5 border-primary/20" : "bg-card border-border/40"
       )}>
-        <span className="text-sm font-bold tracking-widest text-primary uppercase">Total Capital Goal</span>
+        <span className="text-sm font-bold text-primary uppercase">Total Capital Goal</span>
         <span className="text-2xl font-black text-foreground tabular-nums tracking-tight">₦ {formatNumberInput(String(totalCost))}</span>
       </div>
     </div>
