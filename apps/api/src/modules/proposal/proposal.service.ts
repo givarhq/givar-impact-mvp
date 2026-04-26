@@ -219,10 +219,15 @@ export class ProposalService {
   async getOne(userId: string, proposalId: string) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);
 
+    // CRITICAL FIX: Backup the raw S3/Cloudinary Key before hydration transforms it into a URL.
+    // This guarantees the frontend won't accidentally auto-save the expiring URL back to the DB.
+    const originalCoverImageKey = proposal.coverImage;
+
     const hydrated = await this.storage.hydrateEntityMedia(proposal);
 
     return {
       ...hydrated,
+      coverImageKey: originalCoverImageKey,
       targetAmount: hydrated.targetAmount?.toString() || '0'
     };
   }

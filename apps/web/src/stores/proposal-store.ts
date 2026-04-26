@@ -8,7 +8,6 @@ export interface BudgetItem {
   costType: string;
   amount: number;
   description: string;
-  stage?: string;
 }
 
 export interface TimelineItem {
@@ -36,7 +35,7 @@ interface ProposalState {
   personalMessage: string | null;
   categoryId: string | null;
   subcategoryId: string | null;
-  category: { name: string; slug?: string } | null; // <-- ADDED FOR TYPE SAFETY
+  category: { name: string; slug?: string } | null;
   location: string | null;
   endDate: string | null;
   targetAmount: number | null;
@@ -98,7 +97,7 @@ export const useProposalStore = create<ProposalState>()(
     personalMessage: null,
     categoryId: null,
     subcategoryId: null,
-    category: null, // <-- INITIALIZED
+    category: null,
     location: null,
     endDate: null,
     targetAmount: null,
@@ -143,15 +142,14 @@ export const useProposalStore = create<ProposalState>()(
         }))
         : [];
 
-      // Dynamic mapping to securely handle older drafts that used the fused 'item' and 'cost' fields
+      // Maps legacy structure without preserving the 'stage' property anymore
       const budget = Array.isArray(proposal.budgetBreakdown)
         ? proposal.budgetBreakdown.map((item: any) => ({
           id: item.id || crypto.randomUUID(),
           payTo: item.payTo || item.vendor || '',
           costType: item.costType || item.type || 'SERVICE',
           amount: item.amount !== undefined ? item.amount : (item.cost || 0),
-          description: item.description || item.item || '',
-          stage: item.stage || ''
+          description: item.description || item.item || ''
         }))
         : [];
 
@@ -168,10 +166,14 @@ export const useProposalStore = create<ProposalState>()(
         endDate: proposal.endDate || null,
         personalMessage: proposal.personalMessage || null,
         awarenessStatus: proposal.awarenessStatus || null,
-        coverImageKey: proposal.coverImage,
+
+        // CRITICAL FIX: Explicitly prefer the raw key from the backend to avoid saving URLs.
+        coverImage: proposal.coverImage || null,
+        coverImageKey: proposal.coverImageKey || proposal.coverImage || null,
+
         categoryId: proposal.categoryId || null,
         subcategoryId: proposal.subcategoryId || null,
-        category: proposal.category || null, // <-- MAPPED FROM API
+        category: proposal.category || null,
         gallery,
         budgetBreakdown: budget,
         executionTimeline: timeline,
