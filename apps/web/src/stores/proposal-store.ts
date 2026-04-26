@@ -35,7 +35,8 @@ interface ProposalState {
   description: string | null;
   personalMessage: string | null;
   categoryId: string | null;
-  subcategoryId: string | null; // <-- NEW
+  subcategoryId: string | null;
+  category: { name: string; slug?: string } | null; // <-- ADDED FOR TYPE SAFETY
   location: string | null;
   endDate: string | null;
   targetAmount: number | null;
@@ -55,7 +56,6 @@ interface ProposalState {
   contactPhone: string | null;
   beneficiaryContact: string | null;
 
-  // --- NEW ALIGNMENT FIELDS ---
   beneficiaryName: string | null;
   beneficiaryAge: number | null;
   beneficiaryRelationship: string | null;
@@ -90,7 +90,6 @@ interface ProposalState {
 
 export const useProposalStore = create<ProposalState>()(
   devtools((set, get) => ({
-    // Initial State
     id: null,
     status: null,
     title: '',
@@ -98,7 +97,8 @@ export const useProposalStore = create<ProposalState>()(
     description: null,
     personalMessage: null,
     categoryId: null,
-    subcategoryId: null, // <-- NEW
+    subcategoryId: null,
+    category: null, // <-- INITIALIZED
     location: null,
     endDate: null,
     targetAmount: null,
@@ -143,19 +143,21 @@ export const useProposalStore = create<ProposalState>()(
         }))
         : [];
 
-      // Dynamic mapping to bridge legacy schema to new Use of Funds schema
+      // Dynamic mapping to securely handle older drafts that used the fused 'item' and 'cost' fields
       const budget = Array.isArray(proposal.budgetBreakdown)
         ? proposal.budgetBreakdown.map((item: any) => ({
           id: item.id || crypto.randomUUID(),
           payTo: item.payTo || item.vendor || '',
-          costType: item.costType || item.type || 'GOODS',
+          costType: item.costType || item.type || 'SERVICE',
           amount: item.amount !== undefined ? item.amount : (item.cost || 0),
           description: item.description || item.item || '',
           stage: item.stage || ''
         }))
         : [];
 
-      const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object' ? proposal.executionTimeline : [];
+      const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object'
+        ? proposal.executionTimeline
+        : [];
 
       return {
         ...state,
@@ -168,7 +170,8 @@ export const useProposalStore = create<ProposalState>()(
         awarenessStatus: proposal.awarenessStatus || null,
         coverImageKey: proposal.coverImage,
         categoryId: proposal.categoryId || null,
-        subcategoryId: proposal.subcategoryId || null, // <-- NEW
+        subcategoryId: proposal.subcategoryId || null,
+        category: proposal.category || null, // <-- MAPPED FROM API
         gallery,
         budgetBreakdown: budget,
         executionTimeline: timeline,
@@ -199,7 +202,13 @@ export const useProposalStore = create<ProposalState>()(
       get().saveDraft();
     },
 
-    addKycDocument: (key) => set(state => ({ kycDocuments: [...state.kycDocuments, key] })),
-    removeKycDocument: (key) => set(state => ({ kycDocuments: state.kycDocuments.filter(item => item !== key) })),
+    addKycDocument: (key) => {
+      set(state => ({ kycDocuments: [...state.kycDocuments, key] }));
+      get().saveDraft();
+    },
+    removeKycDocument: (key) => {
+      set(state => ({ kycDocuments: state.kycDocuments.filter(item => item !== key) }));
+      get().saveDraft();
+    },
   }))
 );
