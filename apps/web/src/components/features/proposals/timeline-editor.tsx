@@ -20,15 +20,15 @@ interface TimelineEditorProps {
 }
 
 const PREDEFINED_PHASES = [
-  "Planning & Preparation",
-  "Procurement Of Materials",
-  "Vendor Engagement",
-  "Training / Capacity Building",
-  "Construction / Setup",
-  "Distribution / Delivery",
+  "Planning and preparation",
+  "Procurement of materials",
+  "Vendor engagement",
+  "Training and capacity building",
+  "Construction and setup",
+  "Distribution and delivery",
   "Implementation",
-  "Monitoring & Evaluation",
-  "Reporting & Close-out"
+  "Monitoring and evaluation",
+  "Reporting and close-out"
 ];
 
 export const TimelineEditor = memo(function TimelineEditor({
@@ -88,12 +88,12 @@ export const TimelineEditor = memo(function TimelineEditor({
   };
 
   const fieldContainerClass = cn(
-    "py-2.5 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start relative",
+    "py-3 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start relative",
     isLocked && "border-border/60"
   );
 
   const inputStyle = cn(
-    "h-9 text-xs rounded-3xl transition-all duration-200 w-full",
+    "h-10 text-sm rounded-3xl transition-all duration-200 w-full",
     isLocked
       ? "bg-transparent border-transparent shadow-none font-bold text-foreground cursor-default focus-visible:ring-0 px-1"
       : "bg-muted/20 border-border/50 focus:bg-background focus:border-primary/50"
@@ -120,7 +120,7 @@ export const TimelineEditor = memo(function TimelineEditor({
               >
                 {/* PHASE TITLE */}
                 <div className="md:col-span-4 space-y-1">
-                  <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Phase</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Phase</label>
                   {isLocked ? (
                     <Input value={item.phase} readOnly className={inputStyle} />
                   ) : (
@@ -128,32 +128,32 @@ export const TimelineEditor = memo(function TimelineEditor({
                       <Select value={selectValue} onValueChange={(val) => {
                         if (val === 'CUSTOM_PHASE') {
                           if (PREDEFINED_PHASES.includes(item.phase) || !item.phase) {
-                            handleUpdate(item.id, 'phase', 'New Phase');
+                            handleUpdate(item.id, 'phase', 'New phase');
                           }
                         } else {
                           handleUpdate(item.id, 'phase', val);
                         }
                       }}>
                         <SelectTrigger className={cn(inputStyle, "bg-muted/20")}>
-                          <SelectValue placeholder="Select Phase..." />
+                          <SelectValue placeholder="Select phase..." />
                         </SelectTrigger>
                         <SelectContent className="rounded-3xl max-h-64 shadow-xl">
                           {PREDEFINED_PHASES.map((p) => (
-                            <SelectItem key={p} value={p} className="rounded-3xl text-xs">{p}</SelectItem>
+                            <SelectItem key={p} value={p} className="rounded-2xl text-xs">{p}</SelectItem>
                           ))}
-                          <SelectItem value="CUSTOM_PHASE" className="rounded-3xl text-xs font-bold text-primary border-t border-border/40 mt-1">
-                            + Custom Label
+                          <SelectItem value="CUSTOM_PHASE" className="rounded-2xl text-xs font-bold text-primary border-t border-border/40 mt-1">
+                            + Custom label
                           </SelectItem>
                         </SelectContent>
                       </Select>
                       {isCustom && (
                         <div className="relative animate-in slide-in-from-top-1">
-                          <PenTool className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                          <PenTool className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             placeholder="Name..."
                             value={item.phase}
                             onChange={(e) => handleUpdate(item.id, 'phase', e.target.value)}
-                            className={cn(inputStyle, "pl-8 bg-primary/5 border-primary/20")}
+                            className={cn(inputStyle, "pl-11 bg-primary/5 border-primary/20")}
                           />
                         </div>
                       )}
@@ -163,9 +163,9 @@ export const TimelineEditor = memo(function TimelineEditor({
 
                 {/* ESTIMATED DATE */}
                 <div className="md:col-span-3 space-y-1">
-                  <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Due Date</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Due date</label>
                   <div className="relative">
-                    {!isLocked && <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />}
+                    {!isLocked && <CalendarIcon className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />}
                     <Input
                       type={isLocked ? "text" : "date"}
                       value={item.estimatedDate}
@@ -179,10 +179,10 @@ export const TimelineEditor = memo(function TimelineEditor({
                 {/* DELIVERABLES */}
                 <div className="md:col-span-5 flex gap-2 items-end relative">
                   <div className="flex-1 space-y-1 min-w-0">
-                    <label className="text-xs font-bold text-muted-foreground tracking-tight ml-1">Deliverables</label>
+                    <label className="text-xs font-bold text-muted-foreground ml-1">Deliverables</label>
                     <div className="relative">
                       <Input
-                        placeholder="Outcome Details..."
+                        placeholder="Outcome details..."
                         className={cn(inputStyle, isLocked && "italic font-medium text-muted-foreground")}
                         value={item.deliverables}
                         readOnly={true}
@@ -194,10 +194,10 @@ export const TimelineEditor = memo(function TimelineEditor({
                             <Textarea
                               value={item.deliverables}
                               onChange={(e) => handleUpdate(item.id, 'deliverables', e.target.value)}
-                              className="min-h-[100px] w-full border-none focus-visible:ring-0 text-xs p-3 bg-transparent rounded-3xl"
+                              className="min-h-[100px] w-full border-none focus-visible:ring-0 text-sm p-4 bg-transparent rounded-3xl"
                             />
                             <div className="flex justify-end p-2 border-t border-border/40 bg-muted/10 rounded-b-[24px]">
-                              <Button size="sm" className="h-7 text-xs font-bold rounded-3xl px-4" onClick={() => setEditingId(null)}>Done</Button>
+                              <Button size="sm" className="h-9 text-xs font-bold rounded-2xl px-6" onClick={() => setEditingId(null)}>Done</Button>
                             </div>
                           </div>
                         </div>
@@ -210,9 +210,9 @@ export const TimelineEditor = memo(function TimelineEditor({
                       size="icon"
                       variant="ghost"
                       onClick={() => removeItem(item.id)}
-                      className="text-destructive h-9 w-9 rounded-3xl hover:bg-destructive/10 shrink-0 transition-colors active:scale-90"
+                      className="text-destructive h-10 w-10 rounded-2xl hover:bg-destructive/10 shrink-0 transition-colors active:scale-90"
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -227,9 +227,9 @@ export const TimelineEditor = memo(function TimelineEditor({
           type="button"
           variant="outline"
           onClick={addItem}
-          className="w-full border-dashed rounded-3xl h-10 text-xs font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98]"
+          className="w-full border-dashed border-2 rounded-3xl h-14 text-sm font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98] bg-muted/5 hover:bg-primary/5 hover:border-primary/30"
         >
-          <PlusCircle className="h-3.5 w-3.5" /> Add Phase
+          <PlusCircle className="h-5 w-5" /> Add phase
         </Button>
       )}
     </div>
