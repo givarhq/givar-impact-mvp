@@ -7,11 +7,11 @@ import { Currency, ProjectStatus } from '@givar/database';
 
 export class AdminBudgetItem {
   @IsString() id!: string;
-  @IsString() item!: string;
-  @IsNumber() @Min(0) cost!: number;
-  @IsString() vendor!: string;
-  @IsOptional() @IsString() vendorContact?: string;
-  @IsString() type!: string;
+  @IsString() description!: string;
+  @IsNumber() @Min(0) amount!: number;
+  @IsString() payTo!: string;
+  @IsString() costType!: string;
+  @IsOptional() @IsString() stage?: string;
 }
 
 export class AdminTimelineItem {
