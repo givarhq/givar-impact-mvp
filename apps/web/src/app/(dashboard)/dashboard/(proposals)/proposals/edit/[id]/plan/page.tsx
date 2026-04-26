@@ -6,7 +6,7 @@ import { useProposalStore } from '../../../../../../../../stores/proposal-store'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, ArrowRight, Loader2, ShieldCheck, Briefcase } from 'lucide-react';
+import { ArrowRight, Loader2, ShieldCheck, Briefcase } from 'lucide-react';
 import { BudgetEditor } from '../../../../../../../../components/features/proposals/budget-editor';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import toast from 'react-hot-toast';
@@ -16,7 +16,7 @@ export default function PlanPage() {
   const params = useParams();
   const proposalId = params.id as string;
 
-  const { setProposal, riskAnalysis, updateField } = useProposalStore();
+  const { setProposal, riskAnalysis, updateField, category } = useProposalStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -42,13 +42,15 @@ export default function PlanPage() {
     );
   }
 
+  const categorySlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '';
+
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-          <CardTitle className="text-lg md:text-xl font-bold">Phased Execution Plan</CardTitle>
+          <CardTitle className="text-lg md:text-xl font-bold">Budget & Use of Funds</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Define your execution phases. Each phase acts as a funding milestone. Precision here is critical for administrative audit approval.
+            Itemize every requirement and vendor for project execution. Precision here is critical for administrative audit approval.
           </CardDescription>
         </CardHeader>
 
@@ -57,13 +59,16 @@ export default function PlanPage() {
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-primary" />
-                Implementation Roadmap
+                Cost Breakdown
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Itemize every phase requirement and vendor for project execution.</p>
+              <p className="text-xs text-muted-foreground font-medium">Detail the expenses required to successfully complete this cause.</p>
             </div>
             <div className="min-w-0">
-              <BudgetEditor />
+              <BudgetEditor categorySlug={categorySlug} />
             </div>
+            <p className="text-[11px] font-bold text-muted-foreground italic text-center pt-2">
+              This cause will be funded step-by-step based on these items.
+            </p>
           </div>
 
           <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">

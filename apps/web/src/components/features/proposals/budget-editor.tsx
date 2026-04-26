@@ -1,21 +1,24 @@
 'use client';
 
-import { BudgetItem, TimelineItem } from '../../../stores/proposal-store';
+import { useEffect, memo } from 'react';
+import { Trash2, PlusCircle, PenTool } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Textarea } from '../../ui/textarea';
-import { Trash2, PlusCircle, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
-import { useEffect, memo } from 'react';
-import { useProposalStore } from '../../../stores/proposal-store';
+import { useProposalStore, BudgetItem } from '../../../stores/proposal-store';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  CATEGORY_COST_TYPES,
+  CATEGORY_STAGE_LABELS,
+  DEFAULT_COST_TYPES,
+  DEFAULT_STAGE_LABELS
+} from '../../../lib/utils/category-constants';
 
 interface BudgetEditorProps {
   budgetItems?: BudgetItem[];
-  timelineItems?: TimelineItem[];
   onBudgetChange?: (items: BudgetItem[]) => void;
-  onTimelineChange?: (items: TimelineItem[]) => void;
   readOnly?: boolean;
   isLive?: boolean;
   isAdjustmentMode?: boolean;
@@ -24,95 +27,80 @@ interface BudgetEditorProps {
 
 export const BudgetEditor = memo(function BudgetEditor({
   budgetItems,
-  timelineItems,
   onBudgetChange,
-  onTimelineChange,
   readOnly = false,
   isLive = false,
-  isAdjustmentMode = false
+  isAdjustmentMode = false,
+  categorySlug
 }: BudgetEditorProps) {
+  const store = useProposalStore();
 
-  // CRITICAL FIX: Extract granular, stable state to prevent infinite loops
-  const storeBudget = useProposalStore(state => state.budgetBreakdown);
-  const storeTimeline = useProposalStore(state => state.executionTimeline);
-  const targetAmount = useProposalStore(state => state.targetAmount);
-  const updateField = useProposalStore(state => state.updateField);
-
-  const budgetBreakdown = budgetItems || storeBudget;
-  const executionTimeline = timelineItems || storeTimeline;
-
-  const updateBudget = onBudgetChange ? onBudgetChange : (val: any) => updateField('budgetBreakdown', val);
-  const updateTimeline = onTimelineChange ? onTimelineChange : (val: any) => updateField('executionTimeline', val);
+  const budgetBreakdown = budgetItems || store.budgetBreakdown;
+  const updateField = onBudgetChange ? (val: BudgetItem[]) => onBudgetChange(val) : (val: BudgetItem[]) => store.updateField('budgetBreakdown', val);
 
   const isLocked = readOnly || (isLive && !isAdjustmentMode);
 
-  const maxLength = Math.max(budgetBreakdown.length, executionTimeline.length);
-  const phases = Array.from({ length: maxLength }).map((_, i) => {
-    const b = budgetBreakdown[i] || { id: crypto.randomUUID(), payTo: '', costType: 'SERVICE', amount: 0, description: '' };
-    const t = executionTimeline[i] || { id: b.id, phase: '', estimatedDate: '', deliverables: '' };
-    return { budget: b, timeline: t, index: i };
-  });
+  const activeCostTypes = categorySlug && CATEGORY_COST_TYPES[categorySlug]
+    ? CATEGORY_COST_TYPES[categorySlug]
+    : DEFAULT_COST_TYPES;
 
-  const handleUpdate = (index: number, field: string, value: any) => {
+  const activeStageLabels = categorySlug && CATEGORY_STAGE_LABELS[categorySlug]
+    ? CATEGORY_STAGE_LABELS[categorySlug]
+    : DEFAULT_STAGE_LABELS;
+
+  const handleUpdate = (id: string, field: keyof BudgetItem, value: string | number) => {
     if (isLocked) return;
 
-    const newBudget = [...budgetBreakdown];
-    const newTimeline = [...executionTimeline];
+    let processedValue: string | number = value;
 
-    if (!newBudget[index]) newBudget[index] = { id: crypto.randomUUID(), payTo: '', costType: 'SERVICE', amount: 0, description: '' };
-    if (!newTimeline[index]) newTimeline[index] = { id: newBudget[index].id, phase: '', estimatedDate: '', deliverables: '' };
-
-    if (field === 'title') {
-      newBudget[index].description = value;
-      newTimeline[index].phase = value;
-    } else if (field === 'amount') {
+    if (field === 'amount') {
       const raw = parseFormattedNumber(String(value));
-      let num = raw === '' ? 0 : Number(raw);
-      if (isNaN(num)) num = 0;
-      newBudget[index].amount = num;
-    } else if (field === 'vendor') {
-      newBudget[index].payTo = value;
-    } else if (field === 'deliverables') {
-      newTimeline[index].deliverables = value;
-    } else if (field === 'estimatedDate') {
-      newTimeline[index].estimatedDate = value;
+      processedValue = raw === '' ? 0 : Number(raw);
+      if (isNaN(processedValue)) processedValue = 0;
     }
 
-    updateBudget(newBudget);
-    updateTimeline(newTimeline);
+    const updatedBudget = budgetBreakdown.map(item =>
+      item.id === id ? { ...item, [field]: processedValue } : item
+    );
+    updateField(updatedBudget);
   };
 
   const addItem = () => {
     if (isLocked) return;
-    const newId = crypto.randomUUID();
-    updateBudget([...budgetBreakdown, { id: newId, payTo: '', costType: 'SERVICE', amount: 0, description: '' }]);
-    updateTimeline([...executionTimeline, { id: newId, phase: '', estimatedDate: '', deliverables: '' }]);
+    const newItem: BudgetItem = {
+      id: crypto.randomUUID(),
+      payTo: '',
+      costType: activeCostTypes[0].value,
+      amount: 0,
+      description: '',
+      stage: '',
+    };
+    updateField([...budgetBreakdown, newItem]);
   };
 
-  const removeItem = (index: number) => {
+  const removeItem = (id: string) => {
     if (isLocked) return;
-    const newBudget = [...budgetBreakdown];
-    const newTimeline = [...executionTimeline];
-    newBudget.splice(index, 1);
-    newTimeline.splice(index, 1);
-    updateBudget(newBudget);
-    updateTimeline(newTimeline);
+    updateField(budgetBreakdown.filter(item => item.id !== id));
   };
 
   useEffect(() => {
     if (!onBudgetChange) {
       const total = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
-      // CRITICAL FIX: Only dispatch update if the total actually mathematically changed
-      if (total !== targetAmount) {
-        updateField('targetAmount', total);
+      if (total !== store.targetAmount) {
+        store.updateField('targetAmount', total);
       }
     }
-  }, [budgetBreakdown, onBudgetChange, targetAmount, updateField]);
+  }, [budgetBreakdown, onBudgetChange, store]);
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
+  const fieldContainerClass = cn(
+    "py-3 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
+    isLocked && "border-border/60"
+  );
+
   const inputStyle = cn(
-    "h-10 text-sm rounded-2xl transition-all duration-200 w-full",
+    "h-9 text-xs rounded-3xl transition-all duration-200 w-full",
     isLocked
       ? "bg-transparent border-transparent shadow-none font-bold text-foreground cursor-default focus-visible:ring-0 px-1"
       : "bg-muted/20 border-border/50 focus:bg-background focus:border-primary/50"
@@ -120,118 +108,145 @@ export const BudgetEditor = memo(function BudgetEditor({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
+      <div className="space-y-1">
         <AnimatePresence initial={false} mode="popLayout">
-          {phases.map(({ budget, timeline, index }) => (
-            <motion.div
-              key={budget.id}
-              layout
-              initial={{ opacity: 0, scale: 0.98, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, height: 0, overflow: 'hidden' }}
-              transition={{ duration: 0.2 }}
-              className={cn(
-                "p-5 md:p-6 rounded-3xl border transition-all relative group",
-                isLocked ? "bg-muted/5 border-border/40" : "bg-card border-border/60 hover:border-primary/30 shadow-sm"
-              )}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2.5">
-                  <div className={cn(
-                    "h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-black border",
-                    isLocked ? "bg-primary text-white border-primary" : "bg-primary/10 text-primary border-primary/20"
-                  )}>
-                    {isLocked ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
-                  </div>
-                  <h4 className="text-sm font-bold text-foreground">Phase {index + 1}</h4>
-                </div>
-                {!isLocked && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => removeItem(index)}
-                    className="text-destructive hover:bg-destructive/10 rounded-2xl h-8 w-8 shrink-0 transition-colors active:scale-90 opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+          {budgetBreakdown.map((item) => {
+            const currentStage = item.stage || '';
+            const isCustomStage = currentStage !== '' && !activeStageLabels.includes(currentStage);
+            const selectValue = isCustomStage ? 'CUSTOM' : (currentStage === '' ? 'NONE' : currentStage);
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-                {/* Phase Title */}
-                <div className="md:col-span-8 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Phase objective</label>
+            return (
+              <motion.div
+                key={item.id}
+                layout
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                transition={{ duration: 0.2 }}
+                className={fieldContainerClass}
+              >
+                {/* PAY TO */}
+                <div className="md:col-span-3 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay to</label>
                   <Input
-                    placeholder="e.g. Foundation construction"
-                    value={budget.description}
-                    onChange={(e) => handleUpdate(index, 'title', e.target.value)}
+                    placeholder="Vendor or recipient..."
+                    value={item.payTo}
+                    onChange={(e) => handleUpdate(item.id, 'payTo', e.target.value)}
                     readOnly={isLocked}
                     className={inputStyle}
                   />
                 </div>
 
-                {/* Phase Cost */}
-                <div className="md:col-span-4 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Capital required (NGN)</label>
+                {/* COST TYPE */}
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Cost type</label>
+                  {isLocked ? (
+                    <Input value={item.costType} readOnly className={inputStyle} />
+                  ) : (
+                    <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
+                      <SelectTrigger className={cn(inputStyle, "text-xs font-bold", isLocked && "text-primary")}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                        {activeCostTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value} className="rounded-2xl py-2.5 text-xs font-bold">
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                {/* AMOUNT */}
+                <div className="md:col-span-2 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Amount</label>
                   <div className="relative">
-                    {!isLocked && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
+                    {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
                     <Input
                       placeholder="0"
-                      className={cn(inputStyle, !isLocked && "pl-8", "tabular-nums font-bold")}
-                      value={budget.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(budget.amount))}` : formatNumberInput(String(budget.amount)))}
-                      onChange={(e) => handleUpdate(index, 'amount', e.target.value)}
+                      className={cn(inputStyle, !isLocked && "pl-6", "tabular-nums font-bold")}
+                      value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
+                      onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
                       readOnly={isLocked}
                     />
                   </div>
                 </div>
 
-                {/* Vendor Allocation */}
-                <div className="md:col-span-6 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Assigned vendor or payee</label>
+                {/* DESCRIPTION */}
+                <div className="md:col-span-3 space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Description</label>
                   <Input
-                    placeholder="e.g. ABC Engineering Ltd"
-                    value={budget.payTo}
-                    onChange={(e) => handleUpdate(index, 'vendor', e.target.value)}
+                    placeholder="Details..."
+                    value={item.description}
+                    onChange={(e) => handleUpdate(item.id, 'description', e.target.value)}
                     readOnly={isLocked}
                     className={inputStyle}
                   />
                 </div>
 
-                {/* Estimated Date */}
-                <div className="md:col-span-6 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Estimated completion date (Optional)</label>
-                  <div className="relative">
-                    {!isLocked && <CalendarIcon className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />}
-                    <Input
-                      type={isLocked ? "text" : "date"}
-                      value={timeline.estimatedDate}
-                      onChange={(e) => handleUpdate(index, 'estimatedDate', e.target.value)}
-                      readOnly={isLocked}
-                      className={cn(inputStyle, isLocked && "text-primary font-bold")}
-                    />
-                  </div>
-                </div>
-
-                {/* Deliverables */}
-                <div className="md:col-span-12 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Expected deliverables (Proof of work)</label>
-                  <Textarea
-                    placeholder="What specific visual proof will the vendor provide upon completion?"
-                    value={timeline.deliverables}
-                    onChange={(e) => handleUpdate(index, 'deliverables', e.target.value)}
-                    readOnly={isLocked}
-                    className={cn(
-                      "min-h-[80px] text-sm rounded-2xl transition-all duration-200 resize-none",
-                      isLocked
-                        ? "bg-transparent border-transparent shadow-none font-medium italic text-muted-foreground p-1"
-                        : "bg-muted/20 border-border/50 focus:bg-background focus:border-primary/50 p-3.5"
+                {/* OPTIONAL STAGE & DELETE */}
+                <div className="md:col-span-2 flex gap-2 items-end">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Stage (Optional)</label>
+                    {isLocked ? (
+                      <Input value={item.stage} readOnly className={inputStyle} />
+                    ) : (
+                      <div className="space-y-2">
+                        <Select
+                          value={selectValue}
+                          onValueChange={(v) => {
+                            if (v === 'CUSTOM') {
+                              handleUpdate(item.id, 'stage', activeStageLabels[0] || 'Phase 1');
+                            } else if (v === 'NONE') {
+                              handleUpdate(item.id, 'stage', '');
+                            } else {
+                              handleUpdate(item.id, 'stage', v);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className={cn(inputStyle, "bg-muted/20 font-bold")}>
+                            <SelectValue placeholder="Select stage..." />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                            <SelectItem value="NONE" className="rounded-2xl py-2.5 text-xs italic font-medium">No stage</SelectItem>
+                            {activeStageLabels.map((label) => (
+                              <SelectItem key={label} value={label} className="rounded-2xl py-2.5 text-xs font-bold">{label}</SelectItem>
+                            ))}
+                            <SelectItem value="CUSTOM" className="rounded-2xl py-2.5 text-xs font-bold text-primary border-t border-border/40 mt-1">
+                              + Custom stage
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {isCustomStage && (
+                          <div className="relative animate-in slide-in-from-top-1">
+                            <PenTool className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                            <Input
+                              placeholder="Name..."
+                              value={item.stage}
+                              onChange={(e) => handleUpdate(item.id, 'stage', e.target.value)}
+                              className={cn(inputStyle, "pl-8 bg-primary/5 border-primary/20")}
+                            />
+                          </div>
+                        )}
+                      </div>
                     )}
-                  />
+                  </div>
+                  {!isLocked && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeItem(item.id)}
+                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-9 w-9 shrink-0 transition-colors active:scale-90 mb-[1px]"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </AnimatePresence>
       </div>
 
@@ -242,7 +257,7 @@ export const BudgetEditor = memo(function BudgetEditor({
           onClick={addItem}
           className="w-full border-dashed border-2 rounded-3xl h-14 text-sm font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98] bg-muted/10 hover:bg-primary/5 hover:border-primary/30"
         >
-          <PlusCircle className="h-4 w-4" /> Add execution phase
+          <PlusCircle className="h-4 w-4" /> Add budget entry
         </Button>
       )}
 
@@ -250,7 +265,7 @@ export const BudgetEditor = memo(function BudgetEditor({
         "flex justify-between items-center px-6 py-4 rounded-3xl border transition-all mt-8 shadow-sm",
         isLocked ? "bg-primary/5 border-primary/20" : "bg-card border-border/40"
       )}>
-        <span className="text-sm font-bold text-primary uppercase">Total Capital Goal</span>
+        <span className="text-sm font-bold text-primary uppercase">Budget Total</span>
         <span className="text-2xl font-black text-foreground tabular-nums tracking-tight">₦ {formatNumberInput(String(totalCost))}</span>
       </div>
     </div>

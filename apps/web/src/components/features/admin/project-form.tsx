@@ -12,7 +12,7 @@ import {
   Loader2, Save, X, Image as ImageIcon, Video,
   Briefcase, MapPin, ShieldCheck, ExternalLink,
   LockOpen, Fingerprint, FileText, Send, Trash2,
-  Tag
+  Tag, Clock
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -20,6 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { RichTextEditor } from '../../ui/rich-text-editor';
 import { ApiService } from '../../../services/api';
 import { BudgetEditor } from '../proposals/budget-editor';
+import { TimelineEditor } from '../proposals/timeline-editor';
 import { MediaManager, ImageUploader, VideoUploader } from '../proposals/media-uploader';
 import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -37,14 +38,11 @@ const mediaItemSchema = z.object({
 
 const budgetItemSchema = z.object({
   id: z.string(),
-  item: z.string().optional(),
   description: z.string().optional(),
-  cost: z.number().min(0).optional(),
   amount: z.number().min(0).optional(),
-  vendor: z.string().optional(),
   payTo: z.string().optional(),
-  type: z.string().optional(),
   costType: z.string().optional(),
+  stage: z.string().optional(),
 });
 
 const timelineItemSchema = z.object({
@@ -99,7 +97,15 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       coverImage: initialData.imageUrl || '',
       videoUrl: initialData.videoUrl || '',
       gallery: initialData.gallery || [],
-      budgetBreakdown: initialData.budgetBreakdown || [],
+      // Gracefully map legacy data fields to the new Budget Editor format if needed
+      budgetBreakdown: (initialData.budgetBreakdown || []).map((b: any) => ({
+        id: b.id || crypto.randomUUID(),
+        payTo: b.payTo || b.vendor || '',
+        costType: b.costType || b.type || 'SERVICE',
+        amount: b.amount !== undefined ? b.amount : (b.cost || 0),
+        description: b.description || b.item || '',
+        stage: b.stage || ''
+      })),
       executionTimeline: initialData.executionTimeline || [],
       personalMessage: initialData.personalMessage || '',
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
@@ -525,25 +531,47 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       </section>
 
-      {/* Financial & Strategic Sections (Fused Phase Builder) */}
+      {/* Financial Budget Section */}
       <Card className={cn(
         "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
       )}>
         <div className="flex items-center gap-4">
-          <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted" : "bg-primary/10 text-primary border border-primary/20")}>
+          <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary border border-primary/20")}>
             <Briefcase className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-base text-foreground leading-none">Phased Execution Plan</h3>
-            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Unified budget & implementation roadmap</p>
+            <h3 className="font-bold text-base text-foreground leading-none">Use of Funds</h3>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed financial breakdown</p>
           </div>
         </div>
         <BudgetEditor
           budgetItems={budget as any}
-          timelineItems={timeline as any}
           onBudgetChange={(items) => setValue('budgetBreakdown', items as any, { shouldDirty: true })}
-          onTimelineChange={(items) => setValue('executionTimeline', items as any, { shouldDirty: true })}
+          readOnly={readOnly}
+          isLive={isLive}
+          isAdjustmentMode={isAdjustmentMode}
+          categorySlug={selectedCategoryObj?.slug}
+        />
+      </Card>
+
+      {/* Strategic Timeline Section */}
+      <Card className={cn(
+        "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
+        readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
+      )}>
+        <div className="flex items-center gap-4">
+          <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary border border-primary/20")}>
+            <Clock className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Step-by-step implementation phases</p>
+          </div>
+        </div>
+        <TimelineEditor
+          items={timeline as any}
+          onChange={(items) => setValue('executionTimeline', items as any, { shouldDirty: true })}
           readOnly={readOnly}
           isLive={isLive}
           isAdjustmentMode={isAdjustmentMode}
