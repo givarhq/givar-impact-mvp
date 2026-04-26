@@ -1,5 +1,5 @@
 /**
- * Dynamic mapping for cost types and labels based on cause categories.
+ * Dynamic mapping for expense types and labels based on cause categories.
  * Aligned with the Product Spec 1.1 for Medical, Education, and Community.
  */
 
@@ -33,38 +33,9 @@ export const CATEGORY_COST_TYPES: Record<string, { label: string; value: string 
     ],
 };
 
-export const CATEGORY_STAGE_LABELS: Record<string, string[]> = {
-    medical: [
-        'Pre-treatment',
-        'Clinical procedures',
-        'Medication',
-        'Recovery',
-        'Follow-up'
-    ],
-    education: [
-        'Registration',
-        'Tuition',
-        'Resources',
-        'Assessment'
-    ],
-    community: [
-        'Phase 1: Setup',
-        'Phase 2: Execution',
-        'Phase 3: Launch',
-        'Phase 4: Impact'
-    ]
-};
-
 export const DEFAULT_COST_TYPES = [
     { label: 'Goods', value: 'GOODS' },
     { label: 'Service', value: 'SERVICE' },
     { label: 'Logistics', value: 'LOGISTICS' },
     { label: 'Other', value: 'OTHER' },
-];
-
-export const DEFAULT_STAGE_LABELS = [
-    'Phase 1',
-    'Phase 2',
-    'Phase 3',
-    'Phase 4'
 ];

@@ -356,7 +356,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     <th className="px-6 py-4">Item</th>
                                                     <th className="px-6 py-4 hidden md:table-cell">Type</th>
                                                     <th className="px-6 py-4 hidden md:table-cell">Pay To (Vendor)</th>
-                                                    <th className="px-6 py-4 hidden lg:table-cell">Stage</th>
                                                     <th className="px-6 py-4 text-right">Allocation</th>
                                                 </tr>
                                             </thead>
@@ -374,9 +373,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                         </td>
                                                         <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium text-[11px]">{item.costType || item.type}</td>
                                                         <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.payTo || item.vendor}</td>
-                                                        <td className="px-6 py-4 hidden lg:table-cell text-muted-foreground">
-                                                            {item.stage ? <Badge variant="secondary" className="text-[9px] px-2.5 py-0.5 h-auto font-bold rounded-3xl shadow-none whitespace-nowrap w-fit inline-flex">{item.stage}</Badge> : '-'}
-                                                        </td>
                                                         <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold">
                                                             {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                         </td>

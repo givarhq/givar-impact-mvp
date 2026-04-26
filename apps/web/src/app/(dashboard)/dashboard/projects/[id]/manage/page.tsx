@@ -235,7 +235,7 @@ export default async function ProjectManagePage({
 
                                     // Calculate if phase is fully funded
                                     let phaseCumulativeMajor = 0;
-                                    for(let j=0; j<=i; j++) {
+                                    for (let j = 0; j <= i; j++) {
                                         phaseCumulativeMajor += (budget[j].amount || budget[j].cost || 0);
                                     }
                                     const phaseCapMinor = BigInt(phaseCumulativeMajor * 100);
