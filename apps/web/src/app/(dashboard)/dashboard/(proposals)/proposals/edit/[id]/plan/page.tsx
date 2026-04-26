@@ -16,7 +16,7 @@ export default function PlanPage() {
   const params = useParams();
   const proposalId = params.id as string;
 
-  const { setProposal, riskAnalysis, updateField, category } = useProposalStore();
+  const { setProposal, riskAnalysis, budgetBreakdown, updateField, category } = useProposalStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -42,6 +42,11 @@ export default function PlanPage() {
     );
   }
 
+  // Validation Logic: At least one budget item required, and all items must be fully filled
+  const isPlanValid = budgetBreakdown.length > 0 && budgetBreakdown.every(
+    item => item.payTo?.trim() && item.costType && item.amount > 0 && item.description?.trim()
+  );
+
   const categorySlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '';
 
   return (
@@ -59,13 +64,15 @@ export default function PlanPage() {
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-primary" />
-                Cost Breakdown
+                Cost Breakdown *
               </h3>
               <p className="text-xs text-muted-foreground font-medium">Detail the expenses required to successfully complete this cause.</p>
             </div>
+
             <div className="min-w-0">
               <BudgetEditor categorySlug={categorySlug} />
             </div>
+
             <p className="text-[11px] font-bold text-muted-foreground italic text-center pt-2">
               This cause will be funded step-by-step based on these items.
             </p>
@@ -86,20 +93,29 @@ export default function PlanPage() {
             />
           </div>
 
-          <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
             <Button
               variant="outline"
-              className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
+              className="w-full sm:w-auto rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
             >
               <span>Back</span>
             </Button>
-            <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
-              onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/trust`)}
-            >
-              <span>Verification</span> <ArrowRight className="h-4 w-4 shrink-0" />
-            </Button>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              {!isPlanValid && (
+                <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-center">
+                  Fill all expense fields to continue
+                </span>
+              )}
+              <Button
+                disabled={!isPlanValid}
+                className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+                onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/trust`)}
+              >
+                <span>Verification</span> <ArrowRight className="h-4 w-4 shrink-0" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, ArrowRight, Trash2, Loader2, Camera, ImageIcon, Video } from 'lucide-react';
+import { ArrowRight, Trash2, Loader2, ImageIcon, Video } from 'lucide-react';
 import { MediaManager, ImageUploader, VideoUploader } from '../../../../../../../../components/features/proposals/media-uploader';
 import toast from 'react-hot-toast';
 
@@ -22,8 +22,6 @@ export default function MediaPage() {
   } = useProposalStore();
 
   const [isLoading, setIsLoading] = useState(true);
-
-  // Fetch Presigned URL for video if it's an S3 key on initial load
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,8 +56,8 @@ export default function MediaPage() {
   };
 
   const handleVideoUpload = (data: { key: string; previewUrl: string }) => {
-    updateField('videoUrl', data.key); // DB saves the permanent key
-    setVideoPreview(data.previewUrl);  // UI plays the active URL
+    updateField('videoUrl', data.key);
+    setVideoPreview(data.previewUrl);
   };
 
   if (isLoading) {
@@ -69,6 +67,9 @@ export default function MediaPage() {
       </div>
     );
   }
+
+  // Validation Logic: A Cover Image is strictly required
+  const isMediaValid = !!coverImage;
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -88,7 +89,7 @@ export default function MediaPage() {
             <div className="space-y-4 min-w-0">
               <div className="flex items-center gap-2 px-1">
                 <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Primary hero image</label>
+                <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Primary hero image *</label>
               </div>
               {coverImage ? (
                 <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted">
@@ -165,7 +166,7 @@ export default function MediaPage() {
           {/* Gallery Section */}
           <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
             <div className="flex justify-between items-center px-1">
-              <label className="text-[11px] font-bold text-muted-foreground  tracking-widest">Project gallery</label>
+              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Project gallery</label>
               <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
             </div>
 
@@ -178,20 +179,29 @@ export default function MediaPage() {
           </div>
 
           {/* Navigation Controls */}
-          <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
             <Button
               variant="outline"
-              className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
+              className="w-full sm:w-auto rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"
               onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/hook`)}
             >
               <span>Back</span>
             </Button>
-            <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
-              onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)}
-            >
-              <span>Execution</span> <ArrowRight className="h-4 w-4 shrink-0" />
-            </Button>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              {!isMediaValid && (
+                <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-center">
+                  A primary hero image is required
+                </span>
+              )}
+              <Button
+                disabled={!isMediaValid}
+                className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+                onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)}
+              >
+                <span>Execution</span> <ArrowRight className="h-4 w-4 shrink-0" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

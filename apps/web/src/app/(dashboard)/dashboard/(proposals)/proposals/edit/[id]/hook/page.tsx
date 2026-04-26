@@ -9,7 +9,7 @@ import { Input } from '../../../../../../../../components/ui/input';
 import { Textarea } from '../../../../../../../../components/ui/textarea';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function HookPage() {
@@ -48,6 +48,13 @@ export default function HookPage() {
     );
   }
 
+  // Validation Logic: Title, Location, and Description are required to proceed.
+  const strippedDescription = description ? description.replace(/<[^>]*>?/gm, '').trim() : '';
+  const isHookValid =
+    title && title.trim().length >= 10 &&
+    location && location.trim().length >= 2 &&
+    strippedDescription.length >= 20;
+
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
@@ -61,7 +68,7 @@ export default function HookPage() {
         <CardContent className="p-6 md:p-8 pt-6 space-y-8 min-w-0">
           <div className="space-y-6 min-w-0">
             <Input
-              label="Cause Title"
+              label="Cause Title *"
               placeholder="e.g. Clean water for Owerri communities"
               value={title}
               onChange={(e) => updateField('title', e.target.value)}
@@ -78,7 +85,7 @@ export default function HookPage() {
             />
 
             <div className="space-y-1.5 min-w-0">
-              <label className="text-xs font-bold text-muted-foreground/80 ml-1">Cause Description</label>
+              <label className="text-xs font-bold text-muted-foreground/80 ml-1">Cause Description *</label>
               <RichTextEditor
                 content={description || ''}
                 onChange={(content) => updateField('description', content)}
@@ -96,7 +103,7 @@ export default function HookPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
               <Input
-                label="Primary Location"
+                label="Primary Location *"
                 placeholder="e.g. Lagos, Nigeria"
                 value={location || ''}
                 onChange={(e) => updateField('location', e.target.value)}
@@ -116,13 +123,23 @@ export default function HookPage() {
             </div>
           </div>
 
-          <div className="flex justify-end pt-6 border-t border-border/40 min-w-0">
-            <Button
-              className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
-              onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
-            >
-              <span>Media</span> <ArrowRight className="h-4 w-4 shrink-0" />
-            </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
+            <div className="w-full sm:w-auto" /> {/* Spacer */}
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              {!isHookValid && (
+                <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+                  Complete required fields to continue
+                </span>
+              )}
+              <Button
+                disabled={!isHookValid}
+                className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+                onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
+              >
+                <span>Media</span> <ArrowRight className="h-4 w-4 shrink-0" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
