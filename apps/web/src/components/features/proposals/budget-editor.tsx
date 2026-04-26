@@ -33,10 +33,14 @@ export const BudgetEditor = memo(function BudgetEditor({
   isAdjustmentMode = false,
   categorySlug
 }: BudgetEditorProps) {
-  const store = useProposalStore();
 
-  const budgetBreakdown = budgetItems || store.budgetBreakdown;
-  const updateField = onBudgetChange ? (val: BudgetItem[]) => onBudgetChange(val) : (val: BudgetItem[]) => store.updateField('budgetBreakdown', val);
+  // CRITICAL FIX: Extract granular state to prevent infinite loops
+  const storeBudget = useProposalStore(state => state.budgetBreakdown);
+  const targetAmount = useProposalStore(state => state.targetAmount);
+  const updateField = useProposalStore(state => state.updateField);
+
+  const budgetBreakdown = budgetItems || storeBudget;
+  const updateBudget = onBudgetChange ? (val: BudgetItem[]) => onBudgetChange(val) : (val: BudgetItem[]) => updateField('budgetBreakdown', val);
 
   const isLocked = readOnly || (isLive && !isAdjustmentMode);
 
@@ -62,7 +66,7 @@ export const BudgetEditor = memo(function BudgetEditor({
     const updatedBudget = budgetBreakdown.map(item =>
       item.id === id ? { ...item, [field]: processedValue } : item
     );
-    updateField(updatedBudget);
+    updateBudget(updatedBudget);
   };
 
   const addItem = () => {
@@ -75,22 +79,23 @@ export const BudgetEditor = memo(function BudgetEditor({
       description: '',
       stage: '',
     };
-    updateField([...budgetBreakdown, newItem]);
+    updateBudget([...budgetBreakdown, newItem]);
   };
 
   const removeItem = (id: string) => {
     if (isLocked) return;
-    updateField(budgetBreakdown.filter(item => item.id !== id));
+    updateBudget(budgetBreakdown.filter(item => item.id !== id));
   };
 
   useEffect(() => {
     if (!onBudgetChange) {
       const total = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
-      if (total !== store.targetAmount) {
-        store.updateField('targetAmount', total);
+      // CRITICAL FIX: Only update state if the math has changed to prevent infinite re-renders
+      if (total !== targetAmount) {
+        updateField('targetAmount', total);
       }
     }
-  }, [budgetBreakdown, onBudgetChange, store]);
+  }, [budgetBreakdown, onBudgetChange, targetAmount, updateField]);
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
@@ -188,7 +193,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 {/* OPTIONAL STAGE & DELETE */}
                 <div className="md:col-span-2 flex gap-2 items-end">
                   <div className="flex-1 space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Stage (Optional)</label>
+                    <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Stage (optional)</label>
                     {isLocked ? (
                       <Input value={item.stage} readOnly className={inputStyle} />
                     ) : (
