@@ -11,6 +11,7 @@ import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-
 import { ApiService } from '../../../../../../../../services/api';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { cn } from '../../../../../../../../lib/utils/cn';
 
 export default function HookPage() {
   const router = useRouter();
@@ -48,12 +49,24 @@ export default function HookPage() {
     );
   }
 
-  // Validation Logic: Title, Location, and Description are required to proceed.
+  // Validation Logic
   const strippedDescription = description ? description.replace(/<[^>]*>?/gm, '').trim() : '';
-  const isHookValid =
-    title && title.trim().length >= 10 &&
-    location && location.trim().length >= 2 &&
-    strippedDescription.length >= 20;
+
+  const titleValid = !!(title && title.trim().length >= 10);
+  const locationValid = !!(location && location.trim().length >= 2);
+  const descValid = strippedDescription.length >= 20;
+
+  const isHookValid = titleValid && locationValid && descValid;
+
+  // Dynamic Error Message
+  let errorMessage = "Complete required fields to continue";
+  if (!titleValid) {
+    errorMessage = "Title must be at least 10 characters";
+  } else if (!descValid) {
+    errorMessage = "Description must be at least 20 characters";
+  } else if (!locationValid) {
+    errorMessage = "Primary location is required";
+  }
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -85,7 +98,15 @@ export default function HookPage() {
             />
 
             <div className="space-y-1.5 min-w-0">
-              <label className="text-xs font-bold text-muted-foreground/80 ml-1">Cause Description *</label>
+              <div className="flex justify-between items-center px-1">
+                <label className="text-xs font-bold text-muted-foreground/80">Cause Description *</label>
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors",
+                  descValid ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                )}>
+                  {strippedDescription.length} / 20 min chars
+                </span>
+              </div>
               <RichTextEditor
                 content={description || ''}
                 onChange={(content) => updateField('description', content)}
@@ -128,8 +149,8 @@ export default function HookPage() {
 
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               {!isHookValid && (
-                <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-                  Complete required fields to continue
+                <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-center">
+                  {errorMessage}
                 </span>
               )}
               <Button
