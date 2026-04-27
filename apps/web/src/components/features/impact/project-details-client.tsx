@@ -12,7 +12,9 @@ import {
     CheckCircle2,
     Landmark,
     Quote,
-    Users
+    Users,
+    FileText,
+    Building2
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -77,12 +79,12 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const getVerificationMeta = () => {
         if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') {
-            return { label: 'Platform', icon: BadgeCheck, color: 'text-primary', badgeStyle: 'bg-primary/10 text-primary border-primary/20' };
+            return { label: 'Platform', icon: BadgeCheck, type: 'Platform' };
         }
         if (project.organizerType === 'ORGANIZATION') {
-            return { label: 'Verified Organization', icon: ShieldCheck, color: 'text-blue-600', badgeStyle: 'bg-blue-50 text-blue-700 border-blue-200' };
+            return { label: 'Organization', icon: Building2, type: 'Organization' };
         }
-        return { label: 'Verified Advocate', icon: UserCheck, color: 'text-emerald-600', badgeStyle: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        return { label: 'Advocate', icon: UserCheck, type: 'Individual' };
     };
 
     const verMeta = getVerificationMeta();
@@ -114,12 +116,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         <Badge variant="secondary" className="rounded-3xl font-bold text-xs px-3 py-1 border-none bg-muted">
                             {displayCategory}
                         </Badge>
-
-                        {project.isVerifiedOrganizer && (
-                            <Badge variant="outline" className={cn("rounded-3xl font-bold text-xs px-3 py-1 border gap-1.5", verMeta.badgeStyle)}>
-                                <VerIcon className="h-3 w-3" /> {verMeta.label}
-                            </Badge>
-                        )}
                     </div>
                     <h1 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
                         {project.title}
@@ -241,7 +237,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <Tabs defaultValue="story" className="w-full">
                     <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
                         <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
-                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Implementation Plan</TabsTrigger>
+                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Use of Funds</TabsTrigger>
                         <TabsTrigger value="updates" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
                             Updates
                             <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
@@ -477,21 +473,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
-                    <div className="p-3 rounded-2xl bg-card border border-border/40 flex items-center justify-between shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-blue-500" />
-                            <span className="text-xs font-bold text-muted-foreground">Verified Donors</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="font-bold text-sm text-foreground">{project.donorCount || 0}</span>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-                        </div>
-                    </div>
-
                     <div className="space-y-3 hidden md:block">
                         {(!isCompleted && !isFundedState && !isPhaseFull) && (
                             <Link href={donateLink} className="block w-full">
-                                <Button size="lg" className="w-full h-12 rounded-3xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 border-0">
+                                <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
                                     Fund this impact
                                 </Button>
                             </Link>
@@ -502,58 +487,57 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </Button>
                     </div>
 
-                    {/* Organizer Identity Card */}
-                    <Card className={cn(
-                        "rounded-3xl border p-5 flex flex-col transition-all relative overflow-hidden shadow-sm",
-                        project.isVerifiedOrganizer ? "border-primary/20 bg-primary/5" : "bg-card border-border/40"
-                    )}>
-                        <div className="flex items-center gap-4 relative z-10">
-                            <div className={cn(
-                                "h-11 w-11 rounded-3xl flex items-center justify-center text-white font-bold text-lg shrink-0",
-                                project.isVerifiedOrganizer ? "bg-primary" : "bg-muted text-muted-foreground"
-                            )}>
-                                {project.organizerName === 'Givar' ? <Heart className="h-5 w-5 fill-current" /> : project.organizerName?.[0] || 'O'}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1 mb-0.5">
-                                    <div className={cn("flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-widest", verMeta.color)}>
-                                        <VerIcon className="h-3 w-3" />
-                                        {verMeta.label}
-                                    </div>
+                    {/* Verified by Givar Card */}
+                    <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0">
+                            <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
+                                <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-5 space-y-5 min-w-0">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <VerIcon className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">{verMeta.type}</span>
                                 </div>
-                                <p className="font-bold text-foreground truncate text-sm mt-0.5">
+                                <span className="text-xs font-bold text-foreground truncate max-w-[140px] text-right">
                                     {project.organizerName}
-                                </p>
+                                </span>
                             </div>
-                        </div>
+
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <Users className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">Donors</span>
+                                </div>
+                                <span className="text-xs font-bold text-foreground tabular-nums text-right">
+                                    {project.donorCount || 0}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <FileText className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">Budget & Plan</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Approved
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <BadgeCheck className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">Legal Documents</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Audited
+                                </div>
+                            </div>
+                        </CardContent>
                     </Card>
 
-                    {/* Expandable Verification Documents Section */}
-                    <details className="bg-card rounded-3xl border border-border/40 group overflow-hidden shadow-sm transition-all">
-                        <summary className="p-5 flex items-center justify-between cursor-pointer list-none font-bold text-sm outline-none">
-                            <span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Verification Documents</span>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-open:rotate-90 transition-transform" />
-                        </summary>
-                        <div className="px-5 pb-5 space-y-3">
-                            <div className="pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
-                                <span>Submitter Government ID</span>
-                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-                                <span>Beneficiary Identity</span>
-                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-                                <span>Vendor Contact Details</span>
-                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-                                <span>Supporting Evidence</span>
-                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                            </div>
-                        </div>
-                    </details>
-
+                    {/* Givar Protocol Disclaimer */}
                     <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-emerald-900/70 leading-relaxed font-medium">
@@ -571,7 +555,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 {(!isCompleted && !isFundedState && !isPhaseFull) ? (
                     <>
                         <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
-                            <Button size="lg" className="w-full h-12 rounded-3xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 border-0">
+                            <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
                                 Fund this impact
                             </Button>
                         </Link>

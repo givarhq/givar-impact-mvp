@@ -17,6 +17,11 @@ import {
     Megaphone,
     AlertCircle,
     Target,
+    Users,
+    BadgeCheck,
+    Building2,
+    UserCheck,
+    FileText,
     Check
 } from 'lucide-react';
 import Link from 'next/link';
@@ -95,6 +100,23 @@ export default async function ProjectManagePage({
     if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
 
     const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isFullyCompleted;
+
+    const isSystem = project.user?.role === 'ADMIN' || project.user?.role === 'SUPERADMIN';
+    let verLabel = 'Advocate';
+    let VerIcon = UserCheck;
+    let orgName = 'Individual Donor';
+
+    if (isSystem) {
+        verLabel = 'Platform';
+        VerIcon = BadgeCheck;
+        orgName = 'Givar';
+    } else if (project.user?.organization?.kycType === 'ORGANIZATION') {
+        verLabel = 'Organization';
+        VerIcon = Building2;
+        orgName = project.user.organization.legalName;
+    } else if (project.user?.organization?.status === 'VERIFIED') {
+        orgName = project.user.organization.legalName;
+    }
 
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-24">
@@ -397,6 +419,57 @@ export default async function ProjectManagePage({
                         </CardContent>
                     </Card>
 
+                    {/* Verified by Givar Card */}
+                    <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0">
+                            <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
+                                <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-5 space-y-4 min-w-0">
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <VerIcon className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">{verLabel}</span>
+                                </div>
+                                <span className="text-xs font-bold text-foreground truncate max-w-[140px] text-right">
+                                    {orgName}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <Users className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">Donors</span>
+                                </div>
+                                <span className="text-xs font-bold text-foreground tabular-nums text-right">
+                                    {project._count?.donations || 0}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <FileText className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">Budget & Plan</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Approved
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                    <BadgeCheck className="h-4 w-4 shrink-0" />
+                                    <span className="text-xs font-medium truncate">Legal Documents</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                                    <CheckCircle2 className="h-3.5 w-3.5" /> Audited
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Givar Protocol Disclaimer */}
                     <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-emerald-900/70 leading-relaxed font-medium">

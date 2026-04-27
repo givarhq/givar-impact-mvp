@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, memo } from 'react';
-import { ShieldCheck, Target, Users, AlertCircle, X, Copy, Check, Lock, CheckCircle2, Clock, TrendingUp, BellRing, Loader2, Info } from 'lucide-react';
+import { ShieldCheck, Target, Users, AlertCircle, X, Copy, Check, Lock, CheckCircle2, Clock, TrendingUp, BellRing, Loader2, Info, BadgeCheck } from 'lucide-react';
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -63,6 +63,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [waitlistEmail, setWaitlistEmail] = useState('');
     const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         const userCookie = getCookie('givar_user');
@@ -74,6 +75,13 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             } catch (e) { }
         }
     }, []);
+
+    const copyIdToClipboard = () => {
+        navigator.clipboard.writeText(project.slug);
+        setCopied(true);
+        toast.success("Project ID copied");
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     const handleJoinWaitlist = async () => {
         if (!waitlistEmail || !waitlistEmail.includes('@')) return toast.error("Valid email required");
@@ -91,28 +99,39 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     };
 
     return (
-        <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 md:p-6 shadow-sm" id="transparency-card">
+        <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-6 md:p-8 shadow-sm" id="transparency-card">
 
             {/* Total Funding Section */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-4 mb-8">
                 <div className="flex items-center justify-between">
                     <span className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                        Total funding <Info className="h-4 w-4 text-muted-foreground/60" />
+                        Total funding <Info className="h-4 w-4 text-muted-foreground/50" />
                     </span>
+                    <button
+                        onClick={copyIdToClipboard}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium hover:text-foreground transition-colors group/copy outline-none"
+                    >
+                        <span>ID: {project.slug.slice(0, 8)}...</span>
+                        {copied ? (
+                            <Check className="h-3 w-3 text-emerald-500 animate-in zoom-in" />
+                        ) : (
+                            <Copy className="h-3 w-3 opacity-30 group-hover/copy:opacity-100 transition-opacity" />
+                        )}
+                    </button>
                 </div>
 
-                <div>
+                <div className="space-y-1">
                     <div className="flex items-baseline gap-2">
                         <SmartCurrency amount={totalRaised.toString()} currency={project.currency} visible={true} size="large" className="text-emerald-600 font-black text-3xl tracking-tighter" />
                         <span className="text-sm font-medium text-muted-foreground">raised</span>
                     </div>
-                    <p className="text-xs font-medium text-muted-foreground mt-1 flex items-baseline gap-1">
+                    <p className="text-xs font-medium text-muted-foreground flex items-baseline gap-1">
                         of <SmartCurrency amount={totalTarget.toString()} currency={project.currency} visible={true} size="small" />
                     </p>
                 </div>
 
-                <div className="space-y-2 pt-2">
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                <div className="space-y-2.5 pt-2">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                         <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${totalPercent}%` }}
@@ -129,10 +148,10 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 </div>
             </div>
 
-            {/* Phased Funding Info */}
-            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100/50 mb-6 space-y-2">
+            {/* Phased Funding Info Note */}
+            <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100/50 mb-8 space-y-1.5">
                 <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
-                    <ShieldCheck className="h-4 w-4" /> Phased funding <Info className="h-3.5 w-3.5 text-emerald-600/50 ml-1" />
+                    <ShieldCheck className="h-4 w-4" /> Phased funding
                 </div>
                 <p className="text-xs text-emerald-900/70 font-medium leading-relaxed">
                     This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
@@ -141,27 +160,32 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
             {/* Currently Funding Section */}
             {(!isCompleted && !isFundedState) ? (
-                <div className="p-5 rounded-3xl border border-border/40 bg-muted/10">
-                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1.5">Currently funding</p>
-                    <h4 className="text-sm font-bold text-foreground leading-tight mb-4">{activeItemName}</h4>
+                <div className="pt-6 border-t border-border/40">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1.5">Currently funding</p>
+                    <h4 className="text-sm font-bold text-foreground leading-tight mb-5">Phase {activeIndex + 1}: {activeItemName}</h4>
 
                     {isPhaseFull ? (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 w-fit">
-                                <Clock className="h-3.5 w-3.5" /> Awaiting Verification
+                        <div className="space-y-5 animate-in fade-in">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200/60 w-fit">
+                                    <Clock className="h-3.5 w-3.5" /> Awaiting Verification
+                                </div>
+                                <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                                    This phase is fully funded. Donations are paused while we verify the vendor's proof of work.
+                                </p>
                             </div>
 
-                            <div className="pt-2 border-t border-border/40 space-y-3">
+                            <div className="pt-4 border-t border-border/40 space-y-3">
                                 <div className="flex items-center gap-2 text-muted-foreground">
                                     <BellRing className="h-4 w-4" />
-                                    <h4 className="text-[11px] font-bold">Get notified when next stage opens</h4>
+                                    <h4 className="text-[11px] font-bold">Get notified when Phase {activeIndex + 2} opens</h4>
                                 </div>
 
                                 {isAuthenticated ? (
                                     <Button
                                         onClick={handleJoinWaitlist}
                                         disabled={isWaitlistLoading}
-                                        className="h-10 rounded-2xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm border-0 w-full transition-all active:scale-95 text-xs"
+                                        className="h-10 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-xs"
                                     >
                                         {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : `Notify me`}
                                     </Button>
@@ -171,12 +195,12 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                             placeholder="your@email.com"
                                             value={waitlistEmail}
                                             onChange={e => setWaitlistEmail(e.target.value)}
-                                            className="h-10 rounded-2xl bg-background border-border/40 text-xs shadow-inner focus:bg-white"
+                                            className="h-10 rounded-2xl bg-muted/20 border-border/40 text-xs shadow-inner focus:bg-background"
                                         />
                                         <Button
                                             onClick={handleJoinWaitlist}
                                             disabled={isWaitlistLoading || !waitlistEmail}
-                                            className="h-10 rounded-2xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm border-0 w-full transition-all active:scale-95 text-xs"
+                                            className="h-10 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-xs"
                                         >
                                             {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Notify me'}
                                         </Button>
@@ -196,7 +220,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                     initial={{ width: 0 }}
                                     animate={{ width: `${phasePercent}%` }}
                                     transition={{ duration: 1, ease: "easeOut" }}
-                                    className="h-full bg-emerald-500"
+                                    className="h-full bg-primary"
                                 />
                             </div>
                         </div>
