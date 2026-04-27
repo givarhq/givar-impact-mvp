@@ -764,7 +764,7 @@ export class DonationService {
               status: TxStatus.SUSPENSE,
               category: TxCategory.INTERNAL_TRANSFER,
               reference: `SPILL-${reference}`,
-              description: `Surplus from direct completion: ${project.title}`,
+              description: `Unallocated funds from direct completion: ${project.title}`,
               metadata: {
                 originalProjectId: project.id,
                 email: guestEmail || userId,
@@ -1312,7 +1312,7 @@ export class DonationService {
             status: TxStatus.SUSPENSE,
             category: TxCategory.INTERNAL_TRANSFER,
             reference,
-            description: `SUSPENSE: Donation for closed project (${projectTitle || 'Unknown'})`,
+            description: `PENDING ROUTING: Payment for closed project (${projectTitle || 'Unknown'})`,
             metadata: { originalProjectId: projectId, reason: 'PROJECT_CLOSED' }
           }
         });
@@ -1359,8 +1359,8 @@ export class DonationService {
           data: admins.map(admin => ({
             userId: admin.id,
             type: 'SYSTEM' as NotificationType,
-            title: 'Orphaned funds detected',
-            content: `₦${(Number(amount) / 100).toLocaleString()} hit the suspense ledger (Ref: ${reference.slice(0, 8)}).`,
+            title: 'Unallocated Funds Detected',
+            content: `₦${(Number(amount) / 100).toLocaleString()} requires manual routing (Ref: ${reference.slice(0, 8)}).`,
             link: '/admin/ledger'
           }))
         });
