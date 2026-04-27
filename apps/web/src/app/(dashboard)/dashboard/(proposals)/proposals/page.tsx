@@ -2,8 +2,8 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { ApiService } from '../../../../../services/api';
 import { Button } from '../../../../../components/ui/button';
-import { Rocket, Plus, Inbox } from 'lucide-react';
-import { ProposalCard } from '../../../../../components/features/proposals/proposal-card';
+import { Plus } from 'lucide-react';
+import { MyProposalsClient } from '../../../../../components/features/proposals/my-proposals-client';
 
 export const metadata = {
   title: 'My Causes',
@@ -37,32 +37,7 @@ export default async function MyProposalsPage() {
         </Link>
       </div>
 
-      {proposals.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 min-w-0">
-          {proposals.map((p: any) => (
-            <div key={p.id} className="min-w-0 flex-1 h-full">
-              <ProposalCard proposal={p} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-20 md:py-32 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5 min-w-0">
-          <div className="h-16 w-16 bg-muted/50 rounded-[24px] flex items-center justify-center mb-6 border border-border/40 shadow-inner">
-            <Rocket className="h-7 w-7 text-muted-foreground/40" />
-          </div>
-          <div className="space-y-2 max-w-xs mx-auto">
-            <h3 className="text-lg font-bold text-foreground tracking-tight">Your impact starts here</h3>
-            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-              Launch a project to begin raising funds for verified community impact.
-            </p>
-          </div>
-          <Link href="/dashboard/proposals/start" className="mt-8">
-            <Button variant="outline" className="rounded-3xl border-primary/30 text-primary hover:bg-primary/5 font-bold h-11 px-8 transition-all active:scale-95">
-              Launch first cause
-            </Button>
-          </Link>
-        </div>
-      )}
+      <MyProposalsClient proposals={proposals} />
     </div>
   );
 }
