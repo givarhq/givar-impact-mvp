@@ -41,6 +41,7 @@ export class CreateAdminProjectDto {
   @IsUrl() coverImage!: string;
 
   @IsOptional() @IsString() videoUrl?: string;
+  @IsOptional() @IsString() vendorSubaccount?: string; // <-- NEW: Paystack Subaccount Field
 
   @IsArray()
   @ValidateNested({ each: true })

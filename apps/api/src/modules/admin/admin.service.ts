@@ -906,11 +906,13 @@ export class AdminService {
       location: dto.location,
       currency: dto.currency,
       imageUrl: dto.coverImage,
+      videoUrl: dto.videoUrl, // <-- Map videoUrl
+      vendorSubaccount: dto.vendorSubaccount, // <-- NEW: Map Vendor Subaccount
       slug: slug,
       targetAmount: BigInt(dto.targetAmount),
       raisedAmount: 0n,
       status: dto.status || ProjectStatus.ACTIVE,
-      isActive: true, // Drafts are active records but hidden from public lists by status filter
+      isActive: true,
       tags: dto.tags || ['Admin Created', 'Verified'],
 
       user: { connect: { id: adminId } },
@@ -985,6 +987,7 @@ export class AdminService {
     };
 
     if ((dto as any).videoUrl !== undefined) updateData.videoUrl = (dto as any).videoUrl;
+    if (dto.vendorSubaccount !== undefined) updateData.vendorSubaccount = dto.vendorSubaccount; // <-- NEW: Allow Subaccount updates
     if (dto.targetAmount) updateData.targetAmount = newTarget;
     if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
     if (dto.gallery) updateData.gallery = dto.gallery as any;

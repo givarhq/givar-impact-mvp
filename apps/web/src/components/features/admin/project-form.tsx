@@ -12,7 +12,7 @@ import {
   Loader2, Save, X, Image as ImageIcon, Video,
   Briefcase, MapPin, ShieldCheck, ExternalLink,
   LockOpen, Fingerprint, FileText, Send, Trash2,
-  Tag, Clock
+  Tag, Clock, Landmark
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -64,6 +64,7 @@ const projectSchema = z.object({
   currency: z.enum(['NGN', 'USD', 'GBP']),
   coverImage: z.string().min(1, "A primary image is required"),
   videoUrl: z.string().optional().nullable(),
+  vendorSubaccount: z.string().optional().nullable(), // <-- NEW: Subaccount field
   gallery: z.array(mediaItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
@@ -96,8 +97,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       ...initialData,
       coverImage: initialData.imageUrl || '',
       videoUrl: initialData.videoUrl || '',
+      vendorSubaccount: initialData.vendorSubaccount || '',
       gallery: initialData.gallery || [],
-      // Gracefully map legacy data fields to the new Budget Editor format if needed
       budgetBreakdown: (initialData.budgetBreakdown || []).map((b: any) => ({
         id: b.id || crypto.randomUUID(),
         payTo: b.payTo || b.vendor || '',
@@ -120,6 +121,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       personalMessage: '',
       endDate: '',
       subcategoryId: '',
+      vendorSubaccount: '',
     }
   });
 
@@ -380,6 +382,24 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               </div>
             )}
           />
+        </div>
+
+        {/* --- NEW: Paystack Vendor Subaccount Field --- */}
+        <div className="md:col-span-12 pt-4 border-t border-border/40 space-y-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
+            <Landmark className="h-3 w-3" /> Paystack Subaccount Code (Non-Custodial Routing)
+          </label>
+          <div className="relative group">
+            <Input
+              {...register('vendorSubaccount')}
+              placeholder="e.g. SUB_x89zbv"
+              className={cn(getInputClass(), "font-mono")}
+              readOnly={readOnly}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground px-1 font-medium italic">
+            If provided, donor funds will bypass Givar and route directly to the vendor's bank account via Paystack Splits.
+          </p>
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
