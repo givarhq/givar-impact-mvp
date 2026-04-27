@@ -377,6 +377,7 @@ model Project {
   vendorEmail             String?
   vendorPhone             String?
   vendorAddress           String?
+  vendorSubaccount        String?
 
   hasPreCollectedFunds    Boolean  @default(false)
   preCollectedAmount      BigInt?
@@ -648,6 +649,7 @@ model ProjectProposal {
   vendorEmail             String?
   vendorPhone             String?
   vendorAddress           String?
+  vendorSubaccount        String?
 
   hasPreCollectedFunds    Boolean  @default(false)
   preCollectedAmount      BigInt?

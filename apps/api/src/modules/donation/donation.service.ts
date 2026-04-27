@@ -405,9 +405,10 @@ export class DonationService {
       throw new BadRequestException('Amount exceeds maximum allowed per donation');
     }
 
+    // Retrieve vendorSubaccount explicitly from the active project
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
-      select: { id: true, isActive: true, currency: true, status: true, categoryId: true },
+      select: { id: true, isActive: true, currency: true, status: true, categoryId: true, vendorSubaccount: true },
     });
 
     if (!project || !project.isActive) {
@@ -439,30 +440,41 @@ export class DonationService {
     }
 
     try {
+      const paystackPayload: any = {
+        email: emailToCharge,
+        amount: Number(totalCharge),
+        currency: dto.currency,
+        channels: ['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money', 'apple_pay'],
+        metadata: {
+          donationType: 'DIRECT',
+          userId: internalUserId ?? 'GUEST',
+          guestEmail: emailToCharge,
+          guestName: dto.guestName?.trim() || 'Anonymous',
+          projectId: dto.projectId,
+          baseAmount: baseAmountBig.toString(),
+          feeAmount: feeAmountMinor.toString(),
+          tipAmount: tipAmountBig.toString(),
+          feePercentage: feeRule.percentage,
+          feeRuleId: feeRule.id,
+          donorCurrency: dto.donorCurrency,
+          donorAmount: dto.donorAmount,
+          fxRate: dto.fxRate
+        },
+        callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
+      };
+
+      // Non-Custodial Gateway Routing Logic
+      // If a vendor subaccount exists, instruct Paystack to route the principal funds directly
+      // to the vendor's bank account while retaining Givar's fee and the tip in the main account.
+      if (project.vendorSubaccount) {
+        paystackPayload.subaccount = project.vendorSubaccount;
+        paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
+        paystackPayload.bearer = 'subaccount'; // Vendor absorbs standard Paystack processing fees
+      }
+
       const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
-        {
-          email: emailToCharge,
-          amount: Number(totalCharge),
-          currency: dto.currency,
-          channels: ['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money', 'apple_pay'],
-          metadata: {
-            donationType: 'DIRECT',
-            userId: internalUserId ?? 'GUEST',
-            guestEmail: emailToCharge,
-            guestName: dto.guestName?.trim() || 'Anonymous',
-            projectId: dto.projectId,
-            baseAmount: baseAmountBig.toString(),
-            feeAmount: feeAmountMinor.toString(),
-            tipAmount: tipAmountBig.toString(),
-            feePercentage: feeRule.percentage,
-            feeRuleId: feeRule.id,
-            donorCurrency: dto.donorCurrency,
-            donorAmount: dto.donorAmount,
-            fxRate: dto.fxRate
-          },
-          callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
-        },
+        paystackPayload,
         {
           headers: {
             Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
