@@ -11,7 +11,8 @@ import {
     Clock,
     CheckCircle2,
     Landmark,
-    Quote
+    Quote,
+    Users
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -41,7 +42,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         : `/dashboard/impact/${project.slug}/donate`;
 
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
-    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const gallery = Array.isArray(project.gallery) ? project.gallery : [];
 
     const raised = Number(project.raisedAmount || 0);
@@ -132,9 +132,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         )}
                         <div className="flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5 text-primary" /> {formatDate(project.createdAt).split(',')[0]}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <Target className="h-3.5 w-3.5 text-primary" /> Goal: {formatCurrency(project.targetAmount, project.currency)}
                         </div>
                     </div>
                 </div>
@@ -244,7 +241,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <Tabs defaultValue="story" className="w-full">
                     <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
                         <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
-                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Use of Funds</TabsTrigger>
+                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Implementation Plan</TabsTrigger>
                         <TabsTrigger value="updates" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
                             Updates
                             <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
@@ -322,7 +319,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             </motion.div>
                         </TabsContent>
 
-                        <TabsContent value="plan" className="mt-6 outline-none space-y-10">
+                        <TabsContent value="plan" className="mt-6 outline-none space-y-8">
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -342,98 +339,62 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     </div>
                                 )}
 
-                                <div className="space-y-4 mb-10">
-                                    <div className="flex items-center gap-3 px-1">
-                                        <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-                                            <DollarSign className="h-4 w-4" />
-                                        </div>
-                                        <h4 className="text-xs font-bold text-foreground">Verified Cost Breakdown</h4>
-                                    </div>
-                                    <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
-                                        <table className="w-full text-left border-collapse">
-                                            <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground">
-                                                <tr>
-                                                    <th className="px-6 py-4">Item</th>
-                                                    <th className="px-6 py-4 hidden md:table-cell">Type</th>
-                                                    <th className="px-6 py-4 hidden md:table-cell">Pay To (Vendor)</th>
-                                                    <th className="px-6 py-4 text-right">Allocation</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border/40 text-xs">
-                                                {budget.map((item: any, i: number) => (
-                                                    <tr key={i} className={cn("transition-colors", i === activeIndex ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
-                                                        <td className="px-6 py-4 font-bold text-foreground">
-                                                            <div className="flex items-center gap-2">
-                                                                {item.description || item.item}
-                                                                {i === activeIndex && !isCompleted && !isFundedState && !isPhaseFull && (
-                                                                    <div className="h-2 w-2 rounded-full bg-primary animate-pulse" title="Funding Now" />
-                                                                )}
-                                                            </div>
-                                                            <div className="md:hidden text-[11px] text-muted-foreground font-medium mt-0.5">{item.costType || item.type}</div>
-                                                        </td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium text-[11px]">{item.costType || item.type}</td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.payTo || item.vendor}</td>
-                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold">
-                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                <div className="mb-6">
+                                    <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                        This cause is funded one item at a time. Once an item is fully funded and confirmed, the next becomes available.
+                                    </p>
                                 </div>
 
-                                {timeline.length > 0 && (
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-3 px-1">
-                                            <div className="h-8 w-8 rounded-3xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-                                                <Briefcase className="h-4 w-4" />
-                                            </div>
-                                            <h4 className="text-xs font-bold text-foreground">Implementation roadmap</h4>
-                                        </div>
-                                        <div className="grid gap-3">
-                                            {timeline.map((phase: any, i: number) => {
-                                                const isCompletedPhase = phase.status === 'COMPLETED';
-                                                const isInProgress = phase.status === 'IN_PROGRESS';
+                                <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground">
+                                            <tr>
+                                                <th className="px-6 py-4">Item</th>
+                                                <th className="px-6 py-4 hidden md:table-cell">Recipient</th>
+                                                <th className="px-6 py-4 hidden sm:table-cell">Amount</th>
+                                                <th className="px-6 py-4 text-right">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border/40 text-xs">
+                                            {budget.map((item: any, i: number) => {
+                                                const isItemCompleted = i < activeIndex || isCompleted || isFundedState;
+                                                const isItemCurrent = i === activeIndex && !isCompleted && !isFundedState && !isPhaseFull;
+                                                const isItemFull = i === activeIndex && isPhaseFull;
+
+                                                let statusBadge;
+                                                if (isItemCompleted) {
+                                                    statusBadge = <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><CheckCircle2 className="h-3.5 w-3.5" /> Completed</Badge>;
+                                                } else if (isItemCurrent || isItemFull) {
+                                                    statusBadge = <Badge className="bg-blue-50 text-blue-600 border-blue-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> In Progress</Badge>;
+                                                } else {
+                                                    statusBadge = <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>;
+                                                }
 
                                                 return (
-                                                    <div key={i} className="flex gap-4 group relative">
-                                                        <div className="flex flex-col items-center shrink-0">
-                                                            <div className={cn(
-                                                                "h-7 w-7 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 bg-background",
-                                                                isCompletedPhase ? "bg-primary border-primary text-primary-foreground shadow-sm" :
-                                                                    isInProgress ? "border-primary text-primary animate-pulse" :
-                                                                        "border-border text-muted-foreground"
-                                                            )}>
-                                                                {isCompletedPhase ? <Check className="h-4 w-4" /> : <span className="text-xs font-bold">{i + 1}</span>}
+                                                    <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-bold text-foreground text-sm mb-1.5">{item.description || item.item}</div>
+                                                            <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
+                                                                {item.costType || item.type}
+                                                            </Badge>
+                                                            {/* Mobile only amount display */}
+                                                            <div className="sm:hidden font-mono text-foreground font-bold mt-2">
+                                                                {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                             </div>
-                                                            <div className={cn(
-                                                                "flex-1 w-0.5 group-last:hidden mt-2 mb-0.5 transition-colors",
-                                                                isCompletedPhase ? "bg-primary" : "bg-border/40"
-                                                            )} />
-                                                        </div>
-                                                        <div className="flex-1 pb-6 space-y-1 min-w-0">
-                                                            <div className="flex justify-between items-baseline gap-4">
-                                                                <h5 className={cn("font-bold text-sm", isCompletedPhase || isInProgress ? "text-foreground" : "text-muted-foreground")}>
-                                                                    {phase.phase}
-                                                                </h5>
-                                                                <div className="flex flex-col items-end shrink-0">
-                                                                    <span className={cn(
-                                                                        "text-[11px] font-bold px-2 py-0.5 rounded-3xl border",
-                                                                        isCompletedPhase ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-muted/50 border-border/40'
-                                                                    )}>
-                                                                        {isCompletedPhase ? 'Complete' : phase.estimatedDate}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <p className="text-xs text-muted-foreground mt-1 leading-relaxed font-medium line-clamp-2">{phase.deliverables}</p>
-                                                        </div>
-                                                    </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">{item.payTo || item.vendor}</td>
+                                                        <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
+                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            {statusBadge}
+                                                        </td>
+                                                    </tr>
                                                 );
                                             })}
-                                        </div>
-                                    </div>
-                                )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </motion.div>
                         </TabsContent>
 
@@ -516,10 +477,21 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
+                    <div className="p-3 rounded-2xl bg-card border border-border/40 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-blue-500" />
+                            <span className="text-xs font-bold text-muted-foreground">Verified Donors</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <span className="font-bold text-sm text-foreground">{project.donorCount || 0}</span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+                        </div>
+                    </div>
+
                     <div className="space-y-3 hidden md:block">
                         {(!isCompleted && !isFundedState && !isPhaseFull) && (
                             <Link href={donateLink} className="block w-full">
-                                <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                                <Button size="lg" className="w-full h-12 rounded-3xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 border-0">
                                     Fund this impact
                                 </Button>
                             </Link>
@@ -582,10 +554,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </div>
                     </details>
 
-                    <div className="p-5 bg-muted/20 rounded-3xl border border-border/40 flex items-start gap-3">
+                    <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                        <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                            <strong className="text-foreground">Givar Protocol:</strong> Funds are released in tranches only after audit exercise verify proof of work.
+                        <p className="text-xs text-emerald-900/70 leading-relaxed font-medium">
+                            <strong className="text-emerald-800">Givar Protocol:</strong> Funds are paid directly to verified institutions or service providers (such as hospitals or schools), not to organisers or individuals.
                         </p>
                     </div>
                 </div>
@@ -599,7 +571,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 {(!isCompleted && !isFundedState && !isPhaseFull) ? (
                     <>
                         <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
-                            <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                            <Button size="lg" className="w-full h-12 rounded-3xl bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all active:scale-95 border-0">
                                 Fund this impact
                             </Button>
                         </Link>
