@@ -4,8 +4,8 @@ import { FinanceReportClient } from '../../../../components/features/admin/finan
 import { AlertTriangle } from 'lucide-react';
 
 export const metadata = {
-    title: 'Treasury Intelligence',
-    description: 'Financial monitoring, capital distribution, & institutional reporting.',
+    title: 'Financial Analytics',
+    description: 'Financial monitoring, capital routing, and institutional reporting.',
 };
 
 export default async function AdminFinancesPage({
@@ -34,7 +34,7 @@ export default async function AdminFinancesPage({
                 <div className="h-12 w-12 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive">
                     <AlertTriangle className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-bold text-muted-foreground">Failed to load treasury report.</p>
+                <p className="text-sm font-bold text-muted-foreground">Failed to load financial analytics report.</p>
             </div>
         );
     }
@@ -43,7 +43,7 @@ export default async function AdminFinancesPage({
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {/* Page Identity (Mobile Only) */}
             <div className="md:hidden px-1">
-                <h1 className="text-lg font-bold tracking-tight text-foreground">Treasury Intelligence</h1>
+                <h1 className="text-lg font-bold tracking-tight text-foreground">Financial Analytics</h1>
             </div>
 
             <FinanceReportClient

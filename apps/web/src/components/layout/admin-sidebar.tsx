@@ -23,7 +23,7 @@ const navItems = [
   { title: 'Cause Management', href: '/admin/projects', icon: FileText },
   { title: 'Verifications', href: '/admin/verifications', icon: BadgeCheck },
   { title: 'Organizations', href: '/admin/organizations', icon: Building },
-  { title: 'Treasury Intelligence', href: '/admin/finances', icon: BarChart3 },
+  { title: 'Financial Analytics', href: '/admin/finances', icon: BarChart3 },
   { title: 'Ledger Oversight', href: '/admin/ledger', icon: Database },
   { title: 'Audit Logs', href: '/admin/audit', icon: ShieldAlert },
 ];

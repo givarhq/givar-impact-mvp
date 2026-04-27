@@ -50,14 +50,14 @@ export const FinanceFilterBar = memo(function FinanceFilterBar({ categories }: F
 
     const handleExport = async () => {
         setIsExporting(true);
-        const toastId = toast.loading('Preparing your treasury report...');
+        const toastId = toast.loading('Preparing your financial analytics report...');
         try {
             const params = new URLSearchParams(searchParams.toString());
             const response = await ApiService.admin.exportFinanceCsv(params);
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `Givar-Treasury-Audit-${new Date().toISOString().split('T')[0]}.csv`);
+            link.setAttribute('download', `Givar-Financial-Analytics-${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             link.remove();
