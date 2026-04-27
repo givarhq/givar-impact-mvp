@@ -488,7 +488,7 @@ export class AdminService {
           endDate: proposal.endDate,
           status: ProjectStatus.ACTIVE,
           categoryId: proposal.categoryId,
-          subcategoryId: proposal.subcategoryId, // <-- Migrate taxonomy to Live Project
+          subcategoryId: proposal.subcategoryId,
           tags: ['Verified'],
           isActive: true,
           budgetBreakdown: proposal.budgetBreakdown ?? [],
@@ -503,6 +503,8 @@ export class AdminService {
           vendorEmail: proposal.vendorEmail,
           vendorPhone: proposal.vendorPhone,
           vendorAddress: proposal.vendorAddress,
+          vendorSubaccount: proposal.vendorSubaccount, // <-- NEW: Migrate Subaccount to Live Project
+
           hasPreCollectedFunds: proposal.hasPreCollectedFunds,
           preCollectedAmount: proposal.preCollectedAmount,
           preCollectedHeldAt: proposal.preCollectedHeldAt,
