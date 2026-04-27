@@ -115,9 +115,9 @@ export const BudgetEditor = memo(function BudgetEditor({
             >
               {/* PAY TO */}
               <div className="md:col-span-3 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Pay to</label>
+                <label className="text-xs font-bold text-muted-foreground ml-1">Who will receive the funds?</label>
                 <Input
-                  placeholder="Vendor or recipient..."
+                  placeholder="e.g. Peace Hospital, ABC School..."
                   value={item.payTo}
                   onChange={(e) => handleUpdate(item.id, 'payTo', e.target.value)}
                   readOnly={isLocked}
@@ -127,7 +127,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
               {/* EXPENSE TYPE */}
               <div className="md:col-span-3 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Expense type</label>
+                <label className="text-xs font-bold text-muted-foreground ml-1">Expense type</label>
                 {isLocked ? (
                   <Input value={item.costType} readOnly className={inputStyle} />
                 ) : (
@@ -148,7 +148,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
               {/* AMOUNT */}
               <div className="md:col-span-2 space-y-1">
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Amount</label>
+                <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
                 <div className="relative">
                   {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
                   <Input
@@ -164,7 +164,7 @@ export const BudgetEditor = memo(function BudgetEditor({
               {/* DESCRIPTION & DELETE CONTAINER */}
               <div className="md:col-span-4 flex gap-2 items-end">
                 <div className="flex-1 space-y-1 min-w-0">
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ml-1">Description</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Description</label>
                   <Input
                     placeholder="Details..."
                     value={item.description}

@@ -22,8 +22,12 @@ export default function PlanPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const proposalData = await ApiService.proposals.get(proposalId);
-        setProposal(proposalData);
+        const currentState = useProposalStore.getState();
+        // Prevent fetching from API if store already has this proposal's latest state
+        if (currentState.id !== proposalId) {
+          const proposalData = await ApiService.proposals.get(proposalId);
+          setProposal(proposalData);
+        }
       } catch (error) {
         toast.error("Draft failed to load");
         router.push('/dashboard/proposals');
@@ -55,26 +59,35 @@ export default function PlanPage() {
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <CardTitle className="text-lg md:text-xl font-bold">Budget & Use of Funds</CardTitle>
           <CardDescription className="text-xs font-medium">
-            Itemize every requirement and vendor for project execution. Precision here is critical for administrative audit approval.
+            Outline what is needed to complete this cause and who will receive the funds.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="p-6 md:p-8 pt-8 space-y-12 min-w-0">
+
+          {/* Trust Banner */}
+          <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex items-start gap-3 shadow-sm -mt-2">
+            <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-emerald-900/80 leading-relaxed font-medium">
+              Funds are paid directly to verified institutions or service providers, not to organisers.
+            </p>
+          </div>
+
           <div className="space-y-4 min-w-0">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Briefcase className="h-4 w-4 text-primary" />
                 Cost Breakdown *
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Detail the expenses required to successfully complete this cause.</p>
+              <p className="text-xs text-muted-foreground font-medium">List the main items needed to complete this cause in the order they will be carried out.</p>
             </div>
 
             <div className="min-w-0">
               <BudgetEditor categorySlug={categorySlug} />
             </div>
 
-            <p className="text-[11px] font-bold text-muted-foreground italic text-center pt-2">
-              This cause will be funded step-by-step based on these items.
+            <p className="text-[11px] font-medium text-muted-foreground italic text-center pt-2">
+              This cause will be funded one item at a time, as outlined above.
             </p>
           </div>
 
