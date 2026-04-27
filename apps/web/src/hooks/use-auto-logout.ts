@@ -6,8 +6,8 @@ import { getCookie, deleteCookie } from 'cookies-next';
 import { ApiService } from '../services/api';
 import toast from 'react-hot-toast';
 
-// --- UPGRADE: Extended to 24 Hours (Non-Custodial Model) ---
-const INACTIVITY_LIMIT = 24 * 60 * 60 * 1000;
+// --- COMPROMISE: 2 Hour Inactivity Limit (Balance Security & Friction) ---
+const INACTIVITY_LIMIT = 2 * 60 * 60 * 1000;
 const ACTIVITY_STORAGE_KEY = 'givar_last_activity';
 
 export function useAutoLogout() {
@@ -69,7 +69,7 @@ export function useAutoLogout() {
             if (document.visibilityState === 'visible') checkExpiry();
         });
 
-        // Dial back the interval check frequency since we are dealing with 24 hours now
+        // Check frequency maintained at 1 minute
         checkInterval.current = setInterval(checkExpiry, 60000);
 
         return () => {
