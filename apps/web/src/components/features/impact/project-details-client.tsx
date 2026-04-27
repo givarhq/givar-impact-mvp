@@ -237,7 +237,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <Tabs defaultValue="story" className="w-full">
                     <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
                         <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
-                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Use of Funds</TabsTrigger>
+                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Implementation Plan</TabsTrigger>
                         <TabsTrigger value="updates" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
                             Updates
                             <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
@@ -382,8 +382,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                         <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
                                                             {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                         </td>
-                                                        <td className="px-6 py-4 text-right">
-                                                            {statusBadge}
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex justify-end">
+                                                                {statusBadge}
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 );

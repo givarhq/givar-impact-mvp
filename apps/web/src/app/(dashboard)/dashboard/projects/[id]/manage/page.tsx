@@ -309,8 +309,10 @@ export default async function ProjectManagePage({
                                                 <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
                                                     {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    {statusBadge}
+                                                <td className="px-6 py-4">
+                                                    <div className="flex justify-end">
+                                                        {statusBadge}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );
