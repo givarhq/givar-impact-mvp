@@ -304,7 +304,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               <Select onValueChange={(val) => {
                 field.onChange(val);
                 if (!readOnly) setValue('subcategoryId', '', { shouldValidate: true });
-              }} value={field.value} disabled={readOnly}>
+              }} value={field.value || undefined} disabled={readOnly}>
                 <SelectTrigger className={cn(getInputClass(), "bg-muted/10")}>
                   <SelectValue placeholder="Select a sector" />
                 </SelectTrigger>
@@ -445,6 +445,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   fill
                   sizes="(max-width: 768px) 100vw, 800px"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  unoptimized
                 />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">

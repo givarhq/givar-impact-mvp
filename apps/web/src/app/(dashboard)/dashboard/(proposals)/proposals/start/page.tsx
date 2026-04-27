@@ -120,6 +120,7 @@ export default function StartProposalPage() {
         formState: { errors },
     } = useForm<StartFormValues>({
         resolver: zodResolver(startSchema),
+        mode: 'onChange', // Resolves validation persistence issue
     });
 
     const selectedCategoryId = watch('categoryId');
@@ -345,7 +346,7 @@ export default function StartProposalPage() {
                                                             field.onChange(val);
                                                             setValue('subcategoryId', '', { shouldValidate: true });
                                                         }}
-                                                        value={field.value}
+                                                        value={field.value || undefined}
                                                         disabled={isLoading}
                                                     >
                                                         <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
@@ -376,7 +377,7 @@ export default function StartProposalPage() {
                                                 render={({ field }) => (
                                                     <Select
                                                         onValueChange={field.onChange}
-                                                        value={field.value}
+                                                        value={field.value || undefined}
                                                         disabled={isLoading || !selectedCategoryId}
                                                     >
                                                         <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm disabled:opacity-50">

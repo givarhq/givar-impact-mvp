@@ -99,6 +99,7 @@ export default function MediaPage() {
                     fill
                     sizes="(max-width: 768px) 100vw, 400px"
                     className="object-cover transition-transform group-hover:scale-105 duration-700"
+                    unoptimized
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-[2px]">
                     <Button
