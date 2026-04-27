@@ -93,7 +93,7 @@ export const DisbursementForm = memo(function DisbursementForm({
         }
 
         setIsLoading(true);
-        const toastId = toast.loading('Recording disbursement...');
+        const toastId = toast.loading('Authorizing payment...');
         try {
             const minorAmount = parseFormattedNumber(amount) + '00';
             await ApiService.admin.recordDisbursement(projectId, {
@@ -104,7 +104,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                 receiptKey: receipt?.key
             });
 
-            toast.success('Disbursement recorded successfully', { id: toastId });
+            toast.success('Payment authorized successfully', { id: toastId });
             setAmount(''); setVendorName(''); setReference(''); setMilestoneId(''); setReceipt(null);
             router.refresh();
         } catch (error: any) {
@@ -147,8 +147,8 @@ export const DisbursementForm = memo(function DisbursementForm({
                         <DollarSign className="h-5 w-5" />
                     </div>
                     <div>
-                        <h3 className="text-base font-bold text-foreground">Record Disbursement</h3>
-                        <p className="text-[11px] text-muted-foreground font-bold tracking-widest ">Treasury Outflow</p>
+                        <h3 className="text-base font-bold text-foreground">Authorize Payment</h3>
+                        <p className="text-[11px] text-muted-foreground font-bold tracking-widest ">Vendor Payment</p>
                     </div>
                 </div>
 
@@ -176,7 +176,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-muted-foreground ml-1">Disbursement Amount (NGN)</label>
+                                    <label className="text-xs font-bold text-muted-foreground ml-1">Payment Amount (NGN)</label>
                                     <div className="relative group">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">₦</span>
                                         <Input
@@ -192,7 +192,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                             <div className="p-4 rounded-3xl bg-blue-50/50 border border-blue-100 flex items-start gap-3">
                                 <ShieldCheck className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
                                 <p className="text-xs text-blue-700 font-medium leading-relaxed">
-                                    Disbursement logs notify project owners & donors instantly. Please ensure all data points match the bank statement for audit compliance.
+                                    Payment logs notify project owners & donors instantly. Please ensure all data points match the bank statement for audit compliance.
                                 </p>
                             </div>
                         </div>
@@ -216,13 +216,13 @@ export const DisbursementForm = memo(function DisbursementForm({
                                         </div>
                                     </div>
                                 ) : (
-                                    <ImageUploader label="Upload Treasury Receipt" onUploadComplete={setReceipt} useCase="docs" />
+                                    <ImageUploader label="Upload Payment Receipt" onUploadComplete={setReceipt} useCase="docs" />
                                 )}
                             </div>
 
                             <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0 transition-all active:scale-95">
                                 {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
-                                Commit disbursement
+                                Authorize payment
                             </Button>
                         </div>
                     </div>
@@ -233,7 +233,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                 <div className="flex items-center justify-between px-1">
                     <h3 className="font-bold text-sm flex items-center gap-2 text-foreground tracking-tight">
                         <History className="h-4 w-4 text-primary" />
-                        Disbursement Log
+                        Payment Log
                     </h3>
                     <Badge variant="secondary" className="text-[10px] font-bold tracking-widest rounded-3xl bg-muted/50 border-border/40">
                         {disbursements.length} Validated Records
@@ -295,7 +295,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                             </thead>
                             <tbody className="divide-y divide-border/40">
                                 {sortedDisbursements.length === 0 ? (
-                                    <tr><td colSpan={4} className="p-12 text-center text-xs text-muted-foreground italic font-medium">No disbursement records identified for this project.</td></tr>
+                                    <tr><td colSpan={4} className="p-12 text-center text-xs text-muted-foreground italic font-medium">No payment records identified for this project.</td></tr>
                                 ) : (
                                     sortedDisbursements.map((d: any) => (
                                         <tr key={d.id} className="hover:bg-muted/20 transition-all text-xs group">

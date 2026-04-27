@@ -109,12 +109,12 @@ export const EmailTemplates = {
         </div>
         
         <div class="breakdown-row">
-          <span style="color: #374151; font-weight: 600;">Spillover (Impact Fund):</span>
+          <span style="color: #374151; font-weight: 600;">Unallocated Funds:</span>
           <span style="color: #064e3b; font-weight: 700;">${data.currency} ${data.surplus}</span>
         </div>
         
         <p style="font-size: 11px; color: #059669; margin-top: 12px; font-style: italic; line-height: 1.4;">
-          Note: This phase was completed by your gift. The surplus has been moved to our community fund for reallocation to active causes.
+          Note: This phase was completed by your gift. The surplus has been securely queued to be routed to other active causes.
         </p>
       ` : `
         <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
@@ -316,7 +316,7 @@ export const EmailTemplates = {
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total Capital Raised</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
     </div>
-    <p>This is a major milestone. Our treasury is now preparing the disbursement tranches based on your execution plan.</p>
+    <p>This is a major milestone. The system is now preparing to route the payment tranches based on your execution plan.</p>
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.projectUrl}" class="button">Go to Management Console</a>
     </div>
@@ -464,7 +464,7 @@ export const EmailTemplates = {
 
   adminSuspenseAlert: (data: { adminName: string; amount: string; currency: string; reference: string; reason: string; url: string }) => `
     <p>Hi ${data.adminName},</p>
-    <p><strong>CRITICAL:</strong> Orphaned capital has been detected and moved to the Suspense Ledger.</p>
+    <p><strong>CRITICAL:</strong> Unallocated funds have been detected and moved to the pending routing queue.</p>
     
     <div class="stat-box" style="background-color: #fff7ed; border: 1px solid #ffedd5;">
       <div style="font-size: 11px; text-transform: uppercase; color: #c2410c; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Unallocated Amount</div>
@@ -474,10 +474,10 @@ export const EmailTemplates = {
       <p style="margin: 4px 0 0 0; font-size: 12px; color: #9a3412; font-family: monospace;">Ref: ${data.reference}</p>
     </div>
 
-    <p>This capital is currently sitting in a non-impact node. Manual intervention is required to either refund the donor or reallocate the funds to an active cause.</p>
+    <p>These funds are currently pending. Manual intervention is required to either refund the donor or reallocate the funds to an active cause.</p>
 
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.url}" class="button" style="background-color: #c2410c;">Open Suspense Queue</a>
+      <a href="${data.url}" class="button" style="background-color: #c2410c;">Open Pending Routing Queue</a>
     </div>
   `,
 
