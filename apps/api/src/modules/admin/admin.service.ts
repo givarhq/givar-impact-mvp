@@ -1012,7 +1012,7 @@ export class AdminService {
               status: TxStatus.SUSPENSE,
               category: TxCategory.INTERNAL_TRANSFER,
               reference: `SURPLUS-${projectId.slice(0, 8)}-${Date.now()}`,
-              description: `Surplus from goal reduction: ${existing.title}`,
+              description: `Unallocated funds from goal reduction: ${existing.title}`,
               metadata: { originalProjectId: projectId, reason: 'GOAL_REDUCTION_OVERAGE' }
             }
           });
@@ -2830,7 +2830,7 @@ export class AdminService {
         Status: tx.status,
         Donor: tx.wallet.user.email || meta?.guestEmail || 'N/A',
         Project_Category: tx.donation?.project?.category?.name || 'N/A',
-        Cause: tx.donation?.project?.title || 'System Top-up',
+        Cause: tx.donation?.project?.title || 'Unallocated Funds',
         Description: tx.description
       };
     });
