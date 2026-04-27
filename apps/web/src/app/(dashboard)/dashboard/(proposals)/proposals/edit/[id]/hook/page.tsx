@@ -100,11 +100,6 @@ export default function HookPage() {
             <div className="space-y-1.5 min-w-0">
               <div className="flex justify-between items-center px-1">
                 <label className="text-xs font-bold text-muted-foreground/80">Cause Description *</label>
-                {!descValid && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors bg-muted text-muted-foreground">
-                    {strippedDescription.length} / 20 min chars
-                  </span>
-                )}
               </div>
               <RichTextEditor
                 content={description || ''}
