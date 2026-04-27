@@ -64,6 +64,7 @@ interface ProposalState {
   vendorEmail: string | null;
   vendorPhone: string | null;
   vendorAddress: string | null;
+  vendorSubaccount: string | null; // <-- NEW
 
   hasPreCollectedFunds: boolean;
   preCollectedAmount: number | null;
@@ -126,6 +127,7 @@ export const useProposalStore = create<ProposalState>()(
     vendorEmail: null,
     vendorPhone: null,
     vendorAddress: null,
+    vendorSubaccount: null, // <-- NEW
 
     hasPreCollectedFunds: false,
     preCollectedAmount: null,
@@ -142,7 +144,6 @@ export const useProposalStore = create<ProposalState>()(
         }))
         : [];
 
-      // Maps legacy structure without preserving the 'stage' property anymore
       const budget = Array.isArray(proposal.budgetBreakdown)
         ? proposal.budgetBreakdown.map((item: any) => ({
           id: item.id || crypto.randomUUID(),
@@ -167,9 +168,10 @@ export const useProposalStore = create<ProposalState>()(
         personalMessage: proposal.personalMessage || null,
         awarenessStatus: proposal.awarenessStatus || null,
 
-        // CRITICAL FIX: Explicitly prefer the raw key from the backend to avoid saving URLs.
         coverImage: proposal.coverImage || null,
         coverImageKey: proposal.coverImageKey || proposal.coverImage || null,
+
+        vendorSubaccount: proposal.vendorSubaccount || null, // <-- NEW: Hydrate Subaccount
 
         categoryId: proposal.categoryId || null,
         subcategoryId: proposal.subcategoryId || null,

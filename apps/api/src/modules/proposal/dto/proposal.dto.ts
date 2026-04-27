@@ -61,7 +61,7 @@ export class CreateProposalDto {
   categoryId!: string;
 
   @IsUUID()
-  subcategoryId!: string; // <-- New mapping requirement
+  subcategoryId!: string;
 
   @IsOptional() @IsString() beneficiaryName?: string;
   @IsOptional() @IsNumber() beneficiaryAge?: number;
@@ -80,9 +80,8 @@ export class UpdateProposalDto {
   @IsOptional() @IsEnum(Currency) currency?: Currency;
 
   @IsOptional() @IsUUID() categoryId?: string;
-  @IsOptional() @IsUUID() subcategoryId?: string; // <-- New mapping requirement
+  @IsOptional() @IsUUID() subcategoryId?: string;
 
-  // --- CRITICAL FIX: Whitelist Cover Image & Video URL ---
   @IsOptional() @IsString() coverImage?: string;
   @IsOptional() @IsString() videoUrl?: string;
 
@@ -120,6 +119,7 @@ export class UpdateProposalDto {
   @IsOptional() @IsString() vendorEmail?: string;
   @IsOptional() @IsString() vendorPhone?: string;
   @IsOptional() @IsString() vendorAddress?: string;
+  @IsOptional() @IsString() vendorSubaccount?: string;
 
   @IsOptional() @IsBoolean() hasPreCollectedFunds?: boolean;
   @IsOptional() @IsNumber() preCollectedAmount?: number;
