@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../../../../../../../components/ui/button';
 import { Input } from '../../../../../../../../components/ui/input';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowLeft, Send, Loader2, ShieldCheck, CheckCircle2, Landmark, FileText } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, ShieldCheck, CheckCircle2, Landmark, FileText, AlertCircle } from 'lucide-react';
 import { DocumentUploader } from '../../../../../../../../components/features/proposals/document-uploader';
 import { ImageUploader } from '../../../../../../../../components/features/proposals/media-uploader';
 import toast from 'react-hot-toast';
@@ -52,8 +52,54 @@ export default function TrustPage() {
     setIsSubmitting(true);
     store.updateField('status', 'SUBMITTED');
 
+    // Force an immediate sync of the entire draft state to the backend
+    // This bypasses the debounced auto-saver to ensure no data is lost
+    const mappedGallery = store.gallery.map(item => ({
+      id: item.id,
+      url: item.key,
+      type: item.type,
+      caption: item.caption
+    }));
+
+    const payload = {
+      title: store.title,
+      shortDesc: store.shortDesc,
+      description: store.description,
+      personalMessage: store.personalMessage,
+      location: store.location,
+      endDate: store.endDate,
+      categoryId: store.categoryId,
+      subcategoryId: store.subcategoryId,
+      coverImage: store.coverImageKey,
+      gallery: mappedGallery,
+      videoUrl: store.videoUrl,
+      budgetBreakdown: store.budgetBreakdown,
+      executionTimeline: store.executionTimeline,
+      riskAnalysis: store.riskAnalysis,
+      kycDocuments: store.kycDocuments,
+      beneficiaryName: store.beneficiaryName,
+      beneficiaryAge: store.beneficiaryAge,
+      beneficiaryRelationship: store.beneficiaryRelationship,
+      beneficiaryContact: store.beneficiaryContact,
+      hasPreCollectedFunds: store.hasPreCollectedFunds,
+      preCollectedHeldAt: store.preCollectedHeldAt,
+      preCollectedProofKey: store.preCollectedProofKey,
+    };
+
+    if (store.targetAmount !== undefined && store.targetAmount !== null) {
+      (payload as any).targetAmount = store.targetAmount * 100;
+    }
+
+    if (store.preCollectedAmount !== undefined && store.preCollectedAmount !== null) {
+      (payload as any).preCollectedAmount = store.preCollectedAmount * 100;
+    }
+
     try {
+      // 1. Flush the exact current state to the DB immediately
+      await ApiService.proposals.update(proposalId, payload);
+      // 2. Submit the synchronized proposal
       await ApiService.proposals.submit(proposalId);
+
       toast.success('Submitted for formal review');
       router.push(`/dashboard/proposals/status/${proposalId}`);
     } catch (error: any) {
@@ -67,7 +113,18 @@ export default function TrustPage() {
 
   const showFeedback = store.status === 'CHANGES_REQUESTED';
   const isThirdParty = store.beneficiaryRelationship !== 'Self' && store.beneficiaryRelationship !== null && store.beneficiaryRelationship !== '';
-  const canSubmit = !isSubmitting && hasAgreedToTerms && (!isThirdParty || hasBeneficiaryConsent);
+
+  // Cross-Step Validation Gates
+  const strippedDescription = store.description ? store.description.replace(/<[^>]*>?/gm, '').trim() : '';
+  const isHookValid = !!(store.title && store.title.trim().length >= 10 && store.location && store.location.trim().length >= 2 && strippedDescription.length >= 20);
+  const isMediaValid = !!store.coverImage;
+  const isPlanValid = store.budgetBreakdown.length > 0 && store.budgetBreakdown.every(
+    item => item.payTo?.trim() && item.costType && item.amount > 0 && item.description?.trim()
+  );
+  const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
+
+  const isAllStepsValid = isHookValid && isMediaValid && isPlanValid && isKycValid;
+  const canSubmit = !isSubmitting && hasAgreedToTerms && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
 
   if (isLoading) {
     return (
@@ -258,6 +315,21 @@ export default function TrustPage() {
                 </div>
               </div>
             </div>
+
+            {/* Validation Banner */}
+            {!isAllStepsValid && (
+              <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 mb-6 space-y-2 animate-in fade-in">
+                <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" /> Incomplete sections
+                </p>
+                <ul className="text-xs text-amber-700 font-medium list-disc pl-5 space-y-1">
+                  {!isHookValid && <li>The narrative section is incomplete (requires title, location, and a 20+ character description).</li>}
+                  {!isMediaValid && <li>A primary hero image is required in the media section.</li>}
+                  {!isPlanValid && <li>All budget and execution fields must be fully completed.</li>}
+                  {!isKycValid && <li>At least one piece of cause evidence or procurement quote must be uploaded.</li>}
+                </ul>
+              </div>
+            )}
 
             {/* NAVIGATION AND SUBMIT */}
             <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">

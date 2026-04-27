@@ -106,8 +106,18 @@ export class ProposalService {
     }
 
     // --- Validation Gate: Content Requirements ---
-    if (!proposal.description || !proposal.coverImage) {
-      throw new BadRequestException('Description and Cover Image are required.');
+    const strippedDescription = proposal.description ? proposal.description.replace(/<[^>]*>?/gm, '').trim() : '';
+
+    if (strippedDescription.length < 20 || !proposal.coverImage) {
+      throw new BadRequestException('A narrative description (at least 20 characters) and a cover image are required.');
+    }
+
+    if (!proposal.title || proposal.title.trim().length < 10) {
+      throw new BadRequestException('A descriptive title of at least 10 characters is required.');
+    }
+
+    if (!proposal.location || proposal.location.trim().length < 2) {
+      throw new BadRequestException('A primary location for this cause is required.');
     }
 
     const budget = proposal.budgetBreakdown as any[];
@@ -115,9 +125,14 @@ export class ProposalService {
       throw new BadRequestException('Budget breakdown is required.');
     }
 
+    const isValidBudget = budget.every(item => item.payTo?.trim() && item.costType && item.amount > 0 && item.description?.trim());
+    if (!isValidBudget) {
+      throw new BadRequestException('All budget items must be fully completed with valid amounts and recipients.');
+    }
+
     const kyc = proposal.kycDocuments as string[];
     if (!kyc || kyc.length === 0) {
-      throw new BadRequestException('At least one KYC document is required.');
+      throw new BadRequestException('At least one cause evidence or procurement quote must be uploaded.');
     }
 
     // --- Execution: State Transition ---
