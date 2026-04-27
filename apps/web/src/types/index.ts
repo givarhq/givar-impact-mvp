@@ -182,7 +182,6 @@ export interface ProjectProposal {
     costType?: string;
     amount?: number;
     description?: string;
-    stage?: string;
     // Legacy support types
     item?: string;
     cost?: number;

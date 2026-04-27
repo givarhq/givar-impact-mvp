@@ -11,7 +11,6 @@ export class AdminBudgetItem {
   @IsNumber() @Min(0) amount!: number;
   @IsString() payTo!: string;
   @IsString() costType!: string;
-  @IsOptional() @IsString() stage?: string;
 }
 
 export class AdminTimelineItem {
