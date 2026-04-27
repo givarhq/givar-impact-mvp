@@ -138,7 +138,7 @@ export const ProjectCard = memo(function ProjectCard({
             </div>
           ) : isPhaseFull ? (
             <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-600 mb-1 bg-amber-50 w-fit px-2 py-0.5 rounded-full border border-amber-200">
-              <Clock className="h-3 w-3" /> Awaiting Verification
+              <Clock className="h-3 w-3" /> Verification in Progress
             </div>
           ) : (
             <div className="flex items-center gap-1 text-[10px] sm:hidden font-bold text-primary mb-1 truncate">

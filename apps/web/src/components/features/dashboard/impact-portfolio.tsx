@@ -136,7 +136,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                                             <div className="space-y-1.5 w-full">
                                                 <div className="flex justify-between items-end text-[10px] font-bold">
                                                     <span className={isCompleted || isFundedState ? "text-emerald-600" : isPhaseFull ? "text-amber-600" : "text-muted-foreground"}>
-                                                        {isCompleted || isFundedState ? 'Goal Met' : isPhaseFull ? 'Awaiting Verification' : `Phase ${activeIndex + 1} Goal`}
+                                                        {isCompleted || isFundedState ? 'Goal Met' : isPhaseFull ? 'Verification in Progress' : `Phase ${activeIndex + 1} Goal`}
                                                     </span>
                                                     <span className="text-primary">{phasePercent.toFixed(0)}%</span>
                                                 </div>

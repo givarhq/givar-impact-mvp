@@ -168,7 +168,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                         <div className="space-y-5 animate-in fade-in">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200/60 w-fit">
-                                    <Clock className="h-3.5 w-3.5" /> Awaiting Verification
+                                    <Clock className="h-3.5 w-3.5" /> Verification in Progress
                                 </div>
                                 <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
                                     This phase is fully funded. Donations are paused while we verify the vendor's proof of work.
