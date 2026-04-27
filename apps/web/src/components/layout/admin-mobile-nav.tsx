@@ -34,7 +34,7 @@ const ALL_NAV_ITEMS = [
   { title: 'Organizations', href: '/admin/organizations', icon: Building },
   { title: 'Ledger', href: '/admin/ledger', icon: Database },
   { title: 'Audit', href: '/admin/audit', icon: ShieldAlert },
-  { title: 'Treasury', href: '/admin/finances', icon: BarChart3 },
+  { title: 'Analytics', href: '/admin/finances', icon: BarChart3 },
 ];
 
 export function AdminMobileNav({ user }: { user: any }) {

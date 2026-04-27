@@ -188,7 +188,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
 
     const handleCommit = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading('Confirming transfer...');
+        const toastId = toast.loading('Confirming routing...');
         try {
             await ApiService.admin.resolveSuspense(transaction.id, {
                 action: 'ALLOCATE' as any,
@@ -197,11 +197,11 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     amount: parseToMinor(s.amountInput).toString()
                 }))
             });
-            toast.success("Transfer complete", { id: toastId });
+            toast.success("Routing complete", { id: toastId });
             router.push('/admin/ledger');
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Transfer failed", { id: toastId });
+            toast.error(e.response?.data?.message || "Routing failed", { id: toastId });
         } finally {
             setIsProcessing(false);
             setShowConfirm(false);
@@ -218,13 +218,13 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-1">
                         <h3 className="text-sm font-bold tracking-tight text-foreground flex items-center gap-2">
-                            <Calculator className="h-4 w-4 text-primary" /> Transfer List
+                            <Calculator className="h-4 w-4 text-primary" /> Routing List
                         </h3>
                         <div className="flex items-center gap-3">
                             <Badge variant="outline" className="rounded-3xl bg-background font-bold text-xs shadow-sm">{selectedSplits.length} selected</Badge>
                         </div>
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium">Assign these funds to specific causes.</p>
+                    <p className="text-xs text-muted-foreground font-medium">Route these unallocated funds to specific causes.</p>
                 </div>
             </div>
 
@@ -345,7 +345,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     onClick={() => setShowConfirm(true)}
                 >
                     {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                    Confirm transfer
+                    Confirm routing
                 </Button>
             </div>
         </div>
@@ -566,7 +566,7 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                 <Dialog open={isMobileLedgerOpen} onOpenChange={setIsMobileLedgerOpen}>
                     <DialogContent className="w-full max-w-full h-[88dvh] p-0 rounded-t-[40px] rounded-b-none border-none shadow-2xl bg-card flex flex-col overflow-hidden fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 z-50">
                         <DialogHeader className="sr-only">
-                            <DialogTitle>Transfer List</DialogTitle>
+                            <DialogTitle>Routing List</DialogTitle>
                         </DialogHeader>
                         {LedgerContent}
                     </DialogContent>
@@ -578,9 +578,9 @@ export const ReallocateFundsClient = memo(function ReallocateFundsClient({
                     onConfirm={handleCommit}
                     isLoading={isProcessing}
                     variant="warning"
-                    title="Confirm Funds Transfer"
-                    description={`You are about to distribute ₦${(Number(transaction.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })} across ${selectedSplits.length} causes. This action cannot be undone.`}
-                    confirmText="Complete transfer"
+                    title="Confirm Funds Routing"
+                    description={`You are about to route ₦${(Number(transaction.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })} to ${selectedSplits.length} causes. This action cannot be undone.`}
+                    confirmText="Complete routing"
                     cancelText="Cancel"
                 />
             </div>

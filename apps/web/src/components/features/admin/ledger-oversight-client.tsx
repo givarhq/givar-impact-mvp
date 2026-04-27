@@ -76,7 +76,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
             const data = await ApiService.admin.verifyExternalRef(token, targetRef.trim());
             setReconcileResult(data);
             if (data.canReconcile) {
-                toast.success("Transaction discrepancy detected");
+                toast.success("Routing discrepancy detected");
             }
         } catch (e) {
             toast.error('Failed to verify reference with external node');
@@ -92,13 +92,13 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
             const data = await ApiService.admin.getSuspense(token);
             setSuspenseItems(data || []);
         } catch (e) {
-            console.error("Failed to refresh suspense queue");
+            console.error("Failed to refresh pending queue");
         }
     };
 
     const handleExecuteReconcile = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading('Initializing reconciliation...');
+        const toastId = toast.loading('Initializing sync...');
         try {
             await ApiService.admin.executeReconcile(refInput.trim());
             toast.success('Internal ledger synchronized successfully', { id: toastId });
@@ -136,10 +136,10 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
 
     const handleRefund = async () => {
         setIsProcessing(true);
-        const toastId = toast.loading('Triggering external refund...');
+        const toastId = toast.loading('Initiating refund...');
         try {
             await ApiService.admin.resolveSuspense(refundModal.txId, { action: 'REFUND' });
-            toast.success('Refund triggered and ledger marked reversed', { id: toastId });
+            toast.success('Refund initiated and ledger updated', { id: toastId });
             setRefundModal({ ...refundModal, isOpen: false });
             await refreshSuspense();
         } catch (e: any) {
@@ -160,7 +160,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                     <TabsList className="bg-muted/50 p-1 rounded-3xl h-11 w-full md:w-fit border border-border/40 shadow-inner">
                         <TabsTrigger value="suspense" className="rounded-3xl px-6 h-full gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
                             <AlertTriangle className="h-3.5 w-3.5" />
-                            Suspense Queue
+                            Pending Routing
                             {suspenseItems.length > 0 && (
                                 <span className="ml-1.5 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                                     {suspenseItems.length}
@@ -190,7 +190,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                 </div>
                                 <h3 className="text-lg font-bold text-foreground ">Ledger balanced</h3>
                                 <p className="text-muted-foreground text-xs max-w-sm mx-auto mt-2 font-medium leading-relaxed">
-                                    No unallocated transactions detected. All platform capital is currently synchronized with active causes.
+                                    No unallocated funds detected. All payments are currently routed to active causes.
                                 </p>
                             </motion.div>
                         ) : (
@@ -211,7 +211,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-2 mb-1.5">
-                                                            <p className="text-xs font-bold text-amber-600">Orphaned Capital</p>
+                                                            <p className="text-xs font-bold text-amber-600">Unallocated Funds</p>
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
@@ -262,7 +262,7 @@ export const LedgerOversightClient = memo(function LedgerOversightClient({
                                                             className="w-full h-10 px-6 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] border-0 bg-primary hover:bg-primary/90 text-white"
                                                             disabled={isProcessing}
                                                         >
-                                                            Re-allocate
+                                                            Route funds
                                                         </Button>
                                                     </Link>
                                                 </div>
