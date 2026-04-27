@@ -117,7 +117,8 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
         try {
             await ApiService.auth.updateProfile(data);
             const fullUser = { ...user, ...data };
-            setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 604800, path: '/' });
+            // Logic: Consistent 24h maxAge for identity sync
+            setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 86400, path: '/' });
             toast.success("Profile updated");
             setEditingField(null);
             reset(data);
@@ -162,7 +163,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
         try {
             await ApiService.auth.switchAccountType(switchModal.type);
             const fullUser = { ...user, accountType: switchModal.type };
-            setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 604800, path: '/' });
+            setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 86400, path: '/' });
             toast.success(`Switched to ${switchModal.type === 'ORGANIZER' ? 'Organization' : 'Personal'} Account`);
             setSwitchModal({ isOpen: false, type: null });
             window.location.reload();

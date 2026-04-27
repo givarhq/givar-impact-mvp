@@ -59,6 +59,7 @@ function LoginComponent() {
 
       const { accessToken, user } = response;
 
+      // Logic: Align cookie maxAge with the 24h JWT lifetime (86400 seconds)
       const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
       setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
