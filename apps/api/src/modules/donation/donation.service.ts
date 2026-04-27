@@ -124,7 +124,8 @@ export class DonationService {
         status: true,
         userId: true,
         slug: true,
-        categoryId: true
+        categoryId: true,
+        vendorSubaccount: true
       },
     });
 
@@ -152,24 +153,29 @@ export class DonationService {
         throw new BadRequestException('Project state changed during processing');
       }
 
-      // --- EXTRACT PHASE CONTEXT ---
       const activeIndex = txProject.currentPhaseIndex || 0;
       const budget = (txProject.budgetBreakdown as any[]) || [];
       const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
       const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
 
-      // --- PHASED CAP INJECTION ---
       const currentPhaseCap = this.calculatePhaseCap(txProject);
       const currentRemaining = currentPhaseCap - txProject.raisedAmount;
       const actualRemaining = (txProject.status !== ProjectStatus.ACTIVE || currentRemaining <= 0n) ? 0n : currentRemaining;
 
-      const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
-      const surplus = baseAmount - amountToProject;
+      // --- CRITICAL NON-CUSTODIAL FIX ---
+      const isNonCustodial = !!txProject.vendorSubaccount;
+
+      let amountToProject = baseAmount;
+      let surplus = 0n;
+
+      if (!isNonCustodial) {
+        // If Givar holds the funds (Custodial), we can safely capture the surplus and route to suspense.
+        amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
+        surplus = baseAmount - amountToProject;
+      }
 
       const reference = `DON-${crypto.randomUUID()}`;
 
-      // 1. Process full debit from user wallet (Base + Fee + Tip)
-      // Categorized as DONATION (System considers the whole outflow a donation event)
       const { transaction: walletTx } = await this.walletRepo.processTransaction(
         {
           userId,
@@ -185,7 +191,6 @@ export class DonationService {
         tx,
       );
 
-      // 2. Platform Revenue Routing (Split into Fee and Tip)
       if (feeAmountMinor > 0n || tipAmount > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -195,7 +200,6 @@ export class DonationService {
         if (systemNode?.wallets[0]) {
           const systemWalletId = systemNode.wallets[0].id;
 
-          // A. The Mandatory Fee
           if (feeAmountMinor > 0n) {
             await tx.walletTransaction.create({
               data: {
@@ -204,21 +208,19 @@ export class DonationService {
                 currency: dto.currency,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
-                category: TxCategory.TRANSACTION_FEE, // <--- Explicit
+                category: TxCategory.TRANSACTION_FEE,
                 reference: `FEE-${reference}`,
                 description: `Platform fee from: ${txProject.title}`,
                 metadata: { originalProjectId: txProject.id, donorId: userId }
               }
             });
 
-            // Increment wallet balance for fee
             await tx.wallet.update({
               where: { id: systemWalletId },
               data: { balance: { increment: feeAmountMinor } }
             });
           }
 
-          // B. The Voluntary Tip
           if (tipAmount > 0n) {
             await tx.walletTransaction.create({
               data: {
@@ -227,14 +229,13 @@ export class DonationService {
                 currency: dto.currency,
                 type: TxType.CREDIT,
                 status: TxStatus.COMPLETED,
-                category: TxCategory.VOLUNTARY_TIP, // <--- Explicit
+                category: TxCategory.VOLUNTARY_TIP,
                 reference: `TIP-${reference}`,
                 description: `Donor tip from: ${txProject.title}`,
                 metadata: { originalProjectId: txProject.id, donorId: userId }
               }
             });
 
-            // Increment wallet balance for tip
             await tx.wallet.update({
               where: { id: systemWalletId },
               data: { balance: { increment: tipAmount } }
@@ -243,7 +244,6 @@ export class DonationService {
         }
       }
 
-      // 3. Spillover Logic
       if (surplus > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -263,7 +263,7 @@ export class DonationService {
             currency: dto.currency,
             type: TxType.CREDIT,
             status: TxStatus.SUSPENSE,
-            category: TxCategory.INTERNAL_TRANSFER, // <--- Explicit
+            category: TxCategory.INTERNAL_TRANSFER,
             reference: `SPILL-${reference}`,
             description: `Surplus capital from completion of: ${txProject.title}`,
             metadata: {
@@ -275,7 +275,6 @@ export class DonationService {
         });
       }
 
-      // 4. Create Donation record
       let donation = null;
       let isGoalMet = false;
 
@@ -360,13 +359,11 @@ export class DonationService {
       isolationLevel: Prisma.TransactionIsolationLevel.Serializable
     });
 
-    // 1. Trigger Individual Receipt for the FULL amount paid (matches bank statement)
     await this.triggerReceipt(
       userId, null, dto.projectId, result.totalCharge, dto.currency,
       `WAL-${result.project.id.slice(0, 8)}`, result.surplus, undefined, undefined, result.formattedPhase
     );
 
-    // 2. Trigger "Project Funded" Alert to Organizer
     if (result.isGoalMet) {
       this.prisma.user.findUnique({
         where: { id: result.project.userId },
@@ -405,7 +402,6 @@ export class DonationService {
       throw new BadRequestException('Amount exceeds maximum allowed per donation');
     }
 
-    // Retrieve vendorSubaccount explicitly from the active project
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
       select: { id: true, isActive: true, currency: true, status: true, categoryId: true, vendorSubaccount: true },
@@ -463,13 +459,10 @@ export class DonationService {
         callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
       };
 
-      // Non-Custodial Gateway Routing Logic
-      // If a vendor subaccount exists, instruct Paystack to route the principal funds directly
-      // to the vendor's bank account while retaining Givar's fee and the tip in the main account.
       if (project.vendorSubaccount) {
         paystackPayload.subaccount = project.vendorSubaccount;
         paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
-        paystackPayload.bearer = 'subaccount'; // Vendor absorbs standard Paystack processing fees
+        paystackPayload.bearer = 'subaccount';
       }
 
       const response = await axios.post(
@@ -555,7 +548,6 @@ export class DonationService {
 
       if (!project) throw new NotFoundException('Project node missing on ledger');
 
-      // --- EXTRACT PHASE CONTEXT ---
       const activeIndex = project.currentPhaseIndex || 0;
       const budget = (project.budgetBreakdown as any[]) || [];
       const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
@@ -568,12 +560,21 @@ export class DonationService {
 
       const actualRemaining = isClosed ? 0n : (currentRemaining <= 0n ? 0n : currentRemaining);
 
-      const amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
-      const surplus = baseAmount - amountToProject;
+      // --- CRITICAL NON-CUSTODIAL FIX ---
+      const isNonCustodial = !!project.vendorSubaccount;
+
+      let amountToProject = baseAmount;
+      let surplus = 0n;
+
+      if (!isNonCustodial) {
+        // If Givar holds the funds, we withhold surplus
+        amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
+        surplus = baseAmount - amountToProject;
+      }
 
       let processedDonationId: string;
       let isGoalMet = false;
-      let isPhaseNewlyMet = false; // --- NEW: Track if this specific donation filled the phase
+      let isPhaseNewlyMet = false;
 
       if (feeAmount > 0n || tipAmount > 0n) {
         const systemNode = await tx.user.findFirst({
@@ -709,7 +710,6 @@ export class DonationService {
 
         isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
 
-        // --- NEW: Phase Filled Check ---
         isPhaseNewlyMet = !isGoalMet && (updatedProject.raisedAmount >= currentPhaseCap);
 
         if (isGoalMet && updatedProject.status === ProjectStatus.ACTIVE) {
@@ -740,7 +740,6 @@ export class DonationService {
             }
           });
         } else if (isPhaseNewlyMet) {
-          // --- NEW: Alert Admin that Phase is Ready for Disbursement ---
           const admins = await tx.user.findMany({
             where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
             select: { id: true }
