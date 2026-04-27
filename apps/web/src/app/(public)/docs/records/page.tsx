@@ -70,7 +70,7 @@ export default function PublicRecordsPage() {
                             <div className="flex-1 space-y-4">
                                 <h2 className="text-2xl font-bold tracking-tight text-foreground">Phased <span className="text-primary italic">accountability</span>.</h2>
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    We fund projects in strict execution phases. Donations are securely held by Givar and only disbursed to verified vendors for the active phase. We only unlock funding for the next phase after we have seen audited proof that the previous work was actually completed.
+                                    We fund projects in strict execution phases. Payments are securely processed and routed directly to verified vendors for the active phase. We only authorize funding routing for the next phase after we have seen audited proof that the previous work was actually completed.
                                 </p>
                             </div>
                             <div className="shrink-0 p-6 rounded-[32px] bg-card border border-border/40 shadow-sm flex flex-col items-center gap-3">

@@ -22,9 +22,9 @@ const steps = [
     },
     {
         num: 2,
-        title: "Funds Secured",
-        desc: "Your donation is protected in Givar's treasury and released only when milestones are verified.",
-        badge: "Treasury Protected",
+        title: "Payment Scheduled",
+        desc: "Your payment is securely processed and scheduled for direct routing to the verified vendor once milestones are approved.",
+        badge: "Smart Routing",
         img: "/howlap.png",
         icon: ShieldCheck,
         color: "text-blue-600",
@@ -34,7 +34,7 @@ const steps = [
     {
         num: 3,
         title: "Impact Happens",
-        desc: "Funds are paid directly to hospitals, schools or trusted vendors to execute the mission.",
+        desc: "Funds are routed directly to verified vendors to execute the mission.",
         badge: "Milestone Achieved",
         img: "/howpatient.png",
         icon: Activity,
