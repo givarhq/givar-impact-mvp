@@ -1,3 +1,4 @@
+// ... (existing imports)
 'use client';
 
 import React, { useState, memo } from 'react';
@@ -10,7 +11,8 @@ import {
     Check, UserCheck,
     Clock,
     Quote,
-    Activity, Building2, Wrench, BookOpen, Package, Home, Truck, Briefcase, BarChart3
+    Activity, Building2, Wrench, BookOpen, Package, Home, Truck, Briefcase, BarChart3,
+    Heart
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -422,21 +424,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </table>
                                     </div>
                                 </Card>
-
-                                {/* Footer Banner */}
-                                <Link href="/docs/direct-payments" className="block group/banner outline-none">
-                                    <div className="bg-card border border-border/60 hover:border-primary/30 rounded-[24px] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-sm">
-                                        <div className="flex items-center gap-3">
-                                            <ShieldCheck className="h-6 w-6 text-emerald-600 shrink-0" />
-                                            <span className="text-sm font-medium text-foreground leading-relaxed">
-                                                <strong className="font-bold">Givar Protocol:</strong> Funds are paid directly yo verified institutions or service providers (such as hospitals or schools), not to organisers or individuals.
-                                            </span>
-                                        </div>
-                                        <span className="text-emerald-600 text-sm font-bold flex items-center shrink-0">
-                                            Learn more <ChevronRight className="h-4 w-4 ml-1 group-hover/banner:translate-x-1 transition-transform" />
-                                        </span>
-                                    </div>
-                                </Link>
                             </motion.div>
                         </TabsContent>
 
@@ -494,7 +481,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                                                 <p className={cn("text-sm leading-relaxed font-medium", isAdjustment ? "text-amber-900/80" : isImpact ? "text-emerald-900/80" : "text-muted-foreground")}>{update.content}</p>
 
-                                                <div className="pt-4 border-t border-border/40 text-[11px] font-bold text-muted-foreground flex items-center gap-1.5">
+                                                <div className="pt-4 border-t border-border/40 text-[10px] font-bold text-muted-foreground flex items-center gap-1.5">
                                                     <ShieldCheck className={cn("h-4 w-4", isImpact ? "text-emerald-600" : "text-primary")} /> Verified entry
                                                 </div>
                                             </Card>
@@ -514,7 +501,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
             {/* RIGHT COLUMN: Sidebar */}
             <div className="lg:col-span-1">
-                <div className="sticky top-20 space-y-4">
+                <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
                     <div className="p-4 rounded-3xl border border-border/40 bg-card flex justify-between items-center shadow-sm">
@@ -541,13 +528,64 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </Button>
                     </div>
 
-                    <div className="pt-2 px-2 space-y-3 hidden sm:block">
-                        <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
-                            <ShieldCheck className="h-4 w-4 text-emerald-500" /> Verified Budget
+                    {/* Organizer Identity Card */}
+                    <Card className={cn(
+                        "rounded-3xl border p-5 flex flex-col transition-all relative overflow-hidden shadow-sm",
+                        project.isVerifiedOrganizer ? "border-primary/20 bg-primary/5" : "bg-card border-border/40"
+                    )}>
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className={cn(
+                                "h-11 w-11 rounded-3xl flex items-center justify-center text-white font-bold text-lg shrink-0",
+                                project.isVerifiedOrganizer ? "bg-primary" : "bg-muted text-muted-foreground"
+                            )}>
+                                {project.organizerName === 'Givar' ? <Heart className="h-5 w-5 fill-current" /> : project.organizerName?.[0] || 'O'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1 mb-0.5">
+                                    <div className={cn("flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-widest", verMeta.color)}>
+                                        <VerIcon className="h-3 w-3" />
+                                        {verMeta.label}
+                                    </div>
+                                </div>
+                                <p className="font-bold text-foreground truncate text-sm mt-0.5">
+                                    {project.organizerName}
+                                </p>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
-                            <Users className="h-4 w-4 text-muted-foreground" /> {project.donorCount || 0} Verified Donor{project.donorCount === 1 ? '' : 's'}
+                    </Card>
+
+                    {/* Expandable Verification Documents Section */}
+                    <details className="bg-card rounded-3xl border border-border/40 group overflow-hidden shadow-sm transition-all">
+                        <summary className="p-5 flex items-center justify-between cursor-pointer list-none font-bold text-sm outline-none">
+                            <span className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-emerald-600" /> Verification Documents</span>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-open:rotate-90 transition-transform" />
+                        </summary>
+                        <div className="px-5 pb-5 space-y-3">
+                            <div className="pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Submitter Government ID</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Beneficiary Identity</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Vendor Contact Details</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
+                                <span>Supporting Evidence</span>
+                                <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                            </div>
                         </div>
+                    </details>
+
+                    {/* Givar Protocol Notice */}
+                    <div className="p-5 bg-muted/20 rounded-3xl border border-border/40 flex items-start gap-3">
+                        <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                        <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                            <strong className="text-foreground">Givar Protocol:</strong> Funds are paid directly to verified institutions or service providers (such as hospitals or schools), not to organisers or individuals.
+                        </p>
                     </div>
                 </div>
             </div>

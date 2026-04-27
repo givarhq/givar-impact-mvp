@@ -304,7 +304,7 @@ export default async function ProjectManagePage({
                     </div>
                 </div>
 
-                {/* --- RIGHT SIDEBAR REMAINS UNCHANGED --- */}
+                {/* --- RIGHT SIDEBAR --- */}
                 <div className="lg:col-span-4 space-y-6 min-w-0">
                     <Card className="rounded-3xl border-border/40 bg-primary/5 p-6 border-2 border-dashed min-w-0 shadow-inner">
                         <div className="flex items-start gap-4 min-w-0">
@@ -408,10 +408,11 @@ export default async function ProjectManagePage({
                         </CardContent>
                     </Card>
 
+                    {/* Givar Protocol Notice (Updated for Organizer Management Page) */}
                     <div className="p-5 rounded-3xl bg-muted/10 border border-dashed border-border/60 flex items-start gap-3 min-w-0">
-                        <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                        <ShieldCheck className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
                         <p className="text-xs text-muted-foreground leading-relaxed font-medium break-words">
-                            Vendor coordination issues? Contact Givar directly via the support terminal.
+                            <strong className="text-foreground">Givar Protocol:</strong> Funds are paid directly to verified institutions or service providers (such as hospitals or schools), not to organisers or individuals.
                         </p>
                     </div>
                 </div>
