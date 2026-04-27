@@ -82,6 +82,10 @@ export class UpdateProposalDto {
   @IsOptional() @IsUUID() categoryId?: string;
   @IsOptional() @IsUUID() subcategoryId?: string; // <-- New mapping requirement
 
+  // --- CRITICAL FIX: Whitelist Cover Image & Video URL ---
+  @IsOptional() @IsString() coverImage?: string;
+  @IsOptional() @IsString() videoUrl?: string;
+
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
