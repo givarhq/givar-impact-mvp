@@ -474,7 +474,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                         <th className="px-6 py-4">Description</th>
                                         <th className="px-6 py-4 hidden md:table-cell">Cost Type</th>
                                         <th className="px-6 py-4 hidden md:table-cell">Pay To (Vendor)</th>
-                                        <th className="px-6 py-4 hidden lg:table-cell">Stage</th>
                                         <th className="px-6 py-4 text-right">Allocation</th>
                                     </tr>
                                 </thead>
@@ -485,16 +484,13 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                 <td className="px-6 py-4 font-bold text-foreground">{item.description || item.item}</td>
                                                 <td className="px-6 py-4 hidden md:table-cell text-muted-foreground text-[11px] font-bold">{item.costType || item.type}</td>
                                                 <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.payTo || item.vendor}</td>
-                                                <td className="px-6 py-4 hidden lg:table-cell text-muted-foreground">
-                                                    {item.stage ? <Badge variant="secondary" className="text-[9px] px-2.5 py-0.5 h-auto font-bold rounded-3xl shadow-none whitespace-nowrap w-fit inline-flex">{item.stage}</Badge> : '-'}
-                                                </td>
                                                 <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold">
                                                     {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
-                                        <tr><td colSpan={5} className="px-6 py-8 text-center text-muted-foreground italic">No budget items provided.</td></tr>
+                                        <tr><td colSpan={4} className="px-6 py-8 text-center text-muted-foreground italic">No budget items provided.</td></tr>
                                     )}
                                 </tbody>
                             </table>
