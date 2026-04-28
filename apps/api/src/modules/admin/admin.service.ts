@@ -448,7 +448,6 @@ export class AdminService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-
       const budget = (proposal.budgetBreakdown as any[]) || [];
       let generatedTimeline = proposal.executionTimeline as any[];
 
@@ -503,7 +502,6 @@ export class AdminService {
           vendorEmail: proposal.vendorEmail,
           vendorPhone: proposal.vendorPhone,
           vendorAddress: proposal.vendorAddress,
-          vendorSubaccount: proposal.vendorSubaccount, // <-- NEW: Migrate Subaccount to Live Project
 
           hasPreCollectedFunds: proposal.hasPreCollectedFunds,
           preCollectedAmount: proposal.preCollectedAmount,
@@ -908,8 +906,7 @@ export class AdminService {
       location: dto.location,
       currency: dto.currency,
       imageUrl: dto.coverImage,
-      videoUrl: dto.videoUrl, // <-- Map videoUrl
-      vendorSubaccount: dto.vendorSubaccount, // <-- NEW: Map Vendor Subaccount
+      videoUrl: dto.videoUrl,
       slug: slug,
       targetAmount: BigInt(dto.targetAmount),
       raisedAmount: 0n,
@@ -989,7 +986,6 @@ export class AdminService {
     };
 
     if ((dto as any).videoUrl !== undefined) updateData.videoUrl = (dto as any).videoUrl;
-    if (dto.vendorSubaccount !== undefined) updateData.vendorSubaccount = dto.vendorSubaccount; // <-- NEW: Allow Subaccount updates
     if (dto.targetAmount) updateData.targetAmount = newTarget;
     if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
     if (dto.gallery) updateData.gallery = dto.gallery as any;
@@ -1001,7 +997,6 @@ export class AdminService {
       if (isGoalChanging && existing.raisedAmount > newTarget) {
         const surplus = existing.raisedAmount - newTarget;
 
-        // Find a secure system wallet (Admin/Superadmin) to hold orphaned capital
         const systemNode = await tx.user.findFirst({
           where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
           include: { wallets: { where: { currency: existing.currency } } }
@@ -1022,7 +1017,6 @@ export class AdminService {
             }
           });
 
-          // Sync raisedAmount to the new capped target
           updateData.raisedAmount = newTarget;
           this.logger.log(`Liquidated ${surplus} surplus from project ${projectId} to suspense.`);
         }
@@ -1065,7 +1059,6 @@ export class AdminService {
     });
 
     if (isLive && isPlanAmending) {
-      // Explicitly await the broadcast in the service layer to ensure it initiates correctly
       this.broadcastFinancialAdjustment(
         projectId,
         result.title,
@@ -2874,5 +2867,75 @@ export class AdminService {
 
       return { success: true };
     });
+  }
+
+  /**
+   * Fetch Nigerian Banks for Subaccount Vendor Routing
+   */
+  async getPaystackBanks() {
+    try {
+      const response = await axios.get('https://api.paystack.co/bank?currency=NGN', {
+        headers: {
+          Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
+        },
+        timeout: 5000,
+      });
+      return response.data.data;
+    } catch (error: any) {
+      this.logger.error(`Failed to fetch Paystack banks: ${error.message}`);
+      throw new ServiceUnavailableException('Could not connect to payment gateway');
+    }
+  }
+
+  /**
+   * Generate a Vendor Subaccount on the fly and verify the bank details
+   */
+  async createPaystackSubaccount(adminId: string, data: { businessName: string; bankCode: string; accountNumber: string }) {
+    try {
+      const response = await axios.post(
+        'https://api.paystack.co/subaccount',
+        {
+          business_name: data.businessName,
+          settlement_bank: data.bankCode,
+          account_number: data.accountNumber,
+          // We set 0 here because Givar dynamically injects the platform fee 
+          // exactly in minor units (Kobo) at the transaction initialization layer.
+          percentage_charge: 0,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        },
+      );
+
+      const subaccountData = response.data.data;
+
+      // Forensic Audit to prove an Admin created this specific routing node
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROJECT_UPDATED,
+        entityType: 'Subaccount',
+        metadata: {
+          action: 'VENDOR_SUBACCOUNT_CREATED',
+          vendorName: data.businessName,
+          subaccountCode: subaccountData.subaccount_code,
+          bankCode: data.bankCode,
+        },
+      });
+
+      return {
+        subaccount_code: subaccountData.subaccount_code,
+        settlement_bank: subaccountData.settlement_bank,
+        account_name: subaccountData.account_name, // Validated by Paystack NUBAN lookup
+      };
+    } catch (error: any) {
+      this.logger.error('Failed to create Paystack subaccount', error.response?.data || error.message);
+
+      const gatewayMsg = error.response?.data?.message || 'Could not verify vendor account details.';
+      throw new BadRequestException(gatewayMsg);
+    }
   }
 }

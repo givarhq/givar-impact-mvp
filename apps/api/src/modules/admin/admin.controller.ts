@@ -361,4 +361,17 @@ export class AdminController {
   deleteSubcategory(@Req() req: any, @Param('id') id: string) {
     return this.service.deleteSubcategory(req.user.id, id);
   }
+
+  @Get('paystack/banks')
+  getPaystackBanks() {
+    return this.service.getPaystackBanks();
+  }
+
+  @Post('paystack/subaccount')
+  createPaystackSubaccount(
+    @Req() req: any,
+    @Body() dto: { businessName: string; bankCode: string; accountNumber: string }
+  ) {
+    return this.service.createPaystackSubaccount(req.user.id, dto);
+  }
 }

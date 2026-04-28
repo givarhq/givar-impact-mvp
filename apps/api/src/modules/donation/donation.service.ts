@@ -125,7 +125,8 @@ export class DonationService {
         userId: true,
         slug: true,
         categoryId: true,
-        vendorSubaccount: true
+        budgetBreakdown: true,
+        currentPhaseIndex: true
       },
     });
 
@@ -157,19 +158,18 @@ export class DonationService {
       const budget = (txProject.budgetBreakdown as any[]) || [];
       const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
       const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
+      
+      const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+      const isNonCustodial = !!activeSubaccount;
 
       const currentPhaseCap = this.calculatePhaseCap(txProject);
       const currentRemaining = currentPhaseCap - txProject.raisedAmount;
       const actualRemaining = (txProject.status !== ProjectStatus.ACTIVE || currentRemaining <= 0n) ? 0n : currentRemaining;
 
-      // --- CRITICAL NON-CUSTODIAL FIX ---
-      const isNonCustodial = !!txProject.vendorSubaccount;
-
       let amountToProject = baseAmount;
       let surplus = 0n;
 
       if (!isNonCustodial) {
-        // If Givar holds the funds (Custodial), we can safely capture the surplus and route to suspense.
         amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
         surplus = baseAmount - amountToProject;
       }
@@ -404,7 +404,10 @@ export class DonationService {
 
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
-      select: { id: true, isActive: true, currency: true, status: true, categoryId: true, vendorSubaccount: true },
+      select: { 
+        id: true, isActive: true, currency: true, status: true, categoryId: true,
+        budgetBreakdown: true, currentPhaseIndex: true 
+      },
     });
 
     if (!project || !project.isActive) {
@@ -435,6 +438,10 @@ export class DonationService {
       emailToCharge = dto.guestEmail.trim();
     }
 
+    const activeIndex = project.currentPhaseIndex || 0;
+    const budget = (project.budgetBreakdown as any[]) || [];
+    const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+
     try {
       const paystackPayload: any = {
         email: emailToCharge,
@@ -459,8 +466,8 @@ export class DonationService {
         callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
       };
 
-      if (project.vendorSubaccount) {
-        paystackPayload.subaccount = project.vendorSubaccount;
+      if (activeSubaccount) {
+        paystackPayload.subaccount = activeSubaccount;
         paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
         paystackPayload.bearer = 'subaccount';
       }
@@ -557,17 +564,15 @@ export class DonationService {
 
       const currentPhaseCap = this.calculatePhaseCap(project);
       const currentRemaining = currentPhaseCap - project.raisedAmount;
-
       const actualRemaining = isClosed ? 0n : (currentRemaining <= 0n ? 0n : currentRemaining);
 
-      // --- CRITICAL NON-CUSTODIAL FIX ---
-      const isNonCustodial = !!project.vendorSubaccount;
+      const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+      const isNonCustodial = !!activeSubaccount;
 
       let amountToProject = baseAmount;
       let surplus = 0n;
 
       if (!isNonCustodial) {
-        // If Givar holds the funds, we withhold surplus
         amountToProject = baseAmount > actualRemaining ? actualRemaining : baseAmount;
         surplus = baseAmount - amountToProject;
       }
@@ -709,7 +714,6 @@ export class DonationService {
         });
 
         isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
-
         isPhaseNewlyMet = !isGoalMet && (updatedProject.raisedAmount >= currentPhaseCap);
 
         if (isGoalMet && updatedProject.status === ProjectStatus.ACTIVE) {
