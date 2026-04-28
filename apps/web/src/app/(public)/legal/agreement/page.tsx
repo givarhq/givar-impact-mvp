@@ -36,7 +36,7 @@ export default function AgreementPage() {
                             )}>
                                 <p>
                                     Version: 1.2<br />
-                                    Effective Date: <strong>March 2026</strong>
+                                    Effective Date: <strong>April 08, 2026</strong>
                                 </p>
                                 <p>
                                     By submitting a cause on Givar, you agree to the following terms.
@@ -57,16 +57,15 @@ export default function AgreementPage() {
                                 <p>Givar reserves the right to approve, reject, pause, or remove causes at its discretion where verification concerns, policy issues, or fraud risks arise.</p>
 
                                 <h2>5. Phased Vendor Disbursements</h2>
-                                <p>You understand that funds raised on Givar are <strong>never paid to organisers personally</strong>. Donations are processed via authorized third-party gateways and routed directly to verified vendor accounts. Givar acts solely as the verifiable technology layer ensuring payments only route when milestones are met.</p>
+                                <p>You understand that funds raised on Givar are <strong>never paid to organisers personally</strong>. Donations are processed via authorized third-party gateways and routed directly to verified vendor accounts (such as hospitals or schools). Givar acts solely as the verifiable technology layer ensuring payments only route when milestones are met.</p>
                                 <ul>
                                     <li><strong>Phased Funding:</strong> Campaigns are funded in distinct phases according to the approved budget roadmap. Inbound donations will pause automatically when an active phase is fully funded.</li>
-                                    <li><strong>Direct Routing:</strong> Givar will authorize the routing of funds directly to verified vendors or service providers for the completion of that specific phase.</li>
-                                    <li><strong>Proof of Work:</strong> You are strictly required to upload visual proof of progress (receipts, photos) upon the completion of a phase. Givar will not authorize funding routing for subsequent phases until this proof is audited and approved by our compliance team.</li>
+                                    <li><strong>Direct Routing:</strong> Givar will authorize the routing of funds directly to verified vendors for the completion of that specific phase.</li>
+                                    <li><strong>Administrative Audit:</strong> Deliverables for each phase are verified directly between Givar and the vendor. Subsequent funding phases will not open until execution is confirmed on the ledger.</li>
                                 </ul>
-                                <p>Givar is not responsible for the quality, timing, or outcome of services delivered by vendors once payment has been routed.</p>
 
                                 <h2>6. Updates and Transparency</h2>
-                                <p>You agree to provide truthful updates, supporting evidence, and reasonable cooperation to maintain transparency for donors.</p>
+                                <p>You agree to maintain the accuracy of vendor contact information and reasonably cooperate with the Givar team to maintain transparency for donors.</p>
 
                                 <h2>7. Misrepresentation</h2>
                                 <p>Knowingly submitting false, misleading, or unauthorised causes may result in account suspension and potential legal reporting.</p>

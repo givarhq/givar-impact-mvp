@@ -35,7 +35,7 @@ export default function PartnerAgreementPage() {
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Version: 1.0<br />
+                                    Version: 1.1<br />
                                     Effective Date: <strong>April 08, 2026</strong>
                                 </p>
                                 <p>
@@ -43,31 +43,29 @@ export default function PartnerAgreementPage() {
                                 </p>
 
                                 <h2>1. Role Of Givar</h2>
-                                <p>Givar is a digital platform that connects donors to verified causes and facilitates payments to approved vendors.</p>
-                                <p>Givar does not hold funds on behalf of users and does not guarantee full campaign funding.</p>
+                                <p>Givar is a technology platform that connects donors to verified causes and facilitates direct payments to approved vendors. Givar does not operate as a financial custodian or escrow agent.</p>
 
                                 <h2>2. Phased And Incremental Funding</h2>
-                                <p>Campaigns may be structured in phases, and payments may be received incrementally over time. Partners should align service delivery with confirmed funding received.</p>
+                                <p>Campaigns are structured in budget phases. As a Partner, you will receive funds incrementally into your designated account as donors contribute. Execution of services should align with confirmed funds received.</p>
 
-                                <h2>3. Use Of Funds</h2>
-                                <p>All funds must be used strictly for the stated purpose of the campaign and handled transparently.</p>
+                                <h2>3. Direct Routing</h2>
+                                <p>Funds are routed directly to your institution's bank account via authorized payment gateways. No funds are handled by campaign organizers.</p>
 
                                 <h2>4. Partial Funding</h2>
-                                <p>If a campaign does not reach its full goal, partners are expected to adjust the scope of services accordingly and not proceed beyond what available funds reasonably cover.</p>
+                                <p>If a campaign does not reach its full goal, you are expected to adjust the scope of services provided and not proceed beyond the costs covered by the available funds received.</p>
 
-                                <h2>5. Partial Execution And Reconciliation</h2>
-                                <p>Where services have been partially rendered, partners may retain only the portion of funds that corresponds to the value of services actually delivered.</p>
-                                <p>Any remaining balance must be returned so it can be handled in line with Givar's policies.</p>
+                                <h2>5. Mandatory Return Of Unused Funds</h2>
+                                <p>In the event that a campaign is canceled, cannot proceed as planned, or funds received exceed the final cost of services rendered, you are <strong>legally obligated to return the unused balance</strong> to Givar's corporate account.</p>
+                                <p>This allows Givar to trigger appropriate refunds to the original donors via our payment gateway. Failure to return unused capital will result in removal from the platform and potential legal action.</p>
 
-                                <h2>6. Refund Of Unused Funds</h2>
-                                <p>If a campaign cannot proceed as planned or funds exceed what is required, partners are expected to return any unused funds so they can be appropriately handled in line with Givar's policies.</p>
+                                <h2>6. Verification and Audit</h2>
+                                <p>Partners must provide photographic proof of work, invoices, and execution receipts directly to Givar's audit team upon request. This data is required to verify impact for donors and to unlock subsequent funding phases.</p>
 
-                                <h2>7. Verification And Updates</h2>
-                                <p>Partners may be required to provide updates, receipts, or proof of service to support transparency.</p>
+                                <h2>7. Misuse</h2>
+                                <p>Any misuse or misrepresentation of funds will result in permanent exclusion from the Givar ecosystem.</p>
 
-                                <h2>8. Misuse</h2>
-                                <p>Any misuse or misrepresentation of funds may result in removal from the platform and further action where necessary.</p>
-                                <p>By participating in a Givar-supported campaign, partners acknowledge and agree to these terms.</p>
+                                <h2>8. Contact</h2>
+                                <p>For partner-related inquiries, please contact: <strong>partners@givarapp.com</strong></p>
                             </div>
                         </div>
                     </Card>

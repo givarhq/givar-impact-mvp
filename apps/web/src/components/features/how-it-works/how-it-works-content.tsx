@@ -22,8 +22,8 @@ const steps = [
     },
     {
         num: 2,
-        title: "Payment Scheduled",
-        desc: "Your payment is securely processed and scheduled for direct routing to the verified vendor once milestones are approved.",
+        title: "Phased Funding",
+        desc: "To ensure accountability, causes are funded one item at a time. Your gift is allocated only to the specific, active phase of the implementation plan.",
         badge: "Smart Routing",
         img: "/howlap.png",
         icon: ShieldCheck,
@@ -34,7 +34,7 @@ const steps = [
     {
         num: 3,
         title: "Impact Happens",
-        desc: "Funds are routed directly to verified vendors to execute the mission.",
+        desc: "Funds are securely routed directly to verified vendors or institutions (like hospitals or schools) to execute that specific stage of the mission.",
         badge: "Milestone Achieved",
         img: "/howpatient.png",
         icon: Activity,
@@ -44,8 +44,8 @@ const steps = [
     },
     {
         num: 4,
-        title: "You Get Proof",
-        desc: "Receipts, photos and updates are uploaded to the cause page so you always see the difference you made.",
+        title: "Givar Verifies",
+        desc: "Our team audits receipts and photographic proof directly from the service delivery site before opening the next funding phase. You see the verified difference you made.",
         badge: "Ledger Verified",
         img: "/howthanks.png",
         icon: FileCheck,
@@ -58,7 +58,6 @@ const steps = [
 export function HowItWorksContent() {
     return (
         <div className="relative w-full overflow-hidden min-h-screen">
-            {/* Background Glassmorphic Glowing Orbs */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -74,7 +73,6 @@ export function HowItWorksContent() {
                 />
             </div>
             <div className="container mx-auto px-4 py-10 md:py-16 max-w-5xl relative z-10">
-                {/* Hero Section - Condensed */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -88,9 +86,7 @@ export function HowItWorksContent() {
                         Follow your donation journey from the moment you give to the moment it creates real, verifiable impact.
                     </p>
                 </motion.section>
-                {/* Timeline Journey - Condensed Spacing */}
                 <div className="relative mt-10 md:mt-14 pb-8">
-                    {/* Central Vertical Dashed Line */}
                     <svg className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-[100px] h-full hidden md:block pointer-events-none" preserveAspectRatio="none">
                         <line x1="50" y1="0" x2="50" y2="100%" stroke="url(#glowGradient)" strokeWidth="1.5" strokeDasharray="6 6" />
                         <defs>
@@ -107,18 +103,15 @@ export function HowItWorksContent() {
                             const isEven = index % 2 === 0;
                             return (
                                 <div key={step.num} className={cn("flex flex-col md:flex-row items-center gap-0 md:gap-12 lg:gap-20 relative", !isEven ? "md:flex-row-reverse" : "")}>
-                                    {/* Central Number Node */}
                                     <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white items-center justify-center font-black shadow-md z-20 text-sm">
                                         {step.num}
                                     </div>
                                     <div className="hidden md:block flex-1" />
-                                    {/* Content Block */}
                                     <div className="w-full md:w-1/2 flex-1 relative flex justify-center">
                                         <div className="relative w-full max-w-[320px] lg:max-w-sm">
                                             <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white flex md:hidden items-center justify-center font-black shadow-md z-20 text-xs">
                                                 {step.num}
                                             </div>
-                                            {/* Image - Smaller Scale */}
                                             <motion.div
                                                 initial={{ opacity: 0, scale: 0.98 }}
                                                 whileInView={{ opacity: 1, scale: 1 }}
@@ -128,7 +121,6 @@ export function HowItWorksContent() {
                                             >
                                                 <Image src={step.img} alt={step.title} fill className="object-cover" />
                                             </motion.div>
-                                            {/* Overlapping Detail Card - Shifted Outward */}
                                             <motion.div
                                                 initial={{ opacity: 0, y: 15 }}
                                                 whileInView={{ opacity: 1, y: 0 }}
@@ -163,7 +155,6 @@ export function HowItWorksContent() {
                         })}
                     </div>
                 </div>
-                {/* Final CTA - Compact */}
                 <motion.section
                     initial={{ opacity: 0, scale: 0.98 }}
                     whileInView={{ opacity: 1, scale: 1 }}
