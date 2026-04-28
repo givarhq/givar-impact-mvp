@@ -10,16 +10,14 @@ import {
     Clock,
     Database,
     ShieldCheck,
-    FileX,
-    ChevronRight,
     Megaphone,
-    Target,
     Users,
     BadgeCheck,
     Building2,
     UserCheck,
     FileText,
-    Check
+    Check,
+    Activity
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -31,18 +29,15 @@ import { ProjectUpdate } from '../../../../../../types';
 
 export const metadata = {
     title: 'Project Console',
-    description: 'Track project execution, verify vendor disbursements, and monitor impact.',
+    description: 'Monitor project execution and verified impact records.',
 };
 
 export default async function ProjectManagePage({
-    params,
-    searchParams
+    params
 }: {
-    params: Promise<{ id: string }>,
-    searchParams: Promise<{ milestoneId?: string }>
+    params: Promise<{ id: string }>
 }) {
     const { id } = await params;
-    const { milestoneId: focusedMilestoneId } = await searchParams;
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value;
     if (!token) redirect('/login');
@@ -55,16 +50,7 @@ export default async function ProjectManagePage({
     const updates: ProjectUpdate[] = Array.isArray(project.updates) ? project.updates : [];
 
     const currentPhaseIndex = project.currentPhaseIndex || 0;
-
-    const defaultMilestone = timeline[currentPhaseIndex] || timeline[timeline.length - 1];
-
-    const currentMilestone = focusedMilestoneId
-        ? timeline.find((m: any) => m.id === focusedMilestoneId)
-        : defaultMilestone;
-
     const isFullyCompleted = timeline.every((m: any) => m.status === 'COMPLETED');
-    const latestProof = project.milestoneProofs?.find((p: any) => p.milestoneId === currentMilestone?.id);
-    const isRejected = latestProof?.status === 'REJECTED';
 
     const isMedical = project.category?.name?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
@@ -76,6 +62,7 @@ export default async function ProjectManagePage({
     const target = Number(project.targetAmount || 0);
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isFullyCompleted);
 
+    // --- PHASED FUNDING MATH (RE-INSERTED) ---
     let previousPhasesMajor = 0;
     for (let i = 0; i < currentPhaseIndex && i < budget.length; i++) {
         previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
@@ -169,45 +156,24 @@ export default async function ProjectManagePage({
                         </Card>
                     )}
 
-                    {isRejected && (
-                        <div className="p-5 rounded-3xl bg-destructive/5 border border-destructive/10 flex items-start gap-4 animate-in slide-in-from-top-2 min-w-0">
-                            <div className="h-10 w-10 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive shrink-0 shadow-inner">
-                                <FileX className="h-5 w-5" />
-                            </div>
-                            <div className="space-y-1 min-w-0">
-                                <h4 className="text-sm font-bold text-destructive leading-none truncate">Resolution Required</h4>
-                                <p className="text-sm text-foreground/80 font-medium italic break-words">
-                                    &quot;{latestProof.adminFeedback}&quot;
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {!isFullyCompleted && currentMilestone ? (
+                    {!isFullyCompleted && (
                         <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm min-w-0">
                             <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10 min-w-0">
                                 <CardTitle className="text-base font-bold flex items-center gap-3 truncate text-foreground">
-                                    <Clock className="h-5 w-5 text-amber-500 shrink-0" />
-                                    <span className="truncate">Phase execution in progress</span>
+                                    <Activity className="h-5 w-5 text-primary shrink-0" />
+                                    <span className="truncate">Phase {currentPhaseIndex + 1} monitoring active</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 md:p-8 space-y-4 min-w-0">
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                    Phase {timeline.findIndex((t: any) => t.id === currentMilestone.id) + 1} is currently active. Our team is coordinating directly with the vendor to verify deliverables. Once execution is confirmed, the next funding phase will be unlocked automatically.
+                                    This cause is currently in the execution phase. The Givar team is coordinating directly with the assigned institutions and vendors to verify deliverables. Once execution is confirmed, the project status and public ledger will be updated automatically.
                                 </p>
+                                <div className="flex items-center gap-2 text-[11px] font-bold text-primary bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10 w-fit">
+                                    <ShieldCheck className="h-3.5 w-3.5" /> Givar Audited Execution
+                                </div>
                             </CardContent>
                         </Card>
-                    ) : isFullyCompleted && !finalReport ? (
-                        <Card className="rounded-3xl border-emerald-500/20 bg-emerald-500/[0.02] p-10 text-center border-2 border-dashed min-w-0">
-                            <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                                <CheckCircle2 className="h-10 w-10" />
-                            </div>
-                            <h3 className="text-xl font-bold text-foreground">{completedText}</h3>
-                            <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto leading-relaxed font-medium">
-                                Every phase of this cause has been executed and verified. The Givar team is preparing your final impact report.
-                            </p>
-                        </Card>
-                    ) : null}
+                    )}
 
                     {otherUpdates.length > 0 && (
                         <div className="space-y-4 min-w-0">
@@ -274,7 +240,6 @@ export default async function ProjectManagePage({
                                                     <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
                                                         {item.costType || item.type}
                                                     </Badge>
-                                                    {/* Mobile only amount display */}
                                                     <div className="sm:hidden font-mono text-foreground font-bold mt-2">
                                                         {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                     </div>
@@ -299,12 +264,11 @@ export default async function ProjectManagePage({
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0 pt-6">
                         <FeedbackThread
                             projectId={project.id}
-                            title="Verification Updates"
+                            title="Direct line with Givar"
                         />
                     </div>
                 </div>
 
-                {/* --- RIGHT SIDEBAR --- */}
                 <div className="lg:col-span-4 space-y-6 min-w-0">
 
                     <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
@@ -323,7 +287,7 @@ export default async function ProjectManagePage({
                                     const phaseName = phaseIndex !== -1 ? `Phase ${phaseIndex + 1}` : 'General';
 
                                     return (
-                                        <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 min-w-0 hover:border-primary/20 transition-all">
+                                        <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 min-w-0">
                                             <div className="flex justify-between items-start gap-2 min-w-0">
                                                 <div className="min-w-0">
                                                     <p className="text-xs font-bold text-primary truncate">Outflow</p>
@@ -331,7 +295,7 @@ export default async function ProjectManagePage({
                                                 </div>
 
                                                 {isVerified ? (
-                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 shadow-none">
+                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 shadow-none">
                                                         <Check className="h-3 w-3 mr-1" /> Verified
                                                     </Badge>
                                                 ) : (
@@ -372,8 +336,7 @@ export default async function ProjectManagePage({
                         </CardContent>
                     </Card>
 
-                    {/* Verified by Givar Card */}
-                    <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0">
                             <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
                                 <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar
@@ -422,7 +385,6 @@ export default async function ProjectManagePage({
                         </CardContent>
                     </Card>
 
-                    {/* Givar Protocol Disclaimer */}
                     <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-emerald-900/70 leading-relaxed font-medium">

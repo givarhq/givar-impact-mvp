@@ -3,9 +3,9 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck, Building2, Clock, Target } from 'lucide-react';
+import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck, Building2 } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { ProjectCardProps } from '../../../types';
+import { Project, ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
 import { motion } from 'framer-motion';
@@ -13,54 +13,29 @@ import { usePostHog } from 'posthog-js/react';
 
 export const ProjectCard = memo(function ProjectCard({
   project,
+  onDonate,
   onShare,
   isPublic = false,
   hideKobo = true
 }: ProjectCardProps) {
+  const raised = Number(project.raisedAmount || 0);
+  const target = Number(project.targetAmount || 0);
+  const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
+
   const isCompleted = project.status === 'COMPLETED';
-
-  // Overall Math
-  const totalRaised = BigInt(project.raisedAmount || '0');
-  const totalTarget = BigInt(project.targetAmount || '0');
-  const isFundedState = project.status === 'FUNDED' || (totalRaised >= totalTarget && totalTarget > 0n && !isCompleted);
-
-  // --- PHASED FUNDING MATH ---
-  const activeIndex = project.currentPhaseIndex || 0;
-  const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
-
-  let previousPhasesMajor = 0;
-  for (let i = 0; i < activeIndex && i < budget.length; i++) {
-    previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-  }
-  const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
-
-  let cumulativeMajor = previousPhasesMajor;
-  if (budget[activeIndex]) {
-    cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
-  }
-  const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-    ? BigInt(cumulativeMajor * 100)
-    : totalTarget;
-
-  const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-  let raisedInCurrentPhase = totalRaised - previousPhasesMinor;
-  if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-  const phasePercent = currentPhaseTargetMinor > 0n
-    ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
-    : 0;
-
-  const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+  const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
 
   const isMedical = project.categoryName?.toLowerCase() === 'medical';
   const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
+  // Logic: Map specific verification icons to the entity type for higher forensic clarity
+  // Add an explicit fallback check for "Givar" as the name just in case cache is stale
   const getVerIcon = () => {
     if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') return BadgeCheck;
     if (project.organizerType === 'ORGANIZATION') return Building2;
-    return UserCheck;
+    return UserCheck; // Default for INDIVIDUAL
   };
 
   const VerIcon = getVerIcon();
@@ -73,10 +48,6 @@ export const ProjectCard = memo(function ProjectCard({
       is_verified: project.isVerifiedOrganizer
     });
   };
-
-  const displayCategory = project.subcategoryName
-    ? `${project.categoryName} • ${project.subcategoryName}`
-    : (project.categoryName || 'Active cause');
 
   return (
     <Card
@@ -105,12 +76,6 @@ export const ProjectCard = memo(function ProjectCard({
             <VerIcon className="h-3 w-3 sm:h-4 sm:w-4" />
           </div>
         )}
-
-        {/* Top Left Category Indicator (Desktop Only) */}
-        <div className="absolute top-3 left-3 hidden sm:flex items-center gap-1.5 bg-background/90 backdrop-blur-md text-foreground px-2.5 py-1 rounded-full border border-border/20 shadow-sm">
-          <Target className="h-3 w-3 text-primary" />
-          <span className="text-[10px] font-bold truncate max-w-[140px]">{displayCategory}</span>
-        </div>
       </Link>
 
       {/* Content Body */}
@@ -132,39 +97,29 @@ export const ProjectCard = memo(function ProjectCard({
 
         {/* Impact Progress & Actions */}
         <div className="space-y-2 sm:space-y-3 mt-auto min-w-0">
-          {(isCompleted || isFundedState) ? (
+          {(isCompleted || isFundedState) && (
             <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
               <Check className="h-3 w-3" /> {isCompleted ? completedText : 'Goal Reached'}
             </div>
-          ) : isPhaseFull ? (
-            <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-600 mb-1 bg-amber-50 w-fit px-2 py-0.5 rounded-full border border-amber-200">
-              <Clock className="h-3 w-3" /> Verification in Progress
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 text-[10px] sm:hidden font-bold text-primary mb-1 truncate">
-              <Target className="h-3 w-3 shrink-0" /> <span className="truncate">{displayCategory}</span>
-            </div>
           )}
-
           <div className="flex justify-between items-end gap-3 min-w-0">
-            {/* PROGRESS BAR SECTION */}
             <div className="space-y-1.5 flex-1 min-w-0">
               <div className="flex justify-between items-end text-xs font-bold min-w-0">
                 <div className="flex items-baseline gap-1 truncate min-w-0">
                   <span className="text-foreground truncate">
-                    <SmartCurrency amount={raisedInCurrentPhase.toString()} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
+                    <SmartCurrency amount={project.raisedAmount} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
                   </span>
                   <span className="text-muted-foreground text-[11px] font-medium shrink-0">of</span>
                   <span className="text-muted-foreground opacity-60 truncate font-medium">
-                    <SmartCurrency amount={currentPhaseTargetMinor.toString()} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
+                    <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" hideKobo={hideKobo} />
                   </span>
                 </div>
-                <span className="text-primary shrink-0 ml-2">{phasePercent}%</span>
+                <span className="text-primary shrink-0 ml-2">{percent.toFixed(0)}%</span>
               </div>
               <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${phasePercent}%` }}
+                  animate={{ width: `${percent}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
                   className="h-full bg-primary"
                 />
@@ -177,7 +132,7 @@ export const ProjectCard = memo(function ProjectCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onShare(project as any);
+                onShare(project);
               }}
               className="hidden sm:inline-flex h-8 w-8 shrink-0 rounded-full border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:scale-90 transition-all bg-background"
             >
