@@ -8,6 +8,7 @@ export interface BudgetItem {
   costType: string;
   amount: number;
   description: string;
+  vendorSubaccount?: string; // <-- ADDED
 }
 
 export interface TimelineItem {
@@ -64,7 +65,6 @@ interface ProposalState {
   vendorEmail: string | null;
   vendorPhone: string | null;
   vendorAddress: string | null;
-  vendorSubaccount: string | null; // <-- NEW
 
   hasPreCollectedFunds: boolean;
   preCollectedAmount: number | null;
@@ -127,7 +127,6 @@ export const useProposalStore = create<ProposalState>()(
     vendorEmail: null,
     vendorPhone: null,
     vendorAddress: null,
-    vendorSubaccount: null, // <-- NEW
 
     hasPreCollectedFunds: false,
     preCollectedAmount: null,
@@ -150,7 +149,8 @@ export const useProposalStore = create<ProposalState>()(
           payTo: item.payTo || item.vendor || '',
           costType: item.costType || item.type || 'SERVICE',
           amount: item.amount !== undefined ? item.amount : (item.cost || 0),
-          description: item.description || item.item || ''
+          description: item.description || item.item || '',
+          vendorSubaccount: item.vendorSubaccount || '' // <-- NEW: Hydrate Subaccount into Budget
         }))
         : [];
 
@@ -170,8 +170,6 @@ export const useProposalStore = create<ProposalState>()(
 
         coverImage: proposal.coverImage || null,
         coverImageKey: proposal.coverImageKey || proposal.coverImage || null,
-
-        vendorSubaccount: proposal.vendorSubaccount || null, // <-- NEW: Hydrate Subaccount
 
         categoryId: proposal.categoryId || null,
         subcategoryId: proposal.subcategoryId || null,
