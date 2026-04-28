@@ -43,6 +43,7 @@ const budgetItemSchema = z.object({
   payTo: z.string().optional(),
   costType: z.string().optional(),
   stage: z.string().optional(),
+  vendorSubaccount: z.string().optional() // <-- Included nested mapping
 });
 
 const timelineItemSchema = z.object({
@@ -64,7 +65,6 @@ const projectSchema = z.object({
   currency: z.enum(['NGN', 'USD', 'GBP']),
   coverImage: z.string().min(1, "A primary image is required"),
   videoUrl: z.string().optional().nullable(),
-  vendorSubaccount: z.string().optional().nullable(), // <-- NEW: Subaccount field
   gallery: z.array(mediaItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
@@ -97,7 +97,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       ...initialData,
       coverImage: initialData.imageUrl || '',
       videoUrl: initialData.videoUrl || '',
-      vendorSubaccount: initialData.vendorSubaccount || '',
       gallery: initialData.gallery || [],
       budgetBreakdown: (initialData.budgetBreakdown || []).map((b: any) => ({
         id: b.id || crypto.randomUUID(),
@@ -105,7 +104,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         costType: b.costType || b.type || 'SERVICE',
         amount: b.amount !== undefined ? b.amount : (b.cost || 0),
         description: b.description || b.item || '',
-        stage: b.stage || ''
+        stage: b.stage || '',
+        vendorSubaccount: b.vendorSubaccount || ''
       })),
       executionTimeline: initialData.executionTimeline || [],
       personalMessage: initialData.personalMessage || '',
@@ -121,7 +121,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       personalMessage: '',
       endDate: '',
       subcategoryId: '',
-      vendorSubaccount: '',
     }
   });
 
@@ -384,24 +383,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           />
         </div>
 
-        {/* --- NEW: Paystack Vendor Subaccount Field --- */}
-        <div className="md:col-span-12 pt-4 border-t border-border/40 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
-            <Landmark className="h-3 w-3" /> Paystack Subaccount Code (Non-Custodial Routing)
-          </label>
-          <div className="relative group">
-            <Input
-              {...register('vendorSubaccount')}
-              placeholder="e.g. SUB_x89zbv"
-              className={cn(getInputClass(), "font-mono")}
-              readOnly={readOnly}
-            />
-          </div>
-          <p className="text-[10px] text-muted-foreground px-1 font-medium italic">
-            If provided, donor funds will bypass Givar and route directly to the vendor's bank account via Paystack Splits.
-          </p>
-        </div>
-
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Short Elevator Pitch</label>
           <Textarea
@@ -451,7 +432,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
-          {/* Cover Asset Section */}
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -489,7 +469,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             {errors.coverImage && <p className="text-[11px] font-bold text-destructive px-2 mt-1">{errors.coverImage.message}</p>}
           </div>
 
-          {/* Elevator Pitch Video Section */}
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <Video className="h-3.5 w-3.5 text-muted-foreground" />
@@ -573,6 +552,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           isLive={isLive}
           isAdjustmentMode={isAdjustmentMode}
           categorySlug={selectedCategoryObj?.slug}
+          isAdmin={true} // Extends Admin privileges down to Editor
         />
       </Card>
 

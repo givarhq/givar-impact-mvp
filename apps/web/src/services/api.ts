@@ -507,6 +507,10 @@ export const ApiService = {
 
     updateCategoryWeight: (id: string, weight: number) =>
       apiClient.patch(`/recommendations/admin/category/${id}/weight`, { weight }).then(r => r.data),
+
+    getPaystackBanks: () => apiClient.get('/admin/paystack/banks').then(r => r.data),
+
+    createPaystackSubaccount: (data: { businessName: string; bankCode: string; accountNumber: string }) => apiClient.post('/admin/paystack/subaccount', data).then(r => r.data),
   },
 
   recommendations: {
