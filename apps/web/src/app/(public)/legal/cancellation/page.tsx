@@ -35,30 +35,29 @@ export default function CancellationPolicyPage() {
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Version: 1.0<br />
+                                    Version: 1.1<br />
                                     Effective Date: <strong>April 08, 2026</strong>
                                 </p>
 
-                                <h2>1. Cause Submission Withdrawal</h2>
-                                <p>Organisers may withdraw a cause submission at any time before it has been approved and published on the platform.</p>
-                                <p>Once a cause is live and receiving donations, cancellation is subject to administrative review.</p>
+                                <h2>1. Cause Withdrawal</h2>
+                                <p>Organisers may withdraw their cause submission at any time before it has been approved for the public feed. Once a cause is live and receiving donations, withdrawal is subject to administrative review to ensure the protection of already-received capital.</p>
 
-                                <h2>2. Platform Right To Pause Or Remove Causes</h2>
-                                <p>Givar reserves the right to pause, suspend, reject, or remove any cause where there are concerns regarding accuracy of information, beneficiary consent, vendor verification, fraud risk, policy violations, or reputational impact.</p>
+                                <h2>2. Platform Intervention</h2>
+                                <p>Givar reserves the right to pause, suspend, or remove any cause where there are concerns regarding the accuracy of information, beneficiary authorization, vendor verification, or fraud risk. In such cases, Givar will immediately halt all further donations and disbursements.</p>
 
-                                <h2>3. Impact On Donations</h2>
-                                <p>If a cause is paused or removed after receiving donations, Givar may hold funds temporarily while a review is conducted. Depending on the outcome, funds may be:</p>
+                                <h2>3. Impact on Received Funds</h2>
+                                <p>If a cause is cancelled after funds have been raised, Givar will take steps to ensure the capital is handled in accordance with the donors' original intent. This may include:</p>
                                 <ul>
-                                    <li>Disbursed to the verified vendor</li>
-                                    <li>Redirected to another verified cause</li>
-                                    <li>Handled in accordance with platform governance protocols</li>
+                                    <li><strong>Refunds:</strong> Coordinating with the vendor to return the funds for refunding to donors.</li>
+                                    <li><strong>Redirection:</strong> With donor consent, redirecting the funds to another verified cause within the same sector (e.g., from one medical cause to another).</li>
+                                    <li><strong>Ledger Adjustment:</strong> Holding the funds in the platform suspense ledger until an audited resolution is achieved.</li>
                                 </ul>
 
                                 <h2>4. Organiser Responsibilities</h2>
-                                <p>Organisers are responsible for providing accurate and complete information. Submitting misleading or unauthorised causes may result in cancellation, account suspension, or legal reporting where applicable.</p>
+                                <p>Submitting misleading, unauthorized, or fraudulent causes is a violation of platform policy. Such actions will result in permanent account termination and, where appropriate, reporting to regulatory or legal authorities.</p>
 
                                 <h2>5. Contact</h2>
-                                <p>For cancellation-related requests or queries, please contact: <strong>support@givarapp.com</strong></p>
+                                <p>For cancellation-related queries, please contact: <strong>compliance@givarapp.com</strong></p>
                             </div>
                         </div>
                     </Card>

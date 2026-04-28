@@ -42,20 +42,21 @@ export default function RefundPolicyPage() {
                                     Givar operates a transparent giving platform where contributions are made to support verified causes.
                                 </p>
 
-                                <h2>1. Finality Of Contributions</h2>
-                                <p>Contributions made on Givar are generally considered final once a transaction is successfully processed.</p>
-                                <p>As payments are directed to vendors or institutions supporting a cause, refunds cannot be guaranteed after payment has been completed.</p>
+                                <h2>1. Finality of Contributions</h2>
+                                <p>Contributions made on Givar are generally considered final once a transaction is successfully processed. As payments are directed to verified vendors or institutions for specific project phases, Givar cannot guarantee a refund once funds have been settled into the vendor's bank account.</p>
 
-                                <h2>2. Platform Or Compliance Review</h2>
-                                <p>In limited circumstances involving confirmed fraud, misrepresentation, or technical error, Givar may review a transaction.</p>
-                                <p>Where appropriate, Givar may coordinate with payment providers, vendors, or relevant parties to determine a suitable resolution.</p>
+                                <h2>2. Exception Handling and Vendor Coordination</h2>
+                                <p>In the event of confirmed fraud, misrepresentation, or if a project cannot proceed as planned, Givar will intervene to protect donor interests. Our ability to issue a refund is dependent on the following:</p>
+                                <ul>
+                                    <li><strong>Settlement Status:</strong> If the funds have not yet been settled into the vendor's account, Givar may be able to cancel the transaction.</li>
+                                    <li><strong>Vendor Return:</strong> If funds have already been settled, Givar will coordinate with the institution to secure the return of the unused capital. A refund can only be triggered to the donor once the vendor has returned the funds to Givar's corporate account.</li>
+                                </ul>
 
                                 <h2>3. Payment Processing Errors</h2>
-                                <p>If a donor experiences a confirmed duplicate charge or payment processing error, Givar will investigate and work with the payment provider to resolve the issue.</p>
+                                <p>If a donor experiences a confirmed duplicate charge or technical payment error, Givar will work with our payment gateway providers to resolve the issue as quickly as possible.</p>
 
-                                <h2>4. Currency Conversion And Bank Fees</h2>
-                                <p>For international payments, the final amount charged may vary due to exchange rate fluctuations or bank fees.</p>
-                                <p>Givar is not responsible for discrepancies between estimated and final settlement amounts.</p>
+                                <h2>4. Currency Conversion</h2>
+                                <p>For international donors, the final amount refunded may vary slightly from the original amount given due to fluctuations in exchange rates or bank processing fees. Givar is not responsible for these discrepancies.</p>
 
                                 <h2>5. Contact</h2>
                                 <p>For refund-related inquiries, please contact: <strong>support@givarapp.com</strong></p>

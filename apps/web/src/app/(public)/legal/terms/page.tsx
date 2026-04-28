@@ -125,12 +125,10 @@ export default function TermsPage() {
                                 <p>Only specific portions of a campaign may be open for funding at a given time. Progression may depend on verification of prior stages.</p>
                                 <p>This structure is intended to improve transparency and manage risk and does not imply that funds are held or released by Givar.</p>
 
-                                <h2>5. Vendors And Service Delivery</h2>
-                                <p>Payments are made directly to verified vendors or service providers.</p>
-                                <p>Givar is not responsible for the quality, timing, or outcome of services delivered by vendors.</p>
-                                <p>Vendors may be subject to separate agreements governing their responsibilities.</p>
+                                <h2>5. Vendors & Service Delivery</h2>
+                                <p>Payments are made directly to verified vendors. Givar is not responsible for the quality, timing, or outcome of services delivered by these third parties. Vendors are subject to a separate Partner Agreement requiring the return of unused funds if a project fails.</p>
 
-                                <h2>6. Platform Review And Intervention</h2>
+                                <h2>6. Platform Review & Intervention</h2>
                                 <p>Givar may review campaign activity in cases of suspected fraud, misrepresentation, technical issues, or policy violations.</p>
                                 <p>Where necessary, Givar may coordinate with payment providers, vendors, or relevant parties to determine an appropriate outcome.</p>
 
