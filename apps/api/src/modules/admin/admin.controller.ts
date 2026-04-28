@@ -108,29 +108,6 @@ export class AdminController {
     return this.service.getSuspenseTransactions();
   }
 
-  /**
-   * Paginated Evidence Queue
-   * Exposes the forensic evidence table to the admin frontend
-   */
-  @Get('evidence/pending')
-  getPendingEvidence(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('projectId') projectId?: string,
-    @Query('status') status?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'all',
-    @Query('search') search?: string,
-    @Query('sort') sort?: 'asc' | 'desc',
-  ) {
-    return this.service.getEvidenceQueue({
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 15,
-      projectId,
-      status: status || 'PENDING',
-      search,
-      sort,
-    });
-  }
-
   @Get('users/:id')
   getUserDetail(@Param('id') id: string) {
     return this.service.getUserDetail(id);
@@ -235,23 +212,6 @@ export class AdminController {
       dto.status,
       dto,
       req.user.id
-    );
-  }
-
-  /**
-   * Review Evidence
-   */
-  @Patch('evidence/:id/review')
-  async reviewEvidence(
-    @Req() req: any,
-    @Param('id') id: string,
-    @Body() body: { status: 'APPROVED' | 'REJECTED'; feedback?: string }
-  ) {
-    return this.service.reviewMilestoneProof(
-      req.user.id,
-      id,
-      body.status,
-      body.feedback
     );
   }
 

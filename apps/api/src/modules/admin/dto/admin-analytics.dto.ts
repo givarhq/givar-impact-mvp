@@ -1,4 +1,4 @@
-import { Currency, ProjectStatus, UserRole, VerificationStatus, AccountType } from '@givar/database';
+import { Currency, ProjectStatus, UserRole, AccountType } from '@givar/database';
 
 export class AdminAnalyticsResponseDto {
     summary: {
@@ -8,6 +8,9 @@ export class AdminAnalyticsResponseDto {
         activeProjects: number;
         pendingKycCount: number;
         unresolvedSuspenseCount: number;
+        dominantRisk: string;
+        riskLabel: string;
+        riskCount: number;
     };
 
     financials: {
@@ -21,7 +24,6 @@ export class AdminAnalyticsResponseDto {
         }>;
     };
 
-    // CONSOLIDATED PROJECT METRICS
     projectMetrics: {
         topFunded: Array<{
             id: string;
@@ -47,15 +49,6 @@ export class AdminAnalyticsResponseDto {
         totalRejected: number;
         approvalRate: number;
         funnel: Array<{ stage: string; count: number }>;
-    };
-
-    evidenceMetrics: {
-        totalSubmitted: number;
-        pending: number;
-        approved: number;
-        rejected: number;
-        verificationRate: number;
-        statusDistribution: Array<{ status: string; count: number }>;
     };
 
     organizationMetrics: {
