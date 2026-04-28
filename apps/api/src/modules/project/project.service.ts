@@ -1,9 +1,9 @@
+// ... existing imports ...
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { ProjectQueryDto, ProjectSort } from './dto/project-query.dto';
 import { AuditAction, NotificationType, Prisma, ProjectStatus, UserRole } from '@givar/database';
-import { SubmitMilestoneProofDto } from './dto/evidence.dto';
 import { AuditService } from '../audit/audit.service';
 import { StorageService } from '../storage/storage.service';
 import { EmailService } from '../email/email.service';
@@ -251,78 +251,6 @@ export class ProjectService {
       .replace(/(^-|-$)+/g, '') + '-' + Date.now().toString().slice(-4);
   }
 
-  async submitMilestoneProof(userId: string, projectId: string, dto: SubmitMilestoneProofDto) {
-    // 1. Security: Verify Ownership
-    const project = await this.prisma.project.findFirst({
-      where: {
-        OR: [
-          { id: projectId },
-          { proposalId: projectId }
-        ]
-      },
-      select: { id: true, userId: true, title: true, executionTimeline: true }
-    });
-    if (!project) throw new NotFoundException('Project not found');
-    if (project.userId !== userId) throw new ForbiddenException('Access denied');
-
-    // 2. Validate Milestone ID exists in this project
-    const timeline = (project.executionTimeline as any[]) || [];
-    const milestone = timeline.find(m => m.id === dto.milestoneId);
-    if (!milestone) throw new BadRequestException('Invalid milestone ID');
-
-    // 3. Atomic Transaction for Proof and Notifications
-    return this.prisma.$transaction(async (tx) => {
-      const proof = await tx.milestoneProof.create({
-        data: {
-          projectId: project.id,
-          milestoneId: dto.milestoneId,
-          description: dto.description,
-          imageKeys: dto.imageKeys,
-        }
-      });
-
-      // Logic: Fetch all admins to generate in-app alerts
-      const admins = await tx.user.findMany({
-        where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
-        select: { id: true }
-      });
-
-      if (admins.length > 0) {
-        await tx.notification.createMany({
-          data: admins.map(admin => ({
-            userId: admin.id,
-            type: 'MILESTONE_ALERT' as NotificationType,
-            title: 'New proof of work',
-            content: `Evidence has been submitted for "${project.title}" (${milestone.phase}).`,
-            link: '/admin/verifications?tab=evidence'
-          }))
-        });
-      }
-
-      await this.audit.log({
-        userId,
-        action: AuditAction.MILESTONE_PROOF_SUBMITTED,
-        entityId: project.id,
-        entityType: 'MilestoneProof',
-        metadata: {
-          milestone: milestone.phase,
-          proofId: proof.id,
-          imageCount: dto.imageKeys.length
-        }
-      }, tx);
-
-      return { proof, projectTitle: project.title, phase: milestone.phase };
-    }).then(async (res) => {
-      // 4. Trigger External Broadcast to Admin Emails
-      this.emailService.sendAdminEvidenceAlert({
-        projectTitle: res.projectTitle,
-        milestonePhase: res.phase
-      }).catch(err => this.logger.error(`Admin Evidence Email Failed: ${err.message}`));
-
-      return res.proof;
-    });
-  }
-
   /**
    * Secure Project Management Data Fetcher
    * Includes private execution data and enforces IDOR protection.
@@ -372,20 +300,21 @@ export class ProjectService {
     }
 
     const disbursementsWithStatus = project.disbursements.map((d) => {
+      // Under the new offline admin-verification architecture, a proof is uploaded
+      // directly by the admin upon verification. If it exists, the phase is verified.
       const latestProof = project.milestoneProofs.find(p => p.milestoneId === d.milestoneId);
 
-      let satisfactionStatus: 'ACTION_REQUIRED' | 'AUDITING' | 'VERIFIED' = 'ACTION_REQUIRED';
+      let satisfactionStatus: 'PENDING_VERIFICATION' | 'VERIFIED' = 'PENDING_VERIFICATION';
 
-      if (latestProof) {
-        if (latestProof.status === 'APPROVED') satisfactionStatus = 'VERIFIED';
-        else if (latestProof.status === 'PENDING') satisfactionStatus = 'AUDITING';
+      if (latestProof && latestProof.status === 'APPROVED') {
+        satisfactionStatus = 'VERIFIED';
       }
 
       return {
         ...d,
         amount: d.amount.toString(),
         satisfactionStatus,
-        adminFeedback: latestProof?.status === 'REJECTED' ? latestProof.adminFeedback : null
+        adminFeedback: null
       };
     });
 

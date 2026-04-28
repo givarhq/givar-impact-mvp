@@ -6,16 +6,13 @@ import { Badge } from '../../../../../../components/ui/badge';
 import { Button } from '../../../../../../components/ui/button';
 import {
     ArrowLeft,
-    Camera,
     CheckCircle2,
     Clock,
     Database,
     ShieldCheck,
     FileX,
-    FileSearch,
     ChevronRight,
     Megaphone,
-    AlertCircle,
     Target,
     Users,
     BadgeCheck,
@@ -26,7 +23,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { EvidenceSubmission } from '../../../../../../components/features/proposals/evidence-submission';
 import { cn } from '../../../../../../lib/utils/cn';
 import { formatCurrency, formatDate } from '../../../../../../lib/utils/format';
 import { ReceiptButton } from '../../../../../../components/features/proposals/receipt-button';
@@ -35,7 +31,7 @@ import { ProjectUpdate } from '../../../../../../types';
 
 export const metadata = {
     title: 'Project Console',
-    description: 'Track project execution, verify vendor disbursements, and upload impact evidence.',
+    description: 'Track project execution, verify vendor disbursements, and monitor impact.',
 };
 
 export default async function ProjectManagePage({
@@ -69,7 +65,6 @@ export default async function ProjectManagePage({
     const isFullyCompleted = timeline.every((m: any) => m.status === 'COMPLETED');
     const latestProof = project.milestoneProofs?.find((p: any) => p.milestoneId === currentMilestone?.id);
     const isRejected = latestProof?.status === 'REJECTED';
-    const isPendingAudit = latestProof?.status === 'PENDING';
 
     const isMedical = project.category?.name?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
@@ -149,7 +144,6 @@ export default async function ProjectManagePage({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start min-w-0">
 
                 <div className="lg:col-span-8 space-y-6 min-w-0">
-                    <div id="submit-evidence" className="scroll-mt-32" />
 
                     {finalReport && (
                         <Card className="rounded-3xl border-emerald-500/20 bg-emerald-500/[0.03] shadow-sm overflow-hidden animate-in slide-in-from-top-2 min-w-0">
@@ -181,7 +175,7 @@ export default async function ProjectManagePage({
                                 <FileX className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 min-w-0">
-                                <h4 className="text-sm font-bold text-destructive leading-none truncate">Evidence rejected</h4>
+                                <h4 className="text-sm font-bold text-destructive leading-none truncate">Resolution Required</h4>
                                 <p className="text-sm text-foreground/80 font-medium italic break-words">
                                     &quot;{latestProof.adminFeedback}&quot;
                                 </p>
@@ -190,39 +184,19 @@ export default async function ProjectManagePage({
                     )}
 
                     {!isFullyCompleted && currentMilestone ? (
-                        isPendingAudit ? (
-                            <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm min-w-0">
-                                <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10 min-w-0">
-                                    <CardTitle className="text-base font-bold flex items-center gap-3 truncate text-foreground">
-                                        <Clock className="h-5 w-5 text-amber-500 shrink-0" />
-                                        <span className="truncate">Proof under review</span>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-6 md:p-8 space-y-4 min-w-0">
-                                    <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                        Your proof for this phase has been received and is currently being audited by the Givar team. You will be notified once it is verified.
-                                    </p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm min-w-0 border-2 hover:border-primary/30 transition-colors">
-                                <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10 min-w-0">
-                                    <div className="flex items-center justify-between gap-4 min-w-0">
-                                        <CardTitle className="text-base font-bold flex items-center gap-3 truncate text-foreground">
-                                            <Camera className={cn("h-5 w-5 shrink-0", isRejected ? "text-destructive" : "text-primary")} />
-                                            <span className="truncate">{isRejected ? 'Resubmit proof' : `Upload proof for Phase ${timeline.findIndex((t: any) => t.id === currentMilestone.id) + 1}`}</span>
-                                        </CardTitle>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-6 md:p-8 min-w-0">
-                                    <EvidenceSubmission
-                                        key={currentMilestone.id}
-                                        projectId={id}
-                                        milestone={{ ...currentMilestone, index: timeline.findIndex((t: any) => t.id === currentMilestone.id) }}
-                                    />
-                                </CardContent>
-                            </Card>
-                        )
+                        <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm min-w-0">
+                            <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10 min-w-0">
+                                <CardTitle className="text-base font-bold flex items-center gap-3 truncate text-foreground">
+                                    <Clock className="h-5 w-5 text-amber-500 shrink-0" />
+                                    <span className="truncate">Phase execution in progress</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6 md:p-8 space-y-4 min-w-0">
+                                <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                    Phase {timeline.findIndex((t: any) => t.id === currentMilestone.id) + 1} is currently active. Our team is coordinating directly with the vendor to verify deliverables. Once execution is confirmed, the next funding phase will be unlocked automatically.
+                                </p>
+                            </CardContent>
+                        </Card>
                     ) : isFullyCompleted && !finalReport ? (
                         <Card className="rounded-3xl border-emerald-500/20 bg-emerald-500/[0.02] p-10 text-center border-2 border-dashed min-w-0">
                             <div className="h-20 w-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -342,39 +316,11 @@ export default async function ProjectManagePage({
                         <CardContent className="p-4 space-y-3 min-w-0">
                             {project.disbursements?.length > 0 ? (
                                 project.disbursements.map((d: any) => {
-                                    const satisfactionStatus = d.satisfactionStatus || 'ACTION_REQUIRED';
+                                    const satisfactionStatus = d.satisfactionStatus || 'PENDING_VERIFICATION';
                                     const isVerified = satisfactionStatus === 'VERIFIED';
-                                    const isAuditing = satisfactionStatus === 'AUDITING';
 
                                     const phaseIndex = timeline.findIndex((t: any) => t.id === d.milestoneId);
                                     const phaseName = phaseIndex !== -1 ? `Phase ${phaseIndex + 1}` : 'General';
-
-                                    let bottomSection = (
-                                        <div className={cn(
-                                            "mt-2 -mx-4 -mb-4 px-4 py-3 border-t border-border/40 flex justify-between items-center min-w-0",
-                                            !isVerified && !isAuditing && "cursor-pointer hover:bg-primary/5 transition-all"
-                                        )}>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-xs font-bold text-foreground truncate">
-                                                    <span className="text-muted-foreground font-medium">Vendor:</span> {d.vendorName}
-                                                </p>
-                                                <p className="text-[11px] text-muted-foreground font-bold truncate mt-0.5">
-                                                    {phaseName}
-                                                </p>
-                                            </div>
-                                            {!isVerified && !isAuditing && (
-                                                <ChevronRight className="h-4 w-4 text-primary shrink-0" />
-                                            )}
-                                        </div>
-                                    );
-
-                                    if (!isVerified && !isAuditing) {
-                                        bottomSection = (
-                                            <Link href={`?milestoneId=${d.milestoneId}#submit-evidence`} className="block min-w-0">
-                                                {bottomSection}
-                                            </Link>
-                                        );
-                                    }
 
                                     return (
                                         <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 min-w-0 hover:border-primary/20 transition-all">
@@ -388,13 +334,9 @@ export default async function ProjectManagePage({
                                                     <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 shadow-none">
                                                         <Check className="h-3 w-3 mr-1" /> Verified
                                                     </Badge>
-                                                ) : isAuditing ? (
-                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 animate-pulse shadow-none">
-                                                        <FileSearch className="h-3 w-3 mr-1" /> Audit
-                                                    </Badge>
                                                 ) : (
-                                                    <Badge className="bg-amber-50 text-amber-600 border-amber-100 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 shadow-none">
-                                                        <AlertCircle className="h-3 w-3 mr-1" /> Required
+                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 shadow-none animate-pulse">
+                                                        <Clock className="h-3 w-3 mr-1" /> Executing
                                                     </Badge>
                                                 )}
                                             </div>
@@ -408,7 +350,16 @@ export default async function ProjectManagePage({
                                                 )}
                                             </div>
 
-                                            {bottomSection}
+                                            <div className="mt-2 -mx-4 -mb-4 px-4 py-3 border-t border-border/40 flex justify-between items-center min-w-0">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-xs font-bold text-foreground truncate">
+                                                        <span className="text-muted-foreground font-medium">Vendor:</span> {d.vendorName}
+                                                    </p>
+                                                    <p className="text-[11px] text-muted-foreground font-bold truncate mt-0.5">
+                                                        {phaseName}
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     )
                                 })

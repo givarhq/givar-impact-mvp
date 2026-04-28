@@ -8,7 +8,6 @@ import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
 import { ProjectQueryDto } from './dto/project-query.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { SkipThrottle } from '@nestjs/throttler';
-import { SubmitMilestoneProofDto } from './dto/evidence.dto';
 import { OptionalJwtAuthGuard } from 'src/common/guards/optional-jwt.guard';
 
 @Controller('projects')
@@ -69,16 +68,6 @@ export class ProjectController {
   @Get(':id/manage')
   async getOwnerView(@Req() req: any, @Param('id') id: string) {
     return this.service.getProjectForOwner(req.user.id, id);
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Post(':id/proof')
-  async submitProof(
-    @Req() req: any,
-    @Param('id') id: string,
-    @Body() dto: SubmitMilestoneProofDto
-  ) {
-    return this.service.submitMilestoneProof(req.user.id, id, dto);
   }
 
   @UseGuards(AuthGuard('jwt'))
