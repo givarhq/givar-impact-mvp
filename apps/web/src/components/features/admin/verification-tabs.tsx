@@ -1,80 +1,45 @@
 'use client';
 
 import React, { memo } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { BadgeCheck, FileSearch, Inbox } from 'lucide-react';
+import { BadgeCheck, Inbox } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
-import { EvidenceQueueTable } from './evidence-queue-table';
-import { EvidenceFilters } from './evidence-filters';
 import { VerificationReviewRow } from './verification-review-row';
 import { Card } from '../../ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VerificationTabsProps {
     orgs: { data: any[]; meta: any };
-    evidence: { data: any[]; meta: any };
 }
 
-export const VerificationTabs = memo(function VerificationTabs({ orgs, evidence }: VerificationTabsProps) {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const activeTab = searchParams.get('tab') || 'evidence';
-
-    const handleTabChange = (value: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set('tab', value);
-        params.set('page', '1');
-        router.replace(`?${params.toString()}`);
-    };
+export const VerificationTabs = memo(function VerificationTabs({ orgs }: VerificationTabsProps) {
 
     return (
         <div className="space-y-6">
-            <EvidenceFilters />
-
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-6">
-                <TabsList className="h-12 bg-muted/50 p-1 rounded-3xl w-full md:w-[420px] border border-border/40 shadow-inner">
-                    <TabsTrigger
-                        value="evidence"
-                        className="flex-1 h-full rounded-3xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
-                    >
-                        <FileSearch className="h-3.5 w-3.5" />
-                        Impact Evidence
-                        <span className="ml-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black">
-                            {evidence.meta.total}
-                        </span>
-                    </TabsTrigger>
+            <Tabs defaultValue="orgs" className="w-full space-y-6">
+                <TabsList className="h-12 bg-muted/50 p-1 rounded-3xl w-full md:w-[240px] border border-border/40 shadow-inner">
                     <TabsTrigger
                         value="orgs"
                         className="flex-1 h-full rounded-3xl gap-2 font-bold text-xs transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm"
                     >
                         <BadgeCheck className="h-3.5 w-3.5" />
                         Identity Requests
-                        <span className="ml-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black">
-                            {orgs.meta.total}
-                        </span>
+                        {orgs.meta.total > 0 && (
+                            <span className="ml-1.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black">
+                                {orgs.meta.total}
+                            </span>
+                        )}
                     </TabsTrigger>
                 </TabsList>
 
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={activeTab}
+                        key="orgs"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
                         className="outline-none"
                     >
-                        <TabsContent value="evidence" className="mt-0 outline-none">
-                            {evidence.data.length === 0 ? (
-                                <EmptyPlaceholder
-                                    title="No Matching Evidence"
-                                    subtitle="All recent proof of work has been reviewed by the team."
-                                />
-                            ) : (
-                                <EvidenceQueueTable proofs={evidence.data} />
-                            )}
-                        </TabsContent>
-
                         <TabsContent value="orgs" className="mt-0 outline-none">
                             <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
                                 <div className="overflow-x-auto no-scrollbar">
@@ -109,13 +74,3 @@ export const VerificationTabs = memo(function VerificationTabs({ orgs, evidence 
         </div>
     );
 });
-
-function EmptyPlaceholder({ title, subtitle }: { title: string, subtitle: string }) {
-    return (
-        <Card className="border-dashed border-2 border-border/40 bg-muted/5 py-24 flex flex-col items-center justify-center text-center rounded-3xl">
-            <Inbox className="h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-            <h3 className="text-sm font-bold text-foreground opacity-60 tracking-tight ">{title}</h3>
-            <p className="text-xs text-muted-foreground mt-1.5 font-medium max-w-[280px]">{subtitle}</p>
-        </Card>
-    );
-}
