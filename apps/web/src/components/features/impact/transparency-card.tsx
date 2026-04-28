@@ -171,7 +171,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                     <Clock className="h-3.5 w-3.5" /> Verification in Progress
                                 </div>
                                 <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
-                                    This phase is fully funded. Donations are paused while we verify the vendor's proof of work.
+                                    This phase is fully funded. Donations are paused while it is being processed.
                                 </p>
                             </div>
 
