@@ -195,7 +195,7 @@ export const BudgetEditor = memo(function BudgetEditor({
               <div className="md:col-span-3 space-y-1">
                 <label className="text-xs font-bold text-muted-foreground ml-1">Vendor contact</label>
                 <Input
-                  placeholder="e.g. 08012345678 or email..."
+                  placeholder="phone or email..."
                   value={item.vendorContact || ''}
                   onChange={(e) => handleUpdate(item.id, 'vendorContact', e.target.value)}
                   readOnly={isLocked}
