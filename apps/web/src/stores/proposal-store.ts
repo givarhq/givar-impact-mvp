@@ -2,14 +2,20 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { Currency } from '../types';
 
+export interface VendorItem {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  subaccountCode?: string;
+}
+
 export interface BudgetItem {
   id: string;
-  payTo: string;
+  vendorId: string;
   costType: string;
   amount: number;
   description: string;
-  vendorSubaccount?: string;
-  vendorContact?: string;
 }
 
 export interface TimelineItem {
@@ -50,6 +56,7 @@ interface ProposalState {
 
   budgetBreakdown: BudgetItem[];
   executionTimeline: TimelineItem[];
+  vendors: VendorItem[];
   riskAnalysis: string | null;
 
   kycDocuments: string[];
@@ -74,7 +81,7 @@ interface ProposalState {
   awarenessStatus: string | null;
 
   setProposal: (proposal: any) => void;
-  updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem'>>(
+  updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem' | 'addVendor' | 'removeVendor' | 'updateVendor'>>(
     field: K,
     value: ProposalState[K]
   ) => void;
@@ -87,6 +94,10 @@ interface ProposalState {
 
   addKycDocument: (key: string) => void;
   removeKycDocument: (key: string) => void;
+
+  addVendor: (vendor: VendorItem) => void;
+  removeVendor: (id: string) => void;
+  updateVendor: (id: string, updates: Partial<VendorItem>) => void;
 }
 
 export const useProposalStore = create<ProposalState>()(
@@ -112,6 +123,7 @@ export const useProposalStore = create<ProposalState>()(
 
     budgetBreakdown: [],
     executionTimeline: [],
+    vendors: [],
     riskAnalysis: null,
 
     kycDocuments: [],
@@ -144,16 +156,40 @@ export const useProposalStore = create<ProposalState>()(
         }))
         : [];
 
+      // Extract and hydrate loaded vendors
+      const loadedVendors: VendorItem[] = Array.isArray(proposal.vendors) ? [...proposal.vendors] : [];
+
       const budget = Array.isArray(proposal.budgetBreakdown)
-        ? proposal.budgetBreakdown.map((item: any) => ({
-          id: item.id || crypto.randomUUID(),
-          payTo: item.payTo || item.vendor || '',
-          costType: item.costType || item.type || 'SERVICE',
-          amount: item.amount !== undefined ? item.amount : (item.cost || 0),
-          description: item.description || item.item || '',
-          vendorSubaccount: item.vendorSubaccount || '',
-          vendorContact: item.vendorContact || item.vendorPhone || item.vendorEmail || ''
-        }))
+        ? proposal.budgetBreakdown.map((item: any) => {
+          let resolvedVendorId = item.vendorId || '';
+
+          // Backwards compatibility for legacy budget items that used payTo/vendorContact directly
+          if (!resolvedVendorId && (item.payTo || item.vendor)) {
+            const legacyName = item.payTo || item.vendor;
+            const existingVendor = loadedVendors.find(v => v.name === legacyName);
+            if (existingVendor) {
+              resolvedVendorId = existingVendor.id;
+            } else {
+              const newVendorId = crypto.randomUUID();
+              loadedVendors.push({
+                id: newVendorId,
+                name: legacyName,
+                email: item.vendorEmail || '',
+                phone: item.vendorContact || item.vendorPhone || '',
+                subaccountCode: item.vendorSubaccount || ''
+              });
+              resolvedVendorId = newVendorId;
+            }
+          }
+
+          return {
+            id: item.id || crypto.randomUUID(),
+            vendorId: resolvedVendorId,
+            costType: item.costType || item.type || 'SERVICE',
+            amount: item.amount !== undefined ? item.amount : (item.cost || 0),
+            description: item.description || item.item || '',
+          };
+        })
         : [];
 
       const timeline = proposal.executionTimeline && typeof proposal.executionTimeline === 'object'
@@ -177,6 +213,7 @@ export const useProposalStore = create<ProposalState>()(
         subcategoryId: proposal.subcategoryId || null,
         category: proposal.category || null,
         gallery,
+        vendors: loadedVendors,
         budgetBreakdown: budget,
         executionTimeline: timeline,
       };
@@ -214,5 +251,25 @@ export const useProposalStore = create<ProposalState>()(
       set(state => ({ kycDocuments: state.kycDocuments.filter(item => item !== key) }));
       get().saveDraft();
     },
+
+    addVendor: (vendor) => {
+      set(state => ({ vendors: [...state.vendors, vendor] }));
+      get().saveDraft();
+    },
+    removeVendor: (id) => {
+      set(state => {
+        // Find if this vendor is assigned to any budget items
+        const isAssigned = state.budgetBreakdown.some(b => b.vendorId === id);
+        if (isAssigned) return state; // Do not remove if assigned
+        return { vendors: state.vendors.filter(v => v.id !== id) };
+      });
+      get().saveDraft();
+    },
+    updateVendor: (id, updates) => {
+      set(state => ({
+        vendors: state.vendors.map(v => v.id === id ? { ...v, ...updates } : v)
+      }));
+      get().saveDraft();
+    }
   }))
 );

@@ -363,6 +363,7 @@ model Project {
 
   budgetBreakdown   Json?    @default("[]")
   executionTimeline Json?    @default("[]")
+  vendors           Json?    @default("[]")
   currentPhaseIndex Int      @default(0)
   waitlistEmails    String[] @default([])
   fundedAt      DateTime?
@@ -631,6 +632,7 @@ model ProjectProposal {
   budgetBreakdown Json?
   
   executionTimeline Json?
+  vendors           Json?    @default("[]")
   riskAnalysis      String?      @db.Text
 
   // --- 4. The Trust (Identity Only) ---
