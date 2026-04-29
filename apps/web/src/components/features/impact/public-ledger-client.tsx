@@ -167,7 +167,11 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                     const isInflow = entry.type === 'INFLOW';
                                     const typeStyle = isInflow ? typeStyles.CREDIT : typeStyles.DEBIT;
                                     const statusStyle = statusStyles['COMPLETED'];
-                                    const displayCategory = entry.type === 'INFLOW' ? 'CONTRIBUTION' : (entry.receiptKey ? 'VENDOR_PAYMENT' : 'DISBURSEMENT');
+
+                                    // NEW: Render 'SYSTEM ADJUSTMENT' if it's the Platform Dust Coverage
+                                    const displayCategory = entry.type === 'INFLOW'
+                                        ? (entry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION')
+                                        : (entry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT');
 
                                     return (
                                         <motion.tr
@@ -201,7 +205,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
 
                                                         <div className="flex items-center gap-3 mt-2 min-w-0">
                                                             <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 truncate max-w-[120px] md:max-w-none">
-                                                                {displayCategory.replace(/_/g, ' ')}
+                                                                {displayCategory}
                                                             </span>
                                                             <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
                                                                 <span className="h-1 w-1 rounded-full bg-border shrink-0" />
@@ -268,7 +272,9 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 </div>
                                 <div className="absolute top-3 left-4">
                                     <span className="px-2 py-0.5 rounded-full bg-background/60 border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
-                                        {selectedEntry.type === 'INFLOW' ? 'CONTRIBUTION' : (selectedEntry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT')}
+                                        {selectedEntry.type === 'INFLOW'
+                                            ? (selectedEntry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION')
+                                            : (selectedEntry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT')}
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5 mt-2">
@@ -279,6 +285,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 </div>
                             </div>
 
+                            {/* ...[Rest of Dialog Content remains unchanged] ... */}
                             <div className="space-y-1.5 min-w-0">
                                 <span className="text-xs font-bold text-muted-foreground block px-1">Identification</span>
                                 <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">

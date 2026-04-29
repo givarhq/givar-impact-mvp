@@ -435,9 +435,9 @@ export class ProjectService {
       fetchInflows ? this.prisma.donation.findMany({
         where: donationWhere,
         include: {
-          user: { select: { id: true, firstName: true, lastName: true } },
+          user: { select: { id: true, firstName: true, lastName: true, role: true } }, // <-- Added role
           project: { select: { title: true, slug: true } },
-          transaction: { select: { reference: true, metadata: true } } // <-- Added metadata to extract phaseName
+          transaction: { select: { reference: true, metadata: true, category: true } } // <-- Added category
         },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
@@ -473,18 +473,21 @@ export class ProjectService {
 
     donations.forEach(d => {
       const isRequester = requestingUserId && d.userId === requestingUserId;
+      const isSystemNode = d.user?.role === 'ADMIN' || d.user?.role === 'SUPERADMIN'; // <-- New Check
+
       entries.push({
         id: d.id,
         type: 'INFLOW',
-        amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(), // Fallback fix
+        amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
         currency: d.currency,
         reference: d.transaction?.reference || d.transactionId,
         createdAt: d.createdAt,
-        actorName: isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName),
+        actorName: isSystemNode ? 'Givar Treasury' : (isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName)),
         isYou: isRequester,
         projectName: d.project.title,
         projectSlug: d.project.slug,
-        phaseName: (d.transaction?.metadata as any)?.phaseName || null // <-- Expose Phase Name
+        phaseName: (d.transaction?.metadata as any)?.phaseName || null,
+        category: d.transaction?.category || 'DONATION' // <-- Passed to UI
       });
     });
 
@@ -498,7 +501,7 @@ export class ProjectService {
       actorName: maskName(null, null, d.guestDonor?.name),
       projectName: d.project.title,
       projectSlug: d.project.slug,
-      phaseName: d.message?.startsWith('Phase') ? d.message : null // <-- Parse Phase Name from message field
+      phaseName: d.message?.startsWith('Phase') ? d.message : null
     }));
 
     disbursements.forEach(d => entries.push({
