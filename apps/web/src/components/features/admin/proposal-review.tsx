@@ -8,7 +8,7 @@ import {
     Check, X, FileText, Calendar, DollarSign, User,
     AlertTriangle, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
-    AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2
+    AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2, Phone
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -333,7 +333,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                         <h4 className="text-[11px] font-bold text-primary tracking-tight">
                                             Message From Organizer
                                         </h4>
-                                        <p className="text-sm text-foreground/90 font-medium leading-relaxed italic">
+                                        <p className="text-sm md:text-base text-foreground/90 font-medium leading-relaxed italic">
                                             "{proposal.personalMessage}"
                                         </p>
                                     </div>
@@ -344,16 +344,16 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
+                                        "[&_h2]:font-bold[&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6[&_h2]:mb-3",
                                         "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1.5[&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
                                         "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
-                                        "[&_strong]:font-bold [&_strong]:text-foreground",
+                                        "[&_strong]:font-bold[&_strong]:text-foreground",
                                         "[&_em]:italic",
                                         "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: proposal.description }}
@@ -465,9 +465,17 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             <tr key={item.id || i} className="hover:bg-muted/10 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
-                                                    <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-2">
-                                                        <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
-                                                        <span>To: <span className="font-bold">{item.payTo || item.vendor}</span></span>
+                                                    <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
+                                                            <span>To: <span className="font-bold">{item.payTo || item.vendor}</span></span>
+                                                        </div>
+                                                        {item.vendorContact && (
+                                                            <div className="flex items-center gap-1 mt-0.5 opacity-80">
+                                                                <Phone className="h-3 w-3 shrink-0" />
+                                                                <span className="font-bold">{item.vendorContact}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -689,7 +697,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 />
                                 <AssistiveChecklist
                                     title="Vendor Verification"
-                                    items={["Vendor details exist in Budget", "Invoice authenticity", "Cost reasonableness", "Payment routing feasibility"]}
+                                    items={["Vendor details exist in Budget", "Invoice authenticity", "Cost reasonableness", "Payment routing feasibility", "Vendor contact tested and verified"]}
                                 />
                                 <AssistiveChecklist
                                     title="Cause Evidence"

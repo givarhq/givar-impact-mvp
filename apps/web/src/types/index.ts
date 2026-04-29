@@ -182,8 +182,8 @@ export interface ProjectProposal {
     costType?: string;
     amount?: number;
     description?: string;
-    vendorSubaccount?: string; // <-- ADDED to nested schema
-    // Legacy support types
+    vendorSubaccount?: string;
+    vendorContact?: string;
     item?: string;
     cost?: number;
     vendor?: string;
