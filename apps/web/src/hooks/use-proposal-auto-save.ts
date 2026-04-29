@@ -23,10 +23,12 @@ export function useProposalAutoSave() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       // Isolate non-payload data to prevent server validation errors
+      // NEW: Added `addVendor`, `removeVendor`, `updateVendor` to omissions
       const {
         saveDraft, setProposal, updateField, addGalleryItem,
         removeGalleryItem, updateGalleryItem, addKycDocument,
-        removeKycDocument, coverImage, gallery, status, coverImageKey,
+        removeKycDocument, addVendor, removeVendor, updateVendor,
+        coverImage, gallery, status, coverImageKey,
         ...dto
       } = proposal;
 
@@ -41,7 +43,8 @@ export function useProposalAutoSave() {
       const payload = {
         ...dto,
         coverImage: proposal.coverImageKey, // Permanent key saved to DB
-        gallery: mappedGallery
+        gallery: mappedGallery,
+        // The `vendors` array is naturally included via `...dto`
       };
 
       if (payload.targetAmount !== undefined && payload.targetAmount !== null) {
