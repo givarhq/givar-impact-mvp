@@ -126,14 +126,10 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
         </div>
 
-        <div className="space-y-2 sm:space-y-3 mt-auto min-w-0">
+        <div className="space-y-2 sm:space-y-3 mt-auto min-w-0 gap-2 sm:gap-3">
           {(isCompleted || isFundedState) ? (
             <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
               <Check className="h-3 w-3" /> {isCompleted ? completedText : 'Goal Reached'}
-            </div>
-          ) : isPhaseFull ? (
-            <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-600 mb-1 bg-amber-50 w-fit px-2 py-0.5 rounded-full border border-amber-200">
-              <Clock className="h-3 w-3" /> Verification in Progress
             </div>
           ) : (
             <div className="flex items-center gap-1 text-[10px] sm:hidden font-bold text-primary mb-1 truncate">
@@ -164,19 +160,6 @@ export const ProjectCard = memo(function ProjectCard({
                 />
               </div>
             </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onShare(project as any);
-              }}
-              className="hidden sm:inline-flex h-8 w-8 shrink-0 rounded-full border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted active:scale-90 transition-all bg-background"
-            >
-              <Share2 className="h-3 w-3" />
-            </Button>
           </div>
         </div>
       </div>
