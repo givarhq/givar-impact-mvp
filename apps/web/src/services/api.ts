@@ -511,6 +511,9 @@ export const ApiService = {
     getPaystackBanks: () => apiClient.get('/admin/paystack/banks').then(r => r.data),
 
     createPaystackSubaccount: (data: { businessName: string; bankCode: string; accountNumber: string }) => apiClient.post('/admin/paystack/subaccount', data).then(r => r.data),
+
+    bindProposalSubaccount: (proposalId: string, budgetItemId: string, subaccountCode: string) =>
+      apiClient.patch(`/admin/proposals/${proposalId}/budget/${budgetItemId}/subaccount`, { subaccountCode }).then(r => r.data),
   },
 
   recommendations: {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -8,7 +8,7 @@ import {
     Check, X, FileText, Calendar, DollarSign, User, Phone,
     Building, AlertTriangle, Clock, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
-    AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote
+    AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { ConfirmModal } from '../../ui/confirm-modal';
 
@@ -72,10 +72,57 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
     const [awarenessStatus, setAwarenessStatus] = useState((proposal as any).awarenessStatus || '');
 
+    // Subaccount Routing State
+    const [subaccountModal, setSubaccountModal] = useState<{ isOpen: boolean; itemId: string | null; vendorName: string }>({ isOpen: false, itemId: null, vendorName: '' });
+    const [banks, setBanks] = useState<{ name: string; code: string }[]>([]);
+    const [isBankLoading, setIsBankLoading] = useState(false);
+    const [bankCode, setBankCode] = useState('');
+    const [accountNumber, setAccountNumber] = useState('');
+    const [businessName, setBusinessName] = useState('');
+    const [isCreatingSubaccount, setIsCreatingSubaccount] = useState(false);
+
     const budgetBreakdown = proposal.budgetBreakdown || [];
     const budgetTotal = budgetBreakdown.reduce((sum, item) => sum + (item.amount || item.cost || 0), 0);
 
     const isTerminalState = proposal.status === 'APPROVED' || proposal.status === 'REJECTED';
+
+    // Load Banks for Subaccount Generation
+    useEffect(() => {
+        if (!isTerminalState && banks.length === 0) {
+            setIsBankLoading(true);
+            ApiService.admin.getPaystackBanks()
+                .then(res => setBanks(res || []))
+                .catch(() => toast.error("Failed to load banking network"))
+                .finally(() => setIsBankLoading(false));
+        }
+    }, [isTerminalState, banks.length]);
+
+    const handleCreateSubaccount = async () => {
+        if (!bankCode || !accountNumber || !businessName) {
+            return toast.error('All fields are required');
+        }
+
+        setIsCreatingSubaccount(true);
+        const toastId = toast.loading('Verifying vendor account & generating secure routing code...');
+
+        try {
+            const res = await ApiService.admin.createPaystackSubaccount({
+                businessName,
+                bankCode,
+                accountNumber
+            });
+
+            await ApiService.admin.bindProposalSubaccount(proposal.id, subaccountModal.itemId!, res.subaccount_code);
+
+            toast.success(`Gateway established: ${res.subaccount_code}`, { id: toastId });
+            setSubaccountModal({ isOpen: false, itemId: null, vendorName: '' });
+            router.refresh();
+        } catch (e: any) {
+            toast.error(e.response?.data?.message || 'Vendor bank verification failed', { id: toastId });
+        } finally {
+            setIsCreatingSubaccount(false);
+        }
+    };
 
     const handleAwarenessChange = async (val: string) => {
         setAwarenessStatus(val);
@@ -468,29 +515,54 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </div>
                         </CardHeader>
                         <div className="p-0 overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full text-left border-collapse min-w-[600px]">
                                 <thead className="bg-muted/10 text-[11px] font-bold text-muted-foreground border-b border-border/40">
                                     <tr>
-                                        <th className="px-6 py-4">Description</th>
-                                        <th className="px-6 py-4 hidden md:table-cell">Cost Type</th>
-                                        <th className="px-6 py-4 hidden md:table-cell">Pay To (Vendor)</th>
+                                        <th className="px-6 py-4">Item & Recipient</th>
+                                        <th className="px-6 py-4">Routing Setup</th>
                                         <th className="px-6 py-4 text-right">Allocation</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/40 text-xs font-medium">
                                     {budgetBreakdown.length > 0 ? (
                                         budgetBreakdown.map((item, i) => (
-                                            <tr key={i} className="hover:bg-muted/20 transition-colors">
-                                                <td className="px-6 py-4 font-bold text-foreground">{item.description || item.item}</td>
-                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground text-[11px] font-bold">{item.costType || item.type}</td>
-                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">{item.payTo || item.vendor}</td>
+                                            <tr key={item.id || i} className="hover:bg-muted/20 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-foreground">{item.description || item.item}</div>
+                                                    <div className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-2">
+                                                        <Badge variant="secondary" className="px-2 py-0 h-5 text-[9px] bg-muted/60 border-none shadow-none">{item.costType || item.type}</Badge>
+                                                        <span>To: <span className="font-bold">{item.payTo || item.vendor}</span></span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    {item.vendorSubaccount ? (
+                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-xl w-fit">
+                                                            <ShieldCheck className="h-3.5 w-3.5" /> {item.vendorSubaccount}
+                                                        </div>
+                                                    ) : (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                setBusinessName(item.payTo || item.vendor || '');
+                                                                setBankCode('');
+                                                                setAccountNumber('');
+                                                                setSubaccountModal({ isOpen: true, itemId: item.id as string, vendorName: item.payTo || item.vendor || '' });
+                                                            }}
+                                                            className="h-8 text-[10px] font-bold rounded-2xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                                            disabled={isTerminalState}
+                                                        >
+                                                            <Landmark className="h-3 w-3 mr-1.5" /> Bind Account
+                                                        </Button>
+                                                    )}
+                                                </td>
                                                 <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold">
                                                     {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
-                                        <tr><td colSpan={4} className="px-6 py-8 text-center text-muted-foreground italic">No budget items provided.</td></tr>
+                                        <tr><td colSpan={3} className="px-6 py-8 text-center text-muted-foreground italic">No budget items provided.</td></tr>
                                     )}
                                 </tbody>
                             </table>
@@ -632,9 +704,71 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 isLoading={isProcessing}
                 variant="default"
                 title="Approve Impact?"
-                description={`Promote the proposal "${proposal.title}" to a live platform project? This action migrates all narrative and financial data to the public discovery feed.`}
+                description={`Promote the proposal "${proposal.title}" to a live platform project? Ensure all necessary vendor subaccounts have been bound to the budget phases.`}
                 confirmText="Approve"
             />
+
+            {/* ADMIN SUBACCOUNT CREATION DIALOG */}
+            <Dialog open={subaccountModal.isOpen} onOpenChange={(isOpen) => !isOpen && !isCreatingSubaccount && setSubaccountModal({ isOpen: false, itemId: null, vendorName: '' })}>
+                <DialogContent className="rounded-3xl border-none shadow-2xl bg-card p-6 md:p-8 max-w-md">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle className="text-xl font-bold flex items-center gap-3 text-foreground">
+                            <Landmark className="h-5 w-5 text-primary" /> Bind Vendor Account
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-5">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Destination Bank</label>
+                            <Select value={bankCode} onValueChange={setBankCode} disabled={isCreatingSubaccount || isBankLoading}>
+                                <SelectTrigger className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background">
+                                    <SelectValue placeholder={isBankLoading ? "Loading banks..." : "Select destination bank..."} />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-3xl shadow-xl max-h-64">
+                                    {banks.map(bank => (
+                                        <SelectItem key={bank.code} value={bank.code} className="text-xs py-2.5 font-bold">
+                                            {bank.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-muted-foreground ml-1">NUBAN Account Number</label>
+                            <Input
+                                placeholder="10-digit account number"
+                                maxLength={10}
+                                value={accountNumber}
+                                onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
+                                disabled={isCreatingSubaccount}
+                                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background font-mono font-bold"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Registered Business Name</label>
+                            <Input
+                                placeholder="Official name matching bank records"
+                                value={businessName}
+                                onChange={(e) => setBusinessName(e.target.value)}
+                                disabled={isCreatingSubaccount}
+                                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background font-bold"
+                            />
+                        </div>
+
+                        <div className="pt-2">
+                            <Button
+                                onClick={handleCreateSubaccount}
+                                disabled={isCreatingSubaccount || !bankCode || accountNumber.length !== 10 || !businessName}
+                                className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 border-0 bg-primary text-white hover:bg-primary/90 active:scale-[0.98] transition-all"
+                            >
+                                {isCreatingSubaccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Generate Route"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <ImageLightbox
                 isOpen={lightboxState.isOpen}

@@ -374,4 +374,14 @@ export class AdminController {
   ) {
     return this.service.createPaystackSubaccount(req.user.id, dto);
   }
+
+  @Patch('proposals/:id/budget/:budgetItemId/subaccount')
+  bindProposalSubaccount(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Param('budgetItemId') budgetItemId: string,
+    @Body('subaccountCode') subaccountCode: string
+  ) {
+    return this.service.bindProposalSubaccount(req.user.id, id, budgetItemId, subaccountCode);
+  }
 }

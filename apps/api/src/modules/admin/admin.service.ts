@@ -2938,4 +2938,44 @@ export class AdminService {
       throw new BadRequestException(gatewayMsg);
     }
   }
+
+  /**
+   * Inject Paystack Subaccount Code directly into a Proposal's budget item
+   */
+  async bindProposalSubaccount(adminId: string, proposalId: string, budgetItemId: string, subaccountCode: string) {
+    const proposal = await this.prisma.projectProposal.findUnique({
+      where: { id: proposalId },
+    });
+
+    if (!proposal) throw new NotFoundException('Proposal not found');
+
+    const budget = (proposal.budgetBreakdown as any[]) || [];
+    const itemIndex = budget.findIndex((b: any) => b.id === budgetItemId);
+
+    if (itemIndex === -1) {
+      throw new NotFoundException('Budget item not found within this proposal');
+    }
+
+    budget[itemIndex].vendorSubaccount = subaccountCode;
+
+    const updated = await this.prisma.projectProposal.update({
+      where: { id: proposalId },
+      data: { budgetBreakdown: budget },
+    });
+
+    await this.audit.log({
+      userId: adminId,
+      action: AuditAction.PROJECT_UPDATED,
+      entityId: proposalId,
+      entityType: 'ProjectProposal',
+      metadata: {
+        action: 'BIND_VENDOR_SUBACCOUNT_TO_DRAFT',
+        budgetItemId,
+        subaccountCode,
+        vendor: budget[itemIndex].payTo || budget[itemIndex].vendor
+      }
+    });
+
+    return updated;
+  }
 }
