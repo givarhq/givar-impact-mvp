@@ -5,15 +5,14 @@ import { AdminProjectForm } from '../../../../../../components/features/admin/pr
 import { MilestoneManager } from '../../../../../../components/features/admin/milestone-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../components/ui/tabs';
 import { Button } from '../../../../../../components/ui/button';
-import { ArrowLeft, Settings, Activity, Wallet, Fingerprint, Sparkles, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Settings, Activity, Fingerprint, Sparkles, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
-import { DisbursementForm } from '../../../../../../components/features/admin/disbursement-form';
 import { ProjectVisibilityForm } from '../../../../../../components/features/admin/visibility/project-visibility-form';
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 
 export const metadata = {
   title: 'Edit Project',
-  description: 'Manage project details, disbursements, and discovery visibility.',
+  description: 'Manage project details, execution auditing, and discovery visibility.',
 };
 
 export default async function EditProjectPage({
@@ -69,21 +68,14 @@ export default async function EditProjectPage({
                 value="details"
                 className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
-                <Settings className="mr-2 h-3.5 w-3.5" /> Project Details
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="disbursements"
-                className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
-              >
-                <Wallet className="mr-2 h-3.5 w-3.5" /> Disbursements
+                <Settings className="mr-2 h-3.5 w-3.5" /> Project details
               </TabsTrigger>
 
               <TabsTrigger
                 value="execution"
                 className="relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:shadow-none transition-all"
               >
-                <Activity className="mr-2 h-3.5 w-3.5" /> Execution
+                <Activity className="mr-2 h-3.5 w-3.5" /> Execution audit
               </TabsTrigger>
 
               <TabsTrigger
@@ -105,16 +97,6 @@ export default async function EditProjectPage({
           <div className="w-full min-w-0">
             <TabsContent value="details" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
               <AdminProjectForm initialData={project} categories={categories || []} />
-            </TabsContent>
-
-            <TabsContent value="disbursements" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="max-w-4xl min-w-0">
-                <DisbursementForm
-                  projectId={id}
-                  timeline={project.executionTimeline || []}
-                  disbursements={project.disbursements || []}
-                />
-              </div>
             </TabsContent>
 
             <TabsContent value="execution" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
