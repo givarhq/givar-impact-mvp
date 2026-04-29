@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import {
-    Check, X, FileText, Calendar, DollarSign, User, Phone,
-    Building, AlertTriangle, Clock, MapPin, ExternalLink,
+    Check, X, FileText, Calendar, DollarSign, User,
+    AlertTriangle, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
     AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2
 } from 'lucide-react';
@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { ConfirmModal } from '../../ui/confirm-modal';
 
@@ -222,8 +222,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             transition={{ duration: 0.2, ease: "circOut" }}
             className="space-y-4 md:space-y-6 pb-20 w-full overflow-hidden"
         >
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
-                <div className="flex items-center gap-5 relative z-10 w-full lg:w-auto min-w-0">
+            {/* Header & Meta (Actions moved to bottom) */}
+            <div className="flex flex-col bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
+                <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
                     <div className="hidden md:flex h-16 w-16 rounded-3xl bg-primary/10 items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
                         <ClipboardList className="h-8 w-8" />
                     </div>
@@ -247,79 +248,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             <span className="flex items-center gap-1 shrink-0 font-mono bg-muted/30 px-2 py-0.5 rounded-3xl border border-border/40">ID: {proposal.id.split('-')[0]}</span>
                         </div>
                     </div>
-                </div>
-
-                <div className="w-full lg:w-auto relative z-10 pt-4 lg:pt-0 border-t lg:border-none border-border/40">
-                    {!isTerminalState ? (
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline" onClick={() => setActionType('changes')} className="h-11 px-6 rounded-3xl border-border/60 text-foreground font-bold text-xs transition-all active:scale-95">
-                                        Request More Info
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
-                                    <DialogHeader><DialogTitle className="text-lg font-bold">Feedback Narrative</DialogTitle></DialogHeader>
-                                    <div className="space-y-6 pt-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-muted-foreground ml-1">Audit Instructions</label>
-                                            <textarea
-                                                className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
-                                                placeholder="Specify the additional information required..."
-                                                value={feedback}
-                                                onChange={(e) => setFeedback(e.target.value)}
-                                            />
-                                        </div>
-                                        <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0">
-                                            Submit Feedback
-                                        </Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-
-                            <Button
-                                onClick={() => setShowApproveConfirm(true)}
-                                disabled={isProcessing}
-                                className="h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95"
-                            >
-                                <Check className="h-4 w-4" /> Verify & Launch
-                            </Button>
-
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={() => setActionType('reject')} className="h-11 w-11 rounded-3xl text-destructive hover:bg-destructive/10 hidden sm:flex border border-transparent hover:border-destructive/20">
-                                        <X className="h-5 w-5" />
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
-                                    <DialogHeader><DialogTitle className="text-lg font-bold text-destructive">Reject Proposal</DialogTitle></DialogHeader>
-                                    <div className="space-y-6 pt-4">
-                                        <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3">
-                                            <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
-                                            <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived and the owner notified.</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-muted-foreground ml-1">Rejection Reason</label>
-                                            <Input
-                                                placeholder="State the basis for this decision..."
-                                                value={feedback}
-                                                onChange={(e) => setFeedback(e.target.value)}
-                                                className="h-12 rounded-3xl"
-                                            />
-                                        </div>
-                                        <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-md border-0">
-                                            Finalize Rejection
-                                        </Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-3 px-5 py-2 bg-muted/20 rounded-3xl border border-border/40 w-full sm:w-auto justify-center shadow-inner">
-                            <span className="text-xs font-bold text-muted-foreground">Decision Logged</span>
-                            {proposal.status === 'APPROVED' ? <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500" /> : <ShieldAlert className="h-4.5 w-4.5 text-destructive" />}
-                        </div>
-                    )}
                 </div>
             </div>
 
@@ -516,28 +444,28 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardHeader>
                         <div className="p-0 overflow-x-auto no-scrollbar">
                             <table className="w-full text-left border-collapse min-w-[600px]">
-                                <thead className="bg-muted/10 text-[11px] font-bold text-muted-foreground border-b border-border/40">
+                                <thead className="bg-muted/10 text-xs font-bold text-muted-foreground border-b border-border/40">
                                     <tr>
                                         <th className="px-6 py-4">Item & Recipient</th>
                                         <th className="px-6 py-4">Routing Setup</th>
                                         <th className="px-6 py-4 text-right">Allocation</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-border/40 text-xs font-medium">
+                                <tbody className="divide-y divide-border/40 text-sm font-medium">
                                     {budgetBreakdown.length > 0 ? (
                                         budgetBreakdown.map((item, i) => (
                                             <tr key={item.id || i} className="hover:bg-muted/20 transition-colors">
                                                 <td className="px-6 py-4">
                                                     <div className="font-bold text-foreground">{item.description || item.item}</div>
-                                                    <div className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-2">
-                                                        <Badge variant="secondary" className="px-2 py-0 h-5 text-[9px] bg-muted/60 border-none shadow-none">{item.costType || item.type}</Badge>
+                                                    <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2">
+                                                        <Badge variant="secondary" className="px-2.5 py-0.5 h-6 text-[11px] bg-muted/60 border-none shadow-none">{item.costType || item.type}</Badge>
                                                         <span>To: <span className="font-bold">{item.payTo || item.vendor}</span></span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {item.vendorSubaccount ? (
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-xl w-fit">
-                                                            <ShieldCheck className="h-3.5 w-3.5" /> {item.vendorSubaccount}
+                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-xl w-fit">
+                                                            <ShieldCheck className="h-4 w-4" /> {item.vendorSubaccount}
                                                         </div>
                                                     ) : (
                                                         <Button
@@ -549,10 +477,10 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                                 setAccountNumber('');
                                                                 setSubaccountModal({ isOpen: true, itemId: item.id as string, vendorName: item.payTo || item.vendor || '' });
                                                             }}
-                                                            className="h-8 text-[10px] font-bold rounded-2xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                                            className="h-9 text-xs font-bold rounded-2xl px-4 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
                                                             disabled={isTerminalState}
                                                         >
-                                                            <Landmark className="h-3 w-3 mr-1.5" /> Bind Account
+                                                            <Landmark className="h-3.5 w-3.5 mr-1.5" /> Bind Account
                                                         </Button>
                                                     )}
                                                 </td>
@@ -695,6 +623,89 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     </Card>
                 </div>
             </div>
+
+            {/* ACTION TERMINAL AT BOTTOM */}
+            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mt-8">
+                <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="space-y-1 text-center md:text-left">
+                        <h3 className="text-base font-bold text-foreground">Final Decision</h3>
+                        <p className="text-sm text-muted-foreground font-medium">Please review all proposal data and vendor subaccounts before approving.</p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                        {!isTerminalState ? (
+                            <>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="ghost" onClick={() => setActionType('reject')} className="h-12 px-8 rounded-3xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 font-bold text-sm transition-all active:scale-95">
+                                            Reject
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
+                                        <DialogHeader><DialogTitle className="text-lg font-bold text-destructive">Reject Proposal</DialogTitle></DialogHeader>
+                                        <div className="space-y-6 pt-4">
+                                            <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3">
+                                                <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                                                <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived and the owner notified.</p>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-muted-foreground ml-1">Rejection Reason</label>
+                                                <Input
+                                                    placeholder="State the basis for this decision..."
+                                                    value={feedback}
+                                                    onChange={(e) => setFeedback(e.target.value)}
+                                                    className="h-12 rounded-3xl"
+                                                />
+                                            </div>
+                                            <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-md border-0">
+                                                Finalize Rejection
+                                            </Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" onClick={() => setActionType('changes')} className="h-12 px-8 rounded-3xl border-border/60 text-foreground font-bold text-sm transition-all active:scale-95">
+                                            Request More Info
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
+                                        <DialogHeader><DialogTitle className="text-lg font-bold">Feedback Narrative</DialogTitle></DialogHeader>
+                                        <div className="space-y-6 pt-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-muted-foreground ml-1">Audit Instructions</label>
+                                                <textarea
+                                                    className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
+                                                    placeholder="Specify the additional information required..."
+                                                    value={feedback}
+                                                    onChange={(e) => setFeedback(e.target.value)}
+                                                />
+                                            </div>
+                                            <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0">
+                                                Submit Feedback
+                                            </Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+
+                                <Button
+                                    onClick={() => setShowApproveConfirm(true)}
+                                    disabled={isProcessing}
+                                    className="h-12 px-10 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-sm text-white gap-2 border-0 transition-all active:scale-95"
+                                >
+                                    <Check className="h-5 w-5" /> Verify & Launch
+                                </Button>
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-3 px-6 py-3 bg-muted/20 rounded-3xl border border-border/40 w-full sm:w-auto justify-center shadow-inner">
+                                <span className="text-sm font-bold text-muted-foreground">Decision Logged</span>
+                                {proposal.status === 'APPROVED' ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <ShieldAlert className="h-5 w-5 text-destructive" />}
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
 
             {/* LAUNCH CONFIRMATION OVERLAY */}
             <ConfirmModal
