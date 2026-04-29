@@ -29,6 +29,7 @@ import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent } from '../../ui/card';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
+import { SmartCurrency } from '../../ui/smart-currency';
 
 interface ProjectDetailsClientProps {
     project: ProjectWithDetails & { subcategoryName?: string };
@@ -128,6 +129,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         )}
                         <div className="flex items-center gap-1.5">
                             <Calendar className="h-3.5 w-3.5 text-primary" /> {formatDate(project.createdAt).split(',')[0]}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <Target className="h-3.5 w-3.5 text-primary" /> Goal: <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" hideKobo />
                         </div>
                     </div>
                 </div>
