@@ -158,8 +158,14 @@ export class DonationService {
       const budget = (txProject.budgetBreakdown as any[]) || [];
       const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
       const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
-      
+
       const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+      if (!activeSubaccount) {
+        throw new InternalServerErrorException(
+          'Strict Non-Custodial Policy: The active phase lacks a verified vendor routing account.'
+        );
+      }
+
       const isNonCustodial = !!activeSubaccount;
 
       const currentPhaseCap = this.calculatePhaseCap(txProject);
@@ -404,9 +410,9 @@ export class DonationService {
 
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
-      select: { 
+      select: {
         id: true, isActive: true, currency: true, status: true, categoryId: true,
-        budgetBreakdown: true, currentPhaseIndex: true 
+        budgetBreakdown: true, currentPhaseIndex: true
       },
     });
 
@@ -441,6 +447,12 @@ export class DonationService {
     const activeIndex = project.currentPhaseIndex || 0;
     const budget = (project.budgetBreakdown as any[]) || [];
     const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+
+    if (!activeSubaccount) {
+      throw new InternalServerErrorException(
+        'Strict Non-Custodial Policy: The active phase lacks a verified vendor routing account. Donations are temporarily halted.'
+      );
+    }
 
     try {
       const paystackPayload: any = {

@@ -449,6 +449,19 @@ export class AdminService {
 
     return this.prisma.$transaction(async (tx) => {
       const budget = (proposal.budgetBreakdown as any[]) || [];
+
+      // STRICT NON-CUSTODIAL GUARD: Ensure every budget item has a bound subaccount
+      if (budget.length === 0) {
+        throw new BadRequestException('Cannot launch a project without a budget breakdown.');
+      }
+
+      const unboundItems = budget.filter(item => !item.vendorSubaccount);
+      if (unboundItems.length > 0) {
+        throw new BadRequestException(
+          `Strict Non-Custodial Policy: All budget items must be bound to a verified vendor subaccount before launch. ${unboundItems.length} unbound item(s) detected.`
+        );
+      }
+
       let generatedTimeline = proposal.executionTimeline as any[];
 
       if (!generatedTimeline || generatedTimeline.length === 0) {
