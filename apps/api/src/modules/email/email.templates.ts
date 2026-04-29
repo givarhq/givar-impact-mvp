@@ -583,4 +583,19 @@ export const EmailTemplates = {
       
       <p style="font-size: 13px; color: #6b7280;">Thank you for your commitment to transparent, milestone-driven impact.</p>
   `,
+
+  adminVendorPayoutConfirmed: (data: { adminName: string; projectTitle: string; phaseName: string; vendorName: string; amount: string; currency: string; reference: string; url: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p><strong>Phase funding accomplished:</strong> The full capital required for a project phase has been successfully secured and routed to the verified vendor subaccount.</p>
+    <div class="stat-box" style="border-color: #10b981; background-color: #f0fdf4;">
+      <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total phase capital secured</div>
+      <div style="font-size: 32px; font-weight: 800; color: #10b981;">${data.currency} ${data.amount}</div>
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <p style="margin: 0; font-size: 14px; color: #064e3b;"><strong>Project:</strong> ${data.projectTitle}</p>
+      <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Phase:</strong> ${data.phaseName}</p>
+      <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Vendor:</strong> ${data.vendorName}</p>
+      <p style="margin: 12px 0 0 0; font-size: 10px; color: #059669; font-family: monospace; opacity: 0.7;">Finalizing reference: ${data.reference}</p>
+    </div>
+    <p>Execution can now begin. Please contact the vendor immediately to authorize the start of work for this phase.</p>
+  `,
 };

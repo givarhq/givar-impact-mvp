@@ -755,7 +755,53 @@ export class DonationService {
               link: `/dashboard/impact/${project.slug}`
             }
           });
-        } else if (isPhaseNewlyMet) {
+        }
+
+        if (isPhaseNewlyMet) {
+          // IMMEDIATE VENDOR CONFIRMATION ALERT (Only fire when the phase is fully funded)
+          if (isNonCustodial) {
+            await tx.notification.create({
+              data: {
+                userId: project.userId,
+                type: 'MILESTONE_ALERT' as NotificationType,
+                title: 'Phase Funding Complete',
+                content: `The full capital for "${phaseNameRaw}" has been routed to the vendor. Work can now commence.`,
+                link: `/dashboard/projects/${project.id}/manage`
+              }
+            });
+
+            // Alert all Administrators for immediate vendor outreach
+            const admins = await tx.user.findMany({
+              where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+              select: { id: true }
+            });
+
+            if (admins.length > 0) {
+              await tx.notification.createMany({
+                data: admins.map(admin => ({
+                  userId: admin.id,
+                  type: 'PROJECT_STATUS' as NotificationType,
+                  title: 'Action Required: Payout Finalized',
+                  content: `Phase ${project.currentPhaseIndex + 1} for "${project.title}" is 100% funded. Contact the vendor to authorize work.`,
+                  link: `/admin/projects/${project.id}/edit`
+                }))
+              });
+
+              // TRIGGER ASYNC EMAIL BROADCAST
+              const vendorName = budget[activeIndex]?.payTo || budget[activeIndex]?.vendor || 'Verified Vendor';
+              const totalPhaseAmount = budget[activeIndex]?.amount || (budget[activeIndex] as any).cost || 0;
+
+              this.emailService.sendAdminVendorPayoutAlert({
+                projectTitle: project.title,
+                phaseName: phaseNameRaw,
+                vendorName,
+                amount: totalPhaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+                currency: currency,
+                reference: reference,
+                projectId: project.id
+              }).catch(() => { });
+            }
+          }
           const admins = await tx.user.findMany({
             where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
             select: { id: true }

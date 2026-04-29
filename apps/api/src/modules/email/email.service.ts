@@ -409,4 +409,27 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Next phase unlocked!');
     return this.send(email, `Givar Impact: Next phase unlocked for ${data.projectTitle}`, html);
   }
+
+  async sendAdminVendorPayoutAlert(data: { projectTitle: string; phaseName: string; vendorName: string; amount: string; currency: string; reference: string; projectId: string }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    if (admins.length === 0) return;
+
+    const url = `${this.config.get('FRONTEND_URL')}/admin/projects/${data.projectId}/edit`;
+
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminVendorPayoutConfirmed({
+          ...data,
+          adminName: admin.firstName,
+          url
+        });
+        const html = EmailTemplates.base(content, 'Vendor Payout Confirmed');
+        return this.send(admin.email, `Payout Confirmed: ${data.vendorName}`, html);
+      })
+    );
+  }
 }
