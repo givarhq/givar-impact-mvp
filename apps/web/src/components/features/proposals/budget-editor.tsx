@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, memo } from 'react';
-import { Trash2, PlusCircle, Landmark, ShieldCheck, Loader2 } from 'lucide-react';
+import { Trash2, PlusCircle, Landmark, ShieldCheck, Loader2, Info } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
@@ -169,6 +169,16 @@ export const BudgetEditor = memo(function BudgetEditor({
 
   return (
     <div className="space-y-6">
+
+      {!isLocked && !isAdmin && (
+        <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-start gap-3 shadow-sm animate-in fade-in">
+          <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-blue-800 font-medium leading-relaxed">
+            If you do not have a specific vendor in mind yet, you can leave the recipient and contact fields blank. A verified vendor can be sourced later before the cause is launched.
+          </p>
+        </div>
+      )}
+
       <div className="space-y-1">
         <AnimatePresence initial={false} mode="popLayout">
           {budgetBreakdown.map((item) => (
@@ -184,7 +194,7 @@ export const BudgetEditor = memo(function BudgetEditor({
               <div className="md:col-span-3 space-y-1">
                 <label className="text-xs font-bold text-muted-foreground ml-1">Who will receive the funds?</label>
                 <Input
-                  placeholder="e.g. Peace Hospital, ABC School..."
+                  placeholder="e.g. Peace Hospital (Optional)"
                   value={item.payTo}
                   onChange={(e) => handleUpdate(item.id, 'payTo', e.target.value)}
                   readOnly={isLocked}
@@ -195,7 +205,7 @@ export const BudgetEditor = memo(function BudgetEditor({
               <div className="md:col-span-3 space-y-1">
                 <label className="text-xs font-bold text-muted-foreground ml-1">Vendor contact</label>
                 <Input
-                  placeholder="phone or email..."
+                  placeholder="Phone or email (Optional)"
                   value={item.vendorContact || ''}
                   onChange={(e) => handleUpdate(item.id, 'vendorContact', e.target.value)}
                   readOnly={isLocked}

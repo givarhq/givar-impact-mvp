@@ -46,9 +46,9 @@ export default function PlanPage() {
     );
   }
 
-  // Validation Logic: At least one budget item required, and all items must be fully filled including vendor contact
+  // Validation Logic: At least one budget item required, and all items must have type, amount, and description
   const isPlanValid = budgetBreakdown.length > 0 && budgetBreakdown.every(
-    item => item.payTo?.trim() && item.vendorContact?.trim() && item.costType && item.amount > 0 && item.description?.trim()
+    item => item.costType && item.amount > 0 && item.description?.trim()
   );
 
   const categorySlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '';
@@ -118,7 +118,7 @@ export default function PlanPage() {
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               {!isPlanValid && (
                 <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-center">
-                  Fill all expense fields to continue
+                  Fill all required expense fields to continue
                 </span>
               )}
               <Button
