@@ -8,7 +8,8 @@ export interface BudgetItem {
   costType: string;
   amount: number;
   description: string;
-  vendorSubaccount?: string; // <-- ADDED
+  vendorSubaccount?: string;
+  vendorContact?: string;
 }
 
 export interface TimelineItem {
@@ -150,7 +151,8 @@ export const useProposalStore = create<ProposalState>()(
           costType: item.costType || item.type || 'SERVICE',
           amount: item.amount !== undefined ? item.amount : (item.cost || 0),
           description: item.description || item.item || '',
-          vendorSubaccount: item.vendorSubaccount || '' // <-- NEW: Hydrate Subaccount into Budget
+          vendorSubaccount: item.vendorSubaccount || '',
+          vendorContact: item.vendorContact || item.vendorPhone || item.vendorEmail || ''
         }))
         : [];
 

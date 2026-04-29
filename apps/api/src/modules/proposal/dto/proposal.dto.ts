@@ -12,6 +12,10 @@ class BudgetItem {
   @IsString()
   payTo!: string;
 
+  @IsOptional()
+  @IsString()
+  vendorContact?: string;
+
   @IsString()
   costType!: string;
 

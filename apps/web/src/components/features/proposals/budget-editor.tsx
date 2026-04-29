@@ -88,6 +88,7 @@ export const BudgetEditor = memo(function BudgetEditor({
     const newItem: BudgetItem = {
       id: crypto.randomUUID(),
       payTo: '',
+      vendorContact: '',
       costType: activeCostTypes[0].value,
       amount: 0,
       description: '',
@@ -192,6 +193,17 @@ export const BudgetEditor = memo(function BudgetEditor({
               </div>
 
               <div className="md:col-span-3 space-y-1">
+                <label className="text-xs font-bold text-muted-foreground ml-1">Vendor contact</label>
+                <Input
+                  placeholder="e.g. 08012345678 or email..."
+                  value={item.vendorContact || ''}
+                  onChange={(e) => handleUpdate(item.id, 'vendorContact', e.target.value)}
+                  readOnly={isLocked}
+                  className={inputStyle}
+                />
+              </div>
+
+              <div className="md:col-span-3 space-y-1">
                 <label className="text-xs font-bold text-muted-foreground ml-1">Expense type</label>
                 {isLocked ? (
                   <Input value={item.costType} readOnly className={inputStyle} />
@@ -211,7 +223,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 )}
               </div>
 
-              <div className="md:col-span-2 space-y-1">
+              <div className="md:col-span-3 space-y-1">
                 <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
                 <div className="relative">
                   {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
@@ -225,7 +237,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
               </div>
 
-              <div className="md:col-span-4 flex gap-2 items-end">
+              <div className="md:col-span-12 flex gap-2 items-end">
                 <div className="flex-1 space-y-1 min-w-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Description</label>
                   <Input
