@@ -131,7 +131,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
                     <div className="space-y-1">
                         <div className="flex items-baseline gap-2">
-                            <span className="text-2xl md:text-3xl font-black text-primary tracking-tighter">
+                            <span className="text-2xl md:text-3xl font-bold text-primary tracking-tight">
                                 {currencySymbol}{formatNoDecimals(totalRaised)}
                             </span>
                             <span className="text-xs font-medium text-muted-foreground">raised</span>
