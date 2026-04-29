@@ -159,6 +159,13 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     };
 
     const handleApprove = async () => {
+        const unboundItems = proposal.budgetBreakdown?.filter((b: any) => !b.vendorSubaccount);
+        if (unboundItems && unboundItems.length > 0) {
+            toast.error("Strict Non-Custodial Policy: Bind a vendor subaccount to every budget item before launching.");
+            setShowApproveConfirm(false);
+            return;
+        }
+
         setIsProcessing(true);
         const toastId = toast.loading('Promoting proposal to live project...');
         try {

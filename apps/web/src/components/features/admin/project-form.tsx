@@ -148,6 +148,13 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       return toast.error("Please select a specific focus area before saving.");
     }
 
+    if (status === 'ACTIVE') {
+      const unboundItems = data.budgetBreakdown.filter((item: any) => !item.vendorSubaccount);
+      if (unboundItems.length > 0) {
+        return toast.error("Strict Non-Custodial Policy: Bind a vendor subaccount to every budget item before launching.");
+      }
+    }
+
     setIsSubmitting(true);
     const toastId = toast.loading(status === 'DRAFT' ? "Saving your progress..." : "Publishing cause...");
     try {

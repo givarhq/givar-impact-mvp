@@ -909,6 +909,17 @@ export class AdminService {
   }
 
   async createProject(adminId: string, dto: CreateAdminProjectDto) {
+    const budget = dto.budgetBreakdown || [];
+    if (dto.status === ProjectStatus.ACTIVE) {
+      if (budget.length === 0) {
+        throw new BadRequestException('Cannot launch a project without a budget breakdown.');
+      }
+      const unboundItems = budget.filter((item: any) => !item.vendorSubaccount);
+      if (unboundItems.length > 0) {
+        throw new BadRequestException('Strict Non-Custodial Policy: All budget items must be bound to a verified vendor subaccount before launch.');
+      }
+    }
+
     const slug = this.generateSlug(dto.title);
 
     const createData: Prisma.ProjectCreateInput = {
@@ -1002,7 +1013,13 @@ export class AdminService {
     if (dto.targetAmount) updateData.targetAmount = newTarget;
     if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
     if (dto.gallery) updateData.gallery = dto.gallery as any;
-    if (dto.budgetBreakdown) updateData.budgetBreakdown = dto.budgetBreakdown as any;
+    if (dto.budgetBreakdown) {
+      const unboundItems = dto.budgetBreakdown.filter((item: any) => !item.vendorSubaccount);
+      if ((dto.status === ProjectStatus.ACTIVE || isLive) && unboundItems.length > 0) {
+        throw new BadRequestException('Strict Non-Custodial Policy: All budget items must remain bound to a verified vendor subaccount.');
+      }
+      updateData.budgetBreakdown = dto.budgetBreakdown as any;
+    }
     if (dto.executionTimeline) updateData.executionTimeline = dto.executionTimeline as any;
 
     const result = await this.prisma.$transaction(async (tx) => {
