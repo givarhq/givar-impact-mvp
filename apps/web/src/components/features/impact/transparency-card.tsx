@@ -107,22 +107,22 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const formatNoDecimals = (minorAmt: bigint) => (Number(minorAmt) / 100).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
     return (
-        <div className="space-y-6" id="transparency-card">
+        <div className="space-y-4 md:space-y-5" id="transparency-card">
 
             {/* Segment 1: Overall Progress */}
-            <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-6 md:p-8 shadow-sm">
-                <div className="space-y-5">
+            <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 md:p-6 shadow-sm">
+                <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                             Overall Progress <Info className="h-3.5 w-3.5 text-muted-foreground/50" />
                         </span>
                         <button
                             onClick={copyIdToClipboard}
-                            className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium hover:text-foreground transition-colors group/copy outline-none"
+                            className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors group/copy outline-none"
                         >
                             <span>ID: {project.slug.slice(0, 8)}...</span>
                             {copied ? (
-                                <Check className="h-3 w-3 text-emerald-500 animate-in zoom-in" />
+                                <Check className="h-3 w-3 text-primary animate-in zoom-in" />
                             ) : (
                                 <Copy className="h-3 w-3 opacity-30 group-hover/copy:opacity-100 transition-opacity" />
                             )}
@@ -131,33 +131,33 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
                     <div className="space-y-1">
                         <div className="flex items-baseline gap-2">
-                            <span className="text-3xl md:text-4xl font-black text-emerald-600 tracking-tighter">
+                            <span className="text-2xl md:text-3xl font-black text-primary tracking-tighter">
                                 {currencySymbol}{formatNoDecimals(totalRaised)}
                             </span>
-                            <span className="text-sm font-medium text-muted-foreground">raised</span>
+                            <span className="text-xs font-medium text-muted-foreground">raised</span>
                         </div>
                     </div>
 
-                    <div className="space-y-2.5 pt-2">
-                        <p className="text-sm font-bold text-emerald-600">{totalPercent}% funded</p>
-                        <div className="h-2 w-full bg-emerald-500/20 rounded-full overflow-hidden">
+                    <div className="space-y-2 pt-1">
+                        <p className="text-xs font-bold text-primary">{totalPercent}% funded</p>
+                        <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden">
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${totalPercent}%` }}
                                 transition={{ duration: 1, ease: "easeOut" }}
-                                className="h-full bg-emerald-500 rounded-full"
+                                className="h-full bg-primary rounded-full"
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 pt-3">
-                        <div className="p-4 rounded-2xl border border-border/60 flex flex-col items-center justify-center text-center space-y-1.5 shadow-sm">
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="p-3 rounded-2xl border border-border/60 flex flex-col items-center justify-center text-center space-y-1.5 shadow-sm bg-muted/10">
                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                <Target className="h-3.5 w-3.5 text-emerald-500" /> Goal
+                                <Target className="h-3.5 w-3.5 text-primary" /> Goal
                             </div>
                             <div className="font-bold text-sm text-foreground">{currencySymbol}{formatNoDecimals(totalTarget)}</div>
                         </div>
-                        <div className="p-4 rounded-2xl border border-border/60 flex flex-col items-center justify-center text-center space-y-1.5 shadow-sm">
+                        <div className="p-3 rounded-2xl border border-border/60 flex flex-col items-center justify-center text-center space-y-1.5 shadow-sm bg-muted/10">
                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                 <AlertCircle className="h-3.5 w-3.5 text-amber-500" /> Remaining
                             </div>
@@ -168,14 +168,14 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             </Card>
 
             {/* Segment 2: Phased Funding Note */}
-            <Card className="bg-emerald-50/50 border border-emerald-100/50 rounded-3xl p-5 shadow-sm">
+            <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
                 <div className="flex items-start gap-3">
                     <div className="mt-0.5">
-                        <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                        <ShieldCheck className="h-4 w-4 text-primary" />
                     </div>
                     <div className="space-y-1">
-                        <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-widest">Phased Funding</h4>
-                        <p className="text-xs text-emerald-900/70 font-medium leading-relaxed">
+                        <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Funding</h4>
+                        <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
                             This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
                         </p>
                     </div>
@@ -184,22 +184,22 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
             {/* Segment 3: Current Funding Phase */}
             {(!isCompleted && !isFundedState) ? (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-5">
                     <div className="flex items-center gap-4">
                         <div className="h-px bg-border flex-1" />
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">CURRENT FUNDING PHASE</span>
                         <div className="h-px bg-border flex-1" />
                     </div>
 
-                    <Card className="bg-card border border-border/40 rounded-3xl p-6 md:p-8 shadow-sm">
-                        <h4 className="text-base font-bold text-emerald-600 leading-tight mb-5">
+                    <Card className="bg-card border border-border/40 rounded-3xl p-5 shadow-sm">
+                        <h4 className="text-sm font-bold text-primary leading-tight mb-4">
                             Phase {activeIndex + 1}: {activeItemName}
                         </h4>
 
                         {isPhaseFull ? (
-                            <div className="space-y-5 animate-in fade-in">
+                            <div className="space-y-4 animate-in fade-in">
                                 <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200/60 w-fit">
+                                    <div className="flex items-center gap-2 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200/60 w-fit">
                                         <Clock className="h-3.5 w-3.5" /> Verification in Progress
                                     </div>
                                     <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
@@ -209,7 +209,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
                                 <div className="pt-4 border-t border-border/40 space-y-3">
                                     <div className="flex items-center gap-2 text-muted-foreground">
-                                        <BellRing className="h-4 w-4" />
+                                        <BellRing className="h-3.5 w-3.5" />
                                         <h4 className="text-[11px] font-bold">Get notified when Phase {activeIndex + 2} opens</h4>
                                     </div>
 
@@ -217,7 +217,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                         <Button
                                             onClick={handleJoinWaitlist}
                                             disabled={isWaitlistLoading}
-                                            className="h-10 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-xs"
+                                            className="h-9 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-[11px]"
                                         >
                                             {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : `Notify me`}
                                         </Button>
@@ -227,12 +227,12 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                                 placeholder="your@email.com"
                                                 value={waitlistEmail}
                                                 onChange={e => setWaitlistEmail(e.target.value)}
-                                                className="h-10 rounded-2xl bg-muted/20 border-border/40 text-xs shadow-inner focus:bg-background"
+                                                className="h-9 rounded-2xl bg-muted/20 border-border/40 text-[11px] shadow-inner focus:bg-background"
                                             />
                                             <Button
                                                 onClick={handleJoinWaitlist}
                                                 disabled={isWaitlistLoading || !waitlistEmail}
-                                                className="h-10 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-xs"
+                                                className="h-9 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-[11px]"
                                             >
                                                 {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Notify me'}
                                             </Button>
@@ -242,18 +242,18 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                <div className="flex justify-between items-end text-sm font-bold">
+                                <div className="flex justify-between items-end text-xs font-bold">
                                     <span className="text-foreground">
                                         {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
                                     </span>
-                                    <span className="text-emerald-600">{phasePercent}%</span>
+                                    <span className="text-primary">{phasePercent}%</span>
                                 </div>
-                                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                                <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${phasePercent}%` }}
                                         transition={{ duration: 1, ease: "easeOut" }}
-                                        className="h-full bg-emerald-500 rounded-full"
+                                        className="h-full bg-primary rounded-full"
                                     />
                                 </div>
                             </div>
@@ -261,12 +261,12 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                     </Card>
                 </div>
             ) : (
-                <Card className="p-6 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 text-center space-y-2 shadow-sm">
-                    <div className="h-12 w-12 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <Card className="p-5 md:p-6 rounded-3xl border border-primary/20 bg-primary/5 text-center space-y-2 shadow-sm">
+                    <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                         <CheckCircle2 className="h-6 w-6" />
                     </div>
-                    <h3 className="text-lg font-bold text-emerald-950 dark:text-emerald-50">Campaign Fully Funded</h3>
-                    <p className="text-xs text-emerald-900/80 dark:text-emerald-100/80 font-medium">
+                    <h3 className="text-base font-bold text-foreground tracking-tight">Campaign Fully Funded</h3>
+                    <p className="text-[11px] text-foreground/80 font-medium">
                         All financial requirements have been met.
                     </p>
                 </Card>
