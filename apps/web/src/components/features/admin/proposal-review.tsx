@@ -35,7 +35,7 @@ const AssistiveChecklist = ({ title, items }: { title: string, items: string[] }
 
     return (
         <div className="space-y-3 p-4 rounded-2xl bg-muted/20 border border-border/40 shadow-inner">
-            <h4 className="text-[11px] font-bold text-foreground">{title}</h4>
+            <h4 className="text-xs font-bold text-foreground">{title}</h4>
             <div className="space-y-2.5">
                 {items.map((item, i) => (
                     <div
@@ -222,7 +222,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             transition={{ duration: 0.2, ease: "circOut" }}
             className="space-y-4 md:space-y-6 pb-20 w-full overflow-hidden"
         >
-            {/* Header & Meta (Actions moved to bottom) */}
+            {/* Header & Meta */}
             <div className="flex flex-col bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
                     <div className="hidden md:flex h-16 w-16 rounded-3xl bg-primary/10 items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
@@ -230,34 +230,35 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     </div>
                     <div className="space-y-1.5 min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary" className="rounded-3xl px-2.5 py-0.5 font-bold text-[10px] bg-muted border-none text-muted-foreground">
+                            <Badge variant="secondary" className="rounded-3xl px-3 py-1 font-bold text-[11px] bg-muted border-none text-muted-foreground">
                                 {displayCategory}
                             </Badge>
-                            <h1 className="text-lg font-bold text-foreground truncate max-w-full leading-tight">
+                            <h1 className="text-xl font-bold text-foreground truncate max-w-full leading-tight">
                                 {proposal.title || 'Untitled Project Proposal'}
                             </h1>
-                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-xs border shrink-0", statusColor)}>
+                            <Badge variant="outline" className={cn("rounded-3xl px-3 py-1 font-bold text-xs border shrink-0", statusColor)}>
                                 {displayStatus}
                             </Badge>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground">
-                            <span className="flex items-center gap-1 shrink-0"><Calendar className="h-3.5 w-3.5" /> {formatDate(proposal.submittedAt).split(',')[0]}</span>
+                        <div className="flex flex-wrap items-center gap-3 text-sm font-medium text-muted-foreground mt-2">
+                            <span className="flex items-center gap-1.5 shrink-0"><Calendar className="h-4 w-4" /> {formatDate(proposal.submittedAt).split(',')[0]}</span>
                             <span className="hidden sm:inline text-border">|</span>
-                            <span className="flex items-center gap-1 shrink-0"><MapPin className="h-3.5 w-3.5 text-primary" /> {proposal.location || 'Global Location'}</span>
+                            <span className="flex items-center gap-1.5 shrink-0"><MapPin className="h-4 w-4 text-primary" /> {proposal.location || 'Global Location'}</span>
                             <span className="hidden sm:inline text-border">|</span>
-                            <span className="flex items-center gap-1 shrink-0 font-mono bg-muted/30 px-2 py-0.5 rounded-3xl border border-border/40">ID: {proposal.id.split('-')[0]}</span>
+                            <span className="flex items-center gap-1.5 shrink-0 font-mono bg-muted/30 px-2 py-0.5 rounded-3xl border border-border/40">ID: {proposal.id.split('-')[0]}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+                {/* LEFT COLUMN: Main Proposal Content */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     {/* Visual Media Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                <ImageIcon className="h-3.5 w-3.5 text-primary" /> Visual Assets
+                            <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                                <ImageIcon className="h-4 w-4 text-primary" /> Visual Assets
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-0">
@@ -283,7 +284,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     )}
                                 </div>
                                 <div className="p-6 md:p-8 flex flex-col justify-center bg-card/50">
-                                    <h4 className="text-xs font-bold text-primary mb-2">Elevator Pitch</h4>
+                                    <h4 className="text-xs font-bold text-primary mb-2 uppercase tracking-widest">Elevator Pitch</h4>
                                     <p className="text-sm md:text-base leading-relaxed text-foreground font-medium italic">
                                         &quot;{proposal.shortDesc || "No elevator pitch provided for this proposal."}&quot;
                                     </p>
@@ -313,8 +314,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {/* Detailed Narrative Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                <FileText className="h-3.5 w-3.5 text-blue-500" /> Full Narrative
+                            <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-blue-500" /> Full Narrative
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8 space-y-6">
@@ -335,18 +336,18 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             {proposal.description ? (
                                 <div
                                     className={cn(
-                                        "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
-                                        "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
-                                        "[&_li]:pl-1",
+                                        "text-sm md:text-base text-foreground/80 leading-relaxed max-w-none break-words",
+                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-xl [&_h2]:mt-8 [&_h2]:mb-4",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-lg [&_h3]:mt-6 [&_h3]:mb-3",
+                                        "[&_p]:mb-5 [&_p]:last:mb-0",
+                                        "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-5 [&_ul]:space-y-2 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-5 [&_ol]:space-y-2 [&_ol]:text-foreground/80",
+                                        "[&_li]:pl-2",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
                                         "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
-                                        "[&_hr]:border-border/40 [&_hr]:my-6"
+                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-5 [&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_hr]:border-border/40 [&_hr]:my-8"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: proposal.description }}
                                 />
@@ -365,38 +366,38 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             !proposal.hasPreCollectedFunds && "md:col-span-2"
                         )}>
                             <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 shrink-0">
-                                <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                    <User className="h-3.5 w-3.5 text-primary" /> Beneficiary Context
+                                <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                                    <User className="h-4 w-4 text-primary" /> Beneficiary Context
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="p-6 flex flex-col justify-between flex-1 min-h-0">
-                                <div className="space-y-4">
+                            <CardContent className="p-6 md:p-8 flex flex-col justify-between flex-1 min-h-0">
+                                <div className="space-y-5">
                                     <div>
-                                        <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Full Name</p>
-                                        <p className="text-sm font-bold text-foreground">{proposal.beneficiaryName || 'Not Provided'}</p>
+                                        <p className="text-xs font-bold text-muted-foreground tracking-widest mb-1 uppercase">Full Name</p>
+                                        <p className="text-base font-bold text-foreground">{proposal.beneficiaryName || 'Not Provided'}</p>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-5">
                                         <div>
-                                            <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Age</p>
-                                            <p className="text-sm font-bold text-foreground">{proposal.beneficiaryAge || 'N/A'}</p>
+                                            <p className="text-xs font-bold text-muted-foreground tracking-widest mb-1 uppercase">Age</p>
+                                            <p className="text-base font-bold text-foreground">{proposal.beneficiaryAge || 'N/A'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Relationship</p>
-                                            <p className="text-sm font-bold text-foreground">{proposal.beneficiaryRelationship || 'N/A'}</p>
+                                            <p className="text-xs font-bold text-muted-foreground tracking-widest mb-1 uppercase">Relationship</p>
+                                            <p className="text-base font-bold text-foreground">{proposal.beneficiaryRelationship || 'N/A'}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="pt-4 mt-4 border-t border-border/40 shrink-0">
-                                    <label className="text-[11px] font-bold text-muted-foreground mb-1.5 block">Beneficiary Awareness Status</label>
+                                <div className="pt-6 mt-6 border-t border-border/40 shrink-0">
+                                    <label className="text-xs font-bold text-muted-foreground mb-2 block uppercase tracking-widest">Beneficiary Awareness Status</label>
                                     <Select value={awarenessStatus} onValueChange={handleAwarenessChange} disabled={isTerminalState}>
-                                        <SelectTrigger className="h-10 rounded-2xl bg-muted/20 border-border/60 text-xs font-bold focus:ring-primary/20 transition-all">
+                                        <SelectTrigger className="h-12 rounded-2xl bg-muted/20 border-border/60 text-sm font-bold focus:ring-primary/20 transition-all">
                                             <SelectValue placeholder="Select operational status..." />
                                         </SelectTrigger>
                                         <SelectContent className="rounded-2xl border-border/40 shadow-xl">
-                                            <SelectItem value="Confirmed" className="text-xs font-bold py-2">Confirmed</SelectItem>
-                                            <SelectItem value="Unable to confirm due to medical condition" className="text-xs font-bold py-2">Unable to confirm (Medical)</SelectItem>
-                                            <SelectItem value="Requires follow-up" className="text-xs font-bold py-2 text-amber-600">Requires follow-up</SelectItem>
+                                            <SelectItem value="Confirmed" className="text-sm font-bold py-3">Confirmed</SelectItem>
+                                            <SelectItem value="Unable to confirm due to medical condition" className="text-sm font-bold py-3">Unable to confirm (Medical)</SelectItem>
+                                            <SelectItem value="Requires follow-up" className="text-sm font-bold py-3 text-amber-600">Requires follow-up</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -407,23 +408,23 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         {proposal.hasPreCollectedFunds && (
                             <Card className="rounded-3xl border-blue-500/20 bg-blue-500/[0.02] overflow-hidden shadow-sm flex flex-col h-full">
                                 <CardHeader className="bg-blue-500/5 border-b border-blue-500/10 py-4 px-6 flex flex-row items-center justify-between shrink-0">
-                                    <CardTitle className="text-xs font-bold text-blue-700 flex items-center gap-2">
-                                        <Landmark className="h-3.5 w-3.5" /> Pre-Collected Funds Declared
+                                    <CardTitle className="text-sm font-bold text-blue-700 flex items-center gap-2">
+                                        <Landmark className="h-4 w-4" /> Pre-Collected Funds
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="p-6 flex flex-col justify-between flex-1 min-h-0 gap-6">
+                                <CardContent className="p-6 md:p-8 flex flex-col justify-between flex-1 min-h-0 gap-6">
                                     <div className="space-y-1">
-                                        <p className="text-[11px] font-bold text-muted-foreground">Amount Raised Externally</p>
-                                        <p className="text-xl font-black text-foreground">
-                                            <SmartCurrency amount={((Number(proposal.preCollectedAmount) || 0) * 100).toString()} currency="NGN" visible={true} size="default" />
+                                        <p className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Amount Raised Externally</p>
+                                        <p className="text-3xl font-black text-foreground">
+                                            <SmartCurrency amount={((Number(proposal.preCollectedAmount) || 0) * 100).toString()} currency="NGN" visible={true} size="large" />
                                         </p>
-                                        <p className="text-xs text-muted-foreground font-medium pt-1">
+                                        <p className="text-sm text-muted-foreground font-medium pt-2">
                                             Held at: <span className="font-bold text-foreground">{proposal.preCollectedHeldAt || 'Unknown'}</span>
                                         </p>
                                     </div>
                                     {proposal.preCollectedProofKey && (
-                                        <Button onClick={() => viewSecureDoc(proposal.preCollectedProofKey!)} variant="outline" className="rounded-3xl font-bold text-xs h-10 border-blue-500/30 text-blue-700 hover:bg-blue-50 w-full mt-auto">
-                                            <ExternalLink className="h-4 w-4 mr-2" /> View Proof
+                                        <Button onClick={() => viewSecureDoc(proposal.preCollectedProofKey!)} variant="outline" className="rounded-3xl font-bold text-sm h-12 border-blue-500/30 text-blue-700 hover:bg-blue-50 w-full mt-auto">
+                                            <ExternalLink className="h-4 w-4 mr-2" /> View Proof Document
                                         </Button>
                                     )}
                                 </CardContent>
@@ -433,38 +434,38 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
                     {/* Financial Budget Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
-                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 flex flex-row items-center justify-between">
-                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> Use of Funds
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-5 px-6 md:px-8 flex flex-row items-center justify-between">
+                            <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                                <DollarSign className="h-4 w-4 text-emerald-500" /> Use of Funds
                             </CardTitle>
-                            <div className="flex items-center gap-2 bg-background border border-border/60 px-3 py-1 rounded-3xl shadow-sm">
-                                <span className="text-[11px] font-bold text-muted-foreground">Total:</span>
-                                <SmartCurrency amount={(budgetTotal * 100).toString()} currency="NGN" visible={true} size="small" className="text-foreground" />
+                            <div className="flex items-center gap-2 bg-background border border-border/60 px-4 py-1.5 rounded-3xl shadow-sm">
+                                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total:</span>
+                                <SmartCurrency amount={(budgetTotal * 100).toString()} currency="NGN" visible={true} size="default" className="text-foreground" />
                             </div>
                         </CardHeader>
                         <div className="p-0 overflow-x-auto no-scrollbar">
-                            <table className="w-full text-left border-collapse min-w-[600px]">
-                                <thead className="bg-muted/10 text-xs font-bold text-muted-foreground border-b border-border/40">
+                            <table className="w-full text-left border-collapse min-w-[650px]">
+                                <thead className="bg-muted/10 text-xs font-bold text-muted-foreground border-b border-border/40 tracking-wider">
                                     <tr>
-                                        <th className="px-6 py-4">Item & Recipient</th>
-                                        <th className="px-6 py-4">Routing Setup</th>
-                                        <th className="px-6 py-4 text-right">Allocation</th>
+                                        <th className="px-6 md:px-8 py-5">Item & Recipient</th>
+                                        <th className="px-6 md:px-8 py-5">Vendor Routing Setup</th>
+                                        <th className="px-6 md:px-8 py-5 text-right">Allocation</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/40 text-sm font-medium">
                                     {budgetBreakdown.length > 0 ? (
                                         budgetBreakdown.map((item, i) => (
                                             <tr key={item.id || i} className="hover:bg-muted/20 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="font-bold text-foreground">{item.description || item.item}</div>
-                                                    <div className="text-xs text-muted-foreground mt-1.5 flex items-center gap-2">
-                                                        <Badge variant="secondary" className="px-2.5 py-0.5 h-6 text-[11px] bg-muted/60 border-none shadow-none">{item.costType || item.type}</Badge>
+                                                <td className="px-6 md:px-8 py-5">
+                                                    <div className="font-bold text-foreground text-sm">{item.description || item.item}</div>
+                                                    <div className="text-xs text-muted-foreground mt-2 flex items-center gap-2.5">
+                                                        <Badge variant="secondary" className="px-2.5 py-0.5 text-[11px] bg-muted/60 border-none shadow-none">{item.costType || item.type}</Badge>
                                                         <span>To: <span className="font-bold">{item.payTo || item.vendor}</span></span>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 md:px-8 py-5">
                                                     {item.vendorSubaccount ? (
-                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-xl w-fit">
+                                                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 w-fit">
                                                             <ShieldCheck className="h-4 w-4" /> {item.vendorSubaccount}
                                                         </div>
                                                     ) : (
@@ -477,14 +478,14 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                                 setAccountNumber('');
                                                                 setSubaccountModal({ isOpen: true, itemId: item.id as string, vendorName: item.payTo || item.vendor || '' });
                                                             }}
-                                                            className="h-9 text-xs font-bold rounded-2xl px-4 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                                            className="h-9 text-xs font-bold rounded-2xl px-4 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm"
                                                             disabled={isTerminalState}
                                                         >
-                                                            <Landmark className="h-3.5 w-3.5 mr-1.5" /> Bind Account
+                                                            <Landmark className="h-3.5 w-3.5 mr-2" /> Bind Account
                                                         </Button>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold">
+                                                <td className="px-6 md:px-8 py-5 text-right font-mono text-foreground tabular-nums font-bold text-base">
                                                     {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
                                                 </td>
                                             </tr>
@@ -496,25 +497,125 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </table>
                         </div>
                     </Card>
+
+                    {/* ACTION TERMINAL AT BOTTOM OF LEFT COLUMN */}
+                    <Card className={cn(
+                        "rounded-3xl border-2 shadow-sm overflow-hidden mt-8 transition-all",
+                        isTerminalState ? "bg-muted/10 border-border/40" : "border-primary/20 bg-primary/[0.02]"
+                    )}>
+                        <CardContent className="p-6 md:p-8 flex flex-col items-center text-center gap-6">
+                            {!isTerminalState ? (
+                                <>
+                                    <div className="space-y-2">
+                                        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 text-primary shadow-inner border border-primary/20">
+                                            <CheckCircle2 className="h-7 w-7" />
+                                        </div>
+                                        <h3 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">Final Decision</h3>
+                                        <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
+                                            Please ensure you have reviewed all narrative details, financial structures, and have bound the necessary vendor subaccounts before approving.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-lg mx-auto mt-2">
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="ghost" onClick={() => setActionType('reject')} className="w-full sm:flex-1 h-12 rounded-3xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 font-bold text-sm transition-all active:scale-95">
+                                                    Reject
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
+                                                <DialogHeader><DialogTitle className="text-lg font-bold text-destructive">Reject Proposal</DialogTitle></DialogHeader>
+                                                <div className="space-y-6 pt-4">
+                                                    <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3">
+                                                        <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                                                        <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived and the owner notified.</p>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-muted-foreground ml-1">Rejection Reason</label>
+                                                        <Input
+                                                            placeholder="State the basis for this decision..."
+                                                            value={feedback}
+                                                            onChange={(e) => setFeedback(e.target.value)}
+                                                            className="h-12 rounded-3xl"
+                                                        />
+                                                    </div>
+                                                    <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-md border-0">
+                                                        Finalize Rejection
+                                                    </Button>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" onClick={() => setActionType('changes')} className="w-full sm:flex-1 h-12 rounded-3xl border-border/60 text-foreground font-bold text-sm transition-all active:scale-95 bg-background shadow-sm hover:bg-muted">
+                                                    Request Info
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
+                                                <DialogHeader><DialogTitle className="text-lg font-bold">Feedback Narrative</DialogTitle></DialogHeader>
+                                                <div className="space-y-6 pt-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-muted-foreground ml-1">Audit Instructions</label>
+                                                        <textarea
+                                                            className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
+                                                            placeholder="Specify the additional information required..."
+                                                            value={feedback}
+                                                            onChange={(e) => setFeedback(e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0">
+                                                        Submit Feedback
+                                                    </Button>
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+
+                                        <Button
+                                            onClick={() => setShowApproveConfirm(true)}
+                                            disabled={isProcessing}
+                                            className="w-full sm:w-auto h-12 px-10 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-sm text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
+                                        >
+                                            <Check className="h-5 w-5" /> Verify & Launch
+                                        </Button>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="space-y-4 w-full flex flex-col items-center">
+                                    <div className={cn(
+                                        "h-14 w-14 rounded-full flex items-center justify-center shadow-inner mb-2",
+                                        proposal.status === 'APPROVED' ? "bg-emerald-500/10 text-emerald-500" : "bg-destructive/10 text-destructive"
+                                    )}>
+                                        {proposal.status === 'APPROVED' ? <CheckCircle2 className="h-7 w-7" /> : <ShieldAlert className="h-7 w-7" />}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-xl font-bold text-foreground">Decision Logged</h3>
+                                        <p className="text-sm font-medium text-muted-foreground">This proposal has been permanently {proposal.status.toLowerCase()}.</p>
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
                 </div>
 
-                {/* RIGHT: IDENTITY, AUDIT CHECKLISTS & RISK */}
+                {/* RIGHT SIDEBAR: IDENTITY, AUDIT CHECKLISTS & RISK */}
                 <div className="lg:col-span-4 space-y-6">
                     {/* Proposer Information Card */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                <User className="h-3.5 w-3.5 text-primary" /> Proposer Identity
+                            <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                                <User className="h-4 w-4 text-primary" /> Proposer Identity
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-5 space-y-5">
                             <div className="flex items-center gap-4 p-4 rounded-3xl bg-muted/20 border border-border/40 shadow-inner group">
-                                <div className="h-11 w-11 rounded-3xl bg-secondary flex items-center justify-center text-secondary-foreground font-black text-xs border border-border/10 shrink-0 shadow-sm transition-transform group-hover:scale-105">
+                                <div className="h-12 w-12 rounded-3xl bg-secondary flex items-center justify-center text-secondary-foreground font-black text-sm border border-border/10 shrink-0 shadow-sm transition-transform group-hover:scale-105">
                                     {proposal.user?.firstName[0]}{proposal.user?.lastName[0]}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <div className="text-sm font-bold text-foreground truncate">{proposal.user?.firstName} {proposal.user?.lastName}</div>
-                                    <div className="text-xs text-muted-foreground truncate font-medium opacity-80">{proposal.user?.email}</div>
+                                    <div className="text-base font-bold text-foreground truncate">{proposal.user?.firstName} {proposal.user?.lastName}</div>
+                                    <div className="text-sm text-muted-foreground truncate font-medium opacity-80">{proposal.user?.email}</div>
                                 </div>
                             </div>
                         </CardContent>
@@ -527,10 +628,10 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <div className="flex justify-between items-center">
-                                <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Cause Evidence Vault
+                                <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                                    <ShieldCheck className="h-4 w-4 text-emerald-500" /> Cause Evidence Vault
                                 </CardTitle>
-                                <Badge variant="secondary" className="text-[11px] font-bold rounded-3xl px-2.5 h-5 bg-background shadow-sm border-border/40">
+                                <Badge variant="secondary" className="text-xs font-bold rounded-3xl px-3 h-6 bg-background shadow-sm border-border/40">
                                     {proposal.kycDocuments?.length || 0} Records
                                 </Badge>
                             </div>
@@ -541,24 +642,24 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     <button
                                         key={i}
                                         onClick={() => viewSecureDoc(doc)}
-                                        className="w-full flex items-center justify-between p-3.5 rounded-3xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
+                                        className="w-full flex items-center justify-between p-4 rounded-3xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
                                     >
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="h-9 w-9 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 group-hover:border-primary/20">
-                                                <FileText className="h-4.5 w-4.5" />
+                                            <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 group-hover:border-primary/20">
+                                                <FileText className="h-5 w-5" />
                                             </div>
                                             <div className="text-left min-w-0">
-                                                <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">Legal Record {i + 1}</p>
-                                                <p className="text-[11px] text-muted-foreground font-mono opacity-60 truncate">Secure Link</p>
+                                                <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">Legal Record {i + 1}</p>
+                                                <p className="text-xs text-muted-foreground font-mono opacity-60 truncate mt-0.5">Secure Link</p>
                                             </div>
                                         </div>
-                                        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                                        <ExternalLink className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
                                     </button>
                                 ))
                             ) : (
                                 <div className="text-center py-10 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
-                                    <AlertCircle className="h-7 w-7 mx-auto text-destructive/40 mb-2" />
-                                    <p className="text-[11px] font-bold text-muted-foreground">Vault Empty</p>
+                                    <AlertCircle className="h-8 w-8 mx-auto text-destructive/40 mb-3" />
+                                    <p className="text-xs font-bold text-muted-foreground">Vault Empty</p>
                                 </div>
                             )}
                         </CardContent>
@@ -567,29 +668,29 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                     {/* Admin Cause Review Framework Checklists */}
                     {!isTerminalState && (
                         <Card className="rounded-3xl border-primary/20 bg-primary/[0.02] overflow-hidden shadow-sm">
-                            <CardHeader className="bg-primary/5 border-b border-primary/10 py-4 px-6">
-                                <CardTitle className="text-xs font-bold text-primary flex items-center gap-2">
-                                    <ListChecks className="h-3.5 w-3.5" /> Admin Review Framework
+                            <CardHeader className="bg-primary/5 border-b border-primary/10 py-5 px-6">
+                                <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
+                                    <ListChecks className="h-4 w-4" /> Admin Review Framework
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-5 space-y-4">
-                                <p className="text-[11px] text-primary/70 font-bold mb-2 text-center">Assistive Checklists</p>
+                                <p className="text-xs text-primary/70 font-bold mb-3 text-center uppercase tracking-widest">Assistive Checklists</p>
 
                                 <AssistiveChecklist
-                                    title="Beneficiary Verification"
+                                    title="BENEFICIARY VERIFICATION"
                                     items={["Identity document validity", "Details match submission", "Beneficiary existence reasonably confirmed", "Guardian verification if minor"]}
                                 />
                                 <AssistiveChecklist
-                                    title="Vendor Verification"
+                                    title="VENDOR VERIFICATION"
                                     items={["Vendor details exist in Budget", "Invoice authenticity", "Cost reasonableness", "Payment routing feasibility"]}
                                 />
                                 <AssistiveChecklist
-                                    title="Cause Evidence"
+                                    title="CAUSE EVIDENCE"
                                     items={["Supporting documents sufficient", "Media aligns with narrative", "No major inconsistencies"]}
                                 />
                                 {proposal.hasPreCollectedFunds && (
                                     <AssistiveChecklist
-                                        title="Pre-Collected Funds"
+                                        title="PRE-COLLECTED FUNDS"
                                         items={["Proof of funds provided", "Amount verified", "Decision whether amount is included in tracker"]}
                                     />
                                 )}
@@ -599,113 +700,30 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
                     {/* Risk Indicators */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
-                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
-                                <Search className="h-3.5 w-3.5 text-amber-500" /> Risk Indicators
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-5 px-6">
+                            <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2">
+                                <Search className="h-4 w-4 text-amber-500" /> Risk Indicators
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-5">
-                            <ul className="space-y-3">
+                        <CardContent className="p-6">
+                            <ul className="space-y-4">
                                 <li className="flex items-center gap-3">
-                                    {missingDocs ? <AlertTriangle className="h-4 w-4 text-destructive" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                                    <span className={cn("text-xs font-bold", missingDocs ? "text-destructive" : "text-foreground")}>Missing documentation</span>
+                                    {missingDocs ? <AlertTriangle className="h-5 w-5 text-destructive" /> : <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+                                    <span className={cn("text-sm font-bold", missingDocs ? "text-destructive" : "text-foreground")}>Missing documentation</span>
                                 </li>
                                 <li className="flex items-center gap-3">
-                                    {inconsistentInfo ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                                    <span className={cn("text-xs font-bold", inconsistentInfo ? "text-amber-600" : "text-foreground")}>Inconsistent information</span>
+                                    {inconsistentInfo ? <AlertTriangle className="h-5 w-5 text-amber-500" /> : <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+                                    <span className={cn("text-sm font-bold", inconsistentInfo ? "text-amber-600" : "text-foreground")}>Inconsistent information</span>
                                 </li>
                                 <li className="flex items-center gap-3">
-                                    {duplicateRisk ? <AlertTriangle className="h-4 w-4 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                                    <span className={cn("text-xs font-bold", duplicateRisk ? "text-amber-600" : "text-foreground")}>Duplicate submission risk</span>
+                                    {duplicateRisk ? <AlertTriangle className="h-5 w-5 text-amber-500" /> : <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+                                    <span className={cn("text-sm font-bold", duplicateRisk ? "text-amber-600" : "text-foreground")}>Duplicate submission risk</span>
                                 </li>
                             </ul>
                         </CardContent>
                     </Card>
                 </div>
             </div>
-
-            {/* ACTION TERMINAL AT BOTTOM */}
-            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mt-8">
-                <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="space-y-1 text-center md:text-left">
-                        <h3 className="text-base font-bold text-foreground">Final Decision</h3>
-                        <p className="text-sm text-muted-foreground font-medium">Please review all proposal data and vendor subaccounts before approving.</p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                        {!isTerminalState ? (
-                            <>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="ghost" onClick={() => setActionType('reject')} className="h-12 px-8 rounded-3xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 font-bold text-sm transition-all active:scale-95">
-                                            Reject
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
-                                        <DialogHeader><DialogTitle className="text-lg font-bold text-destructive">Reject Proposal</DialogTitle></DialogHeader>
-                                        <div className="space-y-6 pt-4">
-                                            <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3">
-                                                <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
-                                                <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived and the owner notified.</p>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-muted-foreground ml-1">Rejection Reason</label>
-                                                <Input
-                                                    placeholder="State the basis for this decision..."
-                                                    value={feedback}
-                                                    onChange={(e) => setFeedback(e.target.value)}
-                                                    className="h-12 rounded-3xl"
-                                                />
-                                            </div>
-                                            <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-md border-0">
-                                                Finalize Rejection
-                                            </Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" onClick={() => setActionType('changes')} className="h-12 px-8 rounded-3xl border-border/60 text-foreground font-bold text-sm transition-all active:scale-95">
-                                            Request More Info
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
-                                        <DialogHeader><DialogTitle className="text-lg font-bold">Feedback Narrative</DialogTitle></DialogHeader>
-                                        <div className="space-y-6 pt-4">
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-muted-foreground ml-1">Audit Instructions</label>
-                                                <textarea
-                                                    className="w-full h-32 rounded-3xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
-                                                    placeholder="Specify the additional information required..."
-                                                    value={feedback}
-                                                    onChange={(e) => setFeedback(e.target.value)}
-                                                />
-                                            </div>
-                                            <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0">
-                                                Submit Feedback
-                                            </Button>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-
-                                <Button
-                                    onClick={() => setShowApproveConfirm(true)}
-                                    disabled={isProcessing}
-                                    className="h-12 px-10 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-sm text-white gap-2 border-0 transition-all active:scale-95"
-                                >
-                                    <Check className="h-5 w-5" /> Verify & Launch
-                                </Button>
-                            </>
-                        ) : (
-                            <div className="flex items-center gap-3 px-6 py-3 bg-muted/20 rounded-3xl border border-border/40 w-full sm:w-auto justify-center shadow-inner">
-                                <span className="text-sm font-bold text-muted-foreground">Decision Logged</span>
-                                {proposal.status === 'APPROVED' ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <ShieldAlert className="h-5 w-5 text-destructive" />}
-                            </div>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
 
             {/* LAUNCH CONFIRMATION OVERLAY */}
             <ConfirmModal
@@ -737,7 +755,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 </SelectTrigger>
                                 <SelectContent className="rounded-3xl shadow-xl max-h-64">
                                     {banks.map(bank => (
-                                        <SelectItem key={bank.code} value={bank.code} className="text-xs py-2.5 font-bold">
+                                        <SelectItem key={bank.code} value={bank.code} className="text-sm py-2.5 font-bold">
                                             {bank.name}
                                         </SelectItem>
                                     ))}
@@ -753,7 +771,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 value={accountNumber}
                                 onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
                                 disabled={isCreatingSubaccount}
-                                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background font-mono font-bold"
+                                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background font-mono font-bold text-lg"
                             />
                         </div>
 
@@ -764,17 +782,17 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 value={businessName}
                                 onChange={(e) => setBusinessName(e.target.value)}
                                 disabled={isCreatingSubaccount}
-                                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background font-bold"
+                                className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background font-bold text-base"
                             />
                         </div>
 
-                        <div className="pt-2">
+                        <div className="pt-4">
                             <Button
                                 onClick={handleCreateSubaccount}
                                 disabled={isCreatingSubaccount || !bankCode || accountNumber.length !== 10 || !businessName}
                                 className="w-full h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 border-0 bg-primary text-white hover:bg-primary/90 active:scale-[0.98] transition-all"
                             >
-                                {isCreatingSubaccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Generate Route"}
+                                {isCreatingSubaccount ? <Loader2 className="h-5 w-5 animate-spin" /> : "Verify & Generate Route"}
                             </Button>
                         </div>
                     </div>
