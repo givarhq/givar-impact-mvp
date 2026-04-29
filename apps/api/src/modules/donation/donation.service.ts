@@ -126,7 +126,8 @@ export class DonationService {
         slug: true,
         categoryId: true,
         budgetBreakdown: true,
-        currentPhaseIndex: true
+        currentPhaseIndex: true,
+        vendors: true // <-- NEW: Fetch vendors for lookup
       },
     });
 
@@ -156,10 +157,15 @@ export class DonationService {
 
       const activeIndex = txProject.currentPhaseIndex || 0;
       const budget = (txProject.budgetBreakdown as any[]) || [];
-      const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
+      const vendors = (txProject.vendors as any[]) || []; // <-- NEW: Array mapping
+      const activeBudgetItem = budget[activeIndex];
+      const phaseNameRaw = activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : 'Final Phase';
       const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
 
-      const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+      // Resolving the subaccount from the new Vendor structure with fallback
+      const activeVendor = vendors.find(v => v.id === activeBudgetItem?.vendorId);
+      const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
+
       if (!activeSubaccount) {
         throw new InternalServerErrorException(
           'Strict Non-Custodial Policy: The active phase lacks a verified vendor routing account.'
@@ -412,7 +418,7 @@ export class DonationService {
       where: { id: dto.projectId },
       select: {
         id: true, isActive: true, currency: true, status: true, categoryId: true,
-        budgetBreakdown: true, currentPhaseIndex: true
+        budgetBreakdown: true, currentPhaseIndex: true, vendors: true // <-- NEW: Ensure vendors are fetched
       },
     });
 
@@ -446,7 +452,12 @@ export class DonationService {
 
     const activeIndex = project.currentPhaseIndex || 0;
     const budget = (project.budgetBreakdown as any[]) || [];
-    const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+    const vendors = (project.vendors as any[]) || []; // <-- NEW: Array mapping
+
+    // Resolving the subaccount from the new Vendor structure with fallback
+    const activeBudgetItem = budget[activeIndex];
+    const activeVendor = vendors.find(v => v.id === activeBudgetItem?.vendorId);
+    const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
 
     if (!activeSubaccount) {
       throw new InternalServerErrorException(
@@ -569,7 +580,9 @@ export class DonationService {
 
       const activeIndex = project.currentPhaseIndex || 0;
       const budget = (project.budgetBreakdown as any[]) || [];
-      const phaseNameRaw = budget[activeIndex] ? (budget[activeIndex].description || budget[activeIndex].item) : 'Final Phase';
+      const vendors = (project.vendors as any[]) || []; // <-- NEW: Array mapping
+      const activeBudgetItem = budget[activeIndex];
+      const phaseNameRaw = activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : 'Final Phase';
       const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
 
       const isClosed = ([ProjectStatus.COMPLETED, ProjectStatus.SUSPENDED] as ProjectStatus[]).includes(project.status);
@@ -578,7 +591,9 @@ export class DonationService {
       const currentRemaining = currentPhaseCap - project.raisedAmount;
       const actualRemaining = isClosed ? 0n : (currentRemaining <= 0n ? 0n : currentRemaining);
 
-      const activeSubaccount = budget[activeIndex]?.vendorSubaccount;
+      // Resolving the subaccount from the new Vendor structure with fallback
+      const activeVendor = vendors.find(v => v.id === activeBudgetItem?.vendorId);
+      const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
       const isNonCustodial = !!activeSubaccount;
 
       let amountToProject = baseAmount;
@@ -861,8 +876,9 @@ export class DonationService {
                 }))
               });
 
-              const vendorName = budget[activeIndex]?.payTo || budget[activeIndex]?.vendor || 'Verified Vendor';
-              const totalPhaseAmount = budget[activeIndex]?.amount || (budget[activeIndex] as any).cost || 0;
+              // Extract vendor information based on new architecture
+              const vendorName = activeVendor ? activeVendor.name : (activeBudgetItem?.payTo || activeBudgetItem?.vendor || 'Verified Vendor');
+              const totalPhaseAmount = activeBudgetItem?.amount || (activeBudgetItem as any)?.cost || 0;
 
               this.emailService.sendAdminVendorPayoutAlert({
                 projectTitle: project.title,
