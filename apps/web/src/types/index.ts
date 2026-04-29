@@ -1,4 +1,4 @@
-import { BudgetItem, MediaItem, TimelineItem } from "../stores/proposal-store";
+import { BudgetItem, MediaItem, TimelineItem, VendorItem } from "../stores/proposal-store";
 
 export enum Currency {
   NGN = 'NGN',
@@ -37,6 +37,7 @@ export interface Project {
   tags?: string[];
   budgetBreakdown: BudgetItem[];
   executionTimeline: TimelineItem[];
+  vendors: VendorItem[];
   riskAnalysis?: string;
   isVerifiedOrganizer: boolean;
   organizerName: string;
@@ -178,10 +179,12 @@ export interface ProjectProposal {
 
   budgetBreakdown: {
     id?: string;
-    payTo?: string;
+    vendorId?: string;
     costType?: string;
     amount?: number;
     description?: string;
+    // Legacy fields allowed for alignment
+    payTo?: string;
     vendorSubaccount?: string;
     vendorContact?: string;
     item?: string;
@@ -194,6 +197,14 @@ export interface ProjectProposal {
     phase: string;
     estimatedDate: string;
     deliverables: string
+  }[];
+
+  vendors: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    subaccountCode?: string;
   }[];
 
   riskAnalysis: string | null;
@@ -332,4 +343,18 @@ export interface SmartCurrencyProps {
   className?: string;
   size?: 'small' | 'default' | 'large';
   hideKobo?: boolean;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
 }
