@@ -301,7 +301,7 @@ export const BudgetEditor = memo(function BudgetEditor({
           onClick={addItem}
           className="w-full border-dashed border-2 rounded-3xl h-14 text-sm font-bold gap-2 text-muted-foreground hover:text-primary transition-all active:scale-[0.98] bg-muted/5 hover:bg-primary/5 hover:border-primary/30"
         >
-          <PlusCircle className="h-5 w-5" /> Add expense entry
+          <PlusCircle className="h-4 w-4" /> Add expense entry
         </Button>
       )}
 

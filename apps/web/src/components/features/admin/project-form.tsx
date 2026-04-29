@@ -43,7 +43,7 @@ const budgetItemSchema = z.object({
   payTo: z.string().optional(),
   costType: z.string().optional(),
   stage: z.string().optional(),
-  vendorSubaccount: z.string().optional() // <-- Included nested mapping
+  vendorSubaccount: z.string().optional()
 });
 
 const timelineItemSchema = z.object({
@@ -432,6 +432,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
+          {/* Cover Asset Section */}
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -469,6 +470,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             {errors.coverImage && <p className="text-[11px] font-bold text-destructive px-2 mt-1">{errors.coverImage.message}</p>}
           </div>
 
+          {/* Elevator Pitch Video Section */}
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <Video className="h-3.5 w-3.5 text-muted-foreground" />
