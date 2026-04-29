@@ -593,6 +593,7 @@ export class DonationService {
       let isGoalMet = false;
       let isPhaseNewlyMet = false;
 
+      // Platform Fee Deductions
       if (feeAmount > 0n || tipAmount > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -638,6 +639,7 @@ export class DonationService {
         }
       }
 
+      // Guest / User Logic routing
       if (userId !== 'GUEST') {
         await this.walletRepo.processTransaction({
           userId,
@@ -719,14 +721,88 @@ export class DonationService {
         processedDonationId = guestDonation.id;
       }
 
+      // --- PROJECT FULFILLMENT & THRESHOLD DUST COVERAGE ---
       if (amountToProject > 0n) {
-        const updatedProject = await tx.project.update({
+        let updatedProject = await tx.project.update({
           where: { id: projectId },
           data: { raisedAmount: { increment: amountToProject } }
         });
 
+        let currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
+
+        // THRESHOLD COMPLETION RULE (PLATFORM DUST COVERAGE)
+        // If remaining balance is between ₦0.01 and ₦99.99, the platform absorbs it
+        if (currentRemainingForPhase > 0n && currentRemainingForPhase < 10000n) {
+          const dustMinor = currentRemainingForPhase;
+
+          const systemNode = await tx.user.findFirst({
+            where: { role: UserRole.SUPERADMIN },
+            include: { wallets: { where: { currency } } }
+          });
+
+          if (systemNode?.wallets[0]) {
+            const systemWalletId = systemNode.wallets[0].id;
+
+            // 1. Debit the System Treasury for the dust amount
+            const dustTx = await tx.walletTransaction.create({
+              data: {
+                walletId: systemWalletId,
+                amount: dustMinor,
+                currency,
+                type: TxType.DEBIT,
+                status: TxStatus.COMPLETED,
+                category: TxCategory.ADJUSTMENT,
+                reference: `DUST-${reference}`,
+                description: `Platform Dust Coverage to finalize phase: ${project.title}`,
+                metadata: { originalProjectId: project.id, reason: 'THRESHOLD_COMPLETION_RULE' }
+              }
+            });
+
+            await tx.wallet.update({
+              where: { id: systemWalletId },
+              data: { balance: { decrement: dustMinor } }
+            });
+
+            // 2. Add the dust as an official system contribution to the project
+            await tx.donation.create({
+              data: {
+                userId: systemNode.id,
+                projectId: project.id,
+                transactionId: dustTx.id,
+                amount: dustMinor,
+                baseAmount: dustMinor,
+                currency,
+                message: 'Platform Dust Coverage (Threshold Completion)',
+              }
+            });
+
+            // 3. Perfect the project's mathematical balance without rewriting the target
+            updatedProject = await tx.project.update({
+              where: { id: projectId },
+              data: { raisedAmount: { increment: dustMinor } }
+            });
+
+            await tx.auditLog.create({
+              data: {
+                userId: systemNode.id,
+                action: AuditAction.PROJECT_UPDATED,
+                entityId: projectId,
+                entityType: 'Project',
+                metadata: {
+                  action: 'PLATFORM_ROUNDING_POLICY',
+                  coveredAmount_naira: Number(dustMinor) / 100,
+                  triggeringDonationRef: reference
+                }
+              }
+            });
+
+            // Math is now perfectly aligned
+            currentRemainingForPhase = 0n;
+          }
+        }
+
         isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
-        isPhaseNewlyMet = !isGoalMet && (updatedProject.raisedAmount >= currentPhaseCap);
+        isPhaseNewlyMet = !isGoalMet && (currentRemainingForPhase <= 0n);
 
         if (isGoalMet && updatedProject.status === ProjectStatus.ACTIVE) {
           await tx.project.update({
@@ -758,7 +834,6 @@ export class DonationService {
         }
 
         if (isPhaseNewlyMet) {
-          // IMMEDIATE VENDOR CONFIRMATION ALERT (Only fire when the phase is fully funded)
           if (isNonCustodial) {
             await tx.notification.create({
               data: {
@@ -770,7 +845,6 @@ export class DonationService {
               }
             });
 
-            // Alert all Administrators for immediate vendor outreach
             const admins = await tx.user.findMany({
               where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
               select: { id: true }
@@ -787,7 +861,6 @@ export class DonationService {
                 }))
               });
 
-              // TRIGGER ASYNC EMAIL BROADCAST
               const vendorName = budget[activeIndex]?.payTo || budget[activeIndex]?.vendor || 'Verified Vendor';
               const totalPhaseAmount = budget[activeIndex]?.amount || (budget[activeIndex] as any).cost || 0;
 
@@ -801,22 +874,6 @@ export class DonationService {
                 projectId: project.id
               }).catch(() => { });
             }
-          }
-          const admins = await tx.user.findMany({
-            where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
-            select: { id: true }
-          });
-
-          if (admins.length > 0) {
-            await tx.notification.createMany({
-              data: admins.map(admin => ({
-                userId: admin.id,
-                type: 'PROJECT_STATUS' as NotificationType,
-                title: 'Phase Fully Funded',
-                content: `Phase ${project.currentPhaseIndex + 1} for "${project.title}" is fully funded. Ready for vendor disbursement.`,
-                link: `/admin/projects/${project.id}/edit`
-              }))
-            });
           }
         }
       }
