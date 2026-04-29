@@ -72,8 +72,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
     const [awarenessStatus, setAwarenessStatus] = useState((proposal as any).awarenessStatus || '');
 
-    // Subaccount Routing State
-    const [subaccountModal, setSubaccountModal] = useState<{ isOpen: boolean; itemId: string | null; vendorName: string }>({ isOpen: false, itemId: null, vendorName: '' });
+    const [subaccountModal, setSubaccountModal] = useState<{ isOpen: boolean; vendorId: string | null; vendorName: string }>({ isOpen: false, vendorId: null, vendorName: '' });
     const [banks, setBanks] = useState<{ name: string; code: string }[]>([]);
     const [isBankLoading, setIsBankLoading] = useState(false);
     const [bankCode, setBankCode] = useState('');
@@ -82,11 +81,11 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const [isCreatingSubaccount, setIsCreatingSubaccount] = useState(false);
 
     const budgetBreakdown = proposal.budgetBreakdown || [];
+    const vendors = (proposal as any).vendors || [];
     const budgetTotal = budgetBreakdown.reduce((sum, item) => sum + (item.amount || item.cost || 0), 0);
 
     const isTerminalState = proposal.status === 'APPROVED' || proposal.status === 'REJECTED';
 
-    // Load Banks for Subaccount Generation
     useEffect(() => {
         if (!isTerminalState && banks.length === 0) {
             setIsBankLoading(true);
@@ -112,10 +111,10 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 accountNumber
             });
 
-            await ApiService.admin.bindProposalSubaccount(proposal.id, subaccountModal.itemId!, res.subaccount_code);
+            await ApiService.admin.bindVendorSubaccount(proposal.id, subaccountModal.vendorId!, res.subaccount_code);
 
             toast.success(`Gateway established: ${res.subaccount_code}`, { id: toastId });
-            setSubaccountModal({ isOpen: false, itemId: null, vendorName: '' });
+            setSubaccountModal({ isOpen: false, vendorId: null, vendorName: '' });
             router.refresh();
         } catch (e: any) {
             toast.error(e.response?.data?.message || 'Vendor bank verification failed', { id: toastId });
@@ -159,7 +158,12 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     };
 
     const handleApprove = async () => {
-        const unboundItems = proposal.budgetBreakdown?.filter((b: any) => !b.vendorSubaccount);
+        const unboundItems = proposal.budgetBreakdown?.filter((b: any) => {
+            if (!b.vendorId) return true;
+            const vendor = vendors.find((v: any) => v.id === b.vendorId);
+            return !vendor || !vendor.subaccountCode;
+        });
+
         if (unboundItems && unboundItems.length > 0) {
             toast.error("Strict Non-Custodial Policy: Bind a vendor subaccount to every budget item before launching.");
             setShowApproveConfirm(false);
@@ -229,7 +233,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             transition={{ duration: 0.2, ease: "circOut" }}
             className="space-y-4 md:space-y-6 pb-20 w-full overflow-hidden"
         >
-            {/* Header & Meta */}
             <div className="flex flex-col bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
                     <div className="hidden md:flex h-14 w-14 rounded-3xl bg-primary/10 items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
@@ -259,9 +262,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-                {/* LEFT COLUMN: Main Proposal Content */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
-                    {/* Visual Media Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -318,7 +319,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
-                    {/* Detailed Narrative Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -345,10 +345,10 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
                                         "[&_h2]:font-bold [&_h2]:text-foreground[&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground[&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4[&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
+                                        "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4[&_ul]:space-y-1.5 [&_ul]:text-foreground/80[&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal[&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
@@ -366,7 +366,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
-                    {/* Beneficiary & Pre-Collected Funds Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card className={cn(
                             "rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm flex flex-col h-full",
@@ -411,7 +410,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </CardContent>
                         </Card>
 
-                        {/* Pre-Collected Funds */}
                         {proposal.hasPreCollectedFunds && (
                             <Card className="rounded-3xl border-blue-500/20 bg-blue-500/[0.02] overflow-hidden shadow-sm flex flex-col h-full">
                                 <CardHeader className="bg-blue-500/5 border-b border-blue-500/10 py-4 px-6 flex flex-row items-center justify-between shrink-0">
@@ -439,7 +437,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         )}
                     </div>
 
-                    {/* Financial Budget Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -461,50 +458,57 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 </thead>
                                 <tbody className="divide-y divide-border/40 text-xs font-medium">
                                     {budgetBreakdown.length > 0 ? (
-                                        budgetBreakdown.map((item, i) => (
-                                            <tr key={item.id || i} className="hover:bg-muted/10 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
-                                                    <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
-                                                            <span>To: <span className="font-bold">{item.payTo || item.vendor || 'Pending vendor sourcing'}</span></span>
-                                                        </div>
-                                                        {item.vendorContact && (
-                                                            <div className="flex items-center gap-1 mt-0.5 opacity-80">
-                                                                <Phone className="h-3 w-3 shrink-0" />
-                                                                <span className="font-bold">{item.vendorContact}</span>
+                                        budgetBreakdown.map((item, i) => {
+                                            const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
+                                            const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'Pending vendor sourcing');
+                                            const vendorContact = vendor ? (vendor.phone || vendor.email) : item.vendorContact;
+
+                                            return (
+                                                <tr key={item.id || i} className="hover:bg-muted/10 transition-colors">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
+                                                        <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
+                                                                <span>To: <span className="font-bold">{vendorName}</span></span>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    {item.vendorSubaccount ? (
-                                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 w-fit">
-                                                            <ShieldCheck className="h-3.5 w-3.5" /> {item.vendorSubaccount}
+                                                            {vendorContact && (
+                                                                <div className="flex items-center gap-1 mt-0.5 opacity-80">
+                                                                    <Phone className="h-3 w-3 shrink-0" />
+                                                                    <span className="font-bold">{vendorContact}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    ) : (
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                setBusinessName(item.payTo || item.vendor || '');
-                                                                setBankCode('');
-                                                                setAccountNumber('');
-                                                                setSubaccountModal({ isOpen: true, itemId: item.id as string, vendorName: item.payTo || item.vendor || '' });
-                                                            }}
-                                                            className="h-8 text-[11px] font-bold rounded-xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm"
-                                                            disabled={isTerminalState}
-                                                        >
-                                                            <Landmark className="h-3 w-3 mr-1.5" /> Bind account
-                                                        </Button>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
-                                                    {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
-                                                </td>
-                                            </tr>
-                                        ))
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        {vendor?.subaccountCode ? (
+                                                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 w-fit">
+                                                                <ShieldCheck className="h-3.5 w-3.5" /> {vendor.subaccountCode}
+                                                            </div>
+                                                        ) : (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    if (!item.vendorId) return toast.error("Assign a vendor before binding an account.");
+                                                                    setBusinessName(vendorName);
+                                                                    setBankCode('');
+                                                                    setAccountNumber('');
+                                                                    setSubaccountModal({ isOpen: true, vendorId: item.vendorId as string, vendorName });
+                                                                }}
+                                                                className="h-8 text-[11px] font-bold rounded-xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm"
+                                                                disabled={isTerminalState}
+                                                            >
+                                                                <Landmark className="h-3 w-3 mr-1.5" /> Bind account
+                                                            </Button>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
+                                                        {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     ) : (
                                         <tr><td colSpan={3} className="px-6 py-8 text-center text-muted-foreground italic text-xs">No budget items provided.</td></tr>
                                     )}
@@ -513,7 +517,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </div>
                     </Card>
 
-                    {/* ACTION TERMINAL AT BOTTOM OF LEFT COLUMN */}
                     <Card className={cn(
                         "rounded-3xl border-2 shadow-sm overflow-hidden mt-8 transition-all",
                         isTerminalState ? "bg-muted/10 border-border/40" : "border-primary/20 bg-primary/[0.02]"
@@ -614,9 +617,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
                 </div>
 
-                {/* RIGHT SIDEBAR: IDENTITY, AUDIT CHECKLISTS & RISK */}
                 <div className="lg:col-span-4 space-y-6">
-                    {/* Proposer Information Card */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5 px-5">
                             <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -636,10 +637,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
-                    {/* Integrated Dialogue Hub */}
                     <FeedbackThread proposalId={proposal.id} title="Verification updates" />
 
-                    {/* Compliance Asset Vault */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5 px-5">
                             <div className="flex justify-between items-center">
@@ -680,7 +679,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
-                    {/* Admin Cause Review Framework Checklists */}
                     {!isTerminalState && (
                         <Card className="rounded-3xl border-primary/20 bg-primary/[0.02] overflow-hidden shadow-sm">
                             <CardHeader className="bg-primary/5 border-b border-primary/10 py-4 px-5">
@@ -713,7 +711,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </Card>
                     )}
 
-                    {/* Risk Indicators */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5">
                             <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -740,7 +737,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 </div>
             </div>
 
-            {/* LAUNCH CONFIRMATION OVERLAY */}
             <ConfirmModal
                 isOpen={showApproveConfirm}
                 onClose={() => setShowApproveConfirm(false)}
@@ -752,8 +748,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 confirmText="Approve"
             />
 
-            {/* ADMIN SUBACCOUNT CREATION DIALOG */}
-            <Dialog open={subaccountModal.isOpen} onOpenChange={(isOpen) => !isOpen && !isCreatingSubaccount && setSubaccountModal({ isOpen: false, itemId: null, vendorName: '' })}>
+            <Dialog open={subaccountModal.isOpen} onOpenChange={(isOpen) => !isOpen && !isCreatingSubaccount && setSubaccountModal({ isOpen: false, vendorId: null, vendorName: '' })}>
                 <DialogContent className="rounded-3xl border-none shadow-2xl bg-card p-6 md:p-8 max-w-md">
                     <DialogHeader className="mb-4">
                         <DialogTitle className="text-lg font-bold flex items-center gap-2 text-foreground tracking-tight">

@@ -47,6 +47,7 @@ export default async function ProjectManagePage({
 
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+    const vendors = Array.isArray(project.vendors) ? project.vendors : [];
     const updates: ProjectUpdate[] = Array.isArray(project.updates) ? project.updates : [];
 
     const currentPhaseIndex = project.currentPhaseIndex || 0;
@@ -62,7 +63,6 @@ export default async function ProjectManagePage({
     const target = Number(project.targetAmount || 0);
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isFullyCompleted);
 
-    // --- PHASED FUNDING MATH (RE-INSERTED) ---
     let previousPhasesMajor = 0;
     for (let i = 0; i < currentPhaseIndex && i < budget.length; i++) {
         previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
@@ -233,6 +233,10 @@ export default async function ProjectManagePage({
                                             statusBadge = <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>;
                                         }
 
+                                        const vendorName = item.vendorId
+                                            ? vendors.find((v: any) => v.id === item.vendorId)?.name
+                                            : (item.payTo || item.vendor || 'Pending vendor sourcing');
+
                                         return (
                                             <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
                                                 <td className="px-6 py-4">
@@ -244,7 +248,7 @@ export default async function ProjectManagePage({
                                                         {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">{item.payTo || item.vendor}</td>
+                                                <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">{vendorName}</td>
                                                 <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
                                                     {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                 </td>

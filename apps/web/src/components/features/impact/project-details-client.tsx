@@ -45,6 +45,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         : `/dashboard/impact/${project.slug}/donate`;
 
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+    const vendors = Array.isArray((project as any).vendors) ? (project as any).vendors : [];
     const gallery = Array.isArray(project.gallery) ? project.gallery : [];
 
     const raised = Number(project.raisedAmount || 0);
@@ -108,10 +109,8 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
             transition={{ duration: 0.3 }}
             className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-32 md:pb-20"
         >
-            {/* LEFT COLUMN: Content */}
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
 
-                {/* Header Metadata */}
                 <div className="space-y-2.5 text-left">
                     <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="rounded-3xl font-bold text-xs px-3 py-1 border-none bg-muted">
@@ -179,7 +178,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     )}
                 </AnimatePresence>
 
-                {/* Media Section */}
                 <div className="space-y-3">
                     {(project as any).videoUrl ? (
                         <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-black shadow-sm">
@@ -237,7 +235,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     )}
                 </div>
 
-                {/* Navigation Tabs */}
                 <Tabs defaultValue="story" className="w-full">
                     <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
                         <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
@@ -283,15 +280,15 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
                                         "[&_h2]:font-bold[&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6[&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground[&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5[&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4[&_ul]:space-y-1.5[&_ul]:text-foreground/80[&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal[&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold[&_strong]:text-foreground",
                                         "[&_em]:italic",
                                         "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_blockquote]:border-l-4[&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-1[&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: project.description }}
@@ -307,7 +304,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
                                                 "[&_p]:mb-2[&_p]:last:mb-0",
                                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
-                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
+                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2[&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
                                                 "[&_em]:italic"
@@ -326,7 +323,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
                             >
-                                {/* Pre-Collected Funds Note */}
                                 {project.hasPreCollectedFunds && project.preCollectedAmount && (
                                     <div className="mb-8 p-5 rounded-3xl bg-blue-50/50 border border-blue-100 shadow-sm">
                                         <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-1">
@@ -370,6 +366,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     statusBadge = <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>;
                                                 }
 
+                                                const vendorName = item.vendorId
+                                                    ? vendors.find((v: any) => v.id === item.vendorId)?.name
+                                                    : (item.payTo || item.vendor || 'Pending vendor sourcing');
+
                                                 return (
                                                     <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
                                                         <td className="px-6 py-4">
@@ -377,12 +377,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                             <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
                                                                 {item.costType || item.type}
                                                             </Badge>
-                                                            {/* Mobile only amount display */}
                                                             <div className="sm:hidden font-mono text-foreground font-bold mt-2">
                                                                 {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">{item.payTo || item.vendor}</td>
+                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">{vendorName}</td>
                                                         <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
                                                             {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                         </td>
@@ -474,7 +473,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 </Tabs>
             </div>
 
-            {/* RIGHT COLUMN: Sidebar */}
             <div className="lg:col-span-1">
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
@@ -493,7 +491,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </Button>
                     </div>
 
-                    {/* Verified by Givar Card */}
                     <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0">
                             <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
@@ -543,7 +540,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </CardContent>
                     </Card>
 
-                    {/* Givar Protocol Disclaimer */}
                     <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 flex items-start gap-3">
                         <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
                         <p className="text-xs text-emerald-900/70 leading-relaxed font-medium">
@@ -553,7 +549,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 </div>
             </div>
 
-            {/* Mobile Sticky Action Bar */}
             <div className={cn(
                 "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
                 isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
