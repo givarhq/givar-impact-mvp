@@ -125,9 +125,11 @@ export class ProposalService {
       throw new BadRequestException('Budget breakdown is required.');
     }
 
-    const isValidBudget = budget.every(item => item.payTo?.trim() && item.vendorContact?.trim() && item.costType && item.amount > 0 && item.description?.trim());
+    // Relaxed Validation: Only amount, costType, and description are required.
+    // payTo and vendorContact are optional so Givar can assist in sourcing.
+    const isValidBudget = budget.every(item => item.costType && item.amount > 0 && item.description?.trim());
     if (!isValidBudget) {
-      throw new BadRequestException('All budget items must be fully completed with valid amounts, recipients, and vendor contact details.');
+      throw new BadRequestException('All budget items must have a valid amount, cost type, and description.');
     }
 
     const kyc = proposal.kycDocuments as string[];
