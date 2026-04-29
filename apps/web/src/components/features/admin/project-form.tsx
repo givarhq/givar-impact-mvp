@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useMemo } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -36,14 +36,21 @@ const mediaItemSchema = z.object({
   caption: z.string().optional().or(z.literal('')),
 });
 
+const vendorItemSchema = z.object({
+  id: z.string(),
+  name: z.string().min(2, "Vendor name is required"),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  subaccountCode: z.string().optional()
+});
+
 const budgetItemSchema = z.object({
   id: z.string(),
   description: z.string().optional(),
   amount: z.number().min(0).optional(),
-  payTo: z.string().optional(),
+  vendorId: z.string().optional(),
   costType: z.string().optional(),
   stage: z.string().optional(),
-  vendorSubaccount: z.string().optional()
 });
 
 const timelineItemSchema = z.object({
@@ -66,6 +73,7 @@ const projectSchema = z.object({
   coverImage: z.string().min(1, "A primary image is required"),
   videoUrl: z.string().optional().nullable(),
   gallery: z.array(mediaItemSchema),
+  vendors: z.array(vendorItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.array(timelineItemSchema),
   reasonForGoalAdjustment: z.string().optional(),
@@ -91,6 +99,34 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const readOnly = initialData ? !isEditing : false;
   const isAdjustmentMode = isLive && isEditing;
 
+  // Hydrate Vendors & Budget mapping for backward compatibility on mount
+  const { loadedVendors, mappedBudget } = useMemo(() => {
+    const v = initialData?.vendors ? [...initialData.vendors] : [];
+    const b = (initialData?.budgetBreakdown || []).map((b: any) => {
+      let resolvedVendorId = b.vendorId || '';
+      if (!resolvedVendorId && (b.payTo || b.vendor)) {
+        const legacyName = b.payTo || b.vendor;
+        const existing = v.find(v => v.name === legacyName);
+        if (existing) {
+          resolvedVendorId = existing.id;
+        } else {
+          const newId = crypto.randomUUID();
+          v.push({ id: newId, name: legacyName, email: b.vendorEmail || '', phone: b.vendorPhone || b.vendorContact || '', subaccountCode: b.vendorSubaccount || '' });
+          resolvedVendorId = newId;
+        }
+      }
+      return {
+        id: b.id || crypto.randomUUID(),
+        vendorId: resolvedVendorId,
+        costType: b.costType || b.type || 'SERVICE',
+        amount: b.amount !== undefined ? b.amount : (b.cost || 0),
+        description: b.description || b.item || '',
+        stage: b.stage || ''
+      };
+    });
+    return { loadedVendors: v, mappedBudget: b };
+  }, [initialData]);
+
   const { register, control, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: initialData ? {
@@ -98,15 +134,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       coverImage: initialData.imageUrl || '',
       videoUrl: initialData.videoUrl || '',
       gallery: initialData.gallery || [],
-      budgetBreakdown: (initialData.budgetBreakdown || []).map((b: any) => ({
-        id: b.id || crypto.randomUUID(),
-        payTo: b.payTo || b.vendor || '',
-        costType: b.costType || b.type || 'SERVICE',
-        amount: b.amount !== undefined ? b.amount : (b.cost || 0),
-        description: b.description || b.item || '',
-        stage: b.stage || '',
-        vendorSubaccount: b.vendorSubaccount || ''
-      })),
+      vendors: loadedVendors,
+      budgetBreakdown: mappedBudget,
       executionTimeline: initialData.executionTimeline || [],
       personalMessage: initialData.personalMessage || '',
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
@@ -116,6 +145,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     } : {
       currency: 'NGN',
       gallery: [],
+      vendors: [],
       budgetBreakdown: [],
       executionTimeline: [],
       personalMessage: '',
@@ -124,8 +154,9 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     }
   });
 
-  const [gallery, budget, timeline, coverImage, videoUrl, reason, description, selectedCategoryId] = watch([
+  const [gallery, vendors, budget, timeline, coverImage, videoUrl, reason, description, selectedCategoryId] = watch([
     'gallery',
+    'vendors',
     'budgetBreakdown',
     'executionTimeline',
     'coverImage',
@@ -149,7 +180,11 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     }
 
     if (status === 'ACTIVE') {
-      const unboundItems = data.budgetBreakdown.filter((item: any) => !item.vendorSubaccount);
+      const unboundItems = data.budgetBreakdown.filter((item: any) => {
+        if (!item.vendorId) return true;
+        const vendor = data.vendors?.find((v: any) => v.id === item.vendorId);
+        return !vendor || !vendor.subaccountCode;
+      });
       if (unboundItems.length > 0) {
         return toast.error("Strict Non-Custodial Policy: Bind a vendor subaccount to every budget item before launching.");
       }
@@ -212,7 +247,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-40 animate-in fade-in duration-500 w-full overflow-hidden">
-
+      {/* ... Hero and Identity sections remain unchanged ... */}
       {initialData?.proposalId && (
         <div className="flex animate-in slide-in-from-left-2">
           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/20 text-primary shadow-sm">
@@ -266,7 +301,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         )}
       </AnimatePresence>
 
-      {/* Identity Section */}
       <section className={cn(
         "grid grid-cols-1 md:grid-cols-12 gap-6 p-6 md:p-10 bg-card rounded-3xl border transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 ring-4 ring-primary/5"
@@ -287,19 +321,11 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         <div className="md:col-span-8 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Cause Headline</label>
           {readOnly ? (
-            <div
-              className="h-12 flex items-center px-5 rounded-3xl bg-muted/10 text-foreground font-bold text-sm border-transparent shadow-none truncate"
-              title={watch('title')}
-            >
+            <div className="h-12 flex items-center px-5 rounded-3xl bg-muted/10 text-foreground font-bold text-sm border-transparent shadow-none truncate" title={watch('title')}>
               {watch('title')}
             </div>
           ) : (
-            <Input
-              {...register('title')}
-              className={getInputClass()}
-              placeholder="Enter a compelling title..."
-              error={errors.title?.message}
-            />
+            <Input {...register('title')} className={getInputClass()} placeholder="Enter a compelling title..." error={errors.title?.message} />
           )}
         </div>
 
@@ -309,19 +335,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             control={control}
             name="categoryId"
             render={({ field }) => (
-              <Select onValueChange={(val) => {
-                field.onChange(val);
-                if (!readOnly) setValue('subcategoryId', '', { shouldValidate: true });
-              }} value={field.value || undefined} disabled={readOnly}>
+              <Select onValueChange={(val) => { field.onChange(val); if (!readOnly) setValue('subcategoryId', '', { shouldValidate: true }); }} value={field.value || undefined} disabled={readOnly}>
                 <SelectTrigger className={cn(getInputClass(), "bg-muted/10")}>
                   <SelectValue placeholder="Select a sector" />
                 </SelectTrigger>
                 <SelectContent className="rounded-3xl shadow-2xl border-border/40 p-2">
-                  {categories.map((c: any) => (
-                    <SelectItem key={c.id} value={c.id} className="rounded-2xl text-xs font-bold py-3">
-                      {c.name}
-                    </SelectItem>
-                  ))}
+                  {categories.map((c: any) => <SelectItem key={c.id} value={c.id} className="rounded-2xl text-xs font-bold py-3">{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
@@ -344,11 +363,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   {availableSubcategories.length === 0 ? (
                     <div className="p-4 text-xs text-muted-foreground text-center italic">Select a sector first</div>
                   ) : (
-                    availableSubcategories.map((sub: any) => (
-                      <SelectItem key={sub.id} value={sub.id} className="rounded-2xl text-xs font-bold py-3">
-                        {sub.name}
-                      </SelectItem>
-                    ))
+                    availableSubcategories.map((sub: any) => <SelectItem key={sub.id} value={sub.id} className="rounded-2xl text-xs font-bold py-3">{sub.name}</SelectItem>)
                   )}
                 </SelectContent>
               </Select>
@@ -361,12 +376,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Location</label>
           <div className="relative group">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
-            <Input
-              {...register('location')}
-              placeholder="e.g. Lagos, Nigeria"
-              className={cn(getInputClass(), "pl-11")}
-              readOnly={readOnly}
-            />
+            <Input {...register('location')} placeholder="e.g. Lagos, Nigeria" className={cn(getInputClass(), "pl-11")} readOnly={readOnly} />
           </div>
         </div>
 
@@ -392,33 +402,17 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Short Elevator Pitch</label>
-          <Textarea
-            className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")}
-            {...register('shortDesc')}
-            readOnly={readOnly}
-            placeholder="A brief summary for donor lists..."
-            maxLength={140}
-          />
+          <Textarea className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")} {...register('shortDesc')} readOnly={readOnly} placeholder="A brief summary for donor lists..." maxLength={140} />
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Personal Message</label>
-          <Textarea
-            className={cn(getAreaClass("min-h-[100px]"), "resize-none rounded-3xl")}
-            {...register('personalMessage')}
-            readOnly={readOnly}
-            placeholder="A direct, human appeal..."
-            maxLength={500}
-          />
+          <Textarea className={cn(getAreaClass("min-h-[100px]"), "resize-none rounded-3xl")} {...register('personalMessage')} readOnly={readOnly} placeholder="A direct, human appeal..." maxLength={500} />
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Project Mission Narrative</label>
-          <RichTextEditor
-            content={description || ''}
-            onChange={(val) => setValue('description', val, { shouldDirty: true })}
-            readOnly={readOnly}
-          />
+          <RichTextEditor content={description || ''} onChange={(val) => setValue('description', val, { shouldDirty: true })} readOnly={readOnly} />
           {errors.description && <p className="text-xs text-destructive mt-2 font-bold px-2">{errors.description.message}</p>}
         </div>
       </section>
@@ -439,7 +433,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
-          {/* Cover Asset Section */}
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -447,20 +440,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             {coverPreview || coverImage ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted">
-                <Image
-                  src={coverPreview || coverImage}
-                  alt="Project Hero"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 800px"
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  unoptimized
-                />
+                <Image src={coverPreview || coverImage} alt="Project Hero" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover transition-transform duration-700 group-hover:scale-105" unoptimized />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => {
-                      setValue('coverImage', '', { shouldDirty: true });
-                      setCoverPreview(null);
-                    }}>
+                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => { setValue('coverImage', '', { shouldDirty: true }); setCoverPreview(null); }}>
                       <X className="h-4 w-4 mr-2" /> Remove
                     </Button>
                   </div>
@@ -468,16 +451,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               </div>
             ) : (
               <div className="aspect-video">
-                <ImageUploader label="Upload image" onUploadComplete={(data) => {
-                  setValue('coverImage', data.key, { shouldDirty: true });
-                  setCoverPreview(data.previewUrl);
-                }} />
+                <ImageUploader label="Upload image" onUploadComplete={(data) => { setValue('coverImage', data.key, { shouldDirty: true }); setCoverPreview(data.previewUrl); }} />
               </div>
             )}
             {errors.coverImage && <p className="text-[11px] font-bold text-destructive px-2 mt-1">{errors.coverImage.message}</p>}
           </div>
 
-          {/* Elevator Pitch Video Section */}
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <Video className="h-3.5 w-3.5 text-muted-foreground" />
@@ -485,22 +464,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             </div>
             {videoPreview ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-black">
-                <video
-                  src={videoPreview}
-                  controls
-                  className="w-full h-full object-contain"
-                />
+                <video src={videoPreview} controls className="w-full h-full object-contain" />
                 {!readOnly && (
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="rounded-full h-8 w-8 shadow-lg"
-                      onClick={() => {
-                        setValue('videoUrl', null, { shouldDirty: true });
-                        setVideoPreview(null);
-                      }}
-                    >
+                    <Button variant="destructive" size="icon" className="rounded-full h-8 w-8 shadow-lg" onClick={() => { setValue('videoUrl', null, { shouldDirty: true }); setVideoPreview(null); }}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -512,11 +479,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               </div>
             ) : (
               <div className="aspect-video">
-                <VideoUploader
-                  useCase="public"
-                  onUploadComplete={handleVideoUpload}
-                  label="Upload short video"
-                />
+                <VideoUploader useCase="public" onUploadComplete={handleVideoUpload} label="Upload short video" />
               </div>
             )}
           </div>
@@ -527,7 +490,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             <label className="text-[11px] font-bold text-muted-foreground  tracking-widest">Supporting Gallery</label>
             <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
           </div>
-
           <div className={cn("transition-opacity duration-500", readOnly && "pointer-events-none opacity-90")}>
             <MediaManager
               items={gallery as any}
@@ -540,7 +502,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       </section>
 
-      {/* Financial Budget Section */}
+      {/* Financial Budget Section with New Vendor Component */}
       <Card className={cn(
         "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
@@ -551,21 +513,23 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </div>
           <div>
             <h3 className="font-bold text-base text-foreground leading-none">Use of Funds</h3>
-            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed financial breakdown</p>
+            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Detailed financial breakdown and vendor routing</p>
           </div>
         </div>
         <BudgetEditor
           budgetItems={budget as any}
           onBudgetChange={(items) => setValue('budgetBreakdown', items as any, { shouldDirty: true })}
+          vendorsList={vendors as any}
+          onVendorsChange={(items) => setValue('vendors', items as any, { shouldDirty: true })}
           readOnly={readOnly}
           isLive={isLive}
           isAdjustmentMode={isAdjustmentMode}
           categorySlug={selectedCategoryObj?.slug}
-          isAdmin={true} // Extends Admin privileges down to Editor
+          isAdmin={true}
+          proposalId={initialData?.proposalId || initialData?.id}
         />
       </Card>
 
-      {/* Strategic Timeline Section */}
       <Card className={cn(
         "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
@@ -593,12 +557,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             {(isEditing || !initialData) && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleCancel}
-                className="rounded-3xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto transition-all"
-              >
+              <Button type="button" variant="ghost" onClick={handleCancel} className="rounded-3xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto transition-all">
                 {initialData ? 'Discard changes' : 'Cancel setup'}
               </Button>
             )}
@@ -607,55 +566,20 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
             {(isEditing || !initialData) && (
               <>
-                <Button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
-                  variant="secondary"
-                  className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px] border border-border/60 bg-muted/40 shadow-none hover:bg-muted truncate"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin h-4 w-4" />
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 min-w-0">
-                      <FileText className="h-4 w-4 shrink-0" />
-                      <span className="truncate">Draft</span>
-                    </div>
-                  )}
+                <Button type="button" disabled={isSubmitting} onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))} variant="secondary" className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px] border border-border/60 bg-muted/40 shadow-none hover:bg-muted truncate">
+                  {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <div className="flex items-center justify-center gap-2 min-w-0"><FileText className="h-4 w-4 shrink-0" /><span className="truncate">Draft</span></div>}
                 </Button>
 
-                <Button
-                  type="button"
-                  disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
-                  onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
-                  className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0 truncate"
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin h-5 w-5" />
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 min-w-0">
-                      {initialData ? (
-                        <Save className="h-4 w-4 shrink-0" />
-                      ) : (
-                        <Send className="h-4 w-4 shrink-0" />
-                      )}
-                      {initialData ? 'Publish' : 'Launch'}
-                    </div>
-                  )}
+                <Button type="button" disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))} onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))} className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0 truncate">
+                  {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : <div className="flex items-center justify-center gap-2 min-w-0">{initialData ? <Save className="h-4 w-4 shrink-0" /> : <Send className="h-4 w-4 shrink-0" />}{initialData ? 'Publish' : 'Launch'}</div>}
                 </Button>
               </>
             )}
 
             {initialData && !isEditing && (
               <div className="w-full flex justify-center sm:justify-start">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleStartEditing}
-                  className="rounded-3xl h-11 px-8 font-bold gap-3 text-xs border-border/60 text-primary hover:bg-muted shadow-lg bg-background transition-all active:scale-[0.98]"
-                >
-                  <LockOpen className="h-4 w-4" />
-                  Unlock for modification
+                <Button type="button" variant="outline" onClick={handleStartEditing} className="rounded-3xl h-11 px-8 font-bold gap-3 text-xs border-border/60 text-primary hover:bg-muted shadow-lg bg-background transition-all active:scale-[0.98]">
+                  <LockOpen className="h-4 w-4" /> Unlock for modification
                 </Button>
               </div>
             )}
