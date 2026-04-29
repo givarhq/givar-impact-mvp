@@ -5,11 +5,20 @@ import {
 import { PartialType } from '@nestjs/mapped-types';
 import { Currency, ProjectStatus } from '@givar/database';
 
+export class AdminVendorItem {
+  @IsString() id!: string;
+  @IsString() name!: string;
+  @IsOptional() @IsString() email?: string;
+  @IsOptional() @IsString() phone?: string;
+  @IsOptional() @IsString() subaccountCode?: string;
+}
+
 export class AdminBudgetItem {
   @IsString() id!: string;
   @IsString() description!: string;
   @IsNumber() @Min(0) amount!: number;
-  @IsString() payTo!: string;
+  @IsOptional() @IsString() vendorId?: string;
+  @IsOptional() @IsString() payTo?: string;
   @IsString() costType!: string;
 }
 
@@ -41,12 +50,17 @@ export class CreateAdminProjectDto {
   @IsUrl() coverImage!: string;
 
   @IsOptional() @IsString() videoUrl?: string;
-  @IsOptional() @IsString() vendorSubaccount?: string; // <-- NEW: Paystack Subaccount Field
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AdminMediaItem)
   gallery!: AdminMediaItem[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AdminVendorItem)
+  vendors?: AdminVendorItem[];
 
   @IsOptional()
   @IsArray()

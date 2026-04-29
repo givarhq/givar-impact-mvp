@@ -4,13 +4,39 @@ import {
 } from 'class-validator';
 import { Currency } from '@givar/database';
 
+class VendorItemDto {
+  @IsString()
+  id!: string;
+
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  subaccountCode?: string;
+}
+
 // 1. Budget Item Structure
 class BudgetItem {
   @IsString()
   id!: string;
 
+  @IsOptional()
   @IsString()
-  payTo!: string;
+  vendorId?: string;
+
+  // Legacy fields kept optional for backward compatibility
+  @IsOptional()
+  @IsString()
+  payTo?: string;
 
   @IsOptional()
   @IsString()
@@ -107,6 +133,12 @@ export class UpdateProposalDto {
   @Type(() => TimelineItem)
   executionTimeline?: TimelineItem[];
 
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => VendorItemDto)
+  vendors?: VendorItemDto[];
+
   @IsOptional() @IsString() riskAnalysis?: string;
 
   @IsOptional() @IsArray() @IsString({ each: true }) kycDocuments?: string[];
@@ -123,7 +155,6 @@ export class UpdateProposalDto {
   @IsOptional() @IsString() vendorEmail?: string;
   @IsOptional() @IsString() vendorPhone?: string;
   @IsOptional() @IsString() vendorAddress?: string;
-  @IsOptional() @IsString() vendorSubaccount?: string;
 
   @IsOptional() @IsBoolean() hasPreCollectedFunds?: boolean;
   @IsOptional() @IsNumber() preCollectedAmount?: number;

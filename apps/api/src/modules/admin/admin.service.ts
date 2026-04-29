@@ -449,13 +449,19 @@ export class AdminService {
 
     return this.prisma.$transaction(async (tx) => {
       const budget = (proposal.budgetBreakdown as any[]) || [];
+      const vendors = (proposal.vendors as any[]) || [];
 
-      // STRICT NON-CUSTODIAL GUARD: Ensure every budget item has a bound subaccount
+      // STRICT NON-CUSTODIAL GUARD: Ensure every budget item has a bound vendor with a subaccount
       if (budget.length === 0) {
         throw new BadRequestException('Cannot launch a project without a budget breakdown.');
       }
 
-      const unboundItems = budget.filter(item => !item.vendorSubaccount);
+      const unboundItems = budget.filter(item => {
+        if (!item.vendorId) return true;
+        const vendor = vendors.find(v => v.id === item.vendorId);
+        return !vendor || !vendor.subaccountCode;
+      });
+
       if (unboundItems.length > 0) {
         throw new BadRequestException(
           `Strict Non-Custodial Policy: All budget items must be bound to a verified vendor subaccount before launch. ${unboundItems.length} unbound item(s) detected.`
@@ -505,16 +511,12 @@ export class AdminService {
           isActive: true,
           budgetBreakdown: proposal.budgetBreakdown ?? [],
           executionTimeline: sanitizedTimeline,
+          vendors: proposal.vendors ?? [],
           riskAnalysis: proposal.riskAnalysis,
 
           beneficiaryName: proposal.beneficiaryName,
           beneficiaryAge: proposal.beneficiaryAge,
           beneficiaryRelationship: proposal.beneficiaryRelationship,
-          vendorName: proposal.vendorName,
-          vendorContactPerson: proposal.vendorContactPerson,
-          vendorEmail: proposal.vendorEmail,
-          vendorPhone: proposal.vendorPhone,
-          vendorAddress: proposal.vendorAddress,
 
           hasPreCollectedFunds: proposal.hasPreCollectedFunds,
           preCollectedAmount: proposal.preCollectedAmount,
@@ -910,11 +912,17 @@ export class AdminService {
 
   async createProject(adminId: string, dto: CreateAdminProjectDto) {
     const budget = dto.budgetBreakdown || [];
+    const vendors = dto.vendors || [];
+
     if (dto.status === ProjectStatus.ACTIVE) {
       if (budget.length === 0) {
         throw new BadRequestException('Cannot launch a project without a budget breakdown.');
       }
-      const unboundItems = budget.filter((item: any) => !item.vendorSubaccount);
+      const unboundItems = budget.filter((item: any) => {
+        if (!item.vendorId) return true; // Fails if no vendorId attached
+        const vendor = vendors.find((v: any) => v.id === item.vendorId);
+        return !vendor || !vendor.subaccountCode;
+      });
       if (unboundItems.length > 0) {
         throw new BadRequestException('Strict Non-Custodial Policy: All budget items must be bound to a verified vendor subaccount before launch.');
       }
@@ -944,6 +952,7 @@ export class AdminService {
       gallery: dto.gallery as unknown as Prisma.InputJsonValue,
       budgetBreakdown: dto.budgetBreakdown as unknown as Prisma.InputJsonValue,
       executionTimeline: dto.executionTimeline as unknown as Prisma.InputJsonValue,
+      vendors: dto.vendors as unknown as Prisma.InputJsonValue,
     };
 
     return this.prisma.$transaction(async (tx) => {
@@ -1013,13 +1022,23 @@ export class AdminService {
     if (dto.targetAmount) updateData.targetAmount = newTarget;
     if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
     if (dto.gallery) updateData.gallery = dto.gallery as any;
-    if (dto.budgetBreakdown) {
-      const unboundItems = dto.budgetBreakdown.filter((item: any) => !item.vendorSubaccount);
+
+    // Check unbound
+    if (dto.budgetBreakdown || dto.vendors) {
+      const budgetToCheck = dto.budgetBreakdown || (existing.budgetBreakdown as any[]) || [];
+      const vendorsToCheck = dto.vendors || (existing.vendors as any[]) || [];
+      const unboundItems = budgetToCheck.filter((item: any) => {
+        if (!item.vendorId) return true;
+        const vendor = vendorsToCheck.find((v: any) => v.id === item.vendorId);
+        return !vendor || !vendor.subaccountCode;
+      });
       if ((dto.status === ProjectStatus.ACTIVE || isLive) && unboundItems.length > 0) {
         throw new BadRequestException('Strict Non-Custodial Policy: All budget items must remain bound to a verified vendor subaccount.');
       }
-      updateData.budgetBreakdown = dto.budgetBreakdown as any;
+      if (dto.budgetBreakdown) updateData.budgetBreakdown = dto.budgetBreakdown as any;
+      if (dto.vendors) updateData.vendors = dto.vendors as any;
     }
+
     if (dto.executionTimeline) updateData.executionTimeline = dto.executionTimeline as any;
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -2970,27 +2989,27 @@ export class AdminService {
   }
 
   /**
-   * Inject Paystack Subaccount Code directly into a Proposal's budget item
+   * Inject Paystack Subaccount Code directly into a Proposal's vendor node
    */
-  async bindProposalSubaccount(adminId: string, proposalId: string, budgetItemId: string, subaccountCode: string) {
+  async bindVendorSubaccount(adminId: string, proposalId: string, vendorId: string, subaccountCode: string) {
     const proposal = await this.prisma.projectProposal.findUnique({
       where: { id: proposalId },
     });
 
     if (!proposal) throw new NotFoundException('Proposal not found');
 
-    const budget = (proposal.budgetBreakdown as any[]) || [];
-    const itemIndex = budget.findIndex((b: any) => b.id === budgetItemId);
+    const vendors = (proposal.vendors as any[]) || [];
+    const vendorIndex = vendors.findIndex((v: any) => v.id === vendorId);
 
-    if (itemIndex === -1) {
-      throw new NotFoundException('Budget item not found within this proposal');
+    if (vendorIndex === -1) {
+      throw new NotFoundException('Vendor not found within this proposal');
     }
 
-    budget[itemIndex].vendorSubaccount = subaccountCode;
+    vendors[vendorIndex].subaccountCode = subaccountCode;
 
     const updated = await this.prisma.projectProposal.update({
       where: { id: proposalId },
-      data: { budgetBreakdown: budget },
+      data: { vendors },
     });
 
     await this.audit.log({
@@ -3000,9 +3019,9 @@ export class AdminService {
       entityType: 'ProjectProposal',
       metadata: {
         action: 'BIND_VENDOR_SUBACCOUNT_TO_DRAFT',
-        budgetItemId,
+        vendorId,
         subaccountCode,
-        vendor: budget[itemIndex].payTo || budget[itemIndex].vendor
+        vendorName: vendors[vendorIndex].name
       }
     });
 
