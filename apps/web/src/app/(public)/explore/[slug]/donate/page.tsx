@@ -20,6 +20,9 @@ export default async function PublicDonationPage({ params }: { params: Promise<{
   const project = await ApiService.projects.get('', slug);
   if (!project) notFound();
 
+  // Cleanly strip HTML tags from the description if it's used as a fallback excerpt
+  const previewText = project.shortDesc || (project.description ? project.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ') : '');
+
   return (
     <PublicLayout>
       <div className="max-w-5xl mx-auto px-4 py-6 md:py-10 space-y-4 md:space-y-6 pb-24 min-w-0 overflow-hidden animate-in fade-in duration-500">
@@ -58,7 +61,7 @@ export default async function PublicDonationPage({ params }: { params: Promise<{
                 </div>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed font-medium line-clamp-6 italic min-w-0">
-                {project.shortDesc || project.description}
+                {previewText}
               </p>
             </div>
           </div>

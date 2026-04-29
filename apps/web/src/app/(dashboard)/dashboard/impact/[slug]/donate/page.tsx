@@ -28,11 +28,12 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
   const project = await ApiService.projects.get(token || '', slug);
   if (!project) notFound();
 
-  // BUG FIX: Removed Wallet API Fetch since wallets are disabled
-
   const backLink = isAuthenticated
     ? `/dashboard/impact/${slug}`
     : `/explore/${slug}`;
+
+  // Cleanly strip HTML tags from the description if it's used as a fallback excerpt
+  const previewText = project.shortDesc || (project.description ? project.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ') : '');
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 pb-24 animate-in fade-in duration-500 min-w-0 overflow-hidden">
@@ -71,7 +72,7 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
               </div>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed font-medium line-clamp-6 italic">
-              {project.shortDesc || project.description}
+              {previewText}
             </p>
           </div>
         </div>
