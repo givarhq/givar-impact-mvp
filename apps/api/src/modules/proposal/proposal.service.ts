@@ -125,9 +125,9 @@ export class ProposalService {
       throw new BadRequestException('Budget breakdown is required.');
     }
 
-    const isValidBudget = budget.every(item => item.payTo?.trim() && item.costType && item.amount > 0 && item.description?.trim());
+    const isValidBudget = budget.every(item => item.payTo?.trim() && item.vendorContact?.trim() && item.costType && item.amount > 0 && item.description?.trim());
     if (!isValidBudget) {
-      throw new BadRequestException('All budget items must be fully completed with valid amounts and recipients.');
+      throw new BadRequestException('All budget items must be fully completed with valid amounts, recipients, and vendor contact details.');
     }
 
     const kyc = proposal.kycDocuments as string[];

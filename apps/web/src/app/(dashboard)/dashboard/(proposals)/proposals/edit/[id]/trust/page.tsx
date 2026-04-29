@@ -119,7 +119,7 @@ export default function TrustPage() {
   const isHookValid = !!(store.title && store.title.trim().length >= 10 && store.location && store.location.trim().length >= 2 && strippedDescription.length >= 20);
   const isMediaValid = !!store.coverImage;
   const isPlanValid = store.budgetBreakdown.length > 0 && store.budgetBreakdown.every(
-    item => item.payTo?.trim() && item.costType && item.amount > 0 && item.description?.trim()
+    item => item.payTo?.trim() && item.vendorContact?.trim() && item.costType && item.amount > 0 && item.description?.trim()
   );
   const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
 
@@ -325,7 +325,7 @@ export default function TrustPage() {
                 <ul className="text-xs text-amber-700 font-medium list-disc pl-5 space-y-1">
                   {!isHookValid && <li>The narrative section is incomplete (requires title, location, and a 20+ character description).</li>}
                   {!isMediaValid && <li>A primary hero image is required in the media section.</li>}
-                  {!isPlanValid && <li>All budget and execution fields must be fully completed.</li>}
+                  {!isPlanValid && <li>All budget and execution fields must be fully completed (including vendor contact details).</li>}
                   {!isKycValid && <li>At least one piece of cause evidence or procurement quote must be uploaded.</li>}
                 </ul>
               </div>
@@ -337,7 +337,7 @@ export default function TrustPage() {
                 <span>Back</span>
               </Button>
               <Button
-                className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+                className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 bg-primary text-white hover:bg-primary/90 min-w-0"
                 onClick={handleSubmitForReview}
                 disabled={!canSubmit}
               >

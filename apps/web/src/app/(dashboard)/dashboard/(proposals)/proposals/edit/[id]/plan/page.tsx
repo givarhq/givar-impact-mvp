@@ -46,9 +46,9 @@ export default function PlanPage() {
     );
   }
 
-  // Validation Logic: At least one budget item required, and all items must be fully filled
+  // Validation Logic: At least one budget item required, and all items must be fully filled including vendor contact
   const isPlanValid = budgetBreakdown.length > 0 && budgetBreakdown.every(
-    item => item.payTo?.trim() && item.costType && item.amount > 0 && item.description?.trim()
+    item => item.payTo?.trim() && item.vendorContact?.trim() && item.costType && item.amount > 0 && item.description?.trim()
   );
 
   const categorySlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '';
