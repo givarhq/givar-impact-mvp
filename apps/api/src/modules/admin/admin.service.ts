@@ -17,6 +17,7 @@ import { json2csv } from 'json-2-csv';
 import { JwtService } from '@nestjs/jwt';
 import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 import { NotificationService } from '../notifications/notification.service';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AdminService {
@@ -2951,27 +2952,58 @@ export class AdminService {
   }
 
   /**
-   * Inject Paystack Subaccount Code directly into a Proposal's vendor node
+   * Inject Paystack Subaccount Code & Vendor details directly into a Proposal
+   * Creates a vendor on the fly if one does not exist for the budget item.
    */
-  async bindVendorSubaccount(adminId: string, proposalId: string, vendorId: string, subaccountCode: string) {
+  async bindProposalVendor(
+    adminId: string,
+    proposalId: string,
+    budgetItemId: string,
+    dto: { vendorId?: string; vendorName?: string; vendorEmail?: string; vendorPhone?: string; subaccountCode: string }
+  ) {
     const proposal = await this.prisma.projectProposal.findUnique({
       where: { id: proposalId },
     });
 
     if (!proposal) throw new NotFoundException('Proposal not found');
 
+    const budget = (proposal.budgetBreakdown as any[]) || [];
     const vendors = (proposal.vendors as any[]) || [];
-    const vendorIndex = vendors.findIndex((v: any) => v.id === vendorId);
 
-    if (vendorIndex === -1) {
-      throw new NotFoundException('Vendor not found within this proposal');
+    const itemIndex = budget.findIndex(b => b.id === budgetItemId);
+    if (itemIndex === -1) {
+      throw new NotFoundException('Budget item not found within this proposal');
     }
 
-    vendors[vendorIndex].subaccountCode = subaccountCode;
+    let targetVendorId = dto.vendorId;
+
+    // 1. Create or Update Vendor Record
+    if (!targetVendorId) {
+      if (!dto.vendorName) throw new BadRequestException('Vendor name is required to register a new vendor');
+      targetVendorId = randomUUID();
+      vendors.push({
+        id: targetVendorId,
+        name: dto.vendorName,
+        email: dto.vendorEmail || '',
+        phone: dto.vendorPhone || '',
+        subaccountCode: dto.subaccountCode
+      });
+    } else {
+      const vIndex = vendors.findIndex(v => v.id === targetVendorId);
+      if (vIndex === -1) throw new NotFoundException('Target vendor not found in registry');
+
+      vendors[vIndex].subaccountCode = dto.subaccountCode;
+      if (dto.vendorName) vendors[vIndex].name = dto.vendorName;
+      if (dto.vendorEmail !== undefined) vendors[vIndex].email = dto.vendorEmail;
+      if (dto.vendorPhone !== undefined) vendors[vIndex].phone = dto.vendorPhone;
+    }
+
+    // 2. Bind Vendor to Budget Item
+    budget[itemIndex].vendorId = targetVendorId;
 
     const updated = await this.prisma.projectProposal.update({
       where: { id: proposalId },
-      data: { vendors },
+      data: { budgetBreakdown: budget, vendors },
     });
 
     await this.audit.log({
@@ -2980,10 +3012,10 @@ export class AdminService {
       entityId: proposalId,
       entityType: 'ProjectProposal',
       metadata: {
-        action: 'BIND_VENDOR_SUBACCOUNT_TO_DRAFT',
-        vendorId,
-        subaccountCode,
-        vendorName: vendors[vendorIndex].name
+        action: 'BIND_VENDOR_AND_SUBACCOUNT',
+        budgetItemId,
+        vendorId: targetVendorId,
+        subaccountCode: dto.subaccountCode
       }
     });
 

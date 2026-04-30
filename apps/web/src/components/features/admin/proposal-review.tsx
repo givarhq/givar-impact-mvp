@@ -8,7 +8,8 @@ import {
     Check, X, FileText, Calendar, DollarSign, User,
     AlertTriangle, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
-    AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2, Phone
+    AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2, Phone,
+    ChevronDown, ChevronRight, Mail
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -22,7 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { ConfirmModal } from '../../ui/confirm-modal';
 
@@ -71,13 +72,22 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
     const [awarenessStatus, setAwarenessStatus] = useState((proposal as any).awarenessStatus || '');
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    const [subaccountModal, setSubaccountModal] = useState<{ isOpen: boolean; vendorId: string | null; vendorName: string }>({ isOpen: false, vendorId: null, vendorName: '' });
+    // Subaccount Routing State (Unified)
+    const [subaccountModal, setSubaccountModal] = useState<{
+        isOpen: boolean;
+        budgetItemId: string | null;
+        vendorId: string | null;
+        vendorName: string;
+        vendorEmail: string;
+        vendorPhone: string;
+    }>({ isOpen: false, budgetItemId: null, vendorId: null, vendorName: '', vendorEmail: '', vendorPhone: '' });
+
     const [banks, setBanks] = useState<{ name: string; code: string }[]>([]);
     const [isBankLoading, setIsBankLoading] = useState(false);
     const [bankCode, setBankCode] = useState('');
     const [accountNumber, setAccountNumber] = useState('');
-    const [businessName, setBusinessName] = useState('');
     const [isCreatingSubaccount, setIsCreatingSubaccount] = useState(false);
 
     const budgetBreakdown = proposal.budgetBreakdown || [];
@@ -85,6 +95,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const budgetTotal = budgetBreakdown.reduce((sum, item) => sum + (item.amount || item.cost || 0), 0);
 
     const isTerminalState = proposal.status === 'APPROVED' || proposal.status === 'REJECTED';
+
+    const toggleExpand = (id: string) => setExpandedId(expandedId === id ? null : id);
 
     useEffect(() => {
         if (!isTerminalState && banks.length === 0) {
@@ -97,8 +109,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     }, [isTerminalState, banks.length]);
 
     const handleCreateSubaccount = async () => {
-        if (!bankCode || !accountNumber || !businessName) {
-            return toast.error('All fields are required');
+        if (!bankCode || !accountNumber || !subaccountModal.vendorName) {
+            return toast.error('Bank details and Business Name are required');
         }
 
         setIsCreatingSubaccount(true);
@@ -106,15 +118,21 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
         try {
             const res = await ApiService.admin.createPaystackSubaccount({
-                businessName,
+                businessName: subaccountModal.vendorName,
                 bankCode,
                 accountNumber
             });
 
-            await ApiService.admin.bindVendorSubaccount(proposal.id, subaccountModal.vendorId!, res.subaccount_code);
+            await ApiService.admin.bindProposalVendor(proposal.id, subaccountModal.budgetItemId!, {
+                vendorId: subaccountModal.vendorId || undefined,
+                vendorName: subaccountModal.vendorName,
+                vendorEmail: subaccountModal.vendorEmail,
+                vendorPhone: subaccountModal.vendorPhone,
+                subaccountCode: res.subaccount_code
+            });
 
             toast.success(`Gateway established: ${res.subaccount_code}`, { id: toastId });
-            setSubaccountModal({ isOpen: false, vendorId: null, vendorName: '' });
+            setSubaccountModal({ isOpen: false, budgetItemId: null, vendorId: null, vendorName: '', vendorEmail: '', vendorPhone: '' });
             router.refresh();
         } catch (e: any) {
             toast.error(e.response?.data?.message || 'Vendor bank verification failed', { id: toastId });
@@ -233,6 +251,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             transition={{ duration: 0.2, ease: "circOut" }}
             className="space-y-4 md:space-y-6 pb-20 w-full overflow-hidden"
         >
+            {/* Header & Meta */}
             <div className="flex flex-col bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
                 <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
                     <div className="hidden md:flex h-14 w-14 rounded-3xl bg-primary/10 items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
@@ -262,7 +281,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+                {/* LEFT COLUMN: Main Proposal Content */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
+                    {/* Visual Media Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -319,6 +340,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
+                    {/* Detailed Narrative Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
                             <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -345,15 +367,15 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
                                         "[&_h2]:font-bold [&_h2]:text-foreground[&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground[&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4[&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4[&_ul]:space-y-1.5 [&_ul]:text-foreground/80[&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal[&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
+                                        "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
                                         "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4[&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-2[&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_blockquote]:border-l-4[&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-2[&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: proposal.description }}
@@ -366,6 +388,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
+                    {/* Beneficiary & Pre-Collected Funds Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Card className={cn(
                             "rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm flex flex-col h-full",
@@ -410,6 +433,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </CardContent>
                         </Card>
 
+                        {/* Pre-Collected Funds */}
                         {proposal.hasPreCollectedFunds && (
                             <Card className="rounded-3xl border-blue-500/20 bg-blue-500/[0.02] overflow-hidden shadow-sm flex flex-col h-full">
                                 <CardHeader className="bg-blue-500/5 border-b border-blue-500/10 py-4 px-6 flex flex-row items-center justify-between shrink-0">
@@ -437,6 +461,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         )}
                     </div>
 
+                    {/* Financial Budget Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -461,52 +486,107 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                         budgetBreakdown.map((item, i) => {
                                             const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
                                             const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'Pending vendor sourcing');
-                                            const vendorContact = vendor ? (vendor.phone || vendor.email) : item.vendorContact;
+
+                                            let vendorContactEmail = vendor?.email || '';
+                                            let vendorContactPhone = vendor?.phone || '';
+                                            if (!vendor && item.vendorContact) {
+                                                if (item.vendorContact.includes('@')) vendorContactEmail = item.vendorContact;
+                                                else vendorContactPhone = item.vendorContact;
+                                            }
+
+                                            const isExpanded = expandedId === (item.id || String(i));
 
                                             return (
-                                                <tr key={item.id || i} className="hover:bg-muted/10 transition-colors">
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
-                                                        <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
-                                                                <span>To: <span className="font-bold">{vendorName}</span></span>
-                                                            </div>
-                                                            {vendorContact && (
-                                                                <div className="flex items-center gap-1 mt-0.5 opacity-80">
-                                                                    <Phone className="h-3 w-3 shrink-0" />
-                                                                    <span className="font-bold">{vendorContact}</span>
+                                                <React.Fragment key={item.id || i}>
+                                                    <tr onClick={() => toggleExpand(item.id || String(i))} className="hover:bg-muted/10 transition-colors cursor-pointer group">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-start gap-3">
+                                                                <div className="text-muted-foreground/50 group-hover:text-primary transition-colors mt-0.5">
+                                                                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {vendor?.subaccountCode ? (
-                                                            <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 w-fit">
-                                                                <ShieldCheck className="h-3.5 w-3.5" /> {vendor.subaccountCode}
+                                                                <div>
+                                                                    <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
+                                                                    <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
+                                                                            <span>To: <span className="font-bold text-foreground">{vendorName}</span></span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        ) : (
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    if (!item.vendorId) return toast.error("Assign a vendor before binding an account.");
-                                                                    setBusinessName(vendorName);
-                                                                    setBankCode('');
-                                                                    setAccountNumber('');
-                                                                    setSubaccountModal({ isOpen: true, vendorId: item.vendorId as string, vendorName });
-                                                                }}
-                                                                className="h-8 text-[11px] font-bold rounded-xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm"
-                                                                disabled={isTerminalState}
+                                                        </td>
+                                                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                                            {vendor?.subaccountCode ? (
+                                                                <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 w-fit">
+                                                                    <ShieldCheck className="h-3.5 w-3.5" /> {vendor.subaccountCode}
+                                                                </div>
+                                                            ) : (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setBankCode('');
+                                                                        setAccountNumber('');
+                                                                        setSubaccountModal({
+                                                                            isOpen: true,
+                                                                            budgetItemId: item.id || String(i),
+                                                                            vendorId: item.vendorId || null,
+                                                                            vendorName: vendorName === 'Pending vendor sourcing' ? '' : vendorName,
+                                                                            vendorEmail: vendorContactEmail,
+                                                                            vendorPhone: vendorContactPhone
+                                                                        });
+                                                                    }}
+                                                                    className="h-8 text-[11px] font-bold rounded-xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm"
+                                                                    disabled={isTerminalState}
+                                                                >
+                                                                    <Landmark className="h-3 w-3 mr-1.5" /> Bind account
+                                                                </Button>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
+                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
+                                                        </td>
+                                                    </tr>
+                                                    <AnimatePresence>
+                                                        {isExpanded && (
+                                                            <motion.tr
+                                                                initial={{ opacity: 0 }}
+                                                                animate={{ opacity: 1 }}
+                                                                exit={{ opacity: 0 }}
+                                                                className="bg-muted/[0.02]"
                                                             >
-                                                                <Landmark className="h-3 w-3 mr-1.5" /> Bind account
-                                                            </Button>
+                                                                <td colSpan={3} className="p-0 border-none">
+                                                                    <motion.div
+                                                                        initial={{ height: 0, opacity: 0 }}
+                                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                                        exit={{ height: 0, opacity: 0 }}
+                                                                        className="overflow-hidden"
+                                                                    >
+                                                                        <div className="px-14 py-4 border-t border-border/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Mail className="h-3 w-3" /> Vendor Email</p>
+                                                                                {vendorContactEmail ? (
+                                                                                    <a href={`mailto:${vendorContactEmail}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactEmail}</a>
+                                                                                ) : (
+                                                                                    <p className="text-xs text-muted-foreground/60 italic font-medium">Not provided</p>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="space-y-1">
+                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Phone className="h-3 w-3" /> Vendor Phone</p>
+                                                                                {vendorContactPhone ? (
+                                                                                    <a href={`tel:${vendorContactPhone}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactPhone}</a>
+                                                                                ) : (
+                                                                                    <p className="text-xs text-muted-foreground/60 italic font-medium">Not provided</p>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                </td>
+                                                            </motion.tr>
                                                         )}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
-                                                        {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
-                                                    </td>
-                                                </tr>
+                                                    </AnimatePresence>
+                                                </React.Fragment>
                                             );
                                         })
                                     ) : (
@@ -517,6 +597,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </div>
                     </Card>
 
+                    {/* ACTION TERMINAL AT BOTTOM OF LEFT COLUMN */}
                     <Card className={cn(
                         "rounded-3xl border-2 shadow-sm overflow-hidden mt-8 transition-all",
                         isTerminalState ? "bg-muted/10 border-border/40" : "border-primary/20 bg-primary/[0.02]"
@@ -617,7 +698,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
                 </div>
 
+                {/* RIGHT SIDEBAR: IDENTITY, AUDIT CHECKLISTS & RISK */}
                 <div className="lg:col-span-4 space-y-6">
+                    {/* Proposer Information Card */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5 px-5">
                             <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -637,8 +720,10 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
+                    {/* Integrated Dialogue Hub */}
                     <FeedbackThread proposalId={proposal.id} title="Verification updates" />
 
+                    {/* Compliance Asset Vault */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5 px-5">
                             <div className="flex justify-between items-center">
@@ -679,6 +764,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </CardContent>
                     </Card>
 
+                    {/* Admin Cause Review Framework Checklists */}
                     {!isTerminalState && (
                         <Card className="rounded-3xl border-primary/20 bg-primary/[0.02] overflow-hidden shadow-sm">
                             <CardHeader className="bg-primary/5 border-b border-primary/10 py-4 px-5">
@@ -711,6 +797,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </Card>
                     )}
 
+                    {/* Risk Indicators */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5">
                             <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -737,6 +824,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 </div>
             </div>
 
+            {/* LAUNCH CONFIRMATION OVERLAY */}
             <ConfirmModal
                 isOpen={showApproveConfirm}
                 onClose={() => setShowApproveConfirm(false)}
@@ -748,7 +836,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 confirmText="Approve"
             />
 
-            <Dialog open={subaccountModal.isOpen} onOpenChange={(isOpen) => !isOpen && !isCreatingSubaccount && setSubaccountModal({ isOpen: false, vendorId: null, vendorName: '' })}>
+            {/* ADMIN SUBACCOUNT CREATION DIALOG */}
+            <Dialog open={subaccountModal.isOpen} onOpenChange={(isOpen) => !isOpen && !isCreatingSubaccount && setSubaccountModal({ isOpen: false, budgetItemId: null, vendorId: null, vendorName: '', vendorEmail: '', vendorPhone: '' })}>
                 <DialogContent className="rounded-3xl border-none shadow-2xl bg-card p-6 md:p-8 max-w-md">
                     <DialogHeader className="mb-4">
                         <DialogTitle className="text-lg font-bold flex items-center gap-2 text-foreground tracking-tight">
@@ -789,17 +878,43 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             <label className="text-[11px] font-bold text-muted-foreground ml-1">Registered business name</label>
                             <Input
                                 placeholder="Official name matching bank records"
-                                value={businessName}
-                                onChange={(e) => setBusinessName(e.target.value)}
+                                value={subaccountModal.vendorName}
+                                onChange={(e) => setSubaccountModal(p => ({ ...p, vendorName: e.target.value }))}
                                 disabled={isCreatingSubaccount}
                                 className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background font-bold text-sm"
                             />
                         </div>
 
+                        {/* Optional Vendor Details Form if it's an unassigned vendor */}
+                        {!subaccountModal.vendorId && (
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-muted-foreground ml-1">Vendor Email (Optional)</label>
+                                    <Input
+                                        value={subaccountModal.vendorEmail}
+                                        onChange={(e) => setSubaccountModal(p => ({ ...p, vendorEmail: e.target.value }))}
+                                        placeholder="vendor@example.com"
+                                        className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm"
+                                        disabled={isCreatingSubaccount}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-muted-foreground ml-1">Vendor Phone (Optional)</label>
+                                    <Input
+                                        value={subaccountModal.vendorPhone}
+                                        onChange={(e) => setSubaccountModal(p => ({ ...p, vendorPhone: e.target.value }))}
+                                        placeholder="+234..."
+                                        className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm"
+                                        disabled={isCreatingSubaccount}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="pt-3">
                             <Button
                                 onClick={handleCreateSubaccount}
-                                disabled={isCreatingSubaccount || !bankCode || accountNumber.length !== 10 || !businessName}
+                                disabled={isCreatingSubaccount || !bankCode || accountNumber.length !== 10 || !subaccountModal.vendorName}
                                 className="w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0 bg-primary text-white hover:bg-primary/90 active:scale-[0.98] transition-all"
                             >
                                 {isCreatingSubaccount ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & generate route"}
