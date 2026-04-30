@@ -21,6 +21,9 @@ export default function ProposalStatusLoading() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start min-w-0">
                 {/* Main Content Skeleton */}
                 <div className="lg:col-span-8 space-y-6 min-w-0">
+                    <Skeleton className="h-[250px] w-full rounded-3xl" />
+                    <Skeleton className="h-[300px] w-full rounded-3xl" />
+
                     {/* Communication Panel Skeleton */}
                     <div className="rounded-3xl border border-border/40 h-[500px] bg-card shadow-sm flex flex-col">
                         <div className="p-5 border-b border-border/40">

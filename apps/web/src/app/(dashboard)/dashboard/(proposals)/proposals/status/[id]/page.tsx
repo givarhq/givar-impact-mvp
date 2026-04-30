@@ -6,7 +6,12 @@ import { Button } from '../../../../../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../../../../components/ui/card';
 import { Badge } from '../../../../../../../components/ui/badge';
 import { FeedbackThread } from '../../../../../../../components/features/communication/feedback-thread';
-import { ArrowLeft, Clock, CheckCircle2, AlertCircle, FileSearch, ShieldCheck, Check, Fingerprint, FileText, ArrowRight } from 'lucide-react';
+import { formatCurrency } from '../../../../../../../lib/utils/format';
+import {
+    ArrowLeft, Clock, CheckCircle2, AlertCircle,
+    FileSearch, ShieldCheck, Check, Fingerprint,
+    FileText, ArrowRight, Briefcase, Calendar
+} from 'lucide-react';
 import { cn } from '../../../../../../../lib/utils/cn';
 
 export const metadata = {
@@ -27,6 +32,14 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
         if (!proposal) {
             notFound();
         }
+
+        // Structural Extraction for Context View
+        const budget = Array.isArray(proposal.budgetBreakdown) ? proposal.budgetBreakdown : [];
+        const vendors = Array.isArray((proposal as any).vendors) ? (proposal as any).vendors : [];
+        const timeline = Array.isArray(proposal.executionTimeline) ? proposal.executionTimeline : [];
+
+        // FIX: Explicitly type the reducer parameters to resolve TypeScript error
+        const budgetTotal = budget.reduce((sum: number, item: any) => sum + (item.amount || item.cost || 0), 0);
 
         // Logic: Construct the current stage logic
         const currentStatus = proposal.status;
@@ -205,6 +218,105 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                             </Card>
                         )}
 
+                        {/* Budget Breakdown Summary */}
+                        {budget.length > 0 && (
+                            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mb-6 animate-in slide-in-from-bottom-2 duration-500">
+                                <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 flex flex-row items-center justify-between">
+                                    <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
+                                        <Briefcase className="h-4 w-4 text-emerald-500" /> Use of Funds & Vendors
+                                    </CardTitle>
+                                    <div className="flex items-center gap-2 bg-background border border-border/60 px-3 py-1 rounded-3xl shadow-sm">
+                                        <span className="text-[11px] font-bold text-muted-foreground">Total:</span>
+                                        <span className="text-foreground text-xs font-bold tabular-nums">
+                                            {formatCurrency((budgetTotal * 100).toString(), proposal.currency || 'NGN')}
+                                        </span>
+                                    </div>
+                                </CardHeader>
+                                <div className="p-0 overflow-x-auto no-scrollbar">
+                                    <table className="w-full text-left border-collapse min-w-[550px]">
+                                        <thead className="bg-muted/10 text-[11px] font-bold text-muted-foreground border-b border-border/40 tracking-tight">
+                                            <tr>
+                                                <th className="px-6 py-4">Expense Item</th>
+                                                <th className="px-6 py-4">Assigned Vendor</th>
+                                                <th className="px-6 py-4 text-right">Allocation</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border/40 text-xs font-medium">
+                                            {budget.map((item: any, i: number) => {
+                                                const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
+                                                const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || '');
+                                                const isPendingVendor = !vendorName || vendorName.toLowerCase() === 'pending vendor sourcing';
+
+                                                return (
+                                                    <tr key={item.id || i} className="hover:bg-muted/10 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
+                                                            <Badge variant="secondary" className="mt-1.5 px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">
+                                                                {item.costType || item.type}
+                                                            </Badge>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {isPendingVendor ? (
+                                                                <span className="text-amber-600 font-bold text-[11px] bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 shadow-sm whitespace-nowrap">
+                                                                    Pending vendor sourcing
+                                                                </span>
+                                                            ) : (
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <span className="font-bold text-foreground">{vendorName}</span>
+                                                                    {(vendor?.email || vendor?.phone || item.vendorContact) && (
+                                                                        <span className="text-[10px] text-muted-foreground">
+                                                                            {vendor?.email || vendor?.phone || item.vendorContact}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
+                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), proposal.currency || 'NGN')}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="p-4 bg-muted/20 border-t border-border/40 text-xs text-muted-foreground font-medium text-center italic">
+                                    If a phase is pending a vendor, use the message thread below to provide the details to Givar.
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Execution Roadmap Summary */}
+                        {timeline.length > 0 && (
+                            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mb-6 animate-in slide-in-from-bottom-3 duration-500">
+                                <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
+                                    <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
+                                        <Clock className="h-4 w-4 text-blue-500" /> Execution Roadmap
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                    <div className="divide-y divide-border/40">
+                                        {timeline.map((phase: any, index: number) => (
+                                            <div key={phase.id || index} className="p-5 flex items-start gap-4 hover:bg-muted/10 transition-colors">
+                                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                                                    {index + 1}
+                                                </div>
+                                                <div className="space-y-1 min-w-0 flex-1">
+                                                    <h4 className="font-bold text-sm text-foreground">{phase.phase}</h4>
+                                                    <p className="text-xs text-muted-foreground font-medium leading-relaxed">{phase.deliverables}</p>
+                                                    {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
+                                                        <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
+                                                            <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Communication Panel */}
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                             <FeedbackThread
@@ -270,7 +382,6 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
     }
 }
 
-// Fallback for missing icon
 function XCircle(props: any) {
     return (
         <svg
