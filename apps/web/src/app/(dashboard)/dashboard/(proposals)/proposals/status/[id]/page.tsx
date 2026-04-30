@@ -37,8 +37,6 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
         const budget = Array.isArray(proposal.budgetBreakdown) ? proposal.budgetBreakdown : [];
         const vendors = Array.isArray((proposal as any).vendors) ? (proposal as any).vendors : [];
         const timeline = Array.isArray(proposal.executionTimeline) ? proposal.executionTimeline : [];
-
-        // FIX: Explicitly type the reducer parameters to resolve TypeScript error
         const budgetTotal = budget.reduce((sum: number, item: any) => sum + (item.amount || item.cost || 0), 0);
 
         // Logic: Construct the current stage logic
@@ -281,7 +279,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                     </table>
                                 </div>
                                 <div className="p-4 bg-muted/20 border-t border-border/40 text-xs text-muted-foreground font-medium text-center italic">
-                                    If a phase is pending a vendor, use the message thread below to provide the details to Givar.
+                                    If a phase is pending a vendor, use the message thread to provide the details to Givar.
                                 </div>
                             </Card>
                         )}
@@ -316,26 +314,18 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                 </CardContent>
                             </Card>
                         )}
-
-                        {/* Communication Panel */}
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <FeedbackThread
-                                proposalId={proposal.id}
-                                title="Verification Updates"
-                            />
-                        </div>
                     </div>
 
                     <div className="lg:col-span-4 space-y-6 min-w-0">
                         <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
-                            <CardHeader className="bg-muted/30 border-b border-border/40 py-5 px-6">
+                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 md:py-5 md:px-6 min-w-0">
                                 <CardTitle className="text-xs font-bold text-muted-foreground  flex items-center gap-2">
                                     <Clock className="h-4 w-4 text-primary" /> Application Timeline
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="p-6 md:p-8">
-                                <div className="space-y-8 relative min-w-0">
-                                    <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border/60" />
+                            <CardContent className="p-5 md:p-6 pt-5 md:pt-6">
+                                <div className="space-y-6 relative min-w-0">
+                                    <div className="absolute left-[15px] top-1 bottom-1 w-px bg-border/60" />
 
                                     {stages.map((stage, i) => {
                                         const isDone = stage.isCompleted;
@@ -373,6 +363,14 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Communication Panel moved here to create the 2x2 grid */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0">
+                            <FeedbackThread
+                                proposalId={proposal.id}
+                                title="Verification Updates"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -382,6 +380,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
     }
 }
 
+// Fallback for missing icon
 function XCircle(props: any) {
     return (
         <svg

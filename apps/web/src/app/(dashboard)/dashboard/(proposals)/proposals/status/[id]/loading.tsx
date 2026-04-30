@@ -23,6 +23,26 @@ export default function ProposalStatusLoading() {
                 <div className="lg:col-span-8 space-y-6 min-w-0">
                     <Skeleton className="h-[250px] w-full rounded-3xl" />
                     <Skeleton className="h-[300px] w-full rounded-3xl" />
+                </div>
+
+                {/* Sidebar Timeline Skeleton */}
+                <div className="lg:col-span-4 space-y-6 min-w-0">
+                    <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
+                        <div className="p-5 border-b border-border/40">
+                            <Skeleton className="h-4 w-32" />
+                        </div>
+                        <div className="p-5 md:p-6 pt-5 md:pt-6 space-y-6">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="flex gap-5">
+                                    <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+                                    <div className="space-y-2 flex-1">
+                                        <Skeleton className="h-4 w-24" />
+                                        <Skeleton className="h-3 w-full" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
                     {/* Communication Panel Skeleton */}
                     <div className="rounded-3xl border border-border/40 h-[500px] bg-card shadow-sm flex flex-col">
@@ -36,26 +56,6 @@ export default function ProposalStatusLoading() {
                         </div>
                         <div className="p-4 border-t border-border/40">
                             <Skeleton className="h-12 w-full rounded-3xl" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Sidebar Timeline Skeleton */}
-                <div className="lg:col-span-4 space-y-6 min-w-0">
-                    <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
-                        <div className="p-5 border-b border-border/40">
-                            <Skeleton className="h-4 w-32" />
-                        </div>
-                        <div className="p-6 md:p-8 space-y-8">
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="flex gap-5">
-                                    <Skeleton className="h-8 w-8 rounded-full shrink-0" />
-                                    <div className="space-y-2 flex-1">
-                                        <Skeleton className="h-4 w-24" />
-                                        <Skeleton className="h-3 w-full" />
-                                    </div>
-                                </div>
-                            ))}
                         </div>
                     </div>
                 </div>
