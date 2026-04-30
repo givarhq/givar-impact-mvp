@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { ArrowRight, Heart, MapPin, ShieldCheck, Clock } from 'lucide-react';
 import { Project } from '../../../types';
+import { SmartCurrency } from '../../ui/smart-currency';
 import { cn } from '../../../lib/utils/cn';
 
 const SYMBOLS: Record<string, string> = {
@@ -48,14 +49,14 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     for (let i = 0; i < activeIndex && i < budget.length; i++) {
         previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
     }
-    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
 
     let cumulativeMajor = previousPhasesMajor;
     if (budget[activeIndex]) {
         cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
     }
     const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-        ? BigInt(cumulativeMajor * 100)
+        ? BigInt(Math.round(cumulativeMajor * 100))
         : target;
 
     const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
@@ -84,6 +85,10 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     const handleCardClick = () => {
         router.push(`/dashboard/impact/${current.slug}`);
     };
+
+    const displayCategory = current.subcategoryName
+        ? `${current.categoryName || current.category?.name} • ${current.subcategoryName}`
+        : (current.categoryName || current.category?.name || 'Active cause');
 
     return (
         <div className="relative w-full rounded-3xl overflow-hidden bg-card border border-border/40 shadow-sm transition-all duration-300">

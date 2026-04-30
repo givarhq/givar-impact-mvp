@@ -36,14 +36,14 @@ export const ProjectCard = memo(function ProjectCard({
   for (let i = 0; i < activeIndex && i < budget.length; i++) {
     previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
   }
-  const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+  const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
 
   let cumulativeMajor = previousPhasesMajor;
   if (budget[activeIndex]) {
     cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
   }
   const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-    ? BigInt(cumulativeMajor * 100)
+    ? BigInt(Math.round(cumulativeMajor * 100))
     : totalTarget;
 
   const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;

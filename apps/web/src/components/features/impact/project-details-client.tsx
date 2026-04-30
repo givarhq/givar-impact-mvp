@@ -45,7 +45,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         : `/dashboard/impact/${project.slug}/donate`;
 
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
-    const vendors = Array.isArray((project as any).vendors) ? (project as any).vendors : [];
     const gallery = Array.isArray(project.gallery) ? project.gallery : [];
 
     const raised = Number(project.raisedAmount || 0);
@@ -60,21 +59,23 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     for (let i = 0; i < activeIndex && i < budget.length; i++) {
         previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
     }
-    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
 
     let cumulativeMajor = previousPhasesMajor;
     if (budget[activeIndex]) {
         cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
     }
     const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-        ? BigInt(cumulativeMajor * 100)
+        ? BigInt(Math.round(cumulativeMajor * 100))
         : BigInt(project.targetAmount || '0');
 
     const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
     let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
     if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
 
-    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+    // DUST ROUNDING UI SUPPORT: If remaining gap is less than NGN 100 (10000n), no one can donate anyway. Show as full.
+    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
     const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
@@ -366,8 +367,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     statusBadge = <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>;
                                                 }
 
+                                                // If public view, mask unverified vendors
                                                 const vendorName = item.vendorId
-                                                    ? vendors.find((v: any) => v.id === item.vendorId)?.name
+                                                    ? (project as any).vendors?.find((v: any) => v.id === item.vendorId)?.name
                                                     : (item.payTo || item.vendor || 'Pending vendor sourcing');
 
                                                 return (
