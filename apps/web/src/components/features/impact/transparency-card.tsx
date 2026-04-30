@@ -81,13 +81,15 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 const user = JSON.parse(userCookie as string);
                 if (user.email) {
                     setWaitlistEmail(user.email);
-                    if (project.waitlistEmails?.includes(user.email.toLowerCase())) {
-                        setIsWaitlisted(true);
-                    }
                 }
             } catch (e) { }
         }
-    }, [project.waitlistEmails]);
+
+        // Rely on the secure boolean returned by the backend rather than the raw array
+        if (project.isWaitlisted) {
+            setIsWaitlisted(true);
+        }
+    }, [project.isWaitlisted]);
 
     const copyIdToClipboard = () => {
         navigator.clipboard.writeText(project.slug);

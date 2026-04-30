@@ -65,6 +65,7 @@ export interface Project {
   // Phased Funding Fields
   currentPhaseIndex?: number;
   waitlistEmails?: string[];
+  isWaitlisted?: boolean;
 }
 
 export interface ProjectUpdate {
