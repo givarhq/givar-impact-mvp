@@ -11,8 +11,7 @@ import {
     BarChart3,
     ChevronRight,
     ShieldAlert,
-    FileSearch,
-    FileWarning
+    FileSearch
 } from 'lucide-react';
 import { cn } from '../../../../lib/utils/cn';
 import { motion } from 'framer-motion';
@@ -24,8 +23,7 @@ interface AnalyticsStatGridProps {
         totalVolume: { NGN: string };
         activeProjects: number;
         pendingKycCount: number;
-        unresolvedSuspenseCount: number;
-        dominantRisk: 'LEDGER_SUSPENSE' | 'KYC_PENDING' | 'EVIDENCE_AUDIT' | 'NONE';
+        dominantRisk: 'KYC_PENDING' | 'EVIDENCE_AUDIT' | 'NONE';
         riskLabel: string;
         riskCount: number;
     };
@@ -37,13 +35,6 @@ export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgD
 
     const getRiskConfig = () => {
         switch (summary.dominantRisk) {
-            case 'LEDGER_SUSPENSE':
-                return {
-                    icon: FileWarning,
-                    path: '/admin/ledger',
-                    color: 'text-rose-500',
-                    bg: 'bg-rose-500/10'
-                };
             case 'KYC_PENDING':
                 return {
                     icon: ShieldAlert,
@@ -89,7 +80,7 @@ export const AnalyticsStatGrid = memo(function AnalyticsStatGrid({ summary, avgD
                 icon={Wallet}
                 color="text-emerald-500"
                 bg="bg-emerald-500/10"
-                onClick={() => router.push('/admin/ledger?tab=reconcile')}
+                onClick={() => router.push('/admin/ledger')}
             />
 
             <StatCard

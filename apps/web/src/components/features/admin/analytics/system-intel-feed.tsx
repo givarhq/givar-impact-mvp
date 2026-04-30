@@ -29,19 +29,19 @@ export const SystemIntelFeed = memo(function SystemIntelFeed({ report }: { repor
         },
         {
             id: '2',
-            type: report.summary.unresolvedSuspenseCount > 0 ? 'RISK' : 'ACTION',
-            title: 'Ledger Integrity',
-            desc: report.summary.unresolvedSuspenseCount > 0
-                ? `There are ${report.summary.unresolvedSuspenseCount} orphaned transactions in suspense.`
-                : 'Ledger is in sync. Perform manual verify check?',
-            target: '/admin/ledger'
-        },
-        {
-            id: '3',
             type: 'ACTION',
             title: 'Proposal Pipeline',
             desc: `${report.proposalMetrics.totalSubmitted} new causes require technical review.`,
             target: '/admin/projects?tab=proposals'
+        },
+        {
+            id: '3',
+            type: report.evidenceMetrics.pending > 0 ? 'RISK' : 'SUCCESS',
+            title: 'Execution Evidence',
+            desc: report.evidenceMetrics.pending > 0
+                ? `${report.evidenceMetrics.pending} proof documents are pending audit.`
+                : 'All uploaded impact evidence has been verified.',
+            target: '/admin/verifications?tab=evidence'
         }
     ];
 
