@@ -45,9 +45,7 @@ export class AdminService {
       prevUsers,
       projects,
       donations,
-      suspenseCount,
-      suspenseVolume, // <-- NEW: Fetch Suspense Ledger volume
-      systemWallets,  // <-- NEW: Fetch Platform Revenue (Admin wallets)
+      systemWallets,
       pendingKyc,
       organizationStats,
       proposalStats,
@@ -65,11 +63,6 @@ export class AdminService {
       this.prisma.donation.findMany({
         where: { createdAt: { gte: thirtyDaysAgo } },
         orderBy: { createdAt: 'asc' }
-      }),
-      this.prisma.walletTransaction.count({ where: { status: TxStatus.SUSPENSE } }),
-      this.prisma.walletTransaction.aggregate({
-        where: { status: TxStatus.SUSPENSE, type: TxType.CREDIT },
-        _sum: { amount: true }
       }),
       this.prisma.wallet.findMany({
         where: { user: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } } }
@@ -117,13 +110,11 @@ export class AdminService {
 
     const orgMap = new Map(organizationStats.map(o => [o.status, o._count]));
 
-    // --- CRITICAL BUG FIX: Accurate Liquidity Calculation ---
-    // True liquidity under Direct Payment architecture:
-    // (Total Active Project Funds) + (Orphaned Suspense Funds) + (Admin Platform Fees/Tips)
+    // Accurate Liquidity Calculation: Total Active Project Funds + Admin Platform Fees/Tips
+    // (Suspense removed from platform architecture)
     const projectVolume = projects.reduce((acc, p) => acc + p.raisedAmount, 0n);
-    const orphanedVolume = suspenseVolume._sum.amount || 0n;
     const revenueVolume = systemWallets.reduce((acc, w) => acc + w.balance, 0n);
-    const totalVolumeNGN = projectVolume + orphanedVolume + revenueVolume;
+    const totalVolumeNGN = projectVolume + revenueVolume;
 
     const growth = prevUsers === 0 ? 100 : ((totalUsers - prevUsers) / prevUsers) * 100;
 
@@ -131,11 +122,7 @@ export class AdminService {
     let riskCount = 0;
     let riskLabel = 'System healthy';
 
-    if (suspenseCount > 0) {
-      dominantRisk = 'LEDGER_SUSPENSE';
-      riskCount = suspenseCount;
-      riskLabel = 'Orphaned Transaction(s)';
-    } else if (pendingKyc > 0) {
+    if (pendingKyc > 0) {
       dominantRisk = 'KYC_PENDING';
       riskCount = pendingKyc;
       riskLabel = 'Pending KYC';
@@ -152,7 +139,6 @@ export class AdminService {
         totalVolume: { NGN: totalVolumeNGN.toString() },
         activeProjects: projects.filter(p => p.status === 'ACTIVE').length,
         pendingKycCount: pendingKyc,
-        unresolvedSuspenseCount: suspenseCount,
         dominantRisk,
         riskLabel,
         riskCount
@@ -1020,6 +1006,10 @@ export class AdminService {
 
     if ((dto as any).videoUrl !== undefined) updateData.videoUrl = (dto as any).videoUrl;
     if (dto.targetAmount) updateData.targetAmount = newTarget;
+    // Note: If newTarget < existing.raisedAmount, it will now naturally overflow. 
+    // In our non-custodial model, the platform cannot seize those funds back automatically.
+    // The admin will need to adjust the phases or manage vendor relations offline.
+
     if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
     if (dto.gallery) updateData.gallery = dto.gallery as any;
 
@@ -1042,35 +1032,6 @@ export class AdminService {
     if (dto.executionTimeline) updateData.executionTimeline = dto.executionTimeline as any;
 
     const result = await this.prisma.$transaction(async (tx) => {
-      // --- Surplus Liquidation ---
-      if (isGoalChanging && existing.raisedAmount > newTarget) {
-        const surplus = existing.raisedAmount - newTarget;
-
-        const systemNode = await tx.user.findFirst({
-          where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
-          include: { wallets: { where: { currency: existing.currency } } }
-        });
-
-        if (systemNode?.wallets[0]) {
-          await tx.walletTransaction.create({
-            data: {
-              walletId: systemNode.wallets[0].id,
-              amount: surplus,
-              currency: existing.currency,
-              type: TxType.CREDIT,
-              status: TxStatus.SUSPENSE,
-              category: TxCategory.INTERNAL_TRANSFER,
-              reference: `SURPLUS-${projectId.slice(0, 8)}-${Date.now()}`,
-              description: `Unallocated funds from goal reduction: ${existing.title}`,
-              metadata: { originalProjectId: projectId, reason: 'GOAL_REDUCTION_OVERAGE' }
-            }
-          });
-
-          updateData.raisedAmount = newTarget;
-          this.logger.log(`Liquidated ${surplus} surplus from project ${projectId} to suspense.`);
-        }
-      }
-
       const project = await tx.project.update({
         where: { id: projectId },
         data: updateData,
@@ -1122,6 +1083,7 @@ export class AdminService {
 
     return result;
   }
+
 
   private async broadcastFinancialAdjustment(
     projectId: string,

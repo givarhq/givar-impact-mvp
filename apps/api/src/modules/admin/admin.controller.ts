@@ -7,7 +7,6 @@ import { AccountType, ProposalStatus, UserRole } from '@givar/database';
 import { AdminService } from './admin.service';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
-import { ResolveSuspenseDto } from './dto/admin-suspense.dto';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
@@ -20,10 +19,6 @@ import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 export class AdminController {
   constructor(private service: AdminService) { }
 
-  /**
-  * Detailed Platform Analytics
-  * Provides the full dataset for the Admin Overview Dashboard.
-  */
   @Get('analytics/full-report')
   async getFullAnalyticsReport() {
     return this.service.getDetailedAnalytics();
@@ -103,11 +98,6 @@ export class AdminController {
     return this.service.executeReconciliation(req.user.id, ref);
   }
 
-  @Get('suspense')
-  getSuspense() {
-    return this.service.getSuspenseTransactions();
-  }
-
   @Get('users/:id')
   getUserDetail(@Param('id') id: string) {
     return this.service.getUserDetail(id);
@@ -141,10 +131,6 @@ export class AdminController {
     return this.service.suspendProject(id);
   }
 
-  /**
-   * Impact Confirmation Flow
-   * Posts final completion evidence and triggers the donor impact notification email.
-   */
   @Post('projects/:id/finalize')
   finalizeProject(
     @Req() req: any,
@@ -154,7 +140,6 @@ export class AdminController {
     return this.service.finalizeProject(req.user.id, id, dto);
   }
 
-  // Single Proposal Detail (Admins see everything including KYC)
   @Get('proposals/:id')
   async getProposalDetail(@Param('id') id: string) {
     return this.service.getProposalDetail(id);
@@ -170,7 +155,7 @@ export class AdminController {
     return this.service.rejectProposal(id, req.user.id, feedback);
   }
 
-  @Patch('projects/:id') // Using Patch for partial updates
+  @Patch('projects/:id')
   updateProject(@Req() req: any, @Param('id') id: string, @Body() dto: UpdateAdminProjectDto) {
     return this.service.updateProject(req.user.id, id, dto);
   }
@@ -188,15 +173,6 @@ export class AdminController {
   @Get('reconcile/verify/:reference')
   verifyExternal(@Param('reference') ref: string) {
     return this.service.verifyExternalTransaction(ref);
-  }
-
-  @Patch('suspense/:id/resolve')
-  async resolveSuspense(
-    @Req() req: any,
-    @Param('id') id: string,
-    @Body() dto: ResolveSuspenseDto
-  ) {
-    return this.service.resolveSuspenseTransaction(req.user.id, id, dto);
   }
 
   @Patch('projects/:id/milestones/:milestoneId')
@@ -238,10 +214,6 @@ export class AdminController {
     return this.service.updateAwarenessStatus(id, req.user.id, status);
   }
 
-  /**
-   * Targeted User Impersonation
-   * Generates a restricted forensic session for a specific user ID.
-   */
   @Post('users/:id/impersonate')
   async impersonate(@Req() req: any, @Param('id') id: string) {
     return this.service.impersonateUser(req.user.id, id);
@@ -252,23 +224,14 @@ export class AdminController {
     return this.service.globalSearch(query);
   }
 
-  /**
-   * Trigger Dust Sweep Protocol
-   * Manually invoke the cleanup of stale projects with negligible remaining balances.
-   */
   @Post('ledger/sweep')
   async triggerDustSweep(@Req() req: any) {
-    // Note: Usually restricted to SUPERADMIN via internal logic check if needed
     if (req.user.role !== UserRole.SUPERADMIN) {
       throw new ForbiddenException('Root access required for ledger sweep.');
     }
     return this.service.sweepStaleSmallRemainderProjects(req.user.id);
   }
 
-  /**
-   * Bulk Project Operation
-   * Handles batch activation, suspension, or deletion of cause nodes.
-   */
   @Post('projects/bulk')
   async bulkUpdateProjects(
     @Req() req: any,
@@ -277,10 +240,6 @@ export class AdminController {
     return this.service.bulkUpdateProjects(req.user.id, dto);
   }
 
-  /**
-   * Bulk Proposal Operation
-   * Orchestrates mass approval or rejection of incoming project proposals.
-   */
   @Post('proposals/bulk')
   async bulkUpdateProposals(
     @Req() req: any,
@@ -289,19 +248,11 @@ export class AdminController {
     return this.service.bulkUpdateProposals(req.user.id, dto);
   }
 
-  /**
-   * Treasury Intelligence Report
-   * Generates a forensic financial summary based on date ranges and categories.
-   */
   @Get('finances/report')
   async getFinanceReport(@Query() query: AdminFinanceQueryDto) {
     return this.service.getFinancialReport(query);
   }
 
-  /**
-   * Forensic CSV Export
-   * Streams a row-per-transaction ledger for tax and audit compliance.
-   */
   @Get('finances/export')
   async exportFinanceCsv(
     @Query() query: AdminFinanceQueryDto,
@@ -314,8 +265,6 @@ export class AdminController {
     res.attachment(filename);
     return res.send(csv);
   }
-
-  // --- CATEGORY MANAGEMENT ---
 
   @Post('categories')
   createCategory(
