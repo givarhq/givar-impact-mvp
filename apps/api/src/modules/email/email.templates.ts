@@ -81,11 +81,9 @@ export const EmailTemplates = {
     project: string;
     date: string;
     ref: string;
-    surplus?: string;
-    applied?: string;
     donorAmount?: string;
     donorCurrency?: string;
-    phaseName?: string; // <-- Injected Phase Name
+    phaseName?: string;
   }) => `
     <p>Your donation has been successfully verified and recorded on the <strong>Givar Impact</strong> public ledger.</p>
     
@@ -99,31 +97,12 @@ export const EmailTemplates = {
         </div>
       ` : ''}
       
-      ${data.surplus && data.surplus !== '0.00' ? `
-        <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
-        <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Ledger Distribution</div>
-        
-        <div class="breakdown-row">
-          <span style="color: #374151; font-weight: 600;">To ${data.project}:</span>
-          <span style="color: #064e3b; font-weight: 700;">${data.currency} ${data.applied}</span>
-        </div>
-        
-        <div class="breakdown-row">
-          <span style="color: #374151; font-weight: 600;">Unallocated Funds:</span>
-          <span style="color: #064e3b; font-weight: 700;">${data.currency} ${data.surplus}</span>
-        </div>
-        
-        <p style="font-size: 11px; color: #059669; margin-top: 12px; font-style: italic; line-height: 1.4;">
-          Note: This phase was completed by your gift. The surplus has been securely queued to be routed to other active causes.
-        </p>
-      ` : `
-        <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
-        <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Beneficiary</div>
-        <div style="font-size: 16px; font-weight: 700; color: #065f46; line-height: 1.4;">
-            ${data.project}
-            ${data.phaseName ? `<br/><span style="font-size: 13px; color: #059669; font-weight: 600;">${data.phaseName}</span>` : ''}
-        </div>
-      `}
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Beneficiary</div>
+      <div style="font-size: 16px; font-weight: 700; color: #065f46; line-height: 1.4;">
+          ${data.project}
+          ${data.phaseName ? `<br/><span style="font-size: 13px; color: #059669; font-weight: 600;">${data.phaseName}</span>` : ''}
+      </div>
     </div>
     
     <p><strong>Reference:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-family: monospace;">${data.ref}</code></p>
@@ -459,25 +438,6 @@ export const EmailTemplates = {
 
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.url}" class="button" style="background-color: #111827;">Reply to Owner</a>
-    </div>
-  `,
-
-  adminSuspenseAlert: (data: { adminName: string; amount: string; currency: string; reference: string; reason: string; url: string }) => `
-    <p>Hi ${data.adminName},</p>
-    <p><strong>CRITICAL:</strong> Unallocated funds have been detected and moved to the pending routing queue.</p>
-    
-    <div class="stat-box" style="background-color: #fff7ed; border: 1px solid #ffedd5;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #c2410c; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Unallocated Amount</div>
-      <div style="font-size: 28px; font-weight: 800; color: #9a3412;">${data.currency} ${data.amount}</div>
-      <div style="height: 1px; background-color: #fed7aa; margin: 16px 0;"></div>
-      <p style="margin: 0; font-size: 13px; color: #9a3412;"><strong>Reason:</strong> ${data.reason}</p>
-      <p style="margin: 4px 0 0 0; font-size: 12px; color: #9a3412; font-family: monospace;">Ref: ${data.reference}</p>
-    </div>
-
-    <p>These funds are currently pending. Manual intervention is required to either refund the donor or reallocate the funds to an active cause.</p>
-
-    <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.url}" class="button" style="background-color: #c2410c;">Open Pending Routing Queue</a>
     </div>
   `,
 

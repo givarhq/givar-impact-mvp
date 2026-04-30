@@ -60,7 +60,7 @@ export class EmailService {
     return this.send(email, 'Verify your Givar Impact account', html);
   }
 
-  // 2. Donation Receipt
+  // 2. Donation Receipt (Purged of surplus/applied logic)
   async sendDonationReceipt(
     email: string,
     data: {
@@ -70,8 +70,6 @@ export class EmailService {
       phaseName: string;
       date: string;
       ref: string;
-      surplus?: string;
-      applied?: string;
       donorAmount?: string;
       donorCurrency?: string;
     }
@@ -135,7 +133,7 @@ export class EmailService {
     email: string,
     data: { name: string; project: string; milestone: string; vendor: string }
   ) {
-    const uploadUrl = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`; // Or specific edit link
+    const uploadUrl = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
     const content = EmailTemplates.evidenceRequest({
       ...data,
       uploadUrl
@@ -243,7 +241,6 @@ export class EmailService {
     const frontendUrl = this.config.get('FRONTEND_URL');
     const queueUrl = `${frontendUrl}/admin/verifications?tab=evidence`;
 
-    // Process dispatches in parallel
     await Promise.allSettled(
       admins.map(admin => {
         const content = EmailTemplates.adminEvidenceSubmitted({
@@ -327,31 +324,7 @@ export class EmailService {
     );
   }
 
-  //21. Broadcasts to all admins when funds hit the Suspense Ledger.
-  async sendAdminSuspenseAlert(data: { amount: string; currency: string; reference: string; reason: string }) {
-    const admins = await this.prisma.user.findMany({
-      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
-      select: { email: true, firstName: true }
-    });
-
-    const url = `${this.config.get('FRONTEND_URL')}/admin/ledger`;
-
-    await Promise.allSettled(
-      admins.map(admin => {
-        const content = EmailTemplates.adminSuspenseAlert({
-          adminName: admin.firstName,
-          amount: data.amount,
-          currency: data.currency,
-          reference: data.reference,
-          reason: data.reason,
-          url
-        });
-        return this.send(admin.email, `Ledger Alert: Orphaned Capital Detected`, EmailTemplates.base(content, 'Suspense Ledger Entry'));
-      })
-    );
-  }
-
-  // 22. Broadcasts to all admins when a high-capital transaction is attempted/blocked.
+  // 21. Broadcasts to all admins when a high-capital transaction is attempted/blocked.
   async sendAdminHighCapitalAlert(data: { userEmail: string; amount: string; currency: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -371,7 +344,7 @@ export class EmailService {
     );
   }
 
-  // 23. Dispatches a confirmation to the proposer upon successful submission.
+  // 22. Dispatches a confirmation to the proposer upon successful submission.
   async sendProposalSubmittedConfirmation(email: string, data: { name: string; projectTitle: string }) {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
     const content = EmailTemplates.proposalSubmitted({ ...data, url });
@@ -379,7 +352,7 @@ export class EmailService {
     return this.send(email, `Givar Confirmation: ${data.projectTitle} Submitted`, html);
   }
 
-  // 24. Sends an email to the user when their KYC documents are submitted
+  // 23. Sends an email to the user when their KYC documents are submitted
   async sendKycSubmittedEmail(email: string, data: { name: string; kycType: string }) {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/settings?tab=verification`;
     const content = EmailTemplates.kycSubmitted({ ...data, url });
@@ -387,15 +360,15 @@ export class EmailService {
     return this.send(email, 'Givar Impact: Verification in progress', html);
   }
 
-  // 25. Sends an email to the user when their KYC is approved
+  // 24. Sends an email to the user when their KYC is approved
   async sendKycApprovedEmail(email: string, data: { name: string; kycType: string }) {
-    const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals/start`; // Direct them to start a cause
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals/start`;
     const content = EmailTemplates.kycApproved({ ...data, url });
     const html = EmailTemplates.base(content, 'Identity Verified');
     return this.send(email, 'Givar Impact: Your identity has been verified', html);
   }
 
-  // 26. Sends an email to the user when their KYC is rejected
+  // 25. Sends an email to the user when their KYC is rejected
   async sendKycRejectedEmail(email: string, data: { name: string; feedback: string }) {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/settings?tab=verification`;
     const content = EmailTemplates.kycRejected({ ...data, url });
@@ -403,7 +376,7 @@ export class EmailService {
     return this.send(email, 'Givar Action Required: Identity Verification', html);
   }
 
-  // 27. Phase Unlocked Alert (Waitlist Broadcast)
+  // 26. Phase Unlocked Alert (Waitlist Broadcast)
   async sendPhaseUnlockedAlert(email: string, data: { projectTitle: string; projectUrl: string }) {
     const content = EmailTemplates.sendPhaseUnlockedAlert(data);
     const html = EmailTemplates.base(content, 'Next phase unlocked!');
