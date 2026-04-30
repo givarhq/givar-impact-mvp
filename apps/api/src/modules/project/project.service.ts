@@ -73,7 +73,7 @@ export class ProjectService {
       isActive: true,
       ...(status && { status }),
       ...(category && { category: { slug: category } }),
-      ...(subcategory && { subcategory: { slug: subcategory } }), // <-- NEW: Apply subcategory filter
+      ...(subcategory && { subcategory: { slug: subcategory } }),
       ...(search && {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },
@@ -114,18 +114,22 @@ export class ProjectService {
 
     const data = await Promise.all(projects.map(async (p) => {
       const hydrated = await this.storage.hydrateEntityMedia(p);
-      const raised = Number(hydrated.raisedAmount || 0n);
-      const target = Number(hydrated.targetAmount || 0n);
+
+      // CRITICAL PRIVACY GUARD: Scrub the waitlist array containing plain-text emails before dispatch to frontend
+      const { waitlistEmails, ...safeProject } = hydrated as any;
+
+      const raised = Number(safeProject.raisedAmount || 0n);
+      const target = Number(safeProject.targetAmount || 0n);
       const isSystemProject = p.user?.role === 'ADMIN' || p.user?.role === 'SUPERADMIN';
 
       return {
-        ...hydrated,
-        targetAmount: hydrated.targetAmount.toString(),
-        raisedAmount: hydrated.raisedAmount.toString(),
+        ...safeProject,
+        targetAmount: safeProject.targetAmount.toString(),
+        raisedAmount: safeProject.raisedAmount.toString(),
         percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
-        categoryName: hydrated.category?.name,
-        categorySlug: hydrated.category?.slug,
-        subcategoryName: hydrated.subcategory?.name,
+        categoryName: safeProject.category?.name,
+        categorySlug: safeProject.category?.slug,
+        subcategoryName: safeProject.subcategory?.name,
         isVerifiedOrganizer: isSystemProject ? true : p.user?.organization?.status === 'VERIFIED',
         organizerName: isSystemProject ? 'Givar' : (p.user?.organization?.legalName || 'Individual'),
         organizerType: isSystemProject ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
@@ -140,12 +144,12 @@ export class ProjectService {
   }
 
   // Single Project Detail Fetcher
-  async findOneWithUpdates(slug: string) {
+  async findOneWithUpdates(slug: string, userEmail?: string) {
     const project = await this.prisma.project.findUnique({
       where: { slug },
       include: {
         category: true,
-        subcategory: true, // <-- NEW: Fetch subcategory
+        subcategory: true,
         updates: { orderBy: { createdAt: 'desc' } },
         user: {
           select: {
@@ -160,6 +164,10 @@ export class ProjectService {
 
     const hydrated = await this.storage.hydrateEntityMedia(project);
 
+    // CRITICAL PRIVACY GUARD: Evaluate the user's waitlist status privately, then scrub the array
+    const isWaitlisted = userEmail && hydrated.waitlistEmails?.includes(userEmail.toLowerCase());
+    const { waitlistEmails, ...safeProject } = hydrated as any;
+
     const [userDonors, guestDonors] = await Promise.all([
       this.prisma.donation.groupBy({ by: ['userId'], where: { projectId: project.id } }),
       this.prisma.guestDonation.groupBy({ by: ['guestDonorId'], where: { projectId: project.id } })
@@ -169,15 +177,16 @@ export class ProjectService {
     const isSystemProject = project.user?.role === 'ADMIN' || project.user?.role === 'SUPERADMIN';
 
     return {
-      ...hydrated,
-      targetAmount: hydrated.targetAmount.toString(),
-      raisedAmount: hydrated.raisedAmount.toString(),
-      percentFunded: Number(hydrated.targetAmount) > 0 ? Math.min(100, Math.round((Number(hydrated.raisedAmount) / Number(hydrated.targetAmount)) * 100)) : 0,
+      ...safeProject,
+      isWaitlisted: !!isWaitlisted, // Inject the isolated boolean state
+      targetAmount: safeProject.targetAmount.toString(),
+      raisedAmount: safeProject.raisedAmount.toString(),
+      percentFunded: Number(safeProject.targetAmount) > 0 ? Math.min(100, Math.round((Number(safeProject.raisedAmount) / Number(safeProject.targetAmount)) * 100)) : 0,
       donorCount,
-      subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
-      isVerifiedOrganizer: isSystemProject ? true : hydrated.user?.organization?.status === 'VERIFIED',
-      organizerName: isSystemProject ? 'Givar' : (hydrated.user?.organization?.legalName || 'Individual'),
-      organizerType: isSystemProject ? 'SYSTEM' : (hydrated.user?.organization?.kycType || 'INDIVIDUAL'),
+      subcategoryName: safeProject.subcategory?.name,
+      isVerifiedOrganizer: isSystemProject ? true : safeProject.user?.organization?.status === 'VERIFIED',
+      organizerName: isSystemProject ? 'Givar' : (safeProject.user?.organization?.legalName || 'Individual'),
+      organizerType: isSystemProject ? 'SYSTEM' : (safeProject.user?.organization?.kycType || 'INDIVIDUAL'),
       isGivarOfficial: isSystemProject
     };
   }

@@ -227,20 +227,12 @@ export class AdminService {
   }
 
   async getAllProjects(query: AdminProjectQueryDto) {
-    const {
-      search, status, categoryId,
-      page = 1, limit = 20,
-      sortBy = 'createdAt', sortOrder = 'desc',
-      excludeDrafts,
-      isSystem
-    } = query;
-
+    const { search, status, categoryId, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc', excludeDrafts, isSystem } = query;
     const skip = (page - 1) * limit;
 
     const where: Prisma.ProjectWhereInput = {
       ...(status ? { status } : (excludeDrafts ? { status: { not: ProjectStatus.DRAFT } } : {})),
       ...(categoryId && { categoryId }),
-      // Logic: If isSystem is true, filter projects owned by ADMIN or SUPERADMIN nodes
       ...(isSystem && { user: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } } }),
       ...(search && {
         OR: [
@@ -261,7 +253,8 @@ export class AdminService {
         take: limit,
         include: {
           category: { select: { name: true } },
-          user: { select: { role: true } } // Include role for UI identification
+          subcategory: { select: { name: true } }, // <-- ADDED: Fix missing subcategory in Admin view
+          user: { select: { role: true } }
         },
         orderBy,
       }),
@@ -269,16 +262,20 @@ export class AdminService {
     ]);
 
     return {
-      data: projects.map(p => ({
-        ...p,
-        targetAmount: p.targetAmount.toString(),
-        raisedAmount: p.raisedAmount.toString(),
-        isGivarOfficial: p.user.role === UserRole.ADMIN || p.user.role === UserRole.SUPERADMIN
-      })),
+      data: projects.map(p => {
+        // CRITICAL PRIVACY GUARD: Ensure waitlisted emails never reach the admin table payload
+        const { waitlistEmails, ...safeP } = p as any;
+        return {
+          ...safeP,
+          targetAmount: safeP.targetAmount.toString(),
+          raisedAmount: safeP.raisedAmount.toString(),
+          subcategoryName: safeP.subcategory?.name, // <-- Map subcategory to UI prop
+          isGivarOfficial: safeP.user.role === UserRole.ADMIN || safeP.user.role === UserRole.SUPERADMIN
+        };
+      }),
       meta: { total, page, lastPage: Math.ceil(total / limit) }
     };
   }
-
 
   // Project Moderation
   async approveProject(id: string) {
@@ -1154,7 +1151,6 @@ export class AdminService {
 
   // Forensic Project Deletion with Asset Purge
   async deleteProject(adminId: string, projectId: string) {
-    // 1. Fetch Project with relations and donation count
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: { _count: { select: { donations: true } } }
@@ -1163,23 +1159,18 @@ export class AdminService {
     if (!project) throw new NotFoundException('Project not found');
 
     // 2. Financial Integrity Guard
-    // Hard-deletion is FORBIDDEN if the project has ever received money.
     if (project._count.donations > 0) {
       throw new ForbiddenException(
         'CRITICAL: This project has received donations. For financial audit integrity, it cannot be deleted. Use Suspend/Complete instead.'
       );
     }
 
-    // 3. Collect S3 Keys for Purging
     const keysToPurge: string[] = [];
 
-    // Check if coverImage is a key (not a full URL from previous hydration)
-    // Note: Since our DB stores keys, we check if it starts with 'proposals/'
     if (project.imageUrl && !project.imageUrl.startsWith('http')) {
       keysToPurge.push(project.imageUrl);
     }
 
-    // Extract keys from Gallery JSON
     if (project.gallery && Array.isArray(project.gallery)) {
       const gallery = project.gallery as any[];
       gallery.forEach(item => {
@@ -1190,10 +1181,14 @@ export class AdminService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // 4. Delete from Database
+      // 3.5 ADDED: Cascade delete connected peripheral nodes to prevent FK constraint failures
+      await tx.projectUpdate.deleteMany({ where: { projectId } });
+      await tx.featuredSlot.deleteMany({ where: { projectId } });
+      await tx.milestoneProof.deleteMany({ where: { projectId } });
+      await tx.disbursement.deleteMany({ where: { projectId } });
+
       const deleted = await tx.project.delete({ where: { id: projectId } });
 
-      // 5. Audit Log
       await this.audit.log({
         userId: adminId,
         action: AuditAction.PROJECT_DELETED,
@@ -1202,7 +1197,6 @@ export class AdminService {
         metadata: { title: deleted.title, purgedFileCount: keysToPurge.length },
       }, tx);
 
-      // 6. Trigger S3 Purge (Best effort, non-blocking)
       return deleted;
     }).then(async (result) => {
       if (keysToPurge.length > 0) {

@@ -21,9 +21,12 @@ export class ProjectController {
   }
 
   // Public: Single Project (SEO friendly) with full details
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':slug')
-  getOne(@Param('slug') slug: string) {
-    return this.service.findOneWithUpdates(slug);
+  getOne(@Req() req: any, @Param('slug') slug: string) {
+    // Safely extract the user's email if they are authenticated to check their waitlist status
+    return this.service.findOneWithUpdates(slug, req.user?.email);
   }
 
   @Public()
