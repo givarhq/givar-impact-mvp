@@ -553,39 +553,36 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       </Card>
 
       {/* Control Terminal Bar */}
-      <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-5 bg-background/90 backdrop-blur-2xl border-t border-border/40 z-50 shadow-2xl">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            {(isEditing || !initialData) && (
+      {(isEditing || !initialData) && (
+        <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-5 bg-background/90 backdrop-blur-2xl border-t border-border/40 z-50 shadow-2xl">
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
               <Button type="button" variant="ghost" onClick={handleCancel} className="rounded-3xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto transition-all">
                 {initialData ? 'Discard changes' : 'Cancel setup'}
               </Button>
-            )}
-          </div>
+            </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
-            {(isEditing || !initialData) && (
-              <>
-                <Button type="button" disabled={isSubmitting} onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))} variant="secondary" className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px] border border-border/60 bg-muted/40 shadow-none hover:bg-muted truncate">
-                  {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <div className="flex items-center justify-center gap-2 min-w-0"><FileText className="h-4 w-4 shrink-0" /><span className="truncate">Draft</span></div>}
-                </Button>
+            <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
+              <Button type="button" disabled={isSubmitting} onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))} variant="secondary" className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px] border border-border/60 bg-muted/40 shadow-none hover:bg-muted truncate">
+                {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <div className="flex items-center justify-center gap-2 min-w-0"><FileText className="h-4 w-4 shrink-0" /><span className="truncate">Draft</span></div>}
+              </Button>
 
-                <Button type="button" disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))} onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))} className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0 truncate">
-                  {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : <div className="flex items-center justify-center gap-2 min-w-0">{initialData ? <Save className="h-4 w-4 shrink-0" /> : <Send className="h-4 w-4 shrink-0" />}{initialData ? 'Publish' : 'Launch'}</div>}
-                </Button>
-              </>
-            )}
-
-            {initialData && !isEditing && (
-              <div className="w-full flex justify-center sm:justify-start">
-                <Button type="button" variant="outline" onClick={handleStartEditing} className="rounded-3xl h-11 px-8 font-bold gap-3 text-xs border-border/60 text-primary hover:bg-muted shadow-lg bg-background transition-all active:scale-[0.98]">
-                  <LockOpen className="h-4 w-4" /> Unlock for modification
-                </Button>
-              </div>
-            )}
+              <Button type="button" disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))} onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))} className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0 truncate">
+                {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : <div className="flex items-center justify-center gap-2 min-w-0">{initialData ? <Save className="h-4 w-4 shrink-0" /> : <Send className="h-4 w-4 shrink-0" />}{initialData ? 'Publish' : 'Launch'}</div>}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Floating Unlock Button for Read-Only Mode */}
+      {initialData && !isEditing && (
+        <div className="fixed bottom-20 md:bottom-10 right-6 md:right-10 z-50">
+          <Button type="button" onClick={handleStartEditing} className="rounded-full h-14 px-8 font-bold gap-3 text-sm shadow-2xl shadow-primary/30 bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98] border-0">
+            <LockOpen className="h-5 w-5" /> Unlock for modification
+          </Button>
+        </div>
+      )}
     </div>
   );
 });
