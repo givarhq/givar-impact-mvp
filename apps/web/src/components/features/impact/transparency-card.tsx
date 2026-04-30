@@ -1,4 +1,3 @@
-// apps/web/src/components/features/impact/transparency-card.tsx
 'use client';
 
 import { useState, useEffect, memo } from 'react';
@@ -61,7 +60,10 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
         : 0;
 
-    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+    // DUST ROUNDING UI SUPPORT: If remaining gap is less than NGN 100 (10000n), no one can donate anyway. Show as full.
+    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+
     const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
 
     // Waitlist State

@@ -50,7 +50,9 @@ export const ProjectCard = memo(function ProjectCard({
   let raisedInCurrentPhase = totalRaised - previousPhasesMinor;
   if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
 
-  const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+  // DUST ROUNDING UI SUPPORT: If remaining gap is less than NGN 100 (10000n), no one can donate anyway. Show as full.
+  const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+  const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
   const isMedical = project.categoryName?.toLowerCase() === 'medical';
   const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
@@ -130,6 +132,10 @@ export const ProjectCard = memo(function ProjectCard({
           {(isCompleted || isFundedState) ? (
             <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
               <Check className="h-3 w-3" /> {isCompleted ? completedText : 'Goal Reached'}
+            </div>
+          ) : isPhaseFull ? (
+            <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-600 mb-1">
+              <Clock className="h-3 w-3" /> Verification in Progress
             </div>
           ) : (
             <div className="flex items-center gap-1 text-[10px] sm:hidden font-bold text-primary mb-1 truncate">

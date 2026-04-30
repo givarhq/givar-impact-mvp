@@ -175,8 +175,14 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
     const raisedAmountMinor = BigInt(project.raisedAmount || '0');
+
+    // Calculate precise remaining capacity
     const remainingForPhaseMinor = currentPhaseCapMinor > raisedAmountMinor ? currentPhaseCapMinor - raisedAmountMinor : 0n;
-    const isPhaseFull = remainingForPhaseMinor <= 0n && currentPhaseCapMinor > 0n;
+
+    // DUST ROUNDING SYSTEM:
+    // If the phase has less than NGN 100 remaining, no one can successfully donate to it.
+    // The UI considers it full, allowing the backend admin/system scripts to sweep the dust.
+    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseCapMinor > 0n && project.status !== 'FUNDED' && project.status !== 'COMPLETED';
 
     let remainingSelectedMajor = Number(remainingForPhaseMinor) / 100;
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
@@ -201,7 +207,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const feeAmountMinor = (baseAmountMinor * BigInt(Math.round(feePercentage * 100))) / 10000n;
 
     const isGuest = !isAuthenticated;
-    const isCompletingPhase = baseAmountMinor >= remainingForPhaseMinor && remainingForPhaseMinor > 0n;
+
+    // DUST COMPLETION LOGIC (Frontend reflection of backend policy)
+    const gapAfterDonation = remainingForPhaseMinor - baseAmountMinor;
+    const isDustCovered = gapAfterDonation > 0n && gapAfterDonation < 10000n;
+    const isCompletingPhase = (baseAmountMinor >= remainingForPhaseMinor || isDustCovered) && remainingForPhaseMinor > 0n;
 
     const QUICK_AMOUNTS = detectedCurrency === 'NGN'
         ? ['1000', '5000', '10000', '25000']
@@ -597,13 +607,19 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="flex items-start gap-2.5 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 overflow-hidden shadow-sm"
+                            className={cn(
+                                "flex items-start gap-2.5 p-4 rounded-2xl border overflow-hidden shadow-sm",
+                                isDustCovered ? "bg-blue-500/10 border-blue-500/20 text-blue-700" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-700"
+                            )}
                         >
                             <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
                             <div className="text-xs space-y-0.5">
                                 <p className="font-bold">Phase completion gift</p>
                                 <p className="font-medium">
-                                    This gift fully funds Phase {activeIndex + 1}! The project will pause to verify vendor execution before opening the next phase.
+                                    {isDustCovered
+                                        ? `Your gift brings us so close that Givar will cover the remaining balance! This fully funds Phase ${activeIndex + 1}.`
+                                        : `This gift fully funds Phase ${activeIndex + 1}! The project will pause to verify vendor execution before opening the next phase.`
+                                    }
                                 </p>
                             </div>
                         </motion.div>
