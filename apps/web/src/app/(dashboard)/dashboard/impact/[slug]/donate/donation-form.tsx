@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
     Loader2, CreditCard, CheckCircle2, Mail,
-    Eye, MailCheck, RefreshCw, Globe, Target, BellRing, HandHeart
+    Eye, MailCheck, RefreshCw, Globe, Target, HandHeart
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -62,9 +62,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [fxRates, setFxRates] = useState<Record<string, number> | null>(null);
 
-    const [waitlistEmail, setWaitlistEmail] = useState('');
-    const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
-
     const [isReadOnly, setIsReadOnly] = useState(false);
     const [isUnverified, setIsUnverified] = useState(false);
     const [guestEmail, setGuestEmail] = useState('');
@@ -76,7 +73,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 const user = JSON.parse(userCookie as string);
                 setIsUnverified(user.emailVerified === false);
                 if (user.email) {
-                    setWaitlistEmail(user.email);
                     if (posthog) {
                         posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
                     }
@@ -236,21 +232,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
             setDisplayAmount(formatDecimalInput(val));
-        }
-    };
-
-    const handleJoinWaitlist = async () => {
-        if (!waitlistEmail || !waitlistEmail.includes('@')) return toast.error("Valid email required");
-        setIsWaitlistLoading(true);
-        try {
-            await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
-            toast.success("You'll be notified when the next phase unlocks!");
-            if (!isAuthenticated) setWaitlistEmail('');
-        } catch (e: any) {
-            toast.success("You've been added to the notification queue!");
-            if (!isAuthenticated) setWaitlistEmail('');
-        } finally {
-            setIsWaitlistLoading(false);
         }
     };
 

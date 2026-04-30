@@ -70,6 +70,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [waitlistEmail, setWaitlistEmail] = useState('');
     const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
+    const [isWaitlisted, setIsWaitlisted] = useState(false);
     const [copied, setCopied] = useState(false);
 
     useEffect(() => {
@@ -78,10 +79,15 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             setIsAuthenticated(true);
             try {
                 const user = JSON.parse(userCookie as string);
-                if (user.email) setWaitlistEmail(user.email);
+                if (user.email) {
+                    setWaitlistEmail(user.email);
+                    if (project.waitlistEmails?.includes(user.email.toLowerCase())) {
+                        setIsWaitlisted(true);
+                    }
+                }
             } catch (e) { }
         }
-    }, []);
+    }, [project.waitlistEmails]);
 
     const copyIdToClipboard = () => {
         navigator.clipboard.writeText(project.slug);
@@ -96,10 +102,9 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         try {
             await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
             toast.success("You'll be notified when the next phase unlocks!");
-            if (!isAuthenticated) setWaitlistEmail('');
+            setIsWaitlisted(true);
         } catch (e: any) {
-            toast.success("You've been added to the notification queue!");
-            if (!isAuthenticated) setWaitlistEmail('');
+            toast.error("Could not join waitlist. Please try again.");
         } finally {
             setIsWaitlistLoading(false);
         }
@@ -215,7 +220,12 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                         <h4 className="text-[11px] font-bold">Get notified when Phase {activeIndex + 2} opens</h4>
                                     </div>
 
-                                    {isAuthenticated ? (
+                                    {isWaitlisted ? (
+                                        <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl animate-in zoom-in duration-300">
+                                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                                            <span className="text-[11px] font-bold">You're on the list! We'll notify you soon.</span>
+                                        </div>
+                                    ) : isAuthenticated ? (
                                         <Button
                                             onClick={handleJoinWaitlist}
                                             disabled={isWaitlistLoading}
