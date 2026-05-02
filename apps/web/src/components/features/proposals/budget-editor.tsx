@@ -145,10 +145,12 @@ export const BudgetEditor = memo(function BudgetEditor({
     const toastId = toast.loading('Verifying vendor account & generating secure routing code...');
 
     try {
+      const targetVendor = vendors.find(v => v.id === subaccountModal.vendorId);
       const res = await ApiService.admin.createPaystackSubaccount({
         businessName,
         bankCode,
-        accountNumber
+        accountNumber,
+        vendorEmail: targetVendor?.email || undefined
       });
 
       const updatedVendors = vendors.map(v =>

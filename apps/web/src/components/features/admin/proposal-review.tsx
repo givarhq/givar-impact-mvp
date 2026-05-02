@@ -120,7 +120,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             const res = await ApiService.admin.createPaystackSubaccount({
                 businessName: subaccountModal.vendorName,
                 bankCode,
-                accountNumber
+                accountNumber,
+                vendorEmail: subaccountModal.vendorEmail || undefined
             });
 
             await ApiService.admin.bindProposalVendor(proposal.id, subaccountModal.budgetItemId!, {
@@ -366,11 +367,11 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:text-foreground[&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
+                                        "[&_h2]:font-bold [&_h2]:text-foreground[&_h2]:text-lg[&_h2]:mt-6 [&_h2]:mb-3",
                                         "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4[&_p]:last:mb-0",
                                         "[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
+                                        "[&_ol]:list-decimal [&_ol]:pl-6[&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
