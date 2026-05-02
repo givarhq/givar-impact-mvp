@@ -194,7 +194,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                 }}
                                 className="w-32 h-10 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-0 shrink-0"
                             >
-                                {isPhaseFull ? "View cause" : "Fund this impact"}
+                                {isPhaseFull ? "View cause" : "Donate Now"}
                             </button>
                         </div>
                     </div>
