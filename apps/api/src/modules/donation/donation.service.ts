@@ -360,8 +360,8 @@ export class DonationService {
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
       select: {
-        id: true, isActive: true, currency: true, status: true, categoryId: true,
-        budgetBreakdown: true, currentPhaseIndex: true, vendors: true // <-- NEW: Ensure vendors are fetched
+        id: true, isActive: true, currency: true, status: true, categoryId: true, title: true,
+        budgetBreakdown: true, currentPhaseIndex: true, vendors: true
       },
     });
 
@@ -395,9 +395,8 @@ export class DonationService {
 
     const activeIndex = project.currentPhaseIndex || 0;
     const budget = (project.budgetBreakdown as any[]) || [];
-    const vendors = (project.vendors as any[]) || []; // <-- NEW: Array mapping
+    const vendors = (project.vendors as any[]) || [];
 
-    // Resolving the subaccount from the new Vendor structure with fallback
     const activeBudgetItem = budget[activeIndex];
     const activeVendor = vendors.find(v => v.id === activeBudgetItem?.vendorId);
     const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
@@ -427,7 +426,19 @@ export class DonationService {
           feeRuleId: feeRule.id,
           donorCurrency: dto.donorCurrency,
           donorAmount: dto.donorAmount,
-          fxRate: dto.fxRate
+          fxRate: dto.fxRate,
+          custom_fields: [
+            {
+              display_name: 'Project Title',
+              variable_name: 'project_title',
+              value: project.title
+            },
+            {
+              display_name: 'Funding Phase',
+              variable_name: 'funding_phase',
+              value: `Phase ${activeIndex + 1}`
+            }
+          ]
         },
         callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
       };
@@ -753,35 +764,6 @@ export class DonationService {
       isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
       isPhaseNewlyMet = !isGoalMet && (currentRemainingForPhase <= 0n);
 
-      if (isGoalMet && updatedProject.status === ProjectStatus.ACTIVE) {
-        await tx.project.update({
-          where: { id: projectId },
-          data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
-        });
-      }
-
-      await tx.notification.create({
-        data: {
-          userId: project.userId,
-          type: 'DONATION_RECEIVED' as NotificationType,
-          title: 'New contribution received',
-          content: `You received a gift for "${project.title}".`,
-          link: `/dashboard/impact/${project.slug}`
-        }
-      });
-
-      if (isGoalMet) {
-        await tx.notification.create({
-          data: {
-            userId: project.userId,
-            type: 'PROJECT_STATUS' as NotificationType,
-            title: 'Goal reached!',
-            content: `Success! "${project.title}" is now fully funded.`,
-            link: `/dashboard/impact/${project.slug}`
-          }
-        });
-      }
-
       if (isPhaseNewlyMet) {
         await tx.notification.create({
           data: {
@@ -821,6 +803,18 @@ export class DonationService {
             reference: reference,
             projectId: project.id
           }).catch(() => { });
+
+          const vendorEmail = activeVendor?.email || (activeBudgetItem as any)?.vendorEmail;
+          if (vendorEmail) {
+            this.emailService.sendVendorPhaseFundedAlert(vendorEmail, {
+              vendorName,
+              projectTitle: project.title,
+              phaseName: formattedPhase,
+              amount: totalPhaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+              currency: currency,
+              reference: reference
+            }).catch(err => this.logger.error(`Vendor notification failed: ${err.message}`));
+          }
         }
       }
 

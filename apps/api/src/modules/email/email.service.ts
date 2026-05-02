@@ -405,4 +405,10 @@ export class EmailService {
       })
     );
   }
+
+  async sendVendorPhaseFundedAlert(email: string, data: { vendorName: string; projectTitle: string; phaseName: string; amount: string; currency: string; reference: string }) {
+    const content = EmailTemplates.vendorPhaseFunded(data);
+    const html = EmailTemplates.base(content, 'Capital Secured & Routing Initiated');
+    return this.send(email, `Givar Notification: Funds secured for ${data.projectTitle}`, html);
+  }
 }

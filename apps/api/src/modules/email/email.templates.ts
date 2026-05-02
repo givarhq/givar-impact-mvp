@@ -558,4 +558,22 @@ export const EmailTemplates = {
     </div>
     <p>Execution can now begin. Please contact the vendor immediately to authorize the start of work for this phase.</p>
   `,
+
+  vendorPhaseFunded: (data: { vendorName: string; projectTitle: string; phaseName: string; amount: string; currency: string; reference: string }) => `
+    <p>Hi ${data.vendorName},</p>
+    <p>This is an automated notification from <strong>Givar Impact</strong>.</p>
+    <p>We are pleased to inform you that the required capital for your services regarding the project <strong>"${data.projectTitle}"</strong> has been successfully secured by donors.</p>
+    
+    <div class="stat-box" style="border-color: #10b981; background-color: #f0fdf4;">
+      <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase;">Phase Fully Funded</div>
+      <div style="font-size: 24px; font-weight: 800; color: #10b981;">${data.currency} ${data.amount}</div>
+      <p style="margin: 12px 0 0 0; font-size: 14px; color: #064e3b;"><strong>Phase:</strong> ${data.phaseName}</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px; color: #064e3b;"><strong>Reference:</strong> ${data.reference}</p>
+    </div>
+
+    <p><strong>Important settlement notice:</strong><br/>
+    These funds have been routed to your authorized Paystack subaccount. <strong>Please note that Paystack settles funds to your registered bank account on a T+1 basis (the next working day).</strong></p>
+    
+    <p>Once the funds reflect in your bank account, please commence execution and provide the project organizer with the necessary receipts and photographic proof of work.</p>
+  `,
 };
