@@ -31,7 +31,7 @@ export const EmailTemplates = {
                       <img src="${logoUrl}" width="40" height="40" alt="Givar" style="border-radius: 10px; display: block; margin-right: 12px;">
                     </td>
                     <td style="vertical-align: middle;">
-                      <span class="logo-text">Givar Impact</span>
+                      <span class="logo-text">Givar</span>
                     </td>
                   </tr>
                 </table>
@@ -45,9 +45,8 @@ export const EmailTemplates = {
             </tr>
             <tr>
               <td class="footer">
-                <p style="font-size: 12px; font-weight: 700; color: #111827; margin-bottom: 4px;">Givar Impact</p>
-                <p style="font-size: 12px; color: #6b7280; margin: 0;">Transparent Philanthropy Protocol</p>
-                <p style="font-size: 11px; color: #9ca3af; margin-top: 16px;">&copy; ${new Date().getFullYear()} Givar Impact. All rights reserved.</p>
+                <p style="font-size: 12px; font-weight: 700; color: #111827; margin-bottom: 4px;">Givar</p>
+                <p style="font-size: 11px; color: #9ca3af; margin-top: 8px;">&copy; ${new Date().getFullYear()} Givar. All rights reserved.</p>
               </td>
             </tr>
           </table>
@@ -58,7 +57,7 @@ export const EmailTemplates = {
 
   verification: (url: string, name: string, code?: string) => `
     <p>Hi ${name},</p>
-    <p>Welcome to <strong>Givar Impact</strong>. To ensure the security of your account and verify your identity on the public ledger, please verify your email address.</p>
+    <p>Welcome to <strong>Givar</strong>. To ensure the security of your account and verify your identity on the public ledger, please verify your email address.</p>
     
     ${code ? `
     <div style="text-align: center; margin: 32px 0;">
@@ -85,7 +84,7 @@ export const EmailTemplates = {
     donorCurrency?: string;
     phaseName?: string;
   }) => `
-    <p>Your donation has been successfully verified and recorded on the <strong>Givar Impact</strong> public ledger.</p>
+    <p>Your donation has been successfully verified and recorded on the <strong>Givar</strong> public ledger.</p>
     
     <div class="stat-box">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total Contribution</div>
@@ -93,12 +92,12 @@ export const EmailTemplates = {
       
       ${data.donorCurrency && data.donorCurrency !== data.currency ? `
         <div style="font-size: 13px; font-weight: 700; color: #059669; margin-top: 4px; opacity: 0.8;">
-          (Estimated value: ${data.donorCurrency === 'CAD' ? 'C$' : data.donorCurrency === 'USD' ? '$' : data.donorCurrency === 'GBP' ? '£' : data.donorCurrency === 'EUR' ? '€' : data.donorCurrency} ${data.donorAmount})
+          (Estimated value: ${data.donorCurrency === 'CAD' ? 'C$' : data.donorCurrency === 'USD' ? '$' : data.donorCurrency === 'GBP' ? '£' : data.donorCurrency === 'EUR' ? '€' : data.donorCurrency} ${Number(data.donorAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
         </div>
       ` : ''}
       
       <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Beneficiary</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Cause</div>
       <div style="font-size: 16px; font-weight: 700; color: #065f46; line-height: 1.4;">
           ${data.project}
           ${data.phaseName ? `<br/><span style="font-size: 13px; color: #059669; font-weight: 600;">${data.phaseName}</span>` : ''}
@@ -110,7 +109,7 @@ export const EmailTemplates = {
   `,
 
   securityAlert: (data: { ip: string; time: string }) => `
-    <p>We detected a new login to your <strong>Givar Impact</strong> account.</p>
+    <p>We detected a new login to your <strong>Givar</strong> account.</p>
     <div class="stat-box">
       <p style="margin: 0; font-size: 14px;"><strong>Time:</strong> ${data.time}</p>
       <p style="margin: 8px 0 0 0; font-size: 14px;"><strong>IP Address:</strong> ${data.ip}</p>
@@ -137,14 +136,14 @@ export const EmailTemplates = {
 
   walletFunded: (data: { name: string; amount: string; currency: string; ref: string; newBalance: string; donorAmount?: string; donorCurrency?: string; }) => `
     <p>Hi ${data.name},</p>
-    <p>Your <strong>Givar Impact</strong> account has received a direct deposit.</p>
+    <p>Your <strong>Givar</strong> account has received a direct deposit.</p>
     <div class="stat-box">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Amount Received</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
       
       ${data.donorCurrency && data.donorCurrency !== data.currency ? `
         <div style="font-size: 13px; font-weight: 700; color: #059669; margin-top: 4px; opacity: 0.8;">
-          (Estimated value: ${data.donorCurrency === 'CAD' ? 'C$' : data.donorCurrency === 'USD' ? '$' : data.donorCurrency === 'GBP' ? '£' : data.donorCurrency === 'EUR' ? '€' : data.donorCurrency} ${data.donorAmount})
+          (Estimated value: ${data.donorCurrency === 'CAD' ? 'C$' : data.donorCurrency === 'USD' ? '$' : data.donorCurrency === 'GBP' ? '£' : data.donorCurrency === 'EUR' ? '€' : data.donorCurrency} ${Number(data.donorAmount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
         </div>
       ` : ''}
     </div>
@@ -153,7 +152,7 @@ export const EmailTemplates = {
 
   passwordReset: (url: string, name: string) => `
     <p>Hi ${name},</p>
-    <p>We received a request to reset your <strong>Givar Impact</strong> password. Click the button below to choose a new one.</p>
+    <p>We received a request to reset your <strong>Givar</strong> password. Click the button below to choose a new one.</p>
     <div style="text-align: center; margin: 32px 0;">
       <a href="${url}" class="button" style="background-color: #064e3b;">Reset Password</a>
     </div>
@@ -162,14 +161,14 @@ export const EmailTemplates = {
 
   passwordChanged: (name: string, date: string) => `
     <p>Hi ${name},</p>
-    <p>Your <strong>Givar Impact</strong> account password was successfully changed on <strong>${date}</strong>.</p>
+    <p>Your <strong>Givar</strong> account password was successfully changed on <strong>${date}</strong>.</p>
     <p>For your security, we have logged you out of all other active sessions.</p>
     <p>If you did not make this change, please contact Givar Support immediately.</p>
   `,
 
   milestoneCompleted: (data: { donorName: string; projectTitle: string; milestonePhase: string; date: string; projectUrl: string; imageUrl?: string; }) => `
     <p>Hi ${data.donorName},</p>
-    <p>Great news! A key milestone has been reached for the project you supported: <strong>${data.projectTitle}</strong>.</p>
+    <p>Great news! A key milestone has been reached for the cause you supported: <strong>${data.projectTitle}</strong>.</p>
 
     ${data.imageUrl ? `
       <div style="margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0;">
@@ -186,10 +185,10 @@ export const EmailTemplates = {
       </div>
     </div>
 
-    <p>Because of your contribution, this project is one step closer to its final goal. You can view the updated timeline and impact details on the project page.</p>
+    <p>Because of your contribution, this cause is one step closer to its final goal. You can view the updated timeline and impact details on the cause page.</p>
     
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.projectUrl}" class="button">View Project Progress</a>
+      <a href="${data.projectUrl}" class="button">View Cause Progress</a>
     </div>
 
     <p style="font-size: 14px; color: #6b7280;">Thank you for being a vital part of this journey.</p>
@@ -197,18 +196,18 @@ export const EmailTemplates = {
 
   evidenceRequest: (data: { name: string; project: string; milestone: string; vendor: string; uploadUrl: string }) => `
     <p>Hi ${data.name},</p>
-    <p>Givar Management has officially disbursed funds to <strong>${data.vendor}</strong> for the following project phase:</p>
+    <p>Givar Management has officially disbursed funds to <strong>${data.vendor}</strong> for the following phase:</p>
     
     <div class="stat-box">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Active Milestone</div>
       <div style="font-size: 22px; font-weight: 800; color: #064e3b; line-height: 1.2;">${data.milestone}</div>
       <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
       <div style="font-size: 13px; font-weight: 600; color: #065f46;">
-        Project: ${data.project}
+        Cause: ${data.project}
       </div>
     </div>
 
-    <p>As the project owner, your verification is now required. Please capture and upload <strong>Proof of Progress</strong> (photos or documents) as soon as the work begins or materials arrive.</p>
+    <p>As the cause organizer, your verification is now required. Please capture and upload <strong>Proof of Progress</strong> (photos or documents) as soon as the work begins or materials arrive.</p>
     
     <p style="font-size: 14px; color: #6b7280; font-style: italic;">Note: Verification of this phase is a prerequisite for subsequent funding tranches.</p>
 
@@ -217,18 +216,46 @@ export const EmailTemplates = {
     </div>
   `,
 
-  proposalStatusUpdate: (data: { name: string; project: string; status: string; feedback?: string; url: string }) => `
-    <p>Hi ${data.name},</p>
-    <p>The status of your project proposal <strong>${data.project}</strong> has been updated.</p>
-    <div class="stat-box" style="text-align: center;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">New Status</div>
-      <div style="font-size: 24px; font-weight: 800; color: #064e3b;">${data.status}</div>
-    </div>
-    ${data.feedback ? `<p><strong>Admin Feedback:</strong> ${data.feedback}</p>` : ''}
-    <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.url}" class="button">View Proposal</a>
-    </div>
-  `,
+  proposalStatusUpdate: (data: { name: string; project: string; status: string; feedback?: string; url: string }) => {
+    if (data.status === 'APPROVED') {
+      return `
+            <p>Hi ${data.name},</p>
+            <p>Great news — your cause, "<strong>${data.project}</strong>", has been approved and is now ready to go live.</p>
+            <p>You can view and manage your cause below.</p>
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="${data.url}" class="button">View Cause</a>
+            </div>
+        `;
+    } else if (data.status === 'CHANGES REQUESTED') {
+      return `
+            <p>Hi ${data.name},</p>
+            <p>There’s an update on your cause, "<strong>${data.project}</strong>".</p>
+            <div class="stat-box" style="text-align: center;">
+              <div style="font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Status</div>
+              <div style="font-size: 24px; font-weight: 800; color: #92400e;">Changes Requested</div>
+            </div>
+            <p>Our team has reviewed your submission and needs a bit more information to proceed.</p>
+            ${data.feedback ? `<p><strong>Admin Feedback:</strong><br/>${data.feedback}</p>` : ''}
+            <p>You can review the feedback and update your cause from the Drafts section in My Causes.</p>
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="${data.url}" class="button">View Cause</a>
+            </div>
+        `;
+    } else {
+      return `
+            <p>Hi ${data.name},</p>
+            <p>The status of your cause "<strong>${data.project}</strong>" has been updated.</p>
+            <div class="stat-box" style="text-align: center;">
+              <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">New Status</div>
+              <div style="font-size: 24px; font-weight: 800; color: #064e3b;">${data.status}</div>
+            </div>
+            ${data.feedback ? `<p><strong>Feedback:</strong> ${data.feedback}</p>` : ''}
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="${data.url}" class="button">Track Cause Status</a>
+            </div>
+        `;
+    }
+  },
 
   milestoneOwnerUpdate: (data: { name: string; project: string; milestone: string; status: string; url: string }) => `
     <p>Hi ${data.name},</p>
@@ -239,7 +266,7 @@ export const EmailTemplates = {
     </div>
     <p>Please log in to your management console to view next steps or upload required evidence.</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.url}" class="button">Manage Project</a>
+      <a href="${data.url}" class="button">Manage Cause</a>
     </div>
   `,
 
@@ -253,7 +280,7 @@ export const EmailTemplates = {
     projectUrl: string;
   }) => `
     <p>Hi ${data.name},</p>
-    <p>This is an automated transparency notice regarding the project <strong>${data.projectTitle}</strong>.</p>
+    <p>This is an automated transparency notice regarding the cause <strong>${data.projectTitle}</strong>.</p>
     
     <div class="stat-box" style="background-color: #fffbeb; border: 1px solid #fde68a;">
       <div style="font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Ledger Amendment Detail</div>
@@ -279,10 +306,10 @@ export const EmailTemplates = {
       <p style="font-size: 14px; color: #92400e; margin: 0; font-style: italic; line-height: 1.5;">"${data.reason}"</p>
     </div>
 
-    <p>Givar Impact requires all live financial changes to be verified by audit nodes and broadcasted to the community to maintain the integrity of our immutable ledger.</p>
+    <p>Givar requires all live financial changes to be verified by audit nodes and broadcasted to the community to maintain the integrity of our immutable ledger.</p>
     
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.projectUrl}" class="button" style="background-color: #b45309;">View Project Updates</a>
+      <a href="${data.projectUrl}" class="button" style="background-color: #b45309;">View Cause Updates</a>
     </div>
 
     <p style="font-size: 13px; color: #6b7280;">If you have any questions regarding this amendment, please contact the Givar Audit Team.</p>
@@ -290,7 +317,7 @@ export const EmailTemplates = {
 
   projectFunded: (data: { name: string; projectTitle: string; amount: string; currency: string; projectUrl: string }) => `
     <p>Hi ${data.name},</p>
-    <p>Congratulations! Your project <strong>${data.projectTitle}</strong> has reached its full funding goal.</p>
+    <p>Congratulations! Your cause <strong>${data.projectTitle}</strong> has reached its full funding goal.</p>
     <div class="stat-box" style="text-align: center;">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total Capital Raised</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
@@ -304,14 +331,14 @@ export const EmailTemplates = {
 
   projectFundedDonor: (data: { name: string; projectTitle: string; amount: string; currency: string; projectUrl: string }) => `
     <p>Hi ${data.name},</p>
-    <p>Wonderful news! The project you supported, <strong>${data.projectTitle}</strong>, has just reached its full funding goal.</p>
+    <p>Wonderful news! The cause you supported, <strong>${data.projectTitle}</strong>, has just reached its full funding goal.</p>
     <div class="stat-box" style="text-align: center;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Project Goal Reached</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Cause Goal Reached</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
     </div>
     <p>Your contribution was essential in making this happen. We will keep you updated as the execution phases begin and milestones are achieved.</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.projectUrl}" class="button">View Project Timeline</a>
+      <a href="${data.projectUrl}" class="button">View Cause Timeline</a>
     </div>
     <p style="font-size: 14px; color: #6b7280;">Thank you for your generosity and for being part of this impact journey.</p>
   `,
@@ -331,7 +358,7 @@ export const EmailTemplates = {
       </div>
     ` : ''}
 
-    <p>Thank you for making this possible. All project milestones are now verified and finalized on the Givar immutable ledger.</p>
+    <p>Thank you for making this possible. All cause milestones are now verified and finalized on the Givar immutable ledger.</p>
 
     ${data.disbursementSummary ? `
       <div style="margin: 24px 0; padding: 20px; border-radius: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; font-size: 13px; color: #475569;">
@@ -363,7 +390,7 @@ export const EmailTemplates = {
       </p>
     </div>
 
-    <p>We recommend reviewing this feedback soon to keep your project moving forward. You can reply directly through your dashboard.</p>
+    <p>We recommend reviewing this feedback soon to keep your cause moving forward. You can reply directly through your dashboard.</p>
     
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.actionUrl}" class="button">View conversation</a>
@@ -382,11 +409,11 @@ export const EmailTemplates = {
     <p>A new proof of work has been submitted for <strong>${data.projectTitle}</strong> and requires your review.</p>
     
     <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
-      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Project Phase</p>
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Cause Phase</p>
       <p style="font-size: 18px; color: #064e3b; font-weight: 800; margin: 0;">${data.milestonePhase}</p>
     </div>
 
-    <p>Please audit the uploaded photos and description to ensure they meet the project requirements. Once verified, the next funding tranche will be eligible for disbursement.</p>
+    <p>Please audit the uploaded photos and description to ensure they meet the cause requirements. Once verified, the next funding tranche will be eligible for disbursement.</p>
     
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.queueUrl}" class="button">Open evidence queue</a>
@@ -397,7 +424,7 @@ export const EmailTemplates = {
 
   adminProposalSubmitted: (data: { adminName: string; projectTitle: string; proposerName: string; url: string }) => `
     <p>Hi ${data.adminName},</p>
-    <p>A new project proposal, <strong>"${data.projectTitle}"</strong>, has been submitted by <strong>${data.proposerName}</strong> and is awaiting technical vetting.</p>
+    <p>A new cause, <strong>"${data.projectTitle}"</strong>, has been submitted by <strong>${data.proposerName}</strong> and is awaiting technical vetting.</p>
     
     <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 24px; margin: 24px 0;">
       <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #0369a1; margin-bottom: 8px; font-weight: 700;">Action Required</p>
@@ -407,7 +434,7 @@ export const EmailTemplates = {
     </div>
 
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.url}" class="button" style="background-color: #0369a1;">Review Proposal</a>
+      <a href="${data.url}" class="button" style="background-color: #0369a1;">Review Cause</a>
     </div>
     <p style="font-size: 13px; color: #6b7280;">This is an automated administrative alert from the Givar Compliance Node.</p>
   `,
@@ -428,7 +455,7 @@ export const EmailTemplates = {
 
   adminNewMessage: (data: { adminName: string; senderName: string; projectTitle: string; content: string; url: string }) => `
     <p>Hi ${data.adminName},</p>
-    <p>You have a new message from <strong>${data.senderName}</strong> regarding the project: <strong>"${data.projectTitle}"</strong>.</p>
+    <p>You have a new message from <strong>${data.senderName}</strong> regarding the cause: <strong>"${data.projectTitle}"</strong>.</p>
     
     <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 16px; padding: 24px; margin: 24px 0;">
       <p style="font-size: 13px; color: #111827; line-height: 1.6; margin: 0; font-style: italic;">
@@ -461,7 +488,7 @@ export const EmailTemplates = {
 
   proposalSubmitted: (data: { name: string; projectTitle: string; url: string }) => `
     <p>Hi ${data.name},</p>
-    <p>Your project proposal, <strong>"${data.projectTitle}"</strong>, has been successfully submitted for review.</p>
+    <p>Your cause, <strong>"${data.projectTitle}"</strong>, has been successfully submitted for review.</p>
     
     <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
       <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Status: Under Review</p>
@@ -471,7 +498,7 @@ export const EmailTemplates = {
     </div>
 
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.url}" class="button">Track Proposal Status</a>
+      <a href="${data.url}" class="button">Track Cause Status</a>
     </div>
     <p style="font-size: 13px; color: #6b7280;">You can reply to this email if you have any questions regarding the review timeline.</p>
   `,
@@ -535,7 +562,7 @@ export const EmailTemplates = {
         <p style="font-size: 24px; color: #064e3b; font-weight: 800; margin: 0; line-height: 1.2;">The next funding phase is now OPEN!</p>
       </div>
 
-      <p>Because you asked to be notified, you're the first to know. The project still needs your support to reach the finish line. Let's keep the momentum going!</p>
+      <p>Because you asked to be notified, you're the first to know. The cause still needs your support to reach the finish line. Let's keep the momentum going!</p>
       
       <div style="text-align: center; margin: 40px 0;">
         <a href="${data.projectUrl}" class="button" style="background-color: #10b981; padding: 18px 40px; font-size: 16px;">Fund the next phase</a>
@@ -546,12 +573,12 @@ export const EmailTemplates = {
 
   adminVendorPayoutConfirmed: (data: { adminName: string; projectTitle: string; phaseName: string; vendorName: string; amount: string; currency: string; reference: string; url: string }) => `
     <p>Hi ${data.adminName},</p>
-    <p><strong>Phase funding accomplished:</strong> The full capital required for a project phase has been successfully secured and routed to the verified vendor subaccount.</p>
+    <p><strong>Phase funding accomplished:</strong> The full capital required for a cause phase has been successfully secured and routed to the verified vendor subaccount.</p>
     <div class="stat-box" style="border-color: #10b981; background-color: #f0fdf4;">
       <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total phase capital secured</div>
       <div style="font-size: 32px; font-weight: 800; color: #10b981;">${data.currency} ${data.amount}</div>
       <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
-      <p style="margin: 0; font-size: 14px; color: #064e3b;"><strong>Project:</strong> ${data.projectTitle}</p>
+      <p style="margin: 0; font-size: 14px; color: #064e3b;"><strong>Cause:</strong> ${data.projectTitle}</p>
       <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Phase:</strong> ${data.phaseName}</p>
       <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Vendor:</strong> ${data.vendorName}</p>
       <p style="margin: 12px 0 0 0; font-size: 10px; color: #059669; font-family: monospace; opacity: 0.7;">Finalizing reference: ${data.reference}</p>
@@ -561,8 +588,8 @@ export const EmailTemplates = {
 
   vendorPhaseFunded: (data: { vendorName: string; projectTitle: string; phaseName: string; amount: string; currency: string; reference: string }) => `
     <p>Hi ${data.vendorName},</p>
-    <p>This is an automated notification from <strong>Givar Impact</strong>.</p>
-    <p>We are pleased to inform you that the required capital for your services regarding the project <strong>"${data.projectTitle}"</strong> has been successfully secured by donors.</p>
+    <p>This is an automated notification from <strong>Givar</strong>.</p>
+    <p>We are pleased to inform you that the required capital for your services regarding the cause <strong>"${data.projectTitle}"</strong> has been successfully secured by donors.</p>
     
     <div class="stat-box" style="border-color: #10b981; background-color: #f0fdf4;">
       <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase;">Phase Fully Funded</div>
@@ -574,6 +601,6 @@ export const EmailTemplates = {
     <p><strong>Important settlement notice:</strong><br/>
     These funds have been routed to your authorized Paystack subaccount. <strong>Please note that Paystack settles funds to your registered bank account on a T+1 basis (the next working day).</strong></p>
     
-    <p>Once the funds reflect in your bank account, please commence execution and provide the project organizer with the necessary receipts and photographic proof of work.</p>
+    <p>Once the funds reflect in your bank account, please commence execution and provide the cause organizer with the necessary receipts and photographic proof of work.</p>
   `,
 };

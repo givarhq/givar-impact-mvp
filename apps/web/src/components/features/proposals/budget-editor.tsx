@@ -75,6 +75,18 @@ export const BudgetEditor = memo(function BudgetEditor({
     }
   }, [isAdmin, banks.length]);
 
+  // Recipient Auto-Assignment Logic
+  useEffect(() => {
+    if (!isLocked && vendors.length === 1) {
+      const singleVendorId = vendors[0].id;
+      const needsUpdate = budgetBreakdown.some(item => item.vendorId !== singleVendorId);
+      if (needsUpdate) {
+        const updatedBudget = budgetBreakdown.map(item => ({ ...item, vendorId: singleVendorId }));
+        updateBudget(updatedBudget);
+      }
+    }
+  }, [vendors, budgetBreakdown, isLocked, updateBudget]);
+
   const addVendor = () => {
     if (isLocked) return;
     const newVendor: VendorItem = { id: crypto.randomUUID(), name: '', email: '', phone: '' };
@@ -84,7 +96,7 @@ export const BudgetEditor = memo(function BudgetEditor({
   const removeVendor = (id: string) => {
     if (isLocked) return;
     if (budgetBreakdown.some(b => b.vendorId === id)) {
-      toast.error("Cannot remove vendor while they are assigned to an active budget item.");
+      toast.error("Cannot remove recipient while they are assigned to an active item.");
       return;
     }
     updateVendors(vendors.filter(v => v.id !== id));
@@ -116,7 +128,7 @@ export const BudgetEditor = memo(function BudgetEditor({
     if (isLocked) return;
     const newItem: BudgetItem = {
       id: crypto.randomUUID(),
-      vendorId: '',
+      vendorId: vendors.length === 1 ? vendors[0].id : '',
       costType: activeCostTypes[0].value,
       amount: 0,
       description: '',
@@ -199,26 +211,19 @@ export const BudgetEditor = memo(function BudgetEditor({
 
   return (
     <div className="space-y-12">
-      {!isLocked && !isAdmin && (
-        <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 flex items-start gap-3 shadow-sm animate-in fade-in -mt-2">
-          <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-blue-800 font-medium leading-relaxed">
-            Register the vendors executing your cause first, then assign them to specific expenses in the budget breakdown below.
-          </p>
-        </div>
-      )}
-
       {/* SECTION A: VENDORS */}
       <div className="space-y-4 border border-border/40 rounded-3xl p-5 bg-card shadow-sm">
         <div className="flex items-center justify-between pb-2 border-b border-border/40">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" /> Vendor & Partner Directory
+              <Users className="h-4 w-4 text-primary" /> Recipients
             </h3>
-            <p className="text-[11px] text-muted-foreground font-medium mt-1">Institutions and businesses executing this project.</p>
+            <p className="text-[11px] text-muted-foreground font-medium mt-1">
+              Start by adding the institutions or service providers involved in your cause, then assign them to the relevant items below.
+            </p>
           </div>
           {!isLocked && (
-            <Button variant="outline" size="sm" onClick={addVendor} className="h-8 rounded-3xl text-xs font-bold gap-1.5 border-border/60 shadow-sm active:scale-95 transition-transform">
+            <Button variant="outline" size="sm" onClick={addVendor} className="h-8 rounded-3xl text-xs font-bold gap-1.5 border-border/60 shadow-sm active:scale-95 transition-transform shrink-0 ml-2">
               <UserPlus className="h-3.5 w-3.5" /> Add
             </Button>
           )}
@@ -227,7 +232,7 @@ export const BudgetEditor = memo(function BudgetEditor({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {vendors.length === 0 ? (
             <div className="col-span-full py-6 text-center text-xs text-muted-foreground italic font-medium">
-              No vendors registered yet.
+              No recipients registered yet.
             </div>
           ) : (
             <AnimatePresence mode="popLayout">
@@ -250,7 +255,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                   )}
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Vendor Name *</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Recipient Name *</label>
                     <Input
                       value={vendor.name}
                       onChange={(e) => updateVendorField(vendor.id, 'name', e.target.value)}
@@ -333,9 +338,13 @@ export const BudgetEditor = memo(function BudgetEditor({
 
       {/* SECTION B: BUDGET ITEMS */}
       <div className="space-y-2">
-        <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-4">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
           Cost Breakdown
         </h3>
+        <p className="text-[11px] text-muted-foreground font-medium mb-4">
+          <span className="font-bold">Tip:</span> We recommend 2–4 items for most causes. If your invoice includes many entries, group related costs into a few clear categories (e.g. Consultation, Surgery, Aftercare) to keep your cause easy to understand and speed up review.
+        </p>
+
         <AnimatePresence initial={false} mode="popLayout">
           {budgetBreakdown.map((item) => (
             <motion.div
@@ -348,7 +357,7 @@ export const BudgetEditor = memo(function BudgetEditor({
               className={fieldContainerClass}
             >
               <div className="md:col-span-4 space-y-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Expense Description</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Item</label>
                 <Input
                   placeholder="Details..."
                   value={item.description}
@@ -359,19 +368,19 @@ export const BudgetEditor = memo(function BudgetEditor({
               </div>
 
               <div className="md:col-span-3 space-y-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Assigned Vendor</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Recipient</label>
                 {isLocked ? (
-                  <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'Pending Sourcing'} readOnly className={inputStyle} />
+                  <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={inputStyle} />
                 ) : (
-                  <Select value={item.vendorId || "unassigned"} onValueChange={(v) => handleUpdate(item.id, 'vendorId', v === 'unassigned' ? '' : v)} disabled={isLocked}>
-                    <SelectTrigger className={cn(inputStyle, "font-bold", isLocked && "text-primary")}>
-                      <SelectValue placeholder="Select Vendor..." />
+                  <Select value={item.vendorId || "unassigned"} onValueChange={(v) => handleUpdate(item.id, 'vendorId', v === 'unassigned' ? '' : v)} disabled={isLocked || vendors.length === 1}>
+                    <SelectTrigger className={cn(inputStyle, "font-bold", (isLocked || vendors.length === 1) && "opacity-70 cursor-not-allowed", isLocked && "text-primary")}>
+                      <SelectValue placeholder="Select a recipient" />
                     </SelectTrigger>
                     <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                      <SelectItem value="unassigned" className="rounded-2xl text-xs py-2.5 italic text-muted-foreground">Pending Sourcing</SelectItem>
+                      <SelectItem value="unassigned" className="rounded-2xl text-xs py-2.5 italic text-muted-foreground">To be confirmed</SelectItem>
                       {vendors.map((v) => (
                         <SelectItem key={v.id} value={v.id} className="rounded-2xl text-xs py-2.5 font-bold">
-                          {v.name || 'Unnamed Vendor'}
+                          {v.name || 'Unnamed Recipient'}
                         </SelectItem>
                       ))}
                     </SelectContent>
