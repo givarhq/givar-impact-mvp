@@ -49,7 +49,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
         const stages = [
             {
                 label: 'Cause Submitted',
-                desc: 'Proposal received',
+                desc: 'Submission received',
                 icon: FileText,
                 isCompleted: true,
                 isActive: false
@@ -82,17 +82,17 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
         if (currentStatus === 'CHANGES_REQUESTED') {
             actionRequired = {
                 title: 'Additional Details Required',
-                description: 'The review team has requested updates to your proposal before it can be approved.',
+                description: 'The review team has requested updates to your cause before it can be approved.',
                 feedback: proposal.adminFeedback,
                 link: `/dashboard/proposals/edit/${id}/hook`,
-                buttonText: 'Edit Proposal',
+                buttonText: 'Edit Cause',
                 icon: AlertCircle,
                 color: 'amber'
             };
         } else if (currentStatus === 'AWAITING_VERIFICATION') {
             actionRequired = {
                 title: 'Identity Verification Pending',
-                description: 'Your proposal is paused. You must complete the organization verification process to proceed.',
+                description: 'Your cause is paused. You must complete the organization verification process to proceed.',
                 link: `/dashboard/settings?tab=verification`,
                 buttonText: 'Complete Verification',
                 icon: ShieldCheck,
@@ -100,7 +100,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
             };
         } else if (currentStatus === 'REJECTED') {
             actionRequired = {
-                title: 'Proposal Declined',
+                title: 'Cause Declined',
                 description: 'This cause was not approved for publication on the platform.',
                 feedback: proposal.adminFeedback,
                 link: `/dashboard/proposals`,
@@ -136,7 +136,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 min-w-0">
                         <div className="min-w-0 flex-1">
                             <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground truncate">
-                                {proposal.title || 'Untitled Proposal'}
+                                {proposal.title || 'Untitled Cause'}
                             </h1>
                             <div className="flex items-center gap-3 mt-2">
                                 <Badge variant="outline" className={cn("px-2.5 py-0.5 rounded-3xl font-bold text-[11px]  border", getStatusColor(currentStatus))}>
@@ -221,7 +221,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                             <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mb-6 animate-in slide-in-from-bottom-2 duration-500">
                                 <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 flex flex-row items-center justify-between">
                                     <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
-                                        <Briefcase className="h-4 w-4 text-emerald-500" /> Use of Funds & Vendors
+                                        <Briefcase className="h-4 w-4 text-emerald-500" /> Implementation Plan
                                     </CardTitle>
                                     <div className="flex items-center gap-2 bg-background border border-border/60 px-3 py-1 rounded-3xl shadow-sm">
                                         <span className="text-[11px] font-bold text-muted-foreground">Total:</span>
@@ -234,16 +234,16 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                     <table className="w-full text-left border-collapse min-w-[550px]">
                                         <thead className="bg-muted/10 text-[11px] font-bold text-muted-foreground border-b border-border/40 tracking-tight">
                                             <tr>
-                                                <th className="px-6 py-4">Expense Item</th>
-                                                <th className="px-6 py-4">Assigned Vendor</th>
-                                                <th className="px-6 py-4 text-right">Allocation</th>
+                                                <th className="px-6 py-4">Item</th>
+                                                <th className="px-6 py-4">Recipient</th>
+                                                <th className="px-6 py-4 text-right">Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/40 text-xs font-medium">
                                             {budget.map((item: any, i: number) => {
                                                 const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
-                                                const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || '');
-                                                const isPendingVendor = !vendorName || vendorName.toLowerCase() === 'pending vendor sourcing';
+                                                const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'To be confirmed');
+                                                const isPendingVendor = !vendorName || vendorName.toLowerCase() === 'pending vendor sourcing' || vendorName === 'To be confirmed';
 
                                                 return (
                                                     <tr key={item.id || i} className="hover:bg-muted/10 transition-colors">
@@ -256,16 +256,12 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                         <td className="px-6 py-4">
                                                             {isPendingVendor ? (
                                                                 <span className="text-amber-600 font-bold text-[11px] bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 shadow-sm whitespace-nowrap">
-                                                                    Pending vendor sourcing
+                                                                    To be confirmed
                                                                 </span>
                                                             ) : (
                                                                 <div className="flex flex-col gap-0.5">
                                                                     <span className="font-bold text-foreground">{vendorName}</span>
-                                                                    {(vendor?.email || vendor?.phone || item.vendorContact) && (
-                                                                        <span className="text-[10px] text-muted-foreground">
-                                                                            {vendor?.email || vendor?.phone || item.vendorContact}
-                                                                        </span>
-                                                                    )}
+                                                                    {/* Removed contact details per instruction for user-facing summary */}
                                                                 </div>
                                                             )}
                                                         </td>
@@ -279,7 +275,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                     </table>
                                 </div>
                                 <div className="p-4 bg-muted/20 border-t border-border/40 text-xs text-muted-foreground font-medium text-center italic">
-                                    If a phase is pending a vendor, use the message thread to provide the details to Givar.
+                                    If a phase is pending a recipient, use the message thread to provide the details to Givar.
                                 </div>
                             </Card>
                         )}

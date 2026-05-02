@@ -148,7 +148,7 @@ export function MyProposalsClient({ proposals }: MyProposalsClientProps) {
                         <EmptyState
                             icon={Rocket}
                             title="Your impact starts here"
-                            description="Launch a project to begin raising funds for verified community impact."
+                            description="Launch a cause to begin raising funds for verified community impact."
                             showAction={true}
                         />
                     )}
@@ -171,7 +171,7 @@ export function MyProposalsClient({ proposals }: MyProposalsClientProps) {
                         <EmptyState
                             icon={FileEdit}
                             title="No drafts found"
-                            description="Unpublished proposals or causes requiring your edits will appear here."
+                            description="Unpublished causes or causes requiring your edits will appear here."
                         />
                     )}
                 </TabsContent>
@@ -182,7 +182,7 @@ export function MyProposalsClient({ proposals }: MyProposalsClientProps) {
                         <EmptyState
                             icon={Inbox}
                             title="No past causes"
-                            description="Projects that have been fully completed or suspended will be archived here."
+                            description="Causes that have been fully completed or suspended will be archived here."
                         />
                     )}
                 </TabsContent>
