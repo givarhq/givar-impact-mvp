@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '../ui/button';
 import { useEffect, useState, memo, useCallback } from 'react';
+import { Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { LandingHeaderProps } from '../../types';
 
@@ -12,6 +13,7 @@ export const LandingHeader = memo(function LandingHeader({
   variant = 'default',
 }: LandingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isAuth = variant === 'auth';
 
   const handleScroll = useCallback(() => {
@@ -65,18 +67,13 @@ export const LandingHeader = memo(function LandingHeader({
           </Link>
         </nav>
 
-        <div className="relative z-10 flex items-center justify-center gap-3">
-          {/* Mobile About Link */}
-          <Link href="/about" className="md:hidden text-sm font-bold text-muted-foreground hover:text-primary transition-colors px-2">
-            About
-          </Link>
-
+        <div className="relative z-10 flex items-center justify-end gap-3">
           {!hideAuthButtons && (
             <>
-              <Link href="/login" className="flex items-center justify-center">
+              <Link href="/login" className="hidden md:flex items-center justify-center">
                 <Button
                   variant="ghost"
-                  className="hidden md:flex w-auto text-foreground hover:text-primary font-bold hover:bg-primary/5 rounded-full px-6 transition-all"
+                  className="w-auto text-foreground hover:text-primary font-bold hover:bg-primary/5 rounded-full px-6 transition-all"
                 >
                   Sign In
                 </Button>
@@ -88,8 +85,36 @@ export const LandingHeader = memo(function LandingHeader({
               </Link>
             </>
           )}
+
+          <button
+            className="md:hidden p-2 -mr-2 text-foreground flex items-center justify-center outline-none active:scale-95 transition-transform"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle Menu"
+          >
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-zinc-950 border-b border-border/40 p-4 flex flex-col gap-4 shadow-lg z-40">
+          <Link href="/explore" className="text-sm font-bold text-muted-foreground hover:text-foreground" onClick={() => setIsMenuOpen(false)}>
+            Explore Causes
+          </Link>
+          <Link href="/how-it-works" className="text-sm font-bold text-muted-foreground hover:text-foreground" onClick={() => setIsMenuOpen(false)}>
+            How It Works
+          </Link>
+          <Link href="/about" className="text-sm font-bold text-muted-foreground hover:text-foreground" onClick={() => setIsMenuOpen(false)}>
+            About
+          </Link>
+          {!hideAuthButtons && (
+            <Link href="/login" className="text-sm font-bold text-muted-foreground hover:text-foreground" onClick={() => setIsMenuOpen(false)}>
+              Sign In
+            </Link>
+          )}
+        </div>
+      )}
     </header>
   );
 });

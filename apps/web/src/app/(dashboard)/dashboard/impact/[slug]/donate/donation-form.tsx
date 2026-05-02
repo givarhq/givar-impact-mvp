@@ -300,7 +300,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         const goalNgnMajor = Number(remainingForPhaseMinor) / 100;
         const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
-        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { maximumFractionDigits: 0 })} )`;
+        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} )`;
     }
 
     if (isPhaseFull) {
@@ -390,7 +390,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     <div className="flex justify-between items-center px-1">
                         <label className="text-xs font-bold text-muted-foreground">Enter amount ({detectedCurrency})</label>
                         <span className="text-[10px] font-bold text-primary bg-primary/5 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm flex items-center gap-1.5">
-                            Remaining: {SYMBOLS[detectedCurrency] || detectedCurrency}{remainingSelectedMajor.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                            Remaining: {SYMBOLS[detectedCurrency] || detectedCurrency}{remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                     </div>
 

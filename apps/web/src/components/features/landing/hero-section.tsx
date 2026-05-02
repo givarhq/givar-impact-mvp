@@ -320,7 +320,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         transition={{ delay: 0.1 }}
                         className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
                     >
-                        <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-blue-50 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-110">2</div>
+                        <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-110">2</div>
                         <div className="h-12 w-12 bg-blue-50 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center mb-4 border border-blue-100 dark:border-blue-900/20">
                             <Activity className="h-6 w-6 text-blue-500" />
                         </div>
