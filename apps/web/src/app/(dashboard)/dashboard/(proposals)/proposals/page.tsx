@@ -7,7 +7,7 @@ import { MyProposalsClient } from '../../../../../components/features/proposals/
 
 export const metadata = {
   title: 'My Causes',
-  description: 'Manage your project proposals & track live impact.',
+  description: 'Manage your causes and track their progress from submission to impact.',
 };
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +26,7 @@ export default async function MyProposalsPage() {
         <div className="min-w-0">
           <h1 className="text-lg font-bold tracking-tight text-foreground">My Causes</h1>
           <p className="hidden md:block text-sm text-muted-foreground font-medium mt-1">
-            Manage project proposals & track live platform impact.
+            Manage your causes and track their progress from submission to impact.
           </p>
         </div>
 

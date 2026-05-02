@@ -1,4 +1,4 @@
-import { Heart, NotebookPen, History, Compass } from 'lucide-react';
+import { Heart, Library, History, Compass } from 'lucide-react';
 
 export const dashboardNav = [
   {
@@ -12,9 +12,9 @@ export const dashboardNav = [
     icon: Heart,
   },
   {
-    title: 'Proposals',
+    title: 'My Causes',
     href: '/dashboard/proposals',
-    icon: NotebookPen,
+    icon: Library,
   },
   {
     title: 'History',
