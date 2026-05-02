@@ -2896,18 +2896,25 @@ export class AdminService {
   /**
    * Generate a Vendor Subaccount on the fly and verify the bank details
    */
-  async createPaystackSubaccount(adminId: string, data: { businessName: string; bankCode: string; accountNumber: string }) {
+  async createPaystackSubaccount(adminId: string, data: { businessName: string; bankCode: string; accountNumber: string; vendorEmail?: string }) {
     try {
+      const payload: any = {
+        business_name: data.businessName,
+        settlement_bank: data.bankCode,
+        account_number: data.accountNumber,
+        // We set 0 here because Givar dynamically injects the platform fee 
+        // exactly in minor units (Kobo) at the transaction initialization layer.
+        percentage_charge: 0,
+      };
+
+      // Inject the vendor email so Paystack automatically sends them settlement reports
+      if (data.vendorEmail) {
+        payload.primary_contact_email = data.vendorEmail;
+      }
+
       const response = await axios.post(
         'https://api.paystack.co/subaccount',
-        {
-          business_name: data.businessName,
-          settlement_bank: data.bankCode,
-          account_number: data.accountNumber,
-          // We set 0 here because Givar dynamically injects the platform fee 
-          // exactly in minor units (Kobo) at the transaction initialization layer.
-          percentage_charge: 0,
-        },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${this.config.get('PAYSTACK_SECRET_KEY')}`,
@@ -2929,6 +2936,7 @@ export class AdminService {
           vendorName: data.businessName,
           subaccountCode: subaccountData.subaccount_code,
           bankCode: data.bankCode,
+          hasSettlementEmail: !!data.vendorEmail
         },
       });
 

@@ -319,7 +319,7 @@ export class AdminController {
   @Post('paystack/subaccount')
   createPaystackSubaccount(
     @Req() req: any,
-    @Body() dto: { businessName: string; bankCode: string; accountNumber: string }
+    @Body() dto: { businessName: string; bankCode: string; accountNumber: string; vendorEmail?: string }
   ) {
     return this.service.createPaystackSubaccount(req.user.id, dto);
   }
