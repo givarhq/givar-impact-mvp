@@ -81,7 +81,7 @@ export const LandingHeader = memo(function LandingHeader({
             </Link>
           </nav>
 
-          <div className="relative z-10 flex items-center justify-end gap-3">
+          <div className="relative z-10 flex items-center justify-end gap-2 md:gap-3">
             {!hideAuthButtons && (
               <>
                 <Link href="/login" className="hidden md:flex items-center justify-center">
@@ -92,8 +92,9 @@ export const LandingHeader = memo(function LandingHeader({
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/signup" className="hidden md:flex items-center justify-center">
-                  <Button className="w-auto rounded-full px-5 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm">
+                {/* Visible on both Mobile and Desktop */}
+                <Link href="/signup" className="flex items-center justify-center">
+                  <Button className="h-9 md:h-10 w-auto rounded-full px-4 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-xs md:text-sm">
                     Get Started
                   </Button>
                 </Link>
@@ -101,7 +102,7 @@ export const LandingHeader = memo(function LandingHeader({
             )}
 
             <button
-              className="md:hidden p-2 -mr-2 text-foreground flex items-center justify-center outline-none active:scale-95 transition-transform"
+              className="md:hidden p-1.5 text-foreground flex items-center justify-center outline-none active:scale-95 transition-transform"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle Menu"
             >
@@ -150,16 +151,6 @@ export const LandingHeader = memo(function LandingHeader({
                     </Link>
                   )}
                 </nav>
-
-                {!hideAuthButtons && (
-                  <div className="pt-4 border-t border-border/40">
-                    <Link href="/signup" onClick={() => setIsMenuOpen(false)} className="block w-full">
-                      <Button className="w-full h-12 rounded-full shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-base">
-                        Get Started
-                      </Button>
-                    </Link>
-                  </div>
-                )}
               </div>
             </motion.div>
           </>
