@@ -18,7 +18,8 @@ const steps = [
         icon: Wallet,
         color: "text-emerald-600",
         bg: "bg-emerald-50 dark:bg-emerald-500/10",
-        border: "border-emerald-100 dark:border-emerald-500/20"
+        border: "border-emerald-100 dark:border-emerald-500/20",
+        badgeBg: "bg-emerald-600"
     },
     {
         num: 2,
@@ -29,7 +30,8 @@ const steps = [
         icon: ShieldCheck,
         color: "text-blue-600",
         bg: "bg-blue-50 dark:bg-blue-500/10",
-        border: "border-blue-100 dark:border-blue-500/20"
+        border: "border-blue-100 dark:border-blue-500/20",
+        badgeBg: "bg-blue-600"
     },
     {
         num: 3,
@@ -40,7 +42,8 @@ const steps = [
         icon: Activity,
         color: "text-amber-600",
         bg: "bg-amber-50 dark:bg-amber-500/10",
-        border: "border-amber-100 dark:border-amber-500/20"
+        border: "border-amber-100 dark:border-amber-500/20",
+        badgeBg: "bg-amber-500"
     },
     {
         num: 4,
@@ -51,7 +54,8 @@ const steps = [
         icon: FileCheck,
         color: "text-primary",
         bg: "bg-primary/10",
-        border: "border-primary/20"
+        border: "border-primary/20",
+        badgeBg: "bg-primary"
     }
 ];
 
@@ -103,13 +107,13 @@ export function HowItWorksContent() {
                             const isEven = index % 2 === 0;
                             return (
                                 <div key={step.num} className={cn("flex flex-col md:flex-row items-center gap-0 md:gap-12 lg:gap-20 relative", !isEven ? "md:flex-row-reverse" : "")}>
-                                    <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white items-center justify-center font-black shadow-md z-20 text-sm">
+                                    <div className={cn("hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full text-white items-center justify-center font-black shadow-md z-20 text-sm", step.badgeBg)}>
                                         {step.num}
                                     </div>
                                     <div className="hidden md:block flex-1" />
                                     <div className="w-full md:w-1/2 flex-1 relative flex justify-center">
                                         <div className="relative w-full max-w-[320px] lg:max-w-sm">
-                                            <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-primary text-white flex md:hidden items-center justify-center font-black shadow-md z-20 text-xs">
+                                            <div className={cn("absolute -top-3 -left-3 w-8 h-8 rounded-full text-white flex md:hidden items-center justify-center font-black shadow-md z-20 text-xs", step.badgeBg)}>
                                                 {step.num}
                                             </div>
                                             <motion.div

@@ -109,7 +109,7 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
                 )}
                 {isEditable && (
                   <DropdownMenuItem onClick={() => router.push(linkTarget)} className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5">
-                    <Edit2 className="h-4 w-4" /> Edit Proposal
+                    <Edit2 className="h-4 w-4" /> Edit Cause
                   </DropdownMenuItem>
                 )}
                 {!isApproved && !isEditable && (

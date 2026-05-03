@@ -33,11 +33,10 @@ interface UserSearchResults {
 
 type FilterType = 'all' | 'projects' | 'proposals' | 'transactions' | 'auditLogs';
 
-// --- GHOST FIX: Removed "Recurring Support" from the UI filter options ---
 const FILTERS: { id: FilterType; label: string; icon: any }[] = [
     { id: 'all', label: 'All Results', icon: LayoutGrid },
     { id: 'projects', label: 'Verified Causes', icon: Compass },
-    { id: 'proposals', label: 'My Proposals', icon: FileText },
+    { id: 'proposals', label: 'My Causes', icon: FileText },
     { id: 'transactions', label: 'Transaction History', icon: Database },
     { id: 'auditLogs', label: 'Activity Logs', icon: History },
 ];
@@ -233,7 +232,7 @@ export const UserGlobalSearch = memo(function UserGlobalSearch() {
 
                                     {displayData.proposals?.length > 0 && (
                                         <div className="space-y-1 min-w-0">
-                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">My Proposals</div>
+                                            <div className="px-4 py-1 text-[11px] font-semibold tracking-widest text-muted-foreground/60">My Causes</div>
                                             {displayData.proposals.map(p => (
                                                 <button key={p.id} onClick={() => handleNavigate(`/dashboard/proposals/edit/${p.id}/hook`)} className="w-full flex items-center gap-4 p-3 rounded-3xl hover:bg-primary/5 transition-all text-left min-w-0 active:scale-[0.99]">
                                                     <div className="h-10 w-10 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0 shadow-inner">
