@@ -18,7 +18,7 @@ export class EmailService {
     this.resend = new Resend(this.config.get('RESEND_API_KEY'));
 
     const envFrom = this.config.get('RESEND_FROM_EMAIL');
-    this.fromEmail = envFrom ? envFrom.replace('Givar Impact', '"Givar Impact"') : 'Givar Impact <onboarding@resend.dev>';
+    this.fromEmail = envFrom ? envFrom.replace('Givar Impact', 'Givar') : 'Givar <onboarding@resend.dev>';
 
     this.isDev = this.config.get('NODE_ENV') === 'development';
   }
@@ -148,7 +148,14 @@ export class EmailService {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
     const content = EmailTemplates.proposalStatusUpdate({ ...data, url });
     const html = EmailTemplates.base(content, 'Proposal Status Update');
-    return this.send(email, `Givar Impact: Update on "${data.project}"`, html);
+
+    // Set dynamic subject based on status
+    let subject = `Givar: Update on "${data.project}"`;
+    if (data.status === 'APPROVED') {
+      subject = 'Your Cause Has Been Approved';
+    }
+
+    return this.send(email, subject, html);
   }
 
   // 11. Milestone Update for Owner
