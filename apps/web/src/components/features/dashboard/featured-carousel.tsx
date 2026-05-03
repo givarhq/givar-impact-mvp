@@ -104,7 +104,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                     className="flex flex-col lg:grid lg:grid-cols-2 w-full lg:h-[220px] cursor-pointer touch-pan-y group"
                     onClick={handleCardClick}
                 >
-                    <div className="relative flex flex-col h-[160px] lg:h-full group/col">
+                    <div className="relative flex flex-col h-[140px] sm:h-[160px] lg:h-full group/col">
                         <div className="absolute inset-0 overflow-hidden bg-muted">
                             {current.imageUrl && (
                                 <Image
@@ -141,26 +141,26 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
                     </div>
 
-                    <div className="flex flex-col justify-center h-full p-4 lg:p-6 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40">
-                        <div className="space-y-4 w-full">
-                            <div className="flex items-center">
+                    <div className="flex flex-col justify-center h-full p-3 sm:p-4 lg:p-6 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40">
+                        <div className="space-y-3 lg:space-y-4 w-full">
+                            <div className="flex items-center justify-center">
                                 <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Current Funding Phase</span>
                             </div>
 
-                            <div className="bg-card border border-border/40 rounded-2xl p-4 shadow-sm text-left">
-                                <h4 className="text-xs font-bold text-primary leading-tight mb-3 truncate">
+                            <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-4 shadow-sm text-left">
+                                <h4 className="text-xs font-bold text-primary leading-tight mb-2 lg:mb-3 truncate">
                                     Phase {activeIndex + 1}: {activeItemName}
                                 </h4>
 
                                 {isPhaseFull ? (
-                                    <div className="space-y-3 animate-in fade-in">
+                                    <div className="space-y-2 lg:space-y-3 animate-in fade-in">
                                         <div className="flex items-center gap-2 text-[10px] lg:text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200/60 w-fit">
                                             <Clock className="h-3.5 w-3.5" /> Verification in Progress
                                         </div>
                                         <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
                                             This phase is fully funded. Donations are paused while it is processed.
                                         </p>
-                                        <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden mt-2">
+                                        <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden mt-1 lg:mt-2">
                                             <motion.div
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `100%` }}
@@ -170,7 +170,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5 lg:space-y-2">
                                         <div className="flex justify-between items-end text-[11px] font-bold">
                                             <span className="text-foreground">
                                                 {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
@@ -187,6 +187,18 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                     </div>
                                 )}
                             </div>
+                        </div>
+
+                        <div className="flex justify-center shrink-0 mt-3 sm:mt-4 lg:mt-0">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(isPhaseFull ? `/dashboard/impact/${current.slug}` : `/dashboard/impact/${current.slug}/donate`);
+                                }}
+                                className="w-32 h-10 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-0 shrink-0"
+                            >
+                                {isPhaseFull ? "View cause" : "Fund this impact"}
+                            </button>
                         </div>
                     </div>
                 </motion.div>
