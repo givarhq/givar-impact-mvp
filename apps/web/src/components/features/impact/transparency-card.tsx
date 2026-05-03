@@ -258,7 +258,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                             <div className="space-y-3">
                                 <div className="flex justify-between items-end text-xs font-bold">
                                     <span className="text-foreground">
-                                        {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
+                                        {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
                                     </span>
                                     <span className="text-primary">{phasePercent}%</span>
                                 </div>
