@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, memo } from 'react';
 import Image from 'next/image';
 import {
@@ -12,7 +14,8 @@ import {
     Quote,
     Users,
     FileText,
-    Building2
+    Building2,
+    History
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -41,6 +44,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const donateLink = isPublic
         ? `/explore/${project.slug}/donate`
         : `/dashboard/impact/${project.slug}/donate`;
+
+    const recordsLink = isPublic
+        ? `/explore/${project.slug}/records`
+        : `/dashboard/impact/${project.slug}/records`;
 
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const gallery = Array.isArray(project.gallery) ? project.gallery : [];
@@ -71,7 +78,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
     if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
 
-    // DUST ROUNDING UI SUPPORT: If remaining gap is less than NGN 100 (10000n), no one can donate anyway. Show as full.
     const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
     const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
@@ -100,8 +106,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const displayCategory = project.subcategoryName
         ? `${project.category?.name || project.categoryName} • ${project.subcategoryName}`
         : (project.category?.name || project.categoryName || 'General Impact');
-
-    // ... [Content identical up to the Phased Funding segment] ...
 
     return (
         <motion.div
@@ -282,7 +286,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
                                         "[&_h2]:font-bold[&_h2]:text-foreground[&_h2]:text-lg [&_h2]:mt-6[&_h2]:mb-3",
                                         "[&_h3]:font-bold [&_h3]:text-foreground[&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
-                                        "[&_p]:mb-4[&_p]:last:mb-0",
+                                        "[&_p]:mb-4 [&_p]:last:mb-0",
                                         "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4[&_ul]:space-y-1.5[&_ul]:text-foreground/80[&_ul_li::marker]:text-primary/70",
                                         "[&_ol]:list-decimal[&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
@@ -305,7 +309,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
                                                 "[&_p]:mb-2[&_p]:last:mb-0",
                                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
-                                                "[&_ol]:list-decimal[&_ol]:pl-5 [&_ol]:mb-2[&_ol]:space-y-1",
+                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2[&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
                                                 "[&_em]:italic"
@@ -479,18 +483,26 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
-                    <div className="space-y-3 hidden md:block">
-                        {(!isCompleted && !isFundedState && !isPhaseFull) && (
-                            <Link href={donateLink} className="block w-full">
-                                <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
-                                    Fund this impact
-                                </Button>
-                            </Link>
-                        )}
+                    <div className="space-y-3">
+                        <div className="hidden md:block space-y-3">
+                            {(!isCompleted && !isFundedState && !isPhaseFull) && (
+                                <Link href={donateLink} className="block w-full">
+                                    <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                                        Fund this impact
+                                    </Button>
+                                </Link>
+                            )}
 
-                        <Button variant="outline" className="w-full h-11 rounded-3xl border-border/60 text-foreground font-bold text-xs gap-2 hover:bg-muted transition-all active:scale-95" onClick={() => setIsShareModalOpen(true)}>
-                            <Share2 className="h-4 w-4" /> Share cause
-                        </Button>
+                            <Button variant="outline" className="w-full h-11 rounded-3xl border-border/60 text-foreground font-bold text-xs gap-2 hover:bg-muted transition-all active:scale-95" onClick={() => setIsShareModalOpen(true)}>
+                                <Share2 className="h-4 w-4" /> Share cause
+                            </Button>
+                        </div>
+
+                        <Link href={recordsLink} className="block w-full">
+                            <Button variant="secondary" className="w-full h-11 rounded-3xl border border-border/40 text-foreground font-bold text-xs gap-2 hover:bg-muted/50 transition-all active:scale-95 bg-muted/30 shadow-sm">
+                                <History className="h-4 w-4 text-muted-foreground" /> View donation history
+                            </Button>
+                        </Link>
                     </div>
 
                     <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
