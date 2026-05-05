@@ -22,7 +22,7 @@ import { ApiService } from '../../../services/api';
 import { BudgetEditor } from '../proposals/budget-editor';
 import { TimelineEditor } from '../proposals/timeline-editor';
 import { MediaManager, ImageUploader, VideoUploader } from '../proposals/media-uploader';
-import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/format';
+import { formatNumberInput, parseFormattedNumber, toTitleCase, toSentenceCase } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Textarea } from '../../ui/textarea';
 import { Card } from '../../ui/card';
@@ -154,7 +154,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     }
   });
 
-  const [gallery, vendors, budget, timeline, coverImage, videoUrl, reason, description, selectedCategoryId] = watch([
+  const [gallery, vendors, budget, timeline, coverImage, videoUrl, reason, description, selectedCategoryId, titleValue, shortDescValue, personalMessageValue, locationValue] = watch([
     'gallery',
     'vendors',
     'budgetBreakdown',
@@ -163,7 +163,11 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     'videoUrl',
     'reasonForGoalAdjustment',
     'description',
-    'categoryId'
+    'categoryId',
+    'title',
+    'shortDesc',
+    'personalMessage',
+    'location'
   ]);
 
   const selectedCategoryObj = categories.find(c => c.id === selectedCategoryId);
@@ -229,6 +233,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const handleStartEditing = () => {
     setIsEditing(true);
   };
+
+  // Casing Handlers
+  const handleBlurTitle = () => { if (titleValue) setValue('title', toTitleCase(titleValue), { shouldDirty: true }); };
+  const handleBlurShortDesc = () => { if (shortDescValue) setValue('shortDesc', toSentenceCase(shortDescValue), { shouldDirty: true }); };
+  const handleBlurPersonalMessage = () => { if (personalMessageValue) setValue('personalMessage', toSentenceCase(personalMessageValue), { shouldDirty: true }); };
+  const handleBlurLocation = () => { if (locationValue) setValue('location', toTitleCase(locationValue), { shouldDirty: true }); };
 
   const getInputClass = () => cn(
     "transition-all duration-300 rounded-3xl h-12 text-sm pr-10",
@@ -325,7 +335,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               {watch('title')}
             </div>
           ) : (
-            <Input {...register('title')} className={getInputClass()} placeholder="Enter a compelling title..." error={errors.title?.message} />
+            <Input {...register('title')} onBlur={handleBlurTitle} className={getInputClass()} placeholder="Enter a compelling title..." error={errors.title?.message} />
           )}
         </div>
 
@@ -376,7 +386,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Location</label>
           <div className="relative group">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
-            <Input {...register('location')} placeholder="e.g. Lagos, Nigeria" className={cn(getInputClass(), "pl-11")} readOnly={readOnly} />
+            <Input {...register('location')} onBlur={handleBlurLocation} placeholder="e.g. Lagos, Nigeria" className={cn(getInputClass(), "pl-11")} readOnly={readOnly} />
           </div>
         </div>
 
@@ -402,12 +412,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Short Elevator Pitch</label>
-          <Textarea className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")} {...register('shortDesc')} readOnly={readOnly} placeholder="A brief summary for donor lists..." maxLength={140} />
+          <Textarea className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")} {...register('shortDesc')} onBlur={handleBlurShortDesc} readOnly={readOnly} placeholder="A brief summary for donor lists..." maxLength={140} />
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Personal Message</label>
-          <Textarea className={cn(getAreaClass("min-h-[100px]"), "resize-none rounded-3xl")} {...register('personalMessage')} readOnly={readOnly} placeholder="A direct, human appeal..." maxLength={500} />
+          <Textarea className={cn(getAreaClass("min-h-[100px]"), "resize-none rounded-3xl")} {...register('personalMessage')} onBlur={handleBlurPersonalMessage} readOnly={readOnly} placeholder="A direct, human appeal..." maxLength={500} />
         </div>
 
         <div className="md:col-span-12 space-y-1.5">

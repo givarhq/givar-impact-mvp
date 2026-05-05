@@ -1,6 +1,6 @@
 export const formatCurrency = (amount: string | number | bigint, currency = 'NGN') => {
-  let numericAmount = typeof amount === 'bigint' 
-    ? Number(amount) / 100 
+  let numericAmount = typeof amount === 'bigint'
+    ? Number(amount) / 100
     : Number(amount) / 100;
 
   const isNegative = numericAmount < 0;
@@ -30,7 +30,7 @@ export const formatCurrency = (amount: string | number | bigint, currency = 'NGN
   }
 
   const symbol = currency === 'NGN' ? '₦' : currency;
-  
+
   // Return format: -₦2,500.00 or ₦253.44M
   return `${isNegative ? '-' : ''}${symbol}${formatted}`;
 };
@@ -54,4 +54,21 @@ export const formatNumberInput = (value: string): string => {
 
 export const parseFormattedNumber = (value: string): string => {
   return value.replace(/,/g, '');
+};
+
+export const toTitleCase = (str: string): string => {
+  if (!str) return '';
+  const minorWords = new Set(['a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'in', 'of', 'with', 'as']);
+  return str.split(' ').map((word, index) => {
+    if (index !== 0 && minorWords.has(word.toLowerCase())) {
+      return word.toLowerCase();
+    }
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }).join(' ');
+};
+
+export const toSentenceCase = (str: string): string => {
+  if (!str) return '';
+  // Capitalizes the very first letter, and any letter following a punctuation mark (. ! ?) and whitespace
+  return str.replace(/(^\s*\w|[\.\?!]\s*\w)/g, (match) => match.toUpperCase());
 };

@@ -12,6 +12,7 @@ import { ApiService } from '../../../../../../../../services/api';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cn } from '../../../../../../../../lib/utils/cn';
+import { toTitleCase, toSentenceCase } from '../../../../../../../../lib/utils/format';
 
 export default function HookPage() {
   const router = useRouter();
@@ -49,6 +50,23 @@ export default function HookPage() {
     );
   }
 
+  // Formatting Handlers
+  const handleBlurTitle = () => {
+    if (title) updateField('title', toTitleCase(title));
+  };
+
+  const handleBlurShortDesc = () => {
+    if (shortDesc) updateField('shortDesc', toSentenceCase(shortDesc));
+  };
+
+  const handleBlurPersonalMessage = () => {
+    if (personalMessage) updateField('personalMessage', toSentenceCase(personalMessage));
+  };
+
+  const handleBlurLocation = () => {
+    if (location) updateField('location', toTitleCase(location));
+  };
+
   // Validation Logic
   const strippedDescription = description ? description.replace(/<[^>]*>?/gm, '').trim() : '';
 
@@ -85,6 +103,7 @@ export default function HookPage() {
               placeholder="e.g. Clean water for Owerri communities"
               value={title}
               onChange={(e) => updateField('title', e.target.value)}
+              onBlur={handleBlurTitle}
               className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
             />
 
@@ -93,6 +112,7 @@ export default function HookPage() {
               placeholder="A punchy one-liner (max 140 chars)..."
               value={shortDesc || ''}
               onChange={(e) => updateField('shortDesc', e.target.value)}
+              onBlur={handleBlurShortDesc}
               maxLength={140}
               className="h-24 rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none"
             />
@@ -113,6 +133,7 @@ export default function HookPage() {
               placeholder="A direct, human appeal to your potential donors..."
               value={personalMessage || ''}
               onChange={(e) => updateField('personalMessage', e.target.value)}
+              onBlur={handleBlurPersonalMessage}
               className="h-32 rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none"
             />
 
@@ -122,6 +143,7 @@ export default function HookPage() {
                 placeholder="e.g. Lagos, Nigeria"
                 value={location || ''}
                 onChange={(e) => updateField('location', e.target.value)}
+                onBlur={handleBlurLocation}
                 className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
               />
 
