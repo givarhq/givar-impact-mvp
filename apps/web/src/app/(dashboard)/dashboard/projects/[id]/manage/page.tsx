@@ -1,3 +1,4 @@
+// apps/web/src/app/(dashboard)/dashboard/projects/[id]/manage/page.tsx
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { ApiService } from '../../../../../../services/api';
@@ -8,7 +9,6 @@ import {
     ArrowLeft,
     CheckCircle2,
     Clock,
-    Database,
     ShieldCheck,
     Megaphone,
     Users,
@@ -16,14 +16,13 @@ import {
     Building2,
     UserCheck,
     FileText,
-    Check,
-    Activity
+    Activity,
+    History
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '../../../../../../lib/utils/cn';
 import { formatCurrency, formatDate } from '../../../../../../lib/utils/format';
-import { ReceiptButton } from '../../../../../../components/features/proposals/receipt-button';
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 import { ProjectUpdate } from '../../../../../../types';
 
@@ -275,73 +274,16 @@ export default async function ProjectManagePage({
 
                 <div className="lg:col-span-4 space-y-6 min-w-0">
 
-                    <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
-                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6 min-w-0">
-                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 truncate">
-                                <Database className="h-4 w-4" /> Disbursement history
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 space-y-3 min-w-0">
-                            {project.disbursements?.length > 0 ? (
-                                project.disbursements.map((d: any) => {
-                                    const satisfactionStatus = d.satisfactionStatus || 'PENDING_VERIFICATION';
-                                    const isVerified = satisfactionStatus === 'VERIFIED';
-
-                                    const phaseIndex = timeline.findIndex((t: any) => t.id === d.milestoneId);
-                                    const phaseName = phaseIndex !== -1 ? `Phase ${phaseIndex + 1}` : 'General';
-
-                                    return (
-                                        <div key={d.id} className="p-4 bg-muted/20 rounded-2xl border border-border/40 space-y-3 min-w-0">
-                                            <div className="flex justify-between items-start gap-2 min-w-0">
-                                                <div className="min-w-0">
-                                                    <p className="text-xs font-bold text-primary truncate">Outflow</p>
-                                                    <span className="text-[11px] font-mono text-muted-foreground truncate">{formatDate(d.createdAt).split(',')[0]}</span>
-                                                </div>
-
-                                                {isVerified ? (
-                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 shadow-none">
-                                                        <Check className="h-3 w-3 mr-1" /> Verified
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[10px] font-bold h-6 px-2.5 rounded-3xl shrink-0 shadow-none animate-pulse">
-                                                        <Clock className="h-3 w-3 mr-1" /> Executing
-                                                    </Badge>
-                                                )}
-                                            </div>
-
-                                            <div className="flex justify-between items-end gap-4 min-w-0">
-                                                <p className="text-base font-bold text-foreground tabular-nums truncate">
-                                                    {formatCurrency(d.amount, project.currency)}
-                                                </p>
-                                                {d.receiptKey && (
-                                                    <ReceiptButton receiptKey={d.receiptKey} projectId={project.id} className="h-8 px-4 rounded-xl border-border/40 text-[11px]" />
-                                                )}
-                                            </div>
-
-                                            <div className="mt-2 -mx-4 -mb-4 px-4 py-3 border-t border-border/40 flex justify-between items-center min-w-0">
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-xs font-bold text-foreground truncate">
-                                                        <span className="text-muted-foreground font-medium">Vendor:</span> {d.vendorName}
-                                                    </p>
-                                                    <p className="text-[11px] text-muted-foreground font-bold truncate mt-0.5">
-                                                        {phaseName}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                })
-                            ) : (
-                                <div className="text-center py-12 min-w-0">
-                                    <Clock className="h-8 w-8 mx-auto text-muted-foreground/20 mb-2" />
-                                    <p className="text-[11px] text-muted-foreground italic font-medium">Awaiting first treasury disbursement.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <div className="space-y-3">
+                        <Link href={`/dashboard/impact/${project.slug}/records`} className="block w-full">
+                            <Button variant="secondary" className="w-full h-11 rounded-3xl border border-border/40 text-foreground font-bold text-xs gap-2 hover:bg-muted/50 transition-all active:scale-95 bg-muted/30 shadow-sm">
+                                <History className="h-4 w-4 text-muted-foreground" /> View donation history
+                            </Button>
+                        </Link>
+                    </div>
 
                     <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
-                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 md:py-5 md:px-6 min-w-0">
                             <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
                                 <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar
                             </CardTitle>
