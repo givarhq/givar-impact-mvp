@@ -277,12 +277,9 @@ export default async function ProjectManagePage({
 
                     <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0 flex flex-row items-center justify-between">
-                            <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
+                            <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2 truncate">
                                 <History className="h-4 w-4 text-primary" /> Recent Donations
                             </CardTitle>
-                            <Badge variant="secondary" className="bg-background border-border/40 text-muted-foreground font-bold text-[10px] rounded-3xl px-2 shadow-sm">
-                                {project._count?.donations || 0} Total
-                            </Badge>
                         </CardHeader>
                         <CardContent className="p-0 min-w-0">
                             {recentDonations.data && recentDonations.data.length > 0 ? (
