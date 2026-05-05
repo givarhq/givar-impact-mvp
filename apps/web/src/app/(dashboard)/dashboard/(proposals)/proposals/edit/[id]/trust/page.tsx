@@ -114,9 +114,14 @@ export default function TrustPage() {
   const showFeedback = store.status === 'CHANGES_REQUESTED';
   const isThirdParty = store.beneficiaryRelationship !== 'Self' && store.beneficiaryRelationship !== null && store.beneficiaryRelationship !== '';
 
-  // Cross-Step Validation Gates
-  const strippedDescription = store.description ? store.description.replace(/<[^>]*>?/gm, '').trim() : '';
-  const isHookValid = !!(store.title && store.title.trim().length >= 10 && store.location && store.location.trim().length >= 2 && strippedDescription.length >= 20);
+  // Cross-Step Validation Gates (Refined for Granular UI Feedback)
+  const strippedDescription = store.description ? store.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim() : '';
+
+  const titleValid = !!(store.title && store.title.trim().length >= 10);
+  const locationValid = !!(store.location && store.location.trim().length >= 2);
+  const descValid = strippedDescription.length >= 20;
+
+  const isHookValid = titleValid && locationValid && descValid;
   const isMediaValid = !!store.coverImage;
 
   // Relaxed budget validation: vendor details are optional
@@ -319,14 +324,16 @@ export default function TrustPage() {
               </div>
             </div>
 
-            {/* Validation Banner */}
+            {/* Validation Banner (Refined Feedback) */}
             {!isAllStepsValid && (
               <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 mb-6 space-y-2 animate-in fade-in">
                 <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" /> Incomplete sections
                 </p>
                 <ul className="text-xs text-amber-700 font-medium list-disc pl-5 space-y-1">
-                  {!isHookValid && <li>The narrative section is incomplete (requires title, location, and a 20+ character description).</li>}
+                  {!titleValid && <li>The cause title must be at least 10 characters.</li>}
+                  {!locationValid && <li>A primary location is required.</li>}
+                  {!descValid && <li>The cause description must be at least 20 characters.</li>}
                   {!isMediaValid && <li>A primary hero image is required in the media section.</li>}
                   {!isPlanValid && <li>All required budget and execution fields must be fully completed.</li>}
                   {!isKycValid && <li>At least one piece of cause evidence or procurement quote must be uploaded.</li>}
