@@ -45,7 +45,7 @@ export default async function ProjectManagePage({
     if (!project) notFound();
 
     // Fetch recent donations for the sidebar card
-    const ledgerParams = new URLSearchParams({ limit: '5', type: 'INFLOW' });
+    const ledgerParams = new URLSearchParams({ limit: '4', type: 'INFLOW' });
     const recentDonations = await ApiService.projects.getLedger(ledgerParams, project.slug, token).catch(() => ({ data: [] }));
 
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
@@ -171,9 +171,6 @@ export default async function ProjectManagePage({
                                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">
                                     This cause is currently in the execution phase. The Givar team is coordinating directly with the assigned institutions and vendors to verify deliverables. Once execution is confirmed, the project status and public ledger will be updated automatically.
                                 </p>
-                                <div className="flex items-center gap-2 text-[11px] font-bold text-primary bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10 w-fit">
-                                    <ShieldCheck className="h-3.5 w-3.5" /> Givar Audited Execution
-                                </div>
                             </CardContent>
                         </Card>
                     )}
