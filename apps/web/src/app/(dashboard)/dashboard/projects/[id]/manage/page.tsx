@@ -1,4 +1,3 @@
-// apps/web/src/app/(dashboard)/dashboard/projects/[id]/manage/page.tsx
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 import { ApiService } from '../../../../../../services/api';
@@ -17,7 +16,8 @@ import {
     UserCheck,
     FileText,
     Activity,
-    History
+    History,
+    ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -43,6 +43,10 @@ export default async function ProjectManagePage({
 
     const project = await ApiService.projects.getOwnerView(id, token);
     if (!project) notFound();
+
+    // Fetch recent donations for the sidebar card
+    const ledgerParams = new URLSearchParams({ limit: '5', type: 'INFLOW' });
+    const recentDonations = await ApiService.projects.getLedger(ledgerParams, project.slug, token).catch(() => ({ data: [] }));
 
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
@@ -146,7 +150,7 @@ export default async function ProjectManagePage({
                                         </p>
                                     </div>
                                     {finalReport.imageUrl && (
-                                        <div className="relative aspect-video rounded-2xl overflow-hidden border border-emerald-500/20 shadow-md min-w-0">
+                                        <div className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md min-w-0">
                                             <Image src={finalReport.imageUrl} alt="Impact" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
                                         </div>
                                     )}
@@ -274,13 +278,48 @@ export default async function ProjectManagePage({
 
                 <div className="lg:col-span-4 space-y-6 min-w-0">
 
-                    <div className="space-y-3">
-                        <Link href={`/dashboard/impact/${project.slug}/records`} className="block w-full">
-                            <Button variant="secondary" className="w-full h-11 rounded-3xl border border-border/40 text-foreground font-bold text-xs gap-2 hover:bg-muted/50 transition-all active:scale-95 bg-muted/30 shadow-sm">
-                                <History className="h-4 w-4 text-muted-foreground" /> View donation history
-                            </Button>
-                        </Link>
-                    </div>
+                    <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0 flex flex-row items-center justify-between">
+                            <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
+                                <History className="h-4 w-4 text-primary" /> Recent Donations
+                            </CardTitle>
+                            <Badge variant="secondary" className="bg-background border-border/40 text-muted-foreground font-bold text-[10px] rounded-3xl px-2 shadow-sm">
+                                {project._count?.donations || 0} Total
+                            </Badge>
+                        </CardHeader>
+                        <CardContent className="p-0 min-w-0">
+                            {recentDonations.data && recentDonations.data.length > 0 ? (
+                                <div className="divide-y divide-border/40">
+                                    {recentDonations.data.map((donation: any) => (
+                                        <div key={donation.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/10 transition-colors">
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-xs font-bold text-foreground truncate">{donation.actorName}</p>
+                                                <p className="text-[10px] text-muted-foreground font-medium truncate mt-0.5">
+                                                    {formatDate(donation.createdAt).split(',')[0]}
+                                                </p>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-sm font-bold text-foreground tabular-nums">
+                                                    {formatCurrency(donation.amount, donation.currency)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-6 text-center">
+                                    <p className="text-xs text-muted-foreground italic font-medium">No donations yet.</p>
+                                </div>
+                            )}
+                            <div className="p-3 bg-muted/10 border-t border-border/40">
+                                <Link href={`/dashboard/impact/${project.slug}/records`} className="block w-full">
+                                    <Button variant="ghost" className="w-full h-9 rounded-2xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all">
+                                        View all records <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                                    </Button>
+                                </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 md:py-5 md:px-6 min-w-0">
