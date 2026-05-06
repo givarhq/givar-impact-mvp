@@ -3,10 +3,16 @@
 import React, { useState, useEffect, memo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
-import { MapPin, ShieldCheck, Clock } from 'lucide-react';
+import { MapPin, ShieldCheck, Clock, Share2, Loader2, CheckCircle2, BellRing } from 'lucide-react';
 import { Project } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
+import { Button } from '../../ui/button';
+import { ShareModal } from '../impact/share-modal';
+import { ApiService } from '../../../services/api';
+import { getCookie } from 'cookies-next';
+import toast from 'react-hot-toast';
 
 const SYMBOLS: Record<string, string> = {
     NGN: '₦',
@@ -21,6 +27,10 @@ const formatNoDecimals = (minorAmt: bigint) => (Number(minorAmt) / 100).toLocale
 export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { projects: Project[] & { subcategoryName?: string }[] }) {
     const router = useRouter();
     const [index, setIndex] = useState(0);
+    const [isShareOpen, setIsShareOpen] = useState(false);
+    const [shareProject, setShareProject] = useState<Project | null>(null);
+    const [waitlistLoadingId, setWaitlistLoadingId] = useState<string | null>(null);
+    const [waitlistedIds, setWaitlistedIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (!projects || projects.length <= 1) return;
@@ -85,9 +95,34 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
         router.push(`/dashboard/impact/${current.slug}`);
     };
 
-    const displayCategory = current.subcategoryName
-        ? `${current.categoryName || current.category?.name} • ${current.subcategoryName}`
-        : (current.categoryName || current.category?.name || 'Active cause');
+    const handleJoinWaitlist = async (projectId: string) => {
+        const userCookie = getCookie('givar_user');
+        let email = '';
+        if (userCookie) {
+            try {
+                email = JSON.parse(userCookie as string).email;
+            } catch (e) { }
+        }
+
+        if (!email) {
+            toast.error("Please log in to join the waitlist");
+            return;
+        }
+
+        setWaitlistLoadingId(projectId);
+        try {
+            await ApiService.projects.joinWaitlist(projectId, email);
+            toast.success("You'll be notified when the next phase unlocks!");
+            setWaitlistedIds(prev => new Set(prev).add(projectId));
+        } catch (e) {
+            toast.error("Could not join waitlist");
+        } finally {
+            setWaitlistLoadingId(null);
+        }
+    };
+
+    const donateLink = `/dashboard/impact/${current.slug}/donate`;
+    const detailsLink = `/dashboard/impact/${current.slug}`;
 
     return (
         <div className="relative w-full rounded-3xl overflow-hidden bg-card border border-border/40 shadow-sm transition-all duration-300">
@@ -129,7 +164,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             </div>
                         </div>
 
-                        <div className="relative mt-auto p-4 lg:p-6 space-y-0.5">
+                        <div className="relative mt-auto p-4 lg:p-5 space-y-0.5">
                             <h2 className="text-lg md:text-xl font-bold text-white tracking-tight leading-tight line-clamp-1">
                                 {current.title}
                             </h2>
@@ -141,52 +176,92 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
                     </div>
 
-                    <div className="flex flex-col justify-center h-full p-3 sm:p-4 lg:p-6 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40">
-                        <div className="space-y-3 lg:space-y-4 w-full">
-                            <div className="flex items-center justify-center">
-                                <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Current Funding Phase</span>
-                            </div>
+                    <div className="flex flex-col justify-between h-full p-3 sm:p-4 lg:p-5 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[9px] lg:text-[10px] font-bold text-muted-foreground tracking-widest uppercase truncate">Current Funding Phase</span>
+                        </div>
 
-                            <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-4 shadow-sm text-left">
-                                <h4 className="text-xs font-bold text-primary leading-tight mb-2 lg:mb-3 truncate">
-                                    Phase {activeIndex + 1}: {activeItemName}
-                                </h4>
+                        <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-3.5 shadow-sm text-left flex flex-col justify-center flex-1 min-w-0 mb-3">
+                            <h4 className="text-xs font-bold text-primary leading-tight mb-2 truncate">
+                                Phase {activeIndex + 1}: {activeItemName}
+                            </h4>
 
-                                {isPhaseFull ? (
-                                    <div className="space-y-2 lg:space-y-3 animate-in fade-in">
-                                        <div className="flex items-center gap-2 text-[10px] lg:text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200/60 w-fit">
-                                            <Clock className="h-3.5 w-3.5" /> Verification in Progress
-                                        </div>
-                                        <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
-                                            This phase is fully funded. Donations are paused while it is processed.
-                                        </p>
-                                        <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden mt-1 lg:mt-2">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `100%` }}
-                                                transition={{ duration: 1, ease: "easeOut" }}
-                                                className="h-full bg-primary rounded-full"
-                                            />
-                                        </div>
+                            {isPhaseFull ? (
+                                <div className="space-y-1.5 animate-in fade-in">
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60 w-fit">
+                                        <Clock className="h-3 w-3" /> Verifying Phase
                                     </div>
-                                ) : (
-                                    <div className="space-y-1.5 lg:space-y-2">
-                                        <div className="flex justify-between items-end text-[11px] font-bold">
-                                            <span className="text-foreground">
-                                                {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
-                                            </span>
-                                        </div>
-                                        <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${phasePercent}%` }}
-                                                transition={{ duration: 1, ease: "easeOut" }}
-                                                className="h-full bg-primary rounded-full"
-                                            />
-                                        </div>
+                                    <p className="text-[10px] font-medium text-muted-foreground leading-snug line-clamp-2">
+                                        Fully funded. Donations paused while execution is verified.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    <div className="flex justify-between items-end text-[10px] sm:text-[11px] font-bold">
+                                        <span className="text-foreground truncate">
+                                            {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} <span className="text-muted-foreground font-medium mx-0.5">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
+                                        </span>
+                                        <span className="text-primary">{phasePercent}%</span>
                                     </div>
-                                )}
-                            </div>
+                                    <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${phasePercent}%` }}
+                                            transition={{ duration: 1, ease: "easeOut" }}
+                                            className="h-full bg-primary rounded-full"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* CTA Actions */}
+                        <div className="flex items-center gap-2 shrink-0">
+                            {(!isCompleted && !isFundedState && !isPhaseFull) ? (
+                                <>
+                                    <Link href={donateLink} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                                        <Button size="sm" className="w-full h-9 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-xs shadow-md border-0 active:scale-95 truncate">
+                                            Fund this impact
+                                        </Button>
+                                    </Link>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setShareProject(current);
+                                            setIsShareOpen(true);
+                                        }}
+                                        className="h-9 w-9 rounded-full border-border/60 text-foreground shrink-0 bg-background shadow-sm active:scale-95 transition-all"
+                                    >
+                                        <Share2 className="h-4 w-4" />
+                                    </Button>
+                                </>
+                            ) : isPhaseFull ? (
+                                <Button
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleJoinWaitlist(current.id);
+                                    }}
+                                    disabled={waitlistLoadingId === current.id || waitlistedIds.has(current.id)}
+                                    className="w-full h-9 rounded-full bg-muted/50 hover:bg-muted text-foreground border border-border/60 font-bold text-xs shadow-sm active:scale-95 transition-all"
+                                >
+                                    {waitlistLoadingId === current.id ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : waitlistedIds.has(current.id) ? (
+                                        <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-600" /> On Waitlist</>
+                                    ) : (
+                                        <><BellRing className="h-3.5 w-3.5 mr-1.5" /> Notify me when unlocked</>
+                                    )}
+                                </Button>
+                            ) : (
+                                <Link href={detailsLink} className="w-full min-w-0" onClick={(e) => e.stopPropagation()}>
+                                    <Button size="sm" variant="secondary" className="w-full h-9 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 shadow-none transition-all active:scale-95">
+                                        View final impact
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </motion.div>
@@ -203,13 +278,20 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             }}
                             className={cn(
                                 "h-1 rounded-3xl transition-all duration-500",
-                                i === index ? "w-4 bg-primary" : "w-1.5 bg-white/30 hover:bg-white/50"
+                                i === index ? "w-4 bg-primary" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"
                             )}
                             aria-label={`Go To Slide ${i + 1}`}
                         />
                     ))}
                 </div>
             )}
+
+            <ShareModal
+                isOpen={isShareOpen}
+                onClose={() => setIsShareOpen(false)}
+                projectTitle={shareProject?.title || ''}
+                projectSlug={shareProject?.slug || ''}
+            />
         </div>
     );
 });
