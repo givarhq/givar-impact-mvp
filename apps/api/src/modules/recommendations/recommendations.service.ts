@@ -39,6 +39,41 @@ export class RecommendationsService {
     }
 
     /**
+     * Helper to detect if a project's active phase is fully funded.
+     * Projects caught by this are temporarily hidden from discovery until the phase unlocks.
+     */
+    private isPhaseFull(project: any): boolean {
+        if (project.status !== 'ACTIVE') return false;
+
+        const raised = BigInt(project.raisedAmount || '0');
+        const target = BigInt(project.targetAmount || '0');
+
+        const activeIndex = project.currentPhaseIndex || 0;
+        const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+
+        let previousPhasesMajor = 0;
+        for (let i = 0; i < activeIndex && i < budget.length; i++) {
+            previousPhasesMajor += (budget[i].amount || budget[i].cost || 0);
+        }
+        const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+
+        let cumulativeMajor = previousPhasesMajor;
+        if (budget[activeIndex]) {
+            cumulativeMajor += (budget[activeIndex].amount || budget[activeIndex].cost || 0);
+        }
+        const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
+            ? BigInt(Math.round(cumulativeMajor * 100))
+            : target;
+
+        const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+        let raisedInCurrentPhase = raised - previousPhasesMinor;
+        if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+        const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+        return remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n;
+    }
+
+    /**
      * Grouped Discovery Feed Logic.
      * Ranks projects and groups them by category for App-Store style rows.
      */
@@ -54,11 +89,11 @@ export class RecommendationsService {
         const pinnedIds = new Set(featuredSlots.map(s => s.projectId));
 
         const filteredCandidates = config.showFundedProjects
-            ? projects.filter(p => p.status !== ProjectStatus.COMPLETED)
+            ? projects.filter(p => p.status !== ProjectStatus.COMPLETED && !this.isPhaseFull(p))
             : projects.filter(p => {
                 const isStatusActive = p.status === ProjectStatus.ACTIVE;
                 const isMathIncomplete = BigInt(p.raisedAmount) < BigInt(p.targetAmount);
-                return isStatusActive && isMathIncomplete;
+                return isStatusActive && isMathIncomplete && !this.isPhaseFull(p);
             });
 
         if (filteredCandidates.length === 0) return [];
@@ -131,7 +166,7 @@ export class RecommendationsService {
             where: { id: { in: allSelectedIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
-                subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory
+                subcategory: { select: { name: true } },
                 user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
             }
         });
@@ -148,7 +183,7 @@ export class RecommendationsService {
                 raisedAmount: hydrated.raisedAmount.toString(),
                 percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
                 categoryName: hydrated.category?.name || 'General Impact',
-                subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
+                subcategoryName: hydrated.subcategory?.name,
                 isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
                 organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
                 organizerType: isSystem ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
@@ -306,13 +341,12 @@ export class RecommendationsService {
 
         if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-        // LOGIC FIX: Always exclude COMPLETED projects from main discovery feeds
         const filteredCandidates = config.showFundedProjects
-            ? projects.filter(p => p.status !== ProjectStatus.COMPLETED)
+            ? projects.filter(p => p.status !== ProjectStatus.COMPLETED && !this.isPhaseFull(p))
             : projects.filter(p => {
                 const isStatusActive = p.status === ProjectStatus.ACTIVE;
                 const isMathIncomplete = BigInt(p.raisedAmount) < BigInt(p.targetAmount);
-                return isStatusActive && isMathIncomplete;
+                return isStatusActive && isMathIncomplete && !this.isPhaseFull(p);
             });
 
         if (filteredCandidates.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
@@ -366,12 +400,11 @@ export class RecommendationsService {
         const startIndex = (options.page - 1) * options.limit;
         const topIds = finalOrder.slice(startIndex, startIndex + options.limit).map((item) => item.id);
 
-        // Locate the hydration query at the end of the recommendPipeline method:
         const hydratedProjects = await this.prisma.project.findMany({
             where: { id: { in: topIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
-                subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory
+                subcategory: { select: { name: true } },
                 user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
             }
         });
@@ -392,7 +425,7 @@ export class RecommendationsService {
                 raisedAmount: hydrated.raisedAmount.toString(),
                 percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
                 categoryName: hydrated.category?.name || 'General Impact',
-                subcategoryName: hydrated.subcategory?.name, // <-- NEW: Map subcategory
+                subcategoryName: hydrated.subcategory?.name,
                 isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
                 organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
                 organizerType: isSystem ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),

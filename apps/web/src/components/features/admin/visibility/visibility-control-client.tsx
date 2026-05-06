@@ -16,7 +16,8 @@ import {
     Info,
     ArrowDown,
     ArrowUp,
-    List
+    List,
+    Clock
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Button } from '../../../ui/button';
@@ -75,7 +76,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
 
     const handleUpdateConfig = async () => {
         setIsSaving(true);
-        const toastId = toast.loading("Syncing Discovery Logic...");
+        const toastId = toast.loading("Syncing discovery logic...");
         try {
             await Promise.all([
                 ApiService.admin.updateConfig(config),
@@ -83,10 +84,10 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                     ApiService.admin.updateCategoryWeight(id, weight)
                 )
             ]);
-            toast.success("Feed Algorithm Updated", { id: toastId });
+            toast.success("Feed algorithm updated", { id: toastId });
             router.refresh();
         } catch (e: any) {
-            toast.error("Failed To Sync Settings", { id: toastId });
+            toast.error("Failed to sync settings", { id: toastId });
         } finally {
             setIsSaving(false);
         }
@@ -105,23 +106,52 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                 projectId: project.id,
                 position: activePosition
             });
-            toast.success("Featured Slot Updated", { id: toastId });
+            toast.success("Featured slot updated", { id: toastId });
             setIsSelectorOpen(false);
             router.refresh();
         } catch (e) {
-            toast.error("Pin Failed", { id: toastId });
+            toast.error("Pin failed", { id: toastId });
         }
     };
 
     const handleRemoveSlot = async (slotId: string) => {
-        const toastId = toast.loading("Clearing Slot...");
+        const toastId = toast.loading("Clearing slot...");
         try {
             await ApiService.admin.deleteSlot(slotId);
-            toast.success("Slot Cleared", { id: toastId });
+            toast.success("Slot cleared", { id: toastId });
             router.refresh();
         } catch (e) {
-            toast.error("Failed To Clear Slot", { id: toastId });
+            toast.error("Failed to clear slot", { id: toastId });
         }
+    };
+
+    const isSlotPhaseFull = (project: any) => {
+        if (!project || project.status !== 'ACTIVE') return false;
+        const raised = BigInt(project.raisedAmount || '0');
+        const target = BigInt(project.targetAmount || '0');
+        const activeIndex = project.currentPhaseIndex || 0;
+        const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+
+        let previousPhasesMajor = 0;
+        for (let i = 0; i < activeIndex && i < budget.length; i++) {
+            previousPhasesMajor += (budget[i].amount || budget[i].cost || 0);
+        }
+        const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+
+        let cumulativeMajor = previousPhasesMajor;
+        if (budget[activeIndex]) {
+            cumulativeMajor += (budget[activeIndex].amount || budget[activeIndex].cost || 0);
+        }
+        const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
+            ? BigInt(Math.round(cumulativeMajor * 100))
+            : target;
+
+        const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+        let raisedInCurrentPhase = raised - previousPhasesMinor;
+        if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+        const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+        return remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n;
     };
 
     return (
@@ -305,7 +335,7 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                     <CardTitle className="text-base font-bold flex items-center text-foreground tracking-tight">
                                         <Zap className="h-5 w-5 text-amber-500 mr-3" />
                                         Featured & Pinned
-                                        <SettingTooltip content="Projects pinned here will appear in the top Carousel AND be forced to position #1 in their respective category rows." />
+                                        <SettingTooltip content="Projects pinned here will appear in the top Carousel AND be forced to position #1 in their respective category rows. Causes with fully funded phases are automatically hidden." />
                                     </CardTitle>
                                     <p className="text-xs text-muted-foreground font-medium">Manage the homepage highlights.</p>
                                 </div>
@@ -323,6 +353,8 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                 <AnimatePresence mode="popLayout">
                                     {[0, 1, 2, 3, 4].map((pos) => {
                                         const slot = initialSlots.find(s => s.position === pos);
+                                        const phasePaused = slot ? isSlotPhaseFull(slot.project) : false;
+
                                         return (
                                             <motion.div
                                                 key={pos}
@@ -337,8 +369,13 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                                         {slot ? (
                                                             <>
                                                                 <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">{slot.project?.title || 'Identifying Project...'}</p>
-                                                                <div className="flex items-center gap-2">
-                                                                    <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black h-4 px-2 rounded-3xl tracking-widest  shadow-none">Pinned</Badge>
+                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                    <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black h-4 px-2 rounded-3xl tracking-widest shadow-none">Pinned</Badge>
+                                                                    {phasePaused && (
+                                                                        <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[9px] font-black h-4 px-2 rounded-3xl tracking-widest shadow-none gap-1">
+                                                                            <Clock className="h-2.5 w-2.5" /> Temporarily hidden
+                                                                        </Badge>
+                                                                    )}
                                                                     <span className="text-[10px] text-muted-foreground font-mono opacity-50">Ref: {slot.projectId.split('-')[0]}</span>
                                                                 </div>
                                                             </>
