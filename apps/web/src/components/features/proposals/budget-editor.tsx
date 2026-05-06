@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, memo } from 'react';
-import { Trash2, PlusCircle, Landmark, ShieldCheck, Loader2, Info, Users, Mail, Phone, UserPlus } from 'lucide-react';
+import { Trash2, PlusCircle, Landmark, ShieldCheck, Loader2, Info, Users, Mail, Phone, UserPlus, ReceiptText } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
@@ -214,13 +214,13 @@ export const BudgetEditor = memo(function BudgetEditor({
   return (
     <div className="space-y-10">
       {/* SECTION A: VENDORS */}
-      <div className="space-y-4 border border-border/40 rounded-3xl p-5 bg-card shadow-sm">
+      <div className="space-y-4">
         <div className="flex items-center justify-between pb-2">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" /> Recipients
             </h3>
-            <p className="text-[11px] text-muted-foreground font-medium mt-1">
+            <p className="text-xs text-muted-foreground font-medium mt-1">
               Start by adding the institutions or service providers involved in your cause, then assign them to the relevant items below.
             </p>
           </div>
@@ -257,7 +257,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                   )}
 
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Recipient Name *</label>
+                    <label className="text-[11px] font-bold text-muted-foreground ml-1">Recipient Name *</label>
                     <Input
                       value={vendor.name}
                       onChange={(e) => updateVendorField(vendor.id, 'name', e.target.value)}
@@ -269,7 +269,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-1.5"><Mail className="h-3 w-3" /> Email</label>
+                      <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5"><Mail className="h-3 w-3" /> Email</label>
                       <Input
                         value={vendor.email}
                         onChange={(e) => updateVendorField(vendor.id, 'email', e.target.value)}
@@ -279,7 +279,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-1.5"><Phone className="h-3 w-3" /> Phone</label>
+                      <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5"><Phone className="h-3 w-3" /> Phone</label>
                       <Input
                         value={vendor.phone}
                         onChange={(e) => updateVendorField(vendor.id, 'phone', e.target.value)}
@@ -339,15 +339,16 @@ export const BudgetEditor = memo(function BudgetEditor({
       {/* SECTION B: BUDGET ITEMS */}
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
+          <ReceiptText className="h-4 w-4 text-primary" />
           Cost Breakdown
         </h3>
 
         {/* Adjusted Font Sizes for Instructions */}
         <div className="space-y-2 mb-6">
-          <p className="text-sm text-muted-foreground font-medium mb-2">
+          <p className="text-xs text-muted-foreground font-medium mb-2">
             List the main items needed to complete this cause in the order they will be carried out.
           </p>
-          <p className="text-sm text-muted-foreground font-medium mb-4">
+          <p className="text-xs text-muted-foreground font-medium mb-4">
             <span className="font-bold">Tip:</span> We recommend 2–4 items for most causes. If your invoice includes many entries, group related costs into a few clear categories (e.g. Consultation, Surgery, Aftercare) to keep your cause easy to understand and speed up review.
           </p>
         </div>
@@ -365,7 +366,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 className={fieldContainerClass}
               >
                 <div className="md:col-span-4 space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Item</label>
+                  <label className="text-[11px] font-bold text-muted-foreground ml-1">Item</label>
                   <Input
                     placeholder="Details..."
                     value={item.description}
@@ -376,7 +377,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 <div className="md:col-span-3 space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Recipient</label>
+                  <label className="text-[11px] font-bold text-muted-foreground ml-1">Recipient</label>
                   {isLocked ? (
                     <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
                   ) : (
@@ -397,7 +398,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Category</label>
+                  <label className="text-[11px] font-bold text-muted-foreground ml-1">Category</label>
                   {isLocked ? (
                     <Input value={item.costType} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
                   ) : (
@@ -418,7 +419,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 <div className="md:col-span-3 flex gap-2 items-end">
                   <div className="flex-1 space-y-1.5 min-w-0">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Amount</label>
+                    <label className="text-[11px] font-bold text-muted-foreground ml-1">Amount</label>
                     <div className="relative">
                       {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
                       <Input
