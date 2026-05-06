@@ -95,7 +95,7 @@ export default function HookPage() {
         nameLabel: "Patient's full legal name",
         ageLabel: "Patient's current age",
         relLabel: "Relationship to patient",
-        orgLabel: "Name of clinic, hospital, or community",
+        orgLabel: "Name of clinic or hospital",
       };
     }
     if (selectedCategoryName.includes('education')) {
@@ -106,7 +106,7 @@ export default function HookPage() {
         nameLabel: "Student's full legal name",
         ageLabel: "Student's current age",
         relLabel: "Relationship to student",
-        orgLabel: "Name of school, institution, or group",
+        orgLabel: "Name of school or institution",
       };
     }
     if (selectedCategoryName.includes('community')) {
@@ -117,7 +117,7 @@ export default function HookPage() {
         nameLabel: "Beneficiary's full legal name",
         ageLabel: "Beneficiary's age",
         relLabel: "Relationship to beneficiary",
-        orgLabel: "Name of community, village, or region",
+        orgLabel: "Name of community or region",
       };
     }
     return {
@@ -127,7 +127,7 @@ export default function HookPage() {
       nameLabel: "Beneficiary full name",
       ageLabel: "Current age",
       relLabel: "Relationship to submitter",
-      orgLabel: "Name of group, community, or institution",
+      orgLabel: "Name of group or community",
     };
   };
 
