@@ -1,4 +1,3 @@
-// apps/web/src/components/features/dashboard/featured-carousel.tsx
 'use client';
 
 import React, { useState, useEffect, memo } from 'react';
