@@ -182,10 +182,20 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
 
                         <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-3.5 shadow-sm text-left flex flex-col justify-center min-w-0 mb-3">
-                            <div className="flex items-center justify-between gap-2 mb-2 min-w-0">
-                                <h4 className="text-xs font-bold text-primary leading-tight truncate min-w-0">
-                                    Phase {activeIndex + 1}: {activeItemName}
-                                </h4>
+                            <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
+                                <div className="min-w-0">
+                                    <h4 className="text-xs font-bold text-primary leading-tight truncate">
+                                        Phase {activeIndex + 1}: {activeItemName}
+                                    </h4>
+
+                                    {/* Open phase only info */}
+                                    {!isPhaseFull && (
+                                        <p className="text-[10px] text-muted-foreground leading-snug mt-1">
+                                            This cause is funded in stages. Each stage unlocks only after the previous one is fully funded and confirmed.
+                                        </p>
+                                    )}
+                                </div>
+
                                 {isPhaseFull && (
                                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-2xl border border-amber-200/60 shrink-0 whitespace-nowrap">
                                         <Clock className="h-3.5 w-3.5" /> Verifying Phase
