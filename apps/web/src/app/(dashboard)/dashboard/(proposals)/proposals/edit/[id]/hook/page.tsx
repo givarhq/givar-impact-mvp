@@ -6,13 +6,16 @@ import { useProposalStore } from '../../../../../../../../stores/proposal-store'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { Input } from '../../../../../../../../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../../../../components/ui/select';
 import { Textarea } from '../../../../../../../../components/ui/textarea';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2, User, Users, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cn } from '../../../../../../../../lib/utils/cn';
 import { toTitleCase, toSentenceCase } from '../../../../../../../../lib/utils/format';
+import { Controller, useForm } from 'react-hook-form';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function HookPage() {
   const router = useRouter();
@@ -21,16 +24,34 @@ export default function HookPage() {
 
   const {
     title, shortDesc, description, personalMessage, location, endDate,
+    categoryId, subcategoryId,
+    beneficiaryName, beneficiaryAge, beneficiaryRelationship, beneficiaryContact,
+    organizationName, contactPhone,
     setProposal, updateField
   } = useProposalStore();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP' | null>(null);
 
   useEffect(() => {
-    const fetchProposal = async () => {
+    const fetchData = async () => {
       try {
-        const data = await ApiService.proposals.get(proposalId);
-        setProposal(data);
+        const [proposalData, cats] = await Promise.all([
+          ApiService.proposals.get(proposalId),
+          ApiService.projects.getCategories()
+        ]);
+        setCategories(cats || []);
+        setProposal(proposalData);
+
+        // Hydrate initial target type based on existing data
+        const catName = proposalData.category?.name?.toLowerCase() || '';
+        const isComm = catName.includes('community');
+        if (proposalData.organizationName) setTargetType('GROUP');
+        else if (proposalData.beneficiaryRelationship === 'Self') setTargetType('SELF');
+        else if (proposalData.beneficiaryName && isComm) setTargetType('INDIVIDUAL');
+        else if (proposalData.beneficiaryName) setTargetType('OTHER');
+
       } catch (error) {
         toast.error("Draft failed to load");
         router.push('/dashboard/proposals');
@@ -39,8 +60,33 @@ export default function HookPage() {
       }
     };
 
-    if (proposalId) fetchProposal();
+    if (proposalId) fetchData();
   }, [proposalId, setProposal, router]);
+
+  const { control, setValue } = useForm({
+    defaultValues: { categoryId, subcategoryId }
+  });
+
+  const selectedCategoryObj = categories.find(c => c.id === categoryId);
+  const selectedCategoryName = selectedCategoryObj?.name?.toLowerCase() || '';
+  const availableSubcategories = selectedCategoryObj?.subcategories || [];
+
+  const isCommunity = selectedCategoryName.includes('community');
+
+  // Reset incompatible target types when category changes
+  useEffect(() => {
+    if (!targetType) return;
+    if (isCommunity && (targetType === 'SELF' || targetType === 'OTHER')) {
+      setTargetType(null);
+      updateField('beneficiaryRelationship', null);
+      updateField('beneficiaryName', null);
+      updateField('beneficiaryAge', null);
+    } else if (!isCommunity && (targetType === 'INDIVIDUAL' || targetType === 'GROUP')) {
+      setTargetType(null);
+      updateField('organizationName', null);
+      updateField('beneficiaryName', null);
+    }
+  }, [isCommunity]);
 
   if (isLoading) {
     return (
@@ -51,40 +97,38 @@ export default function HookPage() {
   }
 
   // Formatting Handlers
-  const handleBlurTitle = () => {
-    if (title) updateField('title', toTitleCase(title));
-  };
+  const handleBlurTitle = () => { if (title) updateField('title', toTitleCase(title)); };
+  const handleBlurShortDesc = () => { if (shortDesc) updateField('shortDesc', toSentenceCase(shortDesc)); };
+  const handleBlurPersonalMessage = () => { if (personalMessage) updateField('personalMessage', toSentenceCase(personalMessage)); };
+  const handleBlurLocation = () => { if (location) updateField('location', toTitleCase(location)); };
 
-  const handleBlurShortDesc = () => {
-    if (shortDesc) updateField('shortDesc', toSentenceCase(shortDesc));
-  };
-
-  const handleBlurPersonalMessage = () => {
-    if (personalMessage) updateField('personalMessage', toSentenceCase(personalMessage));
-  };
-
-  const handleBlurLocation = () => {
-    if (location) updateField('location', toTitleCase(location));
+  const handleTargetTypeChange = (type: 'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP') => {
+    setTargetType(type);
+    if (type === 'SELF') {
+      updateField('beneficiaryRelationship', 'Self');
+      updateField('beneficiaryName', null);
+      updateField('beneficiaryAge', null);
+      updateField('beneficiaryContact', null);
+      updateField('organizationName', null);
+      updateField('contactPhone', null);
+    } else if (type === 'GROUP') {
+      updateField('beneficiaryRelationship', null);
+      updateField('beneficiaryName', null);
+      updateField('beneficiaryAge', null);
+      updateField('beneficiaryContact', null);
+    } else {
+      updateField('organizationName', null);
+      updateField('contactPhone', null);
+      updateField('beneficiaryRelationship', null);
+    }
   };
 
   // Validation Logic
   const strippedDescription = description ? description.replace(/<[^>]*>?/gm, '').trim() : '';
-
   const titleValid = !!(title && title.trim().length >= 10);
   const locationValid = !!(location && location.trim().length >= 2);
   const descValid = strippedDescription.length >= 20;
-
   const isHookValid = titleValid && locationValid && descValid;
-
-  // Dynamic Error Message
-  let errorMessage = "Complete required fields to continue";
-  if (!titleValid) {
-    errorMessage = "Title must be at least 10 characters";
-  } else if (!descValid) {
-    errorMessage = "Description must be at least 20 characters";
-  } else if (!locationValid) {
-    errorMessage = "Primary location is required";
-  }
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -106,6 +150,188 @@ export default function HookPage() {
               onBlur={handleBlurTitle}
               className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
             />
+
+            {/* WHO IS THIS CAUSE FOR */}
+            <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
+              <label className="text-[11px] font-bold text-muted-foreground">Who is this cause for?</label>
+              <div className="flex gap-3">
+                {isCommunity ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleTargetTypeChange('INDIVIDUAL')}
+                      className={cn(
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        targetType === 'INDIVIDUAL' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                      )}
+                    >
+                      <User className="h-4 w-4" /> An individual
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTargetTypeChange('GROUP')}
+                      className={cn(
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                      )}
+                    >
+                      <Users className="h-4 w-4" /> A group or community
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleTargetTypeChange('SELF')}
+                      className={cn(
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                      )}
+                    >
+                      <User className="h-4 w-4" /> Myself
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTargetTypeChange('OTHER')}
+                      className={cn(
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                      )}
+                    >
+                      <Users className="h-4 w-4" /> Someone else
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <AnimatePresence>
+                {(targetType === 'OTHER' || targetType === 'INDIVIDUAL') && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                  >
+                    <Input
+                      label="Beneficiary full name"
+                      placeholder="Legal name of beneficiary"
+                      value={beneficiaryName || ''}
+                      onChange={(e) => updateField('beneficiaryName', e.target.value)}
+                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                    />
+                    <Input
+                      label="Age"
+                      type="number"
+                      placeholder="Current age"
+                      value={beneficiaryAge || ''}
+                      onChange={(e) => updateField('beneficiaryAge', parseInt(e.target.value))}
+                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                    />
+                    <Input
+                      label="Relationship to submitter"
+                      placeholder="e.g. Parent, Sibling, Community member"
+                      value={beneficiaryRelationship || ''}
+                      onChange={(e) => updateField('beneficiaryRelationship', e.target.value)}
+                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                    />
+                    <Input
+                      label="Phone number (optional)"
+                      placeholder="Direct contact number"
+                      value={beneficiaryContact || ''}
+                      onChange={(e) => updateField('beneficiaryContact', e.target.value)}
+                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                    />
+                  </motion.div>
+                )}
+                {targetType === 'GROUP' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                  >
+                    <Input
+                      label="Organisation name"
+                      placeholder="e.g. Owerri Youth Coalition"
+                      value={organizationName || ''}
+                      onChange={(e) => updateField('organizationName', e.target.value)}
+                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                    />
+                    <Input
+                      label="Contact number"
+                      placeholder="Representative phone number"
+                      value={contactPhone || ''}
+                      onChange={(e) => updateField('contactPhone', e.target.value)}
+                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* SECTOR CLASSIFICATION */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Sector</label>
+                <Controller
+                  control={control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        updateField('categoryId', val);
+                        updateField('subcategoryId', '');
+                        setValue('subcategoryId', '', { shouldValidate: true });
+                      }}
+                      value={categoryId || undefined}
+                    >
+                      <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
+                        <SelectValue placeholder="Select a sector..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                        {categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
+                  <Tag className="h-3 w-3" /> Specific Focus
+                </label>
+                <Controller
+                  control={control}
+                  name="subcategoryId"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        updateField('subcategoryId', val);
+                      }}
+                      value={subcategoryId || undefined}
+                      disabled={!categoryId}
+                    >
+                      <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm disabled:opacity-50">
+                        <SelectValue placeholder="Select focus..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                        {availableSubcategories.length === 0 ? (
+                          <div className="p-4 text-xs text-muted-foreground text-center italic">Select a sector first</div>
+                        ) : (
+                          availableSubcategories.map((sub: any) => (
+                            <SelectItem key={sub.id} value={sub.id} className="rounded-xl text-xs py-2.5 font-bold">{sub.name}</SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </div>
 
             <Textarea
               label="Elevator Pitch"
@@ -166,11 +392,11 @@ export default function HookPage() {
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               {!isHookValid && (
                 <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-center">
-                  {errorMessage}
+                  Complete required fields
                 </span>
               )}
               <Button
-                disabled={!isHookValid}
+                disabled={!isHookValid || !categoryId || !subcategoryId}
                 className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
                 onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
               >

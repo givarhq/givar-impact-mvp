@@ -341,6 +341,9 @@ export const BudgetEditor = memo(function BudgetEditor({
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
           Cost Breakdown
         </h3>
+        <p className="text-[11px] text-muted-foreground font-medium mb-1.5">
+          List the main items needed to complete this cause in the order they will be carried out.
+        </p>
         <p className="text-[11px] text-muted-foreground font-medium mb-4">
           <span className="font-bold">Tip:</span> We recommend 2–4 items for most causes. If your invoice includes many entries, group related costs into a few clear categories (e.g. Consultation, Surgery, Aftercare) to keep your cause easy to understand and speed up review.
         </p>

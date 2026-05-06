@@ -74,14 +74,6 @@ export default function PlanPage() {
           </div>
 
           <div className="space-y-4 min-w-0">
-            <div className="px-1 space-y-1">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Briefcase className="h-4 w-4 text-primary" />
-                Cost Breakdown *
-              </h3>
-              <p className="text-xs text-muted-foreground font-medium">List the main items needed to complete this cause in the order they will be carried out.</p>
-            </div>
-
             <div className="min-w-0">
               <BudgetEditor categorySlug={categorySlug} />
             </div>
