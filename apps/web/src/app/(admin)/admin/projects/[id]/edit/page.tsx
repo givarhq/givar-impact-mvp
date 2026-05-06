@@ -103,6 +103,10 @@ export default async function EditProjectPage({
               <div className="max-w-4xl min-w-0">
                 <MilestoneManager
                   projectId={id}
+                  projectTitle={project.title}
+                  raisedAmount={project.raisedAmount}
+                  targetAmount={project.targetAmount}
+                  currency={project.currency}
                   timeline={project.executionTimeline || []}
                   projectStatus={project.status}
                   waitlistCount={project.waitlistEmails?.length || 0}
