@@ -128,6 +128,56 @@ export default function StartProposalPage() {
     const selectedCategoryName = selectedCategoryObj?.name?.toLowerCase() || '';
     const availableSubcategories = selectedCategoryObj?.subcategories || [];
 
+    // Contextual Label Generator
+    const getDynamicLabels = () => {
+        const isOrg = userAccountType === 'ORGANIZER';
+
+        if (selectedCategoryName.includes('medical')) {
+            return {
+                optSelf: "Myself (patient)",
+                optOther: isOrg ? "A patient" : "Another patient",
+                optGroup: "A community or facility",
+                nameLabel: "Patient's full legal name",
+                ageLabel: "Patient's current age",
+                relLabel: "Relationship to patient",
+                orgLabel: "Name of clinic, hospital, or community",
+            };
+        }
+        if (selectedCategoryName.includes('education')) {
+            return {
+                optSelf: "Myself (student)",
+                optOther: isOrg ? "A student" : "Another student",
+                optGroup: "A school or student group",
+                nameLabel: "Student's full legal name",
+                ageLabel: "Student's current age",
+                relLabel: "Relationship to student",
+                orgLabel: "Name of school, institution, or group",
+            };
+        }
+        if (selectedCategoryName.includes('community')) {
+            return {
+                optSelf: "Myself (relief/support)",
+                optOther: "A community member",
+                optGroup: "A community or region",
+                nameLabel: "Beneficiary's full legal name",
+                ageLabel: "Beneficiary's age",
+                relLabel: "Relationship to beneficiary",
+                orgLabel: "Name of community, village, or region",
+            };
+        }
+        return {
+            optSelf: "Myself",
+            optOther: isOrg ? "An individual" : "Someone else",
+            optGroup: "A group or community",
+            nameLabel: "Beneficiary full name",
+            ageLabel: "Current age",
+            relLabel: "Relationship to submitter",
+            orgLabel: "Name of group, community, or institution",
+        };
+    };
+
+    const dynamicLabels = getDynamicLabels();
+
     const handleTargetTypeChange = (type: 'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP') => {
         setTargetType(type);
         if (type === 'SELF') {
@@ -423,7 +473,7 @@ export default function StartProposalPage() {
                                                             targetType === 'INDIVIDUAL' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <User className="h-4 w-4" /> An individual
+                                                        <User className="h-4 w-4" /> {dynamicLabels.optOther}
                                                     </button>
                                                     <button
                                                         type="button"
@@ -433,7 +483,7 @@ export default function StartProposalPage() {
                                                             targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <Users className="h-4 w-4" /> A group or community
+                                                        <Users className="h-4 w-4" /> {dynamicLabels.optGroup}
                                                     </button>
                                                 </>
                                             ) : (
@@ -446,7 +496,7 @@ export default function StartProposalPage() {
                                                             targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <User className="h-4 w-4" /> Myself
+                                                        <User className="h-4 w-4" /> {dynamicLabels.optSelf}
                                                     </button>
                                                     <button
                                                         type="button"
@@ -456,7 +506,7 @@ export default function StartProposalPage() {
                                                             targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <User className="h-4 w-4" /> Someone else
+                                                        <User className="h-4 w-4" /> {dynamicLabels.optOther}
                                                     </button>
                                                     <button
                                                         type="button"
@@ -466,7 +516,7 @@ export default function StartProposalPage() {
                                                             targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <Users className="h-4 w-4" /> A group or community
+                                                        <Users className="h-4 w-4" /> {dynamicLabels.optGroup}
                                                     </button>
                                                 </>
                                             )}
@@ -481,21 +531,21 @@ export default function StartProposalPage() {
                                                     className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
                                                 >
                                                     <Input
-                                                        label="Beneficiary full name"
-                                                        placeholder="Legal name of beneficiary"
+                                                        label={dynamicLabels.nameLabel}
+                                                        placeholder="Legal name"
                                                         {...register('beneficiaryName')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
                                                     <Input
-                                                        label="Age"
+                                                        label={dynamicLabels.ageLabel}
                                                         type="number"
-                                                        placeholder="Current age"
+                                                        placeholder="Age"
                                                         {...register('beneficiaryAge')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
                                                     <Input
-                                                        label="Relationship to submitter"
-                                                        placeholder="e.g. Parent, Sibling, Community member"
+                                                        label={dynamicLabels.relLabel}
+                                                        placeholder="e.g. Parent, Sibling, Friend"
                                                         {...register('beneficiaryRelationship')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
@@ -515,7 +565,7 @@ export default function StartProposalPage() {
                                                     className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
                                                 >
                                                     <Input
-                                                        label="Name of group, community, or institution"
+                                                        label={dynamicLabels.orgLabel}
                                                         placeholder="e.g. Owerri Youth Coalition"
                                                         {...register('organizationName')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
