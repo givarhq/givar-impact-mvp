@@ -1,3 +1,4 @@
+// apps/web/src/components/features/dashboard/featured-carousel.tsx
 'use client';
 
 import React, { useState, useEffect, memo } from 'react';
@@ -176,19 +177,19 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
                     </div>
 
-                    <div className="flex flex-col justify-between h-full p-3 sm:p-4 lg:p-5 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 min-w-0">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-[9px] lg:text-[10px] font-bold text-muted-foreground tracking-widest uppercase truncate">Current Funding Phase</span>
+                    <div className="flex flex-col h-full p-3 sm:p-4 lg:p-5 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 min-w-0">
+                        <div className="flex items-center justify-center mb-2 w-full">
+                            <span className="text-[9px] lg:text-[10px] font-bold text-muted-foreground tracking-widest uppercase truncate text-center">Current Funding Phase</span>
                         </div>
 
-                        <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-3.5 shadow-sm text-left flex flex-col justify-center flex-1 min-w-0 mb-3">
-                            <div className="flex items-center justify-between gap-2 mb-2">
-                                <h4 className="text-xs font-bold text-primary leading-tight truncate">
+                        <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-3.5 shadow-sm text-left flex flex-col justify-center min-w-0 mb-3">
+                            <div className="flex items-center justify-between gap-2 mb-2 min-w-0">
+                                <h4 className="text-xs font-bold text-primary leading-tight truncate min-w-0">
                                     Phase {activeIndex + 1}: {activeItemName}
                                 </h4>
                                 {isPhaseFull && (
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 shrink-0 whitespace-nowrap">
-                                        <Clock className="h-3 w-3" /> Verifying Phase
+                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-2xl border border-amber-200/60 shrink-0 whitespace-nowrap">
+                                        <Clock className="h-3.5 w-3.5" /> Verifying Phase
                                     </div>
                                 )}
                             </div>
@@ -210,8 +211,8 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             ) : (
                                 <div className="space-y-1.5 lg:space-y-2">
                                     <div className="flex justify-between items-end text-[10px] sm:text-[11px] font-bold">
-                                        <span className="text-foreground">
-                                            {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
+                                        <span className="text-foreground truncate">
+                                            {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-0.5">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
                                         </span>
                                         <span className="text-primary">{phasePercent}%</span>
                                     </div>
@@ -228,27 +229,13 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
 
                         {/* CTA Actions */}
-                        <div className="flex items-center justify-center gap-2 shrink-0 w-full">
+                        <div className="flex items-center gap-2 shrink-0 w-full mt-auto">
                             {(!isCompleted && !isFundedState && !isPhaseFull) ? (
-                                <>
-                                    <Link href={donateLink} onClick={(e) => e.stopPropagation()}>
-                                        <Button size="sm" className="w-auto px-6 h-9 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-xs shadow-md border-0 active:scale-95 whitespace-nowrap">
-                                            Fund this impact
-                                        </Button>
-                                    </Link>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setShareProject(current);
-                                            setIsShareOpen(true);
-                                        }}
-                                        className="h-9 w-9 rounded-full border-border/60 text-foreground shrink-0 bg-background shadow-sm active:scale-95 transition-all"
-                                    >
-                                        <Share2 className="h-4 w-4" />
+                                <Link href={donateLink} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                                    <Button size="sm" className="w-full h-9 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-xs shadow-md border-0 active:scale-95 truncate">
+                                        Fund this impact
                                     </Button>
-                                </>
+                                </Link>
                             ) : isPhaseFull ? (
                                 <Button
                                     size="sm"
@@ -257,10 +244,10 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                         handleJoinWaitlist(current.id);
                                     }}
                                     disabled={waitlistLoadingId === current.id || waitlistedIds.has(current.id)}
-                                    className="w-auto px-6 h-9 rounded-full bg-muted/50 hover:bg-muted text-foreground border border-border/60 font-bold text-xs shadow-sm active:scale-95 transition-all whitespace-nowrap"
+                                    className="flex-1 w-full h-9 rounded-full bg-muted/50 hover:bg-muted text-foreground border border-border/60 font-bold text-xs shadow-sm active:scale-95 transition-all truncate"
                                 >
                                     {waitlistLoadingId === current.id ? (
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin mx-auto" />
                                     ) : waitlistedIds.has(current.id) ? (
                                         <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-600" /> On Waitlist</>
                                     ) : (
@@ -268,19 +255,32 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                     )}
                                 </Button>
                             ) : (
-                                <Link href={detailsLink} onClick={(e) => e.stopPropagation()}>
-                                    <Button size="sm" variant="secondary" className="w-auto px-6 h-9 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 shadow-none transition-all active:scale-95 whitespace-nowrap">
+                                <Link href={detailsLink} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                                    <Button size="sm" variant="secondary" className="w-full h-9 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 shadow-none transition-all active:scale-95 truncate">
                                         View final impact
                                     </Button>
                                 </Link>
                             )}
+
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShareProject(current);
+                                    setIsShareOpen(true);
+                                }}
+                                className="h-9 w-9 rounded-full border-border/60 text-foreground shrink-0 bg-background shadow-sm active:scale-95 transition-all"
+                            >
+                                <Share2 className="h-4 w-4" />
+                            </Button>
                         </div>
                     </div>
                 </motion.div>
             </AnimatePresence>
 
             {projects.length > 1 && (
-                <div className="absolute top-3 right-4 flex items-center gap-1.5 z-10">
+                <div className="absolute top-4 right-5 flex items-center gap-1.5 z-20 bg-background/50 backdrop-blur-sm px-2.5 py-1.5 rounded-full border border-border/40 shadow-sm">
                     {projects.map((_, i) => (
                         <button
                             key={i}
@@ -289,8 +289,8 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                 setIndex(i);
                             }}
                             className={cn(
-                                "h-1 rounded-3xl transition-all duration-500",
-                                i === index ? "w-4 bg-primary" : "w-1.5 bg-white/30 hover:bg-white/50"
+                                "h-1.5 rounded-full transition-all duration-500",
+                                i === index ? "w-4 bg-primary" : "w-1.5 bg-foreground/30 hover:bg-foreground/50"
                             )}
                             aria-label={`Go To Slide ${i + 1}`}
                         />
