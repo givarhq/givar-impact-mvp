@@ -18,7 +18,8 @@ export class EmailService {
     this.resend = new Resend(this.config.get('RESEND_API_KEY'));
 
     const envFrom = this.config.get('RESEND_FROM_EMAIL');
-    this.fromEmail = envFrom ? envFrom.replace('Givar Impact', 'Givar') : 'Givar <onboarding@resend.dev>';
+    // Enforce "Givar" as the sender name instead of "Givar Impact"
+    this.fromEmail = envFrom ? envFrom.replace('Givar Impact', '"Givar"') : 'Givar <onboarding@resend.dev>';
 
     this.isDev = this.config.get('NODE_ENV') === 'development';
   }
@@ -57,10 +58,10 @@ export class EmailService {
 
     const content = EmailTemplates.verification(url, name, isCode ? token : undefined);
     const html = EmailTemplates.base(content, 'Verify your email');
-    return this.send(email, 'Verify your Givar Impact account', html);
+    return this.send(email, 'Verify your Givar account', html);
   }
 
-  // 2. Donation Receipt (Purged of surplus/applied logic)
+  // 2. Donation Receipt 
   async sendDonationReceipt(
     email: string,
     data: {
@@ -76,7 +77,7 @@ export class EmailService {
   ) {
     const content = EmailTemplates.receipt(data);
     const html = EmailTemplates.base(content, 'Donation Receipt');
-    return this.send(email, `Givar Impact: Receipt for your donation to ${data.project}`, html);
+    return this.send(email, `Givar: Receipt for your donation to ${data.project}`, html);
   }
 
   // 3. Security Alert
@@ -86,35 +87,35 @@ export class EmailService {
       time: new Date().toLocaleString()
     });
     const html = EmailTemplates.base(content, 'New Login Detected');
-    return this.send(email, 'Givar Impact Security Alert: New Login', html);
+    return this.send(email, 'Givar Security Alert: New Login', html);
   }
 
   // 4. Subscription Update
   async sendSubscriptionUpdate(email: string, name: string, project: string, status: string) {
     const content = EmailTemplates.subscriptionUpdate({ name, project, status });
     const html = EmailTemplates.base(content, 'Subscription Updated');
-    return this.send(email, `Givar Impact: Your donation to ${project} is now ${status}`, html);
+    return this.send(email, `Givar: Your donation to ${project} is now ${status}`, html);
   }
 
   // 5. Wallet Funding
   async sendWalletFundingEmail(email: string, data: { name: string; amount: string; currency: string; ref: string; newBalance: string; donorAmount?: string; donorCurrency?: string; }) {
     const content = EmailTemplates.walletFunded(data);
     const html = EmailTemplates.base(content, 'Wallet Top-up Successful');
-    return this.send(email, `Givar Impact: You added ${data.currency} ${data.amount} to your wallet`, html);
+    return this.send(email, `Givar: You added ${data.currency} ${data.amount} to your wallet`, html);
   }
 
   // 6. Password Reset
   async sendPasswordReset(email: string, name: string, url: string) {
     const content = EmailTemplates.passwordReset(url, name);
     const html = EmailTemplates.base(content, 'Reset your password');
-    return this.send(email, 'Givar Impact: Password Reset Request', html);
+    return this.send(email, 'Givar: Password Reset Request', html);
   }
 
   // 7. Password Changed
   async sendPasswordChanged(email: string, name: string, date: string) {
     const content = EmailTemplates.passwordChanged(name, date);
     const html = EmailTemplates.base(content, 'Password Changed');
-    return this.send(email, 'Givar Impact Security Alert: Password Changed', html);
+    return this.send(email, 'Givar Security Alert: Password Changed', html);
   }
 
   // 8. Milestone Completion
@@ -124,7 +125,7 @@ export class EmailService {
 
     return this.send(
       email,
-      `Givar Impact: Milestone Complete for ${data.projectTitle}`,
+      `Givar: Milestone Complete for ${data.projectTitle}`,
       html
     );
   }
@@ -143,26 +144,21 @@ export class EmailService {
     return this.send(email, `Givar Action Required: ${data.project}`, html);
   }
 
-  // 10. Proposal Status (Approval/Rejection/Changes)
+  // 10. Cause Status (Approval/Rejection/Changes)
   async sendProposalStatusUpdate(email: string, data: { name: string; project: string; status: string; feedback?: string }) {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
     const content = EmailTemplates.proposalStatusUpdate({ ...data, url });
-    const html = EmailTemplates.base(content, 'Proposal Status Update');
-
-    // Set dynamic subject based on status
-    let subject = `Givar: Update on "${data.project}"`;
-    if (data.status === 'APPROVED') {
-      subject = 'Your Cause Has Been Approved';
-    }
-
-    return this.send(email, subject, html);
+    // Enforce standardized bold header for cause updates
+    const html = EmailTemplates.base(content, 'Update on Your Cause');
+    return this.send(email, `Givar: Update on "${data.project}"`, html);
   }
 
   // 11. Milestone Update for Owner
   async sendOwnerMilestoneAlert(email: string, data: { name: string; project: string; milestone: string; status: string; projectId: string }) {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/projects/${data.projectId}/manage`;
     const content = EmailTemplates.milestoneOwnerUpdate({ ...data, url });
-    const html = EmailTemplates.base(content, 'Milestone Status Updated');
+    // Enforce standardized bold header for cause updates
+    const html = EmailTemplates.base(content, 'Update on Your Cause');
     return this.send(email, `Givar Alert: Phase "${data.milestone}" is now ${data.status}`, html);
   }
 
@@ -188,16 +184,16 @@ export class EmailService {
   async sendProjectFundedAlert(email: string, data: { name: string; projectTitle: string; amount: string; currency: string; projectId: string }) {
     const projectUrl = `${this.config.get('FRONTEND_URL')}/dashboard/projects/${data.projectId}/manage`;
     const content = EmailTemplates.projectFunded({ ...data, projectUrl });
-    const html = EmailTemplates.base(content, 'Project Fully Funded');
-    return this.send(email, `Givar Impact: Success! ${data.projectTitle} is fully funded`, html);
+    const html = EmailTemplates.base(content, 'Cause Fully Funded');
+    return this.send(email, `Givar: Success! ${data.projectTitle} is fully funded`, html);
   }
 
   // 14. Project Funded Alert (To Donors)
   async sendProjectFundedDonorAlert(email: string, data: { name: string; projectTitle: string; amount: string; currency: string; projectId: string; projectSlug: string }) {
     const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${data.projectSlug}`;
     const content = EmailTemplates.projectFundedDonor({ ...data, projectUrl });
-    const html = EmailTemplates.base(content, 'Project Successfully Funded');
-    return this.send(email, `Givar Impact: The project you supported is fully funded!`, html);
+    const html = EmailTemplates.base(content, 'Cause Successfully Funded');
+    return this.send(email, `Givar: The cause you supported is fully funded!`, html);
   }
 
   // 15. Impact Achieved Alert (To Donors)
@@ -205,9 +201,8 @@ export class EmailService {
     const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${data.projectSlug}`;
     const content = EmailTemplates.impactAchievedDonor({ ...data, projectUrl });
     const html = EmailTemplates.base(content, 'Impact Successfully Achieved');
-    return this.send(email, `Givar Impact: Mission Accomplished for ${data.projectTitle}!`, html);
+    return this.send(email, `Givar: Mission Accomplished for ${data.projectTitle}!`, html);
   }
-
 
   // 16. Dispatches a friendly notification when an Admin leaves feedback.
   async sendFeedbackNotification(
@@ -233,7 +228,7 @@ export class EmailService {
     });
 
     const html = EmailTemplates.base(content, 'New message from Givar');
-    return this.send(email, `New message regarding ${data.projectTitle}`, html);
+    return this.send(email, `Givar: New message regarding ${data.projectTitle}`, html);
   }
 
   // 17. Broadcasts an alert to all Administrators when new evidence is uploaded.
@@ -257,7 +252,7 @@ export class EmailService {
           queueUrl
         });
         const html = EmailTemplates.base(content, 'New Evidence for Review');
-        return this.send(admin.email, `Action Required: Evidence for ${data.projectTitle}`, html);
+        return this.send(admin.email, `Givar Admin: Evidence for ${data.projectTitle}`, html);
       })
     );
   }
@@ -279,7 +274,7 @@ export class EmailService {
           proposerName: data.proposerName,
           url
         });
-        return this.send(admin.email, `Review Required: ${data.projectTitle}`, EmailTemplates.base(content, 'New Project Proposal'));
+        return this.send(admin.email, `Givar Admin: Review Required for ${data.projectTitle}`, EmailTemplates.base(content, 'New Cause Proposal'));
       })
     );
   }
@@ -301,7 +296,7 @@ export class EmailService {
           proposerName: data.proposerName,
           url
         });
-        return this.send(admin.email, `KYC Audit Required: ${data.orgName}`, EmailTemplates.base(content, 'New Organization Verification'));
+        return this.send(admin.email, `Givar Admin: KYC Audit Required for ${data.orgName}`, EmailTemplates.base(content, 'New Organization Verification'));
       })
     );
   }
@@ -326,7 +321,7 @@ export class EmailService {
           content: data.content,
           url
         });
-        return this.send(admin.email, `New Message: ${data.projectTitle}`, EmailTemplates.base(content, 'Inquiry from Project Owner'));
+        return this.send(admin.email, `Givar Admin: New Message for ${data.projectTitle}`, EmailTemplates.base(content, 'Inquiry from Cause Organizer'));
       })
     );
   }
@@ -346,7 +341,7 @@ export class EmailService {
           amount: data.amount,
           currency: data.currency
         });
-        return this.send(admin.email, `High-Value Intent: ${data.userEmail}`, EmailTemplates.base(content, 'Institutional Lead Detected'));
+        return this.send(admin.email, `Givar Admin: High-Value Intent by ${data.userEmail}`, EmailTemplates.base(content, 'Institutional Lead Detected'));
       })
     );
   }
@@ -355,8 +350,8 @@ export class EmailService {
   async sendProposalSubmittedConfirmation(email: string, data: { name: string; projectTitle: string }) {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
     const content = EmailTemplates.proposalSubmitted({ ...data, url });
-    const html = EmailTemplates.base(content, 'Proposal Received');
-    return this.send(email, `Givar Confirmation: ${data.projectTitle} Submitted`, html);
+    const html = EmailTemplates.base(content, 'Cause Successfully Submitted');
+    return this.send(email, `Cause Successfully Submitted`, html);
   }
 
   // 23. Sends an email to the user when their KYC documents are submitted
@@ -364,7 +359,7 @@ export class EmailService {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/settings?tab=verification`;
     const content = EmailTemplates.kycSubmitted({ ...data, url });
     const html = EmailTemplates.base(content, 'Verification Documents Received');
-    return this.send(email, 'Givar Impact: Verification in progress', html);
+    return this.send(email, 'Givar: Verification in progress', html);
   }
 
   // 24. Sends an email to the user when their KYC is approved
@@ -372,7 +367,7 @@ export class EmailService {
     const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals/start`;
     const content = EmailTemplates.kycApproved({ ...data, url });
     const html = EmailTemplates.base(content, 'Identity Verified');
-    return this.send(email, 'Givar Impact: Your identity has been verified', html);
+    return this.send(email, 'Givar: Your identity has been verified', html);
   }
 
   // 25. Sends an email to the user when their KYC is rejected
@@ -387,7 +382,7 @@ export class EmailService {
   async sendPhaseUnlockedAlert(email: string, data: { projectTitle: string; projectUrl: string }) {
     const content = EmailTemplates.sendPhaseUnlockedAlert(data);
     const html = EmailTemplates.base(content, 'Next phase unlocked!');
-    return this.send(email, `Givar Impact: Next phase unlocked for ${data.projectTitle}`, html);
+    return this.send(email, `Givar: Next phase unlocked for ${data.projectTitle}`, html);
   }
 
   async sendAdminVendorPayoutAlert(data: { projectTitle: string; phaseName: string; vendorName: string; amount: string; currency: string; reference: string; projectId: string }) {
@@ -408,7 +403,7 @@ export class EmailService {
           url
         });
         const html = EmailTemplates.base(content, 'Vendor Payout Confirmed');
-        return this.send(admin.email, `Payout Confirmed: ${data.vendorName}`, html);
+        return this.send(admin.email, `Givar Admin: Payout Confirmed for ${data.vendorName}`, html);
       })
     );
   }
