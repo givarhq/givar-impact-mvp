@@ -257,7 +257,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                   )}
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground ml-1">Recipient Name *</label>
+                    <label className="text-xs font-bold text-muted-foreground ml-1">Recipient Name *</label>
                     <Input
                       value={vendor.name}
                       onChange={(e) => updateVendorField(vendor.id, 'name', e.target.value)}
@@ -269,7 +269,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5"><Mail className="h-3 w-3" /> Email</label>
+                      <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5"><Mail className="h-3 w-3" /> Email</label>
                       <Input
                         value={vendor.email}
                         onChange={(e) => updateVendorField(vendor.id, 'email', e.target.value)}
@@ -279,7 +279,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5"><Phone className="h-3 w-3" /> Phone</label>
+                      <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-1.5"><Phone className="h-3 w-3" /> Phone</label>
                       <Input
                         value={vendor.phone}
                         onChange={(e) => updateVendorField(vendor.id, 'phone', e.target.value)}
@@ -366,7 +366,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 className={fieldContainerClass}
               >
                 <div className="md:col-span-4 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground ml-1">Item</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Item</label>
                   <Input
                     placeholder="Details..."
                     value={item.description}
@@ -377,7 +377,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 <div className="md:col-span-3 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground ml-1">Recipient</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Recipient</label>
                   {isLocked ? (
                     <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
                   ) : (
@@ -398,7 +398,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-[11px] font-bold text-muted-foreground ml-1">Category</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Category</label>
                   {isLocked ? (
                     <Input value={item.costType} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
                   ) : (
@@ -419,7 +419,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 <div className="md:col-span-3 flex gap-2 items-end">
                   <div className="flex-1 space-y-1.5 min-w-0">
-                    <label className="text-[11px] font-bold text-muted-foreground ml-1">Amount</label>
+                    <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
                     <div className="relative">
                       {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
                       <Input
@@ -478,7 +478,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
           <div className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Destination Bank</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Destination Bank</label>
               <Select value={bankCode} onValueChange={setBankCode} disabled={isCreatingSubaccount || isBankLoading}>
                 <SelectTrigger className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background">
                   <SelectValue placeholder={isBankLoading ? "Loading banks..." : "Select destination bank..."} />
@@ -494,7 +494,7 @@ export const BudgetEditor = memo(function BudgetEditor({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">NUBAN Account Number</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">NUBAN Account Number</label>
               <Input
                 placeholder="10-digit account number"
                 maxLength={10}
@@ -506,7 +506,7 @@ export const BudgetEditor = memo(function BudgetEditor({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Registered Business Name</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Registered Business Name</label>
               <Input
                 placeholder="Official name matching bank records"
                 value={businessName}
