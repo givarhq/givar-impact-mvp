@@ -36,6 +36,7 @@ interface MilestoneManagerProps {
   targetAmount: string;
   currency: string;
   timeline: Milestone[];
+  budgetBreakdown?: any[];
   projectStatus?: string;
   waitlistCount?: number;
 }
@@ -47,6 +48,7 @@ export const MilestoneManager = memo(function MilestoneManager({
   targetAmount,
   currency,
   timeline,
+  budgetBreakdown = [],
   projectStatus,
   waitlistCount = 0,
 }: MilestoneManagerProps) {
@@ -64,6 +66,7 @@ export const MilestoneManager = memo(function MilestoneManager({
   const [finalProofImage, setFinalProofImage] = useState<{ key: string; url: string } | null>(null);
 
   const isFullyCompleted = timeline.length > 0 && timeline.every(m => m.status === 'COMPLETED');
+  const totalRaisedMinor = BigInt(raisedAmount || '0');
 
   // --- ADMIN DIRECT VERIFICATION ---
   const handleStatusChange = async (milestoneId: string, newStatus: Milestone['status'], index: number) => {
@@ -160,6 +163,31 @@ export const MilestoneManager = memo(function MilestoneManager({
             const status = milestone.status;
             const isProcessingCurrent = processingId === milestone.id;
 
+            // --- Phase Financial Math ---
+            let previousPhasesMajor = 0;
+            for (let j = 0; j < index; j++) {
+              previousPhasesMajor += (budgetBreakdown[j]?.amount || budgetBreakdown[j]?.cost || 0);
+            }
+            const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+
+            let currentPhaseMajor = (budgetBreakdown[index]?.amount || budgetBreakdown[index]?.cost || 0);
+            let currentPhaseTargetMinor = BigInt(Math.round(currentPhaseMajor * 100));
+
+            // Fallback if budget length is mismatched
+            if (!budgetBreakdown || budgetBreakdown.length === 0) {
+              currentPhaseTargetMinor = index === 0 ? BigInt(targetAmount) : 0n;
+            }
+
+            let phaseRaisedMinor = totalRaisedMinor - previousPhasesMinor;
+            if (phaseRaisedMinor < 0n) phaseRaisedMinor = 0n;
+            if (phaseRaisedMinor > currentPhaseTargetMinor && currentPhaseTargetMinor > 0n) {
+              phaseRaisedMinor = currentPhaseTargetMinor;
+            }
+
+            const phasePercent = currentPhaseTargetMinor > 0n
+              ? Math.min(100, Math.floor(Number(phaseRaisedMinor * 100n / currentPhaseTargetMinor)))
+              : (phaseRaisedMinor > 0n ? 100 : 0);
+
             return (
               <motion.div
                 key={milestone.id}
@@ -205,10 +233,30 @@ export const MilestoneManager = memo(function MilestoneManager({
                         <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">{milestone.phase}</h4>
                         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 font-medium">{milestone.deliverables}</p>
 
-                        <div className="flex items-center gap-4 mt-4 pt-3.5 border-t border-border/40 min-w-0">
-                          <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground truncate">
+                        <div className="flex items-center justify-between gap-4 mt-4 pt-3.5 border-t border-border/40 min-w-0 w-full">
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground truncate shrink-0">
                             <Calendar className="h-4 w-4 opacity-50 shrink-0" />
                             <span className="truncate">Target: {milestone.estimatedDate || 'TBD'}</span>
+                          </div>
+
+                          <div className="flex flex-col items-end gap-1.5 shrink-0 min-w-0">
+                            <div className="flex items-baseline gap-1 text-[11px] font-bold">
+                              <span className={cn(phasePercent >= 100 ? "text-emerald-600" : "text-foreground")}>
+                                <SmartCurrency amount={phaseRaisedMinor.toString()} currency={currency} visible={true} size="small" hideKobo />
+                              </span>
+                              <span className="text-muted-foreground/50 mx-0.5">of</span>
+                              <span className="text-muted-foreground">
+                                <SmartCurrency amount={currentPhaseTargetMinor.toString()} currency={currency} visible={true} size="small" hideKobo />
+                              </span>
+                            </div>
+                            <div className="h-1 w-16 sm:w-24 bg-muted rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${phasePercent}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                className={cn("h-full rounded-full", phasePercent >= 100 ? "bg-emerald-500" : "bg-primary")}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>

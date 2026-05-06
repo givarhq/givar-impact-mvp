@@ -108,6 +108,7 @@ export default async function EditProjectPage({
                   targetAmount={project.targetAmount}
                   currency={project.currency}
                   timeline={project.executionTimeline || []}
+                  budgetBreakdown={project.budgetBreakdown || []}
                   projectStatus={project.status}
                   waitlistCount={project.waitlistEmails?.length || 0}
                 />
