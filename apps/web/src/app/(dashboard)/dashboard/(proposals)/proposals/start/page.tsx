@@ -25,11 +25,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 const startSchema = z.object({
     title: z.string().min(10, 'Title must be at least 10 characters'),
     categoryId: z.string().uuid('Please select a sector'),
-    subcategoryId: z.string().uuid('Please select a specific focus'), // <-- NEW
+    subcategoryId: z.string().uuid('Please select a specific focus'),
     beneficiaryRelationship: z.string().optional().nullable(),
     beneficiaryName: z.string().optional().nullable(),
     beneficiaryAge: z.coerce.number().optional().nullable(),
     beneficiaryContact: z.string().optional().nullable(),
+    organizationName: z.string().optional().nullable(),
+    contactPhone: z.string().optional().nullable(),
 });
 
 type StartFormValues = z.infer<typeof startSchema>;
@@ -55,7 +57,7 @@ export default function StartProposalPage() {
     const [orgStatus, setOrgStatus] = useState<string>('NOT_SUBMITTED');
     const [orgKycType, setOrgKycType] = useState<string | null>(null);
     const [userAccountType, setUserAccountType] = useState<string>('INDIVIDUAL');
-    const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | null>(null);
+    const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP' | null>(null);
     const [isGateCheckComplete, setIsGateCheckComplete] = useState(false);
 
     useEffect(() => {
@@ -74,12 +76,10 @@ export default function StartProposalPage() {
             }
         }
 
-        // Fetch definitive categories (now populated with subcategories from API update)
         ApiService.projects.getCategories()
             .then(setCategories)
             .catch(() => toast.error('Categories offline'));
 
-        // Real-time fetch of the organization status to prevent stale cookie blocks
         ApiService.organizations.getMe()
             .then((profile) => {
                 if (profile) {
@@ -120,7 +120,7 @@ export default function StartProposalPage() {
         formState: { errors },
     } = useForm<StartFormValues>({
         resolver: zodResolver(startSchema),
-        mode: 'onChange', // Resolves validation persistence issue
+        mode: 'onChange',
     });
 
     const selectedCategoryId = watch('categoryId');
@@ -128,15 +128,43 @@ export default function StartProposalPage() {
     const selectedCategoryName = selectedCategoryObj?.name?.toLowerCase() || '';
     const availableSubcategories = selectedCategoryObj?.subcategories || [];
 
-    const handleTargetTypeChange = (type: 'SELF' | 'OTHER') => {
+    const isCommunity = selectedCategoryName.includes('community');
+
+    // Automatically clear target type if category is changed to an incompatible type
+    useEffect(() => {
+        if (!targetType) return;
+        if (isCommunity && (targetType === 'SELF' || targetType === 'OTHER')) {
+            setTargetType(null);
+            setValue('beneficiaryRelationship', null as any);
+            setValue('beneficiaryName', null as any);
+            setValue('beneficiaryAge', null as any);
+        } else if (!isCommunity && (targetType === 'INDIVIDUAL' || targetType === 'GROUP')) {
+            setTargetType(null);
+            setValue('organizationName', null as any);
+            setValue('contactPhone', null as any);
+            setValue('beneficiaryName', null as any);
+        }
+    }, [isCommunity, targetType, setValue]);
+
+    const handleTargetTypeChange = (type: 'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP') => {
         setTargetType(type);
         if (type === 'SELF') {
             setValue('beneficiaryRelationship', 'Self', { shouldValidate: true });
             setValue('beneficiaryName', null, { shouldValidate: true });
             setValue('beneficiaryAge', null, { shouldValidate: true });
             setValue('beneficiaryContact', null, { shouldValidate: true });
+            setValue('organizationName', null, { shouldValidate: true });
+            setValue('contactPhone', null, { shouldValidate: true });
+        } else if (type === 'GROUP') {
+            setValue('beneficiaryRelationship', null, { shouldValidate: true });
+            setValue('beneficiaryName', null, { shouldValidate: true });
+            setValue('beneficiaryAge', null, { shouldValidate: true });
+            setValue('beneficiaryContact', null, { shouldValidate: true });
         } else {
-            setValue('beneficiaryRelationship', '', { shouldValidate: true });
+            // OTHER or INDIVIDUAL
+            setValue('organizationName', null, { shouldValidate: true });
+            setValue('contactPhone', null, { shouldValidate: true });
+            setValue('beneficiaryRelationship', null, { shouldValidate: true });
         }
     };
 
@@ -161,8 +189,9 @@ export default function StartProposalPage() {
         try {
             const newProposal = await ApiService.proposals.create({
                 ...data,
-                subcategoryId: data.subcategoryId
-            });
+                categoryId: data.categoryId === '' ? null : data.categoryId,
+                subcategoryId: data.subcategoryId === '' ? null : data.subcategoryId,
+            } as any);
             router.push(`/dashboard/proposals/edit/${newProposal.id}/hook`);
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to initialize');
@@ -181,7 +210,6 @@ export default function StartProposalPage() {
         );
     }
 
-    // COMPLIANCE GUARD: Prevent "VERIFIED" individuals from starting corporate projects
     const isUpgradeRequired = userAccountType === 'ORGANIZER' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
     const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED' && !isUpgradeRequired;
 
@@ -312,7 +340,6 @@ export default function StartProposalPage() {
         <div className="max-w-5xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
 
-                {/* Left Column: Form */}
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
@@ -325,13 +352,125 @@ export default function StartProposalPage() {
                             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
                                 <div className="space-y-5 min-w-0">
                                     <Input
-                                        label="Project title"
-                                        placeholder="e.g. Provide clean water for families"
+                                        label="Cause title"
+                                        placeholder="e.g. Clean water for Owerri communities"
                                         {...register('title')}
                                         error={errors.title?.message}
                                         disabled={isLoading}
                                         className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
                                     />
+
+                                    {/* WHO IS THIS CAUSE FOR (Moved Above Categories) */}
+                                    <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
+                                        <label className="text-[11px] font-bold text-muted-foreground">Who is this cause for?</label>
+                                        <div className="flex gap-3">
+                                            {isCommunity ? (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTargetTypeChange('INDIVIDUAL')}
+                                                        className={cn(
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            targetType === 'INDIVIDUAL' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                        )}
+                                                    >
+                                                        <User className="h-4 w-4" /> An individual
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTargetTypeChange('GROUP')}
+                                                        className={cn(
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                        )}
+                                                    >
+                                                        <Users className="h-4 w-4" /> A group or community
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTargetTypeChange('SELF')}
+                                                        className={cn(
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                        )}
+                                                    >
+                                                        <User className="h-4 w-4" /> Myself
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTargetTypeChange('OTHER')}
+                                                        className={cn(
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                        )}
+                                                    >
+                                                        <Users className="h-4 w-4" /> Someone else
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {(targetType === 'OTHER' || targetType === 'INDIVIDUAL') && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                                                >
+                                                    <Input
+                                                        label="Beneficiary full name"
+                                                        placeholder="Legal name of beneficiary"
+                                                        {...register('beneficiaryName')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                    <Input
+                                                        label="Age"
+                                                        type="number"
+                                                        placeholder="Current age"
+                                                        {...register('beneficiaryAge')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                    <Input
+                                                        label="Relationship to submitter"
+                                                        placeholder="e.g. Parent, Sibling, Community member"
+                                                        {...register('beneficiaryRelationship')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                    <Input
+                                                        label="Phone number (optional)"
+                                                        placeholder="Direct contact number"
+                                                        {...register('beneficiaryContact')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                </motion.div>
+                                            )}
+                                            {targetType === 'GROUP' && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                                                >
+                                                    <Input
+                                                        label="Organisation name"
+                                                        placeholder="e.g. Owerri Youth Coalition"
+                                                        {...register('organizationName')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                    <Input
+                                                        label="Contact number"
+                                                        placeholder="Representative phone number"
+                                                        {...register('contactPhone')}
+                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                    />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
 
                                     {/* Subcategory Cascading Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
@@ -344,7 +483,7 @@ export default function StartProposalPage() {
                                                     <Select
                                                         onValueChange={(val) => {
                                                             field.onChange(val);
-                                                            setValue('subcategoryId', '', { shouldValidate: true });
+                                                            setValue('subcategoryId', null as any, { shouldValidate: true });
                                                         }}
                                                         value={field.value || undefined}
                                                         disabled={isLoading}
@@ -397,69 +536,6 @@ export default function StartProposalPage() {
                                             />
                                             {errors.subcategoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.subcategoryId.message}</p>}
                                         </div>
-                                    </div>
-
-                                    <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
-                                        <label className="text-[11px] font-bold text-muted-foreground">Who is this cause for?</label>
-                                        <div className="flex gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleTargetTypeChange('SELF')}
-                                                className={cn(
-                                                    "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
-                                                    targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
-                                                )}
-                                            >
-                                                <User className="h-4 w-4" /> Myself
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleTargetTypeChange('OTHER')}
-                                                className={cn(
-                                                    "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
-                                                    targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/40 hover:bg-muted"
-                                                )}
-                                            >
-                                                <Users className="h-4 w-4" /> Someone else
-                                            </button>
-                                        </div>
-
-                                        <AnimatePresence>
-                                            {targetType === 'OTHER' && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, height: 0 }}
-                                                    animate={{ opacity: 1, height: 'auto' }}
-                                                    exit={{ opacity: 0, height: 0 }}
-                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
-                                                >
-                                                    <Input
-                                                        label="Beneficiary full name"
-                                                        placeholder="Legal name of beneficiary"
-                                                        {...register('beneficiaryName')}
-                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                                    />
-                                                    <Input
-                                                        label="Age"
-                                                        type="number"
-                                                        placeholder="Current age"
-                                                        {...register('beneficiaryAge')}
-                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                                    />
-                                                    <Input
-                                                        label="Relationship to submitter"
-                                                        placeholder="e.g. Parent, Sibling, Community member"
-                                                        {...register('beneficiaryRelationship')}
-                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                                    />
-                                                    <Input
-                                                        label="Phone number (optional)"
-                                                        placeholder="Direct contact number"
-                                                        {...register('beneficiaryContact')}
-                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                                    />
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-center">

@@ -124,7 +124,7 @@ export default function HookPage() {
   };
 
   // Validation Logic
-  const strippedDescription = description ? description.replace(/<[^>]*>?/gm, '').trim() : '';
+  const strippedDescription = description ? description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim() : '';
   const titleValid = !!(title && title.trim().length >= 10);
   const locationValid = !!(location && location.trim().length >= 2);
   const descValid = strippedDescription.length >= 20;
@@ -281,8 +281,8 @@ export default function HookPage() {
                       onValueChange={(val) => {
                         field.onChange(val);
                         updateField('categoryId', val);
-                        updateField('subcategoryId', '');
-                        setValue('subcategoryId', '', { shouldValidate: true });
+                        updateField('subcategoryId', null as any);
+                        setValue('subcategoryId', null as any, { shouldValidate: true });
                       }}
                       value={categoryId || undefined}
                     >
@@ -290,9 +290,13 @@ export default function HookPage() {
                         <SelectValue placeholder="Select a sector..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-[22px] shadow-xl border-border/40">
-                        {categories.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
-                        ))}
+                        {categories.length === 0 ? (
+                          <div className="p-4 text-xs text-muted-foreground text-center italic">Loading...</div>
+                        ) : (
+                          categories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -313,7 +317,7 @@ export default function HookPage() {
                         updateField('subcategoryId', val);
                       }}
                       value={subcategoryId || undefined}
-                      disabled={!categoryId}
+                      disabled={isLoading || !categoryId}
                     >
                       <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm disabled:opacity-50">
                         <SelectValue placeholder="Select focus..." />

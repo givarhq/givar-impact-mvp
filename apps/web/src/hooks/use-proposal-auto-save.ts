@@ -23,7 +23,6 @@ export function useProposalAutoSave() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
       // Isolate non-payload data to prevent server validation errors
-      // NEW: Added `addVendor`, `removeVendor`, `updateVendor` to omissions
       const {
         saveDraft, setProposal, updateField, addGalleryItem,
         removeGalleryItem, updateGalleryItem, addKycDocument,
@@ -40,19 +39,24 @@ export function useProposalAutoSave() {
         caption: item.caption
       }));
 
-      const payload = {
+      const payload: any = {
         ...dto,
         coverImage: proposal.coverImageKey, // Permanent key saved to DB
         gallery: mappedGallery,
-        // The `vendors` array is naturally included via `...dto`
       };
 
+      // SECURITY & UX FIX: Prevent "subcategoryId must be a UUID" error.
+      // Radix Select components often yield an empty string when cleared, but 
+      // the NestJS backend strictly expects `null` or a valid UUID.
+      if (payload.subcategoryId === '') payload.subcategoryId = null;
+      if (payload.categoryId === '') payload.categoryId = null;
+
       if (payload.targetAmount !== undefined && payload.targetAmount !== null) {
-        (payload as any).targetAmount = payload.targetAmount * 100;
+        payload.targetAmount = payload.targetAmount * 100;
       }
 
       if (payload.preCollectedAmount !== undefined && payload.preCollectedAmount !== null) {
-        (payload as any).preCollectedAmount = payload.preCollectedAmount * 100;
+        payload.preCollectedAmount = payload.preCollectedAmount * 100;
       }
 
       try {
