@@ -58,7 +58,7 @@ export default function PlanPage() {
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <CardTitle className="text-lg md:text-xl font-bold">Budget & Use of Funds</CardTitle>
-          <CardDescription className="text-xs font-medium">
+          <CardDescription className="text-sm font-medium mt-1.5">
             Outline what is needed to complete this cause and who will receive the funds.
           </CardDescription>
         </CardHeader>
@@ -83,13 +83,13 @@ export default function PlanPage() {
             </p>
           </div>
 
-          <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">
+          <div className="space-y-4 min-w-0 pt-6">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
                 Additional Notes (Optional)
               </h3>
-              <p className="text-xs text-muted-foreground font-medium">Identify potential roadblocks, mitigation protocols, or extra details.</p>
+              <p className="text-sm text-muted-foreground font-medium">Identify potential roadblocks, mitigation protocols, or extra details.</p>
             </div>
             <RichTextEditor
               placeholder="e.g. Potential weather delays, vendor availability, logistical bottlenecks..."
@@ -98,7 +98,7 @@ export default function PlanPage() {
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between pt-6 min-w-0 gap-4">
             <Button
               variant="outline"
               className="w-full sm:w-auto rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0"

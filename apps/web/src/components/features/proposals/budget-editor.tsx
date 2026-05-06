@@ -197,23 +197,25 @@ export const BudgetEditor = memo(function BudgetEditor({
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
+  // Removed horizontal divider (border-b) from the items container to eliminate excessive lines
   const fieldContainerClass = cn(
-    "py-4 border-b border-border/40 last:border-0 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
-    isLocked && "border-border/60"
+    "py-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
+    isLocked && "opacity-90"
   );
 
+  // Standardized font size to text-sm and matched paddings to ensure UI symmetry
   const inputStyle = cn(
-    "h-10 text-sm rounded-3xl transition-all duration-200 w-full",
+    "h-11 text-sm font-medium rounded-3xl transition-all duration-200 w-full",
     isLocked
       ? "bg-transparent border-transparent shadow-none font-bold text-foreground cursor-default focus-visible:ring-0 px-1"
-      : "bg-muted/20 border-border/50 focus:bg-background focus:border-primary/50"
+      : "bg-muted/20 border-border/50 focus:bg-background focus:border-primary/50 px-4"
   );
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-10">
       {/* SECTION A: VENDORS */}
       <div className="space-y-4 border border-border/40 rounded-3xl p-5 bg-card shadow-sm">
-        <div className="flex items-center justify-between pb-2 border-b border-border/40">
+        <div className="flex items-center justify-between pb-2">
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" /> Recipients
@@ -260,7 +262,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                       value={vendor.name}
                       onChange={(e) => updateVendorField(vendor.id, 'name', e.target.value)}
                       readOnly={isLocked}
-                      className={cn(inputStyle, isLocked && "text-base")}
+                      className={cn(inputStyle, isLocked && "text-base px-1")}
                       placeholder="e.g. Continental Medical Supplies"
                     />
                   </div>
@@ -334,112 +336,116 @@ export const BudgetEditor = memo(function BudgetEditor({
         </div>
       </div>
 
-      <hr className="border-border/40" />
-
       {/* SECTION B: BUDGET ITEMS */}
-      <div className="space-y-2">
+      <div className="space-y-4">
         <h3 className="text-sm font-bold text-foreground flex items-center gap-2 mb-1">
           Cost Breakdown
         </h3>
-        <p className="text-[11px] text-muted-foreground font-medium mb-1.5">
-          List the main items needed to complete this cause in the order they will be carried out.
-        </p>
-        <p className="text-[11px] text-muted-foreground font-medium mb-4">
-          <span className="font-bold">Tip:</span> We recommend 2–4 items for most causes. If your invoice includes many entries, group related costs into a few clear categories (e.g. Consultation, Surgery, Aftercare) to keep your cause easy to understand and speed up review.
-        </p>
 
-        <AnimatePresence initial={false} mode="popLayout">
-          {budgetBreakdown.map((item) => (
-            <motion.div
-              key={item.id}
-              layout
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-              transition={{ duration: 0.2 }}
-              className={fieldContainerClass}
-            >
-              <div className="md:col-span-4 space-y-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Item</label>
-                <Input
-                  placeholder="Details..."
-                  value={item.description}
-                  onChange={(e) => handleUpdate(item.id, 'description', e.target.value)}
-                  readOnly={isLocked}
-                  className={inputStyle}
-                />
-              </div>
+        {/* Adjusted Font Sizes for Instructions */}
+        <div className="space-y-2 mb-6">
+          <p className="text-sm text-muted-foreground font-medium mb-2">
+            List the main items needed to complete this cause in the order they will be carried out.
+          </p>
+          <p className="text-sm text-muted-foreground font-medium mb-4">
+            <span className="font-bold">Tip:</span> We recommend 2–4 items for most causes. If your invoice includes many entries, group related costs into a few clear categories (e.g. Consultation, Surgery, Aftercare) to keep your cause easy to understand and speed up review.
+          </p>
+        </div>
 
-              <div className="md:col-span-3 space-y-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Recipient</label>
-                {isLocked ? (
-                  <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={inputStyle} />
-                ) : (
-                  <Select value={item.vendorId || "unassigned"} onValueChange={(v) => handleUpdate(item.id, 'vendorId', v === 'unassigned' ? '' : v)} disabled={isLocked || vendors.length === 1}>
-                    <SelectTrigger className={cn(inputStyle, "font-bold", (isLocked || vendors.length === 1) && "opacity-70 cursor-not-allowed", isLocked && "text-primary")}>
-                      <SelectValue placeholder="Select a recipient" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                      <SelectItem value="unassigned" className="rounded-2xl text-xs py-2.5 italic text-muted-foreground">To be confirmed</SelectItem>
-                      {vendors.map((v) => (
-                        <SelectItem key={v.id} value={v.id} className="rounded-2xl text-xs py-2.5 font-bold">
-                          {v.name || 'Unnamed Recipient'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Category</label>
-                {isLocked ? (
-                  <Input value={item.costType} readOnly className={inputStyle} />
-                ) : (
-                  <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
-                    <SelectTrigger className={cn(inputStyle, "font-bold text-xs px-3")}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-xl border-border/40">
-                      {activeCostTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value} className="rounded-xl text-xs py-2">
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              <div className="md:col-span-3 flex gap-2 items-end">
-                <div className="flex-1 space-y-1 min-w-0">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Amount</label>
-                  <div className="relative">
-                    {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-xs">₦</span>}
-                    <Input
-                      placeholder="0"
-                      className={cn(inputStyle, !isLocked && "pl-7", "tabular-nums font-bold")}
-                      value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
-                      onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
-                      readOnly={isLocked}
-                    />
-                  </div>
+        <div className="space-y-2">
+          <AnimatePresence initial={false} mode="popLayout">
+            {budgetBreakdown.map((item) => (
+              <motion.div
+                key={item.id}
+                layout
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                transition={{ duration: 0.2 }}
+                className={fieldContainerClass}
+              >
+                <div className="md:col-span-4 space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Item</label>
+                  <Input
+                    placeholder="Details..."
+                    value={item.description}
+                    onChange={(e) => handleUpdate(item.id, 'description', e.target.value)}
+                    readOnly={isLocked}
+                    className={inputStyle}
+                  />
                 </div>
-                {!isLocked && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => removeItem(item.id)}
-                    className="text-destructive hover:bg-destructive/10 rounded-2xl h-10 w-10 shrink-0 transition-colors active:scale-90 mb-[1px]"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+
+                <div className="md:col-span-3 space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Recipient</label>
+                  {isLocked ? (
+                    <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
+                  ) : (
+                    <Select value={item.vendorId || "unassigned"} onValueChange={(v) => handleUpdate(item.id, 'vendorId', v === 'unassigned' ? '' : v)} disabled={isLocked || vendors.length === 1}>
+                      <SelectTrigger className={cn(inputStyle, (isLocked || vendors.length === 1) && "opacity-70 cursor-not-allowed")}>
+                        <SelectValue placeholder="Select a recipient" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                        <SelectItem value="unassigned" className="rounded-2xl text-sm py-2.5 italic text-muted-foreground font-medium">To be confirmed</SelectItem>
+                        {vendors.map((v) => (
+                          <SelectItem key={v.id} value={v.id} className="rounded-2xl text-sm py-2.5 font-medium">
+                            {v.name || 'Unnamed Recipient'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Category</label>
+                  {isLocked ? (
+                    <Input value={item.costType} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
+                  ) : (
+                    <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
+                      <SelectTrigger className={inputStyle}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl shadow-xl border-border/40">
+                        {activeCostTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value} className="rounded-2xl text-sm py-2.5 font-medium">
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="md:col-span-3 flex gap-2 items-end">
+                  <div className="flex-1 space-y-1.5 min-w-0">
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Amount</label>
+                    <div className="relative">
+                      {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
+                      <Input
+                        placeholder="0"
+                        className={cn(inputStyle, !isLocked && "pl-7", "tabular-nums font-bold text-base")}
+                        value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
+                        onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
+                        readOnly={isLocked}
+                      />
+                    </div>
+                  </div>
+                  {!isLocked && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeItem(item.id)}
+                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-11 w-11 shrink-0 transition-colors active:scale-90"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
 
       {!isLocked && (
