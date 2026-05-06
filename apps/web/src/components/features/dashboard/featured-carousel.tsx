@@ -196,7 +196,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             {isPhaseFull ? (
                                 <div className="space-y-1.5 animate-in fade-in">
                                     <p className="text-[11px] font-medium text-muted-foreground leading-snug line-clamp-2">
-                                        Donations paused while execution is verified.
+                                        Donations are paused while execution is verified.
                                     </p>
                                     <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden mt-1 lg:mt-2">
                                         <motion.div
