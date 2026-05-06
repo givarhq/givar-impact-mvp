@@ -249,12 +249,15 @@ export const MilestoneManager = memo(function MilestoneManager({
                                 <SmartCurrency amount={currentPhaseTargetMinor.toString()} currency={currency} visible={true} size="small" hideKobo />
                               </span>
                             </div>
-                            <div className="h-1 w-16 sm:w-24 bg-muted rounded-full overflow-hidden">
+                            <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                               <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${phasePercent}%` }}
                                 transition={{ duration: 1, ease: "easeOut" }}
-                                className={cn("h-full rounded-full", phasePercent >= 100 ? "bg-emerald-500" : "bg-primary")}
+                                className={cn(
+                                  "h-full rounded-full",
+                                  phasePercent >= 100 ? "bg-emerald-500" : "bg-primary"
+                                )}
                               />
                             </div>
                           </div>
