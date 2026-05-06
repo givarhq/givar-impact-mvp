@@ -340,6 +340,7 @@ export default function StartProposalPage() {
         <div className="max-w-5xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
 
+                {/* Left Column: Form */}
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
@@ -360,7 +361,73 @@ export default function StartProposalPage() {
                                         className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
                                     />
 
-                                    {/* WHO IS THIS CAUSE FOR (Moved Above Categories) */}
+                                    {/* SECTOR CLASSIFICATION */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
+                                        <div className="space-y-1.5 min-w-0">
+                                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Sector</label>
+                                            <Controller
+                                                control={control}
+                                                name="categoryId"
+                                                render={({ field }) => (
+                                                    <Select
+                                                        onValueChange={(val) => {
+                                                            field.onChange(val);
+                                                            setValue('subcategoryId', '', { shouldValidate: true });
+                                                        }}
+                                                        value={field.value || undefined}
+                                                        disabled={isLoading}
+                                                    >
+                                                        <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
+                                                            <SelectValue placeholder="Select a sector..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                                                            {categories.length === 0 ? (
+                                                                <div className="p-4 text-xs text-muted-foreground text-center italic">Loading...</div>
+                                                            ) : (
+                                                                categories.map(cat => (
+                                                                    <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
+                                                                ))
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.categoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.categoryId.message}</p>}
+                                        </div>
+
+                                        <div className="space-y-1.5 min-w-0">
+                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
+                                                <Tag className="h-3 w-3" /> Specific Focus
+                                            </label>
+                                            <Controller
+                                                control={control}
+                                                name="subcategoryId"
+                                                render={({ field }) => (
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value || undefined}
+                                                        disabled={isLoading || !selectedCategoryId}
+                                                    >
+                                                        <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm disabled:opacity-50">
+                                                            <SelectValue placeholder="Select focus..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                                                            {availableSubcategories.length === 0 ? (
+                                                                <div className="p-4 text-xs text-muted-foreground text-center italic">Select a sector first</div>
+                                                            ) : (
+                                                                availableSubcategories.map(sub => (
+                                                                    <SelectItem key={sub.id} value={sub.id} className="rounded-xl text-xs py-2.5 font-bold">{sub.name}</SelectItem>
+                                                                ))
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                )}
+                                            />
+                                            {errors.subcategoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.subcategoryId.message}</p>}
+                                        </div>
+                                    </div>
+
+                                    {/* WHO IS THIS CAUSE FOR */}
                                     <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
                                         <label className="text-[11px] font-bold text-muted-foreground">Who is this cause for?</label>
                                         <div className="flex gap-3">
@@ -470,72 +537,6 @@ export default function StartProposalPage() {
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
-                                    </div>
-
-                                    {/* Subcategory Cascading Grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
-                                        <div className="space-y-1.5 min-w-0">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Sector</label>
-                                            <Controller
-                                                control={control}
-                                                name="categoryId"
-                                                render={({ field }) => (
-                                                    <Select
-                                                        onValueChange={(val) => {
-                                                            field.onChange(val);
-                                                            setValue('subcategoryId', null as any, { shouldValidate: true });
-                                                        }}
-                                                        value={field.value || undefined}
-                                                        disabled={isLoading}
-                                                    >
-                                                        <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
-                                                            <SelectValue placeholder="Select a sector..." />
-                                                        </SelectTrigger>
-                                                        <SelectContent className="rounded-[22px] shadow-xl border-border/40">
-                                                            {categories.length === 0 ? (
-                                                                <div className="p-4 text-xs text-muted-foreground text-center italic">Loading...</div>
-                                                            ) : (
-                                                                categories.map(cat => (
-                                                                    <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
-                                                                ))
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.categoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.categoryId.message}</p>}
-                                        </div>
-
-                                        <div className="space-y-1.5 min-w-0">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
-                                                <Tag className="h-3 w-3" /> Specific Focus
-                                            </label>
-                                            <Controller
-                                                control={control}
-                                                name="subcategoryId"
-                                                render={({ field }) => (
-                                                    <Select
-                                                        onValueChange={field.onChange}
-                                                        value={field.value || undefined}
-                                                        disabled={isLoading || !selectedCategoryId}
-                                                    >
-                                                        <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm disabled:opacity-50">
-                                                            <SelectValue placeholder="Select focus..." />
-                                                        </SelectTrigger>
-                                                        <SelectContent className="rounded-[22px] shadow-xl border-border/40">
-                                                            {availableSubcategories.length === 0 ? (
-                                                                <div className="p-4 text-xs text-muted-foreground text-center italic">Select a sector first</div>
-                                                            ) : (
-                                                                availableSubcategories.map(sub => (
-                                                                    <SelectItem key={sub.id} value={sub.id} className="rounded-xl text-xs py-2.5 font-bold">{sub.name}</SelectItem>
-                                                                ))
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            {errors.subcategoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.subcategoryId.message}</p>}
-                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-center">

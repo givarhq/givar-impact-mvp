@@ -117,6 +117,7 @@ export default function HookPage() {
       updateField('beneficiaryAge', null);
       updateField('beneficiaryContact', null);
     } else {
+      // OTHER or INDIVIDUAL
       updateField('organizationName', null);
       updateField('contactPhone', null);
       updateField('beneficiaryRelationship', null);
@@ -150,6 +151,70 @@ export default function HookPage() {
               onBlur={handleBlurTitle}
               className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
             />
+
+            {/* SECTOR CLASSIFICATION */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Sector</label>
+                <Controller
+                  control={control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        updateField('categoryId', val);
+                        updateField('subcategoryId', null as any);
+                        setValue('subcategoryId', null as any, { shouldValidate: true });
+                      }}
+                      value={categoryId || undefined}
+                    >
+                      <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
+                        <SelectValue placeholder="Select a sector..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                        {categories.map(cat => (
+                          <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
+                  <Tag className="h-3 w-3" /> Specific Focus
+                </label>
+                <Controller
+                  control={control}
+                  name="subcategoryId"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        updateField('subcategoryId', val);
+                      }}
+                      value={subcategoryId || undefined}
+                      disabled={isLoading || !categoryId}
+                    >
+                      <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm disabled:opacity-50">
+                        <SelectValue placeholder="Select focus..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                        {availableSubcategories.length === 0 ? (
+                          <div className="p-4 text-xs text-muted-foreground text-center italic">Select a sector first</div>
+                        ) : (
+                          availableSubcategories.map((sub: any) => (
+                            <SelectItem key={sub.id} value={sub.id} className="rounded-xl text-xs py-2.5 font-bold">{sub.name}</SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            </div>
 
             {/* WHO IS THIS CAUSE FOR */}
             <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
@@ -269,74 +334,6 @@ export default function HookPage() {
               </AnimatePresence>
             </div>
 
-            {/* SECTOR CLASSIFICATION */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
-              <div className="space-y-1.5 min-w-0">
-                <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Sector</label>
-                <Controller
-                  control={control}
-                  name="categoryId"
-                  render={({ field }) => (
-                    <Select
-                      onValueChange={(val) => {
-                        field.onChange(val);
-                        updateField('categoryId', val);
-                        updateField('subcategoryId', null as any);
-                        setValue('subcategoryId', null as any, { shouldValidate: true });
-                      }}
-                      value={categoryId || undefined}
-                    >
-                      <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm">
-                        <SelectValue placeholder="Select a sector..." />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-[22px] shadow-xl border-border/40">
-                        {categories.length === 0 ? (
-                          <div className="p-4 text-xs text-muted-foreground text-center italic">Loading...</div>
-                        ) : (
-                          categories.map(cat => (
-                            <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-1.5 min-w-0">
-                <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
-                  <Tag className="h-3 w-3" /> Specific Focus
-                </label>
-                <Controller
-                  control={control}
-                  name="subcategoryId"
-                  render={({ field }) => (
-                    <Select
-                      onValueChange={(val) => {
-                        field.onChange(val);
-                        updateField('subcategoryId', val);
-                      }}
-                      value={subcategoryId || undefined}
-                      disabled={isLoading || !categoryId}
-                    >
-                      <SelectTrigger className="h-12 rounded-2xl border-border/40 bg-muted/20 focus:bg-background font-medium text-sm disabled:opacity-50">
-                        <SelectValue placeholder="Select focus..." />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-[22px] shadow-xl border-border/40">
-                        {availableSubcategories.length === 0 ? (
-                          <div className="p-4 text-xs text-muted-foreground text-center italic">Select a sector first</div>
-                        ) : (
-                          availableSubcategories.map((sub: any) => (
-                            <SelectItem key={sub.id} value={sub.id} className="rounded-xl text-xs py-2.5 font-bold">{sub.name}</SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            </div>
-
             <Textarea
               label="Elevator Pitch"
               placeholder="A punchy one-liner (max 140 chars)..."
@@ -401,7 +398,7 @@ export default function HookPage() {
               )}
               <Button
                 disabled={!isHookValid || !categoryId || !subcategoryId}
-                className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+                className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 bg-primary hover:bg-primary/90 text-white min-w-0"
                 onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/media`)}
               >
                 <span>Media</span> <ArrowRight className="h-4 w-4 shrink-0" />
