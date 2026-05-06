@@ -182,24 +182,36 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
 
                         <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-3.5 shadow-sm text-left flex flex-col justify-center flex-1 min-w-0 mb-3">
-                            <h4 className="text-xs font-bold text-primary leading-tight mb-2 truncate">
-                                Phase {activeIndex + 1}: {activeItemName}
-                            </h4>
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                                <h4 className="text-xs font-bold text-primary leading-tight truncate">
+                                    Phase {activeIndex + 1}: {activeItemName}
+                                </h4>
+                                {isPhaseFull && (
+                                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 shrink-0 whitespace-nowrap">
+                                        <Clock className="h-3 w-3" /> Verifying Phase
+                                    </div>
+                                )}
+                            </div>
 
                             {isPhaseFull ? (
                                 <div className="space-y-1.5 animate-in fade-in">
-                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60 w-fit">
-                                        <Clock className="h-3 w-3" /> Verifying Phase
-                                    </div>
-                                    <p className="text-[10px] font-medium text-muted-foreground leading-snug line-clamp-2">
-                                        Fully funded. Donations paused while execution is verified.
+                                    <p className="text-[11px] font-medium text-muted-foreground leading-snug line-clamp-2">
+                                        Donations paused while execution is verified.
                                     </p>
+                                    <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden mt-1 lg:mt-2">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `100%` }}
+                                            transition={{ duration: 1, ease: "easeOut" }}
+                                            className="h-full bg-primary rounded-full"
+                                        />
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="space-y-1.5">
+                                <div className="space-y-1.5 lg:space-y-2">
                                     <div className="flex justify-between items-end text-[10px] sm:text-[11px] font-bold">
-                                        <span className="text-foreground truncate">
-                                            {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} <span className="text-muted-foreground font-medium mx-0.5">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
+                                        <span className="text-foreground">
+                                            {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
                                         </span>
                                         <span className="text-primary">{phasePercent}%</span>
                                     </div>
@@ -216,11 +228,11 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                         </div>
 
                         {/* CTA Actions */}
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center justify-center gap-2 shrink-0 w-full">
                             {(!isCompleted && !isFundedState && !isPhaseFull) ? (
                                 <>
-                                    <Link href={donateLink} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
-                                        <Button size="sm" className="w-full h-9 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-xs shadow-md border-0 active:scale-95 truncate">
+                                    <Link href={donateLink} onClick={(e) => e.stopPropagation()}>
+                                        <Button size="sm" className="w-auto px-6 h-9 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-xs shadow-md border-0 active:scale-95 whitespace-nowrap">
                                             Fund this impact
                                         </Button>
                                     </Link>
@@ -245,7 +257,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                         handleJoinWaitlist(current.id);
                                     }}
                                     disabled={waitlistLoadingId === current.id || waitlistedIds.has(current.id)}
-                                    className="w-full h-9 rounded-full bg-muted/50 hover:bg-muted text-foreground border border-border/60 font-bold text-xs shadow-sm active:scale-95 transition-all"
+                                    className="w-auto px-6 h-9 rounded-full bg-muted/50 hover:bg-muted text-foreground border border-border/60 font-bold text-xs shadow-sm active:scale-95 transition-all whitespace-nowrap"
                                 >
                                     {waitlistLoadingId === current.id ? (
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -256,8 +268,8 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                     )}
                                 </Button>
                             ) : (
-                                <Link href={detailsLink} className="w-full min-w-0" onClick={(e) => e.stopPropagation()}>
-                                    <Button size="sm" variant="secondary" className="w-full h-9 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 shadow-none transition-all active:scale-95">
+                                <Link href={detailsLink} onClick={(e) => e.stopPropagation()}>
+                                    <Button size="sm" variant="secondary" className="w-auto px-6 h-9 rounded-full font-bold text-xs bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 shadow-none transition-all active:scale-95 whitespace-nowrap">
                                         View final impact
                                     </Button>
                                 </Link>
@@ -278,7 +290,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             }}
                             className={cn(
                                 "h-1 rounded-3xl transition-all duration-500",
-                                i === index ? "w-4 bg-primary" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"
+                                i === index ? "w-4 bg-primary" : "w-1.5 bg-white/30 hover:bg-white/50"
                             )}
                             aria-label={`Go To Slide ${i + 1}`}
                         />
