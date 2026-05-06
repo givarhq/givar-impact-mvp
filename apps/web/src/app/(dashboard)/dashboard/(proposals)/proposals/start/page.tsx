@@ -364,7 +364,7 @@ export default function StartProposalPage() {
                                     {/* SECTOR CLASSIFICATION */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
                                         <div className="space-y-1.5 min-w-0">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Sector</label>
+                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary Sector</label>
                                             <Controller
                                                 control={control}
                                                 name="categoryId"
@@ -396,7 +396,7 @@ export default function StartProposalPage() {
                                         </div>
 
                                         <div className="space-y-1.5 min-w-0">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
+                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5 h-4">
                                                 <Tag className="h-3 w-3" /> Specific Focus
                                             </label>
                                             <Controller
@@ -429,7 +429,7 @@ export default function StartProposalPage() {
 
                                     {/* WHO IS THIS CAUSE FOR */}
                                     <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
-                                        <label className="text-[11px] font-bold text-muted-foreground">Who is this cause for?</label>
+                                        <label className="text-[11px] font-bold text-muted-foreground flex items-center h-4">Who is this cause for?</label>
                                         <div className="flex gap-3">
                                             {isCommunity ? (
                                                 <>

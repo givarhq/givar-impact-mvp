@@ -329,7 +329,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-8 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Cause Headline</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Cause Headline</label>
           {readOnly ? (
             <div className="h-12 flex items-center px-5 rounded-3xl bg-muted/10 text-foreground font-bold text-sm border-transparent shadow-none truncate" title={watch('title')}>
               {watch('title')}
@@ -340,7 +340,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Sector Classification</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Sector Classification</label>
           <Controller
             control={control}
             name="categoryId"
@@ -358,7 +358,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5">
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5 h-4">
             <Tag className="h-3 w-3" /> Specific Focus
           </label>
           <Controller
@@ -383,7 +383,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Primary Location</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary Location</label>
           <div className="relative group">
             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <Input {...register('location')} onBlur={handleBlurLocation} placeholder="e.g. Lagos, Nigeria" className={cn(getInputClass(), "pl-11")} readOnly={readOnly} />
@@ -391,7 +391,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Capital Funding Goal (NGN)</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Capital Funding Goal (NGN)</label>
           <Controller
             control={control}
             name="targetAmount"
