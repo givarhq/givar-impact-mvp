@@ -128,43 +128,25 @@ export default function StartProposalPage() {
     const selectedCategoryName = selectedCategoryObj?.name?.toLowerCase() || '';
     const availableSubcategories = selectedCategoryObj?.subcategories || [];
 
-    const isCommunity = selectedCategoryName.includes('community');
-
-    // Automatically clear target type if category is changed to an incompatible type
-    useEffect(() => {
-        if (!targetType) return;
-        if (isCommunity && (targetType === 'SELF' || targetType === 'OTHER')) {
-            setTargetType(null);
-            setValue('beneficiaryRelationship', null as any);
-            setValue('beneficiaryName', null as any);
-            setValue('beneficiaryAge', null as any);
-        } else if (!isCommunity && (targetType === 'INDIVIDUAL' || targetType === 'GROUP')) {
-            setTargetType(null);
-            setValue('organizationName', null as any);
-            setValue('contactPhone', null as any);
-            setValue('beneficiaryName', null as any);
-        }
-    }, [isCommunity, targetType, setValue]);
-
     const handleTargetTypeChange = (type: 'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP') => {
         setTargetType(type);
         if (type === 'SELF') {
             setValue('beneficiaryRelationship', 'Self', { shouldValidate: true });
-            setValue('beneficiaryName', null, { shouldValidate: true });
-            setValue('beneficiaryAge', null, { shouldValidate: true });
-            setValue('beneficiaryContact', null, { shouldValidate: true });
-            setValue('organizationName', null, { shouldValidate: true });
-            setValue('contactPhone', null, { shouldValidate: true });
+            setValue('beneficiaryName', null as any, { shouldValidate: true });
+            setValue('beneficiaryAge', null as any, { shouldValidate: true });
+            setValue('beneficiaryContact', null as any, { shouldValidate: true });
+            setValue('organizationName', null as any, { shouldValidate: true });
+            setValue('contactPhone', null as any, { shouldValidate: true });
         } else if (type === 'GROUP') {
-            setValue('beneficiaryRelationship', null, { shouldValidate: true });
-            setValue('beneficiaryName', null, { shouldValidate: true });
-            setValue('beneficiaryAge', null, { shouldValidate: true });
-            setValue('beneficiaryContact', null, { shouldValidate: true });
+            setValue('beneficiaryRelationship', null as any, { shouldValidate: true });
+            setValue('beneficiaryName', null as any, { shouldValidate: true });
+            setValue('beneficiaryAge', null as any, { shouldValidate: true });
+            setValue('beneficiaryContact', null as any, { shouldValidate: true });
         } else {
             // OTHER or INDIVIDUAL
-            setValue('organizationName', null, { shouldValidate: true });
-            setValue('contactPhone', null, { shouldValidate: true });
-            setValue('beneficiaryRelationship', null, { shouldValidate: true });
+            setValue('organizationName', null as any, { shouldValidate: true });
+            setValue('contactPhone', null as any, { shouldValidate: true });
+            setValue('beneficiaryRelationship', null as any, { shouldValidate: true });
         }
     };
 
@@ -221,7 +203,7 @@ export default function StartProposalPage() {
                         <div className="h-16 w-16 rounded-[24px] bg-primary/10 text-primary flex items-center justify-center mx-auto mb-2 border border-primary/20 shadow-inner">
                             <ShieldCheck className="h-8 w-8" />
                         </div>
-                        <h2 className="text-2xl font-bold text-foreground">Finish Setup</h2>
+                        <h2 className="text-2xl font-bold text-foreground">Finish setup</h2>
                         <p className="text-sm text-muted-foreground max-w-[380px] mx-auto font-medium leading-relaxed">
                             Please complete verification before submitting your cause.
                         </p>
@@ -240,7 +222,7 @@ export default function StartProposalPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold transition-colors text-foreground group-hover:text-primary">
-                                            Email Verification
+                                            Email verification
                                         </p>
                                         <p className="text-xs text-muted-foreground font-medium">Confirm your email address</p>
                                     </div>
@@ -257,7 +239,7 @@ export default function StartProposalPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-foreground">
-                                            Email Verification
+                                            Email verification
                                         </p>
                                         <p className="text-xs text-muted-foreground font-medium">Confirm your email address</p>
                                     </div>
@@ -275,7 +257,7 @@ export default function StartProposalPage() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-foreground">
-                                            Identity Verification
+                                            Identity verification
                                         </p>
                                         <p className="text-xs text-muted-foreground font-medium">Provide official identification</p>
                                     </div>
@@ -310,7 +292,7 @@ export default function StartProposalPage() {
                                                     orgStatus === 'REJECTED' ? "text-foreground group-hover:text-destructive" :
                                                         "text-foreground group-hover:text-primary"
                                         )}>
-                                            {isUpgradeRequired ? 'Corporate Upgrade' : 'Identity Verification'}
+                                            {isUpgradeRequired ? 'Corporate upgrade' : 'Identity verification'}
                                         </p>
                                         <p className="text-xs text-muted-foreground font-medium">
                                             {isUpgradeRequired ? 'Supply business registration' : 'Provide official identification'}
@@ -344,7 +326,7 @@ export default function StartProposalPage() {
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
-                            <CardTitle className="text-lg md:text-xl font-bold">Start a New Cause</CardTitle>
+                            <CardTitle className="text-lg md:text-xl font-bold">Start a new cause</CardTitle>
                             <CardDescription className="text-xs font-medium">
                                 Begin with a compelling title and industry classification.
                             </CardDescription>
@@ -364,7 +346,7 @@ export default function StartProposalPage() {
                                     {/* SECTOR CLASSIFICATION */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
                                         <div className="space-y-1.5 min-w-0">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary Sector</label>
+                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary sector</label>
                                             <Controller
                                                 control={control}
                                                 name="categoryId"
@@ -397,7 +379,7 @@ export default function StartProposalPage() {
 
                                         <div className="space-y-1.5 min-w-0">
                                             <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5 h-4">
-                                                <Tag className="h-3 w-3" /> Specific Focus
+                                                <Tag className="h-3 w-3" /> Specific focus
                                             </label>
                                             <Controller
                                                 control={control}
@@ -430,14 +412,14 @@ export default function StartProposalPage() {
                                     {/* WHO IS THIS CAUSE FOR */}
                                     <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
                                         <label className="text-[11px] font-bold text-muted-foreground flex items-center h-4">Who is this cause for?</label>
-                                        <div className="flex gap-3">
-                                            {isCommunity ? (
+                                        <div className="flex flex-wrap gap-3">
+                                            {userAccountType === 'ORGANIZER' ? (
                                                 <>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('INDIVIDUAL')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                                                             targetType === 'INDIVIDUAL' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
@@ -447,7 +429,7 @@ export default function StartProposalPage() {
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('GROUP')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                                                             targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
@@ -460,7 +442,7 @@ export default function StartProposalPage() {
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('SELF')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                                                             targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
@@ -470,11 +452,21 @@ export default function StartProposalPage() {
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('OTHER')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                                                             targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <Users className="h-4 w-4" /> Someone else
+                                                        <User className="h-4 w-4" /> Someone else
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleTargetTypeChange('GROUP')}
+                                                        className={cn(
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
+                                                            targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                        )}
+                                                    >
+                                                        <Users className="h-4 w-4" /> A group or community
                                                     </button>
                                                 </>
                                             )}
@@ -523,14 +515,14 @@ export default function StartProposalPage() {
                                                     className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
                                                 >
                                                     <Input
-                                                        label="Organisation name"
+                                                        label="Name of group, community, or institution"
                                                         placeholder="e.g. Owerri Youth Coalition"
                                                         {...register('organizationName')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
                                                     <Input
-                                                        label="Contact number"
-                                                        placeholder="Representative phone number"
+                                                        label="Representative contact number"
+                                                        placeholder="Direct contact number"
                                                         {...register('contactPhone')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
@@ -571,7 +563,7 @@ export default function StartProposalPage() {
                                 <FileText className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 pt-0.5">
-                                <p className="text-sm font-bold text-foreground">Clear Narrative</p>
+                                <p className="text-sm font-bold text-foreground">Clear narrative</p>
                                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">A compelling story explaining who needs help and why.</p>
                             </div>
                         </div>
@@ -581,7 +573,7 @@ export default function StartProposalPage() {
                                 <ImageIcon className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 pt-0.5">
-                                <p className="text-sm font-bold text-foreground">Visual Assets</p>
+                                <p className="text-sm font-bold text-foreground">Visual assets</p>
                                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">High quality photos to act as proof of the current situation.</p>
                             </div>
                         </div>
@@ -591,7 +583,7 @@ export default function StartProposalPage() {
                                 <ShieldCheck className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 pt-0.5">
-                                <p className="text-sm font-bold text-foreground">Cause Evidence</p>
+                                <p className="text-sm font-bold text-foreground">Cause evidence</p>
                                 <motion.p
                                     key={dynamicDocRequirements}
                                     initial={{ opacity: 0 }}
@@ -608,7 +600,7 @@ export default function StartProposalPage() {
                                 <Database className="h-5 w-5" />
                             </div>
                             <div className="space-y-1 pt-0.5">
-                                <p className="text-sm font-bold text-foreground">Budget Estimates</p>
+                                <p className="text-sm font-bold text-foreground">Budget estimates</p>
                                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">Clear breakdown of costs and the vendors you intend to use.</p>
                             </div>
                         </div>

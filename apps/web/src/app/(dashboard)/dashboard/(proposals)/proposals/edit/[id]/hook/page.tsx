@@ -16,6 +16,7 @@ import { cn } from '../../../../../../../../lib/utils/cn';
 import { toTitleCase, toSentenceCase } from '../../../../../../../../lib/utils/format';
 import { Controller, useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCookie } from 'cookies-next';
 
 export default function HookPage() {
   const router = useRouter();
@@ -33,10 +34,21 @@ export default function HookPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<any[]>([]);
   const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP' | null>(null);
+  const [userAccountType, setUserAccountType] = useState<string>('INDIVIDUAL');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const userCookie = getCookie('givar_user');
+        let parsedAccountType = 'INDIVIDUAL';
+        if (userCookie) {
+          try {
+            const parsedUser = JSON.parse(userCookie as string);
+            if (parsedUser.accountType) parsedAccountType = parsedUser.accountType;
+          } catch (e) { }
+        }
+        setUserAccountType(parsedAccountType);
+
         const [proposalData, cats] = await Promise.all([
           ApiService.proposals.get(proposalId),
           ApiService.projects.getCategories()
@@ -44,13 +56,13 @@ export default function HookPage() {
         setCategories(cats || []);
         setProposal(proposalData);
 
-        // Hydrate initial target type based on existing data
-        const catName = proposalData.category?.name?.toLowerCase() || '';
-        const isComm = catName.includes('community');
-        if (proposalData.organizationName) setTargetType('GROUP');
-        else if (proposalData.beneficiaryRelationship === 'Self') setTargetType('SELF');
-        else if (proposalData.beneficiaryName && isComm) setTargetType('INDIVIDUAL');
-        else if (proposalData.beneficiaryName) setTargetType('OTHER');
+        if (proposalData.organizationName) {
+          setTargetType('GROUP');
+        } else if (proposalData.beneficiaryRelationship === 'Self') {
+          setTargetType('SELF');
+        } else if (proposalData.beneficiaryName) {
+          setTargetType(parsedAccountType === 'ORGANIZER' ? 'INDIVIDUAL' : 'OTHER');
+        }
 
       } catch (error) {
         toast.error("Draft failed to load");
@@ -68,25 +80,7 @@ export default function HookPage() {
   });
 
   const selectedCategoryObj = categories.find(c => c.id === categoryId);
-  const selectedCategoryName = selectedCategoryObj?.name?.toLowerCase() || '';
   const availableSubcategories = selectedCategoryObj?.subcategories || [];
-
-  const isCommunity = selectedCategoryName.includes('community');
-
-  // Reset incompatible target types when category changes
-  useEffect(() => {
-    if (!targetType) return;
-    if (isCommunity && (targetType === 'SELF' || targetType === 'OTHER')) {
-      setTargetType(null);
-      updateField('beneficiaryRelationship', null);
-      updateField('beneficiaryName', null);
-      updateField('beneficiaryAge', null);
-    } else if (!isCommunity && (targetType === 'INDIVIDUAL' || targetType === 'GROUP')) {
-      setTargetType(null);
-      updateField('organizationName', null);
-      updateField('beneficiaryName', null);
-    }
-  }, [isCommunity]);
 
   if (isLoading) {
     return (
@@ -144,7 +138,7 @@ export default function HookPage() {
         <CardContent className="p-6 md:p-8 pt-6 space-y-8 min-w-0">
           <div className="space-y-6 min-w-0">
             <Input
-              label="Cause Title *"
+              label="Cause title *"
               placeholder="e.g. Clean water for Owerri communities"
               value={title}
               onChange={(e) => updateField('title', e.target.value)}
@@ -155,7 +149,7 @@ export default function HookPage() {
             {/* SECTOR CLASSIFICATION */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
               <div className="space-y-1.5 min-w-0">
-                <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary Sector</label>
+                <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary sector</label>
                 <Controller
                   control={control}
                   name="categoryId"
@@ -184,7 +178,7 @@ export default function HookPage() {
 
               <div className="space-y-1.5 min-w-0">
                 <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5 h-4">
-                  <Tag className="h-3 w-3" /> Specific Focus
+                  <Tag className="h-3 w-3" /> Specific focus
                 </label>
                 <Controller
                   control={control}
@@ -219,14 +213,14 @@ export default function HookPage() {
             {/* WHO IS THIS CAUSE FOR */}
             <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
               <label className="text-[11px] font-bold text-muted-foreground flex items-center h-4">Who is this cause for?</label>
-              <div className="flex gap-3">
-                {isCommunity ? (
+              <div className="flex flex-wrap gap-3">
+                {userAccountType === 'ORGANIZER' ? (
                   <>
                     <button
                       type="button"
                       onClick={() => handleTargetTypeChange('INDIVIDUAL')}
                       className={cn(
-                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                         targetType === 'INDIVIDUAL' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                       )}
                     >
@@ -236,7 +230,7 @@ export default function HookPage() {
                       type="button"
                       onClick={() => handleTargetTypeChange('GROUP')}
                       className={cn(
-                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                         targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                       )}
                     >
@@ -249,7 +243,7 @@ export default function HookPage() {
                       type="button"
                       onClick={() => handleTargetTypeChange('SELF')}
                       className={cn(
-                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                         targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                       )}
                     >
@@ -259,11 +253,21 @@ export default function HookPage() {
                       type="button"
                       onClick={() => handleTargetTypeChange('OTHER')}
                       className={cn(
-                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98]",
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
                         targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                       )}
                     >
-                      <Users className="h-4 w-4" /> Someone else
+                      <User className="h-4 w-4" /> Someone else
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTargetTypeChange('GROUP')}
+                      className={cn(
+                        "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
+                        targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                      )}
+                    >
+                      <Users className="h-4 w-4" /> A group or community
                     </button>
                   </>
                 )}
@@ -316,15 +320,15 @@ export default function HookPage() {
                     className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
                   >
                     <Input
-                      label="Organisation name"
+                      label="Name of group, community, or institution"
                       placeholder="e.g. Owerri Youth Coalition"
                       value={organizationName || ''}
                       onChange={(e) => updateField('organizationName', e.target.value)}
                       className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                     />
                     <Input
-                      label="Contact number"
-                      placeholder="Representative phone number"
+                      label="Representative contact number"
+                      placeholder="Direct contact number"
                       value={contactPhone || ''}
                       onChange={(e) => updateField('contactPhone', e.target.value)}
                       className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
@@ -335,7 +339,7 @@ export default function HookPage() {
             </div>
 
             <Textarea
-              label="Elevator Pitch"
+              label="Elevator pitch"
               placeholder="A punchy one-liner (max 140 chars)..."
               value={shortDesc || ''}
               onChange={(e) => updateField('shortDesc', e.target.value)}
@@ -346,7 +350,7 @@ export default function HookPage() {
 
             <div className="space-y-1.5 min-w-0">
               <div className="flex justify-between items-center px-1">
-                <label className="text-xs font-bold text-muted-foreground/80">Cause Description *</label>
+                <label className="text-xs font-bold text-muted-foreground/80">Cause description *</label>
               </div>
               <RichTextEditor
                 content={description || ''}
@@ -356,7 +360,7 @@ export default function HookPage() {
             </div>
 
             <Textarea
-              label="Personal Message (Optional)"
+              label="Personal message (optional)"
               placeholder="A direct, human appeal to your potential donors..."
               value={personalMessage || ''}
               onChange={(e) => updateField('personalMessage', e.target.value)}
@@ -366,7 +370,7 @@ export default function HookPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
               <Input
-                label="Primary Location *"
+                label="Primary location *"
                 placeholder="e.g. Lagos, Nigeria"
                 value={location || ''}
                 onChange={(e) => updateField('location', e.target.value)}
@@ -375,7 +379,7 @@ export default function HookPage() {
               />
 
               <Input
-                label="Deadline (Optional)"
+                label="Deadline (optional)"
                 type="date"
                 value={endDate ? new Date(endDate).toISOString().split('T')[0] : ''}
                 onChange={(e) => {
