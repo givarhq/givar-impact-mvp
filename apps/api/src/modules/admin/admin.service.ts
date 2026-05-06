@@ -454,17 +454,15 @@ export class AdminService {
 
       let generatedTimeline = proposal.executionTimeline as any[];
 
+      // ROOT CAUSE FIX: Fallback to mapping 1:1 against the budget if executionTimeline is empty
       if (!generatedTimeline || generatedTimeline.length === 0) {
-        const stages = [...new Set(budget.map(b => b.stage).filter(s => s && s.trim() !== ''))];
-        if (stages.length > 0) {
-          generatedTimeline = stages.map((stage, index) => ({
-            id: `auto-stage-${index}`,
-            phase: stage,
-            estimatedDate: 'TBD',
-            status: 'PENDING',
-            deliverables: budget.filter(b => b.stage === stage).map(b => b.description || b.item).join(', '),
-          }));
-        }
+        generatedTimeline = budget.map((b, index) => ({
+          id: b.id || `auto-stage-${index}`,
+          phase: `Phase ${index + 1}: ${b.description || b.item || 'Implementation'}`,
+          estimatedDate: 'TBD',
+          status: 'PENDING',
+          deliverables: b.description || b.item || 'Implementation',
+        }));
       }
 
       const sanitizedTimeline = generatedTimeline.map(t => ({
@@ -935,7 +933,18 @@ export class AdminService {
 
       gallery: dto.gallery as unknown as Prisma.InputJsonValue,
       budgetBreakdown: dto.budgetBreakdown as unknown as Prisma.InputJsonValue,
-      executionTimeline: dto.executionTimeline as unknown as Prisma.InputJsonValue,
+
+      // ROOT CAUSE FIX: Fallback to mapping 1:1 against the budget if executionTimeline is empty
+      executionTimeline: (!dto.executionTimeline || dto.executionTimeline.length === 0)
+        ? (dto.budgetBreakdown || []).map((b, index) => ({
+          id: b.id || `auto-stage-${index}`,
+          phase: `Phase ${index + 1}: ${b.description || 'Implementation'}`,
+          estimatedDate: 'TBD',
+          status: 'PENDING',
+          deliverables: b.description || 'Implementation',
+        })) as unknown as Prisma.InputJsonValue
+        : dto.executionTimeline as unknown as Prisma.InputJsonValue,
+
       vendors: dto.vendors as unknown as Prisma.InputJsonValue,
     };
 
@@ -1224,6 +1233,28 @@ export class AdminService {
     });
 
     if (!project) throw new NotFoundException('Project not found');
+
+    // AUTO-HEALING: Self-repair an empty execution timeline by pulling from the budget breakdown
+    let timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
+    if (timeline.length === 0) {
+      const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+      if (budget.length > 0) {
+        timeline = budget.map((b: any, index: number) => ({
+          id: b.id || `auto-stage-${index}`,
+          phase: `Phase ${index + 1}: ${b.description || b.item || 'Implementation'}`,
+          estimatedDate: 'TBD',
+          status: 'PENDING',
+          deliverables: b.description || b.item || 'Implementation',
+        }));
+
+        await this.prisma.project.update({
+          where: { id: projectId },
+          data: { executionTimeline: timeline as any }
+        });
+
+        project.executionTimeline = timeline as any;
+      }
+    }
 
     if (project.imageUrl && !project.imageUrl.startsWith('http')) {
       const { viewUrl } = await this.storage.getPresignedViewUrl(project.imageUrl);

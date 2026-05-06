@@ -308,9 +308,29 @@ export class ProjectService {
       throw new ForbiddenException('You do not have permission to manage this project');
     }
 
+    // AUTO-HEALING: Self-repair an empty execution timeline by pulling from the budget breakdown
+    let timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
+    if (timeline.length === 0) {
+      const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+      if (budget.length > 0) {
+        timeline = budget.map((b: any, index: number) => ({
+          id: b.id || `auto-stage-${index}`,
+          phase: `Phase ${index + 1}: ${b.description || b.item || 'Implementation'}`,
+          estimatedDate: 'TBD',
+          status: 'PENDING',
+          deliverables: b.description || b.item || 'Implementation',
+        }));
+
+        await this.prisma.project.update({
+          where: { id: project.id },
+          data: { executionTimeline: timeline as any }
+        });
+
+        project.executionTimeline = timeline as any;
+      }
+    }
+
     const disbursementsWithStatus = project.disbursements.map((d) => {
-      // Under the new offline admin-verification architecture, a proof is uploaded
-      // directly by the admin upon verification. If it exists, the phase is verified.
       const latestProof = project.milestoneProofs.find(p => p.milestoneId === d.milestoneId);
 
       let satisfactionStatus: 'PENDING_VERIFICATION' | 'VERIFIED' = 'PENDING_VERIFICATION';
