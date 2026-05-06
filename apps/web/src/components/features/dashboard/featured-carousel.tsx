@@ -188,6 +188,18 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                 )}
                             </div>
                         </div>
+
+                        <div className="flex justify-center shrink-0 mt-3 sm:mt-4 lg:mt-0">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(isPhaseFull ? `/dashboard/impact/${current.slug}` : `/dashboard/impact/${current.slug}/donate`);
+                                }}
+                                className="w-full sm:w-32 h-10 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-0 shrink-0"
+                            >
+                                {isPhaseFull ? "View cause" : "Fund this impact"}
+                            </button>
+                        </div>
                     </div>
                 </motion.div>
             </AnimatePresence>
