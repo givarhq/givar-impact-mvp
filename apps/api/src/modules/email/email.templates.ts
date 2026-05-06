@@ -196,7 +196,7 @@ export const EmailTemplates = {
 
   evidenceRequest: (data: { name: string; project: string; milestone: string; vendor: string; uploadUrl: string }) => `
     <p>Hi ${data.name},</p>
-    <p>Givar Management has officially routed funds to <strong>${data.vendor}</strong> for the following phase:</p>
+    <p>Givar Management has officially disbursed funds to <strong>${data.vendor}</strong> for the following phase:</p>
     
     <div class="stat-box">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Active Milestone</div>
@@ -362,7 +362,7 @@ export const EmailTemplates = {
 
     ${data.disbursementSummary ? `
       <div style="margin: 24px 0; padding: 20px; border-radius: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; font-size: 13px; color: #475569;">
-        <strong style="color: #0f172a; font-size: 14px;">Vendor Payment Summary:</strong><br/>
+        <strong style="color: #0f172a; font-size: 14px;">Funds Disbursement Summary:</strong><br/>
         <div style="margin-top: 8px;">${data.disbursementSummary}</div>
       </div>
     ` : ''}
@@ -493,7 +493,7 @@ export const EmailTemplates = {
     <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
       <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Status: Under Review</p>
       <p style="font-size: 15px; color: #064e3b; line-height: 1.6; margin: 0; font-weight: 600;">
-        Our compliance team will now audit your implementation roadmap, budget, and impact goals. You will receive an update once the vetting process is complete.
+        Our team is reviewing your submission to ensure everything is clear, accurate, and ready to go live. We'll notify you once the review is complete.
       </p>
     </div>
 
