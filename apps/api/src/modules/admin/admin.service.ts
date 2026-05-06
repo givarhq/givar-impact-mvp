@@ -253,7 +253,7 @@ export class AdminService {
         take: limit,
         include: {
           category: { select: { name: true } },
-          subcategory: { select: { name: true } }, // <-- ADDED: Fix missing subcategory in Admin view
+          subcategory: { select: { name: true } },
           user: { select: { role: true } }
         },
         orderBy,
@@ -269,7 +269,8 @@ export class AdminService {
           ...safeP,
           targetAmount: safeP.targetAmount.toString(),
           raisedAmount: safeP.raisedAmount.toString(),
-          subcategoryName: safeP.subcategory?.name, // <-- Map subcategory to UI prop
+          categoryName: safeP.category?.name,
+          subcategoryName: safeP.subcategory?.name,
           isGivarOfficial: safeP.user.role === UserRole.ADMIN || safeP.user.role === UserRole.SUPERADMIN
         };
       }),
