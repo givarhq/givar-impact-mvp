@@ -151,7 +151,7 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
           </div>
 
           {/* Action Button: Footer Area */}
-          <div className="pt-4 border-t border-border/40 shrink-0">
+          <div className="pt-4 border-border/40 shrink-0">
             {isApproved ? (
               <Link href={linkTarget} className="block w-full">
                 <Button variant="outline" className="w-full h-10 rounded-3xl border-border/60 bg-background text-foreground hover:bg-muted font-bold text-xs gap-2 shadow-sm transition-all active:scale-[0.98]">
