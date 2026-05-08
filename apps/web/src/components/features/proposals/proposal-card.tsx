@@ -154,8 +154,8 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
           <div className="pt-4 border-t border-border/40 shrink-0">
             {isApproved ? (
               <Link href={linkTarget} className="block w-full">
-                <Button className="w-full h-10 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-xs gap-2 border-0 shadow-sm transition-all active:scale-[0.98]">
-                  Console <LayoutDashboard className="h-3.5 w-3.5" />
+                <Button variant="outline" className="w-full h-10 rounded-3xl border-border/60 bg-background text-foreground hover:bg-muted font-bold text-xs gap-2 shadow-sm transition-all active:scale-[0.98]">
+                  Open console <LayoutDashboard className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               </Link>
             ) : isEditable ? (
