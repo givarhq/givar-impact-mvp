@@ -20,6 +20,7 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
   const posthog = usePostHog();
   const pathname = usePathname();
   const isEditPage = pathname.includes('/edit/');
+  const isListPage = pathname === '/dashboard/proposals';
 
   const segments = pathname.split('/');
   const editIndex = segments.indexOf('edit');
@@ -37,7 +38,7 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
         step_number: steps[activeIndex].number
       });
     }
-  }, [activeIndex, proposalId, isEditPage]);
+  }, [activeIndex, proposalId, isEditPage, posthog]);
 
   useProposalAutoSave();
 
@@ -86,7 +87,7 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
                       </div>
                       <span
                         className={cn(
-                          "absolute top-9 whitespace-nowrap text-[11px] font-bold  tracking-widest transition-colors",
+                          "absolute top-9 whitespace-nowrap text-[11px] font-bold tracking-widest transition-colors",
                           isCurrent ? "text-primary" : "text-muted-foreground/60"
                         )}
                       >
@@ -114,7 +115,8 @@ export default function ProposalLayout({ children }: { children: React.ReactNode
 
       <main
         className={cn(
-          "mx-auto w-full max-w-full sm:max-w-3xl md:max-w-5xl px-2 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-16 transition-all min-w-0",
+          "mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 pb-24 md:pb-16 transition-all min-w-0",
+          isListPage ? "max-w-full" : "max-w-full sm:max-w-3xl md:max-w-5xl",
           isEditPage ? "pt-6" : "pt-6"
         )}
       >

@@ -84,11 +84,12 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
   return (
     <>
       <Card className="group flex flex-col h-full bg-card rounded-3xl border-border/40 shadow-sm transition-all duration-200 hover:shadow-md min-w-0">
-        <CardContent className="p-5 flex flex-col h-full gap-4 min-w-0">
+        <CardContent className="p-3 sm:p-4 flex flex-col h-full gap-2.5 sm:gap-3 min-w-0">
+
           {/* Card Header: Status & Context */}
-          <div className="flex justify-between items-center gap-2 min-w-0 shrink-0">
+          <div className="flex justify-between items-start gap-2 min-w-0 shrink-0">
             <div className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-3xl border text-[11px] font-bold tracking-wider transition-colors min-w-0 truncate",
+              "flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] sm:text-[11px] font-bold tracking-wider transition-colors min-w-0 truncate",
               config.color
             )}>
               <StatusIcon className="h-3 w-3 shrink-0" />
@@ -97,7 +98,7 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="h-8 w-8 rounded-3xl hover:bg-muted flex items-center justify-center text-muted-foreground outline-none transition-colors shrink-0">
+                <button className="h-7 w-7 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground outline-none transition-colors shrink-0 active:scale-95">
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
@@ -130,48 +131,49 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
           </div>
 
           {/* Content Body: Narrative */}
-          <div className="flex-1 min-w-0">
-            <Link href={linkTarget} className={cn("block space-y-1.5 min-w-0", (proposal.status !== 'APPROVED' && !isEditable && proposal.status !== 'CHANGES_REQUESTED') && "cursor-pointer")}>
-              <h3 className="font-bold text-sm leading-snug text-foreground line-clamp-2 group-hover:text-primary transition-colors min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col">
+            <Link href={linkTarget} className={cn("block space-y-1 min-w-0 mb-2.5", (proposal.status !== 'APPROVED' && !isEditable && proposal.status !== 'CHANGES_REQUESTED') && "cursor-pointer")}>
+              <h3 className="font-bold text-sm leading-tight text-foreground line-clamp-1 sm:line-clamp-2 group-hover:text-primary transition-colors min-w-0">
                 {proposal.title || 'Untitled Draft'}
               </h3>
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium min-w-0">
+              <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 leading-snug font-medium min-w-0">
                 {proposal.shortDesc || 'Initial Proposal Draft Pending Further Details.'}
               </p>
             </Link>
 
-            <div className="mt-4 flex flex-wrap items-center gap-3 min-w-0">
-              <span className="bg-muted/50 text-muted-foreground px-2.5 py-0.5 rounded-3xl border border-border/40 text-[11px] font-bold tracking-wider truncate max-w-[120px]">
+            <div className="mt-auto flex flex-wrap items-center gap-2 min-w-0">
+              <span className="bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-full border border-border/40 text-[10px] font-bold tracking-wide truncate max-w-[100px] sm:max-w-[120px]">
                 {proposal.category?.name || 'Impact'}
               </span>
-              <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground/60 tracking-tight shrink-0">
+              <div className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground/60 tracking-tight shrink-0">
                 <Clock className="h-3 w-3" /> {formatDate(proposal.updatedAt).split(',')[0]}
               </div>
             </div>
           </div>
 
           {/* Action Button: Footer Area */}
-          <div className="pt-4 border-border/40 shrink-0">
+          <div className="shrink-0 mt-1">
             {isApproved ? (
               <Link href={linkTarget} className="block w-full">
-                <Button variant="outline" className="w-full h-10 rounded-3xl border-border/60 bg-background text-foreground hover:bg-muted font-bold text-xs gap-2 shadow-sm transition-all active:scale-[0.98]">
-                  Open console <LayoutDashboard className="h-3.5 w-3.5 text-muted-foreground" />
+                <Button variant="outline" className="w-full h-9 rounded-full border-border/60 bg-background text-foreground hover:bg-muted font-bold text-xs gap-1.5 shadow-sm transition-all active:scale-[0.98]">
+                  Open Console <LayoutDashboard className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               </Link>
             ) : isEditable ? (
               <Link href={linkTarget} className="block w-full">
-                <Button variant="outline" className="w-full h-10 rounded-3xl bg-muted/30 text-foreground hover:bg-muted font-bold text-xs gap-2 border-border/60 transition-all active:scale-[0.98]">
+                <Button variant="outline" className="w-full h-9 rounded-full bg-muted/30 text-foreground hover:bg-muted font-bold text-xs gap-1.5 border-border/60 transition-all active:scale-[0.98]">
                   Continue Editing <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>
             ) : (
               <Link href={linkTarget} className="block w-full">
-                <div className="flex items-center justify-center gap-2 h-10 w-full rounded-3xl border border-dashed border-border/60 bg-muted/10 text-xs font-bold text-muted-foreground hover:bg-muted/30 transition-colors active:scale-[0.98] cursor-pointer">
+                <div className="flex items-center justify-center gap-1.5 h-9 w-full rounded-full border border-dashed border-border/60 bg-muted/10 text-[11px] font-bold text-muted-foreground hover:bg-muted/30 transition-colors active:scale-[0.98] cursor-pointer">
                   <Clock className="h-3.5 w-3.5" /> View Status
                 </div>
               </Link>
             )}
           </div>
+
         </CardContent>
       </Card>
 
