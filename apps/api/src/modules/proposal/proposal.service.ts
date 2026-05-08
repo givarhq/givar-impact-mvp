@@ -55,10 +55,12 @@ export class ProposalService {
         beneficiaryAge: dto.beneficiaryAge,
         beneficiaryRelationship: dto.beneficiaryRelationship,
         beneficiaryContact: dto.beneficiaryContact,
+        organizationName: dto.organizationName,
+        contactPhone: dto.contactPhone,
         // Initialize empty structures
         budgetBreakdown: [],
         executionTimeline: [],
-        vendors: [], // <-- NEW: Initialize empty vendors array
+        vendors: [],
         gallery: [],
         kycDocuments: [],
       },

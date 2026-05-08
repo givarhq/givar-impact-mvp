@@ -97,6 +97,9 @@ export class CreateProposalDto {
   @IsOptional() @IsNumber() beneficiaryAge?: number;
   @IsOptional() @IsString() beneficiaryRelationship?: string;
   @IsOptional() @IsString() beneficiaryContact?: string;
+
+  @IsOptional() @IsString() organizationName?: string;
+  @IsOptional() @IsString() contactPhone?: string;
 }
 
 export class UpdateProposalDto {
