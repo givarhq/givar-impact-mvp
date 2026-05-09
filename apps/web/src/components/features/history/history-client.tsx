@@ -46,7 +46,6 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
 
   const [filters, setFilters] = useState({
     search: searchParams.get('search') || '',
-    type: searchParams.get('type') || 'all',
     status: searchParams.get('status') || 'all',
   });
 
@@ -62,7 +61,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
   };
 
   const clearFilters = () => {
-    setFilters({ search: '', type: 'all', status: 'all' });
+    setFilters({ search: '', status: 'all' });
     setSort({ column: 'createdAt', order: 'desc' });
   };
 
@@ -126,7 +125,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
     }
   };
 
-  const hasActiveFilters = filters.search || filters.type !== 'all' || filters.status !== 'all';
+  const hasActiveFilters = filters.search || filters.status !== 'all';
 
   return (
     <div className="space-y-4 md:space-y-6 w-full min-w-0 animate-in fade-in duration-500">
@@ -139,7 +138,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
           <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
             <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
             <Input
-              placeholder="Search Reference Or Description..."
+              placeholder="Search Reference Or Cause..."
               className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-11 w-full placeholder:text-muted-foreground/50 font-medium"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -161,17 +160,6 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
           </Button>
 
           <div className="hidden md:flex items-center gap-2">
-            <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
-              <SelectTrigger className="w-[130px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
-                <SelectValue placeholder="Transaction Type" />
-              </SelectTrigger>
-              <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                <SelectItem value="all" className="text-xs font-bold rounded-2xl py-2">All types</SelectItem>
-                <SelectItem value="CREDIT" className="text-xs font-bold rounded-2xl py-2 text-emerald-600">Credit Records</SelectItem>
-                <SelectItem value="DEBIT" className="text-xs font-bold rounded-2xl py-2 text-rose-600">Debit Records</SelectItem>
-              </SelectContent>
-            </Select>
-
             <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
               <SelectTrigger className="w-[140px] h-11 rounded-3xl bg-muted/40 border-border/40 font-bold text-xs tracking-wider transition-all hover:bg-muted/60">
                 <div className="flex items-center gap-2 truncate">
@@ -199,7 +187,7 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
 
             {hasActiveFilters && (
               <Button variant="ghost" onClick={clearFilters} className="h-11 px-4 rounded-3xl text-muted-foreground text-xs font-bold hover:text-primary transition-colors">
-                Reset Filters
+                Reset
               </Button>
             )}
           </div>
@@ -224,28 +212,16 @@ export const HistoryClient = memo(function HistoryClient({ initialData }: Histor
               />
             </div>
             <div className="flex flex-col gap-3 min-w-0">
-              <div className="grid grid-cols-2 gap-3">
-                <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v)}>
-                  <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-3xl">
-                    <SelectItem value="all">All types</SelectItem>
-                    <SelectItem value="CREDIT">Credit</SelectItem>
-                    <SelectItem value="DEBIT">Debit</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
-                  <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-3xl">
-                    <SelectItem value="all">All statuses</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={filters.status} onValueChange={(v) => handleFilterChange('status', v)}>
+                <SelectTrigger className="h-12 rounded-3xl bg-muted/30 border-border/40 font-bold text-xs tracking-wider">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-3xl">
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                </SelectContent>
+              </Select>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleExport} disabled={isExporting} className="h-12 rounded-3xl border-border/60 font-bold text-xs tracking-widest gap-2 flex-1 bg-background active:scale-95 transition-all">
                   {isExporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}

@@ -2,8 +2,6 @@
 
 import React, { useState, memo } from 'react';
 import {
-    ArrowUpRight,
-    ArrowDownLeft,
     Clock,
     CheckCircle2,
     XCircle,
@@ -16,12 +14,15 @@ import {
     Download,
     Loader2,
     CreditCard,
-    Wallet
+    Wallet,
+    Heart,
+    ArrowDownLeft,
+    ArrowUpRight
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Card, CardContent } from '../../ui/card';
-import { Transaction, TxStatus, TxType } from '../../../types';
+import { Transaction, TxStatus } from '../../../types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Button } from '../../ui/button';
@@ -31,17 +32,26 @@ import { generateImpactReceipt } from '../../../lib/utils/receipt-generator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '../../ui/badge';
 
-const typeStyles: Record<TxType, { icon: React.ElementType, bg: string, text: string, sign: string }> = {
-    DEBIT: { icon: ArrowUpRight, bg: 'bg-rose-500/10', text: 'text-rose-500', sign: '-' },
-    CREDIT: { icon: ArrowDownLeft, bg: 'bg-emerald-500/10', text: 'text-emerald-500', sign: '+' },
-};
-
 const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> = {
     COMPLETED: { icon: CheckCircle2, text: 'text-emerald-500' },
     PENDING: { icon: Clock, text: 'text-amber-500' },
     FAILED: { icon: XCircle, text: 'text-destructive' },
     REVERSED: { icon: XCircle, text: 'text-muted-foreground' },
     SUSPENSE: { icon: Clock, text: 'text-amber-500' },
+};
+
+// Dynamic styling based on the actual semantic category, replacing the old Credit/Debit logic
+const getCategoryStyles = (tx: Transaction) => {
+    if (tx.category === 'DONATION') {
+        return { icon: Heart, bg: 'bg-primary/10', text: 'text-foreground', iconColor: 'text-primary' };
+    }
+    if (tx.category === 'REFUND') {
+        return { icon: ArrowDownLeft, bg: 'bg-muted/50', text: 'text-muted-foreground', iconColor: 'text-foreground' };
+    }
+    // Fallback for edge cases
+    return tx.type === 'CREDIT'
+        ? { icon: ArrowDownLeft, bg: 'bg-emerald-500/10', text: 'text-emerald-600', iconColor: 'text-emerald-500' }
+        : { icon: ArrowUpRight, bg: 'bg-muted', text: 'text-foreground', iconColor: 'text-muted-foreground' };
 };
 
 export const HistoryTable = memo(function HistoryTable({
@@ -133,7 +143,7 @@ export const HistoryTable = memo(function HistoryTable({
                     </div>
                     <h3 className="font-bold text-lg text-foreground">No History Identified</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">
-                        Your contribution history is currently empty.
+                        Your impact history is currently empty.
                     </p>
                 </CardContent>
             </Card>
@@ -145,18 +155,18 @@ export const HistoryTable = memo(function HistoryTable({
             <table className="w-full border-collapse table-fixed md:table-auto">
                 <thead className="bg-muted/40 border-b border-border/40 hidden md:table-header-group">
                     <tr>
-                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-left w-1/2">Transaction Details</th>
-                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-left w-[200px]">Record Date</th>
-                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-right">Total Value</th>
-                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-center">Record Status</th>
+                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-left w-1/2">Impact Details</th>
+                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-left w-[200px]">Date</th>
+                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-right">Contribution</th>
+                        <th className="px-6 py-4 font-bold text-xs tracking-widest text-muted-foreground text-center">Status</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40 block md:table-row-group">
                     <AnimatePresence mode="popLayout" initial={false}>
                         {transactions.map((tx, index) => {
-                            const typeStyle = typeStyles[tx.type];
+                            const catStyle = getCategoryStyles(tx);
                             const statusStyle = statusStyles[tx.status];
-                            const displayCategory = tx.category ? tx.category.replace(/_/g, ' ') : 'SYSTEM ENTRY';
+                            const displayCategory = tx.category ? tx.category.replace(/_/g, ' ') : 'IMPACT';
 
                             return (
                                 <motion.tr
@@ -171,17 +181,17 @@ export const HistoryTable = memo(function HistoryTable({
                                 >
                                     <td className="block md:table-cell p-4 md:px-6 md:py-4 border-none w-full">
                                         <div className="flex items-center gap-3 w-full">
-                                            <div className={cn("h-10 w-10 shrink-0 flex items-center justify-center rounded-3xl shadow-sm border border-border/10", typeStyle.bg, typeStyle.text)}>
-                                                <typeStyle.icon className="h-5 w-5" />
+                                            <div className={cn("h-10 w-10 shrink-0 flex items-center justify-center rounded-3xl shadow-sm border border-border/10", catStyle.bg, catStyle.iconColor)}>
+                                                <catStyle.icon className="h-4.5 w-4.5" />
                                             </div>
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-center gap-2 min-w-0">
                                                     <p className="font-bold text-foreground truncate text-sm">
-                                                        {tx.description}
+                                                        {tx.projectName || tx.description}
                                                     </p>
-                                                    <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm whitespace-nowrap", typeStyle.text)}>
-                                                        {typeStyle.sign}{formatCurrency(tx.amount, tx.currency)}
+                                                    <p className={cn("md:hidden font-bold tabular-nums shrink-0 text-sm whitespace-nowrap", catStyle.text)}>
+                                                        {formatCurrency(tx.amount, tx.currency)}
                                                     </p>
                                                 </div>
 
@@ -210,16 +220,16 @@ export const HistoryTable = memo(function HistoryTable({
                                                 onClick={() => setSelectedTx(tx)}
                                                 className="rounded-3xl h-9 w-full mx-auto flex px-8 text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
                                             >
-                                                View details
+                                                View receipt
                                             </Button>
                                         </div>
                                     </td>
 
                                     <td className="px-6 py-4 text-muted-foreground hidden md:table-cell text-xs font-medium whitespace-nowrap">
-                                        {formatDate(tx.createdAt)}
+                                        {formatDate(tx.createdAt).split(',')[0]}
                                     </td>
-                                    <td className={cn("px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell text-sm whitespace-nowrap", typeStyle.text)}>
-                                        {typeStyle.sign} {formatCurrency(tx.amount, tx.currency)}
+                                    <td className={cn("px-6 py-4 text-right font-bold tabular-nums hidden md:table-cell text-sm whitespace-nowrap", catStyle.text)}>
+                                        {formatCurrency(tx.amount, tx.currency)}
                                     </td>
                                     <td className="px-6 py-4 hidden md:table-cell text-center">
                                         <div className="flex justify-center">
@@ -239,7 +249,7 @@ export const HistoryTable = memo(function HistoryTable({
                         <div className="p-5 md:p-6 space-y-4 overflow-hidden">
                             <DialogHeader className="space-y-2">
                                 <DialogTitle className="text-lg font-bold tracking-tight leading-none text-foreground">
-                                    {selectedTx.type === 'CREDIT' ? 'Funding Details' : 'Contribution Details'}
+                                    Impact Receipt
                                 </DialogTitle>
                             </DialogHeader>
 
@@ -249,13 +259,13 @@ export const HistoryTable = memo(function HistoryTable({
                                 </div>
 
                                 <div className="absolute top-3 left-4">
-                                    <Badge variant="outline" className="rounded-full px-2 py-0.5 border-border/60 bg-background/60 text-[11px] font-bold text-muted-foreground">
-                                        {selectedTx.category?.replace(/_/g, ' ') || 'SYSTEM'}
+                                    <Badge variant="outline" className="rounded-full px-2 py-0.5 border-border/60 bg-background/60 text-[10px] font-bold text-muted-foreground tracking-widest">
+                                        {selectedTx.category?.replace(/_/g, ' ') || 'IMPACT'}
                                     </Badge>
                                 </div>
 
                                 <p className="text-xs text-muted-foreground font-bold tracking-widest mb-1.5 mt-2">
-                                    {selectedTx.type === 'CREDIT' ? 'Amount Received' : 'Total Impact Value'}
+                                    Total Contribution
                                 </p>
                                 <div className="max-w-full overflow-hidden leading-none">
                                     <SmartCurrency amount={selectedTx.amount} currency={selectedTx.currency} visible={true} size="large" className="text-foreground" />
@@ -424,20 +434,16 @@ export const HistoryTable = memo(function HistoryTable({
 
                             <div className="grid grid-cols-2 gap-3 min-w-0">
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">Status</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase block mb-1">Status</span>
                                     <div className={cn("flex items-center gap-2 font-bold text-xs truncate", statusStyles[selectedTx.status].text)}>
                                         {React.createElement(statusStyles[selectedTx.status].icon, { className: "h-3.5 w-3.5 shrink-0" })}
                                         <span className="truncate">{selectedTx.status.charAt(0) + selectedTx.status.slice(1).toLowerCase()}</span>
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground tracking-widest block mb-1">Method</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase block mb-1">Method</span>
                                     <div className="flex items-center gap-2">
-                                        {selectedTx.type === 'DEBIT' && !selectedTx.reference.startsWith('DON-') ? (
-                                            <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
-                                        ) : (
-                                            <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                        )}
+                                        <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
                                         <p className="text-[11px] font-bold text-foreground truncate " title={getPaymentContext(selectedTx).method}>
                                             {getPaymentContext(selectedTx).method}
                                         </p>
@@ -452,7 +458,7 @@ export const HistoryTable = memo(function HistoryTable({
                                     className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg shadow-primary/20 border-0 active:scale-[0.98] transition-all"
                                 >
                                     {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                                    Download Receipt
+                                    Download Impact Receipt
                                 </Button>
                             </div>
                         </div>
