@@ -156,7 +156,7 @@ export default function StartProposalPage() {
         }
         if (selectedCategoryName.includes('community')) {
             return {
-                optSelf: "Myself (relief/support)",
+                optSelf: "Myself (non-medical/non-educational)",
                 optOther: isOrg ? "An individual or family" : "Another individual or family",
                 optGroup: "A community, region, or public initiative",
                 nameLabel: "Beneficiary's full legal name",
@@ -469,21 +469,21 @@ export default function StartProposalPage() {
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('INDIVIDUAL')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] min-h-[52px]",
                                                             targetType === 'INDIVIDUAL' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <User className="h-4 w-4" /> {dynamicLabels.optOther}
+                                                        <User className="h-4 w-4 shrink-0" /> <span className="leading-snug text-left">{dynamicLabels.optOther}</span>
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('GROUP')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] min-h-[52px]",
                                                             targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <Users className="h-4 w-4" /> {dynamicLabels.optGroup}
+                                                        <Users className="h-4 w-4 shrink-0" /> <span className="leading-snug text-left">{dynamicLabels.optGroup}</span>
                                                     </button>
                                                 </>
                                             ) : (
@@ -492,31 +492,31 @@ export default function StartProposalPage() {
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('SELF')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] min-h-[52px]",
                                                             targetType === 'SELF' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <User className="h-4 w-4" /> {dynamicLabels.optSelf}
+                                                        <User className="h-4 w-4 shrink-0" /> <span className="leading-snug text-left">{dynamicLabels.optSelf}</span>
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('OTHER')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] min-h-[52px]",
                                                             targetType === 'OTHER' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <User className="h-4 w-4" /> {dynamicLabels.optOther}
+                                                        <User className="h-4 w-4 shrink-0" /> <span className="leading-snug text-left">{dynamicLabels.optOther}</span>
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleTargetTypeChange('GROUP')}
                                                         className={cn(
-                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] whitespace-nowrap",
+                                                            "flex-1 py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all flex items-center justify-center gap-2 active:scale-[0.98] min-h-[52px]",
                                                             targetType === 'GROUP' ? "bg-primary/5 text-primary border-primary shadow-sm" : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
                                                         )}
                                                     >
-                                                        <Users className="h-4 w-4" /> {dynamicLabels.optGroup}
+                                                        <Users className="h-4 w-4 shrink-0" /> <span className="leading-snug text-left">{dynamicLabels.optGroup}</span>
                                                     </button>
                                                 </>
                                             )}
