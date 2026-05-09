@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, memo } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
     ArrowDownLeft,
     ArrowUpRight,
@@ -13,7 +13,6 @@ import {
     ExternalLink,
     Wallet,
     CreditCard,
-    Inbox,
     Clock,
     XCircle,
     ChevronRight,
@@ -24,7 +23,6 @@ import { Card, CardContent } from '../../ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Button } from '../../ui/button';
-import { Tabs, TabsList, TabsTrigger } from '../../ui/tabs';
 import { Pagination } from '../history/pagination';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -53,21 +51,10 @@ const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> 
 };
 
 export const PublicLedgerClient = memo(function PublicLedgerClient({ project, initialData }: PublicLedgerClientProps) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
     const [selectedEntry, setSelectedEntry] = useState<any>(null);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
-    const activeType = searchParams.get('type') || 'all';
     const isGlobalView = !project || project.id === 'global';
-
-    const handleTabChange = (value: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set('type', value);
-        params.set('page', '1');
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    };
 
     const copyReference = (ref: string) => {
         navigator.clipboard.writeText(ref);
@@ -97,39 +84,16 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
     };
 
     const EmptyState = () => {
-        let icon = Database;
-        let title = "No records found";
-        let description = "There are no confirmed transactions for this view yet.";
-
-        if (activeType === 'INFLOW') {
-            icon = Wallet;
-            title = "No donations yet";
-            description = "This ledger has not received any direct contributions matching your filter.";
-        } else if (activeType === 'OUTFLOW') {
-            icon = CreditCard;
-            title = "No payments yet";
-            description = "No funds have been disbursed to vendors from this ledger yet.";
-        }
-
         return (
             <Card className="border-dashed border-2 rounded-3xl bg-muted/20 min-w-0 shadow-none">
                 <CardContent className="h-[300px] flex flex-col items-center justify-center text-center p-6">
                     <div className="h-16 w-16 rounded-3xl bg-background flex items-center justify-center mb-4 border border-border/50 shadow-sm shrink-0">
-                        {React.createElement(icon, { className: "h-7 w-7 text-muted-foreground/40" })}
+                        <Database className="h-7 w-7 text-muted-foreground/40" />
                     </div>
-                    <h3 className="font-bold text-lg text-foreground">{title}</h3>
+                    <h3 className="font-bold text-lg text-foreground">No records found</h3>
                     <p className="text-sm text-muted-foreground mt-2 max-w-[280px] font-medium leading-relaxed">
-                        {description}
+                        There are no confirmed transactions for this view yet.
                     </p>
-                    {activeType !== 'all' && (
-                        <Button
-                            variant="outline"
-                            onClick={() => handleTabChange('all')}
-                            className="mt-6 rounded-3xl h-10 px-6 text-xs font-bold border-border/60 hover:bg-background transition-all"
-                        >
-                            View all records
-                        </Button>
-                    )}
                 </CardContent>
             </Card>
         );
@@ -137,16 +101,6 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
 
     return (
         <div className="space-y-6 w-full min-w-0">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
-                <Tabs value={activeType} onValueChange={handleTabChange} className="w-full md:w-auto">
-                    <TabsList className="bg-muted/50 p-1 rounded-3xl h-12 md:h-11 w-full md:w-fit border border-border/40 shadow-inner flex md:inline-flex">
-                        <TabsTrigger value="all" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">All</TabsTrigger>
-                        <TabsTrigger value="INFLOW" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Donations</TabsTrigger>
-                        <TabsTrigger value="OUTFLOW" className="flex-1 md:flex-none rounded-3xl px-6 h-full text-xs font-bold transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">Payments</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-            </div>
-
             {initialData.data.length === 0 ? (
                 <EmptyState />
             ) : (
@@ -168,7 +122,6 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                     const typeStyle = isInflow ? typeStyles.CREDIT : typeStyles.DEBIT;
                                     const statusStyle = statusStyles['COMPLETED'];
 
-                                    // NEW: Render 'SYSTEM ADJUSTMENT' if it's the Platform Dust Coverage
                                     const displayCategory = entry.type === 'INFLOW'
                                         ? (entry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION')
                                         : (entry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT');
@@ -285,7 +238,6 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 </div>
                             </div>
 
-                            {/* ...[Rest of Dialog Content remains unchanged] ... */}
                             <div className="space-y-1.5 min-w-0">
                                 <span className="text-xs font-bold text-muted-foreground block px-1">Identification</span>
                                 <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">

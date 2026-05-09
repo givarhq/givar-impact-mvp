@@ -19,15 +19,6 @@ export default function ProjectRecordsLoading() {
                 </div>
 
                 <div className="w-full min-w-0 space-y-6">
-                    {/* Tabs Skeleton */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
-                        <div className="h-12 md:h-11 w-full md:w-[320px] bg-muted/50 rounded-3xl border border-border/40 p-1 flex gap-1">
-                            <Skeleton className="flex-1 h-full rounded-3xl bg-background shadow-sm" />
-                            <div className="flex-1" />
-                            <div className="flex-1" />
-                        </div>
-                    </div>
-
                     {/* Table Skeleton */}
                     <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
                         <div className="hidden md:flex items-center justify-between p-4 bg-muted/40 border-b border-border/40">
