@@ -91,7 +91,7 @@ export default function HookPage() {
       return {
         optSelf: "Myself (patient)",
         optOther: isOrg ? "A patient" : "Another patient",
-        optGroup: "A medical facility or community health initiative",
+        optGroup: "A facility or health initiative",
         nameLabel: "Patient's full legal name",
         ageLabel: "Patient's current age",
         relLabel: "Relationship to patient",
@@ -102,7 +102,7 @@ export default function HookPage() {
       return {
         optSelf: "Myself (student)",
         optOther: isOrg ? "A student" : "Another student",
-        optGroup: "A school or educational group",
+        optGroup: "A school or group",
         nameLabel: "Student's full legal name",
         ageLabel: "Student's current age",
         relLabel: "Relationship to student",
@@ -111,9 +111,9 @@ export default function HookPage() {
     }
     if (selectedCategoryName.includes('community')) {
       return {
-        optSelf: "Myself (non-medical/non-educational)",
+        optSelf: "Myself (general support)",
         optOther: isOrg ? "An individual or family" : "Another individual or family",
-        optGroup: "A community, region, or public initiative",
+        optGroup: "A community or region",
         nameLabel: "Beneficiary's full legal name",
         ageLabel: "Beneficiary's age",
         relLabel: "Relationship to beneficiary",
