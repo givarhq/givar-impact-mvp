@@ -24,7 +24,7 @@ The heart of Givar is a "triple-entry" style transaction ledger mapped via inter
   3. **Treasury Credit:** Platform fees and tips are routed to a designated system node (`REV-` reference).
 - **Ledger Oversight:** Admins have specialized access for manual reconciliation and suspense resolution, forced through the `AuditLog` service.
 
-### 2. Transaction Fee Governance (`src/modules/fee`)
+### 2. Operational Support Fee Governance (`src/modules/fee`)
 The platform utilizes an immutable, append-only rule engine for financial governance.
 - **Append-Only Logic:** Fee rules are never updated in place. Old rules are archived (`isActive: false`) and a new rule is inserted to preserve historical financial context.
 - **Financial Snapshots:** Every `Donation` and `GuestDonation` stores a forensic snapshot of the `feePercentage`, `feeAmount`, and `tipAmount` at the exact moment of transaction. This prevents historical drift if global rates change later.

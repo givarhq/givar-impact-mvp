@@ -53,7 +53,7 @@ const ADMIN_SETTINGS_OPTIONS = [
         icon: Landmark,
         color: 'text-purple-500',
         bg: 'bg-purple-500/10',
-        description: 'Manage platform transaction fees & tipping rules.'
+        description: 'Manage operational support fees & tipping rules.'
     },
     {
         id: 'security',
