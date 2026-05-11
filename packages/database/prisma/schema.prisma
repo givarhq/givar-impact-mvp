@@ -806,13 +806,15 @@ model TransactionFeeRule {
   percentage         Float     // e.g. 2.5
   appliesGlobally    Boolean   @default(true)
   categoryId         String?   // Overrides global rule for specific sectors
+  subcategoryId      String?   // Overrides for specific focus areas
+  projectId          String?   // Overrides for an individual project
   optionalTipEnabled Boolean   @default(true)
 
   activeFrom         DateTime  @default(now())
   activeUntil        DateTime? // Null if currently active
 
   createdById        String
-  creator            User      @relation(fields: [createdById], references: [id])
+  creator            User      @relation(fields:[createdById], references: [id])
 
   isActive           Boolean   @default(true)
 
@@ -821,5 +823,7 @@ model TransactionFeeRule {
 
   @@index([activeFrom, activeUntil])
   @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([projectId])
   @@map("transaction_fee_rules")
 }

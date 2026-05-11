@@ -5,7 +5,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '@givar/database';
 import { FeeService } from './fee.service';
 import { Public } from '../../common/decorators/public.decorator';
-import { IsBoolean, IsNumber, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class UpdateFeeRuleDto {
     @IsNumber()
@@ -15,6 +15,13 @@ export class UpdateFeeRuleDto {
 
     @IsBoolean()
     optionalTipEnabled!: boolean;
+
+    @IsEnum(['GLOBAL', 'CATEGORY', 'SUBCATEGORY', 'PROJECT'])
+    targetType!: 'GLOBAL' | 'CATEGORY' | 'SUBCATEGORY' | 'PROJECT';
+
+    @IsOptional()
+    @IsString()
+    targetId?: string;
 
     @IsString()
     password!: string;
@@ -58,11 +65,13 @@ export class FeeAdminController {
     @Post('update')
     @Roles(UserRole.SUPERADMIN)
     async updateGlobalRule(@Req() req: any, @Body() dto: UpdateFeeRuleDto) {
-        return this.feeService.updateGlobalRule(
+        return this.feeService.createRule(
             req.user.id,
             dto.percentage,
             dto.optionalTipEnabled,
-            dto.password
+            dto.password,
+            dto.targetType,
+            dto.targetId
         );
     }
 }
