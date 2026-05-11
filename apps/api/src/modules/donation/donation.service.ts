@@ -120,6 +120,7 @@ export class DonationService {
         userId: true,
         slug: true,
         categoryId: true,
+        subcategoryId: true, // <-- Needed for granular fee calc
         budgetBreakdown: true,
         currentPhaseIndex: true,
         vendors: true
@@ -138,7 +139,13 @@ export class DonationService {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
 
-    const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(baseAmount, project.categoryId || undefined);
+    // Logic: Pass precise taxonomy IDs for hierarchical fee resolution
+    const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(
+      baseAmount,
+      project.categoryId || undefined,
+      project.subcategoryId || undefined,
+      project.id
+    );
     const totalCharge = baseAmount + feeAmountMinor + tipAmount;
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -360,7 +367,7 @@ export class DonationService {
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
       select: {
-        id: true, isActive: true, currency: true, status: true, categoryId: true, title: true,
+        id: true, isActive: true, currency: true, status: true, categoryId: true, subcategoryId: true, title: true,
         budgetBreakdown: true, currentPhaseIndex: true, vendors: true
       },
     });
@@ -377,7 +384,14 @@ export class DonationService {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
 
-    const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(baseAmountBig, project.categoryId || undefined);
+    // Logic: Pass precise taxonomy IDs for hierarchical fee resolution
+    const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(
+      baseAmountBig,
+      project.categoryId || undefined,
+      project.subcategoryId || undefined,
+      project.id
+    );
+
     const totalCharge = baseAmountBig + feeAmountMinor + tipAmountBig;
 
     let emailToCharge: string;

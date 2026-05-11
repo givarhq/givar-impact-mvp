@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Landmark,
@@ -10,13 +10,17 @@ import {
     CheckCircle2,
     ShieldAlert,
     AlertTriangle,
-    ShieldCheck,
-    Info
+    Info,
+    Plus,
+    Search,
+    ChevronDown,
+    X
 } from 'lucide-react';
 import { Button } from '../../../ui/button';
 import { Input } from '../../../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/select';
 import { ApiService } from '../../../../services/api';
 import { Badge } from '../../../ui/badge';
 import toast from 'react-hot-toast';
@@ -34,10 +38,19 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
     const router = useRouter();
     const [isUpdating, setIsUpdating] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [categories, setCategories] = useState<any[]>([]);
 
-    const [percentage, setPercentage] = useState(initialFeeRule?.percentage?.toString() || '0');
-    const [tipEnabled, setTipEnabled] = useState(initialFeeRule?.optionalTipEnabled ?? false);
+    // Form State
+    const [percentage, setPercentage] = useState('');
+    const [tipEnabled, setTipEnabled] = useState(true);
     const [password, setPassword] = useState('');
+    const [targetType, setTargetType] = useState<'GLOBAL' | 'CATEGORY' | 'SUBCATEGORY' | 'PROJECT'>('GLOBAL');
+    const [targetId, setTargetId] = useState<string>('');
+
+    // Project Search State
+    const [projectQuery, setProjectQuery] = useState('');
+    const [projectResults, setProjectResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     const isSuperAdmin = (() => {
         const userCookie = getCookie('givar_user');
@@ -50,6 +63,28 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
         return false;
     })();
 
+    useEffect(() => {
+        if (showModal && categories.length === 0) {
+            ApiService.projects.getCategories().then(setCategories).catch(() => { });
+        }
+    }, [showModal, categories.length]);
+
+    useEffect(() => {
+        if (targetType === 'PROJECT' && projectQuery.trim().length > 2) {
+            const timer = setTimeout(async () => {
+                setIsSearching(true);
+                try {
+                    const token = getCookie('givar_token') as string;
+                    const res = await ApiService.admin.getProjects(token, new URLSearchParams({ search: projectQuery.trim(), limit: '5' }));
+                    setProjectResults(res?.data || []);
+                } catch (e) { } finally {
+                    setIsSearching(false);
+                }
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [projectQuery, targetType]);
+
     const handleUpdate = async () => {
         const parsedPercentage = parseFloat(percentage);
         if (isNaN(parsedPercentage) || parsedPercentage < 0 || parsedPercentage > 20) {
@@ -57,6 +92,9 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
         }
         if (!password) {
             return toast.error("SuperAdmin password is required to authorize financial mutation.");
+        }
+        if (targetType !== 'GLOBAL' && !targetId) {
+            return toast.error("Please select the specific target for this fee rule.");
         }
 
         setIsUpdating(true);
@@ -66,11 +104,16 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
             await ApiService.fees.updateGlobalRule({
                 percentage: parsedPercentage,
                 optionalTipEnabled: tipEnabled,
-                password
+                password,
+                targetType,
+                targetId: targetType === 'GLOBAL' ? undefined : targetId
             });
             toast.success("Financial parameters successfully updated", { id: toastId });
             setShowModal(false);
             setPassword('');
+            setPercentage('');
+            setTargetId('');
+            setProjectQuery('');
             router.refresh();
         } catch (error: any) {
             toast.error(error.response?.data?.message || "Failed to authorize mutation. Check credentials.", { id: toastId });
@@ -79,223 +122,156 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
         }
     };
 
+    // Separate active overrides from global historical rules
+    const activeOverrides = initialFeeHistory.filter(r => r.isActive && !r.appliesGlobally);
+    const globalHistory = initialFeeHistory.filter(r => r.appliesGlobally);
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="max-w-5xl mx-auto space-y-4 md:space-y-6"
+            className="max-w-5xl mx-auto space-y-8"
         >
-            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden border-2">
-                <CardHeader className="bg-muted/30 border-b border-border/40 p-6 md:p-8">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <CardTitle className="text-sm font-bold flex items-center gap-2 tracking-widest text-foreground ">
-                                <Landmark className="h-4 w-4 text-primary" /> Fee Configuration
-                            </CardTitle>
-                            <p className="text-[11px] text-muted-foreground font-bold tracking-widest ">Global Platform Rate</p>
-                        </div>
-                        {initialFeeRule ? (
-                            <Badge variant="outline" className="rounded-3xl px-3 py-1 font-bold text-[10px] tracking-widest border bg-emerald-50 text-emerald-600 border-emerald-100">
-                                <CheckCircle2 className="h-3 w-3 mr-1.5" /> Active Protocol
-                            </Badge>
-                        ) : (
-                            <Badge variant="outline" className="rounded-3xl px-3 py-1 font-bold text-[10px] tracking-widest border bg-amber-50 text-amber-600 border-amber-100">
-                                <ShieldAlert className="h-3 w-3 mr-1.5" /> Failsafe Mode
-                            </Badge>
-                        )}
-                    </div>
-                </CardHeader>
-                <CardContent className="p-6 md:p-8 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="p-6 rounded-3xl bg-muted/20 border border-border/40 shadow-inner flex flex-col justify-center">
-                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest mb-2">Base Platform Cut</p>
-                            <div className="flex items-end gap-2">
-                                <span className="text-4xl font-black text-primary tracking-tighter">
-                                    {initialFeeRule?.percentage ?? 0}%
-                                </span>
-                                <span className="text-xs font-bold text-muted-foreground mb-1.5">/ transaction</span>
-                            </div>
-                        </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/20 p-6 rounded-3xl border border-border/40 shadow-sm">
+                <div className="space-y-1">
+                    <h3 className="text-lg font-bold text-foreground">Fees & Tips</h3>
+                    <p className="text-xs font-medium text-muted-foreground">Configure the platform-wide transaction tax and tipping system.</p>
+                </div>
+                {isSuperAdmin && (
+                    <Button
+                        onClick={() => {
+                            setTargetType('GLOBAL');
+                            setPercentage(initialFeeRule?.percentage?.toString() || '0');
+                            setTipEnabled(initialFeeRule?.optionalTipEnabled ?? false);
+                            setShowModal(true);
+                        }}
+                        className="rounded-full h-11 px-6 font-bold text-xs shadow-md border-0 bg-primary text-white hover:bg-primary/90 transition-all active:scale-95"
+                    >
+                        <Plus className="h-4 w-4 mr-1.5" /> Modify Rates
+                    </Button>
+                )}
+            </div>
 
-                        <div className="p-6 rounded-3xl bg-muted/20 border border-border/40 shadow-inner flex flex-col justify-center">
-                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest mb-2">Donor Optional Tipping</p>
-                            <div className="flex items-center gap-3">
-                                {initialFeeRule?.optionalTipEnabled ? (
-                                    <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20 shadow-sm">
-                                        <CheckCircle2 className="h-5 w-5" />
-                                    </div>
-                                ) : (
-                                    <div className="h-10 w-10 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center border border-destructive/20 shadow-sm">
-                                        <ShieldAlert className="h-5 w-5" />
-                                    </div>
-                                )}
-                                <span className="text-lg font-bold text-foreground tracking-tight">
-                                    {initialFeeRule?.optionalTipEnabled ? 'Enabled' : 'Disabled'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden">
+                    <CardHeader className="border-b border-border/40 p-5">
+                        <CardTitle className="text-sm font-bold flex items-center justify-between text-foreground">
+                            <span className="flex items-center gap-2"><Landmark className="h-4 w-4 text-primary" /> Global Base Rate</span>
+                            {initialFeeRule ? (
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[10px]">Active</Badge>
+                            ) : (
+                                <Badge variant="destructive" className="font-bold text-[10px] shadow-none">Failsafe</Badge>
+                            )}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8 text-center flex flex-col justify-center min-h-[160px]">
+                        <p className="text-4xl font-black text-primary tracking-tighter mb-2">
+                            {initialFeeRule?.percentage ?? 0}%
+                        </p>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Platform Tax Per Transaction</p>
+                    </CardContent>
+                </Card>
 
-                    <div className="p-5 rounded-3xl bg-blue-50/50 border border-blue-100 flex items-start gap-4">
-                        <Info className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
-                        <div className="space-y-1">
-                            <p className="text-[11px] text-blue-700 font-bold tracking-tight leading-relaxed">
-                                Financial Guardrail: Fee changes are strictly append-only. When modified, the current rule is deactivated to preserve historical integrity, and a new rule is established.
-                            </p>
-                        </div>
-                    </div>
-
-                    {isSuperAdmin ? (
-                        <Dialog open={showModal} onOpenChange={setShowModal}>
-                            <DialogTrigger asChild>
-                                <Button className="w-auto px-8 mx-auto flex h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0">
-                                    <Lock className="h-4 w-4 mr-2" /> Modify Fee Protocol
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl max-w-md bg-card">
-                                <div className="p-8 space-y-6">
-                                    <div className="text-center space-y-2">
-                                        <div className="h-14 w-14 bg-amber-500/10 text-amber-500 rounded-[22px] flex items-center justify-center mx-auto mb-4 border border-amber-500/20 shadow-inner">
-                                            <AlertTriangle className="h-7 w-7" />
-                                        </div>
-                                        <DialogHeader>
-                                            <DialogTitle className="text-xl font-bold tracking-tight text-center leading-none">Step-Up Authorization</DialogTitle>
-                                        </DialogHeader>
-                                        <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-[280px] mx-auto">
-                                            Adjusting the financial parameters affects all future transactions platform-wide.
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-5">
-                                        <div className="space-y-2">
-                                            <label className="text-[11px] font-bold tracking-widest text-foreground ml-1">New Fee Percentage (%)</label>
-                                            <div className="relative group">
-                                                <Input
-                                                    type="number"
-                                                    step="0.1"
-                                                    min="0"
-                                                    max="20"
-                                                    value={percentage}
-                                                    onChange={(e) => setPercentage(e.target.value)}
-                                                    className="pl-4 pr-10 h-12 text-lg font-bold rounded-2xl bg-muted/20 border-border/40 focus:bg-background shadow-inner transition-all tabular-nums"
-                                                />
-                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">%</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-muted/20 border border-border/40 shadow-inner">
-                                            <div className="space-y-0.5">
-                                                <p className="text-xs font-bold text-foreground">Optional Tipping</p>
-                                                <p className="text-[10px] text-muted-foreground">Allow donors to add a tip for the platform</p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => setTipEnabled(!tipEnabled)}
-                                                className={cn(
-                                                    "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/40 focus:ring-offset-2",
-                                                    tipEnabled ? "bg-primary" : "bg-muted-foreground/30"
-                                                )}
-                                            >
-                                                <span className={cn(
-                                                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out",
-                                                    tipEnabled ? "translate-x-5" : "translate-x-0"
-                                                )} />
-                                            </button>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="text-[11px] font-bold tracking-widest text-destructive ml-1">SuperAdmin Verification</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                                <Input
-                                                    type="password"
-                                                    placeholder="Enter your password"
-                                                    value={password}
-                                                    onChange={(e) => setPassword(e.target.value)}
-                                                    className="pl-11 h-12 rounded-2xl bg-destructive/5 border-destructive/20 focus:bg-background shadow-inner transition-all"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 gap-3">
-                                        <Button
-                                            onClick={handleUpdate}
-                                            disabled={isUpdating || !password || percentage === ''}
-                                            className="w-auto px-8 mx-auto flex h-12 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0"
-                                        >
-                                            {isUpdating ? <Loader2 className="animate-spin h-5 w-5" /> : 'Confirm Changes'}
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            onClick={() => { setShowModal(false); setPassword(''); }}
-                                            className="w-full h-10 rounded-3xl font-bold text-xs text-muted-foreground hover:text-foreground"
-                                        >
-                                            Cancel
-                                        </Button>
-                                    </div>
+                <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden">
+                    <CardHeader className="border-b border-border/40 p-5">
+                        <CardTitle className="text-sm font-bold flex items-center justify-between text-foreground">
+                            <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-blue-500" /> Voluntary Tips</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8 text-center flex flex-col justify-center min-h-[160px]">
+                        <div className="flex justify-center mb-3">
+                            {initialFeeRule?.optionalTipEnabled ? (
+                                <div className="h-10 w-10 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center">
+                                    <CheckCircle2 className="h-5 w-5" />
                                 </div>
-                            </DialogContent>
-                        </Dialog>
-                    ) : (
-                        <div className="p-4 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
-                            <p className="text-xs font-bold text-muted-foreground tracking-tight">Only SuperAdmins can mutate financial parameters.</p>
+                            ) : (
+                                <div className="h-10 w-10 rounded-full bg-destructive/10 border border-destructive/20 text-destructive flex items-center justify-center">
+                                    <ShieldAlert className="h-5 w-5" />
+                                </div>
+                            )}
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+                            Donor Optional Tipping is <strong className="text-foreground">{initialFeeRule?.optionalTipEnabled ? 'Enabled' : 'Disabled'}</strong>
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
 
-            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden">
-                <CardHeader className="bg-muted/30 border-b border-border/40 p-5 md:p-6">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground tracking-tight">
-                        <History className="h-4 w-4 text-muted-foreground" />
-                        Fee Audit History
-                    </CardTitle>
+            {/* Active Overrides Table */}
+            {activeOverrides.length > 0 && (
+                <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden">
+                    <CardHeader className="bg-muted/10 border-b border-border/40 p-5">
+                        <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Active Exceptions & Overrides</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0 overflow-x-auto no-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-muted/5 text-[10px] font-bold text-muted-foreground border-b border-border/40">
+                                <tr>
+                                    <th className="px-6 py-3">Target Scope</th>
+                                    <th className="px-6 py-3">Rate</th>
+                                    <th className="px-6 py-3 text-right">Added On</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/40 text-xs">
+                                {activeOverrides.map(rule => (
+                                    <tr key={rule.id} className="hover:bg-muted/10 transition-colors">
+                                        <td className="px-6 py-3">
+                                            <p className="font-bold text-foreground truncate max-w-[250px]">{rule.targetName}</p>
+                                        </td>
+                                        <td className="px-6 py-3">
+                                            <span className="font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{rule.percentage}%</span>
+                                        </td>
+                                        <td className="px-6 py-3 text-right font-medium text-muted-foreground">
+                                            {formatDate(rule.activeFrom).split(',')[0]}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Historic Global Rules */}
+            <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden">
+                <CardHeader className="bg-muted/10 border-b border-border/40 p-5 flex flex-row items-center justify-between">
+                    <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Global Audit History</CardTitle>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground/40" />
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left border-collapse min-w-[600px]">
-                        <thead className="bg-muted/20 text-[10px] font-bold tracking-widest text-muted-foreground border-b border-border/40">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-muted/5 text-[10px] font-bold text-muted-foreground border-b border-border/40">
                             <tr>
-                                <th className="px-6 py-4">Fee Profile</th>
-                                <th className="px-6 py-4">Optional Tips</th>
-                                <th className="px-6 py-4">Effective Dates</th>
-                                <th className="px-6 py-4">Authorized By</th>
-                                <th className="px-6 py-4 text-right">Status</th>
+                                <th className="px-6 py-3">Rate & Tips</th>
+                                <th className="px-6 py-3">Effective Cycle</th>
+                                <th className="px-6 py-3">Authorized By</th>
+                                <th className="px-6 py-3 text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-border/40 text-xs font-medium">
-                            {initialFeeHistory.length === 0 ? (
+                        <tbody className="divide-y divide-border/40 text-xs">
+                            {globalHistory.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground italic">
-                                        No historical fee rules recorded.
-                                    </td>
+                                    <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground italic font-medium">No history recorded.</td>
                                 </tr>
                             ) : (
-                                initialFeeHistory.map((rule) => (
-                                    <tr key={rule.id} className="hover:bg-muted/10 transition-colors group">
-                                        <td className="px-6 py-4 font-bold text-foreground">
-                                            <span className="text-sm">{rule.percentage}%</span>
-                                            <p className="text-[9px] font-mono text-muted-foreground tracking-tighter mt-1 opacity-60">ID: {rule.id.slice(0, 8)}</p>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {rule.optionalTipEnabled ? (
-                                                <Badge variant="outline" className="text-[10px] rounded-full border-border/60 bg-muted/30 font-bold shadow-none">Enabled</Badge>
-                                            ) : (
-                                                <Badge variant="outline" className="text-[10px] rounded-full border-border/60 text-muted-foreground bg-transparent shadow-none">Disabled</Badge>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <p className="font-bold text-foreground">{formatDate(rule.activeFrom).split(',')[0]}</p>
-                                            <p className="text-[10px] text-muted-foreground mt-0.5">
-                                                {rule.activeUntil ? `to ${formatDate(rule.activeUntil).split(',')[0]}` : 'Present'}
-                                            </p>
-                                        </td>
+                                globalHistory.map((rule) => (
+                                    <tr key={rule.id} className={cn("hover:bg-muted/10 transition-colors", !rule.isActive && "opacity-60")}>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2">
-                                                <ShieldCheck className="h-3.5 w-3.5 text-purple-500 opacity-60" />
-                                                <span className="text-muted-foreground truncate max-w-[150px]">{rule.creator?.email || 'System'}</span>
+                                                <span className="font-mono font-bold text-foreground">{rule.percentage}%</span>
+                                                {rule.optionalTipEnabled ? (
+                                                    <span className="text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded">TIPS ON</span>
+                                                ) : (
+                                                    <span className="text-[9px] font-bold border px-1.5 py-0.5 rounded">TIPS OFF</span>
+                                                )}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-muted-foreground">
+                                            {formatDate(rule.activeFrom).split(',')[0]} - {rule.activeUntil ? formatDate(rule.activeUntil).split(',')[0] : 'Present'}
+                                        </td>
+                                        <td className="px-6 py-4 font-medium text-muted-foreground">
+                                            {rule.creator?.email || 'System'}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             {rule.isActive ? (
@@ -311,6 +287,163 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                     </table>
                 </CardContent>
             </Card>
+
+            <Dialog open={showModal} onOpenChange={setShowModal}>
+                <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md max-h-[85vh] flex flex-col">
+                    <div className="p-6 md:p-8 overflow-y-auto no-scrollbar flex-1 space-y-6">
+                        <div className="text-center space-y-2">
+                            <div className="h-12 w-12 bg-primary/10 text-primary rounded-[20px] flex items-center justify-center mx-auto mb-3 border border-primary/20 shadow-inner">
+                                <Landmark className="h-5 w-5" />
+                            </div>
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-bold tracking-tight text-center leading-none">Financial Configuration</DialogTitle>
+                            </DialogHeader>
+                            <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-[280px] mx-auto">
+                                Establish new parameters for the transaction ledger.
+                            </p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Scope Target</label>
+                                <Select value={targetType} onValueChange={(val: any) => { setTargetType(val); setTargetId(''); setProjectQuery(''); }}>
+                                    <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-2xl border-border/40 shadow-xl">
+                                        <SelectItem value="GLOBAL" className="text-xs font-bold py-2">Global (Platform Wide)</SelectItem>
+                                        <SelectItem value="CATEGORY" className="text-xs font-bold py-2">Specific Sector</SelectItem>
+                                        <SelectItem value="SUBCATEGORY" className="text-xs font-bold py-2">Specific Focus Area</SelectItem>
+                                        <SelectItem value="PROJECT" className="text-xs font-bold py-2">Single Cause Override</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <AnimatePresence mode="popLayout">
+                                {targetType === 'CATEGORY' && (
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Select Sector</label>
+                                        <Select value={targetId} onValueChange={setTargetId}>
+                                            <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                            <SelectContent className="rounded-2xl border-border/40 shadow-xl max-h-48">
+                                                {categories.map(c => <SelectItem key={c.id} value={c.id} className="text-xs font-medium py-2">{c.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </motion.div>
+                                )}
+
+                                {targetType === 'SUBCATEGORY' && (
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Select Focus Area</label>
+                                        <Select value={targetId} onValueChange={setTargetId}>
+                                            <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                            <SelectContent className="rounded-2xl border-border/40 shadow-xl max-h-48">
+                                                {categories.flatMap(c => c.subcategories || []).map((sub: any) => (
+                                                    <SelectItem key={sub.id} value={sub.id} className="text-xs font-medium py-2">{sub.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </motion.div>
+                                )}
+
+                                {targetType === 'PROJECT' && (
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Search Live Cause</label>
+                                        <div className="relative group">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                            <Input
+                                                value={targetId ? projectResults.find(p => p.id === targetId)?.title : projectQuery}
+                                                onChange={(e) => { setTargetId(''); setProjectQuery(e.target.value); }}
+                                                placeholder="Search by title..."
+                                                className="h-11 pl-9 rounded-2xl bg-muted/20 border-border/60 font-medium text-xs focus:bg-background"
+                                            />
+                                            {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
+                                            {targetId && <X className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" onClick={() => { setTargetId(''); setProjectQuery(''); }} />}
+                                        </div>
+                                        {!targetId && projectQuery.length > 2 && (
+                                            <div className="mt-1 bg-card border border-border/60 rounded-2xl overflow-hidden shadow-lg p-1">
+                                                {projectResults.length === 0 ? (
+                                                    <div className="p-3 text-center text-xs text-muted-foreground italic">No causes found</div>
+                                                ) : (
+                                                    projectResults.map(p => (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => setTargetId(p.id)}
+                                                            className="w-full text-left p-2 text-xs font-medium hover:bg-muted/50 rounded-xl transition-colors truncate"
+                                                        >
+                                                            {p.title}
+                                                        </button>
+                                                    ))
+                                                )}
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Percentage Rate</label>
+                                    <div className="relative group">
+                                        <Input
+                                            type="number" step="0.1" min="0" max="20"
+                                            value={percentage}
+                                            onChange={(e) => setPercentage(e.target.value)}
+                                            className="pr-8 h-11 text-sm font-bold rounded-2xl bg-muted/20 border-border/60 focus:bg-background shadow-inner transition-all tabular-nums"
+                                            placeholder="2.5"
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">%</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest truncate">Allow Tipping</label>
+                                    <div className="h-11 flex items-center justify-center p-1 rounded-2xl bg-muted/20 border border-border/60 shadow-inner">
+                                        <button
+                                            type="button"
+                                            onClick={() => setTipEnabled(!tipEnabled)}
+                                            className={cn("flex-1 h-full rounded-xl text-xs font-bold transition-all", tipEnabled ? "bg-background shadow-sm border border-border/40 text-foreground" : "text-muted-foreground opacity-60")}
+                                        >ON</button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTipEnabled(!tipEnabled)}
+                                            className={cn("flex-1 h-full rounded-xl text-xs font-bold transition-all", !tipEnabled ? "bg-background shadow-sm border border-border/40 text-foreground" : "text-muted-foreground opacity-60")}
+                                        >OFF</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5 pt-2">
+                                <label className="text-[11px] font-bold text-destructive ml-1 uppercase tracking-widest flex items-center gap-1.5"><Lock className="h-3 w-3" /> Step-Up Authorization</label>
+                                <Input
+                                    type="password"
+                                    placeholder="SuperAdmin Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="h-11 rounded-2xl bg-destructive/5 border-destructive/20 focus:bg-background shadow-inner transition-all text-sm"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid gap-2 pt-2">
+                            <Button
+                                onClick={handleUpdate}
+                                disabled={isUpdating || !password || percentage === '' || (targetType !== 'GLOBAL' && !targetId)}
+                                className="w-full h-12 rounded-full font-bold text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0 bg-primary text-white hover:bg-primary/90"
+                            >
+                                {isUpdating ? <Loader2 className="animate-spin h-5 w-5" /> : 'Authorize Protocol'}
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                onClick={() => { setShowModal(false); setPassword(''); }}
+                                className="w-full h-10 rounded-full font-bold text-xs text-muted-foreground hover:text-foreground"
+                            >
+                                Cancel
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </motion.div>
     );
 });
