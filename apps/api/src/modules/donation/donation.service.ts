@@ -209,7 +209,7 @@ export class DonationService {
                 status: TxStatus.COMPLETED,
                 category: TxCategory.TRANSACTION_FEE,
                 reference: `FEE-${reference}`,
-                description: `Platform fee from: ${txProject.title}`,
+                description: `Operational Support Fee from: ${txProject.title}`,
                 metadata: { originalProjectId: txProject.id, donorId: userId }
               }
             });
@@ -230,7 +230,7 @@ export class DonationService {
                 status: TxStatus.COMPLETED,
                 category: TxCategory.VOLUNTARY_TIP,
                 reference: `TIP-${reference}`,
-                description: `Donor tip from: ${txProject.title}`,
+                description: `Optional Support Contribution from: ${txProject.title}`,
                 metadata: { originalProjectId: txProject.id, donorId: userId }
               }
             });
@@ -586,7 +586,7 @@ export class DonationService {
                 status: TxStatus.COMPLETED,
                 category: TxCategory.TRANSACTION_FEE,
                 reference: `FEE-${reference}`,
-                description: `Platform fee via Gateway: ${project.title}`,
+                description: `Operational Support Fee via Gateway: ${project.title}`,
                 metadata: { originalProjectId: project.id, channel }
               }
             });
@@ -603,7 +603,7 @@ export class DonationService {
                 status: TxStatus.COMPLETED,
                 category: TxCategory.VOLUNTARY_TIP,
                 reference: `TIP-${reference}`,
-                description: `Platform tip via Gateway: ${project.title}`,
+                description: `Optional Support Contribution via Gateway: ${project.title}`,
                 metadata: { originalProjectId: project.id, channel }
               }
             });
