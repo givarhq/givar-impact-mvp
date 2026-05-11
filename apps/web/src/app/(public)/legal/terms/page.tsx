@@ -142,8 +142,8 @@ export default function TermsPage() {
                                 </ul>
                                 <p>Violations may result in account suspension or removal.</p>
 
-                                <h2>8. Platform Fees</h2>
-                                <p>Givar may apply a transparent platform fee to transactions to support infrastructure, operations, and payment processing.</p>
+                                <h2>8. Operational Support Fees</h2>
+                                <p>Givar may apply a transparent operational support fee to transactions to support infrastructure, operations, and payment processing.</p>
                                 <p>Optional contributions to support the platform may also be provided by users.</p>
 
                                 <h2>9. Limitation Of Liability</h2>
