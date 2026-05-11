@@ -99,7 +99,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                         subValue={
                             <span className="flex flex-col leading-tight mt-0.5">
                                 <span className="flex items-center gap-1.5">
-                                    Fees:
+                                    Operational Support:
                                     <SmartCurrency
                                         amount={report?.overview?.platformFees || '0'}
                                         currency="NGN"
@@ -110,7 +110,7 @@ export const FinanceReportClient = memo(function FinanceReportClient({ categorie
                                 </span>
 
                                 <span className="flex items-center gap-1.5">
-                                    Tips:
+                                    Contributions:
                                     <SmartCurrency
                                         amount={report?.overview?.platformTips || '0'}
                                         currency="NGN"
