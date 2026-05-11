@@ -251,7 +251,7 @@ async function main() {
             status: TxStatus.COMPLETED,
             category: TxCategory.TRANSACTION_FEE,
             reference: `FEE-${reference}`,
-            description: `Platform fee & tip: ${project.title}`,
+            description: `Operational Support Fee & Contribution: ${project.title}`,
             createdAt: date
           }
         });
