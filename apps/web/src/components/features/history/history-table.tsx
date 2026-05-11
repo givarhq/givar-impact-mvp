@@ -278,12 +278,12 @@ export const HistoryTable = memo(function HistoryTable({
                                             <SmartCurrency amount={getFinancialBreakdown(selectedTx)!.base} currency={selectedTx.currency} visible={true} size="small" className="text-foreground" />
                                         </div>
                                         <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
-                                            <span>Platform Fee ({getFinancialBreakdown(selectedTx)!.feePercentage}%)</span>
+                                            <span>Operational Support Fee ({getFinancialBreakdown(selectedTx)!.feePercentage}%)</span>
                                             <SmartCurrency amount={getFinancialBreakdown(selectedTx)!.fee} currency={selectedTx.currency} visible={true} size="small" className="text-foreground" />
                                         </div>
                                         {BigInt(getFinancialBreakdown(selectedTx)!.tip) > 0n && (
                                             <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
-                                                <span>Optional Tip</span>
+                                                <span>Optional Support Contribution</span>
                                                 <SmartCurrency amount={getFinancialBreakdown(selectedTx)!.tip} currency={selectedTx.currency} visible={true} size="small" className="text-foreground" />
                                             </div>
                                         )}
@@ -341,12 +341,12 @@ export const HistoryTable = memo(function HistoryTable({
                                                     <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedTx)!.base, selectedTx.currency)}</span>
                                                 </div>
                                                 <div className="flex justify-between text-sm font-medium text-emerald-800">
-                                                    <span>Platform Fee ({getFinancialBreakdown(selectedTx)!.feePercentage}%)</span>
+                                                    <span>Operational Support Fee ({getFinancialBreakdown(selectedTx)!.feePercentage}%)</span>
                                                     <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedTx)!.fee, selectedTx.currency)}</span>
                                                 </div>
                                                 {BigInt(getFinancialBreakdown(selectedTx)!.tip) > 0n && (
                                                     <div className="flex justify-between text-sm font-medium text-emerald-800">
-                                                        <span>Platform Tip</span>
+                                                        <span>Optional Support Contribution</span>
                                                         <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedTx)!.tip, selectedTx.currency)}</span>
                                                     </div>
                                                 )}
