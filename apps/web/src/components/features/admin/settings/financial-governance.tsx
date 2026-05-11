@@ -157,9 +157,9 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                         <CardTitle className="text-sm font-bold flex items-center justify-between text-foreground">
                             <span className="flex items-center gap-2"><Landmark className="h-4 w-4 text-primary" /> Global Base Rate</span>
                             {initialFeeRule ? (
-                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px]">Active</Badge>
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-xs">Active</Badge>
                             ) : (
-                                <Badge variant="destructive" className="font-bold text-[11px] shadow-none">Failsafe</Badge>
+                                <Badge variant="destructive" className="font-bold text-xs shadow-none">Failsafe</Badge>
                             )}
                         </CardTitle>
                     </CardHeader>
@@ -211,11 +211,11 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                 <div key={rule.id} className="p-4 rounded-2xl border border-border/40 bg-card shadow-sm space-y-3">
                                     <div className="flex justify-between items-start gap-2">
                                         <span className="font-bold text-sm text-foreground leading-tight">{rule.targetName}</span>
-                                        <span className="font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md text-[11px]">{rule.percentage}%</span>
+                                        <span className="font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md text-xs">{rule.percentage}%</span>
                                     </div>
-                                    <div className="text-[11px] font-medium text-muted-foreground flex justify-between items-center pt-1 border-t border-border/40">
+                                    <div className="text-xs font-medium text-muted-foreground flex justify-between items-center pt-1 border-t border-border/40">
                                         <span>Added {formatDate(rule.activeFrom).split(',')[0]}</span>
-                                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px]">Active</Badge>
+                                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-xs">Active</Badge>
                                     </div>
                                 </div>
                             ))}
@@ -223,7 +223,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                         {/* Desktop View */}
                         <div className="hidden md:block overflow-x-auto no-scrollbar">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-muted/5 text-[11px] font-bold text-muted-foreground border-b border-border/40">
+                                <thead className="bg-muted/5 text-xs font-bold text-muted-foreground border-b border-border/40">
                                     <tr>
                                         <th className="px-6 py-3">Target Scope</th>
                                         <th className="px-6 py-3">Rate</th>
@@ -237,9 +237,9 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                                 <p className="font-bold text-foreground truncate max-w-[300px]">{rule.targetName}</p>
                                             </td>
                                             <td className="px-6 py-3">
-                                                <span className="font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md text-[11px]">{rule.percentage}%</span>
+                                                <span className="font-mono font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md text-xs">{rule.percentage}%</span>
                                             </td>
-                                            <td className="px-6 py-3 text-right font-medium text-muted-foreground text-[11px]">
+                                            <td className="px-6 py-3 text-right font-medium text-muted-foreground text-xs">
                                                 {formatDate(rule.activeFrom).split(',')[0]}
                                             </td>
                                         </tr>
@@ -262,25 +262,25 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                     {/* Mobile View */}
                     <div className="grid gap-3 md:hidden p-4">
                         {globalHistory.length === 0 ? (
-                            <div className="text-center text-muted-foreground italic text-[11px] py-4">No history recorded.</div>
+                            <div className="text-center text-muted-foreground italic text-xs py-4">No history recorded.</div>
                         ) : globalHistory.map(rule => (
                             <div key={rule.id} className={cn("p-4 rounded-2xl border border-border/40 bg-card shadow-sm space-y-3", !rule.isActive && "opacity-60")}>
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-2">
                                         <span className="font-mono font-bold text-foreground text-sm">{rule.percentage}%</span>
                                         {rule.optionalTipEnabled ? (
-                                            <span className="text-[11px] font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Tips On</span>
+                                            <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Tips On</span>
                                         ) : (
-                                            <span className="text-[11px] font-bold border border-border/60 px-1.5 py-0.5 rounded">Tips Off</span>
+                                            <span className="text-xs font-bold border border-border/60 px-1.5 py-0.5 rounded">Tips Off</span>
                                         )}
                                     </div>
                                     {rule.isActive ? (
-                                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px]">Active</Badge>
+                                        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-xs">Active</Badge>
                                     ) : (
-                                        <Badge variant="outline" className="text-muted-foreground border-border/60 font-bold text-[11px] shadow-none">Archived</Badge>
+                                        <Badge variant="outline" className="text-muted-foreground border-border/60 font-bold text-xs shadow-none">Archived</Badge>
                                     )}
                                 </div>
-                                <div className="flex justify-between items-center text-[11px] font-medium text-muted-foreground pt-2 border-t border-border/40">
+                                <div className="flex justify-between items-center text-xs font-medium text-muted-foreground pt-2 border-t border-border/40">
                                     <span>{formatDate(rule.activeFrom).split(',')[0]}</span>
                                     <span className="truncate max-w-[150px]">{rule.creator?.email || 'System'}</span>
                                 </div>
@@ -290,7 +290,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                     {/* Desktop View */}
                     <div className="hidden md:block overflow-x-auto no-scrollbar">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-muted/5 text-[11px] font-bold text-muted-foreground border-b border-border/40">
+                            <thead className="bg-muted/5 text-xs font-bold text-muted-foreground border-b border-border/40">
                                 <tr>
                                     <th className="px-6 py-3">Rate & Tips</th>
                                     <th className="px-6 py-3">Effective Cycle</th>
@@ -298,10 +298,10 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                     <th className="px-6 py-3 text-right">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border/40 text-[11px]">
+                            <tbody className="divide-y divide-border/40 text-xs">
                                 {globalHistory.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground italic font-medium text-[11px]">No history recorded.</td>
+                                        <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground italic font-medium text-xs">No history recorded.</td>
                                     </tr>
                                 ) : (
                                     globalHistory.map((rule) => (
@@ -310,23 +310,23 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-mono font-bold text-foreground text-sm">{rule.percentage}%</span>
                                                     {rule.optionalTipEnabled ? (
-                                                        <span className="text-[11px] font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Tips On</span>
+                                                        <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Tips On</span>
                                                     ) : (
-                                                        <span className="text-[11px] font-bold border border-border/60 px-1.5 py-0.5 rounded">Tips Off</span>
+                                                        <span className="text-xs font-bold border border-border/60 px-1.5 py-0.5 rounded">Tips Off</span>
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 font-medium text-muted-foreground text-[11px]">
+                                            <td className="px-6 py-4 font-medium text-muted-foreground text-xs">
                                                 {formatDate(rule.activeFrom).split(',')[0]} - {rule.activeUntil ? formatDate(rule.activeUntil).split(',')[0] : 'Present'}
                                             </td>
-                                            <td className="px-6 py-4 font-medium text-muted-foreground text-[11px]">
+                                            <td className="px-6 py-4 font-medium text-muted-foreground text-xs">
                                                 {rule.creator?.email || 'System'}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 {rule.isActive ? (
-                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px]">Active</Badge>
+                                                    <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-xs">Active</Badge>
                                                 ) : (
-                                                    <Badge variant="outline" className="text-muted-foreground border-border/60 font-bold text-[11px] shadow-none">Archived</Badge>
+                                                    <Badge variant="outline" className="text-muted-foreground border-border/60 font-bold text-xs shadow-none">Archived</Badge>
                                                 )}
                                             </td>
                                         </tr>
@@ -352,7 +352,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-muted-foreground ml-1">Target Scope</label>
+                                <label className="text-xs font-bold text-muted-foreground ml-1">Target Scope</label>
                                 <Select value={targetType} onValueChange={(val: any) => { setTargetType(val); setTargetId(''); setProjectQuery(''); }}>
                                     <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background">
                                         <SelectValue />
@@ -369,7 +369,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                             <AnimatePresence mode="popLayout">
                                 {targetType === 'CATEGORY' && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Select Sector</label>
+                                        <label className="text-xs font-bold text-muted-foreground ml-1">Select Sector</label>
                                         <Select value={targetId} onValueChange={setTargetId}>
                                             <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background"><SelectValue placeholder="Select..." /></SelectTrigger>
                                             <SelectContent className="rounded-2xl border-border/40 shadow-xl max-h-48">
@@ -381,7 +381,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                                 {targetType === 'SUBCATEGORY' && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Select Focus Area</label>
+                                        <label className="text-xs font-bold text-muted-foreground ml-1">Select Focus Area</label>
                                         <Select value={targetId} onValueChange={setTargetId}>
                                             <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background"><SelectValue placeholder="Select..." /></SelectTrigger>
                                             <SelectContent className="rounded-2xl border-border/40 shadow-xl max-h-48">
@@ -405,14 +405,14 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                                 {targetType === 'PROJECT' && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Search Live Cause</label>
+                                        <label className="text-xs font-bold text-muted-foreground ml-1">Search Live Cause</label>
                                         <div className="relative group">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                             <Input
                                                 value={targetId ? projectResults.find(p => p.id === targetId)?.title : projectQuery}
                                                 onChange={(e) => { setTargetId(''); setProjectQuery(e.target.value); }}
                                                 placeholder="Search by title..."
-                                                className="h-11 pl-9 rounded-2xl bg-muted/20 border-border/60 font-medium text-[11px] focus:bg-background"
+                                                className="h-11 pl-9 rounded-2xl bg-muted/20 border-border/60 font-medium text-xs focus:bg-background"
                                             />
                                             {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />}
                                             {targetId && <X className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer hover:text-foreground" onClick={() => { setTargetId(''); setProjectQuery(''); }} />}
@@ -420,13 +420,13 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                         {!targetId && projectQuery.length > 2 && (
                                             <div className="mt-1 bg-card border border-border/60 rounded-2xl overflow-hidden shadow-lg p-1">
                                                 {projectResults.length === 0 ? (
-                                                    <div className="p-3 text-center text-[11px] text-muted-foreground italic">No causes found</div>
+                                                    <div className="p-3 text-center text-xs text-muted-foreground italic">No causes found</div>
                                                 ) : (
                                                     projectResults.map(p => (
                                                         <button
                                                             key={p.id}
                                                             onClick={() => setTargetId(p.id)}
-                                                            className="w-full text-left p-2 text-[11px] font-medium hover:bg-muted/50 rounded-xl transition-colors truncate"
+                                                            className="w-full text-left p-2 text-xs font-medium hover:bg-muted/50 rounded-xl transition-colors truncate"
                                                         >
                                                             {p.title}
                                                         </button>
@@ -440,7 +440,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground ml-1">Percentage Rate</label>
+                                    <label className="text-xs font-bold text-muted-foreground ml-1">Percentage Rate</label>
                                     <div className="relative group">
                                         <Input
                                             type="number" step="0.1" min="0" max="20"
@@ -454,7 +454,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 truncate">Allow Tipping</label>
+                                    <label className="text-xs font-bold text-muted-foreground ml-1 truncate">Allow Tipping</label>
                                     <div className="h-11 flex items-center justify-center p-1 rounded-2xl bg-muted/20 border border-border/60 shadow-inner">
                                         <button
                                             type="button"
@@ -471,13 +471,13 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                             </div>
 
                             <div className="space-y-1.5 pt-2">
-                                <label className="text-[11px] font-bold text-destructive ml-1 flex items-center gap-1.5"><Lock className="h-3 w-3" /> Step-Up Authorization</label>
+                                <label className="text-xs font-bold text-destructive ml-1 flex items-center gap-1.5"><Lock className="h-3 w-3" /> Step-Up Authorization</label>
                                 <Input
                                     type="password"
                                     placeholder="SuperAdmin password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="h-11 rounded-2xl bg-destructive/5 border-destructive/20 focus:bg-background shadow-inner transition-all text-[11px]"
+                                    className="h-11 rounded-2xl bg-destructive/5 border-destructive/20 focus:bg-background shadow-inner transition-all text-xs"
                                 />
                             </div>
                         </div>
