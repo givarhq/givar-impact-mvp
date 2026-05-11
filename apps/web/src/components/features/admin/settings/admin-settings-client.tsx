@@ -6,6 +6,7 @@ import {
     UserCircle,
     Shield,
     Bell,
+    Activity,
     ChevronRight,
     ChevronLeft,
     Zap,
@@ -48,7 +49,7 @@ const ADMIN_SETTINGS_OPTIONS = [
     },
     {
         id: 'governance',
-        label: 'Financial Governance',
+        label: 'Fees & Tips',
         icon: Landmark,
         color: 'text-purple-500',
         bg: 'bg-purple-500/10',

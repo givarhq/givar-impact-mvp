@@ -13,7 +13,6 @@ import {
     Info,
     Plus,
     Search,
-    ChevronDown,
     X
 } from 'lucide-react';
 import { Button } from '../../../ui/button';
@@ -133,11 +132,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
             transition={{ duration: 0.3 }}
             className="max-w-5xl mx-auto space-y-8"
         >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/20 p-6 rounded-3xl border border-border/40 shadow-sm">
-                <div className="space-y-1">
-                    <h3 className="text-lg font-bold text-foreground">Fees & Tips</h3>
-                    <p className="text-xs font-medium text-muted-foreground">Configure the platform-wide transaction tax and tipping system.</p>
-                </div>
+            <div className="flex justify-end pb-2">
                 {isSuperAdmin && (
                     <Button
                         onClick={() => {
@@ -159,17 +154,17 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                         <CardTitle className="text-sm font-bold flex items-center justify-between text-foreground">
                             <span className="flex items-center gap-2"><Landmark className="h-4 w-4 text-primary" /> Global Base Rate</span>
                             {initialFeeRule ? (
-                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[10px]">Active</Badge>
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px]">Active</Badge>
                             ) : (
-                                <Badge variant="destructive" className="font-bold text-[10px] shadow-none">Failsafe</Badge>
+                                <Badge variant="destructive" className="font-bold text-[11px] shadow-none">Failsafe</Badge>
                             )}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-8 text-center flex flex-col justify-center min-h-[160px]">
-                        <p className="text-4xl font-black text-primary tracking-tighter mb-2">
+                        <p className="text-4xl font-black text-primary tracking-tight mb-2">
                             {initialFeeRule?.percentage ?? 0}%
                         </p>
-                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Platform Tax Per Transaction</p>
+                        <p className="text-[11px] font-bold text-muted-foreground">Platform tax per transaction</p>
                     </CardContent>
                 </Card>
 
@@ -191,8 +186,8 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                 </div>
                             )}
                         </div>
-                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
-                            Donor Optional Tipping is <strong className="text-foreground">{initialFeeRule?.optionalTipEnabled ? 'Enabled' : 'Disabled'}</strong>
+                        <p className="text-[11px] font-bold text-muted-foreground">
+                            Donor optional tipping is <strong className="text-foreground">{initialFeeRule?.optionalTipEnabled ? 'enabled' : 'disabled'}</strong>
                         </p>
                     </CardContent>
                 </Card>
@@ -202,11 +197,11 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
             {activeOverrides.length > 0 && (
                 <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="bg-muted/10 border-b border-border/40 p-5">
-                        <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Active Exceptions & Overrides</CardTitle>
+                        <CardTitle className="text-[11px] font-bold text-muted-foreground">Active Exceptions & Overrides</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0 overflow-x-auto no-scrollbar">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-muted/5 text-[10px] font-bold text-muted-foreground border-b border-border/40">
+                            <thead className="bg-muted/5 text-[11px] font-bold text-muted-foreground border-b border-border/40">
                                 <tr>
                                     <th className="px-6 py-3">Target Scope</th>
                                     <th className="px-6 py-3">Rate</th>
@@ -236,12 +231,12 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
             {/* Historic Global Rules */}
             <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden">
                 <CardHeader className="bg-muted/10 border-b border-border/40 p-5 flex flex-row items-center justify-between">
-                    <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Global Audit History</CardTitle>
+                    <CardTitle className="text-[11px] font-bold text-muted-foreground">Global Audit History</CardTitle>
                     <Info className="h-3.5 w-3.5 text-muted-foreground/40" />
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto no-scrollbar">
                     <table className="w-full text-left border-collapse">
-                        <thead className="bg-muted/5 text-[10px] font-bold text-muted-foreground border-b border-border/40">
+                        <thead className="bg-muted/5 text-[11px] font-bold text-muted-foreground border-b border-border/40">
                             <tr>
                                 <th className="px-6 py-3">Rate & Tips</th>
                                 <th className="px-6 py-3">Effective Cycle</th>
@@ -261,9 +256,9 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                             <div className="flex items-center gap-2">
                                                 <span className="font-mono font-bold text-foreground">{rule.percentage}%</span>
                                                 {rule.optionalTipEnabled ? (
-                                                    <span className="text-[9px] font-bold bg-muted px-1.5 py-0.5 rounded">TIPS ON</span>
+                                                    <span className="text-[11px] font-bold bg-muted px-1.5 py-0.5 rounded">TIPS ON</span>
                                                 ) : (
-                                                    <span className="text-[9px] font-bold border px-1.5 py-0.5 rounded">TIPS OFF</span>
+                                                    <span className="text-[11px] font-bold border px-1.5 py-0.5 rounded">TIPS OFF</span>
                                                 )}
                                             </div>
                                         </td>
@@ -275,9 +270,9 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             {rule.isActive ? (
-                                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-bold text-[10px] rounded-3xl shadow-none">Active</Badge>
+                                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-bold text-[11px] rounded-3xl shadow-none">Active</Badge>
                                             ) : (
-                                                <Badge variant="outline" className="text-muted-foreground border-border/60 font-bold text-[10px] rounded-3xl shadow-none">Archived</Badge>
+                                                <Badge variant="outline" className="text-muted-foreground border-border/60 font-bold text-[11px] rounded-3xl shadow-none">Archived</Badge>
                                             )}
                                         </td>
                                     </tr>
@@ -290,11 +285,8 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
             <Dialog open={showModal} onOpenChange={setShowModal}>
                 <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md max-h-[85vh] flex flex-col">
-                    <div className="p-6 md:p-8 overflow-y-auto no-scrollbar flex-1 space-y-6">
+                    <div className="p-4 md:p-5 overflow-y-auto no-scrollbar flex-1 space-y-5">
                         <div className="text-center space-y-2">
-                            <div className="h-12 w-12 bg-primary/10 text-primary rounded-[20px] flex items-center justify-center mx-auto mb-3 border border-primary/20 shadow-inner">
-                                <Landmark className="h-5 w-5" />
-                            </div>
                             <DialogHeader>
                                 <DialogTitle className="text-xl font-bold tracking-tight text-center leading-none">Financial Configuration</DialogTitle>
                             </DialogHeader>
@@ -305,16 +297,16 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Scope Target</label>
+                                <label className="text-[11px] font-bold text-muted-foreground ml-1">Scope Target</label>
                                 <Select value={targetType} onValueChange={(val: any) => { setTargetType(val); setTargetId(''); setProjectQuery(''); }}>
                                     <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background">
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl border-border/40 shadow-xl">
-                                        <SelectItem value="GLOBAL" className="text-xs font-bold py-2">Global (Platform Wide)</SelectItem>
-                                        <SelectItem value="CATEGORY" className="text-xs font-bold py-2">Specific Sector</SelectItem>
-                                        <SelectItem value="SUBCATEGORY" className="text-xs font-bold py-2">Specific Focus Area</SelectItem>
-                                        <SelectItem value="PROJECT" className="text-xs font-bold py-2">Single Cause Override</SelectItem>
+                                        <SelectItem value="GLOBAL" className="text-[11px] font-bold py-2">Global (Platform Wide)</SelectItem>
+                                        <SelectItem value="CATEGORY" className="text-[11px] font-bold py-2">Specific Sector</SelectItem>
+                                        <SelectItem value="SUBCATEGORY" className="text-[11px] font-bold py-2">Specific Focus Area</SelectItem>
+                                        <SelectItem value="PROJECT" className="text-[11px] font-bold py-2">Single Cause Override</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -322,11 +314,11 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                             <AnimatePresence mode="popLayout">
                                 {targetType === 'CATEGORY' && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Select Sector</label>
+                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Select Sector</label>
                                         <Select value={targetId} onValueChange={setTargetId}>
                                             <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background"><SelectValue placeholder="Select..." /></SelectTrigger>
                                             <SelectContent className="rounded-2xl border-border/40 shadow-xl max-h-48">
-                                                {categories.map(c => <SelectItem key={c.id} value={c.id} className="text-xs font-medium py-2">{c.name}</SelectItem>)}
+                                                {categories.map(c => <SelectItem key={c.id} value={c.id} className="text-[11px] font-medium py-2">{c.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </motion.div>
@@ -334,12 +326,14 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                                 {targetType === 'SUBCATEGORY' && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Select Focus Area</label>
+                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Select Focus Area</label>
                                         <Select value={targetId} onValueChange={setTargetId}>
                                             <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 font-bold text-xs focus:bg-background"><SelectValue placeholder="Select..." /></SelectTrigger>
                                             <SelectContent className="rounded-2xl border-border/40 shadow-xl max-h-48">
-                                                {categories.flatMap(c => c.subcategories || []).map((sub: any) => (
-                                                    <SelectItem key={sub.id} value={sub.id} className="text-xs font-medium py-2">{sub.name}</SelectItem>
+                                                {categories.flatMap(c => (c.subcategories || []).map((sub: any) => ({ ...sub, categoryName: c.name }))).map((sub: any) => (
+                                                    <SelectItem key={sub.id} value={sub.id} className="text-[11px] font-medium py-2">
+                                                        {sub.name} <span className="text-muted-foreground/50">({sub.categoryName})</span>
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -348,7 +342,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                                 {targetType === 'PROJECT' && (
                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
-                                        <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Search Live Cause</label>
+                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Search Live Cause</label>
                                         <div className="relative group">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                             <Input
@@ -363,13 +357,13 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                         {!targetId && projectQuery.length > 2 && (
                                             <div className="mt-1 bg-card border border-border/60 rounded-2xl overflow-hidden shadow-lg p-1">
                                                 {projectResults.length === 0 ? (
-                                                    <div className="p-3 text-center text-xs text-muted-foreground italic">No causes found</div>
+                                                    <div className="p-3 text-center text-[11px] text-muted-foreground italic">No causes found</div>
                                                 ) : (
                                                     projectResults.map(p => (
                                                         <button
                                                             key={p.id}
                                                             onClick={() => setTargetId(p.id)}
-                                                            className="w-full text-left p-2 text-xs font-medium hover:bg-muted/50 rounded-xl transition-colors truncate"
+                                                            className="w-full text-left p-2 text-[11px] font-medium hover:bg-muted/50 rounded-xl transition-colors truncate"
                                                         >
                                                             {p.title}
                                                         </button>
@@ -383,7 +377,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest">Percentage Rate</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground ml-1">Percentage Rate</label>
                                     <div className="relative group">
                                         <Input
                                             type="number" step="0.1" min="0" max="20"
@@ -397,24 +391,24 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 uppercase tracking-widest truncate">Allow Tipping</label>
+                                    <label className="text-[11px] font-bold text-muted-foreground ml-1 truncate">Allow Tipping</label>
                                     <div className="h-11 flex items-center justify-center p-1 rounded-2xl bg-muted/20 border border-border/60 shadow-inner">
                                         <button
                                             type="button"
-                                            onClick={() => setTipEnabled(!tipEnabled)}
-                                            className={cn("flex-1 h-full rounded-xl text-xs font-bold transition-all", tipEnabled ? "bg-background shadow-sm border border-border/40 text-foreground" : "text-muted-foreground opacity-60")}
+                                            onClick={() => setTipEnabled(true)}
+                                            className={cn("flex-1 h-full rounded-xl text-[11px] font-bold transition-all", tipEnabled ? "bg-primary shadow-sm border border-primary/40 text-white" : "text-muted-foreground opacity-60 hover:bg-muted/50")}
                                         >ON</button>
                                         <button
                                             type="button"
-                                            onClick={() => setTipEnabled(!tipEnabled)}
-                                            className={cn("flex-1 h-full rounded-xl text-xs font-bold transition-all", !tipEnabled ? "bg-background shadow-sm border border-border/40 text-foreground" : "text-muted-foreground opacity-60")}
+                                            onClick={() => setTipEnabled(false)}
+                                            className={cn("flex-1 h-full rounded-xl text-[11px] font-bold transition-all", !tipEnabled ? "bg-background shadow-sm border border-border/40 text-foreground" : "text-muted-foreground opacity-60 hover:bg-muted/50")}
                                         >OFF</button>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-1.5 pt-2">
-                                <label className="text-[11px] font-bold text-destructive ml-1 uppercase tracking-widest flex items-center gap-1.5"><Lock className="h-3 w-3" /> Step-Up Authorization</label>
+                                <label className="text-[11px] font-bold text-destructive ml-1 flex items-center gap-1.5"><Lock className="h-3 w-3" /> Step-Up Authorization</label>
                                 <Input
                                     type="password"
                                     placeholder="SuperAdmin Password"
