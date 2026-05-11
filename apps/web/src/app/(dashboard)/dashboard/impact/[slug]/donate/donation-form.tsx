@@ -466,7 +466,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                         <label className="text-xs font-bold text-foreground">Support Givar's infrastructure (optional)</label>
                                     </div>
                                     <p className="text-[11px] text-muted-foreground font-medium px-1 leading-relaxed">
-                                        Givar operates on radical transparency. If you value our platform, please consider an optional tip to help us maintain our servers and payment gateways.
+                                        Givar operates on radical transparency. If you value our platform, please consider an optional support contribution to help us maintain our servers and payment gateways.
                                     </p>
 
                                     <div className="flex gap-2">
@@ -530,14 +530,14 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                    <span>Payment processing ({feePercentage}%)</span>
+                                    <span>Operational Support Fee ({feePercentage}%)</span>
                                     <span className="tabular-nums font-bold text-foreground">
                                         {SYMBOLS[detectedCurrency] || detectedCurrency}{((inputAmountNum * feePercentage) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                                 {inputTipNum > 0 && (
                                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                        <span>Platform tip</span>
+                                        <span>Optional Support Contribution</span>
                                         <span className="tabular-nums font-bold text-foreground">
                                             {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
