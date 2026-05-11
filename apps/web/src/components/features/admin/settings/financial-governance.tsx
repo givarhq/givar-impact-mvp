@@ -133,8 +133,8 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
         >
             <div className="flex flex-row items-center justify-between gap-4 px-1">
                 <div className="space-y-1 min-w-0">
-                    <h2 className="text-lg font-bold text-foreground tracking-tight truncate">Fees & Tips</h2>
-                    <p className="text-xs text-muted-foreground font-medium truncate">Configure the platform-wide transaction tax and tipping system.</p>
+                    <h2 className="text-lg font-bold text-foreground tracking-tight truncate">Operational Support & Contributions</h2>
+                    <p className="text-xs text-muted-foreground font-medium truncate">Configure the platform-wide operational support fee and voluntary contribution system.</p>
                 </div>
                 {isSuperAdmin && (
                     <Button
@@ -167,14 +167,14 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                         <p className="text-4xl font-black text-primary tracking-tighter mb-2">
                             {initialFeeRule?.percentage ?? 0}%
                         </p>
-                        <p className="text-xs font-medium text-muted-foreground">Platform tax per transaction</p>
+                        <p className="text-xs font-medium text-muted-foreground">Operational support fee per transaction</p>
                     </CardContent>
                 </Card>
 
                 <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden">
                     <CardHeader className="border-b border-border/40 p-5">
                         <CardTitle className="text-sm font-bold flex items-center justify-between text-foreground">
-                            <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-blue-500" /> Voluntary Tips</span>
+                            <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-blue-500" /> Optional Support Contributions</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-8 text-center flex flex-col justify-center min-h-[160px]">
@@ -190,7 +190,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                             )}
                         </div>
                         <p className="text-xs font-medium text-muted-foreground">
-                            Donor optional tipping is <strong className="text-foreground">{initialFeeRule?.optionalTipEnabled ? 'Enabled' : 'Disabled'}</strong>
+                            Donor optional support contribution is <strong className="text-foreground">{initialFeeRule?.optionalTipEnabled ? 'Enabled' : 'Disabled'}</strong>
                         </p>
                     </CardContent>
                 </Card>
@@ -269,9 +269,9 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                     <div className="flex items-center gap-2">
                                         <span className="font-mono font-bold text-foreground text-sm">{rule.percentage}%</span>
                                         {rule.optionalTipEnabled ? (
-                                            <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Tips On</span>
+                                            <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Contributions On</span>
                                         ) : (
-                                            <span className="text-xs font-bold border border-border/60 px-1.5 py-0.5 rounded">Tips Off</span>
+                                            <span className="text-xs font-bold border border-border/60 px-1.5 py-0.5 rounded">Contributions Off</span>
                                         )}
                                     </div>
                                     {rule.isActive ? (
@@ -292,7 +292,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-muted/5 text-xs font-bold text-muted-foreground border-b border-border/40">
                                 <tr>
-                                    <th className="px-6 py-3">Rate & Tips</th>
+                                    <th className="px-6 py-3">Rate & Contributions</th>
                                     <th className="px-6 py-3">Effective Cycle</th>
                                     <th className="px-6 py-3">Authorized By</th>
                                     <th className="px-6 py-3 text-right">Status</th>
@@ -310,9 +310,9 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-mono font-bold text-foreground text-sm">{rule.percentage}%</span>
                                                     {rule.optionalTipEnabled ? (
-                                                        <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Tips On</span>
+                                                        <span className="text-xs font-bold bg-muted px-1.5 py-0.5 rounded border border-transparent">Contributions On</span>
                                                     ) : (
-                                                        <span className="text-xs font-bold border border-border/60 px-1.5 py-0.5 rounded">Tips Off</span>
+                                                        <span className="text-xs font-bold border border-border/60 px-1.5 py-0.5 rounded">Contributions Off</span>
                                                     )}
                                                 </div>
                                             </td>
@@ -346,7 +346,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                 <DialogTitle className="text-xl font-bold tracking-tight text-center leading-none">Financial Configuration</DialogTitle>
                             </DialogHeader>
                             <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-[280px] mx-auto">
-                                Set new fee and tipping rules.
+                                Set new operational support fee and contribution rules.
                             </p>
                         </div>
 
@@ -454,7 +454,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-muted-foreground ml-1 truncate">Allow Tipping</label>
+                                    <label className="text-xs font-bold text-muted-foreground ml-1 truncate">Allow Support Contributions</label>
                                     <div className="h-11 flex items-center justify-center p-1 rounded-2xl bg-muted/20 border border-border/60 shadow-inner">
                                         <button
                                             type="button"
