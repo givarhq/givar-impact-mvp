@@ -49,11 +49,11 @@ const ADMIN_SETTINGS_OPTIONS = [
     },
     {
         id: 'governance',
-        label: 'Fees & Tips',
+        label: 'Support & Contributions',
         icon: Landmark,
         color: 'text-purple-500',
         bg: 'bg-purple-500/10',
-        description: 'Manage operational support fees & tipping rules.'
+        description: 'Manage operational support fees & contribution rules.'
     },
     {
         id: 'security',
