@@ -49,8 +49,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         ? `/explore/${project.slug}/records`
         : `/dashboard/impact/${project.slug}/records`;
 
+    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const gallery = Array.isArray(project.gallery) ? project.gallery : [];
+    const activeIndex = project.currentPhaseIndex || 0;
 
     const raised = Number(project.raisedAmount || 0);
     const target = Number(project.targetAmount || 0);
@@ -58,21 +60,30 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const isCompleted = project.status === 'COMPLETED';
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
 
-    const activeIndex = project.currentPhaseIndex || 0;
-
+    // --- AGGREGATED PHASED FUNDING MATH ---
     let previousPhasesMajor = 0;
-    for (let i = 0; i < activeIndex && i < budget.length; i++) {
-        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let currentPhaseMajor = 0;
 
-    let cumulativeMajor = previousPhasesMajor;
-    if (budget[activeIndex]) {
-        cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    budget.forEach((item: any) => {
+        const amt = item.amount || (item as any).cost || 0;
+        const itemStage = item.stage || 'Main Stage';
+
+        if (previousStages.includes(itemStage)) {
+            previousPhasesMajor += amt;
+        } else if (itemStage === currentStageName) {
+            currentPhaseMajor += amt;
+        }
+    });
+
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+    if (timeline.length === 0 || activeIndex >= timeline.length) {
+        phaseCapMinor = BigInt(project.targetAmount || '0');
     }
-    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-        ? BigInt(Math.round(cumulativeMajor * 100))
-        : BigInt(project.targetAmount || '0');
 
     const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
     let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
@@ -358,9 +369,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </thead>
                                         <tbody className="divide-y divide-border/40 text-xs">
                                             {budget.map((item: any, i: number) => {
-                                                const isItemCompleted = i < activeIndex || isCompleted || isFundedState;
-                                                const isItemCurrent = i === activeIndex && !isCompleted && !isFundedState && !isPhaseFull;
-                                                const isItemFull = i === activeIndex && isPhaseFull;
+                                                const itemStage = item.stage || 'Main Stage';
+
+                                                const isItemCompleted = previousStages.includes(itemStage) || isCompleted || isFundedState;
+                                                const isItemCurrent = itemStage === currentStageName && !isCompleted && !isFundedState && !isPhaseFull;
+                                                const isItemFull = itemStage === currentStageName && isPhaseFull;
 
                                                 let statusBadge;
                                                 if (isItemCompleted) {
@@ -371,7 +384,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     statusBadge = <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>;
                                                 }
 
-                                                // If public view, mask unverified vendors
                                                 const vendorName = item.vendorId
                                                     ? (project as any).vendors?.find((v: any) => v.id === item.vendorId)?.name
                                                     : (item.payTo || item.vendor || 'Pending vendor sourcing');
@@ -380,9 +392,12 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
                                                         <td className="px-6 py-4">
                                                             <div className="font-bold text-foreground text-sm mb-1.5">{item.description || item.item}</div>
-                                                            <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
-                                                                {item.costType || item.type}
-                                                            </Badge>
+                                                            <div className="flex items-center gap-2">
+                                                                <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
+                                                                    {item.costType || item.type}
+                                                                </Badge>
+                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight px-2 border-l border-border/60">{itemStage}</span>
+                                                            </div>
                                                             <div className="sm:hidden font-mono text-foreground font-bold mt-2">
                                                                 {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                             </div>

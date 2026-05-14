@@ -8,12 +8,9 @@ function migrateBudget(budget: any[]) {
     if (!budget || !Array.isArray(budget)) return [];
 
     return budget.map((item, index) => {
-        // If already migrated, skip
-        if (item.stage && STAGE_ORDER.includes(item.stage)) return item;
-
         let assignedStage = 'Main Stage';
 
-        // Distribute legacy budget items into the 3 new buckets
+        // Forcefully distribute legacy budget items into the 3 new buckets
         if (budget.length === 2) {
             assignedStage = index === 0 ? 'Early Stage' : 'Main Stage';
         } else if (budget.length >= 3) {
@@ -73,7 +70,7 @@ async function main() {
         const newBudget = migrateBudget(oldBudget);
         const newTimeline = migrateTimeline(newBudget, oldTimeline);
 
-        // Clamp phase index just in case the new timeline is shorter than the old one
+        // Clamp phase index to prevent out-of-bounds errors on aggregated timelines
         const currentPhaseIndex = Math.max(0, Math.min(
             project.currentPhaseIndex || 0,
             newTimeline.length > 0 ? newTimeline.length - 1 : 0

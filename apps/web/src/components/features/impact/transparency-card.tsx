@@ -34,23 +34,34 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
     const totalPercent = totalTarget > 0n ? Math.min(100, Math.floor(Number(totalRaised * 100n / totalTarget))) : 0;
 
-    // Phased Funding Math
-    const activeIndex = project.currentPhaseIndex || 0;
+    // --- AGGREGATED PHASED FUNDING MATH ---
+    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+    const activeIndex = project.currentPhaseIndex || 0;
 
     let previousPhasesMajor = 0;
-    for (let i = 0; i < activeIndex && i < budget.length; i++) {
-        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+    let currentPhaseMajor = 0;
 
-    let cumulativeMajor = previousPhasesMajor;
-    if (budget[activeIndex]) {
-        cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    budget.forEach((item: any) => {
+        const amt = item.amount || (item as any).cost || 0;
+        const itemStage = item.stage || 'Main Stage';
+
+        if (previousStages.includes(itemStage)) {
+            previousPhasesMajor += amt;
+        } else if (itemStage === currentStageName) {
+            currentPhaseMajor += amt;
+        }
+    });
+
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+    if (timeline.length === 0 || activeIndex >= timeline.length) {
+        phaseCapMinor = totalTarget;
     }
-    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-        ? BigInt(cumulativeMajor * 100)
-        : totalTarget;
 
     const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
     let raisedInCurrentPhase = totalRaised - previousPhasesMinor;
@@ -63,8 +74,6 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     // DUST ROUNDING UI SUPPORT: If remaining gap is less than NGN 100 (10000n), no one can donate anyway. Show as full.
     const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
     const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
-
-    const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
 
     // Waitlist State
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -202,7 +211,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
                     <Card className="bg-card border border-border/40 rounded-3xl p-5 shadow-sm">
                         <h4 className="text-sm font-bold text-primary leading-tight mb-4">
-                            Phase {activeIndex + 1}: {activeItemName}
+                            Funding Stage: {currentStageName}
                         </h4>
 
                         {isPhaseFull ? (
@@ -219,7 +228,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                                 <div className="pt-4 border-t border-border/40 space-y-3">
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <BellRing className="h-3.5 w-3.5" />
-                                        <h4 className="text-[11px] font-bold">Get notified when Phase {activeIndex + 2} opens</h4>
+                                        <h4 className="text-[11px] font-bold">Get notified when the next phase opens</h4>
                                     </div>
 
                                     {isWaitlisted ? (
@@ -256,9 +265,9 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                             </div>
                         ) : (
                             <div className="space-y-3">
-                                <div className="flex justify-between items-end text-xs font-bold">
-                                    <span className="text-foreground">
-                                        {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-1">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
+                                <div className="flex justify-between items-end text-[10px] sm:text-[11px] font-bold">
+                                    <span className="text-foreground truncate">
+                                        {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-0.5">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
                                     </span>
                                     <span className="text-primary">{phasePercent}%</span>
                                 </div>
