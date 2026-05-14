@@ -157,33 +157,72 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     if (!project) return null;
 
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const activeIndex = project.currentPhaseIndex || 0;
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
 
-    let cumulativeMajor = 0;
-    for (let i = 0; i <= activeIndex && i < budget.length; i++) {
-        cumulativeMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    let currentPhaseCapMinor = BigInt(cumulativeMajor * 100);
-
-    if (budget.length === 0 || activeIndex >= budget.length) {
-        currentPhaseCapMinor = BigInt(project.targetAmount || '0');
-    }
-
-    const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
     const raisedAmountMinor = BigInt(project.raisedAmount || '0');
+    const raisedAmountMajor = Number(raisedAmountMinor) / 100;
+    const targetAmountMinor = BigInt(project.targetAmount || '0');
 
-    // Calculate precise remaining capacity
-    const remainingForPhaseMinor = currentPhaseCapMinor > raisedAmountMinor ? currentPhaseCapMinor - raisedAmountMinor : 0n;
+    const isCompleted = project.status === 'COMPLETED';
+    const isFundedState = project.status === 'FUNDED' || (raisedAmountMinor >= targetAmountMinor && targetAmountMinor > 0n && !isCompleted);
 
-    // DUST ROUNDING SYSTEM:
-    // If the phase has less than NGN 100 remaining, no one can successfully donate to it.
-    // The UI considers it full, allowing the backend admin/system scripts to sweep the dust.
-    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseCapMinor > 0n && project.status !== 'FUNDED' && project.status !== 'COMPLETED';
+    // 1. Calculate Phase Cap for Pause UI
+    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+    let previousPhasesMajor = 0;
+    let currentPhaseMajor = 0;
 
-    let remainingSelectedMajor = Number(remainingForPhaseMinor) / 100;
+    budget.forEach((item: any) => {
+        const amt = item.amount || (item as any).cost || 0;
+        const itemStage = item.stage || 'Main Stage';
+        if (previousStages.includes(itemStage)) {
+            previousPhasesMajor += amt;
+        } else if (itemStage === currentStageName) {
+            currentPhaseMajor += amt;
+        }
+    });
+
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+    if (timeline.length === 0 || activeIndex >= timeline.length) {
+        phaseCapMinor = targetAmountMinor;
+    }
+
+    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+    let raisedInCurrentPhase = raisedAmountMinor - previousPhasesMinor;
+    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+
+    // 2. Identify the Active Budget Item to Cap Transactions
+    let cumulativeMajor = 0;
+    let activeBudgetItem: any = null;
+    let itemRemainingMajor = 0;
+
+    for (const item of budget) {
+        const itemAmount = item.amount || (item as any).cost || 0;
+        cumulativeMajor += itemAmount;
+        if (raisedAmountMajor < cumulativeMajor) {
+            activeBudgetItem = item;
+            itemRemainingMajor = cumulativeMajor - raisedAmountMajor;
+            break;
+        }
+    }
+
+    if (!activeBudgetItem) {
+        itemRemainingMajor = Number(remainingForPhaseMinor) / 100;
+    }
+
+    const itemRemainingMinor = BigInt(Math.round(itemRemainingMajor * 100));
+
+    let remainingSelectedMajor = Number(itemRemainingMinor) / 100;
     if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
         remainingSelectedMajor = remainingSelectedMajor * fxRates[detectedCurrency];
     }
+
+    const activeItemName = activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : 'Final Phase';
 
     const inputAmountNum = Number(parseDecimalNumber(displayAmount)) || 0;
     const inputTipNum = Number(parseDecimalNumber(tipAmount)) || 0;
@@ -204,10 +243,16 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     const isGuest = !isAuthenticated;
 
-    // DUST COMPLETION LOGIC (Frontend reflection of backend policy)
-    const gapAfterDonation = remainingForPhaseMinor - baseAmountMinor;
-    const isDustCovered = gapAfterDonation > 0n && gapAfterDonation < 10000n;
-    const isCompletingPhase = (baseAmountMinor >= remainingForPhaseMinor || isDustCovered) && remainingForPhaseMinor > 0n;
+    // Dust Completion Math for UI Feedback
+    const gapAfterDonationPhase = remainingForPhaseMinor - baseAmountMinor;
+    const isDustCoveredPhase = gapAfterDonationPhase > 0n && gapAfterDonationPhase < 10000n;
+
+    const gapAfterDonationItem = itemRemainingMinor - baseAmountMinor;
+    const isItemCovered = gapAfterDonationItem <= 0n;
+
+    const isLastItemInPhase = itemRemainingMinor === remainingForPhaseMinor;
+    const isCompletingPhase = isLastItemInPhase && (isItemCovered || isDustCoveredPhase) && remainingForPhaseMinor > 0n;
+    const isCompletingItem = !isLastItemInPhase && isItemCovered && itemRemainingMinor > 0n;
 
     const QUICK_AMOUNTS = detectedCurrency === 'NGN'
         ? ['1000', '5000', '10000', '25000']
@@ -218,7 +263,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         const rawNum = Number(parseDecimalNumber(formatted));
 
         if (rawNum > remainingSelectedMajor) {
-            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            toast.error(`Capped at current allocation limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
             setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
             setDisplayAmount(formatted);
@@ -228,7 +273,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const setQuickAmount = (val: string) => {
         const rawNum = Number(val);
         if (rawNum > remainingSelectedMajor) {
-            toast.error(`Capped at current phase limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            toast.error(`Capped at current allocation limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
             setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
             setDisplayAmount(formatDecimalInput(val));
@@ -296,13 +341,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         }
     };
 
-    let goalApprox = '';
-    if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
-        const goalNgnMajor = Number(remainingForPhaseMinor) / 100;
-        const convertedGoal = goalNgnMajor * fxRates[detectedCurrency];
-        goalApprox = `(≈ ${SYMBOLS[detectedCurrency]}${convertedGoal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} )`;
-    }
-
     if (isPhaseFull) {
         return (
             <div className="bg-card border border-border/40 rounded-3xl p-6 md:p-10 shadow-sm text-center space-y-6 animate-in zoom-in-95 duration-500">
@@ -310,10 +348,10 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     <CheckCircle2 className="h-10 w-10" />
                 </div>
                 <div className="space-y-3">
-                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Phase {activeIndex + 1} fully funded!</h3>
+                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">{currentStageName} fully funded!</h3>
                     <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
-                        Thanks to our incredible donors, the funds for <strong>"{activeItemName}"</strong> have been secured.
-                        Donations are currently paused for this cause.
+                        Thanks to our incredible donors, the funds for this stage have been secured.
+                        Donations are currently paused while vendor execution is verified.
                     </p>
                 </div>
                 <div className="pt-4">
@@ -382,7 +420,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        Transparency mode: We are currently only raising funds for <span className="text-primary font-black">Phase {activeIndex + 1}</span>. Subsequent phases will unlock once this phase is executed and verified.
+                        Transparency mode: We are currently raising funds for <span className="text-primary font-black">{currentStageName}</span>. This stage is funded one allocation at a time. Currently funding: <u>{activeItemName}</u>.
                     </p>
                 </div>
 
@@ -390,7 +428,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     <div className="flex justify-between items-center px-1">
                         <label className="text-xs font-bold text-muted-foreground">Enter amount ({detectedCurrency})</label>
                         <span className="text-[10px] font-bold text-primary bg-primary/5 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm flex items-center gap-1.5">
-                            Remaining: {SYMBOLS[detectedCurrency] || detectedCurrency}{remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            Allocation limit: {SYMBOLS[detectedCurrency] || detectedCurrency}{remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                     </div>
 
@@ -583,23 +621,25 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 </AnimatePresence>
 
                 <AnimatePresence>
-                    {displayAmount && isCompletingPhase && (
+                    {displayAmount && (isCompletingPhase || isCompletingItem) && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             className={cn(
                                 "flex items-start gap-2.5 p-4 rounded-2xl border overflow-hidden shadow-sm",
-                                isDustCovered ? "bg-blue-500/10 border-blue-500/20 text-blue-700" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-700"
+                                isDustCoveredPhase && isCompletingPhase ? "bg-blue-500/10 border-blue-500/20 text-blue-700" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-700"
                             )}
                         >
                             <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
                             <div className="text-xs space-y-0.5">
-                                <p className="font-bold">Phase completion gift</p>
+                                <p className="font-bold">{isCompletingPhase ? 'Stage completion gift' : 'Allocation complete'}</p>
                                 <p className="font-medium">
-                                    {isDustCovered
-                                        ? `Your gift brings us so close that Givar will cover the remaining balance! This fully funds Phase ${activeIndex + 1}.`
-                                        : `This gift fully funds Phase ${activeIndex + 1}! The project will pause to verify vendor execution before opening the next phase.`
+                                    {isCompletingPhase
+                                        ? (isDustCoveredPhase
+                                            ? `Your gift brings us so close that Givar will cover the remaining balance! This fully funds ${currentStageName}.`
+                                            : `This gift fully funds ${currentStageName}! The project will pause to verify vendor execution before opening the next stage.`)
+                                        : `This gift fully funds the allocation for "${activeItemName}". The next vendor allocation will unlock immediately.`
                                     }
                                 </p>
                             </div>
