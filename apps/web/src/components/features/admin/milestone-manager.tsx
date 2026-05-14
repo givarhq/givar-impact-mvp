@@ -163,20 +163,26 @@ export const MilestoneManager = memo(function MilestoneManager({
             const status = milestone.status;
             const isProcessingCurrent = processingId === milestone.id;
 
-            // --- Phase Financial Math ---
+            // --- AGGREGATED PHASE FINANCIAL MATH ---
             let previousPhasesMajor = 0;
-            for (let j = 0; j < index; j++) {
-              previousPhasesMajor += (budgetBreakdown[j]?.amount || budgetBreakdown[j]?.cost || 0);
-            }
+            let currentPhaseMajor = 0;
+
+            const previousStages = timeline.slice(0, index).map((t: any) => t.phase);
+            const currentStageName = milestone.phase;
+
+            budgetBreakdown.forEach((item: any) => {
+              const amt = item.amount || item.cost || 0;
+              const itemStage = item.stage || 'Main Stage';
+
+              if (previousStages.includes(itemStage)) {
+                previousPhasesMajor += amt;
+              } else if (itemStage === currentStageName) {
+                currentPhaseMajor += amt;
+              }
+            });
+
             const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-
-            let currentPhaseMajor = (budgetBreakdown[index]?.amount || budgetBreakdown[index]?.cost || 0);
-            let currentPhaseTargetMinor = BigInt(Math.round(currentPhaseMajor * 100));
-
-            // Fallback if budget length is mismatched
-            if (!budgetBreakdown || budgetBreakdown.length === 0) {
-              currentPhaseTargetMinor = index === 0 ? BigInt(targetAmount) : 0n;
-            }
+            const currentPhaseTargetMinor = BigInt(Math.round(currentPhaseMajor * 100));
 
             let phaseRaisedMinor = totalRaisedMinor - previousPhasesMinor;
             if (phaseRaisedMinor < 0n) phaseRaisedMinor = 0n;
@@ -217,7 +223,7 @@ export const MilestoneManager = memo(function MilestoneManager({
 
                       <div className="flex-1 min-w-0 space-y-1.5 w-full">
                         <div className="flex items-center gap-3 mb-1 min-w-0 flex-wrap">
-                          <span className="text-[10px] font-black text-primary tracking-widest uppercase shrink-0">Phase {index + 1}</span>
+                          <span className="text-[10px] font-black text-primary tracking-widest uppercase shrink-0">Stage {index + 1}</span>
                           <AnimatePresence>
                             {status === 'COMPLETED' && milestone.completedAt && (
                               <motion.span
@@ -274,7 +280,7 @@ export const MilestoneManager = memo(function MilestoneManager({
                             disabled={!!processingId}
                           >
                             <Unlock className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                            <span className="truncate">Verify phase</span>
+                            <span className="truncate">Verify stage</span>
                           </Button>
                         ) : (
                           <Button
@@ -284,7 +290,7 @@ export const MilestoneManager = memo(function MilestoneManager({
                             onClick={() => handleStatusChange(milestone.id, 'IN_PROGRESS', index)}
                             disabled={!!processingId}
                           >
-                            <RotateCcw className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">Re-open phase</span>
+                            <RotateCcw className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">Re-open stage</span>
                           </Button>
                         )}
                       </div>
@@ -305,7 +311,7 @@ export const MilestoneManager = memo(function MilestoneManager({
             className="mt-8 p-5 md:p-6 bg-emerald-50 border border-emerald-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-5 shadow-sm min-w-0"
           >
             <div className="min-w-0 w-full text-center md:text-left">
-              <h4 className="text-base font-bold text-emerald-900 truncate">All phases verified</h4>
+              <h4 className="text-base font-bold text-emerald-900 truncate">All stages verified</h4>
               <p className="text-xs font-medium text-emerald-800 mt-1 leading-relaxed">Ready to officially close this project and notify donors of the final impact.</p>
             </div>
             <Button
@@ -322,12 +328,12 @@ export const MilestoneManager = memo(function MilestoneManager({
           <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md min-w-0">
             <DialogHeader>
               <DialogTitle className="text-lg md:text-xl font-bold text-foreground flex items-center gap-3 truncate">
-                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" /> Verify Phase {activeMilestone ? activeMilestone.index + 1 : ''}
+                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" /> Verify Stage {activeMilestone ? activeMilestone.index + 1 : ''}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6 pt-4 min-w-0">
               <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                Verifying this phase will mark the milestone as completed, broadcast a notification to donors, and unlock funding for the next phase. You can attach proof of work provided by the vendor.
+                Verifying this stage will mark the milestone as completed, broadcast a notification to donors, and unlock funding for the next stage. You can attach proof of work provided by the vendor.
               </p>
 
               <AnimatePresence mode="wait">
