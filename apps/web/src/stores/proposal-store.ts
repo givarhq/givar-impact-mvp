@@ -16,6 +16,7 @@ export interface BudgetItem {
   costType: string;
   amount: number;
   description: string;
+  stage: string;
 }
 
 export interface TimelineItem {
@@ -188,6 +189,7 @@ export const useProposalStore = create<ProposalState>()(
             costType: item.costType || item.type || 'SERVICE',
             amount: item.amount !== undefined ? item.amount : (item.cost || 0),
             description: item.description || item.item || '',
+            stage: item.stage || 'Main Stage'
           };
         })
         : [];
@@ -220,7 +222,33 @@ export const useProposalStore = create<ProposalState>()(
     }),
 
     updateField: (field, value) => {
-      set({ [field]: value });
+      set({ [field]: value } as any);
+
+      if (field === 'budgetBreakdown') {
+        const newBudget = value as BudgetItem[];
+        const uniqueStages = Array.from(new Set(newBudget.map(b => b.stage).filter(Boolean)));
+
+        const stageOrder = ['Early Stage', 'Main Stage', 'Final Stage'];
+        uniqueStages.sort((a, b) => {
+          const idxA = stageOrder.indexOf(a);
+          const idxB = stageOrder.indexOf(b);
+          return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+        });
+
+        const currentTimeline = get().executionTimeline;
+        const newTimeline = uniqueStages.map(stage => {
+          const existing = currentTimeline.find(t => t.phase === stage);
+          return existing || {
+            id: crypto.randomUUID(),
+            phase: stage,
+            estimatedDate: '',
+            deliverables: ''
+          };
+        });
+
+        set({ executionTimeline: newTimeline } as any);
+      }
+
       get().saveDraft();
     },
 

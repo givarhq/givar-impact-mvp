@@ -184,6 +184,7 @@ export interface ProjectProposal {
     costType?: string;
     amount?: number;
     description?: string;
+    stage?: string;
     // Legacy fields allowed for alignment
     payTo?: string;
     vendorSubaccount?: string;

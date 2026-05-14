@@ -51,6 +51,10 @@ class BudgetItem {
 
   @IsString()
   description!: string;
+
+  @IsOptional()
+  @IsString()
+  stage?: string;
 }
 
 class MediaItemDto {
