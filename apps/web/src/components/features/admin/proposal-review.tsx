@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -73,6 +73,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
     const [awarenessStatus, setAwarenessStatus] = useState((proposal as any).awarenessStatus || '');
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
 
     // Subaccount Routing State (Unified)
     const [subaccountModal, setSubaccountModal] = useState<{
@@ -97,6 +98,28 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const isTerminalState = proposal.status === 'APPROVED' || proposal.status === 'REJECTED';
 
     const toggleExpand = (id: string) => setExpandedId(expandedId === id ? null : id);
+    const toggleStage = (stage: string) => setExpandedStages(prev => ({ ...prev, [stage]: prev[stage] === undefined ? false : !prev[stage] }));
+
+    const groupedBudget = useMemo(() => {
+        const groups: Record<string, any[]> = {};
+        budgetBreakdown.forEach((item: any) => {
+            const stage = item.stage || 'Main Stage';
+            if (!groups[stage]) groups[stage] = [];
+            groups[stage].push(item);
+        });
+        const stageOrder = ['Early Stage', 'Main Stage', 'Final Stage'];
+        return Object.keys(groups)
+            .sort((a, b) => {
+                const idxA = stageOrder.indexOf(a);
+                const idxB = stageOrder.indexOf(b);
+                return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+            })
+            .map(stage => ({
+                stage,
+                items: groups[stage],
+                total: groups[stage].reduce((sum, item) => sum + (item.amount || item.cost || 0), 0)
+            }));
+    }, [budgetBreakdown]);
 
     useEffect(() => {
         if (!isTerminalState && banks.length === 0) {
@@ -483,109 +506,136 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/40 text-xs font-medium">
-                                    {budgetBreakdown.length > 0 ? (
-                                        budgetBreakdown.map((item, i) => {
-                                            const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
-                                            const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'Pending vendor sourcing');
-
-                                            let vendorContactEmail = vendor?.email || '';
-                                            let vendorContactPhone = vendor?.phone || '';
-                                            if (!vendor && item.vendorContact) {
-                                                if (item.vendorContact.includes('@')) vendorContactEmail = item.vendorContact;
-                                                else vendorContactPhone = item.vendorContact;
-                                            }
-
-                                            const isExpanded = expandedId === (item.id || String(i));
+                                    {groupedBudget.length > 0 ? (
+                                        groupedBudget.map(({ stage, items, total }) => {
+                                            const isStageExpanded = expandedStages[stage] !== false; // true by default
 
                                             return (
-                                                <React.Fragment key={item.id || i}>
-                                                    <tr onClick={() => toggleExpand(item.id || String(i))} className="hover:bg-muted/10 transition-colors cursor-pointer group">
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-start gap-3">
+                                                <React.Fragment key={stage}>
+                                                    <tr onClick={() => toggleStage(stage)} className="bg-muted/5 hover:bg-muted/10 transition-colors cursor-pointer group">
+                                                        <td colSpan={3} className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
                                                                 <div className="text-muted-foreground/50 group-hover:text-primary transition-colors mt-0.5">
-                                                                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                                    {isStageExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                                                 </div>
-                                                                <div>
-                                                                    <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
-                                                                    <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
-                                                                            <span>To: <span className="font-bold text-foreground">{vendorName}</span></span>
-                                                                        </div>
-                                                                    </div>
+                                                                <div className="font-bold text-foreground text-xs tracking-widest">{stage}</div>
+                                                                <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">
+                                                                    {items.length} {items.length === 1 ? 'Item' : 'Items'}
+                                                                </Badge>
+                                                                <div className="flex-1 text-right font-mono text-foreground font-bold text-sm tabular-nums">
+                                                                    {formatCurrency((total * 100).toString(), proposal.currency || 'NGN')}
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                                            {vendor?.subaccountCode ? (
-                                                                <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 w-fit">
-                                                                    <ShieldCheck className="h-3.5 w-3.5" /> {vendor.subaccountCode}
-                                                                </div>
-                                                            ) : (
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setBankCode('');
-                                                                        setAccountNumber('');
-                                                                        setSubaccountModal({
-                                                                            isOpen: true,
-                                                                            budgetItemId: item.id || String(i),
-                                                                            vendorId: item.vendorId || null,
-                                                                            vendorName: vendorName === 'Pending vendor sourcing' ? '' : vendorName,
-                                                                            vendorEmail: vendorContactEmail,
-                                                                            vendorPhone: vendorContactPhone
-                                                                        });
-                                                                    }}
-                                                                    className="h-8 text-[11px] font-bold rounded-xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm"
-                                                                    disabled={isTerminalState}
-                                                                >
-                                                                    <Landmark className="h-3 w-3 mr-1.5" /> Bind account
-                                                                </Button>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
-                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), 'NGN')}
-                                                        </td>
                                                     </tr>
                                                     <AnimatePresence>
-                                                        {isExpanded && (
-                                                            <motion.tr
-                                                                initial={{ opacity: 0 }}
-                                                                animate={{ opacity: 1 }}
-                                                                exit={{ opacity: 0 }}
-                                                                className="bg-muted/[0.02]"
-                                                            >
-                                                                <td colSpan={3} className="p-0 border-none">
-                                                                    <motion.div
-                                                                        initial={{ height: 0, opacity: 0 }}
-                                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                                        exit={{ height: 0, opacity: 0 }}
-                                                                        className="overflow-hidden"
-                                                                    >
-                                                                        <div className="px-14 py-4 border-t border-border/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                                            <div className="space-y-1">
-                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Mail className="h-3 w-3" /> Vendor Email</p>
-                                                                                {vendorContactEmail ? (
-                                                                                    <a href={`mailto:${vendorContactEmail}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactEmail}</a>
-                                                                                ) : (
-                                                                                    <p className="text-xs text-muted-foreground/60 italic font-medium">Not provided</p>
-                                                                                )}
+                                                        {isStageExpanded && items.map((item: any, i: number) => {
+                                                            const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
+                                                            const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'Pending vendor sourcing');
+                                                            const isPendingVendor = !vendorName || vendorName.toLowerCase() === 'pending vendor sourcing' || vendorName === 'To be confirmed';
+
+                                                            let vendorContactEmail = vendor?.email || '';
+                                                            let vendorContactPhone = vendor?.phone || '';
+                                                            if (!vendor && item.vendorContact) {
+                                                                if (item.vendorContact.includes('@')) vendorContactEmail = item.vendorContact;
+                                                                else vendorContactPhone = item.vendorContact;
+                                                            }
+
+                                                            const isExpanded = expandedId === (item.id || String(i));
+
+                                                            return (
+                                                                <React.Fragment key={item.id || i}>
+                                                                    <tr onClick={() => toggleExpand(item.id || String(i))} className="hover:bg-muted/10 transition-colors cursor-pointer group">
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="flex items-start gap-3">
+                                                                                <div className="text-muted-foreground/50 group-hover:text-primary transition-colors mt-0.5 ml-4">
+                                                                                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
+                                                                                    <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
+                                                                                            <span>To: <span className="font-bold text-foreground">{vendorName}</span></span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
-                                                                            <div className="space-y-1">
-                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Phone className="h-3 w-3" /> Vendor Phone</p>
-                                                                                {vendorContactPhone ? (
-                                                                                    <a href={`tel:${vendorContactPhone}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactPhone}</a>
-                                                                                ) : (
-                                                                                    <p className="text-xs text-muted-foreground/60 italic font-medium">Not provided</p>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    </motion.div>
-                                                                </td>
-                                                            </motion.tr>
-                                                        )}
+                                                                        </td>
+                                                                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                                                            {vendor?.subaccountCode ? (
+                                                                                <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-500/10 px-2.5 py-1 rounded-xl border border-emerald-500/20 w-fit">
+                                                                                    <ShieldCheck className="h-3.5 w-3.5" /> {vendor.subaccountCode}
+                                                                                </div>
+                                                                            ) : (
+                                                                                <Button
+                                                                                    variant="outline"
+                                                                                    size="sm"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        setBankCode('');
+                                                                                        setAccountNumber('');
+                                                                                        setSubaccountModal({
+                                                                                            isOpen: true,
+                                                                                            budgetItemId: item.id || String(i),
+                                                                                            vendorId: item.vendorId || null,
+                                                                                            vendorName: vendorName === 'Pending vendor sourcing' ? '' : vendorName,
+                                                                                            vendorEmail: vendorContactEmail,
+                                                                                            vendorPhone: vendorContactPhone
+                                                                                        });
+                                                                                    }}
+                                                                                    className="h-8 text-[11px] font-bold rounded-xl px-3 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm"
+                                                                                    disabled={isTerminalState}
+                                                                                >
+                                                                                    <Landmark className="h-3 w-3 mr-1.5" /> Bind account
+                                                                                </Button>
+                                                                            )}
+                                                                        </td>
+                                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
+                                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), proposal.currency || 'NGN')}
+                                                                        </td>
+                                                                    </tr>
+                                                                    <AnimatePresence>
+                                                                        {isExpanded && (
+                                                                            <motion.tr
+                                                                                initial={{ opacity: 0 }}
+                                                                                animate={{ opacity: 1 }}
+                                                                                exit={{ opacity: 0 }}
+                                                                                className="bg-muted/[0.02]"
+                                                                            >
+                                                                                <td colSpan={3} className="p-0 border-none">
+                                                                                    <motion.div
+                                                                                        initial={{ height: 0, opacity: 0 }}
+                                                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                                                        exit={{ height: 0, opacity: 0 }}
+                                                                                        className="overflow-hidden"
+                                                                                    >
+                                                                                        <div className="px-14 py-4 border-t border-border/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                                                            <div className="space-y-1">
+                                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Mail className="h-3 w-3" /> Vendor Email</p>
+                                                                                                {vendorContactEmail ? (
+                                                                                                    <a href={`mailto:${vendorContactEmail}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactEmail}</a>
+                                                                                                ) : (
+                                                                                                    <p className="text-xs text-muted-foreground/60 italic font-medium">Not provided</p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <div className="space-y-1">
+                                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Phone className="h-3 w-3" /> Vendor Phone</p>
+                                                                                                {vendorContactPhone ? (
+                                                                                                    <a href={`tel:${vendorContactPhone}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactPhone}</a>
+                                                                                                ) : (
+                                                                                                    <p className="text-xs text-muted-foreground/60 italic font-medium">Not provided</p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </motion.div>
+                                                                                </td>
+                                                                            </motion.tr>
+                                                                        )}
+                                                                    </AnimatePresence>
+                                                                </React.Fragment>
+                                                            );
+                                                        })}
                                                     </AnimatePresence>
                                                 </React.Fragment>
                                             );
