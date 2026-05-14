@@ -86,6 +86,47 @@ export class DonationService {
     }
   }
 
+  /**
+   * Helper: Dynamically determines the active vendor and remaining capacity
+   * based purely on the raised amount vs cumulative budget items.
+   */
+  private getActiveBudgetContext(project: any) {
+    const budget = (project.budgetBreakdown as any[]) || [];
+    const timeline = (project.executionTimeline as any[]) || [];
+    const activeIndex = project.currentPhaseIndex || 0;
+
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+    const raisedAmountMajor = Number(project.raisedAmount) / 100;
+
+    let cumulativeMajor = 0;
+    let activeBudgetItem = null;
+    let itemRemainingMajor = 0;
+
+    for (const item of budget) {
+      const itemAmount = item.amount || item.cost || 0;
+      cumulativeMajor += itemAmount;
+
+      if (raisedAmountMajor < cumulativeMajor) {
+        activeBudgetItem = item;
+        itemRemainingMajor = cumulativeMajor - raisedAmountMajor;
+        break;
+      }
+    }
+
+    const activeVendorId = activeBudgetItem?.vendorId;
+    const vendors = (project.vendors as any[]) || [];
+    const activeVendor = vendors.find(v => v.id === activeVendorId);
+    const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
+
+    return {
+      activeBudgetItem,
+      itemRemainingMinor: BigInt(Math.round(itemRemainingMajor * 100)),
+      activeSubaccount,
+      currentStageName,
+      phaseNameRaw: activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : currentStageName,
+    };
+  }
+
   async donate(userId: string, dto: CreateDonationDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -120,8 +161,9 @@ export class DonationService {
         userId: true,
         slug: true,
         categoryId: true,
-        subcategoryId: true, // <-- Needed for granular fee calc
+        subcategoryId: true,
         budgetBreakdown: true,
+        executionTimeline: true,
         currentPhaseIndex: true,
         vendors: true
       },
@@ -139,7 +181,20 @@ export class DonationService {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
 
-    // Logic: Pass precise taxonomy IDs for hierarchical fee resolution
+    const activeContext = this.getActiveBudgetContext(project);
+
+    if (!activeContext.activeSubaccount) {
+      throw new InternalServerErrorException(
+        'Strict Non-Custodial Policy: The active vendor lacks a verified routing account.'
+      );
+    }
+
+    if (baseAmount > activeContext.itemRemainingMinor) {
+      throw new BadRequestException(
+        `Donation exceeds the remaining capacity for the current vendor allocation. Please lower the amount to max ₦${(Number(activeContext.itemRemainingMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}.`
+      );
+    }
+
     const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(
       baseAmount,
       project.categoryId || undefined,
@@ -157,22 +212,7 @@ export class DonationService {
         throw new BadRequestException('Project state changed during processing');
       }
 
-      const activeIndex = txProject.currentPhaseIndex || 0;
-      const budget = (txProject.budgetBreakdown as any[]) || [];
-      const vendors = (txProject.vendors as any[]) || [];
-      const activeBudgetItem = budget[activeIndex];
-      const phaseNameRaw = activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : 'Final Phase';
-      const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
-
-      const activeVendor = vendors.find(v => v.id === activeBudgetItem?.vendorId);
-      const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
-
-      if (!activeSubaccount) {
-        throw new InternalServerErrorException(
-          'Strict Non-Custodial Policy: The active phase lacks a verified vendor routing account.'
-        );
-      }
-
+      const formattedPhase = `${activeContext.currentStageName}: ${activeContext.phaseNameRaw}`;
       const reference = `DON-${crypto.randomUUID()}`;
 
       const { transaction: walletTx } = await this.walletRepo.processTransaction(
@@ -368,7 +408,7 @@ export class DonationService {
       where: { id: dto.projectId },
       select: {
         id: true, isActive: true, currency: true, status: true, categoryId: true, subcategoryId: true, title: true,
-        budgetBreakdown: true, currentPhaseIndex: true, vendors: true
+        budgetBreakdown: true, executionTimeline: true, currentPhaseIndex: true, vendors: true, raisedAmount: true
       },
     });
 
@@ -384,7 +424,20 @@ export class DonationService {
       throw new BadRequestException(`Project only accepts ${project.currency}`);
     }
 
-    // Logic: Pass precise taxonomy IDs for hierarchical fee resolution
+    const activeContext = this.getActiveBudgetContext(project);
+
+    if (!activeContext.activeSubaccount) {
+      throw new InternalServerErrorException(
+        'Strict Non-Custodial Policy: The active vendor routing account is missing. Donations are temporarily halted.'
+      );
+    }
+
+    if (baseAmountBig > activeContext.itemRemainingMinor) {
+      throw new BadRequestException(
+        `Donation exceeds the remaining capacity for the current vendor allocation. Please lower the amount to max ₦${(Number(activeContext.itemRemainingMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}.`
+      );
+    }
+
     const { feeAmountMinor, rule: feeRule } = await this.feeService.calculateFee(
       baseAmountBig,
       project.categoryId || undefined,
@@ -405,20 +458,6 @@ export class DonationService {
         throw new BadRequestException('Email is required for guest donations');
       }
       emailToCharge = dto.guestEmail.trim();
-    }
-
-    const activeIndex = project.currentPhaseIndex || 0;
-    const budget = (project.budgetBreakdown as any[]) || [];
-    const vendors = (project.vendors as any[]) || [];
-
-    const activeBudgetItem = budget[activeIndex];
-    const activeVendor = vendors.find(v => v.id === activeBudgetItem?.vendorId);
-    const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
-
-    if (!activeSubaccount) {
-      throw new InternalServerErrorException(
-        'Strict Non-Custodial Policy: The active phase lacks a verified vendor routing account. Donations are temporarily halted.'
-      );
     }
 
     try {
@@ -450,15 +489,15 @@ export class DonationService {
             {
               display_name: 'Funding Phase',
               variable_name: 'funding_phase',
-              value: `Phase ${activeIndex + 1}`
+              value: activeContext.currentStageName
             }
           ]
         },
         callback_url: `${this.config.get('FRONTEND_URL')}/callback`,
       };
 
-      if (activeSubaccount) {
-        paystackPayload.subaccount = activeSubaccount;
+      if (activeContext.activeSubaccount) {
+        paystackPayload.subaccount = activeContext.activeSubaccount;
         paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
         paystackPayload.bearer = 'subaccount';
       }
@@ -546,21 +585,15 @@ export class DonationService {
 
       if (!project) throw new NotFoundException('Project node missing on ledger');
 
-      const activeIndex = project.currentPhaseIndex || 0;
-      const budget = (project.budgetBreakdown as any[]) || [];
-      const vendors = (project.vendors as any[]) || [];
-      const activeBudgetItem = budget[activeIndex];
-      const phaseNameRaw = activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : 'Final Phase';
-      const formattedPhase = `Phase ${activeIndex + 1}: ${phaseNameRaw}`;
+      const activeContext = this.getActiveBudgetContext(project);
 
-      const activeVendor = vendors.find(v => v.id === activeBudgetItem?.vendorId);
-      const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
-
-      if (!activeSubaccount) {
+      if (!activeContext.activeSubaccount) {
         throw new InternalServerErrorException(
-          'Strict Non-Custodial Policy: The active phase lacks a verified vendor routing account.'
+          'Strict Non-Custodial Policy: The active vendor lacks a verified routing account.'
         );
       }
+
+      const formattedPhase = `${activeContext.currentStageName}: ${activeContext.phaseNameRaw}`;
 
       let processedDonationId: string;
       let isGoalMet = false;
@@ -690,26 +723,16 @@ export class DonationService {
         processedDonationId = guestDonation.id;
       }
 
-      // --- PROJECT FULFILLMENT & THRESHOLD DUST COVERAGE ---
       let updatedProject = await tx.project.update({
         where: { id: projectId },
         data: { raisedAmount: { increment: baseAmount } }
       });
 
-      // Calculate phase cap
-      let cumulativeMajor = 0;
-      for (let i = 0; i <= activeIndex && i < budget.length; i++) {
-        cumulativeMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-      }
-      let currentPhaseCap = BigInt(cumulativeMajor * 100);
-      if (budget.length === 0 || activeIndex >= budget.length) {
-        currentPhaseCap = BigInt(updatedProject.targetAmount || '0');
-      }
-
+      // Calculate phase cap dynamically using the new Stage grouping logic
+      const currentPhaseCap = this.calculatePhaseCap(updatedProject);
       let currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
 
       // THRESHOLD COMPLETION RULE (PLATFORM DUST COVERAGE)
-      // If remaining balance is between ₦0.01 and ₦99.99, the platform absorbs it
       if (currentRemainingForPhase > 0n && currentRemainingForPhase < 10000n) {
         const dustMinor = currentRemainingForPhase;
 
@@ -783,8 +806,8 @@ export class DonationService {
           data: {
             userId: project.userId,
             type: 'MILESTONE_ALERT' as NotificationType,
-            title: 'Phase Funding Complete',
-            content: `The full capital for "${phaseNameRaw}" has been routed to the vendor. Work can now commence.`,
+            title: 'Stage Funding Complete',
+            content: `The full capital for "${activeContext.currentStageName}" has been routed to vendors. Proof of work required.`,
             link: `/dashboard/projects/${project.id}/manage`
           }
         });
@@ -800,17 +823,20 @@ export class DonationService {
               userId: admin.id,
               type: 'PROJECT_STATUS' as NotificationType,
               title: 'Action Required: Payout Finalized',
-              content: `Phase ${project.currentPhaseIndex + 1} for "${project.title}" is 100% funded. Contact the vendor to authorize work.`,
+              content: `Stage "${activeContext.currentStageName}" for "${project.title}" is 100% funded. Contact vendors to authorize work.`,
               link: `/admin/projects/${project.id}/edit`
             }))
           });
 
-          const vendorName = activeVendor ? activeVendor.name : (activeBudgetItem?.payTo || activeBudgetItem?.vendor || 'Verified Vendor');
-          const totalPhaseAmount = activeBudgetItem?.amount || (activeBudgetItem as any)?.cost || 0;
+          // Extract vendor details for the email alert
+          const vendors = (project.vendors as any[]) || [];
+          const activeVendor = vendors.find(v => v.id === activeContext.activeBudgetItem?.vendorId);
+          const vendorName = activeVendor ? activeVendor.name : (activeContext.activeBudgetItem?.payTo || activeContext.activeBudgetItem?.vendor || 'Verified Vendor');
+          const totalPhaseAmount = activeContext.activeBudgetItem?.amount || (activeContext.activeBudgetItem as any)?.cost || 0;
 
           this.emailService.sendAdminVendorPayoutAlert({
             projectTitle: project.title,
-            phaseName: phaseNameRaw,
+            phaseName: activeContext.currentStageName,
             vendorName,
             amount: totalPhaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
             currency: currency,
@@ -818,12 +844,12 @@ export class DonationService {
             projectId: project.id
           }).catch(() => { });
 
-          const vendorEmail = activeVendor?.email || (activeBudgetItem as any)?.vendorEmail;
+          const vendorEmail = activeVendor?.email || (activeContext.activeBudgetItem as any)?.vendorEmail;
           if (vendorEmail) {
             this.emailService.sendVendorPhaseFundedAlert(vendorEmail, {
               vendorName,
               projectTitle: project.title,
-              phaseName: formattedPhase,
+              phaseName: activeContext.currentStageName,
               amount: totalPhaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
               currency: currency,
               reference: reference
