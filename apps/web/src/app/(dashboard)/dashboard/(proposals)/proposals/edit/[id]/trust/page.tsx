@@ -124,10 +124,16 @@ export default function TrustPage() {
   const isHookValid = titleValid && locationValid && descValid;
   const isMediaValid = !!store.coverImage;
 
-  // Relaxed budget validation: vendor details are optional
-  const isPlanValid = store.budgetBreakdown.length > 0 && store.budgetBreakdown.every(
-    item => item.costType && item.amount > 0 && item.description?.trim()
+  // Strict Validation: Ensure budget has stages and timeline has deliverables
+  const isBudgetValid = store.budgetBreakdown.length > 0 && store.budgetBreakdown.every(
+    item => item.stage && item.costType && item.amount > 0 && item.description?.trim()
   );
+
+  const isTimelineValid = store.executionTimeline.length > 0 && store.executionTimeline.every(
+    item => item.deliverables?.trim()
+  );
+
+  const isPlanValid = isBudgetValid && isTimelineValid;
 
   const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
 

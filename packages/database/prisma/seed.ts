@@ -154,14 +154,14 @@ async function main() {
         shortDesc: `Proposal for regional ${activeSub.name.toLowerCase()} enhancement.`,
         description: `Full technical implementation plan for ${activeSub.name}. This cause targets systemic issues within the sector using verified procurement and local stakeholder engagement.`,
         categoryId: activeCategory.id,
-        subcategoryId: activeSub.id, // <-- NEW: Link Subcategory
+        subcategoryId: activeSub.id,
         location: 'Lagos, Nigeria',
         targetAmount: BigInt(500000000 + (i * 20000000)), // 5M to 7M
         status: propStatuses[i],
         submittedAt: subDays(new Date(), i + 2),
         coverImage: stockPhotos[catIndex],
-        budgetBreakdown: [{ id: randomUUID(), item: 'Initial Siting', cost: 450000, vendor: 'Surveyor Corps', type: 'SERVICE' }],
-        executionTimeline: [{ id: `te-${i}`, phase: 'Inception', estimatedDate: '2026-04-01', deliverables: 'Audit and scoping' }],
+        budgetBreakdown: [{ id: randomUUID(), item: 'Initial Siting', cost: 450000, vendor: 'Surveyor Corps', type: 'SERVICE', stage: 'Early Stage' }],
+        executionTimeline: [{ id: `te-${i}`, phase: 'Early Stage', estimatedDate: '2026-04-01', deliverables: 'Audit and scoping' }],
         kycDocuments: ['proposals/doc-1.pdf'],
       }
     });
@@ -190,12 +190,12 @@ async function main() {
         status: ProjectStatus.ACTIVE,
         moderationStatus: ModerationStatus.APPROVED,
         categoryId: activeCategory.id,
-        subcategoryId: activeSub.id, // <-- NEW: Link Subcategory
+        subcategoryId: activeSub.id,
         location: 'Abuja, Nigeria',
         imageUrl: stockPhotos[catIndex],
         executionTimeline: [
-          { id: `m1-${i}`, phase: 'Procurement', status: 'COMPLETED', estimatedDate: '2026-02-01', deliverables: 'Hardware verified' },
-          { id: `m2-${i}`, phase: 'Site Work', status: 'IN_PROGRESS', estimatedDate: '2026-03-01', deliverables: 'Personnel deployed' }
+          { id: `m1-${i}`, phase: 'Early Stage', status: 'COMPLETED', estimatedDate: '2026-02-01', deliverables: 'Hardware verified' },
+          { id: `m2-${i}`, phase: 'Main Stage', status: 'IN_PROGRESS', estimatedDate: '2026-03-01', deliverables: 'Personnel deployed' }
         ],
         createdAt: subDays(new Date(), 31)
       }
