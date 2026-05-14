@@ -16,7 +16,7 @@ export default function PlanPage() {
   const params = useParams();
   const proposalId = params.id as string;
 
-  const { setProposal, riskAnalysis, budgetBreakdown, updateField, category } = useProposalStore();
+  const { setProposal, riskAnalysis, budgetBreakdown, executionTimeline, updateField, category } = useProposalStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,10 +46,18 @@ export default function PlanPage() {
     );
   }
 
-  // Validation Logic: At least one budget item required, and all items must have type, amount, and description
-  const isPlanValid = budgetBreakdown.length > 0 && budgetBreakdown.every(
-    item => item.costType && item.amount > 0 && item.description?.trim()
+  // Validation Logic: 
+  // 1. Budget items must exist and have stage, costType, amount, and description
+  const isBudgetValid = budgetBreakdown.length > 0 && budgetBreakdown.every(
+    item => item.stage && item.costType && item.amount > 0 && item.description?.trim()
   );
+
+  // 2. Auto-generated timeline items must have deliverables defined
+  const isTimelineValid = executionTimeline.length > 0 && executionTimeline.every(
+    item => item.deliverables?.trim()
+  );
+
+  const isPlanValid = isBudgetValid && isTimelineValid;
 
   const categorySlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '';
 
@@ -79,7 +87,7 @@ export default function PlanPage() {
             </div>
 
             <p className="text-[11px] font-medium text-muted-foreground italic text-center pt-2">
-              This cause will be funded one item at a time, as outlined above.
+              This cause will be funded one item at a time, based on the stages defined above.
             </p>
           </div>
 
@@ -110,12 +118,12 @@ export default function PlanPage() {
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               {!isPlanValid && (
                 <span className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200 text-center">
-                  Fill all required expense fields to continue
+                  Fill all required expense & deliverable fields to continue
                 </span>
               )}
               <Button
                 disabled={!isPlanValid}
-                className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0"
+                className="w-full sm:w-auto h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 gap-2 active:scale-[0.98] transition-all border-0 min-w-0 bg-primary text-white hover:bg-primary/90"
                 onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/trust`)}
               >
                 <span>Verification</span> <ArrowRight className="h-4 w-4 shrink-0" />

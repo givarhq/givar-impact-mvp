@@ -27,6 +27,8 @@ interface BudgetEditorProps {
   proposalId?: string;
 }
 
+const FUNDING_STAGES = ['Early Stage', 'Main Stage', 'Final Stage'];
+
 export const BudgetEditor = memo(function BudgetEditor({
   budgetItems,
   onBudgetChange,
@@ -132,6 +134,7 @@ export const BudgetEditor = memo(function BudgetEditor({
       costType: activeCostTypes[0].value,
       amount: 0,
       description: '',
+      stage: 'Main Stage'
     };
     updateBudget([...budgetBreakdown, newItem]);
   };
@@ -197,13 +200,11 @@ export const BudgetEditor = memo(function BudgetEditor({
 
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
-  // Removed horizontal divider (border-b) from the items container to eliminate excessive lines
   const fieldContainerClass = cn(
     "py-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
     isLocked && "opacity-90"
   );
 
-  // Standardized font size to text-sm and matched paddings to ensure UI symmetry
   const inputStyle = cn(
     "h-11 text-sm font-medium rounded-3xl transition-all duration-200 w-full",
     isLocked
@@ -343,7 +344,6 @@ export const BudgetEditor = memo(function BudgetEditor({
           Cost Breakdown
         </h3>
 
-        {/* Adjusted Font Sizes for Instructions */}
         <div className="space-y-2 mb-6">
           <p className="text-xs text-muted-foreground font-medium mb-2">
             List the main items needed to complete this cause in the order they will be carried out.
@@ -365,7 +365,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 transition={{ duration: 0.2 }}
                 className={fieldContainerClass}
               >
-                <div className="md:col-span-4 space-y-1.5">
+                <div className="md:col-span-3 space-y-1.5">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Item</label>
                   <Input
                     placeholder="Details..."
@@ -374,27 +374,6 @@ export const BudgetEditor = memo(function BudgetEditor({
                     readOnly={isLocked}
                     className={inputStyle}
                   />
-                </div>
-
-                <div className="md:col-span-3 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Recipient</label>
-                  {isLocked ? (
-                    <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
-                  ) : (
-                    <Select value={item.vendorId || "unassigned"} onValueChange={(v) => handleUpdate(item.id, 'vendorId', v === 'unassigned' ? '' : v)} disabled={isLocked || vendors.length === 1}>
-                      <SelectTrigger className={cn(inputStyle, (isLocked || vendors.length === 1) && "opacity-70 cursor-not-allowed")}>
-                        <SelectValue placeholder="Select a recipient" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-3xl shadow-xl border-border/40">
-                        <SelectItem value="unassigned" className="rounded-2xl text-sm py-2.5 italic text-muted-foreground font-medium">To be confirmed</SelectItem>
-                        {vendors.map((v) => (
-                          <SelectItem key={v.id} value={v.id} className="rounded-2xl text-sm py-2.5 font-medium">
-                            {v.name || 'Unnamed Recipient'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
                 </div>
 
                 <div className="md:col-span-2 space-y-1.5">
@@ -410,6 +389,47 @@ export const BudgetEditor = memo(function BudgetEditor({
                         {activeCostTypes.map((type) => (
                           <SelectItem key={type.value} value={type.value} className="rounded-2xl text-sm py-2.5 font-medium">
                             {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
+                  {isLocked ? (
+                    <Input value={item.stage || 'Main Stage'} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
+                  ) : (
+                    <Select value={item.stage || 'Main Stage'} onValueChange={(v) => handleUpdate(item.id, 'stage', v)} disabled={isLocked}>
+                      <SelectTrigger className={inputStyle}>
+                        <SelectValue placeholder="Select Stage" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl shadow-xl border-border/40">
+                        {FUNDING_STAGES.map((stage) => (
+                          <SelectItem key={stage} value={stage} className="rounded-2xl text-sm py-2.5 font-medium">
+                            {stage}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Recipient</label>
+                  {isLocked ? (
+                    <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
+                  ) : (
+                    <Select value={item.vendorId || "unassigned"} onValueChange={(v) => handleUpdate(item.id, 'vendorId', v === 'unassigned' ? '' : v)} disabled={isLocked || vendors.length === 1}>
+                      <SelectTrigger className={cn(inputStyle, (isLocked || vendors.length === 1) && "opacity-70 cursor-not-allowed")}>
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-3xl shadow-xl border-border/40">
+                        <SelectItem value="unassigned" className="rounded-2xl text-sm py-2.5 italic text-muted-foreground font-medium">To be confirmed</SelectItem>
+                        {vendors.map((v) => (
+                          <SelectItem key={v.id} value={v.id} className="rounded-2xl text-sm py-2.5 font-medium">
+                            {v.name || 'Unnamed Recipient'}
                           </SelectItem>
                         ))}
                       </SelectContent>
