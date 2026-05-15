@@ -16,16 +16,20 @@ function migrateBudget(budget: any[]) {
     return budget.map((item, index) => {
         let assignedStage = 'Main Stage';
 
-        // Retain existing valid stages, or assign them sequentially if missing
+        // Retain existing valid stages, or assign them if missing
         if (item.stage && STAGE_ORDER.includes(item.stage)) {
             assignedStage = item.stage;
         } else {
-            if (budget.length === 2) {
-                assignedStage = index === 0 ? 'Early Stage' : 'Main Stage';
+            // Fix: Group items intelligently to prevent 1:1 mapping on small budgets
+            if (budget.length <= 2) {
+                assignedStage = 'Main Stage';
             } else if (budget.length >= 3) {
-                if (index === 0) assignedStage = 'Early Stage';
-                else if (index === budget.length - 1) assignedStage = 'Final Stage';
-                else assignedStage = 'Main Stage';
+                // Split the budget items roughly in half
+                if (index < Math.ceil(budget.length / 2)) {
+                    assignedStage = 'Early Stage';
+                } else {
+                    assignedStage = 'Main Stage';
+                }
             }
         }
 
@@ -138,7 +142,7 @@ async function main() {
     }
     console.log(`✅ Successfully scrubbed and migrated ${propCount} proposals.`);
 
-    console.log('\n🚀 Data Sanitization Complete. All stages are now strictly typed.');
+    console.log('\n🚀 Data Sanitization Complete. All stages are now strictly typed and properly grouped.');
 }
 
 main()

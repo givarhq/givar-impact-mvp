@@ -436,7 +436,6 @@ export class AdminService {
       const budget = (proposal.budgetBreakdown as any[]) || [];
       const vendors = (proposal.vendors as any[]) || [];
 
-      // STRICT NON-CUSTODIAL GUARD: Ensure every budget item has a bound vendor with a subaccount
       if (budget.length === 0) {
         throw new BadRequestException('Cannot launch a project without a budget breakdown.');
       }
@@ -453,37 +452,8 @@ export class AdminService {
         );
       }
 
-      let generatedTimeline = proposal.executionTimeline as any[];
-
-      // ROOT CAUSE FIX: Fallback to mapping by stage if executionTimeline is empty
-      if (!generatedTimeline || generatedTimeline.length === 0) {
-        const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
-        const uniqueStages = Array.from(new Set(budget.map(b => b.stage || 'Main Stage')));
-
-        uniqueStages.sort((a, b) => {
-          const idxA = STAGE_ORDER.indexOf(a as string);
-          const idxB = STAGE_ORDER.indexOf(b as string);
-          return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
-        });
-
-        generatedTimeline = uniqueStages.map((stage, index) => {
-          const stageItems = budget.filter(b => (b.stage || 'Main Stage') === stage);
-          const deliverables = stageItems.map(b => b.description || b.item || 'Implementation').join(', ');
-
-          return {
-            id: `auto-stage-${index}`,
-            phase: stage,
-            estimatedDate: 'TBD',
-            status: 'PENDING',
-            deliverables: deliverables,
-          };
-        });
-      }
-
-      const sanitizedTimeline = generatedTimeline.map(t => ({
-        ...t,
-        status: t.status || 'PENDING'
-      }));
+      // ROOT CAUSE FIX: Auto-sync executionTimeline to match budget stages
+      const sanitizedTimeline = this.syncExecutionTimeline(budget, (proposal.executionTimeline as any[]) || []);
 
       const project = await tx.project.create({
         data: {
@@ -507,7 +477,7 @@ export class AdminService {
           tags: ['Verified'],
           isActive: true,
           budgetBreakdown: proposal.budgetBreakdown ?? [],
-          executionTimeline: sanitizedTimeline,
+          executionTimeline: sanitizedTimeline as unknown as Prisma.InputJsonValue,
           vendors: proposal.vendors ?? [],
           riskAnalysis: proposal.riskAnalysis,
 
@@ -907,6 +877,46 @@ export class AdminService {
     };
   }
 
+  /**
+   * Helper: Synchronizes the Execution Timeline to strictly mirror the stages 
+   * defined in the budget breakdown. Preserves existing deliverable states.
+   */
+  private syncExecutionTimeline(budget: any[], sourceTimeline: any[]) {
+    const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+    const uniqueStages = Array.from(new Set(budget.map((b: any) => b.stage || 'Main Stage')));
+
+    uniqueStages.sort((a, b) => {
+      const idxA = STAGE_ORDER.indexOf(a as string);
+      const idxB = STAGE_ORDER.indexOf(b as string);
+      return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+    });
+
+    return uniqueStages.map((stage, index) => {
+      const existingStage = sourceTimeline.find((t: any) => t.phase === stage);
+      const stageItems = budget.filter((b: any) => (b.stage || 'Main Stage') === stage);
+      const deliverables = stageItems.map((b: any) => b.description || b.item || 'Implementation').join(', ');
+
+      if (existingStage) {
+        return {
+          ...existingStage,
+          status: existingStage.status || 'PENDING',
+          // Only overwrite deliverables if it's the auto-generated generic one, or if they just added new items.
+          deliverables: existingStage.deliverables && !existingStage.deliverables.startsWith('Execution of')
+            ? existingStage.deliverables
+            : deliverables
+        };
+      }
+
+      return {
+        id: `auto-stage-${index}`,
+        phase: stage,
+        estimatedDate: 'TBD',
+        status: 'PENDING',
+        deliverables
+      };
+    });
+  }
+
   async createProject(adminId: string, dto: CreateAdminProjectDto) {
     const budget = dto.budgetBreakdown || [];
     const vendors = dto.vendors || [];
@@ -926,32 +936,9 @@ export class AdminService {
     }
 
     const slug = this.generateSlug(dto.title);
-    let executionTimeline = dto.executionTimeline || [];
 
-    // ROOT CAUSE FIX: Fallback to mapping by stage if executionTimeline is empty
-    if (executionTimeline.length === 0 && budget.length > 0) {
-      const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
-      const uniqueStages = Array.from(new Set(budget.map((b: any) => b.stage || 'Main Stage')));
-
-      uniqueStages.sort((a, b) => {
-        const idxA = STAGE_ORDER.indexOf(a as string);
-        const idxB = STAGE_ORDER.indexOf(b as string);
-        return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
-      });
-
-      executionTimeline = uniqueStages.map((stage, index) => {
-        const stageItems = budget.filter((b: any) => (b.stage || 'Main Stage') === stage);
-        const deliverables = stageItems.map((b: any) => b.description || b.item || 'Implementation').join(', ');
-
-        return {
-          id: `auto-stage-${index}`,
-          phase: stage,
-          estimatedDate: 'TBD',
-          status: 'PENDING',
-          deliverables: deliverables,
-        } as any;
-      });
-    }
+    // ROOT CAUSE FIX: Ensure timeline is 100% in sync with the budget stages
+    const executionTimeline = this.syncExecutionTimeline(budget, dto.executionTimeline || []);
 
     const createData: Prisma.ProjectCreateInput = {
       title: dto.title,
@@ -1043,14 +1030,10 @@ export class AdminService {
 
     if ((dto as any).videoUrl !== undefined) updateData.videoUrl = (dto as any).videoUrl;
     if (dto.targetAmount) updateData.targetAmount = newTarget;
-    // Note: If newTarget < existing.raisedAmount, it will now naturally overflow. 
-    // In our non-custodial model, the platform cannot seize those funds back automatically.
-    // The admin will need to adjust the phases or manage vendor relations offline.
 
     if (dto.categoryId) updateData.category = { connect: { id: dto.categoryId } };
     if (dto.gallery) updateData.gallery = dto.gallery as any;
 
-    // Check unbound
     if (dto.budgetBreakdown || dto.vendors) {
       const budgetToCheck = dto.budgetBreakdown || (existing.budgetBreakdown as any[]) || [];
       const vendorsToCheck = dto.vendors || (existing.vendors as any[]) || [];
@@ -1066,7 +1049,16 @@ export class AdminService {
       if (dto.vendors) updateData.vendors = dto.vendors as any;
     }
 
-    if (dto.executionTimeline) updateData.executionTimeline = dto.executionTimeline as any;
+    // ROOT CAUSE FIX: Auto-sync executionTimeline if budgetBreakdown is provided
+    if (dto.budgetBreakdown) {
+      updateData.budgetBreakdown = dto.budgetBreakdown as any;
+      updateData.executionTimeline = this.syncExecutionTimeline(
+        dto.budgetBreakdown,
+        dto.executionTimeline || (existing.executionTimeline as any[]) || []
+      ) as any;
+    } else if (dto.executionTimeline) {
+      updateData.executionTimeline = dto.executionTimeline as any;
+    }
 
     const result = await this.prisma.$transaction(async (tx) => {
       const project = await tx.project.update({
@@ -1120,7 +1112,6 @@ export class AdminService {
 
     return result;
   }
-
 
   private async broadcastFinancialAdjustment(
     projectId: string,
