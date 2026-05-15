@@ -91,7 +91,13 @@ export class DonationService {
    * based purely on the raised amount vs cumulative budget items.
    */
   private getActiveBudgetContext(project: any) {
-    const budget = (project.budgetBreakdown as any[]) || [];
+    const rawBudget = (project.budgetBreakdown as any[]) || [];
+    const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+    const budget = [...rawBudget].sort((a, b) => {
+      const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
+      const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
+      return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+    });
     const timeline = (project.executionTimeline as any[]) || [];
     const activeIndex = project.currentPhaseIndex || 0;
 
@@ -1405,22 +1411,46 @@ export class DonationService {
     ).catch(err => this.logger.error('Donor Broadcast Transmission Failed', err));
   }
 
+  /**
+   * Helper: Calculates the precise phase cap dynamically by aggregating
+   * all budget items that fall under the currently active stage and all prior stages.
+   */
   private calculatePhaseCap(project: any): bigint {
-    const budget = (project.budgetBreakdown as any[]) || [];
-    let cumulativeMajor = 0;
+    const timeline = (project.executionTimeline as any[]) || [];
+    const rawBudget = (project.budgetBreakdown as any[]) || [];
     const activeIndex = project.currentPhaseIndex || 0;
 
-    for (let i = 0; i <= activeIndex && i < budget.length; i++) {
-      cumulativeMajor += (budget[i].amount || budget[i].cost || 0);
+    const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+
+    // 1. Sort budget items chronologically by stage to ensure accurate accumulation
+    const budget = [...rawBudget].sort((a, b) => {
+      const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
+      const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
+      return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+    });
+
+    // 2. Resolve stage names for the active and all preceding phases
+    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    let totalMajor = 0;
+
+    // 3. Aggregate amounts for every item belonging to the current or prior stages
+    budget.forEach((item: any) => {
+      const amt = item.amount || item.cost || 0;
+      const itemStage = item.stage || 'Main Stage';
+      
+      if (previousStages.includes(itemStage) || itemStage === currentStageName) {
+          totalMajor += amt;
+      }
+    });
+
+    // 4. Return as BigInt Minor Units. Fallback to targetAmount if timeline is empty.
+    let phaseCap = BigInt(Math.round(totalMajor * 100));
+    if (timeline.length === 0 || activeIndex >= timeline.length) {
+      phaseCap = BigInt(project.targetAmount || '0');
     }
 
-    let currentPhaseCap = BigInt(cumulativeMajor * 100);
-
-    // Failsafe: if timeline is exhausted or budget is empty, cap at total target
-    if (budget.length === 0 || activeIndex >= budget.length) {
-      currentPhaseCap = BigInt(project.targetAmount || '0');
-    }
-
-    return currentPhaseCap;
+    return phaseCap;
   }
 }
