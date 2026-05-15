@@ -53,7 +53,7 @@ class BudgetItem {
   description!: string;
 
   @IsOptional()
-  @IsString()
+  @IsEnum(['Early Stage', 'Main Stage', 'Final Stage'])
   stage?: string;
 }
 

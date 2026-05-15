@@ -20,7 +20,7 @@ export class AdminBudgetItem {
   @IsOptional() @IsString() vendorId?: string;
   @IsOptional() @IsString() payTo?: string;
   @IsString() costType!: string;
-  @IsOptional() @IsString() stage?: string;
+  @IsOptional() @IsEnum(['Early Stage', 'Main Stage', 'Final Stage']) stage?: string;
 }
 
 export class AdminTimelineItem {

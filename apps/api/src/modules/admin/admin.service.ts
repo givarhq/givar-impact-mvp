@@ -1681,12 +1681,31 @@ export class AdminService {
 
         // Enforce Phase Cap during Admin Reallocation
         const budget = (targetProj.budgetBreakdown as any[]) || [];
-        let cumulativeMajor = 0;
-        for (let i = 0; i <= (targetProj.currentPhaseIndex || 0) && i < budget.length; i++) {
-          cumulativeMajor += (budget[i].amount || budget[i].cost || 0);
-        }
-        let currentPhaseCapMinor = BigInt(cumulativeMajor * 100);
-        if (budget.length === 0 || (targetProj.currentPhaseIndex || 0) >= budget.length) {
+        const timeline = (targetProj.executionTimeline as any[]) || [];
+        const activeIndex = targetProj.currentPhaseIndex || 0;
+
+        const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+        const sortedBudget = [...budget].sort((a, b) => {
+          const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
+          const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
+          return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+        });
+
+        const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+        const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+        let totalMajor = 0;
+        sortedBudget.forEach((item: any) => {
+          const amt = item.amount || item.cost || 0;
+          const itemStage = item.stage || 'Main Stage';
+
+          if (previousStages.includes(itemStage) || itemStage === currentStageName) {
+            totalMajor += amt;
+          }
+        });
+
+        let currentPhaseCapMinor = BigInt(Math.round(totalMajor * 100));
+        if (timeline.length === 0 || activeIndex >= timeline.length) {
           currentPhaseCapMinor = BigInt(targetProj.targetAmount || '0');
         }
 
@@ -1773,7 +1792,7 @@ export class AdminService {
           const updatedProject = await txPrisma.project.update({
             where: { id: split.projectId },
             data: { raisedAmount: { increment: splitAmount } },
-            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, budgetBreakdown: true }
+            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, budgetBreakdown: true, executionTimeline: true }
           });
 
           // Check Goal Completion
@@ -1786,13 +1805,34 @@ export class AdminService {
           }
 
           // Trigger Admin Phase Alerts for Reallocations
-          const budget = (updatedProject.budgetBreakdown as any[]) || [];
-          let cumulativeMajor = 0;
-          for (let idx = 0; idx <= (updatedProject.currentPhaseIndex || 0) && idx < budget.length; idx++) {
-            cumulativeMajor += (budget[idx].amount || budget[idx].cost || 0);
+          const updatedBudget = (updatedProject.budgetBreakdown as any[]) || [];
+          const updatedTimeline = (updatedProject.executionTimeline as any[]) || [];
+          const updatedActiveIndex = updatedProject.currentPhaseIndex || 0;
+
+          const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+          const updatedSortedBudget = [...updatedBudget].sort((a, b) => {
+            const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
+            const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
+            return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+          });
+
+          const updatedPreviousStages = updatedTimeline.slice(0, updatedActiveIndex).map((t: any) => t.phase);
+          const updatedCurrentStageName = updatedTimeline[updatedActiveIndex]?.phase || 'Main Stage';
+
+          let updatedTotalMajor = 0;
+          updatedSortedBudget.forEach((item: any) => {
+            const amt = item.amount || item.cost || 0;
+            const itemStage = item.stage || 'Main Stage';
+
+            if (updatedPreviousStages.includes(itemStage) || itemStage === updatedCurrentStageName) {
+              updatedTotalMajor += amt;
+            }
+          });
+
+          let phaseCap = BigInt(Math.round(updatedTotalMajor * 100));
+          if (updatedTimeline.length === 0 || updatedActiveIndex >= updatedTimeline.length) {
+            phaseCap = updatedProject.targetAmount;
           }
-          let phaseCap = BigInt(cumulativeMajor * 100);
-          if (budget.length === 0 || (updatedProject.currentPhaseIndex || 0) >= budget.length) phaseCap = updatedProject.targetAmount;
 
           const isPhaseNewlyMet = !isGoalMet && (updatedProject.raisedAmount >= phaseCap);
 
