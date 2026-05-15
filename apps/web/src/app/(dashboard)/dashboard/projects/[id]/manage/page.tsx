@@ -17,7 +17,8 @@ import {
     FileText,
     Activity,
     History,
-    ArrowRight
+    ArrowRight,
+    Calendar
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -301,6 +302,50 @@ export default async function ProjectManagePage({
                         </div>
                     </div>
 
+                    {/* Execution Roadmap Summary */}
+                    {timeline.length > 0 && (
+                        <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mb-6 animate-in slide-in-from-bottom-3 duration-500">
+                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
+                                <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
+                                    <Clock className="h-4 w-4 text-blue-500" /> Execution Roadmap
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="divide-y divide-border/40">
+                                    {timeline.map((phase: any, index: number) => {
+                                        const stageItems = budget
+                                            .filter((b: any) => (b.stage || 'Main Stage') === phase.phase)
+                                            .map((b: any) => b.description || b.item)
+                                            .join(', ');
+                                        const displayPhase = `${phase.phase}${stageItems ? `: ${stageItems}` : ''}`;
+                                        return (
+                                            <div key={phase.id || index} className="p-5 flex items-start gap-4 hover:bg-muted/10 transition-colors">
+                                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                                                    {index + 1}
+                                                </div>
+                                                <div className="space-y-1.5 min-w-0 flex-1">
+                                                    <h4 className="font-bold text-sm text-foreground leading-snug">{displayPhase}</h4>
+
+                                                    {phase.deliverables && (
+                                                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                                            <span className="font-bold text-foreground/70">Expected Deliverables:</span> {phase.deliverables}
+                                                        </p>
+                                                    )}
+
+                                                    {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
+                                                        <div className="text-[10px] font-bold text-muted-foreground/80 mt-2 flex items-center gap-1.5">
+                                                            <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0 pt-6">
                         <FeedbackThread
                             projectId={project.id}
@@ -312,7 +357,7 @@ export default async function ProjectManagePage({
                 <div className="lg:col-span-4 space-y-6 min-w-0">
 
                     <Card className="rounded-3xl border-border/40 shadow-sm bg-card overflow-hidden min-w-0">
-                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0 flex flex-row items-center justify-between">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 md:py-5 md:px-6 min-w-0 flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2 truncate">
                                 <History className="h-4 w-4 text-primary" /> Recent Donations
                             </CardTitle>

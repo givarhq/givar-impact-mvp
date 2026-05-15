@@ -667,10 +667,18 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                 <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
                                                     {index + 1}
                                                 </div>
-                                                <div className="space-y-1 min-w-0 flex-1">
+                                                <div className="space-y-1.5 min-w-0 flex-1">
                                                     <h4 className="font-bold text-sm text-foreground leading-snug">{displayPhase}</h4>
+
+                                                    {/* FIX: Render the deliverables so the Admin can actually audit them */}
+                                                    {phase.deliverables && (
+                                                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                                            <span className="font-bold text-foreground/70">Required Deliverables:</span> {phase.deliverables}
+                                                        </p>
+                                                    )}
+
                                                     {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
-                                                        <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
+                                                        <div className="text-[10px] font-bold text-muted-foreground/80 mt-2 flex items-center gap-1.5">
                                                             <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
                                                         </div>
                                                     )}
