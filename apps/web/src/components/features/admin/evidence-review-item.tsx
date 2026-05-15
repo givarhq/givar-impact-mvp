@@ -41,10 +41,21 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
         }
     };
 
-    // Logic: Extract deliverables from the timeline to create the rich stage name
     const timeline = Array.isArray(proof.project?.executionTimeline) ? proof.project.executionTimeline : [];
+    const budget = Array.isArray(proof.project?.budgetBreakdown) ? proof.project.budgetBreakdown : [];
     const milestone = timeline.find((m: any) => m.id === proof.milestoneId);
-    const displayPhase = milestone?.deliverables ? `${proof.phaseName}: ${milestone.deliverables}` : proof.phaseName;
+
+    const currentStageLogicName = milestone?.phase || 'Main Stage';
+    const cleanStageName = currentStageLogicName.replace(/^Phase \d+:\s*/i, '');
+
+    const stageBudgetItems = budget
+        .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
+        .map((b: any) => b.description || b.item)
+        .join(', ');
+
+    const displayPhase = milestone
+        ? `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
+        : cleanStageName;
 
     return (
         <>
@@ -65,7 +76,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                                 </Link>
                             </CardTitle>
                             <div className="flex items-center gap-3 mt-1.5 min-w-0">
-                                <span className="text-[11px] font-black tracking-widest text-primary truncate max-w-[200px] md:max-w-[300px]">Phase: {displayPhase}</span>
+                                <span className="text-[11px] font-black tracking-widest text-primary truncate max-w-[200px] md:max-w-[300px]">Stage: {displayPhase}</span>
                                 <div className="h-1 w-1 rounded-full bg-border shrink-0" />
                                 <span className="text-[11px] text-muted-foreground font-bold flex items-center gap-1.5 shrink-0">
                                     <Clock className="h-3.5 w-3.5 opacity-50" /> {new Date(proof.submittedAt).toLocaleDateString()}

@@ -55,10 +55,21 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                         const isExpanded = expandedId === proof.id;
                         const isHandled = proof.status !== 'PENDING';
 
-                        // Logic: Extract deliverables from the timeline to create the rich stage name
                         const timeline = Array.isArray(proof.project?.executionTimeline) ? proof.project.executionTimeline : [];
+                        const budget = Array.isArray(proof.project?.budgetBreakdown) ? proof.project.budgetBreakdown : [];
                         const milestone = timeline.find((m: any) => m.id === proof.milestoneId);
-                        const displayPhase = milestone?.deliverables ? `${proof.phaseName}: ${milestone.deliverables}` : proof.phaseName;
+
+                        const currentStageLogicName = milestone?.phase || 'Main Stage';
+                        const cleanStageName = currentStageLogicName.replace(/^Phase \d+:\s*/i, '');
+
+                        const stageBudgetItems = budget
+                            .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
+                            .map((b: any) => b.description || b.item)
+                            .join(', ');
+
+                        const displayPhase = milestone
+                            ? `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
+                            : cleanStageName;
 
                         return (
                             <motion.div
@@ -81,7 +92,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                 <p className="text-sm font-bold text-foreground truncate">{proof.project.title}</p>
                                                 <div className="flex items-center gap-2 mt-2 min-w-0">
                                                     <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none truncate max-w-[150px]">
-                                                        Phase: {displayPhase}
+                                                        Stage: {displayPhase}
                                                     </Badge>
                                                     {isHandled && (
                                                         <span className={cn("text-[10px] font-black italic shrink-0", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>
@@ -140,7 +151,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                         <thead className="bg-muted/40 border-b border-border/40 text-muted-foreground">
                             <tr>
                                 <th className="px-7 py-4 w-12 shrink-0"></th>
-                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] uppercase">Cause & Execution Phase</th>
+                                <th className="px-7 py-4 font-bold tracking-widest text-[10px] uppercase">Cause & Execution Stage</th>
                                 <th className="px-7 py-4 font-bold tracking-widest text-[10px] uppercase text-center">Date Submitted</th>
                                 <th className="px-7 py-4 font-bold tracking-widest text-[10px] uppercase text-right">Visual Assets</th>
                             </tr>
@@ -150,10 +161,21 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                 const isExpanded = expandedId === proof.id;
                                 const isHandled = proof.status !== 'PENDING';
 
-                                // Logic: Extract deliverables from the timeline to create the rich stage name
                                 const timeline = Array.isArray(proof.project?.executionTimeline) ? proof.project.executionTimeline : [];
+                                const budget = Array.isArray(proof.project?.budgetBreakdown) ? proof.project.budgetBreakdown : [];
                                 const milestone = timeline.find((m: any) => m.id === proof.milestoneId);
-                                const displayPhase = milestone?.deliverables ? `${proof.phaseName}: ${milestone.deliverables}` : proof.phaseName;
+
+                                const currentStageLogicName = milestone?.phase || 'Main Stage';
+                                const cleanStageName = currentStageLogicName.replace(/^Phase \d+:\s*/i, '');
+
+                                const stageBudgetItems = budget
+                                    .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
+                                    .map((b: any) => b.description || b.item)
+                                    .join(', ');
+
+                                const displayPhase = milestone
+                                    ? `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
+                                    : cleanStageName;
 
                                 return (
                                     <React.Fragment key={proof.id}>
@@ -173,7 +195,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                     <p className="font-bold text-foreground text-sm leading-tight truncate group-hover:text-primary transition-colors">{proof.project.title}</p>
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none truncate max-w-[250px]">
-                                                            Phase: {displayPhase}
+                                                            Stage: {displayPhase}
                                                         </Badge>
                                                         {isHandled && (
                                                             <span className={cn("text-[10px] font-black italic shrink-0", proof.status === 'APPROVED' ? "text-emerald-600" : "text-destructive")}>

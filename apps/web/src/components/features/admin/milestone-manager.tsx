@@ -68,6 +68,18 @@ export const MilestoneManager = memo(function MilestoneManager({
   const isFullyCompleted = timeline.length > 0 && timeline.every(m => m.status === 'COMPLETED');
   const totalRaisedMinor = BigInt(raisedAmount || '0');
 
+  // Dynamic Phase Name Generator
+  const getDisplayPhase = (milestoneId: string) => {
+    const m = timeline.find(m => m.id === milestoneId);
+    if (!m) return 'Unknown Stage';
+    const mPhase = m.phase;
+    const stageItems = budgetBreakdown
+      .filter((b: any) => (b.stage || 'Main Stage') === mPhase)
+      .map((b: any) => b.description || b.item)
+      .join(', ');
+    return `${mPhase}${stageItems ? `: ${stageItems}` : ''}`;
+  };
+
   // --- ADMIN DIRECT VERIFICATION ---
   const handleStatusChange = async (milestoneId: string, newStatus: Milestone['status'], index: number) => {
     if (newStatus === 'COMPLETED') {
@@ -77,13 +89,13 @@ export const MilestoneManager = memo(function MilestoneManager({
     }
     // Re-open phase
     setProcessingId(milestoneId);
-    const toastId = toast.loading("Re-opening phase...");
+    const toastId = toast.loading("Re-opening stage...");
     try {
       await ApiService.admin.updateMilestone(projectId, milestoneId, newStatus);
-      toast.success('Phase re-opened', { id: toastId });
+      toast.success('Stage re-opened', { id: toastId });
       router.refresh();
     } catch (error) {
-      toast.error('Failed to update phase', { id: toastId });
+      toast.error('Failed to update stage', { id: toastId });
     } finally {
       setProcessingId(null);
     }
@@ -91,13 +103,13 @@ export const MilestoneManager = memo(function MilestoneManager({
 
   const updateMilestone = async (milestoneId: string, status: Milestone['status'], imageUrl?: string) => {
     setProcessingId(milestoneId);
-    const toastId = toast.loading("Verifying phase...");
+    const toastId = toast.loading("Verifying stage...");
     try {
       await ApiService.admin.updateMilestone(projectId, milestoneId, status, imageUrl);
-      toast.success('Phase verified and locked', { id: toastId });
+      toast.success('Stage verified and locked', { id: toastId });
       router.refresh();
     } catch (error) {
-      toast.error('Failed to verify phase', { id: toastId });
+      toast.error('Failed to verify stage', { id: toastId });
     } finally {
       setProcessingId(null);
       setActiveMilestone(null);
@@ -162,6 +174,7 @@ export const MilestoneManager = memo(function MilestoneManager({
           {timeline.map((milestone, index) => {
             const status = milestone.status;
             const isProcessingCurrent = processingId === milestone.id;
+            const displayPhase = getDisplayPhase(milestone.id);
 
             // --- AGGREGATED PHASE FINANCIAL MATH ---
             let previousPhasesMajor = 0;
@@ -237,7 +250,7 @@ export const MilestoneManager = memo(function MilestoneManager({
                           </AnimatePresence>
                         </div>
                         <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors line-clamp-2">
-                          {milestone.phase}: {milestone.deliverables}
+                          {displayPhase}
                         </h4>
 
                         <div className="flex items-center justify-between gap-4 mt-4 pt-3.5 border-t border-border/40 min-w-0 w-full">
@@ -329,12 +342,12 @@ export const MilestoneManager = memo(function MilestoneManager({
           <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md min-w-0">
             <DialogHeader>
               <DialogTitle className="text-lg md:text-xl font-bold text-foreground flex items-center gap-3 truncate">
-                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" /> Verify {activeMilestone?.phase}
+                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" /> Verify Stage
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6 pt-4 min-w-0">
               <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                Verifying this stage will mark the milestone as completed, broadcast a notification to donors, and unlock funding for the next stage. You can attach proof of work provided by the vendor.
+                Verifying this stage will mark it as completed, broadcast a notification to donors, and unlock funding for the next stage. You can attach proof of work provided by the vendor.
               </p>
 
               <AnimatePresence mode="wait">

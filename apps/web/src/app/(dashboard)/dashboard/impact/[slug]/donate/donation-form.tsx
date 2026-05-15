@@ -161,8 +161,15 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const activeIndex = project.currentPhaseIndex || 0;
 
     const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
+    const cleanStageName = currentStageLogicName.replace(/^Phase \d+:\s*/i, '');
+
+    const stageBudgetItems = budget
+        .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
+        .map((b: any) => b.description || b.item)
+        .join(', ');
+
     const currentStageDisplayName = timeline[activeIndex]
-        ? `${timeline[activeIndex].phase}: ${timeline[activeIndex].deliverables}`
+        ? `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
         : 'Main Stage';
 
     const raisedAmountMinor = BigInt(project.raisedAmount || '0');

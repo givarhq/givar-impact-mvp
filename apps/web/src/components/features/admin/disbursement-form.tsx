@@ -36,6 +36,7 @@ import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 interface DisbursementFormProps {
     projectId: string;
     timeline: any[];
+    budgetBreakdown?: any[];
     disbursements?: any[];
 }
 
@@ -47,6 +48,7 @@ type SortConfig = {
 export const DisbursementForm = memo(function DisbursementForm({
     projectId,
     timeline,
+    budgetBreakdown = [],
     disbursements = []
 }: DisbursementFormProps) {
     const router = useRouter();
@@ -139,6 +141,18 @@ export const DisbursementForm = memo(function DisbursementForm({
         return sortConfig.direction === 'asc' ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />;
     };
 
+    // Dynamic Phase Name Generator
+    const getDisplayPhase = (mId: string) => {
+        const m = timeline.find((m: any) => m.id === mId);
+        if (!m) return 'General Funds';
+        const mPhase = m.phase;
+        const stageItems = budgetBreakdown
+            .filter((b: any) => (b.stage || 'Main Stage') === mPhase)
+            .map((b: any) => b.description || b.item)
+            .join(', ');
+        return `${mPhase}${stageItems ? `: ${stageItems}` : ''}`;
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in duration-300">
             <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
@@ -157,14 +171,14 @@ export const DisbursementForm = memo(function DisbursementForm({
                         <div className="lg:col-span-7 space-y-5">
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-muted-foreground ml-1">Target Implementation Phase</label>
+                                    <label className="text-xs font-bold text-muted-foreground ml-1">Target Implementation Stage</label>
                                     <Select onValueChange={setMilestoneId} value={milestoneId}>
                                         <SelectTrigger className="h-10 rounded-3xl bg-muted/20 border-border/40">
-                                            <SelectValue placeholder="Select Phase..." />
+                                            <SelectValue placeholder="Select Stage..." />
                                         </SelectTrigger>
                                         <SelectContent className="rounded-3xl">
                                             {timeline.map((m: any) => (
-                                                <SelectItem key={m.id} value={m.id} className="rounded-3xl text-xs">{m.phase}</SelectItem>
+                                                <SelectItem key={m.id} value={m.id} className="rounded-3xl text-xs">{getDisplayPhase(m.id)}</SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -220,7 +234,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                                 )}
                             </div>
 
-                            <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0 transition-all active:scale-95">
+                            <Button onClick={handleSubmit} disabled={isLoading || !amount || !milestoneId || !vendorName || !reference} className="w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0 transition-all active:scale-95 bg-primary text-white hover:bg-primary/90">
                                 {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : <CheckCircle2 className="h-4 w-4 mr-2" />}
                                 Authorize payment
                             </Button>
@@ -256,7 +270,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                                             <div className="min-w-0">
                                                 <p className="text-xs font-bold text-foreground truncate">{d.vendorName}</p>
                                                 <p className="text-[11px] font-bold text-primary tracking-tighter mt-0.5">
-                                                    Phase: {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General Funds'}
+                                                    Stage: {getDisplayPhase(d.milestoneId)}
                                                 </p>
                                             </div>
                                             <p className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">{new Date(d.createdAt).toLocaleDateString()}</p>
@@ -281,13 +295,13 @@ export const DisbursementForm = memo(function DisbursementForm({
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-muted/40 text-muted-foreground border-b border-border/40">
                                 <tr>
-                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px]  cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('vendorName')}>
+                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('vendorName')}>
                                         <div className="flex items-center">Payee Vendor <SortIcon column="vendorName" /></div>
                                     </th>
-                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px]  cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('createdAt')}>
+                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px] cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('createdAt')}>
                                         <div className="flex items-center">Execution Date <SortIcon column="createdAt" /></div>
                                     </th>
-                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px]  text-right cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('amount')}>
+                                    <th className="px-6 py-3 font-bold tracking-widest text-[10px] text-right cursor-pointer hover:text-foreground transition-colors" onClick={() => handleSort('amount')}>
                                         <div className="flex items-center justify-end">Capital Value <SortIcon column="amount" /></div>
                                     </th>
                                     <th className="px-6 py-3 w-20"></th>
@@ -302,7 +316,7 @@ export const DisbursementForm = memo(function DisbursementForm({
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-foreground group-hover:text-primary transition-colors">{d.vendorName}</div>
                                                 <div className="text-[10px] text-muted-foreground font-bold tracking-tighter mt-0.5">
-                                                    Phase: {timeline.find((m: any) => m.id === d.milestoneId)?.phase || 'General'}
+                                                    Stage: {getDisplayPhase(d.milestoneId)}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 font-medium text-muted-foreground">
