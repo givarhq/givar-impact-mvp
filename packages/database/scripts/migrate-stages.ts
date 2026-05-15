@@ -4,22 +4,36 @@ import { prisma } from '../src/index';
 
 const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
 
+// Utility to forcefully scrub legacy prefixes from descriptions
+function cleanString(str: string) {
+    if (!str) return '';
+    return str.replace(/^(Phase|Stage)\s*\d+:\s*/i, '').trim();
+}
+
 function migrateBudget(budget: any[]) {
     if (!budget || !Array.isArray(budget)) return [];
 
     return budget.map((item, index) => {
         let assignedStage = 'Main Stage';
 
-        // Forcefully distribute legacy budget items into the 3 new buckets
-        if (budget.length === 2) {
-            assignedStage = index === 0 ? 'Early Stage' : 'Main Stage';
-        } else if (budget.length >= 3) {
-            if (index === 0) assignedStage = 'Early Stage';
-            else if (index === budget.length - 1) assignedStage = 'Final Stage';
-            else assignedStage = 'Main Stage';
+        // Retain existing valid stages, or assign them sequentially if missing
+        if (item.stage && STAGE_ORDER.includes(item.stage)) {
+            assignedStage = item.stage;
+        } else {
+            if (budget.length === 2) {
+                assignedStage = index === 0 ? 'Early Stage' : 'Main Stage';
+            } else if (budget.length >= 3) {
+                if (index === 0) assignedStage = 'Early Stage';
+                else if (index === budget.length - 1) assignedStage = 'Final Stage';
+                else assignedStage = 'Main Stage';
+            }
         }
 
-        return { ...item, stage: assignedStage };
+        return {
+            ...item,
+            stage: assignedStage,
+            description: cleanString(item.description || item.item)
+        };
     });
 }
 
@@ -40,12 +54,23 @@ function migrateTimeline(migratedBudget: any[], oldTimeline: any[]) {
     return uniqueStages.map((stage, index) => {
         const oldItem = oldTimeline && oldTimeline[index] ? oldTimeline[index] : {};
 
+        let deliverables = oldItem.deliverables || '';
+
+        // If deliverables are empty or generic, dynamically generate them from the budget items
+        if (!deliverables || deliverables.startsWith('Execution of')) {
+            const stageBudgetItems = migratedBudget
+                .filter(b => b.stage === stage)
+                .map(b => b.description)
+                .join(', ');
+            deliverables = stageBudgetItems || `Execution of ${String(stage).toLowerCase()} deliverables`;
+        }
+
         return {
             id: oldItem.id || randomUUID(),
-            phase: stage,
+            phase: stage, // STRICTLY ENFORCED: "Early Stage", "Main Stage", or "Final Stage"
             status: oldItem.status || 'PENDING',
             estimatedDate: oldItem.estimatedDate || 'TBD',
-            deliverables: oldItem.deliverables || `Execution of ${String(stage).toLowerCase()} deliverables`,
+            deliverables: cleanString(deliverables),
             completedAt: oldItem.completedAt,
             updatedAt: oldItem.updatedAt,
             imageUrl: oldItem.imageUrl,
@@ -54,7 +79,7 @@ function migrateTimeline(migratedBudget: any[], oldTimeline: any[]) {
 }
 
 async function main() {
-    console.log('🚀 Initiating Stage Migration Protocol...');
+    console.log('🚀 Initiating Stage Data Sanitization & Migration Protocol...');
 
     // ---------------------------------------------------------
     // 1. MIGRATE LIVE PROJECTS
@@ -86,7 +111,7 @@ async function main() {
         });
         pCount++;
     }
-    console.log(`✅ Successfully migrated ${pCount} live projects.`);
+    console.log(`✅ Successfully scrubbed and migrated ${pCount} live projects.`);
 
     // ---------------------------------------------------------
     // 2. MIGRATE PROPOSALS
@@ -111,9 +136,9 @@ async function main() {
         });
         propCount++;
     }
-    console.log(`✅ Successfully migrated ${propCount} proposals.`);
+    console.log(`✅ Successfully scrubbed and migrated ${propCount} proposals.`);
 
-    console.log('\n🚀 Migration Protocol Complete. Data integrity verified.');
+    console.log('\n🚀 Data Sanitization Complete. All stages are now strictly typed.');
 }
 
 main()
