@@ -215,7 +215,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
                     <Card className="bg-card border border-border/40 rounded-3xl p-5 shadow-sm">
                         <h4 className="text-sm font-bold text-primary leading-tight mb-4">
-                            Funding Stage: {currentStageDisplayName}
+                            {currentStageDisplayName}
                         </h4>
 
                         {isPhaseFull ? (
