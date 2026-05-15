@@ -90,7 +90,7 @@ export default function PlanPage() {
             </p>
           </div>
 
-          <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">
+          <div className="space-y-4 min-w-0 pt-6  border-border/40">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
@@ -103,7 +103,7 @@ export default function PlanPage() {
             </div>
           </div>
 
-          <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">
+          <div className="space-y-4 min-w-0 pt-6  border-border/40">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />
