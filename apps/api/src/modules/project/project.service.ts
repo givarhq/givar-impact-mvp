@@ -1,4 +1,3 @@
-// ... existing imports ...
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';

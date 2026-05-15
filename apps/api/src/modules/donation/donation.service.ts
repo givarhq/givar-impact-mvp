@@ -124,12 +124,21 @@ export class DonationService {
     const activeVendor = vendors.find(v => v.id === activeVendorId);
     const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
 
+    const cleanStageName = currentStageName.replace(/^Phase \d+:\s*/i, '');
+    const stageBudgetItems = budget
+      .filter((b: any) => (b.stage || 'Main Stage') === currentStageName)
+      .map((b: any) => b.description || b.item)
+      .join(', ');
+
+    const fullStageDisplayName = `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`;
+
     return {
       activeBudgetItem,
       itemRemainingMinor: BigInt(Math.round(itemRemainingMajor * 100)),
       activeSubaccount,
       currentStageName,
       phaseNameRaw: activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : currentStageName,
+      fullStageDisplayName
     };
   }
 
@@ -218,7 +227,7 @@ export class DonationService {
         throw new BadRequestException('Project state changed during processing');
       }
 
-      const formattedPhase = `${activeContext.currentStageName}: ${activeContext.phaseNameRaw}`;
+      const formattedPhase = activeContext.fullStageDisplayName;
       const reference = `DON-${crypto.randomUUID()}`;
 
       const { transaction: walletTx } = await this.walletRepo.processTransaction(
@@ -493,9 +502,9 @@ export class DonationService {
               value: project.title
             },
             {
-              display_name: 'Funding Phase',
+              display_name: 'Funding Stage',
               variable_name: 'funding_phase',
-              value: activeContext.currentStageName
+              value: activeContext.fullStageDisplayName
             }
           ]
         },
@@ -599,7 +608,7 @@ export class DonationService {
         );
       }
 
-      const formattedPhase = `${activeContext.currentStageName}: ${activeContext.phaseNameRaw}`;
+      const formattedPhase = activeContext.fullStageDisplayName;
 
       let processedDonationId: string;
       let isGoalMet = false;

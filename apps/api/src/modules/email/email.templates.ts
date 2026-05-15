@@ -196,7 +196,7 @@ export const EmailTemplates = {
 
   evidenceRequest: (data: { name: string; project: string; milestone: string; vendor: string; uploadUrl: string }) => `
     <p>Hi ${data.name},</p>
-    <p>Givar Management has officially disbursed funds to <strong>${data.vendor}</strong> for the following phase:</p>
+    <p>Givar Management has officially disbursed funds to <strong>${data.vendor}</strong> for the following stage:</p>
     
     <div class="stat-box">
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Active Funding Stage</div>
@@ -209,7 +209,7 @@ export const EmailTemplates = {
 
     <p>As the cause organizer, your verification is now required. Please capture and upload <strong>Proof of Progress</strong> (photos or documents) as soon as the work begins or materials arrive.</p>
     
-    <p style="font-size: 14px; color: #6b7280; font-style: italic;">Note: Verification of this phase is a prerequisite for subsequent funding tranches.</p>
+    <p style="font-size: 14px; color: #6b7280; font-style: italic;">Note: Verification of this stage is a prerequisite for subsequent funding tranches.</p>
 
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.uploadUrl}" class="button" style="background-color: #064e3b;">Upload Proof of Work</a>
@@ -259,7 +259,7 @@ export const EmailTemplates = {
 
   milestoneOwnerUpdate: (data: { name: string; project: string; milestone: string; status: string; url: string }) => `
     <p>Hi ${data.name},</p>
-    <p>The execution status for a phase in <strong>${data.project}</strong> has changed.</p>
+    <p>The execution status for a stage in <strong>${data.project}</strong> has changed.</p>
     <div class="stat-box">
         <p style="margin:0; font-size: 14px;"><strong>Funding Stage:</strong> ${data.milestone}</p>
         <p style="margin:8px 0 0 0; font-size: 14px;"><strong>New Status:</strong> <span style="color: #10b981; font-weight: 700;">${data.status}</span></p>
@@ -555,17 +555,17 @@ export const EmailTemplates = {
 
   sendPhaseUnlockedAlert: (data: { projectTitle: string; projectUrl: string }) => `
       <p>Hi there,</p>
-      <p>Incredible news! The previous phase of <strong>${data.projectTitle}</strong> has been fully executed, and the proof of work has been audited and verified by our team.</p>
+      <p>Incredible news! The previous stage of <strong>${data.projectTitle}</strong> has been fully executed, and the proof of work has been audited and verified by our team.</p>
       
       <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 32px 24px; margin: 24px 0; text-align: center;">
         <p style="font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Milestone Achieved</p>
-        <p style="font-size: 24px; color: #064e3b; font-weight: 800; margin: 0; line-height: 1.2;">The next funding phase is now OPEN!</p>
+        <p style="font-size: 24px; color: #064e3b; font-weight: 800; margin: 0; line-height: 1.2;">The next funding stage is now OPEN!</p>
       </div>
 
       <p>Because you asked to be notified, you're the first to know. The cause still needs your support to reach the finish line. Let's keep the momentum going!</p>
       
       <div style="text-align: center; margin: 40px 0;">
-        <a href="${data.projectUrl}" class="button" style="background-color: #10b981; padding: 18px 40px; font-size: 16px;">Fund the next phase</a>
+        <a href="${data.projectUrl}" class="button" style="background-color: #10b981; padding: 18px 40px; font-size: 16px;">Fund the next stage</a>
       </div>
       
       <p style="font-size: 13px; color: #6b7280;">Thank you for your commitment to transparent, milestone-driven impact.</p>
@@ -573,9 +573,9 @@ export const EmailTemplates = {
 
   adminVendorPayoutConfirmed: (data: { adminName: string; projectTitle: string; phaseName: string; vendorName: string; amount: string; currency: string; reference: string; url: string }) => `
     <p>Hi ${data.adminName},</p>
-    <p><strong>Phase funding accomplished:</strong> The full capital required for a cause phase has been successfully secured and routed to the verified vendor subaccount.</p>
+    <p><strong>Stage funding accomplished:</strong> The full capital required for a cause stage has been successfully secured and routed to the verified vendor subaccount.</p>
     <div class="stat-box" style="border-color: #10b981; background-color: #f0fdf4;">
-      <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total phase capital secured</div>
+      <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Total stage capital secured</div>
       <div style="font-size: 32px; font-weight: 800; color: #10b981;">${data.currency} ${data.amount}</div>
       <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
       <p style="margin: 0; font-size: 14px; color: #064e3b;"><strong>Cause:</strong> ${data.projectTitle}</p>
@@ -583,7 +583,7 @@ export const EmailTemplates = {
       <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Vendor:</strong> ${data.vendorName}</p>
       <p style="margin: 12px 0 0 0; font-size: 10px; color: #059669; font-family: monospace; opacity: 0.7;">Finalizing reference: ${data.reference}</p>
     </div>
-    <p>Execution can now begin. Please contact the vendor immediately to authorize the start of work for this phase.</p>
+    <p>Execution can now begin. Please contact the vendor immediately to authorize the start of work for this stage.</p>
   `,
 
   vendorPhaseFunded: (data: { vendorName: string; projectTitle: string; phaseName: string; amount: string; currency: string; reference: string }) => `
@@ -592,7 +592,7 @@ export const EmailTemplates = {
     <p>We are pleased to inform you that the required capital for your services regarding the cause <strong>"${data.projectTitle}"</strong> has been successfully secured by donors.</p>
     
     <div class="stat-box" style="border-color: #10b981; background-color: #f0fdf4;">
-      <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase;">Phase Fully Funded</div>
+      <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase;">Stage Fully Funded</div>
       <div style="font-size: 24px; font-weight: 800; color: #10b981;">${data.currency} ${data.amount}</div>
       <p style="margin: 12px 0 0 0; font-size: 14px; color: #064e3b;"><strong>Funding Stage:</strong> ${data.phaseName}</p>
       <p style="margin: 4px 0 0 0; font-size: 14px; color: #064e3b;"><strong>Reference:</strong> ${data.reference}</p>

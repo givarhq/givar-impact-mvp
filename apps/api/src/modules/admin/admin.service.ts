@@ -1423,6 +1423,7 @@ export class AdminService {
       where: { id: projectId },
       select: {
         executionTimeline: true,
+        budgetBreakdown: true,
         title: true,
         slug: true,
         waitlistEmails: true,
@@ -1433,6 +1434,7 @@ export class AdminService {
     if (!project) throw new NotFoundException('Project not found');
 
     const timeline = (project.executionTimeline as any[]) || [];
+    const budget = (project.budgetBreakdown as any[]) || [];
     const milestoneIndex = timeline.findIndex(m => m.id === milestoneId);
 
     if (milestoneIndex === -1) {
@@ -1451,7 +1453,15 @@ export class AdminService {
       ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
     };
 
-    const richStageName = `${updatedTimeline[milestoneIndex].phase}: ${updatedTimeline[milestoneIndex].deliverables}`;
+    const currentStageLogicName = updatedTimeline[milestoneIndex].phase;
+    const cleanStageName = currentStageLogicName.replace(/^Phase \d+:\s*/i, '');
+
+    const stageBudgetItems = budget
+      .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
+      .map((b: any) => b.description || b.item)
+      .join(', ');
+
+    const richStageName = `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`;
 
     const updateData: any = { executionTimeline: updatedTimeline as any };
     let emailsToNotify: string[] = [];
@@ -1498,7 +1508,7 @@ export class AdminService {
         data: {
           projectId,
           title: `Milestone Achieved: ${richStageName}`,
-          content: `We are pleased to announce that the "${updatedTimeline[milestoneIndex].phase}" phase has been successfully completed. Deliverables verified: ${updatedTimeline[milestoneIndex].deliverables}.`,
+          content: `We are pleased to announce that the "${updatedTimeline[milestoneIndex].phase}" stage has been successfully completed. Items verified: ${updatedTimeline[milestoneIndex].deliverables}.`,
           type: 'MILESTONE',
           imageUrl: dto.imageUrl || null
         }
@@ -1534,7 +1544,7 @@ export class AdminService {
 
       if (emailsToNotify.length > 0) {
         const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${project.slug}`;
-        this.logger.log(`📢 Broadcasting Next Phase Unlock to ${emailsToNotify.length} waitlisted donors.`);
+        this.logger.log(`📢 Broadcasting Next Stage Unlock to ${emailsToNotify.length} waitlisted donors.`);
         Promise.allSettled(
           emailsToNotify.map(email =>
             this.emailService.sendPhaseUnlockedAlert(email, {
@@ -1550,26 +1560,23 @@ export class AdminService {
   }
 
   private async broadcastMilestoneUpdate(projectId: string, projectTitle: string, projectSlug: string, milestonePhase: string, imageUrl?: string) {
-    // 1. Fetch Unique Registered Donors
     const userDonors = await this.prisma.donation.findMany({
       where: { projectId },
       select: { user: { select: { email: true, firstName: true, preferences: true } } },
       distinct: ['userId'],
     });
 
-    // 2. Fetch Unique Guest Donors
     const guestDonors = await this.prisma.guestDonation.findMany({
       where: { projectId },
       select: { guestDonor: { select: { email: true, name: true } } },
       distinct: ['guestDonorId'],
     });
 
-    // 3. Normalize into a single recipient list
     const recipients = [
       ...userDonors
         .filter(d => {
           const prefs = d.user?.preferences as any;
-          return prefs?.milestoneUpdates !== false; // Default to true if null/missing
+          return prefs?.milestoneUpdates !== false;
         })
         .map((d) => ({
           email: d.user?.email,
@@ -1581,7 +1588,6 @@ export class AdminService {
       })),
     ].filter((r) => r.email);
 
-    // 4. Construct payload
     const frontendUrl = this.config.get('FRONTEND_URL');
     const projectUrl = `${frontendUrl}/explore/${projectSlug}`;
     const formattedDate = new Date().toLocaleDateString('en-GB', {
@@ -1592,8 +1598,6 @@ export class AdminService {
 
     this.logger.log(`📢 Broadcasting Milestone: "${milestonePhase}" to ${recipients.length} donors.`);
 
-    // 5. Batch Sending (Async)
-    // allSettled ensures one bad email address doesn't stop the whole broadcast
     Promise.allSettled(
       recipients.map((r) =>
         this.emailService.sendMilestoneAlert(r.email!, {
@@ -1946,8 +1950,20 @@ export class AdminService {
     if (!project) throw new NotFoundException('Project not found');
 
     const timeline = (project.executionTimeline as any[]) || [];
+    const budget = (project.budgetBreakdown as any[]) || [];
     const milestone = timeline.find(m => m.id === dto.milestoneId);
-    const richStageName = milestone ? `${milestone.phase}: ${milestone.deliverables}` : 'Current Stage';
+
+    const currentStageLogicName = milestone?.phase || 'Main Stage';
+    const cleanStageName = currentStageLogicName.replace(/^Phase \d+:\s*/i, '');
+
+    const stageBudgetItems = budget
+      .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
+      .map((b: any) => b.description || b.item)
+      .join(', ');
+
+    const richStageName = milestone
+      ? `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
+      : 'Current Stage';
 
     return this.prisma.$transaction(async (tx) => {
       const disbursement = await tx.disbursement.create({
