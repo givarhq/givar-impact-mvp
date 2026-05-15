@@ -223,7 +223,7 @@ export const MilestoneManager = memo(function MilestoneManager({
 
                       <div className="flex-1 min-w-0 space-y-1.5 w-full">
                         <div className="flex items-center gap-3 mb-1 min-w-0 flex-wrap">
-                          <span className="text-[10px] font-black text-primary tracking-widest uppercase shrink-0">Stage {index + 1}</span>
+                          <span className="text-[10px] font-black text-primary tracking-widest uppercase shrink-0">Funding Stage</span>
                           <AnimatePresence>
                             {status === 'COMPLETED' && milestone.completedAt && (
                               <motion.span
@@ -236,7 +236,7 @@ export const MilestoneManager = memo(function MilestoneManager({
                             )}
                           </AnimatePresence>
                         </div>
-                        <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">{milestone.phase}</h4>
+                        <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">Stage {index + 1}: {milestone.phase}</h4>
                         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 font-medium">{milestone.deliverables}</p>
 
                         <div className="flex items-center justify-between gap-4 mt-4 pt-3.5 border-t border-border/40 min-w-0 w-full">
