@@ -130,16 +130,12 @@ export default function TrustPage() {
   const isHookValid = titleValid && locationValid && descValid;
   const isMediaValid = !!store.coverImage;
 
-  // Strict Validation: Ensure budget has stages and timeline has deliverables
+  // Strict Validation: Ensure budget has stages and valid amounts
   const isBudgetValid = store.budgetBreakdown.length > 0 && store.budgetBreakdown.every(
     item => item.stage && item.costType && item.amount > 0 && item.description?.trim()
   );
 
-  const isTimelineValid = store.executionTimeline.length > 0 && store.executionTimeline.every(
-    item => item.deliverables?.trim()
-  );
-
-  const isPlanValid = isBudgetValid && isTimelineValid;
+  const isPlanValid = isBudgetValid;
 
   const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
 
@@ -347,7 +343,7 @@ export default function TrustPage() {
                   {!locationValid && <li>A primary location is required.</li>}
                   {!descValid && <li>The cause description must be at least 20 characters.</li>}
                   {!isMediaValid && <li>A primary hero image is required in the media section.</li>}
-                  {!isPlanValid && <li>All required budget and execution fields must be fully completed.</li>}
+                  {!isPlanValid && <li>All required budget fields must be fully completed.</li>}
                   {!isKycValid && <li>At least one piece of cause evidence or procurement quote must be uploaded.</li>}
                 </ul>
               </div>
