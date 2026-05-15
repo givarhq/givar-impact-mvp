@@ -6,9 +6,8 @@ import { useProposalStore } from '../../../../../../../../stores/proposal-store'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowRight, Loader2, ShieldCheck, Briefcase, Clock } from 'lucide-react';
+import { ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import { BudgetEditor } from '../../../../../../../../components/features/proposals/budget-editor';
-import { TimelineEditor } from '../../../../../../../../components/features/proposals/timeline-editor';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import toast from 'react-hot-toast';
 
@@ -17,7 +16,7 @@ export default function PlanPage() {
   const params = useParams();
   const proposalId = params.id as string;
 
-  const { setProposal, riskAnalysis, budgetBreakdown, executionTimeline, updateField } = useProposalStore();
+  const { setProposal, riskAnalysis, budgetBreakdown, updateField } = useProposalStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -53,12 +52,7 @@ export default function PlanPage() {
     item => item.stage && item.amount > 0 && item.description?.trim()
   );
 
-  // 2. Auto-generated timeline items must have deliverables defined
-  const isTimelineValid = executionTimeline.length > 0 && executionTimeline.every(
-    item => item.deliverables?.trim()
-  );
-
-  const isPlanValid = isBudgetValid && isTimelineValid;
+  const isPlanValid = isBudgetValid;
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -90,20 +84,7 @@ export default function PlanPage() {
             </p>
           </div>
 
-          <div className="space-y-4 min-w-0 pt-6  border-border/40">
-            <div className="px-1 space-y-1">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                Execution Roadmap
-              </h3>
-              <p className="text-sm text-muted-foreground font-medium">Define the expected deliverables and outcomes for each funding stage.</p>
-            </div>
-            <div className="min-w-0">
-              <TimelineEditor />
-            </div>
-          </div>
-
-          <div className="space-y-4 min-w-0 pt-6  border-border/40">
+          <div className="space-y-4 min-w-0 pt-6 border-t border-border/40">
             <div className="px-1 space-y-1">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-primary" />

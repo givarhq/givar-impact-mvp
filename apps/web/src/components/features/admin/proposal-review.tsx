@@ -9,7 +9,7 @@ import {
     AlertTriangle, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
     AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2, Phone,
-    ChevronDown, ChevronRight, Mail, Clock
+    ChevronDown, ChevronRight, Mail
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -93,7 +93,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
     const budgetBreakdown = proposal.budgetBreakdown || [];
     const vendors = (proposal as any).vendors || [];
-    const timeline = Array.isArray(proposal.executionTimeline) ? proposal.executionTimeline : [];
     const budgetTotal = budgetBreakdown.reduce((sum, item) => sum + (item.amount || item.cost || 0), 0);
 
     const isTerminalState = proposal.status === 'APPROVED' || proposal.status === 'REJECTED';
@@ -645,51 +644,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </table>
                         </div>
                     </Card>
-
-                    {/* Execution Roadmap Summary */}
-                    {timeline.length > 0 && (
-                        <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mb-6 animate-in slide-in-from-bottom-3 duration-500">
-                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                                <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
-                                    <Clock className="h-4 w-4 text-blue-500" /> Execution Roadmap
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                <div className="divide-y divide-border/40">
-                                    {timeline.map((phase: any, index: number) => {
-                                        const stageItems = budgetBreakdown
-                                            .filter((b: any) => (b.stage || 'Main Stage') === phase.phase)
-                                            .map((b: any) => b.description || b.item)
-                                            .join(', ');
-                                        const displayPhase = `${phase.phase}${stageItems ? `: ${stageItems}` : ''}`;
-                                        return (
-                                            <div key={phase.id || index} className="p-5 flex items-start gap-4 hover:bg-muted/10 transition-colors">
-                                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-                                                    {index + 1}
-                                                </div>
-                                                <div className="space-y-1.5 min-w-0 flex-1">
-                                                    <h4 className="font-bold text-sm text-foreground leading-snug">{displayPhase}</h4>
-
-                                                    {/* FIX: Render the deliverables so the Admin can actually audit them */}
-                                                    {phase.deliverables && (
-                                                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                                                            <span className="font-bold text-foreground/70">Required Deliverables:</span> {phase.deliverables}
-                                                        </p>
-                                                    )}
-
-                                                    {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
-                                                        <div className="text-[10px] font-bold text-muted-foreground/80 mt-2 flex items-center gap-1.5">
-                                                            <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
 
                     {/* ACTION TERMINAL AT BOTTOM OF LEFT COLUMN */}
                     <Card className={cn(

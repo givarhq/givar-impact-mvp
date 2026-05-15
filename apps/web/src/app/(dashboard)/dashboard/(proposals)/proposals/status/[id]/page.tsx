@@ -10,7 +10,7 @@ import { formatCurrency } from '../../../../../../../lib/utils/format';
 import {
     ArrowLeft, Clock, CheckCircle2, AlertCircle,
     FileSearch, ShieldCheck, Check, Fingerprint,
-    FileText, ArrowRight, Briefcase, Calendar,
+    FileText, ArrowRight, Briefcase
 } from 'lucide-react';
 import { cn } from '../../../../../../../lib/utils/cn';
 
@@ -44,7 +44,6 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
         });
 
         const vendors = Array.isArray((proposal as any).vendors) ? (proposal as any).vendors : [];
-        const timeline = Array.isArray(proposal.executionTimeline) ? proposal.executionTimeline : [];
         const budgetTotal = budget.reduce((sum: number, item: any) => sum + (item.amount || item.cost || 0), 0);
 
         // Logic: Construct the current stage logic
@@ -290,43 +289,6 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                 </div>
                             </Card>
                         )}
-
-                        {/* Execution Roadmap Summary */}
-                        {timeline.length > 0 && (
-                            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden mb-6 animate-in slide-in-from-bottom-3 duration-500">
-                                <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-6">
-                                    <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
-                                        <Clock className="h-4 w-4 text-blue-500" /> Execution Roadmap
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                    <div className="divide-y divide-border/40">
-                                        {timeline.map((phase: any, index: number) => {
-                                            const stageItems = budget
-                                                .filter((b: any) => (b.stage || 'Main Stage') === phase.phase)
-                                                .map((b: any) => b.description || b.item)
-                                                .join(', ');
-                                            const displayPhase = `${phase.phase}${stageItems ? `: ${stageItems}` : ''}`;
-                                            return (
-                                                <div key={phase.id || index} className="p-5 flex items-start gap-4 hover:bg-muted/10 transition-colors">
-                                                    <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-                                                        {index + 1}
-                                                    </div>
-                                                    <div className="space-y-1 min-w-0 flex-1">
-                                                        <h4 className="font-bold text-sm text-foreground leading-snug">{displayPhase}</h4>
-                                                        {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
-                                                            <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
-                                                                <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                     </div>
 
                     <div className="lg:col-span-4 space-y-6 min-w-0">
@@ -377,7 +339,6 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                             </CardContent>
                         </Card>
 
-                        {/* Communication Panel moved here to create the 2x2 grid */}
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0">
                             <FeedbackThread
                                 proposalId={proposal.id}
