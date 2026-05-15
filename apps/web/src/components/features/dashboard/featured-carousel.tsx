@@ -45,28 +45,39 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     const current: any = projects[index];
     if (!current) return null;
 
-    // --- PHASED FUNDING MATH ---
+    // --- AGGREGATED PHASED FUNDING MATH ---
+    const timeline = Array.isArray(current.executionTimeline) ? current.executionTimeline : [];
+    const budget = Array.isArray(current.budgetBreakdown) ? current.budgetBreakdown : [];
+    const activeIndex = current.currentPhaseIndex || 0;
+
     const raised = BigInt(current.raisedAmount || '0');
     const target = BigInt(current.targetAmount || '0');
     const isCompleted = current.status === 'COMPLETED';
     const isFundedState = current.status === 'FUNDED' || (raised >= target && target > 0n && !isCompleted);
 
-    const activeIndex = current.currentPhaseIndex || 0;
-    const budget = Array.isArray(current.budgetBreakdown) ? current.budgetBreakdown : [];
-
     let previousPhasesMajor = 0;
-    for (let i = 0; i < activeIndex && i < budget.length; i++) {
-        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let currentPhaseMajor = 0;
 
-    let cumulativeMajor = previousPhasesMajor;
-    if (budget[activeIndex]) {
-        cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    budget.forEach((item: any) => {
+        const amt = item.amount || (item as any).cost || 0;
+        const itemStage = item.stage || 'Main Stage';
+
+        if (previousStages.includes(itemStage)) {
+            previousPhasesMajor += amt;
+        } else if (itemStage === currentStageName) {
+            currentPhaseMajor += amt;
+        }
+    });
+
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+    if (timeline.length === 0 || activeIndex >= timeline.length) {
+        phaseCapMinor = target;
     }
-    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-        ? BigInt(Math.round(cumulativeMajor * 100))
-        : target;
 
     const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
     let raisedInCurrentPhase = raised - previousPhasesMinor;
@@ -79,7 +90,6 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
     const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
-    const activeItemName = budget[activeIndex] ? (budget[activeIndex].description || (budget[activeIndex] as any).item) : 'Final Phase';
     const currencySymbol = SYMBOLS[current.currency] || current.currency;
 
     const handleDragEnd = (event: any, info: PanInfo) => {
@@ -112,7 +122,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
         setWaitlistLoadingId(projectId);
         try {
             await ApiService.projects.joinWaitlist(projectId, email);
-            toast.success("You'll be notified when the next phase unlocks!");
+            toast.success("You'll be notified when the next stage unlocks!");
             setWaitlistedIds(prev => new Set(prev).add(projectId));
         } catch (e) {
             toast.error("Could not join waitlist");
@@ -178,27 +188,26 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
 
                     <div className="flex flex-col h-full p-3 sm:p-4 lg:p-5 bg-muted/10 border-t lg:border-t-0 lg:border-l border-border/40 min-w-0">
                         <div className="flex items-center justify-center mb-2 w-full">
-                            <span className="text-[9px] lg:text-[10px] font-bold text-muted-foreground tracking-widest uppercase truncate text-center">Current Funding Phase</span>
+                            <span className="text-[9px] lg:text-[10px] font-bold text-muted-foreground tracking-widest uppercase truncate text-center">Current Funding Stage</span>
                         </div>
 
                         <div className="bg-card border border-border/40 rounded-2xl p-3 lg:p-3.5 shadow-sm text-left flex flex-col justify-center min-w-0 mb-3">
                             <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
                                 <div className="min-w-0">
                                     <h4 className="text-xs font-bold text-primary leading-tight truncate">
-                                        Phase {activeIndex + 1}: {activeItemName}
+                                        Stage {activeIndex + 1}: {currentStageName}
                                     </h4>
 
-                                    {/* Open phase only info */}
                                     {!isPhaseFull && (
                                         <p className="text-[10px] text-muted-foreground leading-snug mt-1">
-                                            This cause is funded in stages. Each stage unlocks only after the previous one is fully funded and confirmed.
+                                            This cause is funded in stages. Each stage unlocks only after the previous one is fully verified.
                                         </p>
                                     )}
                                 </div>
 
                                 {isPhaseFull && (
                                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-2xl border border-amber-200/60 shrink-0 whitespace-nowrap">
-                                        <Clock className="h-3.5 w-3.5" /> Verifying Phase
+                                        <Clock className="h-3.5 w-3.5" /> Verifying Stage
                                     </div>
                                 )}
                             </div>
@@ -287,25 +296,6 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                     </div>
                 </motion.div>
             </AnimatePresence>
-
-            {projects.length > 1 && (
-                <div className="absolute top-4 right-5 flex items-center gap-1.5 z-20 bg-background/50 backdrop-blur-sm px-2.5 py-1.5 rounded-full border border-border/40 shadow-sm">
-                    {projects.map((_, i) => (
-                        <button
-                            key={i}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIndex(i);
-                            }}
-                            className={cn(
-                                "h-1.5 rounded-full transition-all duration-500",
-                                i === index ? "w-4 bg-primary" : "w-1.5 bg-foreground/30 hover:bg-foreground/50"
-                            )}
-                            aria-label={`Go To Slide ${i + 1}`}
-                        />
-                    ))}
-                </div>
-            )}
 
             <ShareModal
                 isOpen={isShareOpen}
