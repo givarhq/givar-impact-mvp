@@ -82,7 +82,7 @@ interface ProposalState {
   awarenessStatus: string | null;
 
   setProposal: (proposal: any) => void;
-  updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem' | 'addVendor' | 'removeVendor' | 'updateVendor'>>(
+  updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem' | 'addKycDocument' | 'removeKycDocument' | 'addVendor' | 'removeVendor' | 'updateVendor'>>(
     field: K,
     value: ProposalState[K]
   ) => void;
@@ -236,13 +236,20 @@ export const useProposalStore = create<ProposalState>()(
         });
 
         const currentTimeline = get().executionTimeline;
+
+        // Ensure auto-generated timelines inherit budget names to prevent blank deliverable blockers
         const newTimeline = uniqueStages.map(stage => {
           const existing = currentTimeline.find(t => t.phase === stage);
-          return existing || {
+          if (existing) return existing;
+
+          const stageItems = newBudget.filter(b => b.stage === stage);
+          const autoDeliverables = stageItems.map(b => b.description).filter(Boolean).join(', ');
+
+          return {
             id: crypto.randomUUID(),
             phase: stage,
             estimatedDate: '',
-            deliverables: ''
+            deliverables: autoDeliverables || 'Implementation'
           };
         });
 
