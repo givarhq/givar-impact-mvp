@@ -10,7 +10,7 @@ import { formatCurrency } from '../../../../../../../lib/utils/format';
 import {
     ArrowLeft, Clock, CheckCircle2, AlertCircle,
     FileSearch, ShieldCheck, Check, Fingerprint,
-    FileText, ArrowRight, Briefcase, Calendar
+    FileText, ArrowRight, Briefcase, Calendar, XCircle
 } from 'lucide-react';
 import { cn } from '../../../../../../../lib/utils/cn';
 
@@ -264,19 +264,20 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                                 </Badge>
                                                                 <span className="text-[10px] font-bold text-muted-foreground tracking-tight px-2 border-l border-border/60">{item.stage || 'Main Stage'}</span>
                                                             </div>
+                                                            <div className="sm:hidden font-mono text-foreground font-bold mt-2">
+                                                                {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), proposal.currency || 'NGN')}
+                                                            </div>
                                                         </td>
-                                                        <td className="px-6 py-4">
+                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">
                                                             {isPendingVendor ? (
                                                                 <span className="text-amber-600 font-bold text-[11px] bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 shadow-sm whitespace-nowrap">
                                                                     To be confirmed
                                                                 </span>
                                                             ) : (
-                                                                <div className="flex flex-col gap-0.5">
-                                                                    <span className="font-bold text-foreground">{vendorName}</span>
-                                                                </div>
+                                                                <span className="font-bold text-foreground">{vendorName}</span>
                                                             )}
                                                         </td>
-                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
+                                                        <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
                                                             {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), proposal.currency || 'NGN')}
                                                         </td>
                                                         <td className="px-6 py-4 text-right">
@@ -310,7 +311,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                     {index + 1}
                                                 </div>
                                                 <div className="space-y-1 min-w-0 flex-1">
-                                                    <h4 className="font-bold text-sm text-foreground">{phase.phase}</h4>
+                                                    <h4 className="font-bold text-sm text-foreground">Stage {index + 1}: {phase.phase}</h4>
                                                     <p className="text-xs text-muted-foreground font-medium leading-relaxed">{phase.deliverables}</p>
                                                     {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
                                                         <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
