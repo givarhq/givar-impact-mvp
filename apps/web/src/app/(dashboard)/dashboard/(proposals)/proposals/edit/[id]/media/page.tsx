@@ -25,9 +25,15 @@ export default function MediaPage() {
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    ApiService.proposals.get(proposalId)
-      .then(async (data) => {
-        setProposal(data);
+    const initializeData = async () => {
+      try {
+        const currentState = useProposalStore.getState();
+        let data = currentState as any;
+
+        if (currentState.id !== proposalId) {
+          data = await ApiService.proposals.get(proposalId);
+          setProposal(data);
+        }
 
         // Handle Video JIT Hydration
         if (data.videoUrl) {
@@ -43,11 +49,13 @@ export default function MediaPage() {
           }
         }
         setIsLoading(false);
-      })
-      .catch(() => {
+      } catch (error) {
         toast.error('Draft failed to load');
         router.push('/dashboard/proposals');
-      });
+      }
+    };
+
+    initializeData();
   }, [proposalId, setProposal, router]);
 
   const handleCoverUpload = (data: { key: string; previewUrl: string }) => {

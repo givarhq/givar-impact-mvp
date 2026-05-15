@@ -35,8 +35,14 @@ export default function TrustPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const proposalData = await ApiService.proposals.get(proposalId);
-        store.setProposal(proposalData);
+        const currentState = useProposalStore.getState();
+        let proposalData = currentState as any;
+
+        if (currentState.id !== proposalId) {
+          proposalData = await ApiService.proposals.get(proposalId);
+          store.setProposal(proposalData);
+        }
+
         setCategoryName(proposalData.category?.name?.toLowerCase() || '');
       } catch (error) {
         toast.error('Data synchronization failed');

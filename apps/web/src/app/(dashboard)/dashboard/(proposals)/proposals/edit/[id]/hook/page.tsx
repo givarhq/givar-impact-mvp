@@ -49,18 +49,25 @@ export default function HookPage() {
         }
         setUserAccountType(parsedAccountType);
 
+        const currentState = useProposalStore.getState();
+
         const [proposalData, cats] = await Promise.all([
-          ApiService.proposals.get(proposalId),
+          currentState.id !== proposalId ? ApiService.proposals.get(proposalId) : Promise.resolve(null),
           ApiService.projects.getCategories()
         ]);
         setCategories(cats || []);
-        setProposal(proposalData);
 
-        if (proposalData.organizationName) {
+        if (proposalData) {
+          setProposal(proposalData);
+        }
+
+        const activeData = proposalData || currentState;
+
+        if (activeData.organizationName) {
           setTargetType('GROUP');
-        } else if (proposalData.beneficiaryRelationship === 'Self') {
+        } else if (activeData.beneficiaryRelationship === 'Self') {
           setTargetType('SELF');
-        } else if (proposalData.beneficiaryName) {
+        } else if (activeData.beneficiaryName) {
           setTargetType(parsedAccountType === 'ORGANIZER' ? 'INDIVIDUAL' : 'OTHER');
         }
 
@@ -218,9 +225,13 @@ export default function HookPage() {
                         <SelectValue placeholder="Select a sector..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-[22px] shadow-xl border-border/40">
-                        {categories.map(cat => (
-                          <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
-                        ))}
+                        {categories.length === 0 ? (
+                          <div className="p-4 text-xs text-muted-foreground text-center italic">Loading...</div>
+                        ) : (
+                          categories.map(cat => (
+                            <SelectItem key={cat.id} value={cat.id} className="rounded-xl text-xs py-2.5 font-bold">{cat.name}</SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   )}
