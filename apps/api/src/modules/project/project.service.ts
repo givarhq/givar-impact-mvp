@@ -313,13 +313,27 @@ export class ProjectService {
     if (timeline.length === 0) {
       const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
       if (budget.length > 0) {
-        timeline = budget.map((b: any, index: number) => ({
-          id: b.id || `auto-stage-${index}`,
-          phase: `Phase ${index + 1}: ${b.description || b.item || 'Implementation'}`,
-          estimatedDate: 'TBD',
-          status: 'PENDING',
-          deliverables: b.description || b.item || 'Implementation',
-        }));
+        const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+        const uniqueStages = Array.from(new Set(budget.map((b: any) => b.stage || 'Main Stage')));
+
+        uniqueStages.sort((a, b) => {
+          const idxA = STAGE_ORDER.indexOf(a as string);
+          const idxB = STAGE_ORDER.indexOf(b as string);
+          return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+        });
+
+        timeline = uniqueStages.map((stage, index) => {
+          const stageItems = budget.filter((b: any) => (b.stage || 'Main Stage') === stage);
+          const deliverables = stageItems.map((b: any) => b.description || b.item || 'Implementation').join(', ');
+
+          return {
+            id: `auto-stage-${index}`,
+            phase: stage,
+            estimatedDate: 'TBD',
+            status: 'PENDING',
+            deliverables: deliverables,
+          };
+        });
 
         await this.prisma.project.update({
           where: { id: project.id },

@@ -738,10 +738,18 @@ export class DonationService {
       const currentPhaseCap = this.calculatePhaseCap(updatedProject);
       let currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
 
-      // THRESHOLD COMPLETION RULE (PLATFORM DUST COVERAGE)
-      if (currentRemainingForPhase > 0n && currentRemainingForPhase < 10000n) {
-        const dustMinor = currentRemainingForPhase;
+      const postDonationContext = this.getActiveBudgetContext(updatedProject);
+      const currentRemainingForItem = postDonationContext.itemRemainingMinor;
 
+      // THRESHOLD COMPLETION RULE (PLATFORM DUST COVERAGE)
+      let dustMinor = 0n;
+      if (currentRemainingForItem > 0n && currentRemainingForItem < 10000n) {
+        dustMinor = currentRemainingForItem;
+      } else if (currentRemainingForPhase > 0n && currentRemainingForPhase < 10000n) {
+        dustMinor = currentRemainingForPhase;
+      }
+
+      if (dustMinor > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
           include: { wallets: { where: { currency } } }
@@ -800,7 +808,7 @@ export class DonationService {
             }
           });
 
-          currentRemainingForPhase = 0n;
+          currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
         }
       }
 
@@ -1439,9 +1447,9 @@ export class DonationService {
     budget.forEach((item: any) => {
       const amt = item.amount || item.cost || 0;
       const itemStage = item.stage || 'Main Stage';
-      
+
       if (previousStages.includes(itemStage) || itemStage === currentStageName) {
-          totalMajor += amt;
+        totalMajor += amt;
       }
     });
 
