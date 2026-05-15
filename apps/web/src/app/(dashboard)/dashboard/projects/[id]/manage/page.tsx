@@ -17,7 +17,6 @@ import {
     FileText,
     Activity,
     History,
-    ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -49,7 +48,16 @@ export default async function ProjectManagePage({
     const recentDonations = await ApiService.projects.getLedger(ledgerParams, project.slug, token).catch(() => ({ data: [] }));
 
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
-    const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+    const rawBudget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+
+    // Sort budget items by stage chronologically to ensure accurate progress tracking
+    const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+    const budget = [...rawBudget].sort((a, b) => {
+        const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
+        const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
+        return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+    });
+
     const vendors = Array.isArray(project.vendors) ? project.vendors : [];
     const updates: ProjectUpdate[] = Array.isArray(project.updates) ? project.updates : [];
 
@@ -66,25 +74,37 @@ export default async function ProjectManagePage({
     const target = Number(project.targetAmount || 0);
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isFullyCompleted);
 
+    // --- AGGREGATED PHASE FINANCIAL MATH ---
     let previousPhasesMajor = 0;
-    for (let i = 0; i < currentPhaseIndex && i < budget.length; i++) {
-        previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-    }
-    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+    let currentPhaseMajor = 0;
 
-    let cumulativeMajor = previousPhasesMajor;
-    if (budget[currentPhaseIndex]) {
-        cumulativeMajor += (budget[currentPhaseIndex].amount || (budget[currentPhaseIndex] as any).cost || 0);
+    const previousStages = timeline.slice(0, currentPhaseIndex).map((t: any) => t.phase);
+    const currentStageName = timeline[currentPhaseIndex]?.phase || 'Main Stage';
+
+    budget.forEach((item: any) => {
+        const amt = item.amount || (item as any).cost || 0;
+        const itemStage = item.stage || 'Main Stage';
+
+        if (previousStages.includes(itemStage)) {
+            previousPhasesMajor += amt;
+        } else if (itemStage === currentStageName) {
+            currentPhaseMajor += amt;
+        }
+    });
+
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+    if (timeline.length === 0 || currentPhaseIndex >= timeline.length) {
+        phaseCapMinor = BigInt(project.targetAmount || '0');
     }
-    const phaseCapMinor = budget.length > 0 && currentPhaseIndex < budget.length
-        ? BigInt(cumulativeMajor * 100)
-        : BigInt(project.targetAmount || '0');
 
     const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
     let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
     if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
 
-    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isFullyCompleted;
+    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isFullyCompleted;
 
     const isSystem = project.user?.role === 'ADMIN' || project.user?.role === 'SUPERADMIN';
     let verLabel = 'Advocate';
@@ -164,7 +184,7 @@ export default async function ProjectManagePage({
                             <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10 min-w-0">
                                 <CardTitle className="text-base font-bold flex items-center gap-3 truncate text-foreground">
                                     <Activity className="h-5 w-5 text-primary shrink-0" />
-                                    <span className="truncate">Phase {currentPhaseIndex + 1} monitoring active</span>
+                                    <span className="truncate">Stage {currentPhaseIndex + 1} monitoring active</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 md:p-8 space-y-4 min-w-0">
@@ -220,9 +240,11 @@ export default async function ProjectManagePage({
                                 </thead>
                                 <tbody className="divide-y divide-border/40 text-xs">
                                     {budget.map((item: any, i: number) => {
-                                        const isItemCompleted = i < currentPhaseIndex || isFullyCompleted || isFundedState;
-                                        const isItemCurrent = i === currentPhaseIndex && !isFullyCompleted && !isFundedState && !isPhaseFull;
-                                        const isItemFull = i === currentPhaseIndex && isPhaseFull;
+                                        const itemStage = item.stage || 'Main Stage';
+
+                                        const isItemCompleted = previousStages.includes(itemStage) || isFullyCompleted || isFundedState;
+                                        const isItemCurrent = itemStage === currentStageName && !isFullyCompleted && !isFundedState && !isPhaseFull;
+                                        const isItemFull = itemStage === currentStageName && isPhaseFull;
 
                                         let statusBadge;
                                         if (isItemCompleted) {
@@ -241,9 +263,12 @@ export default async function ProjectManagePage({
                                             <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
                                                 <td className="px-6 py-4">
                                                     <div className="font-bold text-foreground text-sm mb-1.5">{item.description || item.item}</div>
-                                                    <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
-                                                        {item.costType || item.type}
-                                                    </Badge>
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
+                                                            {item.costType || item.type}
+                                                        </Badge>
+                                                        <span className="text-[10px] font-bold text-muted-foreground tracking-tight px-2 border-l border-border/60">{itemStage}</span>
+                                                    </div>
                                                     <div className="sm:hidden font-mono text-foreground font-bold mt-2">
                                                         {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                     </div>
@@ -305,13 +330,6 @@ export default async function ProjectManagePage({
                                     <p className="text-xs text-muted-foreground italic font-medium">No donations yet.</p>
                                 </div>
                             )}
-                            <div className="p-3 bg-muted/10 border-t border-border/40">
-                                <Link href={`/dashboard/impact/${project.slug}/records`} className="block w-full">
-                                    <Button variant="ghost" className="w-full h-9 rounded-2xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all">
-                                        View all records <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                                    </Button>
-                                </Link>
-                            </div>
                         </CardContent>
                     </Card>
 

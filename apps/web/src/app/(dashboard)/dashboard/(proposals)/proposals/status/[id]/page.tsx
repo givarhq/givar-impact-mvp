@@ -34,7 +34,15 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
         }
 
         // Structural Extraction for Context View
-        const budget = Array.isArray(proposal.budgetBreakdown) ? proposal.budgetBreakdown : [];
+        const rawBudget = Array.isArray(proposal.budgetBreakdown) ? proposal.budgetBreakdown : [];
+        // Sort budget items chronologically
+        const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+        const budget = [...rawBudget].sort((a, b) => {
+            const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
+            const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
+            return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+        });
+
         const vendors = Array.isArray((proposal as any).vendors) ? (proposal as any).vendors : [];
         const timeline = Array.isArray(proposal.executionTimeline) ? proposal.executionTimeline : [];
         const budgetTotal = budget.reduce((sum: number, item: any) => sum + (item.amount || item.cost || 0), 0);
@@ -235,23 +243,27 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                         <thead className="bg-muted/10 text-[11px] font-bold text-muted-foreground border-b border-border/40 tracking-tight">
                                             <tr>
                                                 <th className="px-6 py-4">Item</th>
-                                                <th className="px-6 py-4">Recipient</th>
-                                                <th className="px-6 py-4 text-right">Amount</th>
+                                                <th className="px-6 py-4 hidden md:table-cell">Recipient</th>
+                                                <th className="px-6 py-4 hidden sm:table-cell">Amount</th>
+                                                <th className="px-6 py-4 text-right">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/40 text-xs font-medium">
                                             {budget.map((item: any, i: number) => {
                                                 const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
-                                                const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'To be confirmed');
+                                                const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'Pending vendor sourcing');
                                                 const isPendingVendor = !vendorName || vendorName.toLowerCase() === 'pending vendor sourcing' || vendorName === 'To be confirmed';
 
                                                 return (
                                                     <tr key={item.id || i} className="hover:bg-muted/10 transition-colors">
                                                         <td className="px-6 py-4">
                                                             <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
-                                                            <Badge variant="secondary" className="mt-1.5 px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">
-                                                                {item.costType || item.type}
-                                                            </Badge>
+                                                            <div className="flex items-center gap-2 mt-1.5">
+                                                                <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">
+                                                                    {item.costType || item.type}
+                                                                </Badge>
+                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight px-2 border-l border-border/60">{item.stage || 'Main Stage'}</span>
+                                                            </div>
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             {isPendingVendor ? (
@@ -261,12 +273,14 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                             ) : (
                                                                 <div className="flex flex-col gap-0.5">
                                                                     <span className="font-bold text-foreground">{vendorName}</span>
-                                                                    {/* Removed contact details per instruction for user-facing summary */}
                                                                 </div>
                                                             )}
                                                         </td>
                                                         <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
                                                             {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), proposal.currency || 'NGN')}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>
                                                         </td>
                                                     </tr>
                                                 );
