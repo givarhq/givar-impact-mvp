@@ -75,6 +75,15 @@ export default async function ProjectManagePage({
     const target = Number(project.targetAmount || 0);
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isFullyCompleted);
 
+    // Dynamic Phase Name Generator
+    const getDisplayPhase = (phaseName: string) => {
+        const stageItems = budget
+            .filter((b: any) => (b.stage || 'Main Stage') === phaseName)
+            .map((b: any) => b.description || b.item)
+            .join(', ');
+        return `${phaseName}${stageItems ? `: ${stageItems}` : ''}`;
+    };
+
     // --- AGGREGATED PHASE FINANCIAL MATH ---
     let previousPhasesMajor = 0;
     let currentPhaseMajor = 0;
@@ -82,9 +91,8 @@ export default async function ProjectManagePage({
     const previousStages = timeline.slice(0, currentPhaseIndex).map((t: any) => t.phase);
     const currentStageLogicName = timeline[currentPhaseIndex]?.phase || 'Main Stage';
 
-    // UI Display Logic
     const currentStageDisplayName = timeline[currentPhaseIndex]
-        ? `${timeline[currentPhaseIndex].phase}: ${timeline[currentPhaseIndex].deliverables}`
+        ? getDisplayPhase(currentStageLogicName)
         : 'Main Stage';
 
     budget.forEach((item: any) => {

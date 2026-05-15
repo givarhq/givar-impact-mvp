@@ -301,21 +301,28 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <div className="divide-y divide-border/40">
-                                        {timeline.map((phase: any, index: number) => (
-                                            <div key={phase.id || index} className="p-5 flex items-start gap-4 hover:bg-muted/10 transition-colors">
-                                                <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
-                                                    {index + 1}
+                                        {timeline.map((phase: any, index: number) => {
+                                            const stageItems = budget
+                                                .filter((b: any) => (b.stage || 'Main Stage') === phase.phase)
+                                                .map((b: any) => b.description || b.item)
+                                                .join(', ');
+                                            const displayPhase = `${phase.phase}${stageItems ? `: ${stageItems}` : ''}`;
+                                            return (
+                                                <div key={phase.id || index} className="p-5 flex items-start gap-4 hover:bg-muted/10 transition-colors">
+                                                    <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 border border-primary/20">
+                                                        {index + 1}
+                                                    </div>
+                                                    <div className="space-y-1 min-w-0 flex-1">
+                                                        <h4 className="font-bold text-sm text-foreground leading-snug">{displayPhase}</h4>
+                                                        {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
+                                                            <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
+                                                                <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="space-y-1 min-w-0 flex-1">
-                                                    <h4 className="font-bold text-sm text-foreground leading-snug">{phase.phase}: {phase.deliverables}</h4>
-                                                    {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
-                                                        <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
-                                                            <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </CardContent>
                             </Card>
