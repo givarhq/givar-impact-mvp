@@ -32,6 +32,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     // --- PHASED FUNDING MATH ---
     const activeIndex = project.currentPhaseIndex || 0;
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
+
+    const activeStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
+    const cleanStageName = activeStageLogicName.replace(/^Phase \d+:\s*/i, '');
+    const stageBudgetItems = budget
+        .filter((b: any) => (b.stage || 'Main Stage') === activeStageLogicName)
+        .map((b: any) => b.description || b.item)
+        .join(', ');
+    const displayPhase = `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`;
 
     let previousPhasesMajor = 0;
     for (let i = 0; i < activeIndex && i < budget.length; i++) {
@@ -72,7 +81,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
     let statusText = `${phasePercent}% Funded`;
     if (isCompleted || isFundedState) statusText = 'Goal Reached';
-    else if (isPhaseFull) statusText = 'Phase Funded';
+    else if (isPhaseFull) statusText = 'Stage Funded';
 
     return new ImageResponse(
         (
@@ -120,7 +129,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                                 fontWeight: 'bold',
                                 border: '1px solid rgba(0,0,0,0.1)'
                             }}>
-                                Phase {activeIndex + 1} Active
+                                Funding: {cleanStageName}
                             </div>
                         )}
                     </div>
