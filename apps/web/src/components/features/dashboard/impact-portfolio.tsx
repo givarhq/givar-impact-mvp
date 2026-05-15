@@ -22,6 +22,7 @@ interface PortfolioItem {
         currency: string;
         status: string;
         budgetBreakdown?: any[];
+        executionTimeline?: any[];
         currentPhaseIndex?: number;
     };
 }
@@ -82,6 +83,9 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
 
                         const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
+                        const activeStageLogicName = item.project.executionTimeline?.[activeIndex]?.phase || 'Main Stage';
+                        const cleanStageName = activeStageLogicName.replace(/^Phase \d+:\s*/i, '');
+
                         return (
                             <motion.div
                                 key={item.id}
@@ -136,7 +140,7 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                                             <div className="space-y-1.5 w-full">
                                                 <div className="flex justify-between items-end text-[10px] font-bold">
                                                     <span className={isCompleted || isFundedState ? "text-emerald-600" : isPhaseFull ? "text-amber-600" : "text-muted-foreground"}>
-                                                        {isCompleted || isFundedState ? 'Goal Met' : isPhaseFull ? 'Verification in Progress' : `Phase ${activeIndex + 1} Goal`}
+                                                        {isCompleted || isFundedState ? 'Goal Met' : isPhaseFull ? 'Verification in Progress' : `${cleanStageName} Goal`}
                                                     </span>
                                                     <span className="text-primary">{phasePercent.toFixed(0)}%</span>
                                                 </div>

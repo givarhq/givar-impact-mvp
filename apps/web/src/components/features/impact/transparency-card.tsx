@@ -45,8 +45,13 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
     const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
 
+    const stageBudgetItems = budget
+        .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
+        .map((b: any) => b.description || b.item)
+        .join(', ');
+
     const currentStageDisplayName = timeline[activeIndex]
-        ? `${timeline[activeIndex].phase}: ${timeline[activeIndex].deliverables}`
+        ? `${currentStageLogicName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
         : 'Main Stage';
 
     budget.forEach((item: any) => {
