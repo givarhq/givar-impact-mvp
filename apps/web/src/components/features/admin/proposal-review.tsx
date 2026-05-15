@@ -553,12 +553,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                                                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                                                                 </div>
                                                                                 <div>
-                                                                                    <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
-                                                                                    <div className="text-[11px] text-muted-foreground mt-1.5 flex flex-col gap-1">
-                                                                                        <div className="flex items-center gap-2">
-                                                                                            <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">{item.costType || item.type}</Badge>
-                                                                                            <span>To: <span className="font-bold text-foreground">{vendorName}</span></span>
-                                                                                        </div>
+                                                                                    <div className="font-bold text-foreground text-xs mb-1">{item.description || item.item}</div>
+                                                                                    <div className="text-[11px] text-muted-foreground mt-1">
+                                                                                        To: <span className="font-bold text-foreground">{vendorName}</span>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>

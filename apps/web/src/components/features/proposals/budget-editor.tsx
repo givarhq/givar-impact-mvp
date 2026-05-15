@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, memo } from 'react';
-import { Trash2, PlusCircle, Landmark, ShieldCheck, Loader2, Info, Users, Mail, Phone, UserPlus, ReceiptText } from 'lucide-react';
+import { Trash2, PlusCircle, Landmark, ShieldCheck, Loader2, Users, Mail, Phone, UserPlus, ReceiptText } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
@@ -10,7 +10,6 @@ import { formatNumberInput, parseFormattedNumber } from '../../../lib/utils/form
 import { useProposalStore, BudgetItem, VendorItem } from '../../../stores/proposal-store';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CATEGORY_COST_TYPES, DEFAULT_COST_TYPES } from '../../../lib/utils/category-constants';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
 
@@ -22,7 +21,6 @@ interface BudgetEditorProps {
   readOnly?: boolean;
   isLive?: boolean;
   isAdjustmentMode?: boolean;
-  categorySlug?: string;
   isAdmin?: boolean;
   proposalId?: string;
 }
@@ -37,7 +35,6 @@ export const BudgetEditor = memo(function BudgetEditor({
   readOnly = false,
   isLive = false,
   isAdjustmentMode = false,
-  categorySlug,
   isAdmin = false,
   proposalId
 }: BudgetEditorProps) {
@@ -54,10 +51,6 @@ export const BudgetEditor = memo(function BudgetEditor({
   const updateVendors = onVendorsChange ? (val: VendorItem[]) => onVendorsChange(val) : (val: VendorItem[]) => updateField('vendors', val);
 
   const isLocked = readOnly || (isLive && !isAdjustmentMode);
-
-  const activeCostTypes = categorySlug && CATEGORY_COST_TYPES[categorySlug]
-    ? CATEGORY_COST_TYPES[categorySlug]
-    : DEFAULT_COST_TYPES;
 
   const [subaccountModal, setSubaccountModal] = useState<{ isOpen: boolean; vendorId: string | null }>({ isOpen: false, vendorId: null });
   const [banks, setBanks] = useState<{ name: string; code: string }[]>([]);
@@ -131,7 +124,7 @@ export const BudgetEditor = memo(function BudgetEditor({
     const newItem: BudgetItem = {
       id: crypto.randomUUID(),
       vendorId: vendors.length === 1 ? vendors[0].id : '',
-      costType: activeCostTypes[0].value,
+      costType: 'STANDARD', // Legacy fallback for DB integrity
       amount: 0,
       description: '',
       stage: 'Main Stage'
@@ -346,10 +339,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
         <div className="space-y-2 mb-6">
           <p className="text-xs text-muted-foreground font-medium mb-2">
-            List the main items needed to complete this cause in the order they will be carried out.
-          </p>
-          <p className="text-xs text-muted-foreground font-medium mb-4">
-            <span className="font-bold">Tip:</span> We recommend 2–4 items for most causes. If your invoice includes many entries, group related costs into a few clear categories (e.g. Consultation, Surgery, Aftercare) to keep your cause easy to understand and speed up review.
+            List the main items needed to complete this cause and group them into their execution stages.
           </p>
         </div>
 
@@ -365,7 +355,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 transition={{ duration: 0.2 }}
                 className={fieldContainerClass}
               >
-                <div className="md:col-span-3 space-y-1.5">
+                <div className="md:col-span-4 space-y-1.5">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Item</label>
                   <Input
                     placeholder="Details..."
@@ -376,27 +366,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                   />
                 </div>
 
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Category</label>
-                  {isLocked ? (
-                    <Input value={item.costType} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
-                  ) : (
-                    <Select value={item.costType} onValueChange={(v) => handleUpdate(item.id, 'costType', v)} disabled={isLocked}>
-                      <SelectTrigger className={inputStyle}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl shadow-xl border-border/40">
-                        {activeCostTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value} className="rounded-2xl text-sm py-2.5 font-medium">
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-
-                <div className="md:col-span-2 space-y-1.5">
+                <div className="md:col-span-3 space-y-1.5">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
                   {isLocked ? (
                     <Input value={item.stage || 'Main Stage'} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />

@@ -16,7 +16,7 @@ export default function PlanPage() {
   const params = useParams();
   const proposalId = params.id as string;
 
-  const { setProposal, riskAnalysis, budgetBreakdown, executionTimeline, updateField, category } = useProposalStore();
+  const { setProposal, riskAnalysis, budgetBreakdown, executionTimeline, updateField } = useProposalStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,9 +47,9 @@ export default function PlanPage() {
   }
 
   // Validation Logic: 
-  // 1. Budget items must exist and have stage, costType, amount, and description
+  // 1. Budget items must exist and have stage, amount, and description
   const isBudgetValid = budgetBreakdown.length > 0 && budgetBreakdown.every(
-    item => item.stage && item.costType && item.amount > 0 && item.description?.trim()
+    item => item.stage && item.amount > 0 && item.description?.trim()
   );
 
   // 2. Auto-generated timeline items must have deliverables defined
@@ -58,8 +58,6 @@ export default function PlanPage() {
   );
 
   const isPlanValid = isBudgetValid && isTimelineValid;
-
-  const categorySlug = category?.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || '';
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -83,7 +81,7 @@ export default function PlanPage() {
 
           <div className="space-y-4 min-w-0">
             <div className="min-w-0">
-              <BudgetEditor categorySlug={categorySlug} />
+              <BudgetEditor />
             </div>
 
             <p className="text-[11px] font-medium text-muted-foreground italic text-center pt-2">
