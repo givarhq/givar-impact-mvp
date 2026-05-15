@@ -431,7 +431,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        We are currently raising funds for <span className="text-primary font-black">{currentStageDisplayName}</span>. This stage is funded one allocation at a time. Currently funding: <u>{activeItemName}</u>.
+                        We are currently raising funds for <span className="text-primary font-black">{currentStageDisplayName}</span>. This stage is funded one allocation at a time.
                     </p>
                 </div>
 
