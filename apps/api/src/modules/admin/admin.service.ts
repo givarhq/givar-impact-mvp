@@ -926,6 +926,32 @@ export class AdminService {
     }
 
     const slug = this.generateSlug(dto.title);
+    let executionTimeline = dto.executionTimeline || [];
+
+    // ROOT CAUSE FIX: Fallback to mapping by stage if executionTimeline is empty
+    if (executionTimeline.length === 0 && budget.length > 0) {
+      const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
+      const uniqueStages = Array.from(new Set(budget.map((b: any) => b.stage || 'Main Stage')));
+
+      uniqueStages.sort((a, b) => {
+        const idxA = STAGE_ORDER.indexOf(a as string);
+        const idxB = STAGE_ORDER.indexOf(b as string);
+        return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+      });
+
+      executionTimeline = uniqueStages.map((stage, index) => {
+        const stageItems = budget.filter((b: any) => (b.stage || 'Main Stage') === stage);
+        const deliverables = stageItems.map((b: any) => b.description || b.item || 'Implementation').join(', ');
+
+        return {
+          id: `auto-stage-${index}`,
+          phase: stage,
+          estimatedDate: 'TBD',
+          status: 'PENDING',
+          deliverables: deliverables,
+        } as any;
+      });
+    }
 
     const createData: Prisma.ProjectCreateInput = {
       title: dto.title,
@@ -948,18 +974,7 @@ export class AdminService {
 
       gallery: dto.gallery as unknown as Prisma.InputJsonValue,
       budgetBreakdown: dto.budgetBreakdown as unknown as Prisma.InputJsonValue,
-
-      // ROOT CAUSE FIX: Fallback to mapping 1:1 against the budget if executionTimeline is empty
-      executionTimeline: (!dto.executionTimeline || dto.executionTimeline.length === 0)
-        ? (dto.budgetBreakdown || []).map((b, index) => ({
-          id: b.id || `auto-stage-${index}`,
-          phase: `Phase ${index + 1}: ${b.description || 'Implementation'}`,
-          estimatedDate: 'TBD',
-          status: 'PENDING',
-          deliverables: b.description || 'Implementation',
-        })) as unknown as Prisma.InputJsonValue
-        : dto.executionTimeline as unknown as Prisma.InputJsonValue,
-
+      executionTimeline: executionTimeline as unknown as Prisma.InputJsonValue,
       vendors: dto.vendors as unknown as Prisma.InputJsonValue,
     };
 

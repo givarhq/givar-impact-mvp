@@ -32,7 +32,7 @@ async function main() {
   await prisma.transactionFeeRule.deleteMany({});
   await prisma.wallet.deleteMany({});
   await prisma.guestDonor.deleteMany({});
-  await prisma.subcategory.deleteMany({}); // <-- NEW: Purge Subcategories
+  await prisma.subcategory.deleteMany({});
   await prisma.category.deleteMany({});
   await prisma.user.deleteMany({});
 
@@ -43,14 +43,12 @@ async function main() {
   // 2. CORE CATEGORIES & SUBCATEGORIES ALIGNMENT
   console.log('📂 Initializing Core Sectors and Subcategories...');
 
-  // Create Main Categories
   const medicalCat = await prisma.category.create({ data: { name: 'Medical', slug: 'medical', icon: 'HeartPulse', visibilityWeight: 1.5 } });
   const educationCat = await prisma.category.create({ data: { name: 'Education', slug: 'education', icon: 'Book', visibilityWeight: 1.2 } });
   const communityCat = await prisma.category.create({ data: { name: 'Community', slug: 'community', icon: 'Building', visibilityWeight: 1.0 } });
 
   const categories = [medicalCat, educationCat, communityCat];
 
-  // Create Subcategories
   const generateSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
   const medicalSubs = await Promise.all(
@@ -77,7 +75,6 @@ async function main() {
     [communityCat.id]: communitySubs,
   };
 
-  // Optimized Stock Images
   const photoParams = '?auto=format&fit=crop&q=60&w=800';
   const stockPhotos = [
     `https://images.unsplash.com/photo-1505751172107-57325a3ec712${photoParams}`, // Medical
@@ -86,6 +83,81 @@ async function main() {
   ];
 
   const projectNouns = ['Initiative', 'Project', 'Drive', 'Fund', 'Mission', 'Hub', 'Action', 'Relief', 'Development', 'Grant'];
+
+  // Helper to generate grouped budget items per phase
+  const generateRealisticPhases = (categoryName: string, targetAmountMinor: bigint) => {
+    const T = targetAmountMinor;
+
+    const p1Amount = (T * 20n) / 100n;
+    const p2Amount = (T * 50n) / 100n;
+    const p3Amount = T - p1Amount - p2Amount;
+
+    const p1A = p1Amount / 2n;
+    const p1B = p1Amount - p1A;
+    const p2A = p2Amount / 2n;
+    const p2B = p2Amount - p2A;
+
+    let vendors: any[] = [];
+    let budgetBreakdown: any[] = [];
+
+    if (categoryName.toLowerCase().includes('medical')) {
+      const v1 = randomUUID(), v2 = randomUUID(), v3 = randomUUID();
+      vendors = [
+        { id: v1, name: 'Prime Diagnostics Labs', email: 'hello@primelabs.com', phone: '', subaccountCode: 'ACCT_11111111' },
+        { id: v2, name: 'Continental Medical Supplies', email: 'sales@continental.com', phone: '', subaccountCode: 'ACCT_22222222' },
+        { id: v3, name: 'LifeCare Pharmacy', email: 'support@lifecare.com', phone: '', subaccountCode: 'ACCT_33333333' }
+      ];
+      budgetBreakdown = [
+        { id: randomUUID(), description: "Diagnostics", costType: "SERVICE", vendorId: v1, amount: Number(p1A) / 100, stage: 'Early Stage' },
+        { id: randomUUID(), description: "Pre-Op Prep", costType: "SERVICE", vendorId: v1, amount: Number(p1B) / 100, stage: 'Early Stage' },
+        { id: randomUUID(), description: "Primary Surgery", costType: "SERVICE", vendorId: v2, amount: Number(p2A) / 100, stage: 'Main Stage' },
+        { id: randomUUID(), description: "Medical Equipment", costType: "GOODS", vendorId: v2, amount: Number(p2B) / 100, stage: 'Main Stage' },
+        { id: randomUUID(), description: "Post-Op Care & Medication", costType: "MEDICATION", vendorId: v3, amount: Number(p3Amount) / 100, stage: 'Final Stage' }
+      ];
+    } else if (categoryName.toLowerCase().includes('education')) {
+      const v1 = randomUUID(), v2 = randomUUID(), v3 = randomUUID();
+      vendors = [
+        { id: v1, name: 'BuildWell Contractors', email: '', phone: '', subaccountCode: 'ACCT_44444444' },
+        { id: v2, name: 'Regional Education Board', email: '', phone: '', subaccountCode: 'ACCT_55555555' },
+        { id: v3, name: 'EduTransport Hub', email: '', phone: '', subaccountCode: 'ACCT_66666666' }
+      ];
+      budgetBreakdown = [
+        { id: randomUUID(), description: "Site Audit", costType: "SERVICE", vendorId: v1, amount: Number(p1A) / 100, stage: 'Early Stage' },
+        { id: randomUUID(), description: "Clearance", costType: "SERVICE", vendorId: v1, amount: Number(p1B) / 100, stage: 'Early Stage' },
+        { id: randomUUID(), description: "Tuition Fees", costType: "TUITION", vendorId: v2, amount: Number(p2A) / 100, stage: 'Main Stage' },
+        { id: randomUUID(), description: "Core Materials", costType: "MATERIALS", vendorId: v2, amount: Number(p2B) / 100, stage: 'Main Stage' },
+        { id: randomUUID(), description: "Logistics & Assessments", costType: "LOGISTICS", vendorId: v3, amount: Number(p3Amount) / 100, stage: 'Final Stage' }
+      ];
+    } else {
+      const v1 = randomUUID(), v2 = randomUUID(), v3 = randomUUID();
+      vendors = [
+        { id: v1, name: 'Swift Transit Co.', email: '', phone: '', subaccountCode: 'ACCT_77777777' },
+        { id: v2, name: 'Apex Community Works', email: '', phone: '', subaccountCode: 'ACCT_88888888' },
+        { id: v3, name: 'Givar Audit Partners', email: '', phone: '', subaccountCode: 'ACCT_99999999' }
+      ];
+      budgetBreakdown = [
+        { id: randomUUID(), description: "Procurement", costType: "LOGISTICS", vendorId: v1, amount: Number(p1A) / 100, stage: 'Early Stage' },
+        { id: randomUUID(), description: "Logistics", costType: "LOGISTICS", vendorId: v1, amount: Number(p1B) / 100, stage: 'Early Stage' },
+        { id: randomUUID(), description: "Core Implementation A", costType: "SERVICE", vendorId: v2, amount: Number(p2A) / 100, stage: 'Main Stage' },
+        { id: randomUUID(), description: "Core Implementation B", costType: "SERVICE", vendorId: v2, amount: Number(p2B) / 100, stage: 'Main Stage' },
+        { id: randomUUID(), description: "Monitoring & Close-out", costType: "OTHER", vendorId: v3, amount: Number(p3Amount) / 100, stage: 'Final Stage' }
+      ];
+    }
+
+    const stages = ['Early Stage', 'Main Stage', 'Final Stage'];
+    const executionTimeline = stages.map((phase, index) => {
+      const items = budgetBreakdown.filter(b => b.stage === phase).map(b => b.description).join(', ');
+      return {
+        id: `stage-${index}-${randomUUID().slice(0, 4)}`,
+        phase,
+        estimatedDate: new Date(Date.now() + (index + 1) * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        status: 'PENDING',
+        deliverables: `Verified receipts and visual proof of ${items.toLowerCase()}`
+      };
+    });
+
+    return { budgetBreakdown, executionTimeline, vendors };
+  };
 
   // 3. IDENTITIES & USERS
   console.log('👥 Generating Identities...');
@@ -146,6 +218,9 @@ async function main() {
     const activeCategory = categories[catIndex];
     const availableSubs = subcategoryMap[activeCategory.id];
     const activeSub = availableSubs[Math.floor(Math.random() * availableSubs.length)];
+    const targetAmount = BigInt(500000000 + (i * 20000000));
+
+    const { budgetBreakdown, executionTimeline, vendors } = generateRealisticPhases(activeCategory.name, targetAmount);
 
     await prisma.projectProposal.create({
       data: {
@@ -156,12 +231,13 @@ async function main() {
         categoryId: activeCategory.id,
         subcategoryId: activeSub.id,
         location: 'Lagos, Nigeria',
-        targetAmount: BigInt(500000000 + (i * 20000000)), // 5M to 7M
+        targetAmount,
         status: propStatuses[i],
         submittedAt: subDays(new Date(), i + 2),
         coverImage: stockPhotos[catIndex],
-        budgetBreakdown: [{ id: randomUUID(), item: 'Initial Siting', cost: 450000, vendor: 'Surveyor Corps', type: 'SERVICE', stage: 'Early Stage' }],
-        executionTimeline: [{ id: `te-${i}`, phase: 'Early Stage', estimatedDate: '2026-04-01', deliverables: 'Audit and scoping' }],
+        vendors: vendors as any,
+        budgetBreakdown: budgetBreakdown as any,
+        executionTimeline: executionTimeline as any,
         kycDocuments: ['proposals/doc-1.pdf'],
       }
     });
@@ -176,6 +252,9 @@ async function main() {
     const activeCategory = categories[catIndex];
     const availableSubs = subcategoryMap[activeCategory.id];
     const activeSub = availableSubs[Math.floor(Math.random() * availableSubs.length)];
+    const targetAmount = BigInt(2500000000 + (i * 100000000));
+
+    const { budgetBreakdown, executionTimeline, vendors } = generateRealisticPhases(activeCategory.name, targetAmount);
 
     const project = await prisma.project.create({
       data: {
@@ -184,8 +263,8 @@ async function main() {
         slug: `cause-v${i + 1}-${randomUUID().slice(0, 4)}`,
         description: `Strategic operations for ${activeSub.name.toLowerCase()} services in high-density urban corridors.`,
         shortDesc: `Active ${activeSub.name.toLowerCase()} intervention.`,
-        targetAmount: BigInt(2500000000 + (i * 100000000)), // 25M to 40M
-        raisedAmount: 0n,
+        targetAmount,
+        raisedAmount: 0n, // Set to zero for now, liqudity injection happens next
         currency: Currency.NGN,
         status: ProjectStatus.ACTIVE,
         moderationStatus: ModerationStatus.APPROVED,
@@ -193,10 +272,10 @@ async function main() {
         subcategoryId: activeSub.id,
         location: 'Abuja, Nigeria',
         imageUrl: stockPhotos[catIndex],
-        executionTimeline: [
-          { id: `m1-${i}`, phase: 'Early Stage', status: 'COMPLETED', estimatedDate: '2026-02-01', deliverables: 'Hardware verified' },
-          { id: `m2-${i}`, phase: 'Main Stage', status: 'IN_PROGRESS', estimatedDate: '2026-03-01', deliverables: 'Personnel deployed' }
-        ],
+        vendors: vendors as any,
+        budgetBreakdown: budgetBreakdown as any,
+        executionTimeline: executionTimeline as any,
+        currentPhaseIndex: 0,
         createdAt: subDays(new Date(), 31)
       }
     });
@@ -284,19 +363,60 @@ async function main() {
     }
   }
 
+  // 8.5 Post-Liquidity Phase Alignment
+  console.log('🔄 Re-aligning Phase Indices based on generated liquidity...');
+  const allLiveProjects = await prisma.project.findMany();
+  for (const project of allLiveProjects) {
+    const budget = (project.budgetBreakdown as any[]) || [];
+    const timeline = (project.executionTimeline as any[]) || [];
+
+    let currentPhaseIndex = 0;
+    let cumulativeMajor = 0;
+    const raisedMajor = Number(project.raisedAmount) / 100;
+
+    for (let i = 0; i < timeline.length; i++) {
+      const phaseName = timeline[i].phase;
+      const phaseBudget = budget.filter(b => b.stage === phaseName).reduce((sum, b) => sum + b.amount, 0);
+      cumulativeMajor += phaseBudget;
+
+      if (raisedMajor >= cumulativeMajor) {
+        currentPhaseIndex = i + 1;
+        timeline[i].status = 'COMPLETED';
+      } else {
+        if (raisedMajor > cumulativeMajor - phaseBudget) {
+          timeline[i].status = 'IN_PROGRESS';
+        }
+        break;
+      }
+    }
+
+    if (currentPhaseIndex >= timeline.length) currentPhaseIndex = timeline.length - 1;
+
+    await prisma.project.update({
+      where: { id: project.id },
+      data: { currentPhaseIndex, executionTimeline: timeline as any }
+    });
+  }
+
   // 9. DISBURSEMENTS
   console.log('💸 Processing historical disbursements...');
   const targetProj = liveProjects[0];
-  await prisma.disbursement.create({
-    data: {
-      projectId: targetProj.id,
-      milestoneId: `m1-0`,
-      amount: 450000000n, // 4.5M
-      currency: Currency.NGN,
-      vendorName: 'Continental Engineering Services',
-      reference: 'BANK-TRF-V12-01'
-    }
-  });
+  const targetTimeline = await prisma.project.findUnique({ where: { id: targetProj.id }, select: { executionTimeline: true } });
+
+  if (targetTimeline && Array.isArray(targetTimeline.executionTimeline) && targetTimeline.executionTimeline.length > 0) {
+    const firstPhaseId = (targetTimeline.executionTimeline as any[])[0].id;
+
+    await prisma.disbursement.create({
+      data: {
+        projectId: targetProj.id,
+        milestoneId: firstPhaseId,
+        amount: 450000000n, // 4.5M
+        currency: Currency.NGN,
+        vendorName: 'Continental Engineering Services',
+        reference: 'BANK-TRF-V12-01'
+      }
+    });
+  }
 
   // 10. SYSTEM AUDIT LOGS
   console.log('🛡️ Generating Security Audit Logs...');
