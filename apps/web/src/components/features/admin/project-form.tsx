@@ -20,7 +20,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { RichTextEditor } from '../../ui/rich-text-editor';
 import { ApiService } from '../../../services/api';
 import { BudgetEditor } from '../proposals/budget-editor';
-import { TimelineEditor } from '../proposals/timeline-editor';
 import { MediaManager, ImageUploader, VideoUploader } from '../proposals/media-uploader';
 import { formatNumberInput, parseFormattedNumber, toTitleCase, toSentenceCase } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -53,13 +52,6 @@ const budgetItemSchema = z.object({
   stage: z.string().optional(),
 });
 
-const timelineItemSchema = z.object({
-  id: z.string(),
-  phase: z.string(),
-  estimatedDate: z.string(),
-  deliverables: z.string(),
-});
-
 const projectSchema = z.object({
   title: z.string().min(5, "The title is a bit too short"),
   description: z.string().min(10, "Please provide a more detailed description"),
@@ -75,7 +67,7 @@ const projectSchema = z.object({
   gallery: z.array(mediaItemSchema),
   vendors: z.array(vendorItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
-  executionTimeline: z.array(timelineItemSchema),
+  executionTimeline: z.any().optional(),
   reasonForGoalAdjustment: z.string().optional(),
   endDate: z.string().optional().nullable(),
 });
@@ -154,11 +146,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     }
   });
 
-  const [gallery, vendors, budget, timeline, coverImage, videoUrl, reason, description, selectedCategoryId, titleValue, shortDescValue, personalMessageValue, locationValue] = watch([
+  const [gallery, vendors, budget, coverImage, videoUrl, reason, description, selectedCategoryId, titleValue, shortDescValue, personalMessageValue, locationValue] = watch([
     'gallery',
     'vendors',
     'budgetBreakdown',
-    'executionTimeline',
     'coverImage',
     'videoUrl',
     'reasonForGoalAdjustment',
@@ -257,7 +248,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-40 animate-in fade-in duration-500 w-full overflow-hidden">
-      {/* ... Hero and Identity sections remain unchanged ... */}
       {initialData?.proposalId && (
         <div className="flex animate-in slide-in-from-left-2">
           <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/20 text-primary shadow-sm">
@@ -512,7 +502,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       </section>
 
-      {/* Financial Budget Section with New Vendor Component */}
+      {/* Financial Budget Section */}
       <Card className={cn(
         "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
@@ -539,45 +529,48 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         />
       </Card>
 
-      <Card className={cn(
-        "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
-        readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
-      )}>
-        <div className="flex items-center gap-4">
-          <div className={cn("h-11 w-11 rounded-2xl flex items-center justify-center shadow-inner shrink-0", readOnly ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary border border-primary/20")}>
-            <Clock className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-base text-foreground leading-none">Execution Roadmap</h3>
-            <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Step-by-step implementation phases</p>
-          </div>
-        </div>
-        <TimelineEditor
-          items={timeline as any}
-          onChange={(items) => setValue('executionTimeline', items as any, { shouldDirty: true })}
-          readOnly={readOnly}
-          isLive={isLive}
-          isAdjustmentMode={isAdjustmentMode}
-        />
-      </Card>
-
       {/* Control Terminal Bar */}
       {(isEditing || !initialData) && (
-        <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-5 bg-background/90 backdrop-blur-2xl border-t border-border/40 z-50 shadow-2xl">
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <Button type="button" variant="ghost" onClick={handleCancel} className="rounded-3xl h-12 px-8 font-bold text-muted-foreground hover:text-foreground text-xs w-full sm:w-auto transition-all">
-                {initialData ? 'Discard changes' : 'Cancel setup'}
+        <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-4 md:p-5 bg-background/90 backdrop-blur-2xl border-t border-border/40 z-50 shadow-2xl">
+          <div className="max-w-6xl mx-auto flex flex-row items-center justify-between gap-4">
+            <div className="flex items-center">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCancel}
+                title={initialData ? 'Discard changes' : 'Cancel setup'}
+                className="rounded-full h-11 w-11 p-0 flex items-center justify-center text-muted-foreground hover:bg-muted transition-all active:scale-95"
+              >
+                <X className="h-5 w-5" />
               </Button>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
-              <Button type="button" disabled={isSubmitting} onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))} variant="secondary" className="flex-1 min-w-0 rounded-3xl h-11 px-4 font-bold text-[11px] border border-border/60 bg-muted/40 shadow-none hover:bg-muted truncate">
-                {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <div className="flex items-center justify-center gap-2 min-w-0"><FileText className="h-4 w-4 shrink-0" /><span className="truncate">Draft</span></div>}
+            <div className="flex items-center gap-2 md:gap-3 w-auto min-w-0">
+              <Button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
+                variant="secondary"
+                title="Save as Draft"
+                className="rounded-full h-11 w-11 p-0 flex items-center justify-center border border-border/60 bg-muted/40 shadow-none hover:bg-muted active:scale-95 transition-all"
+              >
+                {isSubmitting ? <Loader2 className="animate-spin h-4 w-4" /> : <FileText className="h-4 w-4" />}
               </Button>
 
-              <Button type="button" disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))} onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))} className="flex-1 min-w-0 w-auto rounded-3xl h-11 px-4 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0 truncate">
-                {isSubmitting ? <Loader2 className="animate-spin h-5 w-5" /> : <div className="flex items-center justify-center gap-2 min-w-0">{initialData ? <Save className="h-4 w-4 shrink-0" /> : <Send className="h-4 w-4 shrink-0" />}{initialData ? 'Publish' : 'Launch'}</div>}
+              <Button
+                type="button"
+                disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
+                onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
+                className="w-auto rounded-3xl h-11 px-5 md:px-6 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="animate-spin h-5 w-5" />
+                ) : (
+                  <div className="flex items-center justify-center gap-2 min-w-0">
+                    {initialData ? <Save className="h-4 w-4 shrink-0" /> : <Send className="h-4 w-4 shrink-0" />}
+                    {initialData ? 'Publish' : 'Launch'}
+                  </div>
+                )}
               </Button>
             </div>
           </div>
