@@ -5,15 +5,15 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { Check, X, Loader2, Camera, Clock, ExternalLink, FileText, CheckCircle2 } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
+import { Button } from '../../ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { ApiService } from '../../../services/api';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Badge } from '../../../components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Badge } from '../../ui/badge';
 import Link from 'next/link';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageLightbox, LightboxItem } from '../../../components/ui/image-lightbox';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 
 export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { proof: any }) {
     const router = useRouter();
@@ -41,6 +41,11 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
         }
     };
 
+    // Logic: Extract deliverables from the timeline to create the rich stage name
+    const timeline = Array.isArray(proof.project?.executionTimeline) ? proof.project.executionTimeline : [];
+    const milestone = timeline.find((m: any) => m.id === proof.milestoneId);
+    const displayPhase = milestone?.deliverables ? `${proof.phaseName}: ${milestone.deliverables}` : proof.phaseName;
+
     return (
         <>
             <Card className={cn(
@@ -59,16 +64,16 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                                     <ExternalLink className="h-4 w-4" />
                                 </Link>
                             </CardTitle>
-                            <div className="flex items-center gap-3 mt-1.5">
-                                <span className="text-[11px] font-black tracking-widest text-primary ">Phase: {proof.phaseName}</span>
-                                <div className="h-1 w-1 rounded-full bg-border" />
-                                <span className="text-[11px] text-muted-foreground font-bold flex items-center gap-1.5 ">
+                            <div className="flex items-center gap-3 mt-1.5 min-w-0">
+                                <span className="text-[11px] font-black tracking-widest text-primary truncate max-w-[200px] md:max-w-[300px]">Phase: {displayPhase}</span>
+                                <div className="h-1 w-1 rounded-full bg-border shrink-0" />
+                                <span className="text-[11px] text-muted-foreground font-bold flex items-center gap-1.5 shrink-0">
                                     <Clock className="h-3.5 w-3.5 opacity-50" /> {new Date(proof.submittedAt).toLocaleDateString()}
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <Badge variant="outline" className="h-7 px-3 bg-background text-[10px] font-mono font-bold text-muted-foreground border-border/60 rounded-3xl shadow-sm">
+                    <Badge variant="outline" className="h-7 px-3 bg-background text-[10px] font-mono font-bold text-muted-foreground border-border/60 rounded-3xl shadow-sm shrink-0">
                         Ref: {proof.id.split('-')[0]}
                     </Badge>
                 </CardHeader>
@@ -77,7 +82,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
                         <div className="lg:col-span-3 space-y-8">
                             <div className="space-y-2">
-                                <h4 className="text-[11px] font-black text-muted-foreground tracking-widest flex items-center gap-2  ml-1">
+                                <h4 className="text-[11px] font-black text-muted-foreground tracking-widest flex items-center gap-2 ml-1">
                                     <FileText className="h-3.5 w-3.5" /> Narrative Update
                                 </h4>
                                 <p className="text-sm md:text-base text-foreground leading-relaxed font-medium italic border-l-4 border-primary/30 pl-6 py-2">
@@ -86,7 +91,7 @@ export const EvidenceReviewItem = memo(function EvidenceReviewItem({ proof }: { 
                             </div>
 
                             <div className="space-y-3">
-                                <h4 className="text-[11px] font-black text-muted-foreground tracking-widest  ml-1">Evidence Assets</h4>
+                                <h4 className="text-[11px] font-black text-muted-foreground tracking-widest ml-1">Evidence Assets</h4>
                                 <div className="flex flex-wrap gap-3">
                                     {proof.imageUrls?.map((url: string, i: number) => (
                                         <button

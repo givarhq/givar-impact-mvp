@@ -236,8 +236,9 @@ export const MilestoneManager = memo(function MilestoneManager({
                             )}
                           </AnimatePresence>
                         </div>
-                        <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors truncate">Stage {index + 1}: {milestone.phase}</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 font-medium">{milestone.deliverables}</p>
+                        <h4 className="text-base font-bold text-foreground leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                          {milestone.phase}: {milestone.deliverables}
+                        </h4>
 
                         <div className="flex items-center justify-between gap-4 mt-4 pt-3.5 border-t border-border/40 min-w-0 w-full">
                           <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground truncate shrink-0">
@@ -328,7 +329,7 @@ export const MilestoneManager = memo(function MilestoneManager({
           <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md min-w-0">
             <DialogHeader>
               <DialogTitle className="text-lg md:text-xl font-bold text-foreground flex items-center gap-3 truncate">
-                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" /> Verify Stage {activeMilestone ? activeMilestone.index + 1 : ''}
+                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" /> Verify {activeMilestone?.phase}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6 pt-4 min-w-0">

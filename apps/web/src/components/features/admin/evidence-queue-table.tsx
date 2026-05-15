@@ -8,7 +8,6 @@ import {
     ExternalLink,
     FileText,
     CheckCircle2,
-    X,
     Check,
     Camera,
     ArrowUpRight,
@@ -55,7 +54,11 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                     {proofs.map((proof) => {
                         const isExpanded = expandedId === proof.id;
                         const isHandled = proof.status !== 'PENDING';
-                        const displayPhase = proof.phaseName;
+
+                        // Logic: Extract deliverables from the timeline to create the rich stage name
+                        const timeline = Array.isArray(proof.project?.executionTimeline) ? proof.project.executionTimeline : [];
+                        const milestone = timeline.find((m: any) => m.id === proof.milestoneId);
+                        const displayPhase = milestone?.deliverables ? `${proof.phaseName}: ${milestone.deliverables}` : proof.phaseName;
 
                         return (
                             <motion.div
@@ -146,7 +149,11 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                             {proofs.map((proof) => {
                                 const isExpanded = expandedId === proof.id;
                                 const isHandled = proof.status !== 'PENDING';
-                                const displayPhase = proof.phaseName;
+
+                                // Logic: Extract deliverables from the timeline to create the rich stage name
+                                const timeline = Array.isArray(proof.project?.executionTimeline) ? proof.project.executionTimeline : [];
+                                const milestone = timeline.find((m: any) => m.id === proof.milestoneId);
+                                const displayPhase = milestone?.deliverables ? `${proof.phaseName}: ${milestone.deliverables}` : proof.phaseName;
 
                                 return (
                                     <React.Fragment key={proof.id}>
@@ -165,7 +172,7 @@ export const EvidenceQueueTable = memo(function EvidenceQueueTable({ proofs }: E
                                                 <div className="space-y-1 min-w-0">
                                                     <p className="font-bold text-foreground text-sm leading-tight truncate group-hover:text-primary transition-colors">{proof.project.title}</p>
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none truncate max-w-[200px]">
+                                                        <Badge variant="outline" className="text-[10px] font-bold tracking-tight px-2.5 py-0.5 rounded-3xl border-primary/20 bg-primary/5 text-primary shadow-none truncate max-w-[250px]">
                                                             Phase: {displayPhase}
                                                         </Badge>
                                                         {isHandled && (
