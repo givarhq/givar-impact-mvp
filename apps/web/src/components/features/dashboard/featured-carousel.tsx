@@ -59,7 +59,11 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     let currentPhaseMajor = 0;
 
     const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+    const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    const currentStageDisplayName = timeline[activeIndex]
+        ? `${timeline[activeIndex].phase}: ${timeline[activeIndex].deliverables}`
+        : 'Main Stage';
 
     budget.forEach((item: any) => {
         const amt = item.amount || (item as any).cost || 0;
@@ -67,7 +71,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
 
         if (previousStages.includes(itemStage)) {
             previousPhasesMajor += amt;
-        } else if (itemStage === currentStageName) {
+        } else if (itemStage === currentStageLogicName) {
             currentPhaseMajor += amt;
         }
     });
@@ -195,7 +199,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             <div className="flex items-start justify-between gap-2 mb-2 min-w-0">
                                 <div className="min-w-0">
                                     <h4 className="text-xs font-bold text-primary leading-tight truncate">
-                                        Stage {activeIndex + 1}: {currentStageName}
+                                        {currentStageDisplayName}
                                     </h4>
 
                                     {!isPhaseFull && (

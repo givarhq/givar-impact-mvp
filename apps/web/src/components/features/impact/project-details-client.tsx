@@ -65,7 +65,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     let currentPhaseMajor = 0;
 
     const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+    const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    const currentStageDisplayName = timeline[activeIndex]
+        ? `${timeline[activeIndex].phase}: ${timeline[activeIndex].deliverables}`
+        : 'Main Stage';
 
     budget.forEach((item: any) => {
         const amt = item.amount || (item as any).cost || 0;
@@ -73,7 +77,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
         if (previousStages.includes(itemStage)) {
             previousPhasesMajor += amt;
-        } else if (itemStage === currentStageName) {
+        } else if (itemStage === currentStageLogicName) {
             currentPhaseMajor += amt;
         }
     });
@@ -181,7 +185,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </div>
                                         {finalUpdate.imageUrl && (
                                             <div
-                                                className="relative aspect-video rounded-2xl overflow-hidden border border-emerald-500/20 shadow-md bg-muted cursor-pointer"
+                                                className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md bg-muted cursor-pointer"
                                                 onClick={() => setLightboxState({ isOpen: true, items: [{ url: finalUpdate.imageUrl!, type: 'IMAGE', alt: 'Impact Evidence' }], index: 0 })}
                                             >
                                                 <Image src={finalUpdate.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover hover:scale-105 transition-transform duration-700" />
@@ -367,13 +371,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 <th className="px-6 py-4 text-right">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-border/40 text-xs">
+                                        <tbody className="divide-y divide-border/40 text-xs font-medium">
                                             {budget.map((item: any, i: number) => {
                                                 const itemStage = item.stage || 'Main Stage';
 
                                                 const isItemCompleted = previousStages.includes(itemStage) || isCompleted || isFundedState;
-                                                const isItemCurrent = itemStage === currentStageName && !isCompleted && !isFundedState && !isPhaseFull;
-                                                const isItemFull = itemStage === currentStageName && isPhaseFull;
+                                                const isItemCurrent = itemStage === currentStageLogicName && !isCompleted && !isFundedState && !isPhaseFull;
+                                                const isItemFull = itemStage === currentStageLogicName && isPhaseFull;
 
                                                 let statusBadge;
                                                 if (isItemCompleted) {

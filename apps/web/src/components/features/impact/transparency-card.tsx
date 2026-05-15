@@ -43,7 +43,11 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     let currentPhaseMajor = 0;
 
     const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+    const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    const currentStageDisplayName = timeline[activeIndex]
+        ? `${timeline[activeIndex].phase}: ${timeline[activeIndex].deliverables}`
+        : 'Main Stage';
 
     budget.forEach((item: any) => {
         const amt = item.amount || (item as any).cost || 0;
@@ -51,7 +55,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
         if (previousStages.includes(itemStage)) {
             previousPhasesMajor += amt;
-        } else if (itemStage === currentStageName) {
+        } else if (itemStage === currentStageLogicName) {
             currentPhaseMajor += amt;
         }
     });
@@ -211,7 +215,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
                     <Card className="bg-card border border-border/40 rounded-3xl p-5 shadow-sm">
                         <h4 className="text-sm font-bold text-primary leading-tight mb-4">
-                            Funding Stage: {currentStageName}
+                            Funding Stage: {currentStageDisplayName}
                         </h4>
 
                         {isPhaseFull ? (
