@@ -534,7 +534,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           readOnly={readOnly}
           isLive={isLive}
           isAdjustmentMode={isAdjustmentMode}
-          categorySlug={selectedCategoryObj?.slug}
           isAdmin={true}
           proposalId={initialData?.proposalId || initialData?.id}
         />
