@@ -662,8 +662,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                 {index + 1}
                                             </div>
                                             <div className="space-y-1 min-w-0 flex-1">
-                                                <h4 className="font-bold text-sm text-foreground">Stage {index + 1}: {phase.phase}</h4>
-                                                <p className="text-xs text-muted-foreground font-medium leading-relaxed">{phase.deliverables}</p>
+                                                <h4 className="font-bold text-sm text-foreground leading-snug">{phase.phase}: {phase.deliverables}</h4>
                                                 {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
                                                     <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
                                                         <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}

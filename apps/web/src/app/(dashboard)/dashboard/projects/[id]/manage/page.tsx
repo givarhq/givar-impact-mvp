@@ -63,7 +63,7 @@ export default async function ProjectManagePage({
     const updates: ProjectUpdate[] = Array.isArray(project.updates) ? project.updates : [];
 
     const currentPhaseIndex = project.currentPhaseIndex || 0;
-    const isFullyCompleted = timeline.every((m: any) => m.status === 'COMPLETED');
+    const isFullyCompleted = timeline.length > 0 && timeline.every((m: any) => m.status === 'COMPLETED');
 
     const isMedical = project.category?.name?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
@@ -80,7 +80,12 @@ export default async function ProjectManagePage({
     let currentPhaseMajor = 0;
 
     const previousStages = timeline.slice(0, currentPhaseIndex).map((t: any) => t.phase);
-    const currentStageName = timeline[currentPhaseIndex]?.phase || 'Main Stage';
+    const currentStageLogicName = timeline[currentPhaseIndex]?.phase || 'Main Stage';
+
+    // UI Display Logic
+    const currentStageDisplayName = timeline[currentPhaseIndex]
+        ? `${timeline[currentPhaseIndex].phase}: ${timeline[currentPhaseIndex].deliverables}`
+        : 'Main Stage';
 
     budget.forEach((item: any) => {
         const amt = item.amount || (item as any).cost || 0;
@@ -88,7 +93,7 @@ export default async function ProjectManagePage({
 
         if (previousStages.includes(itemStage)) {
             previousPhasesMajor += amt;
-        } else if (itemStage === currentStageName) {
+        } else if (itemStage === currentStageLogicName) {
             currentPhaseMajor += amt;
         }
     });
@@ -185,7 +190,7 @@ export default async function ProjectManagePage({
                             <CardHeader className="border-b border-border/40 p-6 md:p-8 bg-muted/10 min-w-0">
                                 <CardTitle className="text-base font-bold flex items-center gap-3 truncate text-foreground">
                                     <Activity className="h-5 w-5 text-primary shrink-0" />
-                                    <span className="truncate">Stage {currentPhaseIndex + 1} monitoring active</span>
+                                    <span className="truncate">{currentStageDisplayName} monitoring active</span>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 md:p-8 space-y-4 min-w-0">
@@ -244,8 +249,8 @@ export default async function ProjectManagePage({
                                         const itemStage = item.stage || 'Main Stage';
 
                                         const isItemCompleted = previousStages.includes(itemStage) || isFullyCompleted || isFundedState;
-                                        const isItemCurrent = itemStage === currentStageName && !isFullyCompleted && !isFundedState && !isPhaseFull;
-                                        const isItemFull = itemStage === currentStageName && isPhaseFull;
+                                        const isItemCurrent = itemStage === currentStageLogicName && !isFullyCompleted && !isFundedState && !isPhaseFull;
+                                        const isItemFull = itemStage === currentStageLogicName && isPhaseFull;
 
                                         let statusBadge;
                                         if (isItemCompleted) {

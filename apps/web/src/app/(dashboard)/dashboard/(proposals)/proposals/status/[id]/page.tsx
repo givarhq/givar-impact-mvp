@@ -250,6 +250,8 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                         </thead>
                                         <tbody className="divide-y divide-border/40 text-xs font-medium">
                                             {budget.map((item: any, i: number) => {
+                                                const itemStage = item.stage || 'Main Stage';
+
                                                 const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
                                                 const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'Pending vendor sourcing');
                                                 const isPendingVendor = !vendorName || vendorName.toLowerCase() === 'pending vendor sourcing' || vendorName === 'To be confirmed';
@@ -259,7 +261,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                         <td className="px-6 py-4">
                                                             <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
                                                             <div className="flex items-center gap-2 mt-1.5">
-                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{item.stage || 'Main Stage'}</span>
+                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{itemStage}</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4">
@@ -305,8 +307,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                     {index + 1}
                                                 </div>
                                                 <div className="space-y-1 min-w-0 flex-1">
-                                                    <h4 className="font-bold text-sm text-foreground">Stage {index + 1}: {phase.phase}</h4>
-                                                    <p className="text-xs text-muted-foreground font-medium leading-relaxed">{phase.deliverables}</p>
+                                                    <h4 className="font-bold text-sm text-foreground leading-snug">{phase.phase}: {phase.deliverables}</h4>
                                                     {phase.estimatedDate && phase.estimatedDate !== 'TBD' && (
                                                         <div className="text-[10px] font-bold text-muted-foreground/80 mt-1.5 flex items-center gap-1.5">
                                                             <Calendar className="h-3 w-3" /> Target: {new Date(phase.estimatedDate).toLocaleDateString()}
