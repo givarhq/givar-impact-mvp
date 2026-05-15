@@ -60,7 +60,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const isCompleted = project.status === 'COMPLETED';
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
 
-    // --- AGGREGATED PHASED FUNDING MATH ---
+    // --- AGGREGATED PHASE FINANCIAL MATH ---
     let previousPhasesMajor = 0;
     let currentPhaseMajor = 0;
 
@@ -391,13 +391,8 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 return (
                                                     <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
                                                         <td className="px-6 py-4">
-                                                            <div className="font-bold text-foreground text-sm mb-1.5">{item.description || item.item}</div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
-                                                                    {item.costType || item.type}
-                                                                </Badge>
-                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight px-2 border-l border-border/60">{itemStage}</span>
-                                                            </div>
+                                                            <div className="font-bold text-foreground text-sm mb-1">{item.description || item.item}</div>
+                                                            <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{itemStage}</span>
                                                             <div className="sm:hidden font-mono text-foreground font-bold mt-2">
                                                                 {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
                                                             </div>
@@ -520,7 +515,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </Link>
                     </div>
 
-                    <Card className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
+                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0">
                             <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
                                 <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar

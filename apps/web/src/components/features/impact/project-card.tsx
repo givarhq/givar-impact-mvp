@@ -3,8 +3,7 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Share2, Check, MapPin, UserCheck, ShieldCheck, BadgeCheck, Building2, Clock, Target } from 'lucide-react';
-import { Button } from '../../ui/button';
+import { Heart, Check, MapPin, UserCheck, BadgeCheck, Building2, Target } from 'lucide-react';
 import { ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
