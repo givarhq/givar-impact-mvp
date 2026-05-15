@@ -366,7 +366,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                   />
                 </div>
 
-                <div className="md:col-span-3 space-y-1.5">
+                <div className="md:col-span-2 space-y-1.5">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
                   {isLocked ? (
                     <Input value={item.stage || 'Main Stage'} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
