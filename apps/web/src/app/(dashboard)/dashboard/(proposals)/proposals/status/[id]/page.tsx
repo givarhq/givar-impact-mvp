@@ -10,7 +10,7 @@ import { formatCurrency } from '../../../../../../../lib/utils/format';
 import {
     ArrowLeft, Clock, CheckCircle2, AlertCircle,
     FileSearch, ShieldCheck, Check, Fingerprint,
-    FileText, ArrowRight, Briefcase, Calendar, XCircle
+    FileText, ArrowRight, Briefcase, Calendar,
 } from 'lucide-react';
 import { cn } from '../../../../../../../lib/utils/cn';
 
@@ -259,16 +259,10 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                         <td className="px-6 py-4">
                                                             <div className="font-bold text-foreground text-xs">{item.description || item.item}</div>
                                                             <div className="flex items-center gap-2 mt-1.5">
-                                                                <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">
-                                                                    {item.costType || item.type}
-                                                                </Badge>
-                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight px-2 border-l border-border/60">{item.stage || 'Main Stage'}</span>
-                                                            </div>
-                                                            <div className="sm:hidden font-mono text-foreground font-bold mt-2">
-                                                                {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), proposal.currency || 'NGN')}
+                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{item.stage || 'Main Stage'}</span>
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">
+                                                        <td className="px-6 py-4">
                                                             {isPendingVendor ? (
                                                                 <span className="text-amber-600 font-bold text-[11px] bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200 shadow-sm whitespace-nowrap">
                                                                     To be confirmed
@@ -277,7 +271,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                                 <span className="font-bold text-foreground">{vendorName}</span>
                                                             )}
                                                         </td>
-                                                        <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
+                                                        <td className="px-6 py-4 text-right font-mono text-foreground tabular-nums font-bold text-sm">
                                                             {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), proposal.currency || 'NGN')}
                                                         </td>
                                                         <td className="px-6 py-4 text-right">

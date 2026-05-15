@@ -17,6 +17,7 @@ import {
     FileText,
     Activity,
     History,
+    ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -238,7 +239,7 @@ export default async function ProjectManagePage({
                                         <th className="px-6 py-4 text-right">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-border/40 text-xs">
+                                <tbody className="divide-y divide-border/40 text-xs font-medium">
                                     {budget.map((item: any, i: number) => {
                                         const itemStage = item.stage || 'Main Stage';
 
@@ -264,10 +265,7 @@ export default async function ProjectManagePage({
                                                 <td className="px-6 py-4">
                                                     <div className="font-bold text-foreground text-sm mb-1.5">{item.description || item.item}</div>
                                                     <div className="flex items-center gap-2">
-                                                        <Badge variant="secondary" className="text-[10px] bg-emerald-50 text-emerald-700 border-none shadow-none px-2 py-0 rounded-3xl">
-                                                            {item.costType || item.type}
-                                                        </Badge>
-                                                        <span className="text-[10px] font-bold text-muted-foreground tracking-tight px-2 border-l border-border/60">{itemStage}</span>
+                                                        <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{itemStage}</span>
                                                     </div>
                                                     <div className="sm:hidden font-mono text-foreground font-bold mt-2">
                                                         {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
