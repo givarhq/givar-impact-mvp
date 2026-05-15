@@ -159,7 +159,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const activeIndex = project.currentPhaseIndex || 0;
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
+    const currentStageDisplayName = timeline[activeIndex]
+        ? `${timeline[activeIndex].phase}: ${timeline[activeIndex].deliverables}`
+        : 'Main Stage';
 
     const raisedAmountMinor = BigInt(project.raisedAmount || '0');
     const raisedAmountMajor = Number(raisedAmountMinor) / 100;
@@ -178,7 +182,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         const itemStage = item.stage || 'Main Stage';
         if (previousStages.includes(itemStage)) {
             previousPhasesMajor += amt;
-        } else if (itemStage === currentStageName) {
+        } else if (itemStage === currentStageLogicName) {
             currentPhaseMajor += amt;
         }
     });
@@ -222,7 +226,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         remainingSelectedMajor = remainingSelectedMajor * fxRates[detectedCurrency];
     }
 
-    const activeItemName = activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : 'Final Phase';
+    const activeItemName = activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : 'Final Implementation';
 
     const inputAmountNum = Number(parseDecimalNumber(displayAmount)) || 0;
     const inputTipNum = Number(parseDecimalNumber(tipAmount)) || 0;
@@ -348,7 +352,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     <CheckCircle2 className="h-10 w-10" />
                 </div>
                 <div className="space-y-3">
-                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">{currentStageName} fully funded!</h3>
+                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">{currentStageDisplayName} fully funded!</h3>
                     <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
                         Thanks to our incredible donors, the funds for this stage have been secured.
                         Donations are currently paused while vendor execution is verified.
@@ -420,7 +424,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 <div className="bg-primary/5 border border-primary/20 p-4 rounded-[20px] flex items-start gap-3 shadow-inner">
                     <Target className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-xs text-primary/90 leading-relaxed font-bold">
-                        Transparency mode: We are currently raising funds for <span className="text-primary font-black">{currentStageName}</span>. This stage is funded one allocation at a time. Currently funding: <u>{activeItemName}</u>.
+                        We are currently raising funds for <span className="text-primary font-black">{currentStageDisplayName}</span>. This stage is funded one allocation at a time. Currently funding: <u>{activeItemName}</u>.
                     </p>
                 </div>
 
@@ -637,8 +641,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                 <p className="font-medium">
                                     {isCompletingPhase
                                         ? (isDustCoveredPhase
-                                            ? `Your gift brings us so close that Givar will cover the remaining balance! This fully funds ${currentStageName}.`
-                                            : `This gift fully funds ${currentStageName}! The project will pause to verify vendor execution before opening the next stage.`)
+                                            ? `Your gift brings us so close that Givar will cover the remaining balance! This fully funds ${currentStageDisplayName}.`
+                                            : `This gift fully funds ${currentStageDisplayName}! The project will pause to verify vendor execution before opening the next stage.`)
                                         : `This gift fully funds the allocation for "${activeItemName}". The next vendor allocation will unlock immediately.`
                                     }
                                 </p>

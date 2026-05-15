@@ -199,7 +199,7 @@ export const EmailTemplates = {
     <p>Givar Management has officially disbursed funds to <strong>${data.vendor}</strong> for the following phase:</p>
     
     <div class="stat-box">
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Active Milestone</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Active Funding Stage</div>
       <div style="font-size: 22px; font-weight: 800; color: #064e3b; line-height: 1.2;">${data.milestone}</div>
       <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
       <div style="font-size: 13px; font-weight: 600; color: #065f46;">
@@ -261,7 +261,7 @@ export const EmailTemplates = {
     <p>Hi ${data.name},</p>
     <p>The execution status for a phase in <strong>${data.project}</strong> has changed.</p>
     <div class="stat-box">
-        <p style="margin:0; font-size: 14px;"><strong>Phase:</strong> ${data.milestone}</p>
+        <p style="margin:0; font-size: 14px;"><strong>Funding Stage:</strong> ${data.milestone}</p>
         <p style="margin:8px 0 0 0; font-size: 14px;"><strong>New Status:</strong> <span style="color: #10b981; font-weight: 700;">${data.status}</span></p>
     </div>
     <p>Please log in to your management console to view next steps or upload required evidence.</p>
@@ -409,7 +409,7 @@ export const EmailTemplates = {
     <p>A new proof of work has been submitted for <strong>${data.projectTitle}</strong> and requires your review.</p>
     
     <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
-      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Cause Phase</p>
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Cause Stage</p>
       <p style="font-size: 18px; color: #064e3b; font-weight: 800; margin: 0;">${data.milestonePhase}</p>
     </div>
 
@@ -579,7 +579,7 @@ export const EmailTemplates = {
       <div style="font-size: 32px; font-weight: 800; color: #10b981;">${data.currency} ${data.amount}</div>
       <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
       <p style="margin: 0; font-size: 14px; color: #064e3b;"><strong>Cause:</strong> ${data.projectTitle}</p>
-      <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Phase:</strong> ${data.phaseName}</p>
+      <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Funding Stage:</strong> ${data.phaseName}</p>
       <p style="margin: 4px 0; font-size: 14px; color: #064e3b;"><strong>Vendor:</strong> ${data.vendorName}</p>
       <p style="margin: 12px 0 0 0; font-size: 10px; color: #059669; font-family: monospace; opacity: 0.7;">Finalizing reference: ${data.reference}</p>
     </div>
@@ -594,7 +594,7 @@ export const EmailTemplates = {
     <div class="stat-box" style="border-color: #10b981; background-color: #f0fdf4;">
       <div style="font-size: 11px; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase;">Phase Fully Funded</div>
       <div style="font-size: 24px; font-weight: 800; color: #10b981;">${data.currency} ${data.amount}</div>
-      <p style="margin: 12px 0 0 0; font-size: 14px; color: #064e3b;"><strong>Phase:</strong> ${data.phaseName}</p>
+      <p style="margin: 12px 0 0 0; font-size: 14px; color: #064e3b;"><strong>Funding Stage:</strong> ${data.phaseName}</p>
       <p style="margin: 4px 0 0 0; font-size: 14px; color: #064e3b;"><strong>Reference:</strong> ${data.reference}</p>
     </div>
 

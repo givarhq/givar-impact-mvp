@@ -1440,7 +1440,7 @@ export class AdminService {
     }
 
     const previousStatus = timeline[milestoneIndex].status;
-    const isLastPhase = milestoneIndex === timeline.length - 1; // <--- NEW: Identify if it's the final phase
+    const isLastPhase = milestoneIndex === timeline.length - 1;
 
     const updatedTimeline = [...timeline];
     updatedTimeline[milestoneIndex] = {
@@ -1451,11 +1451,12 @@ export class AdminService {
       ...(status === 'COMPLETED' && { completedAt: new Date().toISOString() })
     };
 
+    const richStageName = `${updatedTimeline[milestoneIndex].phase}: ${updatedTimeline[milestoneIndex].deliverables}`;
+
     const updateData: any = { executionTimeline: updatedTimeline as any };
     let emailsToNotify: string[] = [];
 
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
-      // --- BUG FIX: Only unlock the next phase if one actually exists! ---
       if (!isLastPhase) {
         updateData.currentPhaseIndex = { increment: 1 };
         updateData.waitlistEmails = [];
@@ -1475,7 +1476,7 @@ export class AdminService {
       entityType: 'Project',
       metadata: {
         action: 'MILESTONE_UPDATE',
-        milestone: updatedTimeline[milestoneIndex].phase,
+        milestone: richStageName,
         previousStatus,
         newStatus: status,
         phaseUnlocked: emailsToNotify.length > 0
@@ -1486,7 +1487,7 @@ export class AdminService {
       this.emailService.sendOwnerMilestoneAlert(project.user.email, {
         name: project.user.firstName,
         project: project.title,
-        milestone: updatedTimeline[milestoneIndex].phase,
+        milestone: richStageName,
         status: status.replace('_', ' '),
         projectId
       }).catch(err => this.logger.error(`Owner Milestone Email Failed: ${err.message}`));
@@ -1496,7 +1497,7 @@ export class AdminService {
       await this.prisma.projectUpdate.create({
         data: {
           projectId,
-          title: `Milestone Achieved: ${updatedTimeline[milestoneIndex].phase}`,
+          title: `Milestone Achieved: ${richStageName}`,
           content: `We are pleased to announce that the "${updatedTimeline[milestoneIndex].phase}" phase has been successfully completed. Deliverables verified: ${updatedTimeline[milestoneIndex].deliverables}.`,
           type: 'MILESTONE',
           imageUrl: dto.imageUrl || null
@@ -1527,7 +1528,7 @@ export class AdminService {
         projectId,
         project.title,
         project.slug,
-        updatedTimeline[milestoneIndex].phase,
+        richStageName,
         signedProofUrl
       ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
 
@@ -1946,6 +1947,7 @@ export class AdminService {
 
     const timeline = (project.executionTimeline as any[]) || [];
     const milestone = timeline.find(m => m.id === dto.milestoneId);
+    const richStageName = milestone ? `${milestone.phase}: ${milestone.deliverables}` : 'Current Stage';
 
     return this.prisma.$transaction(async (tx) => {
       const disbursement = await tx.disbursement.create({
@@ -1968,42 +1970,39 @@ export class AdminService {
           entityType: 'Disbursement',
           metadata: {
             vendor: dto.vendorName,
-            milestone: milestone?.phase || 'Unknown',
+            milestone: richStageName,
             amount_naira: (Number(dto.amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             hasReceipt: !!dto.receiptKey
           }
         }
       });
 
-      // Automatically generate a public Project Update for the disbursement
       await tx.projectUpdate.create({
         data: {
           projectId,
           title: 'Funds Disbursed',
-          content: `A payment of ${(Number(dto.amount) / 100).toLocaleString()} ${project.currency} has been securely disbursed to ${dto.vendorName} for the execution of the "${milestone?.phase || 'Current Phase'}" phase.`,
+          content: `A payment of ${(Number(dto.amount) / 100).toLocaleString()} ${project.currency} has been securely disbursed to ${dto.vendorName} for the execution of the "${richStageName}" stage.`,
           type: 'FUNDS_DISBURSED',
-          // Optionally link the receipt if it exists
           imageUrl: dto.receiptKey ? dto.receiptKey : null
         }
       });
 
-      // Notify the organizer to provide proof of work for this disbursement
       await tx.notification.create({
         data: {
           userId: project.userId,
           type: 'MILESTONE_ALERT',
           title: 'Action required: Proof of work',
-          content: `Funds disbursed to ${dto.vendorName} for "${milestone?.phase || 'Current Phase'}". Please upload evidence.`,
+          content: `Funds disbursed to ${dto.vendorName} for "${richStageName}". Please upload evidence.`,
           link: `/dashboard/projects/${projectId}/manage#submit-evidence`
         }
       });
 
-      return { disbursement, owner: project.user, milestoneName: milestone?.phase };
+      return { disbursement, owner: project.user, milestoneName: richStageName };
     }).then(async (res) => {
       await this.emailService.sendEvidenceRequest(res.owner.email, {
         name: res.owner.firstName,
         project: project.title,
-        milestone: res.milestoneName || 'Current Phase',
+        milestone: res.milestoneName,
         vendor: dto.vendorName
       }).catch(err => this.logger.error(`Evidence email failed: ${err.message}`));
 
