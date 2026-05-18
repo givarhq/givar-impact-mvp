@@ -51,6 +51,15 @@ export function useProposalAutoSave() {
       if (payload.subcategoryId === '') payload.subcategoryId = null;
       if (payload.categoryId === '') payload.categoryId = null;
 
+      // UX FIX: Strip empty strings from stages so the backend @IsEnum validator doesn't crash
+      if (payload.budgetBreakdown) {
+        payload.budgetBreakdown = payload.budgetBreakdown.map((b: any) => {
+          const item = { ...b };
+          if (item.stage === '') delete item.stage;
+          return item;
+        });
+      }
+
       if (payload.targetAmount !== undefined && payload.targetAmount !== null) {
         payload.targetAmount = payload.targetAmount * 100;
       }

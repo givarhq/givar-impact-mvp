@@ -124,7 +124,7 @@ export const BudgetEditor = memo(function BudgetEditor({
     const newItem: BudgetItem = {
       id: crypto.randomUUID(),
       vendorId: vendors.length === 1 ? vendors[0].id : '',
-      costType: 'STANDARD', // Legacy fallback for DB integrity
+      costType: 'STANDARD',
       amount: 0,
       description: '',
       stage: '' // Force user to intentionally select the stage
@@ -405,7 +405,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 4: Funding Stage & Trash */}
-                <div className="md:col-span-3 flex gap-2 items-end">
+                <div className="md:col-span-3 flex gap-2 items-end min-w-0">
                   <div className="flex-1 space-y-1.5 min-w-0">
                     <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
                     {isLocked ? (

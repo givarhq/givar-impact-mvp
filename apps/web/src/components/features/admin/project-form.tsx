@@ -195,6 +195,15 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         endDate: data.endDate ? new Date(data.endDate).toISOString() : null
       };
 
+      // UX FIX: Strip empty strings from stages so the backend @IsEnum validator doesn't crash
+      if (payload.budgetBreakdown) {
+        payload.budgetBreakdown = payload.budgetBreakdown.map((b: any) => {
+          const item = { ...b };
+          if (item.stage === '') delete item.stage;
+          return item;
+        });
+      }
+
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
         toast.success(status === 'DRAFT' ? 'Changes saved as draft' : 'Project successfully published', { id: toastId });
