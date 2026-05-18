@@ -390,7 +390,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 3: Amount */}
-                <div className="md:col-span-3 space-y-1.5 min-w-0">
+                <div className="md:col-span-2 space-y-1.5 min-w-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
                   <div className="relative">
                     {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
@@ -405,7 +405,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 4: Funding Stage & Trash */}
-                <div className="md:col-span-2 space-y-1.5 min-w-0">
+                <div className="md:col-span-3 flex gap-2 items-end">
                   <div className="flex-1 space-y-1.5 min-w-0">
                     <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
                     {isLocked ? (
@@ -425,19 +425,17 @@ export const BudgetEditor = memo(function BudgetEditor({
                       </Select>
                     )}
                   </div>
-                  <div className="flex justify-end mt-2">
-                    {!isLocked && (
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => removeItem(item.id)}
-                        className="text-destructive hover:bg-destructive/10 rounded-3xl h-11 w-11 shrink-0 transition-colors active:scale-90"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  {!isLocked && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeItem(item.id)}
+                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-11 w-11 shrink-0 transition-colors active:scale-90"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             ))}
