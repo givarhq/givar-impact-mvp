@@ -237,13 +237,19 @@ export const useProposalStore = create<ProposalState>()(
 
         const currentTimeline = get().executionTimeline;
 
-        // Ensure auto-generated timelines inherit budget names to prevent blank deliverable blockers
+        // Ensure auto-generated timelines inherit budget names and dynamically sync
         const newTimeline = uniqueStages.map(stage => {
           const existing = currentTimeline.find(t => t.phase === stage);
-          if (existing) return existing;
-
           const stageItems = newBudget.filter(b => b.stage === stage);
           const autoDeliverables = stageItems.map(b => b.description).filter(Boolean).join(', ');
+
+          if (existing) {
+            return {
+              ...existing,
+              // Always auto-sync deliverables since the Timeline UI was removed
+              deliverables: autoDeliverables || 'Implementation'
+            };
+          }
 
           return {
             id: crypto.randomUUID(),
