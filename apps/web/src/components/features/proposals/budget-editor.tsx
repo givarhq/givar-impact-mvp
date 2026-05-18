@@ -405,7 +405,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 4: Funding Stage & Trash */}
-                <div className="md:col-span-2 flex gap-2 items-end min-w-0">
+                <div className="md:col-span-2 space-y-1.5 min-w-0">
                   <div className="flex-1 space-y-1.5 min-w-0">
                     <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
                     {isLocked ? (
