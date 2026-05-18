@@ -425,17 +425,19 @@ export const BudgetEditor = memo(function BudgetEditor({
                       </Select>
                     )}
                   </div>
-                  {!isLocked && (
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeItem(item.id)}
-                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-11 w-11 shrink-0 transition-colors active:scale-90"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <div className="flex justify-end mt-2">
+                    {!isLocked && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeItem(item.id)}
+                        className="text-destructive hover:bg-destructive/10 rounded-3xl h-11 w-11 shrink-0 transition-colors active:scale-90"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
