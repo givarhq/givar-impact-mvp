@@ -189,7 +189,7 @@ export const useProposalStore = create<ProposalState>()(
             costType: item.costType || item.type || 'SERVICE',
             amount: item.amount !== undefined ? item.amount : (item.cost || 0),
             description: item.description || item.item || '',
-            stage: item.stage || 'Main Stage'
+            stage: item.stage || '' // Do not default to Main Stage to force selection
           };
         })
         : [];

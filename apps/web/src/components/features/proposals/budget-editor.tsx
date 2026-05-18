@@ -127,7 +127,7 @@ export const BudgetEditor = memo(function BudgetEditor({
       costType: 'STANDARD', // Legacy fallback for DB integrity
       amount: 0,
       description: '',
-      stage: 'Main Stage'
+      stage: '' // Force user to intentionally select the stage
     };
     updateBudget([...budgetBreakdown, newItem]);
   };
@@ -355,7 +355,8 @@ export const BudgetEditor = memo(function BudgetEditor({
                 transition={{ duration: 0.2 }}
                 className={fieldContainerClass}
               >
-                <div className="md:col-span-4 space-y-1.5">
+                {/* Column 1: Item */}
+                <div className="md:col-span-4 space-y-1.5 min-w-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Item</label>
                   <Input
                     placeholder="Details..."
@@ -366,27 +367,8 @@ export const BudgetEditor = memo(function BudgetEditor({
                   />
                 </div>
 
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
-                  {isLocked ? (
-                    <Input value={item.stage || 'Main Stage'} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
-                  ) : (
-                    <Select value={item.stage || 'Main Stage'} onValueChange={(v) => handleUpdate(item.id, 'stage', v)} disabled={isLocked}>
-                      <SelectTrigger className={inputStyle}>
-                        <SelectValue placeholder="Select Stage" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl shadow-xl border-border/40">
-                        {FUNDING_STAGES.map((stage) => (
-                          <SelectItem key={stage} value={stage} className="rounded-2xl text-sm py-2.5 font-medium">
-                            {stage}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-
-                <div className="md:col-span-3 space-y-1.5">
+                {/* Column 2: Recipient */}
+                <div className="md:col-span-3 space-y-1.5 min-w-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Recipient</label>
                   {isLocked ? (
                     <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
@@ -407,19 +389,41 @@ export const BudgetEditor = memo(function BudgetEditor({
                   )}
                 </div>
 
-                <div className="md:col-span-3 flex gap-2 items-end">
+                {/* Column 3: Amount */}
+                <div className="md:col-span-3 space-y-1.5 min-w-0">
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
+                  <div className="relative">
+                    {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
+                    <Input
+                      placeholder="0"
+                      className={cn(inputStyle, !isLocked && "pl-7", "tabular-nums font-bold text-base")}
+                      value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
+                      onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
+                      readOnly={isLocked}
+                    />
+                  </div>
+                </div>
+
+                {/* Column 4: Funding Stage & Trash */}
+                <div className="md:col-span-2 flex gap-2 items-end min-w-0">
                   <div className="flex-1 space-y-1.5 min-w-0">
-                    <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
-                    <div className="relative">
-                      {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
-                      <Input
-                        placeholder="0"
-                        className={cn(inputStyle, !isLocked && "pl-7", "tabular-nums font-bold text-base")}
-                        value={item.amount === 0 && !isLocked ? '' : (isLocked ? `₦${formatNumberInput(String(item.amount))}` : formatNumberInput(String(item.amount)))}
-                        onChange={(e) => handleUpdate(item.id, 'amount', e.target.value)}
-                        readOnly={isLocked}
-                      />
-                    </div>
+                    <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
+                    {isLocked ? (
+                      <Input value={item.stage || 'Not selected'} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
+                    ) : (
+                      <Select value={item.stage || undefined} onValueChange={(v) => handleUpdate(item.id, 'stage', v)} disabled={isLocked}>
+                        <SelectTrigger className={inputStyle}>
+                          <SelectValue placeholder="Select stage" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl shadow-xl border-border/40">
+                          {FUNDING_STAGES.map((stage) => (
+                            <SelectItem key={stage} value={stage} className="rounded-2xl text-sm py-2.5 font-medium">
+                              {stage}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   {!isLocked && (
                     <Button
