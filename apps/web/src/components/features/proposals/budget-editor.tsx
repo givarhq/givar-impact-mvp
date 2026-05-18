@@ -390,7 +390,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 3: Amount */}
-                <div className="md:col-span-3 space-y-1.5 min-w-0">
+                <div className="md:col-span-2 space-y-1.5 min-w-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
                   <div className="relative">
                     {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
