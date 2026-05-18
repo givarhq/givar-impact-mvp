@@ -389,7 +389,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                   )}
                 </div>
 
-                {/* Column 3: Amount */}
+                {/* Column 3: Amount*/}
                 <div className="md:col-span-2 space-y-1.5 min-w-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
                   <div className="relative">
@@ -404,20 +404,33 @@ export const BudgetEditor = memo(function BudgetEditor({
                   </div>
                 </div>
 
-                {/* Column 4: Funding Stage & Trash */}
+                {/* Column 4: Funding Stage + Trash*/}
                 <div className="md:col-span-2 flex gap-2 items-end min-w-0">
                   <div className="flex-1 space-y-1.5 min-w-0">
                     <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
+
                     {isLocked ? (
-                      <Input value={item.stage || 'Not selected'} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
+                      <Input
+                        value={item.stage || 'Not selected'}
+                        readOnly
+                        className={cn(inputStyle, "font-bold text-foreground px-1")}
+                      />
                     ) : (
-                      <Select value={item.stage || undefined} onValueChange={(v) => handleUpdate(item.id, 'stage', v)} disabled={isLocked}>
+                      <Select
+                        value={item.stage || undefined}
+                        onValueChange={(v) => handleUpdate(item.id, 'stage', v)}
+                        disabled={isLocked}
+                      >
                         <SelectTrigger className={inputStyle}>
                           <SelectValue placeholder="Select stage" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl shadow-xl border-border/40">
                           {FUNDING_STAGES.map((stage) => (
-                            <SelectItem key={stage} value={stage} className="rounded-2xl text-sm py-2.5 font-medium">
+                            <SelectItem
+                              key={stage}
+                              value={stage}
+                              className="rounded-2xl text-sm py-2.5 font-medium"
+                            >
                               {stage}
                             </SelectItem>
                           ))}
@@ -425,6 +438,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                       </Select>
                     )}
                   </div>
+
                   {!isLocked && (
                     <Button
                       type="button"
