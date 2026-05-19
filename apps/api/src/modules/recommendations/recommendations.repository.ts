@@ -35,6 +35,7 @@ export class RecommendationsRepository {
                 visibilityScore: true,
                 tags: true,
                 budgetBreakdown: true,
+                executionTimeline: true,
                 currentPhaseIndex: true,
                 category: {
                     select: {
@@ -92,6 +93,7 @@ export class RecommendationsRepository {
                         raisedAmount: true,
                         targetAmount: true,
                         budgetBreakdown: true,
+                        executionTimeline: true,
                         currentPhaseIndex: true,
                         status: true
                     }
