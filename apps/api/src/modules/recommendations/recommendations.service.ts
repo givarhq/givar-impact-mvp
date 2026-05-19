@@ -49,21 +49,34 @@ export class RecommendationsService {
         const target = BigInt(project.targetAmount || '0');
 
         const activeIndex = project.currentPhaseIndex || 0;
-        const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
+
+        // FIX: Cast Prisma JsonValue to any[] to satisfy TypeScript compiler
+        const budget = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
+        const timeline = Array.isArray(project.executionTimeline) ? (project.executionTimeline as any[]) : [];
 
         let previousPhasesMajor = 0;
-        for (let i = 0; i < activeIndex && i < budget.length; i++) {
-            previousPhasesMajor += (budget[i].amount || budget[i].cost || 0);
-        }
-        const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+        let currentPhaseMajor = 0;
 
-        let cumulativeMajor = previousPhasesMajor;
-        if (budget[activeIndex]) {
-            cumulativeMajor += (budget[activeIndex].amount || budget[activeIndex].cost || 0);
+        const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+        const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+        budget.forEach((item: any) => {
+            const amt = item.amount || item.cost || 0;
+            const itemStage = item.stage || 'Main Stage';
+
+            if (previousStages.includes(itemStage)) {
+                previousPhasesMajor += amt;
+            } else if (itemStage === currentStageName) {
+                currentPhaseMajor += amt;
+            }
+        });
+
+        const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+        let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+        if (timeline.length === 0 || activeIndex >= timeline.length) {
+            phaseCapMinor = target;
         }
-        const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-            ? BigInt(Math.round(cumulativeMajor * 100))
-            : target;
 
         const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
         let raisedInCurrentPhase = raised - previousPhasesMinor;

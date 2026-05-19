@@ -412,23 +412,23 @@ export class DonationService {
     const tipAmountBig = BigInt(dto.tipAmount || '0');
 
     if (baseAmountBig < this.MIN_DONATION_MINOR) {
-      throw new BadRequestException('Minimum donation amount is 100.00');
+      throw new BadRequestException('Minimum donation amount is 100.00.');
     }
 
     if (baseAmountBig > this.MAX_DONATION_MINOR) {
-      throw new BadRequestException('Amount exceeds maximum allowed per donation');
+      throw new BadRequestException('Amount exceeds maximum allowed per donation.');
     }
 
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
       select: {
         id: true, isActive: true, currency: true, status: true, categoryId: true, subcategoryId: true, title: true,
-        budgetBreakdown: true, executionTimeline: true, currentPhaseIndex: true, vendors: true, raisedAmount: true
+        budgetBreakdown: true, executionTimeline: true, currentPhaseIndex: true, vendors: true, raisedAmount: true, targetAmount: true
       },
     });
 
     if (!project || !project.isActive) {
-      throw new BadRequestException('Project is not active or does not exist');
+      throw new BadRequestException('Project is not active or does not exist.');
     }
 
     if (project.status !== ProjectStatus.ACTIVE) {
@@ -436,14 +436,55 @@ export class DonationService {
     }
 
     if (project.currency !== dto.currency) {
-      throw new BadRequestException(`Project only accepts ${project.currency}`);
+      throw new BadRequestException(`Project only accepts ${project.currency}.`);
+    }
+
+    // --- PHASE CAP ENFORCEMENT LOCK ---
+    // FIX: Cast Prisma JsonValue to any[] to satisfy TypeScript compiler
+    const timeline = Array.isArray(project.executionTimeline) ? (project.executionTimeline as any[]) : [];
+    const budget = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
+    const activeIndex = project.currentPhaseIndex || 0;
+
+    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    let previousPhasesMajor = 0;
+    let currentPhaseMajor = 0;
+
+    budget.forEach((item: any) => {
+      const amt = item.amount || (item as any).cost || 0;
+      const itemStage = item.stage || 'Main Stage';
+
+      if (previousStages.includes(itemStage)) {
+        previousPhasesMajor += amt;
+      } else if (itemStage === currentStageName) {
+        currentPhaseMajor += amt;
+      }
+    });
+
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+    if (timeline.length === 0 || activeIndex >= timeline.length) {
+      phaseCapMinor = BigInt(project.targetAmount || '0');
+    }
+
+    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+    const totalRaisedMinor = BigInt(project.raisedAmount || '0');
+    let raisedInCurrentPhase = totalRaisedMinor - previousPhasesMinor;
+    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+
+    if (remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n) {
+      throw new BadRequestException('The current funding phase is fully funded and pending administrative verification. Donations are temporarily paused.');
     }
 
     const activeContext = this.getActiveBudgetContext(project);
 
     if (!activeContext.activeSubaccount) {
       throw new InternalServerErrorException(
-        'Strict Non-Custodial Policy: The active vendor routing account is missing. Donations are temporarily halted.'
+        'Strict non-custodial policy: The active vendor routing account is missing. Donations are temporarily halted.'
       );
     }
 
@@ -470,7 +511,7 @@ export class DonationService {
       internalUserId = user.id;
     } else {
       if (!dto.guestEmail?.trim()) {
-        throw new BadRequestException('Email is required for guest donations');
+        throw new BadRequestException('Email is required for guest donations.');
       }
       emailToCharge = dto.guestEmail.trim();
     }
@@ -546,7 +587,7 @@ export class DonationService {
         throw new InternalServerErrorException('Payment initialization timed out. Please try again.');
       }
 
-      throw new InternalServerErrorException('Unable to initialize payment at this time');
+      throw new InternalServerErrorException('Unable to initialize payment at this time.');
     }
   }
 
@@ -598,13 +639,13 @@ export class DonationService {
         where: { id: projectId },
       });
 
-      if (!project) throw new NotFoundException('Project node missing on ledger');
+      if (!project) throw new NotFoundException('Project node missing on ledger.');
 
       const activeContext = this.getActiveBudgetContext(project);
 
       if (!activeContext.activeSubaccount) {
         throw new InternalServerErrorException(
-          'Strict Non-Custodial Policy: The active vendor lacks a verified routing account.'
+          'Strict non-custodial policy: The active vendor lacks a verified routing account.'
         );
       }
 
@@ -747,6 +788,23 @@ export class DonationService {
       const currentPhaseCap = this.calculatePhaseCap(updatedProject);
       let currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
 
+      // --- RACE CONDITION OVERFUNDING ALERT ---
+      if (updatedProject.raisedAmount > currentPhaseCap && currentPhaseCap > 0n) {
+        const overage = updatedProject.raisedAmount - currentPhaseCap;
+        await tx.auditLog.create({
+          data: {
+            action: AuditAction.FUNDS_MOVED_TO_SUSPENSE,
+            entityType: 'Project',
+            entityId: project.id,
+            metadata: {
+              warning: "CONCURRENT_OVERFUNDING_DETECTED",
+              overageAmount: overage.toString(),
+              vendorSubaccount: activeContext.activeSubaccount
+            }
+          }
+        });
+      }
+
       const postDonationContext = this.getActiveBudgetContext(updatedProject);
       const currentRemainingForItem = postDonationContext.itemRemainingMinor;
 
@@ -776,7 +834,7 @@ export class DonationService {
               status: TxStatus.COMPLETED,
               category: TxCategory.ADJUSTMENT,
               reference: `DUST-${reference}`,
-              description: `Platform Dust Coverage to finalize phase: ${project.title}`,
+              description: `Platform dust coverage to finalize phase: ${project.title}`,
               metadata: { originalProjectId: project.id, reason: 'THRESHOLD_COMPLETION_RULE' }
             }
           });
@@ -794,7 +852,7 @@ export class DonationService {
               amount: dustMinor,
               baseAmount: dustMinor,
               currency,
-              message: 'Platform Dust Coverage (Threshold Completion)',
+              message: 'Platform dust coverage (threshold completion)',
             }
           });
 
@@ -829,7 +887,7 @@ export class DonationService {
           data: {
             userId: project.userId,
             type: 'MILESTONE_ALERT' as NotificationType,
-            title: 'Stage Funding Complete',
+            title: 'Stage funding complete',
             content: `The full capital for "${activeContext.currentStageName}" has been routed to vendors. Proof of work required.`,
             link: `/dashboard/projects/${project.id}/manage`
           }
@@ -845,13 +903,12 @@ export class DonationService {
             data: admins.map(admin => ({
               userId: admin.id,
               type: 'PROJECT_STATUS' as NotificationType,
-              title: 'Action Required: Payout Finalized',
+              title: 'Action required: payout finalized',
               content: `Stage "${activeContext.currentStageName}" for "${project.title}" is 100% funded. Contact vendors to authorize work.`,
               link: `/admin/projects/${project.id}/edit`
             }))
           });
 
-          // Extract vendor details for the email alert
           const vendors = (project.vendors as any[]) || [];
           const activeVendor = vendors.find(v => v.id === activeContext.activeBudgetItem?.vendorId);
           const vendorName = activeVendor ? activeVendor.name : (activeContext.activeBudgetItem?.payTo || activeContext.activeBudgetItem?.vendor || 'Verified Vendor');

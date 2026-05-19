@@ -55,23 +55,34 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                         const isCompleted = item.project.status === 'COMPLETED';
                         const isFundedState = item.project.status === 'FUNDED' || (raised >= target && target > 0n && !isCompleted);
 
-                        // --- PHASED FUNDING MATH ---
+                        // --- PHASED FUNDING MATH FIX ---
                         const activeIndex = item.project.currentPhaseIndex || 0;
                         const budget = Array.isArray(item.project.budgetBreakdown) ? item.project.budgetBreakdown : [];
+                        const timeline = Array.isArray(item.project.executionTimeline) ? item.project.executionTimeline : [];
 
                         let previousPhasesMajor = 0;
-                        for (let i = 0; i < activeIndex && i < budget.length; i++) {
-                            previousPhasesMajor += (budget[i].amount || (budget[i] as any).cost || 0);
-                        }
-                        const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
+                        let currentPhaseMajor = 0;
 
-                        let cumulativeMajor = previousPhasesMajor;
-                        if (budget[activeIndex]) {
-                            cumulativeMajor += (budget[activeIndex].amount || (budget[activeIndex] as any).cost || 0);
+                        const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+                        const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
+
+                        budget.forEach((b: any) => {
+                            const amt = b.amount || b.cost || 0;
+                            const bStage = b.stage || 'Main Stage';
+
+                            if (previousStages.includes(bStage)) {
+                                previousPhasesMajor += amt;
+                            } else if (bStage === currentStageLogicName) {
+                                currentPhaseMajor += amt;
+                            }
+                        });
+
+                        const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+                        let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+                        if (timeline.length === 0 || activeIndex >= timeline.length) {
+                            phaseCapMinor = target;
                         }
-                        const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-                            ? BigInt(cumulativeMajor * 100)
-                            : target;
 
                         const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
                         let raisedInCurrentPhase = raised - previousPhasesMinor;
@@ -81,7 +92,8 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
                             ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
                             : 0;
 
-                        const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+                        const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+                        const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
                         const activeStageLogicName = item.project.executionTimeline?.[activeIndex]?.phase || 'Main Stage';
                         const cleanStageName = activeStageLogicName.replace(/^Phase \d+:\s*/i, '');
