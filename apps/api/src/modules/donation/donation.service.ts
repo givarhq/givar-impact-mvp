@@ -804,7 +804,6 @@ export class DonationService {
       const currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
       const projectRemaining = updatedProject.targetAmount - updatedProject.raisedAmount;
 
-      // --- FIX: Dust logic natively evaluates remaining gap ---
       const isGoalMet = projectRemaining < 10000n;
       const isPhaseNewlyMet = !isGoalMet && currentRemainingForPhase < 10000n;
 
@@ -904,6 +903,8 @@ export class DonationService {
         projectTitle: project.title,
         projectSlug: project.slug,
         projectUserId: project.userId,
+        // FIX: Extract the Target Amount out of the transaction so it survives the scope
+        targetAmount: updatedProject.targetAmount,
         formattedPhase,
         type: 'DIRECT_DONATION'
       };
@@ -934,7 +935,8 @@ export class DonationService {
             this.emailService.sendProjectFundedAlert(organizer.email, {
               name: organizer.firstName,
               projectTitle: result.projectTitle,
-              amount: (Number(project.targetAmount) / 100).toLocaleString(),
+              // FIX: Now uses the safely extracted targetAmount
+              amount: (Number(result.targetAmount) / 100).toLocaleString(),
               currency: currency,
               projectId: projectId
             });
