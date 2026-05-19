@@ -9,14 +9,14 @@ export async function POST(request: Request) {
   // 1. Standard Authentication
   if (body.action === 'login' || body.action === 'signup') {
     cookieStore.set('givar_token', body.token, {
-      httpOnly: true,
+      httpOnly: false, // CRITICAL FIX: Allow client-side JS to read the token for cross-origin Axios calls
       secure: isProd,
       sameSite: 'lax',
       maxAge: 86400, // 24 hours
       path: '/'
     });
     cookieStore.set('givar_user', JSON.stringify(body.user), {
-      httpOnly: false, // UI needs to read this context
+      httpOnly: false,
       secure: isProd,
       sameSite: 'lax',
       maxAge: 86400,
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
     // Apply the restricted proxy session
     cookieStore.set('givar_token', body.token, {
-      httpOnly: true,
+      httpOnly: false, // CRITICAL FIX
       secure: isProd,
       sameSite: 'lax',
       maxAge: 15 * 60,
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     // Restore Admin Session
     if (backupToken) {
       cookieStore.set('givar_token', backupToken, {
-        httpOnly: true,
+        httpOnly: false, // CRITICAL FIX
         secure: isProd,
         sameSite: 'lax',
         maxAge: 86400,
