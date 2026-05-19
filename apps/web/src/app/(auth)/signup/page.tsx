@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { setCookie } from 'cookies-next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
@@ -64,10 +63,12 @@ export default function SignupPage() {
       const response = await ApiService.auth.signup({ ...data, defaultCurrency: 'NGN' });
       const { accessToken, user } = response;
 
-      // Logic: Align cookie maxAge with the 24h JWT lifetime (86400 seconds)
-      const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
-      setCookie('givar_token', accessToken, cookieOptions);
-      setCookie('givar_user', JSON.stringify(user), cookieOptions);
+      // Logic: Align cookie maxAge with the 24h JWT lifetime (86400 seconds) via backend route
+      await fetch('/api/auth/clear-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'signup', token: accessToken, user })
+      });
 
       // Link anonymous session to the new user and log acquisition
       posthog?.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });

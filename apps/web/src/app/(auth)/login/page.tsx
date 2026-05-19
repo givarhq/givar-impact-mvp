@@ -6,7 +6,6 @@ import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { setCookie } from 'cookies-next';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
@@ -57,12 +56,15 @@ function LoginComponent() {
         return;
       }
 
-      const { user } = response;
+      const { user, accessToken } = response;
 
-      // Logic: givar_token is now securely set via HttpOnly cookie by the backend.
-      // We only store the non-sensitive user metadata context for UI rendering.
-      const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
-      setCookie('givar_user', JSON.stringify(user), cookieOptions);
+      // Logic: givar_token is securely set via HttpOnly cookie by the Next.js API route.
+      // We delegate this to our internal endpoint to bypass cross-domain Set-Cookie restrictions.
+      await fetch('/api/auth/clear-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', token: accessToken, user })
+      });
 
       // Log successful login and identify the user session
       posthog?.identify(user.id, { email: user.email });
