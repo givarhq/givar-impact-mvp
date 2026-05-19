@@ -168,4 +168,38 @@ export class AuthController {
   async getMyAuditLogs(@Req() req: any, @Query('page') page?: string) {
     return this.authService.getMyAuditLogs(req.user.id, page ? Number(page) : 1);
   }
+
+  @Post('impersonate/stop')
+  @HttpCode(HttpStatus.OK)
+  stopImpersonation(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    let backupToken = null;
+    if (req.headers.cookie) {
+      const match = req.headers.cookie.match(/(?:^|;\s*)givar_admin_backup_token=([^;]*)/);
+      if (match) backupToken = match[1];
+    }
+
+    if (backupToken) {
+      res.cookie('givar_token', backupToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 86400 * 1000,
+        path: '/'
+      });
+    } else {
+      res.cookie('givar_token', '', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 0,
+        path: '/'
+      });
+    }
+
+    res.cookie('givar_is_impersonating', '', { maxAge: 0, path: '/' });
+    res.cookie('givar_admin_backup_token', '', { maxAge: 0, path: '/' });
+    res.cookie('givar_admin_backup_user', '', { maxAge: 0, path: '/' });
+
+    return { success: true, message: 'Impersonation session securely terminated.' };
+  }
 }

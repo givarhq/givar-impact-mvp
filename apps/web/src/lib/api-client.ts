@@ -1,5 +1,4 @@
 import axios, { AxiosError } from 'axios';
-import { getCookie, deleteCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
@@ -15,10 +14,8 @@ export const apiClient = axios.create({
 
 // REQUEST INTERCEPTOR
 apiClient.interceptors.request.use((config) => {
-  const token = getCookie('givar_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  // Logic: givar_token is an HttpOnly cookie, so we rely on the browser
+  // to automatically attach it via withCredentials: true. Client-side extraction is removed to prevent XSS.
 
   // Logic: Force no-cache for client-side mutations to prevent stale UI
   if (config.method !== 'get') {

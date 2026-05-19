@@ -57,11 +57,11 @@ function LoginComponent() {
         return;
       }
 
-      const { accessToken, user } = response;
+      const { user } = response;
 
-      // Logic: Align cookie maxAge with the 24h JWT lifetime (86400 seconds)
+      // Logic: givar_token is now securely set via HttpOnly cookie by the backend.
+      // We only store the non-sensitive user metadata context for UI rendering.
       const cookieOptions = { maxAge: 86400, path: '/', sameSite: 'lax' as const };
-      setCookie('givar_token', accessToken, cookieOptions);
       setCookie('givar_user', JSON.stringify(user), cookieOptions);
 
       // Log successful login and identify the user session
@@ -209,7 +209,7 @@ function LoginComponent() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border/60" />
             </div>
-            <div className="relative flex justify-center text-[11px]  tracking-[0.2em] font-black">
+            <div className="relative flex justify-center text-[11px] tracking-[0.2em] font-black">
               <span className="bg-background dark:bg-card px-4 text-muted-foreground/60">Or</span>
             </div>
           </div>
