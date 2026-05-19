@@ -646,312 +646,324 @@ export class DonationService {
       return { status: 'ignored_channel', reference };
     }
 
-    const result = await this.prisma.$transaction(async (tx) => {
-      const existingUserDonation = await tx.donation.findFirst({
-        where: { transaction: { reference } },
-        select: { id: true }
-      });
-      const existingGuestDonation = await tx.guestDonation.findUnique({
-        where: { reference },
-        select: { id: true }
-      });
-
-      if (existingUserDonation || existingGuestDonation) {
-        return { status: 'duplicate', reference };
-      }
-
-      const project = await tx.project.findUnique({
-        where: { id: projectId },
-      });
-
-      if (!project) throw new NotFoundException('Project node missing on ledger.');
-
-      const activeContext = this.getActiveBudgetContext(project);
-
-      if (!activeContext.activeSubaccount) {
-        throw new InternalServerErrorException(
-          'Strict non-custodial policy: The active vendor lacks a verified routing account.'
-        );
-      }
-
-      const formattedPhase = activeContext.fullStageDisplayName;
-      let processedDonationId: string;
-
-      if (feeAmount > 0n || tipAmount > 0n) {
-        const systemNode = await tx.user.findFirst({
-          where: { role: UserRole.SUPERADMIN },
-          include: { wallets: { where: { currency } } }
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        const existingUserDonation = await tx.donation.findFirst({
+          where: { transaction: { reference } },
+          select: { id: true }
         });
-
-        if (systemNode?.wallets[0]) {
-          const systemWalletId = systemNode.wallets[0].id;
-
-          if (feeAmount > 0n) {
-            await tx.walletTransaction.create({
-              data: {
-                walletId: systemWalletId,
-                amount: feeAmount,
-                currency,
-                type: TxType.CREDIT,
-                status: TxStatus.COMPLETED,
-                category: TxCategory.TRANSACTION_FEE,
-                reference: `FEE-${reference}`,
-                description: `Operational Support Fee via Gateway: ${project.title}`,
-                metadata: { originalProjectId: project.id, channel }
-              }
-            });
-            await tx.wallet.update({ where: { id: systemWalletId }, data: { balance: { increment: feeAmount } } });
-          }
-
-          if (tipAmount > 0n) {
-            await tx.walletTransaction.create({
-              data: {
-                walletId: systemWalletId,
-                amount: tipAmount,
-                currency,
-                type: TxType.CREDIT,
-                status: TxStatus.COMPLETED,
-                category: TxCategory.VOLUNTARY_TIP,
-                reference: `TIP-${reference}`,
-                description: `Optional Support Contribution via Gateway: ${project.title}`,
-                metadata: { originalProjectId: project.id, channel }
-              }
-            });
-            await tx.wallet.update({ where: { id: systemWalletId }, data: { balance: { increment: tipAmount } } });
-          }
-        }
-      }
-
-      if (userId !== 'GUEST') {
-        await this.walletRepo.processTransaction({
-          userId,
-          amount,
-          currency,
-          type: TxType.CREDIT,
-          reference: `IN-${reference}`,
-          description: `Direct Pay Inflow`,
-          status: TxStatus.COMPLETED,
-          category: TxCategory.FUNDING,
-          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
-        }, tx);
-
-        const { transaction: donationTx } = await this.walletRepo.processTransaction({
-          userId,
-          amount,
-          currency,
-          type: TxType.DEBIT,
-          reference,
-          description: `Direct donation: ${project.title}`,
-          status: TxStatus.COMPLETED,
-          category: TxCategory.DONATION,
-          metadata: { channel, authorization, donorCurrency, donorAmount, fxRate, phaseName: formattedPhase }
-        }, tx);
-
-        const donation = await tx.donation.create({
-          data: {
-            userId,
-            projectId,
-            transactionId: donationTx.id,
-            amount: amount,
-            baseAmount: baseAmount,
-            feePercentageUsed: feePercentageUsed,
-            feeAmount: feeAmount,
-            tipAmount: tipAmount,
-            feeRuleId: feeRuleId,
-            currency,
-            message: 'Direct payment fulfillment',
-          },
-        });
-        processedDonationId = donation.id;
-      } else {
-        const normalizedEmail = guestEmail!.toLowerCase().trim();
-        const guestDonor = await tx.guestDonor.upsert({
-          where: { email: normalizedEmail },
-          update: {
-            totalDonated: { increment: amount },
-            donationCount: { increment: 1 },
-            lastDonated: new Date(),
-          },
-          create: {
-            email: normalizedEmail,
-            name: guestName,
-            totalDonated: amount,
-            donationCount: 1,
-          }
-        });
-
-        const guestDonation = await tx.guestDonation.create({
-          data: {
-            guestDonorId: guestDonor.id,
-            projectId,
-            amount: amount,
-            baseAmount: baseAmount,
-            feePercentageUsed: feePercentageUsed,
-            feeAmount: feeAmount,
-            tipAmount: tipAmount,
-            feeRuleId: feeRuleId,
-            currency,
-            reference,
-            status: TxStatus.COMPLETED,
-            message: formattedPhase
-          }
-        });
-        processedDonationId = guestDonation.id;
-      }
-
-      const updatedProject = await tx.project.update({
-        where: { id: projectId },
-        data: { raisedAmount: { increment: baseAmount } }
-      });
-
-      const currentPhaseCap = this.calculatePhaseCap(updatedProject);
-      const currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
-      const projectRemaining = updatedProject.targetAmount - updatedProject.raisedAmount;
-
-      const isGoalMet = projectRemaining < 10000n;
-      const isPhaseNewlyMet = !isGoalMet && currentRemainingForPhase < 10000n;
-
-      if (isGoalMet && updatedProject.status !== ProjectStatus.FUNDED) {
-        await tx.project.update({
-          where: { id: projectId },
-          data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
-        });
-      }
-
-      if (isPhaseNewlyMet) {
-        await tx.notification.create({
-          data: {
-            userId: project.userId,
-            type: 'MILESTONE_ALERT' as NotificationType,
-            title: 'Stage funding complete',
-            content: `The full capital for "${activeContext.currentStageName}" has been routed to vendors. Proof of work required.`,
-            link: `/dashboard/projects/${project.id}/manage`
-          }
-        });
-
-        const admins = await tx.user.findMany({
-          where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+        const existingGuestDonation = await tx.guestDonation.findUnique({
+          where: { reference },
           select: { id: true }
         });
 
-        if (admins.length > 0) {
-          await tx.notification.createMany({
-            data: admins.map(admin => ({
-              userId: admin.id,
-              type: 'PROJECT_STATUS' as NotificationType,
-              title: 'Action required: payout finalized',
-              content: `Stage "${activeContext.currentStageName}" for "${project.title}" is 100% funded. Contact vendors to authorize work.`,
-              link: `/admin/projects/${project.id}/edit`
-            }))
+        if (existingUserDonation || existingGuestDonation) {
+          return { status: 'duplicate', reference };
+        }
+
+        const project = await tx.project.findUnique({
+          where: { id: projectId },
+        });
+
+        if (!project) throw new NotFoundException('Project node missing on ledger.');
+
+        const activeContext = this.getActiveBudgetContext(project);
+
+        if (!activeContext.activeSubaccount) {
+          throw new InternalServerErrorException(
+            'Strict non-custodial policy: The active vendor lacks a verified routing account.'
+          );
+        }
+
+        const formattedPhase = activeContext.fullStageDisplayName;
+        let processedDonationId: string;
+
+        if (feeAmount > 0n || tipAmount > 0n) {
+          const systemNode = await tx.user.findFirst({
+            where: { role: UserRole.SUPERADMIN },
+            include: { wallets: { where: { currency } } }
           });
 
-          const budgetArray = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
-          const vendorsArray = Array.isArray(project.vendors) ? (project.vendors as any[]) : [];
+          if (systemNode?.wallets[0]) {
+            const systemWalletId = systemNode.wallets[0].id;
 
-          const phaseBudgetItems = budgetArray.filter((b: any) => (b.stage || 'Main Stage') === activeContext.currentStageName);
-          const vendorAllocations = new Map<string, { amount: number, email: string, name: string }>();
+            if (feeAmount > 0n) {
+              await tx.walletTransaction.create({
+                data: {
+                  walletId: systemWalletId,
+                  amount: feeAmount,
+                  currency,
+                  type: TxType.CREDIT,
+                  status: TxStatus.COMPLETED,
+                  category: TxCategory.TRANSACTION_FEE,
+                  reference: `FEE-${reference}`,
+                  description: `Operational Support Fee via Gateway: ${project.title}`,
+                  metadata: { originalProjectId: project.id, channel }
+                }
+              });
+              await tx.wallet.update({ where: { id: systemWalletId }, data: { balance: { increment: feeAmount } } });
+            }
 
-          phaseBudgetItems.forEach((b: any) => {
-            const vendor = vendorsArray.find(v => v.id === b.vendorId);
-            const vEmail = vendor?.email || b.vendorEmail;
-            const vName = vendor?.name || b.payTo || b.vendor || 'Verified Vendor';
-            const amt = b.amount || b.cost || 0;
+            if (tipAmount > 0n) {
+              await tx.walletTransaction.create({
+                data: {
+                  walletId: systemWalletId,
+                  amount: tipAmount,
+                  currency,
+                  type: TxType.CREDIT,
+                  status: TxStatus.COMPLETED,
+                  category: TxCategory.VOLUNTARY_TIP,
+                  reference: `TIP-${reference}`,
+                  description: `Optional Support Contribution via Gateway: ${project.title}`,
+                  metadata: { originalProjectId: project.id, channel }
+                }
+              });
+              await tx.wallet.update({ where: { id: systemWalletId }, data: { balance: { increment: tipAmount } } });
+            }
+          }
+        }
 
-            if (vEmail) {
-              const existing = vendorAllocations.get(vEmail) || { amount: 0, email: vEmail, name: vName };
-              existing.amount += amt;
-              vendorAllocations.set(vEmail, existing);
+        if (userId !== 'GUEST') {
+          await this.walletRepo.processTransaction({
+            userId,
+            amount,
+            currency,
+            type: TxType.CREDIT,
+            reference: `IN-${reference}`,
+            description: `Direct Pay Inflow`,
+            status: TxStatus.COMPLETED,
+            category: TxCategory.FUNDING,
+            metadata: { channel, authorization, donorCurrency, donorAmount, fxRate }
+          }, tx);
+
+          const { transaction: donationTx } = await this.walletRepo.processTransaction({
+            userId,
+            amount,
+            currency,
+            type: TxType.DEBIT,
+            reference,
+            description: `Direct donation: ${project.title}`,
+            status: TxStatus.COMPLETED,
+            category: TxCategory.DONATION,
+            metadata: { channel, authorization, donorCurrency, donorAmount, fxRate, phaseName: formattedPhase }
+          }, tx);
+
+          const donation = await tx.donation.create({
+            data: {
+              userId,
+              projectId,
+              transactionId: donationTx.id,
+              amount: amount,
+              baseAmount: baseAmount,
+              feePercentageUsed: feePercentageUsed,
+              feeAmount: feeAmount,
+              tipAmount: tipAmount,
+              feeRuleId: feeRuleId,
+              currency,
+              message: 'Direct payment fulfillment',
+            },
+          });
+          processedDonationId = donation.id;
+        } else {
+          const normalizedEmail = guestEmail!.toLowerCase().trim();
+          const guestDonor = await tx.guestDonor.upsert({
+            where: { email: normalizedEmail },
+            update: {
+              totalDonated: { increment: amount },
+              donationCount: { increment: 1 },
+              lastDonated: new Date(),
+            },
+            create: {
+              email: normalizedEmail,
+              name: guestName,
+              totalDonated: amount,
+              donationCount: 1,
             }
           });
 
-          for (const [email, vData] of vendorAllocations.entries()) {
-            this.emailService.sendVendorPhaseFundedAlert(email, {
-              vendorName: vData.name,
-              projectTitle: project.title,
-              phaseName: activeContext.currentStageName,
-              amount: vData.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
-              currency: currency,
-              reference: reference
-            }).catch(err => this.logger.error(`Vendor notification failed: ${err.message}`));
-          }
+          const guestDonation = await tx.guestDonation.create({
+            data: {
+              guestDonorId: guestDonor.id,
+              projectId,
+              amount: amount,
+              baseAmount: baseAmount,
+              feePercentageUsed: feePercentageUsed,
+              feeAmount: feeAmount,
+              tipAmount: tipAmount,
+              feeRuleId: feeRuleId,
+              currency,
+              reference,
+              status: TxStatus.COMPLETED,
+              message: formattedPhase
+            }
+          });
+          processedDonationId = guestDonation.id;
         }
-      }
 
-      await tx.auditLog.create({
-        data: {
-          userId: userId !== 'GUEST' ? userId : undefined,
-          action: AuditAction.DIRECT_PAYMENT_FULFILLED,
-          entityId: processedDonationId,
-          entityType: userId !== 'GUEST' ? 'Donation' : 'GuestDonation',
-          metadata: {
-            projectId,
-            totalPaid: amount.toString(),
-            totalPaid_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-            applied: baseAmount.toString(),
-            applied_naira: (Number(baseAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-            isGoalMet,
-            isPhaseNewlyMet,
-            reference,
-            channel,
-            authorization,
-            donorCurrency,
-            donorAmount,
-            fxRate
-          }
+        const updatedProject = await tx.project.update({
+          where: { id: projectId },
+          data: { raisedAmount: { increment: baseAmount } }
+        });
+
+        const previousRaisedAmount = project.raisedAmount;
+        const previousRemainingForPhase = this.calculatePhaseCap(project) - previousRaisedAmount;
+        const previousPhaseMet = previousRemainingForPhase < 10000n;
+
+        const currentPhaseCap = this.calculatePhaseCap(updatedProject);
+        const currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
+        const currentPhaseMet = currentRemainingForPhase < 10000n;
+
+        const projectRemaining = updatedProject.targetAmount - updatedProject.raisedAmount;
+
+        const isGoalMet = projectRemaining < 10000n;
+        const isPhaseNewlyMet = !isGoalMet && currentPhaseMet && !previousPhaseMet;
+
+        if (isGoalMet && updatedProject.status !== ProjectStatus.FUNDED) {
+          await tx.project.update({
+            where: { id: projectId },
+            data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
+          });
         }
-      });
 
-      return {
-        status: 'processed',
-        isGoalMet,
-        projectTitle: project.title,
-        projectSlug: project.slug,
-        projectUserId: project.userId,
-        // FIX: Extract the Target Amount out of the transaction so it survives the scope
-        targetAmount: updatedProject.targetAmount,
-        formattedPhase,
-        type: 'DIRECT_DONATION'
-      };
-    }, {
-      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      timeout: 20000
-    });
+        if (isPhaseNewlyMet) {
+          await tx.notification.create({
+            data: {
+              userId: project.userId,
+              type: 'MILESTONE_ALERT' as NotificationType,
+              title: 'Stage funding complete',
+              content: `The full capital for "${activeContext.currentStageName}" has been routed to vendors. Proof of work required.`,
+              link: `/dashboard/projects/${project.id}/manage`
+            }
+          });
 
-    if (result.status === 'processed') {
-      await this.triggerReceipt(
-        userId === 'GUEST' ? null : userId,
-        guestEmail || null,
-        projectId,
-        amount,
-        currency,
-        reference,
-        donorCurrency,
-        donorAmount,
-        result.formattedPhase
-      );
+          const admins = await tx.user.findMany({
+            where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+            select: { id: true }
+          });
 
-      if (result.isGoalMet) {
-        this.prisma.user.findUnique({
-          where: { id: result.projectUserId },
-          select: { email: true, firstName: true }
-        }).then(organizer => {
-          if (organizer) {
-            this.emailService.sendProjectFundedAlert(organizer.email, {
-              name: organizer.firstName,
-              projectTitle: result.projectTitle,
-              // FIX: Now uses the safely extracted targetAmount
-              amount: (Number(result.targetAmount) / 100).toLocaleString(),
-              currency: currency,
-              projectId: projectId
+          if (admins.length > 0) {
+            await tx.notification.createMany({
+              data: admins.map(admin => ({
+                userId: admin.id,
+                type: 'PROJECT_STATUS' as NotificationType,
+                title: 'Action required: payout finalized',
+                content: `Stage "${activeContext.currentStageName}" for "${project.title}" is 100% funded. Ready for vendor disbursement.`,
+                link: `/admin/projects/${project.id}/edit`
+              }))
             });
+
+            const budgetArray = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
+            const vendorsArray = Array.isArray(project.vendors) ? (project.vendors as any[]) : [];
+
+            const phaseBudgetItems = budgetArray.filter((b: any) => (b.stage || 'Main Stage') === activeContext.currentStageName);
+            const vendorAllocations = new Map<string, { amount: number, email: string, name: string }>();
+
+            phaseBudgetItems.forEach((b: any) => {
+              const vendor = vendorsArray.find(v => v.id === b.vendorId);
+              const vEmail = vendor?.email || b.vendorEmail;
+              const vName = vendor?.name || b.payTo || b.vendor || 'Verified Vendor';
+              const amt = b.amount || b.cost || 0;
+
+              if (vEmail) {
+                const existing = vendorAllocations.get(vEmail) || { amount: 0, email: vEmail, name: vName };
+                existing.amount += amt;
+                vendorAllocations.set(vEmail, existing);
+              }
+            });
+
+            for (const [email, vData] of vendorAllocations.entries()) {
+              this.emailService.sendVendorPhaseFundedAlert(email, {
+                vendorName: vData.name,
+                projectTitle: project.title,
+                phaseName: activeContext.currentStageName,
+                amount: vData.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+                currency: currency,
+                reference: reference
+              }).catch(err => this.logger.error(`Vendor notification failed: ${err.message}`));
+            }
+          }
+        }
+
+        await tx.auditLog.create({
+          data: {
+            userId: userId !== 'GUEST' ? userId : undefined,
+            action: AuditAction.DIRECT_PAYMENT_FULFILLED,
+            entityId: processedDonationId,
+            entityType: userId !== 'GUEST' ? 'Donation' : 'GuestDonation',
+            metadata: {
+              projectId,
+              totalPaid: amount.toString(),
+              totalPaid_naira: (Number(amount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              applied: baseAmount.toString(),
+              applied_naira: (Number(baseAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              isGoalMet,
+              isPhaseNewlyMet,
+              reference,
+              channel,
+              authorization,
+              donorCurrency,
+              donorAmount,
+              fxRate
+            }
           }
         });
 
-        this.broadcastProjectFunded(projectId, result.projectTitle, result.projectSlug, amount, currency);
-      }
-    }
+        return {
+          status: 'processed',
+          isGoalMet,
+          projectTitle: project.title,
+          projectSlug: project.slug,
+          projectUserId: project.userId,
+          targetAmount: updatedProject.targetAmount,
+          formattedPhase,
+          type: 'DIRECT_DONATION'
+        };
+      }, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 20000
+      });
 
-    return result;
+      if (result.status === 'processed') {
+        await this.triggerReceipt(
+          userId === 'GUEST' ? null : userId,
+          guestEmail || null,
+          projectId,
+          amount,
+          currency,
+          reference,
+          donorCurrency,
+          donorAmount,
+          result.formattedPhase
+        );
+
+        if (result.isGoalMet) {
+          this.prisma.user.findUnique({
+            where: { id: result.projectUserId },
+            select: { email: true, firstName: true }
+          }).then(organizer => {
+            if (organizer) {
+              this.emailService.sendProjectFundedAlert(organizer.email, {
+                name: organizer.firstName,
+                projectTitle: result.projectTitle,
+                amount: (Number(result.targetAmount) / 100).toLocaleString(),
+                currency: currency,
+                projectId: projectId
+              });
+            }
+          });
+
+          this.broadcastProjectFunded(projectId, result.projectTitle, result.projectSlug, amount, currency);
+        }
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        this.logger.warn(`Concurrently received duplicate webhook for reference ${reference}. Handled gracefully.`);
+        return { status: 'duplicate', reference };
+      }
+      throw error;
+    }
   }
 
   // Create Recurring Donation
