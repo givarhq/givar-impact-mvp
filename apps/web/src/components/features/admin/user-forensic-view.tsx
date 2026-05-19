@@ -16,7 +16,6 @@ import { ConfirmModal } from '../../ui/confirm-modal';
 import { formatDate } from '../../../lib/utils/format';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
-import { setCookie, getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -81,16 +80,18 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         setIsProcessing(true);
         const toastId = toast.loading("Establishing proxy...");
         try {
-            const currentUser = getCookie('givar_user');
-
             const response = await ApiService.admin.impersonate(user.id);
 
-            // Logic: Backend now securely handles HttpOnly token swapping. We only update UI context.
-            if (currentUser) setCookie('givar_admin_backup_user', currentUser, { path: '/' });
-
-            setCookie('givar_user', JSON.stringify(response.user), { path: '/' });
-            setCookie('givar_is_impersonating', 'true', { path: '/' });
-            setCookie('givar_impersonation_expiry', (Date.now() + 15 * 60 * 1000).toString(), { path: '/' });
+            // Logic: Delegate cookie orchestration to Next.js API route to prevent cross-domain token drops
+            await fetch('/api/auth/clear-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'impersonate',
+                    token: response.accessToken,
+                    user: response.user
+                })
+            });
 
             toast.success(`Proxy active`, { id: toastId });
             window.location.href = '/dashboard';

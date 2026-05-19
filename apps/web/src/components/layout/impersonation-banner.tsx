@@ -5,7 +5,6 @@ import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 import { ShieldAlert, UserX, Eye, Clock, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import toast from 'react-hot-toast';
-import { apiClient } from '../../lib/api-client';
 
 export function ImpersonationBanner() {
     const [isExiting, setIsExiting] = useState(false);
@@ -45,33 +44,18 @@ export function ImpersonationBanner() {
         setIsExiting(true);
 
         try {
-            // Trigger backend revocation of proxy token and restoration of HttpOnly backup token
-            await apiClient.post('/auth/impersonate/stop');
-
-            const backupUser = getCookie('givar_admin_backup_user');
-            if (backupUser) {
-                setCookie('givar_user', backupUser as string, { maxAge: 86400, path: '/' });
-            } else {
-                deleteCookie('givar_user');
-            }
-
-            deleteCookie('givar_is_impersonating');
-            deleteCookie('givar_view_mode');
-            deleteCookie('givar_admin_backup_user');
-            deleteCookie('givar_impersonation_expiry');
+            // Trigger Next.js API route to securely swap back the HttpOnly admin token
+            await fetch('/api/auth/clear-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'stop_impersonation' })
+            });
 
             toast.success('Support session ended. Admin access restored.', { duration: 4000 });
             window.location.href = '/admin';
         } catch (error) {
-            // Failsafe
-            deleteCookie('givar_user');
-            deleteCookie('givar_is_impersonating');
-            deleteCookie('givar_view_mode');
-            deleteCookie('givar_admin_backup_user');
-            deleteCookie('givar_impersonation_expiry');
-
-            toast.success('Support session ended. Please re-authenticate as Admin.', { duration: 4000 });
-            window.location.href = '/login?reason=impersonation_ended';
+            // Failsafe: Hard clear if swap fails
+            window.location.href = '/api/auth/clear-session?reason=impersonation_ended';
         }
     };
 
