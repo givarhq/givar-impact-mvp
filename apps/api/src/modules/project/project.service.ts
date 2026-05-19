@@ -54,23 +54,68 @@ export class ProjectService {
     });
   }
 
+  private isPhaseFull(project: any): boolean {
+    if (project.status !== 'ACTIVE') return false;
+
+    const raised = BigInt(project.raisedAmount || '0');
+    const target = BigInt(project.targetAmount || '0');
+
+    const activeIndex = project.currentPhaseIndex || 0;
+
+    const budget = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
+    const timeline = Array.isArray(project.executionTimeline) ? (project.executionTimeline as any[]) : [];
+
+    let previousPhasesMajor = 0;
+    let currentPhaseMajor = 0;
+
+    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
+    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
+
+    budget.forEach((item: any) => {
+      const amt = item.amount || item.cost || 0;
+      const itemStage = item.stage || 'Main Stage';
+
+      if (previousStages.includes(itemStage)) {
+        previousPhasesMajor += amt;
+      } else if (itemStage === currentStageName) {
+        currentPhaseMajor += amt;
+      }
+    });
+
+    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
+
+    if (timeline.length === 0 || activeIndex >= timeline.length) {
+      phaseCapMinor = target;
+    }
+
+    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
+    let raisedInCurrentPhase = raised - previousPhasesMinor;
+    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
+
+    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
+    return remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n;
+  }
+
+  private async getPhaseFullProjectIds(): Promise<string[]> {
+    const activeProjects = await this.prisma.project.findMany({
+      where: { status: 'ACTIVE', isActive: true },
+      select: { id: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, executionTimeline: true, budgetBreakdown: true, status: true }
+    });
+    return activeProjects.filter(p => this.isPhaseFull(p)).map(p => p.id);
+  }
+
   // Robust Search Engine
   async findAllAdvanced(query: ProjectQueryDto) {
     const { page = 1, limit = 9, search, category, subcategory, status, sort } = query;
     const skip = (page - 1) * limit;
 
-    const config = await this.prisma.recommendationConfig.findUnique({ where: { id: 'default' } });
-    const showFunded = config?.showFundedProjects ?? false;
-
-    const baseStatuses = showFunded
-      ? [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED]
-      : [ProjectStatus.ACTIVE];
+    const phaseFullIds = await this.getPhaseFullProjectIds();
 
     // 1. Dynamic Filter Construction
     const where: Prisma.ProjectWhereInput = {
-      status: { in: baseStatuses },
       isActive: true,
-      ...(status && { status }),
+      ...(status ? { status } : { status: ProjectStatus.ACTIVE }),
       ...(category && { category: { slug: category } }),
       ...(subcategory && { subcategory: { slug: subcategory } }),
       ...(search && {
@@ -81,6 +126,12 @@ export class ProjectService {
         ],
       }),
     };
+
+    // Logic: Strictly exclude paused causes from the standard Active Feed.
+    // If the client specifically requests COMPLETED causes, we bypass this exclusion.
+    if (!status || status === ProjectStatus.ACTIVE) {
+      where.id = { notIn: phaseFullIds };
+    }
 
     let orderBy: Prisma.ProjectOrderByWithRelationInput = { createdAt: 'desc' };
     switch (sort) {
