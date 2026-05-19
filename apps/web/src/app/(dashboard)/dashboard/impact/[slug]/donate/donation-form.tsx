@@ -254,20 +254,23 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     const netAmountMinor = baseAmountMinor + feeAmountMinor + tipAmountMinor;
 
-    // Calculate Exact Paystack Gateway Fee to pass to donor
+    // --- CRITICAL FIX: Dynamic Gateway Fee Display Math ---
     let gatewayFeeMinor = 0n;
     if (netAmountMinor > 0n) {
-        const threshold = 250000n; // 2500 NGN in kobo
+        const isInternational = detectedCurrency !== 'NGN';
         const flatFee = 10000n; // 100 NGN in kobo
-        const cap = 200000n; // 2000 NGN in kobo
+        const threshold = 250000n; // 2500 NGN in kobo
+        const divisor = isInternational ? 961n : 985n;
 
-        let chargeMinor = (netAmountMinor * 1000n) / 985n;
+        let chargeMinor = (netAmountMinor * 1000n) / divisor;
         if (chargeMinor >= threshold) {
-            chargeMinor = ((netAmountMinor + flatFee) * 1000n) / 985n;
+            chargeMinor = ((netAmountMinor + flatFee) * 1000n) / divisor;
         }
+
         gatewayFeeMinor = chargeMinor - netAmountMinor;
-        if (gatewayFeeMinor > cap) {
-            gatewayFeeMinor = cap;
+
+        if (!isInternational && gatewayFeeMinor > 200000n) {
+            gatewayFeeMinor = 200000n;
         }
     }
 

@@ -440,7 +440,6 @@ export class DonationService {
     }
 
     // --- PHASE CAP ENFORCEMENT LOCK ---
-    // FIX: Cast Prisma JsonValue to any[] to satisfy TypeScript compiler
     const timeline = Array.isArray(project.executionTimeline) ? (project.executionTimeline as any[]) : [];
     const budget = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
     const activeIndex = project.currentPhaseIndex || 0;
@@ -503,20 +502,26 @@ export class DonationService {
 
     const netAmountMinor = baseAmountBig + feeAmountMinor + tipAmountBig;
 
-    // --- FIX: Pass Gateway Fee to Donor Math ---
+    // --- CRITICAL FIX: Dynamic Gateway Fee Math (Local vs International) ---
     let gatewayFeeMinor = 0n;
     if (netAmountMinor > 0n) {
+      const isInternational = dto.donorCurrency && dto.donorCurrency !== 'NGN';
       const threshold = 250000n; // 2500 NGN in kobo
       const flatFee = 10000n; // 100 NGN in kobo
-      const cap = 200000n; // 2000 NGN in kobo
 
-      let chargeMinor = (netAmountMinor * 1000n) / 985n;
+      // Paystack math: 1.5% local (1000-15=985), 3.9% international (1000-39=961)
+      const divisor = isInternational ? 961n : 985n;
+
+      let chargeMinor = (netAmountMinor * 1000n) / divisor;
       if (chargeMinor >= threshold) {
-        chargeMinor = ((netAmountMinor + flatFee) * 1000n) / 985n;
+        chargeMinor = ((netAmountMinor + flatFee) * 1000n) / divisor;
       }
+
       gatewayFeeMinor = chargeMinor - netAmountMinor;
-      if (gatewayFeeMinor > cap) {
-        gatewayFeeMinor = cap;
+
+      // Paystack caps local fees at 2000 NGN. International fees are uncapped.
+      if (!isInternational && gatewayFeeMinor > 200000n) {
+        gatewayFeeMinor = 200000n;
       }
     }
 
@@ -576,7 +581,6 @@ export class DonationService {
         // Setting transaction_charge ensures Paystack deducts our exact operational fee and the donor's tip
         // from the subaccount settlement amount and routes it back to our Givar main account.
         paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
-        // FIX: Re-mapped to standard 'account' bearer to absorb international charge disparities
         paystackPayload.bearer = 'account';
       }
 
