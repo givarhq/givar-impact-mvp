@@ -28,7 +28,7 @@ import { TransparencyCard } from './transparency-card';
 import { ShareModal } from './share-modal';
 import { cn } from '../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent } from '../../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { SmartCurrency } from '../../ui/smart-currency';
 
@@ -36,6 +36,17 @@ interface ProjectDetailsClientProps {
     project: ProjectWithDetails & { subcategoryName?: string };
     isPublic?: boolean;
 }
+
+const sanitizeHtml = (html: string): string => {
+    if (!html) return '';
+    return html
+        .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '')
+        .replace(/on\w+\s*=\s*"(?:[^"]*)"/gi, '')
+        .replace(/on\w+\s*=\s*'(?:[^']*)'/gi, '')
+        .replace(/on\w+\s*=\s*([^"\s>]+)/gi, '')
+        .replace(/href\s*=\s*"(javascript:[^"]*)"/gi, '')
+        .replace(/href\s*=\s*'(javascript:[^']*)'/gi, '');
+};
 
 export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project, isPublic = false }: ProjectDetailsClientProps) {
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -60,7 +71,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const isCompleted = project.status === 'COMPLETED';
     const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
 
-    // --- AGGREGATED PHASE FINANCIAL MATH ---
     let previousPhasesMajor = 0;
     let currentPhaseMajor = 0;
 
@@ -104,6 +114,17 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
 
+    const finalReport = project.updates?.find(u => u.type === 'IMPACT_ACHIEVED' || u.type === 'IMPACT_REPORT');
+    const otherUpdates = project.updates?.filter(u => u.type !== 'IMPACT_ACHIEVED') || [];
+
+    const formatUpdateType = (type: string) => {
+        return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    };
+
+    const displayCategory = project.subcategoryName
+        ? `${project.category?.name || project.categoryName} • ${project.subcategoryName}`
+        : (project.category?.name || project.categoryName || 'General Impact');
+
     const getVerificationMeta = () => {
         if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') {
             return { label: 'Platform', icon: BadgeCheck, type: 'Platform' };
@@ -116,16 +137,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
     const verMeta = getVerificationMeta();
     const VerIcon = verMeta.icon;
-
-    const finalUpdate = project.updates?.find(u => u.type === 'IMPACT_ACHIEVED' || u.type === 'IMPACT_REPORT');
-
-    const formatUpdateType = (type: string) => {
-        return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-    };
-
-    const displayCategory = project.subcategoryName
-        ? `${project.category?.name || project.categoryName} • ${project.subcategoryName}`
-        : (project.category?.name || project.categoryName || 'General Impact');
 
     return (
         <motion.div
@@ -161,7 +172,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 </div>
 
                 <AnimatePresence>
-                    {isCompleted && finalUpdate && (
+                    {isCompleted && finalReport && (
                         <motion.div
                             initial={{ opacity: 0, height: 0, y: 20 }}
                             animate={{ opacity: 1, height: 'auto', y: 0 }}
@@ -180,20 +191,20 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <CardContent className="p-6 md:p-8">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                                         <div className="space-y-4">
-                                            <h4 className="text-lg font-bold text-emerald-950 dark:text-emerald-50 leading-tight">{finalUpdate.title}</h4>
+                                            <h4 className="text-lg font-bold text-emerald-950 dark:text-emerald-50 leading-tight">{finalReport.title}</h4>
                                             <p className="text-sm text-emerald-900/80 dark:text-emerald-100/80 leading-relaxed font-medium">
-                                                {finalUpdate.content}
+                                                {finalReport.content}
                                             </p>
                                             <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 w-fit px-3 py-1.5 rounded-full border border-emerald-500/20">
                                                 <ShieldCheck className="h-4 w-4" /> Verified by Givar Audit
                                             </div>
                                         </div>
-                                        {finalUpdate.imageUrl && (
+                                        {finalReport.imageUrl && (
                                             <div
                                                 className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md bg-muted cursor-pointer"
-                                                onClick={() => setLightboxState({ isOpen: true, items: [{ url: finalUpdate.imageUrl!, type: 'IMAGE', alt: 'Impact Evidence' }], index: 0 })}
+                                                onClick={() => setLightboxState({ isOpen: true, items: [{ url: finalReport.imageUrl!, type: 'IMAGE', alt: 'Impact Evidence' }], index: 0 })}
                                             >
-                                                <Image src={finalUpdate.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover hover:scale-105 transition-transform duration-700" />
+                                                <Image src={finalReport.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover hover:scale-105 transition-transform duration-700" />
                                             </div>
                                         )}
                                     </div>
@@ -316,7 +327,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         "[&_blockquote]:border-l-4[&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-1[&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
-                                    dangerouslySetInnerHTML={{ __html: project.description }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
                                 />
 
                                 {project.riskAnalysis && (
@@ -334,7 +345,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
                                                 "[&_em]:italic"
                                             )}
-                                            dangerouslySetInnerHTML={{ __html: project.riskAnalysis }}
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.riskAnalysis) }}
                                         />
                                     </div>
                                 )}

@@ -927,7 +927,7 @@ export class AdminService {
         throw new BadRequestException('Cannot launch a project without a budget breakdown.');
       }
       const unboundItems = budget.filter((item: any) => {
-        if (!item.vendorId) return true; // Fails if no vendorId attached
+        if (!item.vendorId) return true;
         const vendor = vendors.find((v: any) => v.id === item.vendorId);
         return !vendor || !vendor.subaccountCode;
       });
@@ -937,8 +937,6 @@ export class AdminService {
     }
 
     const slug = this.generateSlug(dto.title);
-
-    // ROOT CAUSE FIX: Ensure timeline is 100% in sync with the budget stages
     const executionTimeline = this.syncExecutionTimeline(budget, dto.executionTimeline || []);
 
     const createData: Prisma.ProjectCreateInput = {
@@ -951,7 +949,7 @@ export class AdminService {
       imageUrl: dto.coverImage,
       videoUrl: dto.videoUrl,
       slug: slug,
-      targetAmount: BigInt(dto.targetAmount),
+      targetAmount: BigInt(Math.round(Number(dto.targetAmount))),
       raisedAmount: 0n,
       status: dto.status || ProjectStatus.ACTIVE,
       isActive: true,
@@ -1002,7 +1000,7 @@ export class AdminService {
       ProjectStatus.COMPLETED
     ] as ProjectStatus[]).includes(existing.status);
 
-    const newTarget = dto.targetAmount !== undefined ? BigInt(dto.targetAmount) : existing.targetAmount;
+    const newTarget = dto.targetAmount !== undefined ? BigInt(Math.round(Number(dto.targetAmount))) : existing.targetAmount;
     const isGoalChanging = newTarget !== existing.targetAmount;
     const isBudgetChanging = dto.budgetBreakdown !== undefined && JSON.stringify(dto.budgetBreakdown) !== JSON.stringify(existing.budgetBreakdown);
     const isTimelineChanging = dto.executionTimeline !== undefined && JSON.stringify(dto.executionTimeline) !== JSON.stringify(existing.executionTimeline);
@@ -1050,7 +1048,6 @@ export class AdminService {
       if (dto.vendors) updateData.vendors = dto.vendors as any;
     }
 
-    // ROOT CAUSE FIX: Auto-sync executionTimeline if budgetBreakdown is provided
     if (dto.budgetBreakdown) {
       updateData.budgetBreakdown = dto.budgetBreakdown as any;
       updateData.executionTimeline = this.syncExecutionTimeline(
@@ -1062,7 +1059,6 @@ export class AdminService {
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
-      // Goal Reduction State Desync Fix
       if (isGoalChanging && newTarget <= existing.raisedAmount) {
         const intendedStatus = dto.status || existing.status;
         if (intendedStatus === ProjectStatus.ACTIVE) {

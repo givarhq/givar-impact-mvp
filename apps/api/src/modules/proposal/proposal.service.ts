@@ -75,15 +75,14 @@ export class ProposalService {
       throw new ForbiddenException('Cannot edit a proposal that is under review or approved.');
     }
 
-    // Handle BigInt conversion for targetAmount if present
     const data: Prisma.ProjectProposalUpdateInput = { ...dto } as any;
 
     if (dto.targetAmount !== undefined && dto.targetAmount !== null) {
-      data.targetAmount = BigInt(dto.targetAmount);
+      data.targetAmount = BigInt(Math.round(Number(dto.targetAmount)));
     }
 
     if (dto.preCollectedAmount !== undefined && dto.preCollectedAmount !== null) {
-      data.preCollectedAmount = BigInt(dto.preCollectedAmount);
+      data.preCollectedAmount = BigInt(Math.round(Number(dto.preCollectedAmount)));
     }
 
     return this.prisma.projectProposal.update({
