@@ -13,6 +13,7 @@
         "db:seed": "tsx prisma/seed.ts",
         "db:align": "tsx scripts/align-legacy-data.ts",
         "db:migrate-stages": "tsx scripts/migrate-stages.ts",
+        "db:clean-slate": "tsx scripts/clean-slate.ts",
         "dev": "prisma generate --watch"
     },
     "dependencies": {
