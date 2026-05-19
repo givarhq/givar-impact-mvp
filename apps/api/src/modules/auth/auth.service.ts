@@ -525,20 +525,57 @@ export class AuthService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // 3. Log the deletion before removal for forensic trace
+      // 3. Log the deletion/anonymization before modification for forensic trace
       await this.audit.log({
         userId,
         action: AuditAction.ACCOUNT_DELETED,
         entityId: userId,
         entityType: 'User',
-        metadata: { email: user.email, totalDonations: user._count.donations }
+        metadata: { email: user.email, totalDonations: user._count.donations, anonymized: user._count.donations > 0 }
       }, tx);
 
-      // 4. Cascade Cleanup (Prisma handles relations defined with ON DELETE CASCADE)
-      await tx.wallet.deleteMany({ where: { userId } });
-      await tx.user.delete({ where: { id: userId } });
+      if (user._count.donations > 0) {
+        // Anonymization Protocol: Scrub PII but keep ledger intact
+        const randomHash = crypto.randomBytes(16).toString('hex');
+        const scrubbedEmail = `deleted_${randomHash}@givar.local`;
+
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            email: scrubbedEmail,
+            firstName: 'Anonymized',
+            lastName: 'User',
+            passwordHash: 'SCRUBBED',
+            avatarKey: null,
+            twoFactorEnabled: false,
+            twoFactorSecret: null,
+            preferences: {},
+            accountLockedUntil: new Date('2099-12-31T23:59:59.000Z'), // Permanently locked
+            emailVerified: false,
+            emailVerificationToken: null,
+            resetPasswordTokenHash: null,
+          }
+        });
+
+        // Clean up any pending Organization KYC profiles connected to this user
+        await tx.organizationProfile.deleteMany({ where: { userId } });
+
+      } else {
+        // Safe Physical Deletion: No ledger footprint
+        await tx.organizationProfile.deleteMany({ where: { userId } });
+        await tx.wallet.deleteMany({ where: { userId } });
+        await tx.user.delete({ where: { id: userId } });
+      }
 
       return { success: true };
+    }).then(async (result) => {
+      // Best-effort S3 purge outside transaction to prevent rollback on network failure
+      if (user.avatarKey) {
+        this.storage.deleteFiles([user.avatarKey]).catch(err =>
+          this.logger.error(`Avatar purge failed for deleted user: ${err.message}`)
+        );
+      }
+      return result;
     });
   }
 

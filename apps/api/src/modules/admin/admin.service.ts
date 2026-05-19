@@ -1061,6 +1061,15 @@ export class AdminService {
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // Goal Reduction State Desync Fix
+      if (isGoalChanging && newTarget <= existing.raisedAmount) {
+        const intendedStatus = dto.status || existing.status;
+        if (intendedStatus === ProjectStatus.ACTIVE) {
+          updateData.status = ProjectStatus.FUNDED;
+          (updateData as any).fundedAt = new Date();
+        }
+      }
+
       const project = await tx.project.update({
         where: { id: projectId },
         data: updateData,
