@@ -502,7 +502,7 @@ export class DonationService {
 
     const netAmountMinor = baseAmountBig + feeAmountMinor + tipAmountBig;
 
-    // --- CRITICAL FIX: Dynamic Gateway Fee Math (Local vs International) ---
+    // --- Dynamic Gateway Fee Math (Local vs International) ---
     let gatewayFeeMinor = 0n;
     if (netAmountMinor > 0n) {
       const isInternational = dto.donorCurrency && dto.donorCurrency !== 'NGN';
@@ -578,9 +578,8 @@ export class DonationService {
 
       if (activeContext.activeSubaccount) {
         paystackPayload.subaccount = activeContext.activeSubaccount;
-        // Setting transaction_charge ensures Paystack deducts our exact operational fee and the donor's tip
-        // from the subaccount settlement amount and routes it back to our Givar main account.
-        paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
+        // CRITICAL FIX: Add gateway fee to transaction_charge so the vendor receives strictly the baseAmount.
+        paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig + gatewayFeeMinor);
         paystackPayload.bearer = 'account';
       }
 
