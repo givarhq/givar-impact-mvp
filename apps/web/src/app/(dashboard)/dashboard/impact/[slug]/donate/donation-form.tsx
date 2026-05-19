@@ -252,6 +252,26 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const feePercentage = feeRule?.percentage || 0;
     const feeAmountMinor = (baseAmountMinor * BigInt(Math.round(feePercentage * 100))) / 10000n;
 
+    const netAmountMinor = baseAmountMinor + feeAmountMinor + tipAmountMinor;
+
+    // Calculate Exact Paystack Gateway Fee to pass to donor
+    let gatewayFeeMinor = 0n;
+    if (netAmountMinor > 0n) {
+        const threshold = 250000n; // 2500 NGN in kobo
+        const flatFee = 10000n; // 100 NGN in kobo
+        const cap = 200000n; // 2000 NGN in kobo
+
+        let chargeMinor = (netAmountMinor * 1000n) / 985n;
+        if (chargeMinor >= threshold) {
+            chargeMinor = ((netAmountMinor + flatFee) * 1000n) / 985n;
+        }
+        gatewayFeeMinor = chargeMinor - netAmountMinor;
+        if (gatewayFeeMinor > cap) {
+            gatewayFeeMinor = cap;
+        }
+    }
+
+    const totalCheckoutMinor = netAmountMinor + gatewayFeeMinor;
     const isGuest = !isAuthenticated;
 
     // Dust Completion Math for UI Feedback
@@ -325,13 +345,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
         setIsLoading(true);
         try {
-            const minorAmount = baseAmountMinor.toString();
-            const minorTipAmount = tipAmountMinor.toString();
-
             const payload: any = {
                 projectId: project.id,
-                amount: minorAmount,
-                tipAmount: minorTipAmount,
+                amount: baseAmountMinor.toString(),
+                tipAmount: tipAmountMinor.toString(),
+                gatewayFeeAmount: gatewayFeeMinor.toString(),
                 currency: project.currency,
                 donorCurrency: finalDonorCurrency,
                 donorAmount: finalDonorAmount,
@@ -581,7 +599,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                     <span>Operational Support Fee ({feePercentage}%)</span>
                                     <span className="tabular-nums font-bold text-foreground">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{((inputAmountNum * feePercentage) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(Number(feeAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                                 {inputTipNum > 0 && (
@@ -592,10 +610,18 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                         </span>
                                     </div>
                                 )}
+                                {gatewayFeeMinor > 0n && (
+                                    <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                                        <span>Payment Gateway Fee</span>
+                                        <span className="tabular-nums font-bold text-foreground">
+                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{(Number(gatewayFeeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="pt-3 border-t border-border/40 flex justify-between items-center">
                                     <span className="text-sm font-bold text-foreground">Total checkout</span>
                                     <span className="text-sm font-black text-primary tabular-nums">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum + ((inputAmountNum * feePercentage) / 100) + inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(Number(totalCheckoutMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                             </div>
@@ -639,7 +665,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             exit={{ opacity: 0, height: 0 }}
                             className={cn(
                                 "flex items-start gap-2.5 p-4 rounded-2xl border overflow-hidden shadow-sm",
-                                isDustCoveredPhase && isCompletingPhase ? "bg-blue-500/10 border-blue-500/20 text-blue-700" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-700"
+                                isCompletingPhase ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700" : "bg-blue-500/10 border-blue-500/20 text-blue-700"
                             )}
                         >
                             <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />
@@ -647,9 +673,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                 <p className="font-bold">{isCompletingPhase ? 'Stage completion gift' : 'Allocation complete'}</p>
                                 <p className="font-medium">
                                     {isCompletingPhase
-                                        ? (isDustCoveredPhase
-                                            ? `Your gift brings us so close that Givar will cover the remaining balance! This fully funds ${currentStageDisplayName}.`
-                                            : `This gift fully funds ${currentStageDisplayName}! The project will pause to verify vendor execution before opening the next stage.`)
+                                        ? `This gift fully funds ${currentStageDisplayName}! The project will pause to verify vendor execution before opening the next stage.`
                                         : `This gift fully funds the allocation for "${activeItemName}". The next vendor allocation will unlock immediately.`
                                     }
                                 </p>

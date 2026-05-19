@@ -501,7 +501,26 @@ export class DonationService {
       project.id
     );
 
-    const totalCharge = baseAmountBig + feeAmountMinor + tipAmountBig;
+    const netAmountMinor = baseAmountBig + feeAmountMinor + tipAmountBig;
+
+    // --- FIX: Pass Gateway Fee to Donor Math ---
+    let gatewayFeeMinor = 0n;
+    if (netAmountMinor > 0n) {
+      const threshold = 250000n; // 2500 NGN in kobo
+      const flatFee = 10000n; // 100 NGN in kobo
+      const cap = 200000n; // 2000 NGN in kobo
+
+      let chargeMinor = (netAmountMinor * 1000n) / 985n;
+      if (chargeMinor >= threshold) {
+        chargeMinor = ((netAmountMinor + flatFee) * 1000n) / 985n;
+      }
+      gatewayFeeMinor = chargeMinor - netAmountMinor;
+      if (gatewayFeeMinor > cap) {
+        gatewayFeeMinor = cap;
+      }
+    }
+
+    const totalCharge = netAmountMinor + gatewayFeeMinor;
 
     let emailToCharge: string;
     let internalUserId: string | null = null;
@@ -554,6 +573,8 @@ export class DonationService {
 
       if (activeContext.activeSubaccount) {
         paystackPayload.subaccount = activeContext.activeSubaccount;
+        // Setting transaction_charge ensures Paystack deducts our exact operational fee and the donor's tip
+        // from the subaccount settlement amount and routes it back to our Givar main account.
         paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
         paystackPayload.bearer = 'subaccount';
       }
@@ -650,10 +671,7 @@ export class DonationService {
       }
 
       const formattedPhase = activeContext.fullStageDisplayName;
-
       let processedDonationId: string;
-      let isGoalMet = false;
-      let isPhaseNewlyMet = false;
 
       if (feeAmount > 0n || tipAmount > 0n) {
         const systemNode = await tx.user.findFirst({
@@ -777,105 +795,25 @@ export class DonationService {
         processedDonationId = guestDonation.id;
       }
 
-      let updatedProject = await tx.project.update({
+      const updatedProject = await tx.project.update({
         where: { id: projectId },
         data: { raisedAmount: { increment: baseAmount } }
       });
 
       const currentPhaseCap = this.calculatePhaseCap(updatedProject);
-      let currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
+      const currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
+      const projectRemaining = updatedProject.targetAmount - updatedProject.raisedAmount;
 
-      if (updatedProject.raisedAmount > currentPhaseCap && currentPhaseCap > 0n) {
-        const overage = updatedProject.raisedAmount - currentPhaseCap;
-        await tx.auditLog.create({
-          data: {
-            action: AuditAction.FUNDS_MOVED_TO_SUSPENSE,
-            entityType: 'Project',
-            entityId: project.id,
-            metadata: {
-              warning: "CONCURRENT_OVERFUNDING_DETECTED",
-              overageAmount: overage.toString(),
-              vendorSubaccount: activeContext.activeSubaccount
-            }
-          }
+      // --- FIX: Dust logic natively evaluates remaining gap ---
+      const isGoalMet = projectRemaining < 10000n;
+      const isPhaseNewlyMet = !isGoalMet && currentRemainingForPhase < 10000n;
+
+      if (isGoalMet && updatedProject.status !== ProjectStatus.FUNDED) {
+        await tx.project.update({
+          where: { id: projectId },
+          data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
         });
       }
-
-      const postDonationContext = this.getActiveBudgetContext(updatedProject);
-      const currentRemainingForItem = postDonationContext.itemRemainingMinor;
-
-      let dustMinor = 0n;
-      if (currentRemainingForItem > 0n && currentRemainingForItem < 10000n) {
-        dustMinor = currentRemainingForItem;
-      } else if (currentRemainingForPhase > 0n && currentRemainingForPhase < 10000n) {
-        dustMinor = currentRemainingForPhase;
-      }
-
-      if (dustMinor > 0n) {
-        const systemNode = await tx.user.findFirst({
-          where: { role: UserRole.SUPERADMIN },
-          include: { wallets: { where: { currency } } }
-        });
-
-        if (systemNode?.wallets[0]) {
-          const systemWalletId = systemNode.wallets[0].id;
-
-          const dustTx = await tx.walletTransaction.create({
-            data: {
-              walletId: systemWalletId,
-              amount: dustMinor,
-              currency,
-              type: TxType.DEBIT,
-              status: TxStatus.COMPLETED,
-              category: TxCategory.ADJUSTMENT,
-              reference: `DUST-${reference}`,
-              description: `Platform dust coverage to finalize phase: ${project.title}`,
-              metadata: { originalProjectId: project.id, reason: 'THRESHOLD_COMPLETION_RULE' }
-            }
-          });
-
-          await tx.wallet.update({
-            where: { id: systemWalletId },
-            data: { balance: { decrement: dustMinor } }
-          });
-
-          await tx.donation.create({
-            data: {
-              userId: systemNode.id,
-              projectId: project.id,
-              transactionId: dustTx.id,
-              amount: dustMinor,
-              baseAmount: dustMinor,
-              currency,
-              message: 'Platform dust coverage (threshold completion)',
-            }
-          });
-
-          updatedProject = await tx.project.update({
-            where: { id: projectId },
-            data: { raisedAmount: { increment: dustMinor } }
-          });
-
-          await tx.auditLog.create({
-            data: {
-              userId: systemNode.id,
-              action: AuditAction.PROJECT_UPDATED,
-              entityId: projectId,
-              entityType: 'Project',
-              metadata: {
-                action: 'PLATFORM_ROUNDING_POLICY',
-                coveredAmount_naira: Number(dustMinor) / 100,
-                triggeringDonationRef: reference
-              }
-            }
-          });
-
-          currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
-        }
-      }
-
-      isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
-      isPhaseNewlyMet = !isGoalMet && (currentRemainingForPhase <= 0n);
 
       if (isPhaseNewlyMet) {
         await tx.notification.create({
@@ -996,7 +934,7 @@ export class DonationService {
             this.emailService.sendProjectFundedAlert(organizer.email, {
               name: organizer.firstName,
               projectTitle: result.projectTitle,
-              amount: (Number(amount) / 100).toLocaleString(),
+              amount: (Number(project.targetAmount) / 100).toLocaleString(),
               currency: currency,
               projectId: projectId
             });

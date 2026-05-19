@@ -41,6 +41,11 @@ export class InitiateDirectDonationDto {
   @IsNumberString()
   tipAmount?: string;
 
+  // Fix: Explicitly track the gateway fee passed to the donor
+  @IsOptional()
+  @IsNumberString()
+  gatewayFeeAmount?: string;
+
   @IsEnum(Currency)
   currency: Currency;
 
