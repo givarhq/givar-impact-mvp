@@ -42,22 +42,13 @@ export class WalletController {
   @HttpCode(200)
   async handleWebhook(
     @Headers('x-paystack-signature') signature: string,
-    @Body() payload: any,
     @Req() req: any,
   ) {
-    // 1. IP Whitelist Check (Only enforce in production)
-    if (process.env.NODE_ENV === 'production') {
-      const clientIp = req.headers['x-forwarded-for'] || req.ip;
-      const ipList = typeof clientIp === 'string' ? clientIp.split(',') : [];
-      const originIp = ipList[0]?.trim();
+    // 1. IP Whitelist Check removed as per forensic assessment.
+    // Relying entirely on cryptographic HMAC signature verification.
 
-      if (!PAYSTACK_IPS.includes(originIp)) {
-        throw new UnauthorizedException('Unrecognized Gateway IP');
-      }
-    }
-
-    // 2. Process Webhook
-    await this.walletService.handleWebhook(signature, payload);
+    // 2. Process Webhook using the raw unparsed buffer to prevent signature mismatches
+    await this.walletService.handleWebhook(signature, req.rawBody, req.body);
   }
 
   @UseGuards(AuthGuard('jwt'))

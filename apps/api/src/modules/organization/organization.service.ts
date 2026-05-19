@@ -317,5 +317,5 @@ export class OrganizationService {
     }
 
     return this.storage.getPresignedViewUrl(key);
-  } s
+  }
 }

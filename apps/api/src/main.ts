@@ -13,7 +13,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 };
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Fix: Enable rawBody to preserve the exact payload buffer for webhook HMAC verification
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   // Security Headers

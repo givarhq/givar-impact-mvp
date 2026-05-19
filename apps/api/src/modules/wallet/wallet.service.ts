@@ -138,16 +138,17 @@ export class WalletService {
     }
   }
 
-  async handleWebhook(signature: string, payload: any) {
+  async handleWebhook(signature: string, rawBody: Buffer, payload: any) {
     const secret = this.config.get<string>('PAYSTACK_SECRET_KEY');
     if (!secret) {
       this.logger.error('PAYSTACK_SECRET_KEY is not configured');
       throw new InternalServerErrorException('Server configuration error');
     }
 
+    // Fix: Hash the raw buffer exactly as received from Paystack, bypassing JSON.stringify formatting drift
     const computedHash = crypto
       .createHmac('sha512', secret)
-      .update(JSON.stringify(payload))
+      .update(rawBody)
       .digest('hex');
 
     if (computedHash !== signature) {
