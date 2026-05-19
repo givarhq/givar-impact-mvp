@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsBoolean
+  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsBoolean,
+  ValidateIf
 } from 'class-validator';
 import { Currency } from '@givar/database';
 
@@ -116,8 +117,15 @@ export class UpdateProposalDto {
   @IsOptional() @IsNumber() targetAmount?: number;
   @IsOptional() @IsEnum(Currency) currency?: Currency;
 
-  @IsOptional() @IsUUID() categoryId?: string;
-  @IsOptional() @IsUUID() subcategoryId?: string;
+  @IsOptional()
+  @ValidateIf((object, value) => value !== null)
+  @IsUUID()
+  categoryId?: string | null;
+
+  @IsOptional()
+  @ValidateIf((object, value) => value !== null)
+  @IsUUID()
+  subcategoryId?: string | null;
 
   @IsOptional() @IsString() coverImage?: string;
   @IsOptional() @IsString() videoUrl?: string;
