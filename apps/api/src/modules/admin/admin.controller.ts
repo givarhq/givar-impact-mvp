@@ -215,8 +215,37 @@ export class AdminController {
   }
 
   @Post('users/:id/impersonate')
-  async impersonate(@Req() req: any, @Param('id') id: string) {
-    return this.service.impersonateUser(req.user.id, id);
+  async impersonate(@Req() req: any, @Res({ passthrough: true }) res: any, @Param('id') id: string) {
+    let currentToken = null;
+    if (req.headers.cookie) {
+      const match = req.headers.cookie.match(/(?:^|;\s*)givar_token=([^;]*)/);
+      if (match) currentToken = match[1];
+    }
+    if (!currentToken && req.headers.authorization?.startsWith('Bearer ')) {
+      currentToken = req.headers.authorization.split(' ')[1];
+    }
+
+    const result = await this.service.impersonateUser(req.user.id, id);
+
+    if (currentToken) {
+      res.cookie('givar_admin_backup_token', currentToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 15 * 60 * 1000,
+        path: '/'
+      });
+    }
+
+    res.cookie('givar_token', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+      path: '/'
+    });
+
+    return result;
   }
 
   @Get('search')

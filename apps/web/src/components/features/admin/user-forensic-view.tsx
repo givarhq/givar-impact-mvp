@@ -18,7 +18,7 @@ import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
 import { setCookie, getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface UserForensicViewProps {
     user: {
@@ -81,17 +81,16 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         setIsProcessing(true);
         const toastId = toast.loading("Establishing proxy...");
         try {
-            const currentToken = getCookie('givar_token');
             const currentUser = getCookie('givar_user');
 
             const response = await ApiService.admin.impersonate(user.id);
 
-            setCookie('givar_admin_backup_token', currentToken, { path: '/' });
-            setCookie('givar_admin_backup_user', currentUser, { path: '/' });
+            // Logic: Backend now securely handles HttpOnly token swapping. We only update UI context.
+            if (currentUser) setCookie('givar_admin_backup_user', currentUser, { path: '/' });
 
-            setCookie('givar_token', response.accessToken, { path: '/' });
             setCookie('givar_user', JSON.stringify(response.user), { path: '/' });
             setCookie('givar_is_impersonating', 'true', { path: '/' });
+            setCookie('givar_impersonation_expiry', (Date.now() + 15 * 60 * 1000).toString(), { path: '/' });
 
             toast.success(`Proxy active`, { id: toastId });
             window.location.href = '/dashboard';
@@ -282,7 +281,6 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                     </Card>
                 </div>
 
-                {/* Ledger & Audit Info Sections unchanged */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-3xl">
@@ -301,7 +299,6 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                         </div>
                     </div>
 
-                    {/* ... existing wallets table ... */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
                             <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
@@ -331,7 +328,6 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                         </div>
                     </Card>
 
-                    {/* ... existing audit logs table ... */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
                             <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">

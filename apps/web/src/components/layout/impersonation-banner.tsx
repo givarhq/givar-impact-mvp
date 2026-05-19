@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 import { ShieldAlert, UserX, Eye, Clock, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { decodeJwt } from '../../lib/utils/jwt';
 import toast from 'react-hot-toast';
+import { apiClient } from '../../lib/api-client';
 
 export function ImpersonationBanner() {
-    const router = useRouter();
     const [isExiting, setIsExiting] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [sessionData, setSessionData] = useState<{
@@ -21,18 +19,18 @@ export function ImpersonationBanner() {
     useEffect(() => {
         setMounted(true);
 
-        const token = getCookie('givar_token') as string;
         const userJson = getCookie('givar_user') as string;
         const forceFlag = getCookie('givar_is_impersonating') === 'true';
+        const expiryCookie = getCookie('givar_impersonation_expiry') as string;
 
-        const decoded = decodeJwt(token);
         const user = userJson ? JSON.parse(userJson) : null;
 
-        if ((decoded?.isImpersonating || forceFlag) && user) {
+        if (forceFlag && user) {
             setSessionData({
                 isImpersonating: true,
                 user,
-                expiry: decoded?.exp ? decoded.exp * 1000 : null
+                // Logic: Rely entirely on UI cookie instead of attempting to decode HttpOnly JWT
+                expiry: expiryCookie ? parseInt(expiryCookie, 10) : null
             });
         }
     }, []);
@@ -43,26 +41,39 @@ export function ImpersonationBanner() {
         ? Math.max(0, Math.floor((sessionData.expiry - Date.now()) / 60000))
         : null;
 
-    const handleExit = () => {
+    const handleExit = async () => {
         setIsExiting(true);
 
-        // We obliterate the user session and force the admin to log back in 
-        // to regain their elevated privileges.
-        deleteCookie('givar_token');
-        deleteCookie('givar_user');
-        deleteCookie('givar_is_impersonating');
-        deleteCookie('givar_view_mode');
+        try {
+            // Trigger backend revocation of proxy token and restoration of HttpOnly backup token
+            await apiClient.post('/auth/impersonate/stop');
 
-        // Ensure any legacy backup cookies are destroyed
-        deleteCookie('givar_admin_backup_token');
-        deleteCookie('givar_admin_backup_user');
+            const backupUser = getCookie('givar_admin_backup_user');
+            if (backupUser) {
+                setCookie('givar_user', backupUser as string, { maxAge: 86400, path: '/' });
+            } else {
+                deleteCookie('givar_user');
+            }
 
-        toast.success('Support session ended. Please re-authenticate as Admin.', { duration: 4000 });
+            deleteCookie('givar_is_impersonating');
+            deleteCookie('givar_view_mode');
+            deleteCookie('givar_admin_backup_user');
+            deleteCookie('givar_impersonation_expiry');
 
-        // Redirect to login to force a fresh, secure admin session
-        window.location.href = '/login?reason=impersonation_ended';
+            toast.success('Support session ended. Admin access restored.', { duration: 4000 });
+            window.location.href = '/admin';
+        } catch (error) {
+            // Failsafe
+            deleteCookie('givar_user');
+            deleteCookie('givar_is_impersonating');
+            deleteCookie('givar_view_mode');
+            deleteCookie('givar_admin_backup_user');
+            deleteCookie('givar_impersonation_expiry');
+
+            toast.success('Support session ended. Please re-authenticate as Admin.', { duration: 4000 });
+            window.location.href = '/login?reason=impersonation_ended';
+        }
     };
-
 
     return (
         <div className="sticky top-0 left-0 right-0 z-[60] bg-zinc-950 text-white px-4 py-2 shadow-xl border-b border-amber-500/20 animate-in slide-in-from-top duration-300">
