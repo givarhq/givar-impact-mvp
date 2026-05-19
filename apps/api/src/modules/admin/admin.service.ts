@@ -1442,6 +1442,7 @@ export class AdminService {
         title: true,
         slug: true,
         waitlistEmails: true,
+        currentPhaseIndex: true,
         user: { select: { email: true, firstName: true } }
       }
     });
@@ -1481,12 +1482,17 @@ export class AdminService {
     const updateData: any = { executionTimeline: updatedTimeline as any };
     let emailsToNotify: string[] = [];
 
+    // State Progression / Regression Math Fix
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
       if (!isLastPhase) {
         updateData.currentPhaseIndex = { increment: 1 };
         updateData.waitlistEmails = [];
         emailsToNotify = project.waitlistEmails || [];
       }
+    } else if (previousStatus === 'COMPLETED' && status !== 'COMPLETED') {
+      // Safely decrement phase index if a stage is re-opened
+      const safeDecrement = Math.max(0, (project.currentPhaseIndex || 0) - 1);
+      updateData.currentPhaseIndex = safeDecrement;
     }
 
     const updatedProject = await this.prisma.project.update({
@@ -1714,7 +1720,6 @@ export class AdminService {
         );
       }
 
-      // Pre-validate all target projects to ensure we don't trap capital or overfund
       for (const split of dto.allocations) {
         const targetProj = await this.prisma.project.findUnique({
           where: { id: split.projectId }
@@ -1727,7 +1732,6 @@ export class AdminService {
           throw new BadRequestException(`Cannot allocate to "${targetProj.title}" because it is already closed or suspended.`);
         }
 
-        // Enforce Phase Cap during Admin Reallocation
         const budget = (targetProj.budgetBreakdown as any[]) || [];
         const timeline = (targetProj.executionTimeline as any[]) || [];
         const activeIndex = targetProj.currentPhaseIndex || 0;
@@ -1840,10 +1844,9 @@ export class AdminService {
           const updatedProject = await txPrisma.project.update({
             where: { id: split.projectId },
             data: { raisedAmount: { increment: splitAmount } },
-            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, budgetBreakdown: true, executionTimeline: true }
+            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, budgetBreakdown: true, executionTimeline: true, vendors: true }
           });
 
-          // Check Goal Completion
           const isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
           if (isGoalMet) {
             await txPrisma.project.update({
@@ -1852,7 +1855,6 @@ export class AdminService {
             });
           }
 
-          // Trigger Admin Phase Alerts for Reallocations
           const updatedBudget = (updatedProject.budgetBreakdown as any[]) || [];
           const updatedTimeline = (updatedProject.executionTimeline as any[]) || [];
           const updatedActiveIndex = updatedProject.currentPhaseIndex || 0;
@@ -1905,7 +1907,6 @@ export class AdminService {
               }
             });
           } else if (isPhaseNewlyMet) {
-            // Alert Admin that the Phase filled up via Reallocation
             const admins = await txPrisma.user.findMany({
               where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
               select: { id: true }
@@ -1921,6 +1922,34 @@ export class AdminService {
                   link: `/admin/projects/${updatedProject.id}/edit`
                 }))
               });
+
+              const vendorsArray = Array.isArray(updatedProject.vendors) ? (updatedProject.vendors as any[]) : [];
+              const phaseBudgetItems = updatedBudget.filter((b: any) => (b.stage || 'Main Stage') === updatedCurrentStageName);
+              const vendorAllocations = new Map<string, { amount: number, email: string, name: string }>();
+
+              phaseBudgetItems.forEach((b: any) => {
+                const vendor = vendorsArray.find(v => v.id === b.vendorId);
+                const vEmail = vendor?.email || b.vendorEmail;
+                const vName = vendor?.name || b.payTo || b.vendor || 'Verified Vendor';
+                const amt = b.amount || b.cost || 0;
+
+                if (vEmail) {
+                  const existing = vendorAllocations.get(vEmail) || { amount: 0, email: vEmail, name: vName };
+                  existing.amount += amt;
+                  vendorAllocations.set(vEmail, existing);
+                }
+              });
+
+              for (const [email, vData] of vendorAllocations.entries()) {
+                this.emailService.sendVendorPhaseFundedAlert(email, {
+                  vendorName: vData.name,
+                  projectTitle: updatedProject.title,
+                  phaseName: updatedCurrentStageName,
+                  amount: vData.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+                  currency: tx.currency,
+                  reference: splitRef
+                }).catch(err => this.logger.error(`Vendor notification failed: ${err.message}`));
+              }
             }
           }
 

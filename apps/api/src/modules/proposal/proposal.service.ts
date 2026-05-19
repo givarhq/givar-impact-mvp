@@ -229,8 +229,60 @@ export class ProposalService {
       throw new ForbiddenException('Cannot delete a proposal currently under review or approved.');
     }
 
-    return this.prisma.projectProposal.delete({
-      where: { id: proposalId },
+    const keysToPurge: string[] = [];
+
+    if (proposal.coverImage && !proposal.coverImage.startsWith('http')) {
+      keysToPurge.push(proposal.coverImage);
+    }
+
+    if (proposal.videoUrl && !proposal.videoUrl.startsWith('http')) {
+      keysToPurge.push(proposal.videoUrl);
+    }
+
+    if (proposal.gallery && Array.isArray(proposal.gallery)) {
+      proposal.gallery.forEach((item: any) => {
+        if (item.url && !item.url.startsWith('http')) {
+          keysToPurge.push(item.url);
+        }
+      });
+    }
+
+    if (proposal.kycDocuments && Array.isArray(proposal.kycDocuments)) {
+      proposal.kycDocuments.forEach((key: string) => {
+        if (key && !key.startsWith('http')) {
+          keysToPurge.push(key);
+        }
+      });
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // FIX: Clean up related feedback threads before deleting the proposal
+      // to avoid a foreign key constraint violation.
+      await tx.message.deleteMany({
+        where: { proposalId }
+      });
+
+      const deleted = await tx.projectProposal.delete({
+        where: { id: proposalId },
+      });
+
+      await this.audit.log({
+        userId,
+        action: AuditAction.PROJECT_DELETED,
+        entityId: proposalId,
+        entityType: 'ProjectProposal',
+        metadata: { title: deleted.title, purgedFileCount: keysToPurge.length },
+      }, tx);
+
+      return deleted;
+    }).then(async (result) => {
+      // Safely delete from S3 outside of the transaction to prevent database rollback if cloud fails
+      if (keysToPurge.length > 0) {
+        await this.storage.deleteFiles(keysToPurge).catch(err =>
+          this.logger.error(`Storage purge failed for deleted proposal: ${err.message}`)
+        );
+      }
+      return result;
     });
   }
 

@@ -655,7 +655,6 @@ export class DonationService {
       let isGoalMet = false;
       let isPhaseNewlyMet = false;
 
-      // Platform Fee Deductions
       if (feeAmount > 0n || tipAmount > 0n) {
         const systemNode = await tx.user.findFirst({
           where: { role: UserRole.SUPERADMIN },
@@ -701,7 +700,6 @@ export class DonationService {
         }
       }
 
-      // Guest / User Logic routing
       if (userId !== 'GUEST') {
         await this.walletRepo.processTransaction({
           userId,
@@ -784,11 +782,9 @@ export class DonationService {
         data: { raisedAmount: { increment: baseAmount } }
       });
 
-      // Calculate phase cap dynamically using the new Stage grouping logic
       const currentPhaseCap = this.calculatePhaseCap(updatedProject);
       let currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
 
-      // --- RACE CONDITION OVERFUNDING ALERT ---
       if (updatedProject.raisedAmount > currentPhaseCap && currentPhaseCap > 0n) {
         const overage = updatedProject.raisedAmount - currentPhaseCap;
         await tx.auditLog.create({
@@ -808,7 +804,6 @@ export class DonationService {
       const postDonationContext = this.getActiveBudgetContext(updatedProject);
       const currentRemainingForItem = postDonationContext.itemRemainingMinor;
 
-      // THRESHOLD COMPLETION RULE (PLATFORM DUST COVERAGE)
       let dustMinor = 0n;
       if (currentRemainingForItem > 0n && currentRemainingForItem < 10000n) {
         dustMinor = currentRemainingForItem;
@@ -909,28 +904,31 @@ export class DonationService {
             }))
           });
 
-          const vendors = (project.vendors as any[]) || [];
-          const activeVendor = vendors.find(v => v.id === activeContext.activeBudgetItem?.vendorId);
-          const vendorName = activeVendor ? activeVendor.name : (activeContext.activeBudgetItem?.payTo || activeContext.activeBudgetItem?.vendor || 'Verified Vendor');
-          const totalPhaseAmount = activeContext.activeBudgetItem?.amount || (activeContext.activeBudgetItem as any)?.cost || 0;
+          const budgetArray = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
+          const vendorsArray = Array.isArray(project.vendors) ? (project.vendors as any[]) : [];
 
-          this.emailService.sendAdminVendorPayoutAlert({
-            projectTitle: project.title,
-            phaseName: activeContext.currentStageName,
-            vendorName,
-            amount: totalPhaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
-            currency: currency,
-            reference: reference,
-            projectId: project.id
-          }).catch(() => { });
+          const phaseBudgetItems = budgetArray.filter((b: any) => (b.stage || 'Main Stage') === activeContext.currentStageName);
+          const vendorAllocations = new Map<string, { amount: number, email: string, name: string }>();
 
-          const vendorEmail = activeVendor?.email || (activeContext.activeBudgetItem as any)?.vendorEmail;
-          if (vendorEmail) {
-            this.emailService.sendVendorPhaseFundedAlert(vendorEmail, {
-              vendorName,
+          phaseBudgetItems.forEach((b: any) => {
+            const vendor = vendorsArray.find(v => v.id === b.vendorId);
+            const vEmail = vendor?.email || b.vendorEmail;
+            const vName = vendor?.name || b.payTo || b.vendor || 'Verified Vendor';
+            const amt = b.amount || b.cost || 0;
+
+            if (vEmail) {
+              const existing = vendorAllocations.get(vEmail) || { amount: 0, email: vEmail, name: vName };
+              existing.amount += amt;
+              vendorAllocations.set(vEmail, existing);
+            }
+          });
+
+          for (const [email, vData] of vendorAllocations.entries()) {
+            this.emailService.sendVendorPhaseFundedAlert(email, {
+              vendorName: vData.name,
               projectTitle: project.title,
               phaseName: activeContext.currentStageName,
-              amount: totalPhaseAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+              amount: vData.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
               currency: currency,
               reference: reference
             }).catch(err => this.logger.error(`Vendor notification failed: ${err.message}`));
