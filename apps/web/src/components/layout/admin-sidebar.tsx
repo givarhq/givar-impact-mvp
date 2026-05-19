@@ -6,12 +6,9 @@ import {
   LayoutDashboard, Users, FileText, ShieldAlert,
   LogOut, Lock, BadgeCheck, Database, Building,
   BarChart3,
-  Megaphone,
-  Binoculars
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
-import { deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
 import { ApiService } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -38,14 +35,12 @@ export function AdminSidebar({ user }: { user: any }) {
       posthog?.capture('user_logout', { context: 'admin_sidebar' });
       posthog?.reset();
       await ApiService.auth.logout();
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      router.push('/login');
       toast.success("Admin session terminated");
     } catch (error) {
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      router.push('/login');
+      // Silently fail if network is down
+    } finally {
+      // Logic: Rely on Next.js server route to securely destroy HttpOnly cookies
+      window.location.href = '/api/auth/clear-session?reason=logged_out';
     }
   };
 

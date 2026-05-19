@@ -13,7 +13,6 @@ import {
   Zap
 } from 'lucide-react';
 import { ViewModeToggle } from './view-mode-toggle';
-import { getCookie, deleteCookie } from 'cookies-next';
 import { ApiService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { cn } from '../../lib/utils/cn';
@@ -63,19 +62,11 @@ export function AdminHeader({ user }: { user: any }) {
       posthog?.capture('user_logout', { context: 'admin' });
       posthog?.reset();
       await ApiService.auth.logout();
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      deleteCookie('givar_view_mode');
-      deleteCookie('givar_is_impersonating');
-      deleteCookie('givar_admin_backup_token');
-      deleteCookie('givar_admin_backup_user');
-
-      router.push('/login');
       toast.success("Session terminated");
     } catch (error) {
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      router.push('/login');
+      // Silently fail if network is down; server-side cookie cleanup is priority
+    } finally {
+      window.location.href = '/api/auth/clear-session?reason=logged_out';
     }
   };
 

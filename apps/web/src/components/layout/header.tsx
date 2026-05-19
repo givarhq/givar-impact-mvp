@@ -10,7 +10,7 @@ import {
   ChevronDown,
   ShieldCheck,
 } from 'lucide-react';
-import { deleteCookie, getCookie } from 'cookies-next';
+import { getCookie } from 'cookies-next';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,17 +55,11 @@ export function Header({ user }: { user: any }) {
       posthog?.capture('user_logout');
       posthog?.reset();
       await ApiService.auth.logout();
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      deleteCookie('givar_view_mode');
-      deleteCookie('givar_is_impersonating');
-      router.push('/login');
     } catch (error) {
-      deleteCookie('givar_token');
-      deleteCookie('givar_user');
-      deleteCookie('givar_view_mode');
-      deleteCookie('givar_is_impersonating');
-      router.push('/login');
+      // Silently fail if network is down; server-side cookie cleanup is priority
+    } finally {
+      // Logic: Rely on Next.js server route to securely destroy HttpOnly cookies
+      window.location.href = '/api/auth/clear-session?reason=logged_out';
     }
   };
 
