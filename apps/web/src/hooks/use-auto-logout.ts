@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { getCookie, deleteCookie } from 'cookies-next';
 import { ApiService } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -11,20 +9,15 @@ const INACTIVITY_LIMIT = 4 * 60 * 60 * 1000;
 const ACTIVITY_STORAGE_KEY = 'givar_last_activity';
 
 export function useAutoLogout() {
-    const router = useRouter();
     const checkInterval = useRef<NodeJS.Timeout | null>(null);
 
     const performLogout = useCallback(async (reason: string) => {
         try {
             await ApiService.auth.logout();
         } catch (e) {
-            // Silently fail if network is down; client cleanup is priority
+            // Silently fail if network is down; server-side cookie cleanup is priority
         }
 
-        deleteCookie('givar_token');
-        deleteCookie('givar_user');
-        deleteCookie('givar_view_mode');
-        deleteCookie('givar_is_impersonating');
         localStorage.removeItem(ACTIVITY_STORAGE_KEY);
 
         toast('Session expired', {
@@ -32,8 +25,9 @@ export function useAutoLogout() {
             style: { borderRadius: '24px', fontWeight: 'bold', fontSize: '12px' }
         });
 
-        router.push(`/login?reason=${reason}`);
-    }, [router]);
+        // Logic: Rely on Next.js server route to securely destroy HttpOnly cookies
+        window.location.href = `/api/auth/clear-session?reason=${reason}`;
+    }, []);
 
     const recordActivity = useCallback(() => {
         if (typeof window !== 'undefined') {
@@ -42,8 +36,8 @@ export function useAutoLogout() {
     }, []);
 
     useEffect(() => {
-        const token = getCookie('givar_token');
-        if (!token) return;
+        // Check for the presence of UI user cookie instead of HttpOnly token
+        if (typeof window === 'undefined' || !document.cookie.includes('givar_user')) return;
 
         const checkExpiry = () => {
             const lastActivity = localStorage.getItem(ACTIVITY_STORAGE_KEY);

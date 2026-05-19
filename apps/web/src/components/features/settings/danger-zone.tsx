@@ -10,7 +10,6 @@ import { Input } from '../../ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
-import { deleteCookie } from 'cookies-next';
 
 export const DangerZone = memo(function DangerZone() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -23,16 +22,13 @@ export const DangerZone = memo(function DangerZone() {
         setIsLoading(true);
         try {
             await ApiService.auth.deleteAccount(password);
-
-            deleteCookie('givar_token');
-            deleteCookie('givar_user');
-
             toast.success("Account successfully deleted");
-            window.location.href = '/';
+
+            // Logic: Let the Next.js server handle the strict cleanup of HttpOnly cookies
+            window.location.href = '/api/auth/clear-session?reason=account_deleted';
         } catch (error: any) {
             const message = error.response?.data?.message || "Deletion failed. Check your credentials.";
             toast.error(message);
-        } finally {
             setIsLoading(false);
         }
     };
