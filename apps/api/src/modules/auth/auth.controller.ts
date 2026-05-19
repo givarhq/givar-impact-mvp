@@ -1,44 +1,62 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, UseGuards }
+import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, Res, UseGuards }
   from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto, Verify2FADto } from './dto/auth.dto';
 import { Throttle } from '@nestjs/throttler';
-import { type Request } from 'express';
+import { type Request, type Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../../common/decorators/public.decorator';
 import { AccountType } from '@givar/database';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  /* 
-    RATE LIMITING
-    Strict: 5 requests per minute
-    Prevents bot account creation spam
-  */
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @Post('signup')
-  create(@Body() dto: RegisterDto, @Req() req: Request) {
-    return this.authService.register(dto, req);
+  private setAuthCookies(res: Response, token: string) {
+    res.cookie('givar_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 86400 * 1000, // 24 hours
+      path: '/'
+    });
   }
 
-  /* 
-    RATE LIMITING
-    Strict: 5 requests per minute
-    Prevents password brute-forcing
-  */
+  private clearAuthCookies(res: Response) {
+    res.cookie('givar_token', '', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 0,
+      path: '/'
+    });
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post('signup')
+  async create(@Body() dto: RegisterDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.register(dto, req);
+    this.setAuthCookies(res, result.accessToken);
+    return result;
+  }
+
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.authService.login(dto, req);
+  async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.login(dto, req);
+    if (result.mfaRequired) return result;
+
+    this.setAuthCookies(res, result.accessToken);
+    return result;
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout(@Req() req: any) {
-    const userId = req.user.sub;
+  logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
+    const userId = req.user.id;
+    this.clearAuthCookies(res);
     return this.authService.logout(userId);
   }
 
@@ -82,10 +100,6 @@ export class AuthController {
     return this.authService.switchToOrganizer(req.user.id);
   }
 
-  /**
-   * Identity Heartbeat
-   * Returns the latest database state for the authenticated user.
-   */
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   async getMe(@Req() req: any) {
@@ -104,20 +118,12 @@ export class AuthController {
     return this.authService.updatePassword(req.user.id, dto);
   }
 
-  /**
-   * Update User Avatar
-   * Links a permanent S3 key to the user profile node.
-   */
   @UseGuards(AuthGuard('jwt'))
   @Patch('profile/avatar')
   async updateAvatar(@Req() req: any, @Body('key') key: string) {
     return this.authService.updateAvatar(req.user.id, key);
   }
 
-  /**
-   * Secure Account Deletion
-   * Requires password verification and performs a ledger integrity check.
-   */
   @UseGuards(AuthGuard('jwt'))
   @Post('profile/delete')
   @HttpCode(HttpStatus.OK)

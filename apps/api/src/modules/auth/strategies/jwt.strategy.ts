@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../../common/prisma.service';
+import { Request } from 'express';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -17,7 +18,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: Request) => {
+          let token = null;
+          // 1. Try to extract HttpOnly token from raw cookies first
+          if (req?.headers?.cookie) {
+            const match = req.headers.cookie.match(/(?:^|;\s*)givar_token=([^;]*)/);
+            if (match) token = match[1];
+          }
+          // 2. Fallback to Authorization Header (Used exclusively by Next.js Server Components)
+          if (!token && req?.headers?.authorization?.startsWith('Bearer ')) {
+            token = req.headers.authorization.split(' ')[1];
+          }
+          return token;
+        }
+      ]),
       ignoreExpiration: false,
       secretOrKey: secret,
     });

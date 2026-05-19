@@ -16,20 +16,30 @@ export class ReadOnlyGuard implements CanActivate {
         const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
         if (safeMethods.includes(request.method)) return true;
 
-        // 2. Extract Token (Fallback if AuthGuard hasn't run yet)
+        // 2. Extract Token 
         let isImpersonating = request.user?.isImpersonating;
 
         if (isImpersonating === undefined) {
-            const authHeader = request.headers.authorization;
-            if (authHeader?.startsWith('Bearer ')) {
-                const token = authHeader.split(' ')[1];
+            let token = null;
+
+            // Extract from raw cookies
+            if (request.headers.cookie) {
+                const match = request.headers.cookie.match(/(?:^|;\s*)givar_token=([^;]*)/);
+                if (match) token = match[1];
+            }
+
+            // Fallback to Header
+            if (!token && request.headers.authorization?.startsWith('Bearer ')) {
+                token = request.headers.authorization.split(' ')[1];
+            }
+
+            if (token) {
                 try {
                     const payload = this.jwtService.verify(token, {
                         secret: this.config.get('JWT_SECRET'),
                     });
                     isImpersonating = payload.isImpersonating;
                 } catch (e) {
-                    // If token is invalid, let the standard AuthGuard handle the 401 later
                     return true;
                 }
             }
