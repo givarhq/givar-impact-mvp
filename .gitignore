@@ -13,6 +13,8 @@ CREDENTIALS.md
 
 repomix-output.xml
 
+givar-neon-backup-2026.dump
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
