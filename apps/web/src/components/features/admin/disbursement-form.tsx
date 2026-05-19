@@ -27,7 +27,7 @@ import {
     SelectValue
 } from '../../ui/select';
 import { ApiService } from '../../../services/api';
-import { formatNumberInput, parseFormattedNumber, formatCurrency } from '../../../lib/utils/format';
+import { formatCurrency } from '../../../lib/utils/format';
 import { ImageUploader } from '../proposals/media-uploader';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -43,6 +43,25 @@ interface DisbursementFormProps {
 type SortConfig = {
     key: string;
     direction: 'asc' | 'desc';
+};
+
+// Advanced Decimal Formatting utilities ported for precise vendor payouts
+const formatDecimalInput = (value: string): string => {
+    let cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+        cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+    if (parts.length === 2 && parts[1].length > 2) {
+        cleaned = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    const finalParts = cleaned.split('.');
+    const major = finalParts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return finalParts.length > 1 ? `${major}.${finalParts[1]}` : major;
+};
+
+const parseDecimalNumber = (value: string): string => {
+    return value.replace(/,/g, '');
 };
 
 export const DisbursementForm = memo(function DisbursementForm({
@@ -94,10 +113,17 @@ export const DisbursementForm = memo(function DisbursementForm({
             return toast.error('Please complete all required fields');
         }
 
+        const numericAmount = Number(parseDecimalNumber(amount));
+        if (numericAmount <= 0) {
+            return toast.error('Please enter a valid disbursement amount');
+        }
+
         setIsLoading(true);
         const toastId = toast.loading('Authorizing payment...');
         try {
-            const minorAmount = parseFormattedNumber(amount) + '00';
+            // Transform directly to Minor Units via BigInt for absolute financial precision
+            const minorAmount = BigInt(Math.round(numericAmount * 100)).toString();
+
             await ApiService.admin.recordDisbursement(projectId, {
                 milestoneId,
                 vendorName,
@@ -195,9 +221,10 @@ export const DisbursementForm = memo(function DisbursementForm({
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-muted-foreground text-sm">₦</span>
                                         <Input
                                             placeholder="0.00"
+                                            inputMode="decimal"
                                             className="pl-10 h-11 text-lg font-bold rounded-3xl bg-muted/20 tabular-nums border-border/40 focus:bg-background transition-all"
-                                            value={formatNumberInput(amount)}
-                                            onChange={(e) => setAmount(e.target.value)}
+                                            value={amount}
+                                            onChange={(e) => setAmount(formatDecimalInput(e.target.value))}
                                         />
                                     </div>
                                 </div>

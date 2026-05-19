@@ -1192,13 +1192,13 @@ export class AdminService {
   async deleteProject(adminId: string, projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-      include: { _count: { select: { donations: true } } }
+      include: { _count: { select: { donations: true, guestDonations: true } } }
     });
 
     if (!project) throw new NotFoundException('Project not found');
 
-    // 2. Financial Integrity Guard
-    if (project._count.donations > 0) {
+    // 2. Financial Integrity Guard (FIXED: Now strictly checks guest donations to prevent DB FK crash)
+    if (project._count.donations > 0 || project._count.guestDonations > 0) {
       throw new ForbiddenException(
         'CRITICAL: This project has received donations. For financial audit integrity, it cannot be deleted. Use Suspend/Complete instead.'
       );

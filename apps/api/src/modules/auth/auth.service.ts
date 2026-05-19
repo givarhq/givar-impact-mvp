@@ -16,7 +16,7 @@ import { PrismaService } from '../../common/prisma.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
-import { AccountType, AuditAction, VerificationStatus } from '@givar/database';
+import { AccountType, AuditAction, ProposalStatus, VerificationStatus } from '@givar/database';
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import * as crypto from 'crypto';
@@ -721,6 +721,19 @@ export class AuthService {
           }
         });
 
+        // 3. SECURITY FIX: Pull back any live proposals from the admin queue to prevent unverified approvals
+        const affectedProposals = await tx.projectProposal.updateMany({
+          where: {
+            userId,
+            status: { in: [ProposalStatus.SUBMITTED, ProposalStatus.UNDER_REVIEW, ProposalStatus.AWAITING_VERIFICATION] }
+          },
+          data: {
+            status: ProposalStatus.DRAFT,
+            adminFeedback: 'System Reset: Account type changed. KYC verification required before resubmission.'
+          }
+        });
+
+        // FIX: Corrected to use this.audit.log
         await this.audit.log({
           userId,
           action: AuditAction.PROFILE_UPDATED,
@@ -728,12 +741,13 @@ export class AuthService {
           entityType: 'OrganizationProfile',
           metadata: {
             reason: 'ACCOUNT_TYPE_SWITCH',
-            note: `KYC invalidated due to account type change from ${user.accountType} to ${targetType}`
+            note: `KYC invalidated. ${affectedProposals.count} active proposals reverted to DRAFT.`
           }
         }, tx);
       }
 
-      // 3. Log the actual account switch
+      // 4. Log the actual account switch
+      // FIX: Corrected to use this.audit.log
       await this.audit.log({
         userId,
         action: AuditAction.ACCOUNT_TYPE_CHANGED,
@@ -749,7 +763,7 @@ export class AuthService {
       return updatedUser;
     });
 
-    // 4. Asynchronously purge the old identity documents from the S3 Vault to prevent data leaks
+    // 5. Asynchronously purge the old identity documents from the S3 Vault to prevent data leaks
     if (keysToPurge.length > 0) {
       this.storage.deleteFiles(keysToPurge).catch(err =>
         this.logger.error(`Failed to purge old KYC docs after account switch: ${err.message}`)
