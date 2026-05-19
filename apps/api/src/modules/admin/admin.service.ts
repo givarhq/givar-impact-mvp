@@ -465,6 +465,7 @@ export class AdminService {
           shortDesc: proposal.shortDesc,
           personalMessage: proposal.personalMessage,
           targetAmount: proposal.targetAmount!,
+          raisedAmount: proposal.hasPreCollectedFunds ? (proposal.preCollectedAmount || 0n) : 0n,
           currency: proposal.currency,
           imageUrl: proposal.coverImage,
           videoUrl: proposal.videoUrl,
@@ -1443,6 +1444,7 @@ export class AdminService {
         slug: true,
         waitlistEmails: true,
         currentPhaseIndex: true,
+        raisedAmount: true,
         user: { select: { email: true, firstName: true } }
       }
     });
@@ -1459,6 +1461,37 @@ export class AdminService {
 
     const previousStatus = timeline[milestoneIndex].status;
     const isLastPhase = milestoneIndex === timeline.length - 1;
+
+    // NEW: Phase completion financial guard
+    if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
+      let previousPhasesMajor = 0;
+      let currentPhaseMajor = 0;
+
+      const previousStages = timeline.slice(0, milestoneIndex).map((t: any) => t.phase);
+      const currentStageName = timeline[milestoneIndex].phase;
+
+      budget.forEach((item: any) => {
+        const amt = item.amount || item.cost || 0;
+        const itemStage = item.stage || 'Main Stage';
+
+        if (previousStages.includes(itemStage)) {
+          previousPhasesMajor += amt;
+        } else if (itemStage === currentStageName) {
+          currentPhaseMajor += amt;
+        }
+      });
+
+      const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
+      const currentPhaseTargetMinor = BigInt(Math.round(currentPhaseMajor * 100));
+
+      const totalRaisedMinor = BigInt(project.raisedAmount || '0');
+      let phaseRaisedMinor = totalRaisedMinor - previousPhasesMinor;
+      if (phaseRaisedMinor < 0n) phaseRaisedMinor = 0n;
+
+      if (phaseRaisedMinor < currentPhaseTargetMinor && currentPhaseTargetMinor > 0n) {
+        throw new BadRequestException("Cannot verify a stage until it is 100% funded.");
+      }
+    }
 
     const updatedTimeline = [...timeline];
     updatedTimeline[milestoneIndex] = {

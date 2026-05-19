@@ -576,7 +576,8 @@ export class DonationService {
         // Setting transaction_charge ensures Paystack deducts our exact operational fee and the donor's tip
         // from the subaccount settlement amount and routes it back to our Givar main account.
         paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
-        paystackPayload.bearer = 'subaccount';
+        // FIX: Re-mapped to standard 'account' bearer to absorb international charge disparities
+        paystackPayload.bearer = 'account';
       }
 
       const response = await axios.post(
