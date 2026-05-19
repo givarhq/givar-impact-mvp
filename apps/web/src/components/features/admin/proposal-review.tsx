@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, memo, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
@@ -19,7 +19,7 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { formatDate, formatCurrency } from '../../../lib/utils/format';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { Input } from '../../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '../../ui/select';
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
@@ -30,6 +30,17 @@ import { ConfirmModal } from '../../ui/confirm-modal';
 interface ProposalReviewProps {
     proposal: ProjectProposal;
 }
+
+const sanitizeHtml = (html: string): string => {
+    if (!html) return '';
+    return html
+        .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '')
+        .replace(/on\w+\s*=\s*"(?:[^"]*)"/gi, '')
+        .replace(/on\w+\s*=\s*'(?:[^']*)'/gi, '')
+        .replace(/on\w+\s*=\s*([^"\s>]+)/gi, '')
+        .replace(/href\s*=\s*"(javascript:[^"]*)"/gi, '')
+        .replace(/href\s*=\s*'(javascript:[^']*)'/gi, '');
+};
 
 const AssistiveChecklist = ({ title, items }: { title: string, items: string[] }) => {
     const [checked, setChecked] = useState<Record<number, boolean>>({});
@@ -75,7 +86,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
 
-    // Subaccount Routing State (Unified)
     const [subaccountModal, setSubaccountModal] = useState<{
         isOpen: boolean;
         budgetItemId: string | null;
@@ -148,7 +158,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
             });
 
             await ApiService.admin.bindProposalVendor(proposal.id, subaccountModal.budgetItemId!, {
-                vendorId: subaccountModal.vendorId || undefined,
+                vendorId: subaccountModal.vendorId || null,
                 vendorName: subaccountModal.vendorName,
                 vendorEmail: subaccountModal.vendorEmail,
                 vendorPhone: subaccountModal.vendorPhone,
@@ -402,7 +412,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                         "[&_blockquote]:border-l-4[&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-2[&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
-                                    dangerouslySetInnerHTML={{ __html: proposal.description }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(proposal.description) }}
                                 />
                             ) : (
                                 <p className="text-xs text-muted-foreground font-medium italic">
@@ -508,7 +518,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 <tbody className="divide-y divide-border/40 text-xs font-medium">
                                     {groupedBudget.length > 0 ? (
                                         groupedBudget.map(({ stage, items, total }) => {
-                                            const isStageExpanded = expandedStages[stage] !== false; // true by default
+                                            const isStageExpanded = expandedStages[stage] !== false;
 
                                             return (
                                                 <React.Fragment key={stage}>
@@ -645,7 +655,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         </div>
                     </Card>
 
-                    {/* ACTION TERMINAL AT BOTTOM OF LEFT COLUMN */}
+                    {/* Action Terminal */}
                     <Card className={cn(
                         "rounded-3xl border-2 shadow-sm overflow-hidden mt-8 transition-all",
                         isTerminalState ? "bg-muted/10 border-border/40" : "border-primary/20 bg-primary/[0.02]"
@@ -872,7 +882,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 </div>
             </div>
 
-            {/* LAUNCH CONFIRMATION OVERLAY */}
+            {/* Launch Confirmation Overlay */}
             <ConfirmModal
                 isOpen={showApproveConfirm}
                 onClose={() => setShowApproveConfirm(false)}
@@ -884,7 +894,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                 confirmText="Approve"
             />
 
-            {/* ADMIN SUBACCOUNT CREATION DIALOG */}
+            {/* Admin Subaccount Creation Dialog */}
             <Dialog open={subaccountModal.isOpen} onOpenChange={(isOpen) => !isOpen && !isCreatingSubaccount && setSubaccountModal({ isOpen: false, budgetItemId: null, vendorId: null, vendorName: '', vendorEmail: '', vendorPhone: '' })}>
                 <DialogContent className="rounded-3xl border-none shadow-2xl bg-card p-6 md:p-8 max-w-md">
                     <DialogHeader className="mb-4">
@@ -933,7 +943,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             />
                         </div>
 
-                        {/* Optional Vendor Details Form if it's an unassigned vendor */}
                         {!subaccountModal.vendorId && (
                             <div className="grid grid-cols-2 gap-3 pt-2">
                                 <div className="space-y-1.5">
