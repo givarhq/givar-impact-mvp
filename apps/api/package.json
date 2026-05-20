@@ -10,7 +10,7 @@
         "start:debug": "nest start --debug --watch",
         "start:prod": "node dist/main.js",
         "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-        "test:e2e": "jest --config ./test/jest-e2e.json"
+        "test:e2e": "dotenv -e .env -- jest --config ./test/jest-e2e.json --runInBand"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.974.0",

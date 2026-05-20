@@ -15,7 +15,8 @@ export class EmailService {
     private config: ConfigService,
     private prisma: PrismaService,
   ) {
-    this.resend = new Resend(this.config.get('RESEND_API_KEY'));
+    const resendKey = this.config.get('RESEND_API_KEY') || 're_mock_key_for_testing_purposes';
+    this.resend = new Resend(resendKey);
 
     const envFrom = this.config.get('RESEND_FROM_EMAIL');
     // Enforce "Givar" as the sender name instead of "Givar Impact"
