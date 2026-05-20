@@ -1,12 +1,12 @@
 import {
   BadRequestException,
   ForbiddenException,
-  Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
-  forwardRef,
+  OnModuleInit,
 } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { WalletRepository } from './wallet.repository';
 import axios from 'axios';
@@ -20,21 +20,26 @@ import { DonationService } from '../donation/donation.service';
 import { EmailService } from '../email/email.service';
 
 @Injectable()
-export class WalletService {
+export class WalletService implements OnModuleInit {
   private readonly logger = new Logger(WalletService.name);
 
   private readonly MAX_AMOUNT_MINOR = 10_000_000_000n;
   private readonly MIN_AMOUNT_MINOR = 10000n;
 
+  private donationService!: DonationService;
+
   constructor(
     private repository: WalletRepository,
     private config: ConfigService,
     private prisma: PrismaService,
-    @Inject(forwardRef(() => DonationService))
-    private donationService: DonationService,
+    private moduleRef: ModuleRef,
     private audit: AuditService,
     private emailService: EmailService,
   ) { }
+
+  onModuleInit() {
+    this.donationService = this.moduleRef.get(DonationService, { strict: false });
+  }
 
   private toPaystackAmount(amountStr: string): number {
     let amountBig: bigint;

@@ -5,7 +5,9 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Currency, TxStatus, TxType, AuditAction, ProjectStatus, UserRole, Prisma, NotificationType, TxCategory } from '@givar/database';
 import { PrismaService } from '../../common/prisma.service';
 import { WalletRepository } from '../wallet/wallet.repository';
@@ -23,20 +25,26 @@ import { EmailService } from '../email/email.service';
 import { FeeService } from '../fee/fee.service';
 
 @Injectable()
-export class DonationService {
+export class DonationService implements OnModuleInit {
   private readonly logger = new Logger(DonationService.name);
 
   private readonly MIN_DONATION_MINOR = 10000n;           // 100.00
   private readonly MAX_DONATION_MINOR = 100_000_000_000n; // 1,000,000.00
 
+  private walletRepo!: WalletRepository;
+
   constructor(
     private prisma: PrismaService,
-    private walletRepo: WalletRepository,
+    private moduleRef: ModuleRef,
     private config: ConfigService,
     private audit: AuditService,
     private emailService: EmailService,
     private feeService: FeeService,
   ) { }
+
+  onModuleInit() {
+    this.walletRepo = this.moduleRef.get(WalletRepository, { strict: false });
+  }
 
   // Centralized Receipt Logic
   private async triggerReceipt(
