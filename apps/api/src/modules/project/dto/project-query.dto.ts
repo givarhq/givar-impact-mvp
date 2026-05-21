@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString, IsNumber } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsNumber, Max } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ProjectStatus } from '@givar/database';
 
@@ -38,5 +38,6 @@ export class ProjectQueryDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
+  @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
   limit?: number = 10;
 }
