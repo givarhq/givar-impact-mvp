@@ -410,7 +410,13 @@ export class DonationService implements OnModuleInit {
       this.broadcastProjectFunded(result.project.id, result.project.title, result.project.slug, result.project.targetAmount, result.project.currency);
     }
 
-    return result.donation;
+    return {
+      ...result.donation,
+      amount: result.donation.amount.toString(),
+      baseAmount: result.donation.baseAmount.toString(),
+      feeAmount: result.donation.feeAmount.toString(),
+      tipAmount: result.donation.tipAmount.toString()
+    };
   }
 
   async initiateDirectDonation(user: any | undefined, dto: InitiateDirectDonationDto) {
@@ -934,7 +940,7 @@ export class DonationService implements OnModuleInit {
           projectTitle: project.title,
           projectSlug: project.slug,
           projectUserId: project.userId,
-          targetAmount: updatedProject.targetAmount,
+          targetAmount: updatedProject.targetAmount.toString(),
           formattedPhase,
           type: 'DIRECT_DONATION'
         };

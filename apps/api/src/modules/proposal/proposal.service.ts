@@ -44,7 +44,7 @@ export class ProposalService {
       );
     }
 
-    return this.prisma.projectProposal.create({
+    const result = await this.prisma.projectProposal.create({
       data: {
         userId,
         title: dto.title,
@@ -65,9 +65,14 @@ export class ProposalService {
         kycDocuments: [],
       },
     });
+
+    return {
+      ...result,
+      targetAmount: result.targetAmount?.toString(),
+      preCollectedAmount: result.preCollectedAmount?.toString()
+    };
   }
 
-  // 2. Update Draft (Auto-save)
   async updateDraft(userId: string, proposalId: string, dto: UpdateProposalDto) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);
 
@@ -85,10 +90,16 @@ export class ProposalService {
       data.preCollectedAmount = BigInt(Math.round(Number(dto.preCollectedAmount)));
     }
 
-    return this.prisma.projectProposal.update({
+    const result = await this.prisma.projectProposal.update({
       where: { id: proposalId },
       data,
     });
+
+    return {
+      ...result,
+      targetAmount: result.targetAmount?.toString(),
+      preCollectedAmount: result.preCollectedAmount?.toString()
+    };
   }
 
   // 3. Submit for Review (The Gatekeeper)
@@ -184,7 +195,11 @@ export class ProposalService {
         projectTitle: proposal.title || 'Untitled'
       }).catch(err => this.logger.error(`Proposer Confirmation Email Failed: ${err.message}`));
 
-      return result;
+      return {
+        ...result,
+        targetAmount: result.targetAmount?.toString(),
+        preCollectedAmount: result.preCollectedAmount?.toString()
+      };
     });
   }
 
@@ -360,7 +375,11 @@ export class ProposalService {
       metadata: { action: 'DEFERRED_SUBMISSION', status: 'AWAITING_VERIFICATION' }
     });
 
-    return updated;
+    return {
+      ...updated,
+      targetAmount: updated.targetAmount?.toString(),
+      preCollectedAmount: updated.preCollectedAmount?.toString()
+    };
   }
 
   /**
