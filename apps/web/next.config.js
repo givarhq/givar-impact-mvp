@@ -17,7 +17,8 @@ const nextConfig = {
     reactStrictMode: true,
     // Logic: Enable React Compiler for optimized VDOM diffing (Next.js 15+)
     reactCompiler: true,
-    transpilePackages: ["@givar/ui"],
+    // Logic: Ensure local workspace packages are transpiled correctly by Next.js
+    transpilePackages: ["@givar/types", "@givar/database"],
     experimental: {
         serverActions: {
             bodySizeLimit: '2mb',
