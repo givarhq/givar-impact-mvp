@@ -25,20 +25,18 @@ function applySecurityHeaders(response: NextResponse) {
   }
 
   const cspHeader = `
-    default-src 'self' https://*.givarapp.com https://givarapp.com;
+    default-src 'self';
     script-src ${scriptSrc};
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://*.idrivee2-pt.com;
     media-src 'self' blob: data: https://*.idrivee2-pt.com https://res.cloudinary.com;
-    font-src 'self' data: https://fonts.gstatic.com https://*.givarapp.com https://givarapp.com;
+    font-src 'self' data:;
     connect-src 'self'
       https://api.paystack.co
       https://api.cloudinary.com
       https://open.er-api.com
       https://*.i.posthog.com
-      ${apiOrigin}
-      https://*.givarapp.com
-      https://givarapp.com;
+      ${apiOrigin};
     frame-src 'self' https://js.paystack.co https://checkout.paystack.com;
     object-src 'none';
     base-uri 'self';
