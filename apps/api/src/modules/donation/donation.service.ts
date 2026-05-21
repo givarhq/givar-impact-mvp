@@ -456,7 +456,7 @@ export class DonationService implements OnModuleInit {
       throw new BadRequestException(`Project only accepts ${project.currency}.`);
     }
 
-    const phaseMath = calculatePhaseFunding(project);
+    const phaseMath = calculatePhaseFunding(project as any);
 
     if (phaseMath.isPhaseFull) {
       throw new BadRequestException('The current funding phase is fully funded and pending administrative verification. Donations are temporarily paused.');
@@ -788,10 +788,10 @@ export class DonationService implements OnModuleInit {
           data: { raisedAmount: { increment: baseAmount } }
         });
 
-        const previousPhaseMath = calculatePhaseFunding(project);
+        const previousPhaseMath = calculatePhaseFunding(project as any);
         const previousPhaseMet = previousPhaseMath.remainingForPhaseMinor < 10000n;
 
-        const currentPhaseMath = calculatePhaseFunding(updatedProject);
+        const currentPhaseMath = calculatePhaseFunding(updatedProject as any);
         const currentPhaseMet = currentPhaseMath.remainingForPhaseMinor < 10000n;
 
         const projectRemaining = updatedProject.targetAmount - updatedProject.raisedAmount;
