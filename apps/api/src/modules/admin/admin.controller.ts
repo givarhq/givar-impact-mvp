@@ -227,23 +227,19 @@ export class AdminController {
 
     const result = await this.service.impersonateUser(req.user.id, id);
 
-    if (currentToken) {
-      res.cookie('givar_admin_backup_token', currentToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 15 * 60 * 1000,
-        path: '/'
-      });
-    }
-
-    res.cookie('givar_token', result.accessToken, {
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : ('lax' as const),
       maxAge: 15 * 60 * 1000,
       path: '/'
-    });
+    };
+
+    if (currentToken) {
+      res.cookie('givar_admin_backup_token', currentToken, cookieOptions);
+    }
+
+    res.cookie('givar_token', result.accessToken, cookieOptions);
 
     return result;
   }

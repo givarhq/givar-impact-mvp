@@ -15,8 +15,8 @@ export class AuthController {
   private setAuthCookies(res: Response, token: string) {
     res.cookie('givar_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Must be true for SameSite=None
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 86400 * 1000, // 24 hours
       path: '/'
     });
@@ -25,8 +25,8 @@ export class AuthController {
   private clearAuthCookies(res: Response) {
     res.cookie('givar_token', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 0,
       path: '/'
     });
