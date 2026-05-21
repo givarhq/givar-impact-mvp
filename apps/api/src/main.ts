@@ -23,14 +23,16 @@ async function bootstrap() {
     contentSecurityPolicy: false,
   }));
 
-  // Strict CORS Policy
+  // Strict CORS Policy Supporting Comma-Separated Frontend URLs
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const origins = frontendUrl.split(',').map(url => url.trim());
+
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL || 'http://localhost:3000'
-    ],
+    origin: origins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-paystack-signature'],
+    // Whitelist Cache-Control and Pragma to satisfy the frontend interceptor preflight requests
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-paystack-signature', 'Cache-Control', 'Pragma'],
   });
 
   // Global Validation

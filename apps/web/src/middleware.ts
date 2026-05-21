@@ -9,12 +9,11 @@ function applySecurityHeaders(response: NextResponse) {
     "'unsafe-inline'",
     isDev && "'unsafe-eval'",
     "https://js.paystack.co",
-    "https://us.i.posthog.com",
+    "https://*.i.posthog.com",
   ]
     .filter(Boolean)
     .join(' ');
 
-  // Logic: Dynamically extract the origin to avoid strict path-matching CSP violations
   let apiOrigin = 'http://localhost:3001';
   if (process.env.NEXT_PUBLIC_API_URL) {
     try {
@@ -36,7 +35,7 @@ function applySecurityHeaders(response: NextResponse) {
       https://api.paystack.co
       https://api.cloudinary.com
       https://open.er-api.com
-      https://us.i.posthog.com
+      https://*.i.posthog.com
       ${apiOrigin};
     frame-src 'self' https://js.paystack.co https://checkout.paystack.com;
     object-src 'none';
@@ -74,11 +73,6 @@ function next() {
   return applySecurityHeaders(NextResponse.next());
 }
 
-/**
- * ⚠️ IMPORTANT:
- * Cookie "role" is treated as UI hint only.
- * Backend MUST enforce real authorization.
- */
 function getUserRole(userCookie?: string): string {
   if (!userCookie) return 'USER';
 
@@ -109,11 +103,7 @@ export function middleware(request: NextRequest) {
   const shouldBeInAdminEnv =
     isAdmin && viewMode !== 'USER' && !isImpersonating;
 
-  // -----------------------------
-  // AUTHENTICATED USERS
-  // -----------------------------
   if (token) {
-    // Auth pages → redirect to correct dashboard
     if (isAuthPage) {
       return redirect(
         request,
@@ -121,7 +111,6 @@ export function middleware(request: NextRequest) {
       );
     }
 
-    // Public → dashboard mapping
     if (!shouldBeInAdminEnv) {
       if (pathname.startsWith('/explore')) {
         return redirect(
@@ -135,7 +124,6 @@ export function middleware(request: NextRequest) {
       }
     }
 
-    // Enforce correct environment
     if (pathname.startsWith('/dashboard') && shouldBeInAdminEnv) {
       return redirect(request, '/admin');
     }
@@ -147,9 +135,6 @@ export function middleware(request: NextRequest) {
     return next();
   }
 
-  // -----------------------------
-  // UNAUTHENTICATED USERS
-  // -----------------------------
   const protectedRoute =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/admin');
