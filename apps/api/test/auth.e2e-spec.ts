@@ -21,6 +21,7 @@ describe('Authentication & Identity Protocols (e2e)', () => {
 
         app = moduleFixture.createNestApplication();
         app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+        app.getHttpAdapter().getInstance().set('trust proxy', 1);
         await app.init();
 
         prisma = app.get<PrismaService>(PrismaService);
@@ -51,6 +52,7 @@ describe('Authentication & Identity Protocols (e2e)', () => {
         for (let i = 0; i < 5; i++) {
             const response = await request(app.getHttpServer())
                 .post('/auth/login')
+                .set('x-forwarded-for', `192.168.1.${i}`)
                 .send({
                     email: testEmail,
                     password: 'WrongPassword123!',
@@ -61,6 +63,7 @@ describe('Authentication & Identity Protocols (e2e)', () => {
         // Assertion: The 6th attempt should return a specific Account Locked error, even if the password is correct!
         const lockedResponse = await request(app.getHttpServer())
             .post('/auth/login')
+            .set('x-forwarded-for', `192.168.1.5`)
             .send({
                 email: testEmail,
                 password: testPassword, // Using the CORRECT password now
@@ -86,6 +89,7 @@ describe('Authentication & Identity Protocols (e2e)', () => {
         // Attack: Send correct credentials but omit the 2FA code
         const response = await request(app.getHttpServer())
             .post('/auth/login')
+            .set('x-forwarded-for', `192.168.1.6`)
             .send({
                 email: testEmail,
                 password: testPassword,

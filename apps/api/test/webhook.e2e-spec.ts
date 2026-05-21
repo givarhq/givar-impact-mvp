@@ -25,7 +25,7 @@ describe('Financial engine and security protocols (e2e)', () => {
             imports: [AppModule],
         }).compile();
 
-        app = moduleFixture.createNestApplication();
+        app = moduleFixture.createNestApplication({ rawBody: true });
         app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
         (BigInt.prototype as any).toJSON = function () {
@@ -91,6 +91,9 @@ describe('Financial engine and security protocols (e2e)', () => {
                 budgetBreakdown: [
                     { id: 'b1', description: 'Phase 1', amount: 50000, costType: 'SERVICE', stage: 'Main Stage', vendorId: 'v1' }
                 ],
+                vendors: [
+                    { id: 'v1', name: 'Test Vendor', subaccountCode: 'ACCT_TEST1234' }
+                ],
                 executionTimeline: [
                     { id: 't1', phase: 'Main Stage', status: 'PENDING', deliverables: 'Test' }
                 ]
@@ -105,6 +108,7 @@ describe('Financial engine and security protocols (e2e)', () => {
         await prisma.walletTransaction.deleteMany({ where: { reference: { contains: 'RACE-REF' } } });
         await prisma.project.delete({ where: { id: testProjectId } });
         await prisma.transactionFeeRule.delete({ where: { id: feeRuleId } });
+        await prisma.wallet.deleteMany({ where: { userId: { in: [testUserId, testAdminId] } } });
         await prisma.user.deleteMany({ where: { id: { in: [testUserId, testAdminId] } } });
         await app.close();
     });
