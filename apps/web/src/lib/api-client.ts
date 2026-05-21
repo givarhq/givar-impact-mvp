@@ -1,6 +1,5 @@
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
-import { getCookie } from 'cookies-next';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 const API_URL = BASE_URL.endsWith('/v1') ? BASE_URL : `${BASE_URL}/v1`;
@@ -15,13 +14,6 @@ export const apiClient = axios.create({
 
 // REQUEST INTERCEPTOR
 apiClient.interceptors.request.use((config) => {
-  // CRITICAL FIX: Explicitly attach the Bearer token for cross-domain API requests.
-  // This bypasses strict browser third-party cookie blocking policies.
-  const token = getCookie('givar_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
   // Logic: Force no-cache for client-side mutations to prevent stale UI
   if (config.method !== 'get') {
     config.headers['Cache-Control'] = 'no-cache';
@@ -63,7 +55,7 @@ apiClient.interceptors.response.use(
           style: { borderRadius: '12px', fontWeight: 'bold', fontSize: '12px' }
         });
       } else {
-        toast.error("Access Denied");
+        toast.error("Access denied");
       }
     }
 
