@@ -280,17 +280,29 @@ export class AdminService {
 
   // Project Moderation
   async approveProject(id: string) {
-    return this.prisma.project.update({
+    const project = await this.prisma.project.update({
       where: { id },
       data: { status: ProjectStatus.ACTIVE, isActive: true }
     });
+    return {
+      ...project,
+      targetAmount: project.targetAmount?.toString(),
+      raisedAmount: project.raisedAmount?.toString(),
+      preCollectedAmount: project.preCollectedAmount?.toString(),
+    };
   }
 
   async suspendProject(id: string) {
-    return this.prisma.project.update({
+    const project = await this.prisma.project.update({
       where: { id },
       data: { status: ProjectStatus.SUSPENDED, isActive: false }
     });
+    return {
+      ...project,
+      targetAmount: project.targetAmount?.toString(),
+      raisedAmount: project.raisedAmount?.toString(),
+      preCollectedAmount: project.preCollectedAmount?.toString(),
+    };
   }
 
   // --- PROPOSAL MANAGEMENT ---
@@ -452,7 +464,6 @@ export class AdminService {
         );
       }
 
-      // ROOT CAUSE FIX: Auto-sync executionTimeline to match budget stages
       const sanitizedTimeline = this.syncExecutionTimeline(budget, (proposal.executionTimeline as any[]) || []);
 
       const project = await tx.project.create({
@@ -536,7 +547,12 @@ export class AdminService {
         status: 'APPROVED'
       }).catch(e => this.logger.error(`Approval Email Failed: ${e.message}`));
 
-      return project;
+      return {
+        ...project,
+        targetAmount: project.targetAmount?.toString(),
+        raisedAmount: project.raisedAmount?.toString(),
+        preCollectedAmount: project.preCollectedAmount?.toString(),
+      };
     });
   }
 
@@ -584,7 +600,6 @@ export class AdminService {
 
       return updatedProject;
     }).then(async (updated) => {
-      // Broadcast to donors
       const userDonors = await this.prisma.donation.findMany({
         where: { projectId },
         select: { user: { select: { email: true, firstName: true, preferences: true } } },
@@ -630,7 +645,12 @@ export class AdminService {
         )
       ).catch(err => this.logger.error('Final Impact Broadcast Failed', err));
 
-      return updated;
+      return {
+        ...updated,
+        targetAmount: updated.targetAmount?.toString(),
+        raisedAmount: updated.raisedAmount?.toString(),
+        preCollectedAmount: updated.preCollectedAmount?.toString(),
+      };
     });
   }
 
@@ -664,7 +684,6 @@ export class AdminService {
         }
       }, tx);
 
-      // Notify the owner of the rejection
       await tx.notification.create({
         data: {
           userId: proposal.userId,
@@ -685,7 +704,11 @@ export class AdminService {
       feedback
     }).catch(e => this.logger.error(`Rejection Email Failed: ${e.message}`));
 
-    return result;
+    return {
+      ...result,
+      targetAmount: result.targetAmount?.toString(),
+      preCollectedAmount: result.preCollectedAmount?.toString(),
+    };
   }
 
   async requestChanges(id: string, adminId: string, feedback: string) {
@@ -728,8 +751,13 @@ export class AdminService {
       feedback
     }).catch(e => this.logger.error(`Changes Email Failed: ${e.message}`));
 
-    return result;
+    return {
+      ...result,
+      targetAmount: result.targetAmount?.toString(),
+      preCollectedAmount: result.preCollectedAmount?.toString(),
+    };
   }
+
 
   private generateSlug(title: string) {
     return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Math.random().toString(36).substring(2, 7);
@@ -984,7 +1012,12 @@ export class AdminService {
       });
 
       return project;
-    });
+    }).then(project => ({
+      ...project,
+      targetAmount: project.targetAmount?.toString(),
+      raisedAmount: project.raisedAmount?.toString(),
+      preCollectedAmount: project.preCollectedAmount?.toString(),
+    }));
   }
 
   async updateProject(adminId: string, projectId: string, dto: UpdateAdminProjectDto) {
@@ -1116,7 +1149,12 @@ export class AdminService {
       ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
     }
 
-    return result;
+    return {
+      ...result,
+      targetAmount: result.targetAmount?.toString(),
+      raisedAmount: result.raisedAmount?.toString(),
+      preCollectedAmount: result.preCollectedAmount?.toString(),
+    };
   }
 
   private async broadcastFinancialAdjustment(
@@ -1194,7 +1232,6 @@ export class AdminService {
 
     if (!project) throw new NotFoundException('Project not found');
 
-    // 2. Financial Integrity Guard (FIXED: Now strictly checks guest donations to prevent DB FK crash)
     if (project._count.donations > 0 || project._count.guestDonations > 0) {
       throw new ForbiddenException(
         'CRITICAL: This project has received donations. For financial audit integrity, it cannot be deleted. Use Suspend/Complete instead.'
@@ -1217,7 +1254,6 @@ export class AdminService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // 3.5 ADDED: Cascade delete connected peripheral nodes to prevent FK constraint failures
       await tx.projectUpdate.deleteMany({ where: { projectId } });
       await tx.featuredSlot.deleteMany({ where: { projectId } });
       await tx.milestoneProof.deleteMany({ where: { projectId } });
@@ -1225,20 +1261,27 @@ export class AdminService {
 
       const deleted = await tx.project.delete({ where: { id: projectId } });
 
-      await this.audit.log({
-        userId: adminId,
-        action: AuditAction.PROJECT_DELETED,
-        entityId: projectId,
-        entityType: 'Project',
-        metadata: { title: deleted.title, purgedFileCount: keysToPurge.length },
-      }, tx);
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.PROJECT_DELETED,
+          entityId: projectId,
+          entityType: 'Project',
+          metadata: { title: deleted.title, purgedFileCount: keysToPurge.length },
+        },
+      });
 
       return deleted;
     }).then(async (result) => {
       if (keysToPurge.length > 0) {
         await this.storage.deleteFiles(keysToPurge);
       }
-      return result;
+      return {
+        ...result,
+        targetAmount: result.targetAmount?.toString(),
+        raisedAmount: result.raisedAmount?.toString(),
+        preCollectedAmount: result.preCollectedAmount?.toString(),
+      };
     });
   }
 
@@ -1458,7 +1501,6 @@ export class AdminService {
     const previousStatus = timeline[milestoneIndex].status;
     const isLastPhase = milestoneIndex === timeline.length - 1;
 
-    // NEW: Phase completion financial guard
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
       let previousPhasesMajor = 0;
       let currentPhaseMajor = 0;
@@ -1511,7 +1553,6 @@ export class AdminService {
     const updateData: any = { executionTimeline: updatedTimeline as any };
     let emailsToNotify: string[] = [];
 
-    // State Progression / Regression Math Fix
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
       if (!isLastPhase) {
         updateData.currentPhaseIndex = { increment: 1 };
@@ -1519,7 +1560,6 @@ export class AdminService {
         emailsToNotify = project.waitlistEmails || [];
       }
     } else if (previousStatus === 'COMPLETED' && status !== 'COMPLETED') {
-      // Safely decrement phase index if a stage is re-opened
       const safeDecrement = Math.max(0, (project.currentPhaseIndex || 0) - 1);
       updateData.currentPhaseIndex = safeDecrement;
     }
@@ -1606,7 +1646,12 @@ export class AdminService {
       }
     }
 
-    return updatedProject;
+    return {
+      ...updatedProject,
+      targetAmount: updatedProject.targetAmount?.toString(),
+      raisedAmount: updatedProject.raisedAmount?.toString(),
+      preCollectedAmount: updatedProject.preCollectedAmount?.toString(),
+    };
   }
 
   private async broadcastMilestoneUpdate(projectId: string, projectTitle: string, projectSlug: string, milestonePhase: string, imageUrl?: string) {
@@ -1705,7 +1750,6 @@ export class AdminService {
       throw new BadRequestException('Transaction not found or already resolved.');
     }
 
-    // --- CASE A: REFUND PROTOCOL ---
     if (dto.action === SuspenseAction.REFUND) {
       await this.triggerPaystackRefund(tx.reference);
 
@@ -1732,11 +1776,13 @@ export class AdminService {
             },
           },
         });
-        return updated;
+        return {
+          ...updated,
+          amount: updated.amount.toString()
+        };
       });
     }
 
-    // --- CASE B: RE-ALLOCATION PROTOCOL ---
     if (dto.action === SuspenseAction.ALLOCATE) {
       if (!dto.allocations || dto.allocations.length === 0) {
         throw new BadRequestException('Re-allocation requires at least one target project.');
@@ -2009,7 +2055,10 @@ export class AdminService {
           },
         });
 
-        return updatedParentTx;
+        return {
+          ...updatedParentTx,
+          amount: updatedParentTx.amount.toString()
+        };
       }, { timeout: 25000 });
     }
   }
@@ -2095,9 +2144,13 @@ export class AdminService {
         vendor: dto.vendorName
       }).catch(err => this.logger.error(`Evidence email failed: ${err.message}`));
 
-      return res.disbursement;
+      return {
+        ...res.disbursement,
+        amount: res.disbursement.amount.toString()
+      };
     });
   }
+
 
   async getOrganizationQueue(query: {
     page?: number;
@@ -2982,7 +3035,11 @@ export class AdminService {
       }
     });
 
-    return updated;
+    return {
+      ...updated,
+      targetAmount: updated.targetAmount?.toString(),
+      preCollectedAmount: updated.preCollectedAmount?.toString(),
+    };
   }
 
   async createSubcategory(adminId: string, categoryId: string, dto: { name: string }) {
