@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { ApiService } from '../../../services/api';
 import { getCookie } from 'cookies-next';
+import { calculatePhaseFunding } from '@givar/types';
 
 interface TransparencyCardProps {
     project: Project & { donorCount?: number };
@@ -25,64 +26,22 @@ const SYMBOLS: Record<string, string> = {
 };
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
-    // Global Project Math
-    const totalRaised = BigInt(project.raisedAmount || '0');
-    const totalTarget = BigInt(project.targetAmount || '0');
-    const totalRemaining = totalRaised >= totalTarget ? 0n : totalTarget - totalRaised;
-    const isCompleted = project.status === 'COMPLETED';
-    const isFundedState = project.status === 'FUNDED' || (totalRaised >= totalTarget && totalTarget > 0n && !isCompleted);
+    const {
+        totalRaised,
+        totalTarget,
+        totalRemaining,
+        isCompleted,
+        isFundedState,
+        totalPercent,
+        currentStageDisplayName,
+        raisedInCurrentPhase,
+        currentPhaseTargetMinor,
+        phasePercent,
+        isPhaseFull
+    } = calculatePhaseFunding(project as any);
 
-    const totalPercent = totalTarget > 0n ? Math.min(100, Math.floor(Number(totalRaised * 100n / totalTarget))) : 0;
-
-    // --- AGGREGATED PHASED FUNDING MATH ---
-    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
-    const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
-    const activeIndex = project.currentPhaseIndex || 0;
-
-    let previousPhasesMajor = 0;
-    let currentPhaseMajor = 0;
-
-    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
-
-    const stageBudgetItems = budget
-        .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
-        .map((b: any) => b.description || b.item)
-        .join(', ');
-
-    const currentStageDisplayName = timeline[activeIndex]
-        ? `${currentStageLogicName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
-        : 'Main Stage';
-
-    budget.forEach((item: any) => {
-        const amt = item.amount || (item as any).cost || 0;
-        const itemStage = item.stage || 'Main Stage';
-
-        if (previousStages.includes(itemStage)) {
-            previousPhasesMajor += amt;
-        } else if (itemStage === currentStageLogicName) {
-            currentPhaseMajor += amt;
-        }
-    });
-
-    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
-
-    if (timeline.length === 0 || activeIndex >= timeline.length) {
-        phaseCapMinor = totalTarget;
-    }
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    let raisedInCurrentPhase = totalRaised - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const phasePercent = currentPhaseTargetMinor > 0n
-        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
-        : 0;
-
-    // DUST ROUNDING UI SUPPORT: If remaining gap is less than NGN 100 (10000n), no one can donate anyway. Show as full.
-    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
-    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+    const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
+    const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
 
     // Waitlist State
     const [isAuthenticated, setIsAuthenticated] = useState(false);

@@ -9,6 +9,7 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
 import { motion } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
+import { calculatePhaseFunding } from '@givar/types';
 
 export const ProjectCard = memo(function ProjectCard({
   project,
@@ -16,16 +17,14 @@ export const ProjectCard = memo(function ProjectCard({
   isPublic = false,
   hideKobo = true
 }: ProjectCardProps) {
-  const isCompleted = project.status === 'COMPLETED';
 
-  // --- OVERALL PROJECT MATH ---
-  const totalRaised = BigInt(project.raisedAmount || '0');
-  const totalTarget = BigInt(project.targetAmount || '0');
-  const isFundedState = project.status === 'FUNDED' || (totalRaised >= totalTarget && totalTarget > 0n && !isCompleted);
-
-  const totalPercent = totalTarget > 0n
-    ? Math.min(100, Math.floor(Number(totalRaised * 100n / totalTarget)))
-    : 0;
+  const {
+    isCompleted,
+    totalRaised,
+    totalTarget,
+    isFundedState,
+    totalPercent
+  } = calculatePhaseFunding(project as any);
 
   const isMedical = project.categoryName?.toLowerCase() === 'medical';
   const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';

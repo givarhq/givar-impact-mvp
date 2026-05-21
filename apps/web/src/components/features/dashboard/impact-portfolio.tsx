@@ -8,6 +8,7 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../lib/utils/cn';
+import { calculatePhaseFunding } from '@givar/types';
 
 interface PortfolioItem {
     id: string;
@@ -50,53 +51,15 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
             <div className="p-2 space-y-2">
                 <AnimatePresence>
                     {items.map((item, index) => {
-                        const raised = BigInt(item.project.raisedAmount || '0');
-                        const target = BigInt(item.project.targetAmount || '0');
-                        const isCompleted = item.project.status === 'COMPLETED';
-                        const isFundedState = item.project.status === 'FUNDED' || (raised >= target && target > 0n && !isCompleted);
-
-                        // --- PHASED FUNDING MATH FIX ---
-                        const activeIndex = item.project.currentPhaseIndex || 0;
-                        const budget = Array.isArray(item.project.budgetBreakdown) ? item.project.budgetBreakdown : [];
-                        const timeline = Array.isArray(item.project.executionTimeline) ? item.project.executionTimeline : [];
-
-                        let previousPhasesMajor = 0;
-                        let currentPhaseMajor = 0;
-
-                        const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-                        const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
-
-                        budget.forEach((b: any) => {
-                            const amt = b.amount || b.cost || 0;
-                            const bStage = b.stage || 'Main Stage';
-
-                            if (previousStages.includes(bStage)) {
-                                previousPhasesMajor += amt;
-                            } else if (bStage === currentStageLogicName) {
-                                currentPhaseMajor += amt;
-                            }
-                        });
-
-                        const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-                        let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
-
-                        if (timeline.length === 0 || activeIndex >= timeline.length) {
-                            phaseCapMinor = target;
-                        }
-
-                        const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-                        let raisedInCurrentPhase = raised - previousPhasesMinor;
-                        if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-                        const phasePercent = currentPhaseTargetMinor > 0n
-                            ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
-                            : 0;
-
-                        const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
-                        const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
-
-                        const activeStageLogicName = item.project.executionTimeline?.[activeIndex]?.phase || 'Main Stage';
-                        const cleanStageName = activeStageLogicName.replace(/^Phase \d+:\s*/i, '');
+                        const {
+                            isCompleted,
+                            isFundedState,
+                            isPhaseFull,
+                            cleanStageName,
+                            raisedInCurrentPhase,
+                            currentPhaseTargetMinor,
+                            phasePercent
+                        } = calculatePhaseFunding(item.project as any);
 
                         return (
                             <motion.div
