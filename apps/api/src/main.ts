@@ -13,23 +13,31 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 };
 
 async function bootstrap() {
-  // Fix: Enable rawBody to preserve the exact payload buffer for webhook HMAC verification
   const app = await NestFactory.create(AppModule, { rawBody: true });
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
-  // Security Headers
-  app.use(helmet());
+  // Hardened Security Headers
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    // CSP is handled by Next.js Edge Middleware. The API serves no HTML, so disabling CSP here is safe.
+    contentSecurityPolicy: false,
+  }));
 
-  // CORS
+  // Strict CORS Policy
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:3000'
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-paystack-signature'],
   });
 
   // Global Validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
+      forbidNonWhitelisted: true, // Reject payload pollution platform-wide
       transform: true,
     }),
   );
@@ -39,29 +47,30 @@ async function bootstrap() {
 
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1', // Routes default to v1 automatically
+    defaultVersion: '1',
   });
 
   app.setGlobalPrefix('api');
 
-  // Swagger API Documentation Setup
-  const config = new DocumentBuilder()
-    .setTitle('Givar Platform API')
-    .setDescription('The immutable ledger and discovery protocol for Givar Impact.')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
+  // Swagger API Documentation Setup (Hidden in Production)
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Givar Platform API')
+      .setDescription('The immutable ledger and discovery protocol for Givar Impact.')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+  }
 
   const port = process.env.PORT || 3001;
   await app.listen(port);
   console.log(`Givar API running on: http://localhost:${port}/api`);
-  console.log(`Swagger Docs available at: http://localhost:${port}/api/docs`);
 }
 bootstrap();
