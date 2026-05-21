@@ -11,6 +11,8 @@ CREDENTIALS.md
 
 .env.sentry-build-plugin
 
+test-results.txt
+
 repomix-output.xml
 
 givar-neon-backup-2026.dump
