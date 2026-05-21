@@ -7,12 +7,12 @@ import Link from 'next/link';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { MapPin, ShieldCheck, Clock, Share2, Loader2, CheckCircle2, BellRing } from 'lucide-react';
 import { Project } from '../../../types';
-import { cn } from '../../../lib/utils/cn';
 import { Button } from '../../ui/button';
 import { ShareModal } from '../impact/share-modal';
 import { ApiService } from '../../../services/api';
 import { getCookie } from 'cookies-next';
 import toast from 'react-hot-toast';
+import { calculatePhaseFunding } from '@givar/types';
 
 const SYMBOLS: Record<string, string> = {
     NGN: '₦',
@@ -46,58 +46,15 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     if (!current) return null;
 
     // --- AGGREGATED PHASED FUNDING MATH ---
-    const timeline = Array.isArray(current.executionTimeline) ? current.executionTimeline : [];
-    const budget = Array.isArray(current.budgetBreakdown) ? current.budgetBreakdown : [];
-    const activeIndex = current.currentPhaseIndex || 0;
+    const phaseMath = calculatePhaseFunding(current as any);
 
-    const raised = BigInt(current.raisedAmount || '0');
-    const target = BigInt(current.targetAmount || '0');
-    const isCompleted = current.status === 'COMPLETED';
-    const isFundedState = current.status === 'FUNDED' || (raised >= target && target > 0n && !isCompleted);
-
-    let previousPhasesMajor = 0;
-    let currentPhaseMajor = 0;
-
-    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
-
-    const stageBudgetItems = budget
-        .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
-        .map((b: any) => b.description || b.item)
-        .join(', ');
-
-    const currentStageDisplayName = timeline[activeIndex]
-        ? `${currentStageLogicName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
-        : 'Main Stage';
-
-    budget.forEach((item: any) => {
-        const amt = item.amount || (item as any).cost || 0;
-        const itemStage = item.stage || 'Main Stage';
-
-        if (previousStages.includes(itemStage)) {
-            previousPhasesMajor += amt;
-        } else if (itemStage === currentStageLogicName) {
-            currentPhaseMajor += amt;
-        }
-    });
-
-    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
-
-    if (timeline.length === 0 || activeIndex >= timeline.length) {
-        phaseCapMinor = target;
-    }
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    let raisedInCurrentPhase = raised - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const phasePercent = currentPhaseTargetMinor > 0n
-        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
-        : 0;
-
-    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
-    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
+    const isPhaseFull = phaseMath.isPhaseFull;
+    const isCompleted = phaseMath.isCompleted;
+    const isFundedState = phaseMath.isFundedState;
+    const currentStageDisplayName = phaseMath.currentStageDisplayName;
+    const raisedInCurrentPhase = phaseMath.raisedInCurrentPhase;
+    const currentPhaseTargetMinor = phaseMath.currentPhaseTargetMinor;
+    const phasePercent = phaseMath.phasePercent;
 
     const currencySymbol = SYMBOLS[current.currency] || current.currency;
 

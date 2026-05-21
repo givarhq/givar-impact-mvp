@@ -1,3 +1,5 @@
+// apps/web/src/components/features/dashboard/impact-portfolio.tsx
+
 'use client';
 
 import Link from 'next/link';
@@ -51,15 +53,14 @@ export const ImpactPortfolio = memo(function ImpactPortfolio({ items }: { items:
             <div className="p-2 space-y-2">
                 <AnimatePresence>
                     {items.map((item, index) => {
-                        const {
-                            isCompleted,
-                            isFundedState,
-                            isPhaseFull,
-                            cleanStageName,
-                            raisedInCurrentPhase,
-                            currentPhaseTargetMinor,
-                            phasePercent
-                        } = calculatePhaseFunding(item.project as any);
+                        // --- PHASED FUNDING MATH FIX ---
+                        const phaseMath = calculatePhaseFunding(item.project as any);
+
+                        const isCompleted = phaseMath.isCompleted;
+                        const isFundedState = phaseMath.isFundedState;
+                        const isPhaseFull = phaseMath.isPhaseFull;
+                        const phasePercent = phaseMath.phasePercent;
+                        const cleanStageName = phaseMath.cleanStageName;
 
                         return (
                             <motion.div

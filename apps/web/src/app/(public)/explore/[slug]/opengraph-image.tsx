@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { calculatePhaseFunding } from '@givar/types';
 
 export const runtime = 'edge';
 export const alt = 'Givar Project Preview';
@@ -30,54 +31,19 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     }
 
     // --- PHASED FUNDING MATH ---
-    const activeIndex = project.currentPhaseIndex || 0;
-    const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
-    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
-
-    const activeStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
-    const cleanStageName = activeStageLogicName.replace(/^Phase \d+:\s*/i, '');
-    const stageBudgetItems = budget
-        .filter((b: any) => (b.stage || 'Main Stage') === activeStageLogicName)
-        .map((b: any) => b.description || b.item)
-        .join(', ');
-    const displayPhase = `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`;
-
-    let previousPhasesMajor = 0;
-    for (let i = 0; i < activeIndex && i < budget.length; i++) {
-        previousPhasesMajor += (budget[i].amount || budget[i].cost || 0);
-    }
-    const previousPhasesMinor = BigInt(previousPhasesMajor * 100);
-
-    let cumulativeMajor = previousPhasesMajor;
-    if (budget[activeIndex]) {
-        cumulativeMajor += (budget[activeIndex].amount || budget[activeIndex].cost || 0);
-    }
-
-    const rawTarget = project.targetAmount ? String(project.targetAmount).replace(/[^0-9]/g, '') : '0';
-    const totalTarget = BigInt(rawTarget);
-
-    const phaseCapMinor = budget.length > 0 && activeIndex < budget.length
-        ? BigInt(cumulativeMajor * 100)
-        : totalTarget;
-
-    const rawRaised = project.raisedAmount ? String(project.raisedAmount).replace(/[^0-9]/g, '') : '0';
-    const totalRaised = BigInt(rawRaised);
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    let raisedInCurrentPhase = totalRaised - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const phasePercent = currentPhaseTargetMinor > 0n
-        ? Math.min(100, Math.floor(Number(raisedInCurrentPhase * 100n / currentPhaseTargetMinor)))
-        : 0;
+    const phaseMath = calculatePhaseFunding(project);
+    const {
+        isCompleted,
+        isFundedState,
+        isPhaseFull,
+        cleanStageName,
+        currentPhaseTargetMinor,
+        phasePercent
+    } = phaseMath;
 
     const phaseTargetMajor = Number(currentPhaseTargetMinor) / 100;
     const usdRate = fxData?.rates?.USD || 0.00065;
     const usdGoal = Math.round(phaseTargetMajor * usdRate);
-
-    const isCompleted = project.status === 'COMPLETED';
-    const isFundedState = project.status === 'FUNDED' || (totalRaised >= totalTarget && totalTarget > 0n && !isCompleted);
-    const isPhaseFull = raisedInCurrentPhase >= currentPhaseTargetMinor && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
     let statusText = `${phasePercent}% Funded`;
     if (isCompleted || isFundedState) statusText = 'Goal Reached';

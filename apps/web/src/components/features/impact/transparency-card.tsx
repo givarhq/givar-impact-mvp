@@ -6,7 +6,6 @@ import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Project } from '../../../types';
-import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { ApiService } from '../../../services/api';
@@ -26,22 +25,22 @@ const SYMBOLS: Record<string, string> = {
 };
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
+    // --- AGGREGATED PHASED FUNDING MATH FIX ---
+    const phaseMath = calculatePhaseFunding(project as any);
+
     const {
         totalRaised,
         totalTarget,
         totalRemaining,
+        totalPercent,
         isCompleted,
         isFundedState,
-        totalPercent,
+        isPhaseFull,
         currentStageDisplayName,
         raisedInCurrentPhase,
         currentPhaseTargetMinor,
-        phasePercent,
-        isPhaseFull
-    } = calculatePhaseFunding(project as any);
-
-    const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
-    const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
+        phasePercent
+    } = phaseMath;
 
     // Waitlist State
     const [isAuthenticated, setIsAuthenticated] = useState(false);

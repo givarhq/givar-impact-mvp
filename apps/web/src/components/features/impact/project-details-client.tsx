@@ -31,6 +31,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { SmartCurrency } from '../../ui/smart-currency';
+import { calculatePhaseFunding } from '@givar/types';
 
 interface ProjectDetailsClientProps {
     project: ProjectWithDetails & { subcategoryName?: string };
@@ -60,56 +61,25 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         ? `/explore/${project.slug}/records`
         : `/dashboard/impact/${project.slug}/records`;
 
-    const timeline = Array.isArray(project.executionTimeline) ? project.executionTimeline : [];
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const gallery = Array.isArray(project.gallery) ? project.gallery : [];
-    const activeIndex = project.currentPhaseIndex || 0;
+
+    // --- AGGREGATED PHASED FUNDING MATH ---
+    const phaseMath = calculatePhaseFunding(project as any);
+    const {
+        isCompleted,
+        isFundedState,
+        isPhaseFull,
+        currentStageDisplayName,
+        currentStageLogicName,
+        raisedInCurrentPhase,
+        currentPhaseTargetMinor,
+        phasePercent,
+        previousStages
+    } = phaseMath;
 
     const raised = Number(project.raisedAmount || 0);
     const target = Number(project.targetAmount || 0);
-
-    const isCompleted = project.status === 'COMPLETED';
-    const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0 && !isCompleted);
-
-    let previousPhasesMajor = 0;
-    let currentPhaseMajor = 0;
-
-    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageLogicName = timeline[activeIndex]?.phase || 'Main Stage';
-
-    const stageBudgetItems = budget
-        .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
-        .map((b: any) => b.description || b.item)
-        .join(', ');
-
-    const currentStageDisplayName = timeline[activeIndex]
-        ? `${currentStageLogicName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
-        : 'Main Stage';
-
-    budget.forEach((item: any) => {
-        const amt = item.amount || (item as any).cost || 0;
-        const itemStage = item.stage || 'Main Stage';
-
-        if (previousStages.includes(itemStage)) {
-            previousPhasesMajor += amt;
-        } else if (itemStage === currentStageLogicName) {
-            currentPhaseMajor += amt;
-        }
-    });
-
-    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
-
-    if (timeline.length === 0 || activeIndex >= timeline.length) {
-        phaseCapMinor = BigInt(project.targetAmount || '0');
-    }
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    let raisedInCurrentPhase = BigInt(project.raisedAmount || '0') - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
-    const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
     const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
     const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';

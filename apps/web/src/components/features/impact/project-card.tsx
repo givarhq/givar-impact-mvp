@@ -18,13 +18,15 @@ export const ProjectCard = memo(function ProjectCard({
   hideKobo = true
 }: ProjectCardProps) {
 
+  const phaseMath = calculatePhaseFunding(project as any);
+
   const {
     isCompleted,
+    isFundedState,
     totalRaised,
     totalTarget,
-    isFundedState,
     totalPercent
-  } = calculatePhaseFunding(project as any);
+  } = phaseMath;
 
   const isMedical = project.categoryName?.toLowerCase() === 'medical';
   const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
