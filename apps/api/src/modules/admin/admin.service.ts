@@ -18,6 +18,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 import { NotificationService } from '../notifications/notification.service';
 import { randomUUID } from 'crypto';
+import { calculatePhaseFunding } from '@givar/types';
 
 @Injectable()
 export class AdminService {
@@ -1484,6 +1485,8 @@ export class AdminService {
         waitlistEmails: true,
         currentPhaseIndex: true,
         raisedAmount: true,
+        targetAmount: true,
+        status: true,
         user: { select: { email: true, firstName: true } }
       }
     });
@@ -1502,31 +1505,9 @@ export class AdminService {
     const isLastPhase = milestoneIndex === timeline.length - 1;
 
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
-      let previousPhasesMajor = 0;
-      let currentPhaseMajor = 0;
+      const phaseMath = calculatePhaseFunding(project as any);
 
-      const previousStages = timeline.slice(0, milestoneIndex).map((t: any) => t.phase);
-      const currentStageName = timeline[milestoneIndex].phase;
-
-      budget.forEach((item: any) => {
-        const amt = item.amount || item.cost || 0;
-        const itemStage = item.stage || 'Main Stage';
-
-        if (previousStages.includes(itemStage)) {
-          previousPhasesMajor += amt;
-        } else if (itemStage === currentStageName) {
-          currentPhaseMajor += amt;
-        }
-      });
-
-      const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-      const currentPhaseTargetMinor = BigInt(Math.round(currentPhaseMajor * 100));
-
-      const totalRaisedMinor = BigInt(project.raisedAmount || '0');
-      let phaseRaisedMinor = totalRaisedMinor - previousPhasesMinor;
-      if (phaseRaisedMinor < 0n) phaseRaisedMinor = 0n;
-
-      if (phaseRaisedMinor < currentPhaseTargetMinor && currentPhaseTargetMinor > 0n) {
+      if (phaseMath.raisedInCurrentPhase < phaseMath.currentPhaseTargetMinor && phaseMath.currentPhaseTargetMinor > 0n) {
         throw new BadRequestException("Cannot verify a stage until it is 100% funded.");
       }
     }
@@ -1807,36 +1788,8 @@ export class AdminService {
           throw new BadRequestException(`Cannot allocate to "${targetProj.title}" because it is already closed or suspended.`);
         }
 
-        const budget = (targetProj.budgetBreakdown as any[]) || [];
-        const timeline = (targetProj.executionTimeline as any[]) || [];
-        const activeIndex = targetProj.currentPhaseIndex || 0;
-
-        const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
-        const sortedBudget = [...budget].sort((a, b) => {
-          const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
-          const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
-          return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
-        });
-
-        const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-        const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
-
-        let totalMajor = 0;
-        sortedBudget.forEach((item: any) => {
-          const amt = item.amount || item.cost || 0;
-          const itemStage = item.stage || 'Main Stage';
-
-          if (previousStages.includes(itemStage) || itemStage === currentStageName) {
-            totalMajor += amt;
-          }
-        });
-
-        let currentPhaseCapMinor = BigInt(Math.round(totalMajor * 100));
-        if (timeline.length === 0 || activeIndex >= timeline.length) {
-          currentPhaseCapMinor = BigInt(targetProj.targetAmount || '0');
-        }
-
-        const remainingForPhase = currentPhaseCapMinor - targetProj.raisedAmount;
+        const phaseMath = calculatePhaseFunding(targetProj as any);
+        const remainingForPhase = phaseMath.remainingForPhaseMinor;
 
         if (BigInt(split.amount) > remainingForPhase) {
           throw new BadRequestException(
@@ -1919,7 +1872,7 @@ export class AdminService {
           const updatedProject = await txPrisma.project.update({
             where: { id: split.projectId },
             data: { raisedAmount: { increment: splitAmount } },
-            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, budgetBreakdown: true, executionTimeline: true, vendors: true }
+            select: { title: true, id: true, userId: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, budgetBreakdown: true, executionTimeline: true, vendors: true, status: true }
           });
 
           const isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
@@ -1930,36 +1883,8 @@ export class AdminService {
             });
           }
 
-          const updatedBudget = (updatedProject.budgetBreakdown as any[]) || [];
-          const updatedTimeline = (updatedProject.executionTimeline as any[]) || [];
-          const updatedActiveIndex = updatedProject.currentPhaseIndex || 0;
-
-          const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
-          const updatedSortedBudget = [...updatedBudget].sort((a, b) => {
-            const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
-            const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
-            return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
-          });
-
-          const updatedPreviousStages = updatedTimeline.slice(0, updatedActiveIndex).map((t: any) => t.phase);
-          const updatedCurrentStageName = updatedTimeline[updatedActiveIndex]?.phase || 'Main Stage';
-
-          let updatedTotalMajor = 0;
-          updatedSortedBudget.forEach((item: any) => {
-            const amt = item.amount || item.cost || 0;
-            const itemStage = item.stage || 'Main Stage';
-
-            if (updatedPreviousStages.includes(itemStage) || itemStage === updatedCurrentStageName) {
-              updatedTotalMajor += amt;
-            }
-          });
-
-          let phaseCap = BigInt(Math.round(updatedTotalMajor * 100));
-          if (updatedTimeline.length === 0 || updatedActiveIndex >= updatedTimeline.length) {
-            phaseCap = updatedProject.targetAmount;
-          }
-
-          const isPhaseNewlyMet = !isGoalMet && (updatedProject.raisedAmount >= phaseCap);
+          const updatedPhaseMath = calculatePhaseFunding(updatedProject as any);
+          const isPhaseNewlyMet = !isGoalMet && updatedPhaseMath.isPhaseFull;
 
           await txPrisma.notification.create({
             data: {
@@ -1999,7 +1924,8 @@ export class AdminService {
               });
 
               const vendorsArray = Array.isArray(updatedProject.vendors) ? (updatedProject.vendors as any[]) : [];
-              const phaseBudgetItems = updatedBudget.filter((b: any) => (b.stage || 'Main Stage') === updatedCurrentStageName);
+              const updatedBudget = Array.isArray(updatedProject.budgetBreakdown) ? (updatedProject.budgetBreakdown as any[]) : [];
+              const phaseBudgetItems = updatedBudget.filter((b: any) => (b.stage || 'Main Stage') === updatedPhaseMath.currentStageLogicName);
               const vendorAllocations = new Map<string, { amount: number, email: string, name: string }>();
 
               phaseBudgetItems.forEach((b: any) => {
@@ -2019,7 +1945,7 @@ export class AdminService {
                 this.emailService.sendVendorPhaseFundedAlert(email, {
                   vendorName: vData.name,
                   projectTitle: updatedProject.title,
-                  phaseName: updatedCurrentStageName,
+                  phaseName: updatedPhaseMath.currentStageLogicName,
                   amount: vData.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }),
                   currency: tx.currency,
                   reference: splitRef

@@ -23,6 +23,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../email/email.service';
 import { FeeService } from '../fee/fee.service';
+import { calculatePhaseFunding } from '@givar/types';
 
 @Injectable()
 export class DonationService implements OnModuleInit {
@@ -99,6 +100,7 @@ export class DonationService implements OnModuleInit {
    * based purely on the raised amount vs cumulative budget items.
    */
   private getActiveBudgetContext(project: any) {
+    const phaseMath = calculatePhaseFunding(project);
     const rawBudget = (project.budgetBreakdown as any[]) || [];
     const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
     const budget = [...rawBudget].sort((a, b) => {
@@ -106,10 +108,7 @@ export class DonationService implements OnModuleInit {
       const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
       return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
     });
-    const timeline = (project.executionTimeline as any[]) || [];
-    const activeIndex = project.currentPhaseIndex || 0;
 
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
     const raisedAmountMajor = Number(project.raisedAmount) / 100;
 
     let cumulativeMajor = 0;
@@ -132,21 +131,13 @@ export class DonationService implements OnModuleInit {
     const activeVendor = vendors.find(v => v.id === activeVendorId);
     const activeSubaccount = activeVendor?.subaccountCode || activeBudgetItem?.vendorSubaccount;
 
-    const cleanStageName = currentStageName.replace(/^Phase \d+:\s*/i, '');
-    const stageBudgetItems = budget
-      .filter((b: any) => (b.stage || 'Main Stage') === currentStageName)
-      .map((b: any) => b.description || b.item)
-      .join(', ');
-
-    const fullStageDisplayName = `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`;
-
     return {
       activeBudgetItem,
       itemRemainingMinor: BigInt(Math.round(itemRemainingMajor * 100)),
       activeSubaccount,
-      currentStageName,
-      phaseNameRaw: activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : currentStageName,
-      fullStageDisplayName
+      currentStageName: phaseMath.currentStageLogicName,
+      phaseNameRaw: activeBudgetItem ? (activeBudgetItem.description || activeBudgetItem.item) : phaseMath.currentStageLogicName,
+      fullStageDisplayName: phaseMath.currentStageDisplayName
     };
   }
 
@@ -465,43 +456,9 @@ export class DonationService implements OnModuleInit {
       throw new BadRequestException(`Project only accepts ${project.currency}.`);
     }
 
-    // --- PHASE CAP ENFORCEMENT LOCK ---
-    const timeline = Array.isArray(project.executionTimeline) ? (project.executionTimeline as any[]) : [];
-    const budget = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
-    const activeIndex = project.currentPhaseIndex || 0;
+    const phaseMath = calculatePhaseFunding(project);
 
-    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
-
-    let previousPhasesMajor = 0;
-    let currentPhaseMajor = 0;
-
-    budget.forEach((item: any) => {
-      const amt = item.amount || (item as any).cost || 0;
-      const itemStage = item.stage || 'Main Stage';
-
-      if (previousStages.includes(itemStage)) {
-        previousPhasesMajor += amt;
-      } else if (itemStage === currentStageName) {
-        currentPhaseMajor += amt;
-      }
-    });
-
-    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
-
-    if (timeline.length === 0 || activeIndex >= timeline.length) {
-      phaseCapMinor = BigInt(project.targetAmount || '0');
-    }
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    const totalRaisedMinor = BigInt(project.raisedAmount || '0');
-    let raisedInCurrentPhase = totalRaisedMinor - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
-
-    if (remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n) {
+    if (phaseMath.isPhaseFull) {
       throw new BadRequestException('The current funding phase is fully funded and pending administrative verification. Donations are temporarily paused.');
     }
 
@@ -831,13 +788,11 @@ export class DonationService implements OnModuleInit {
           data: { raisedAmount: { increment: baseAmount } }
         });
 
-        const previousRaisedAmount = project.raisedAmount;
-        const previousRemainingForPhase = this.calculatePhaseCap(project) - previousRaisedAmount;
-        const previousPhaseMet = previousRemainingForPhase < 10000n;
+        const previousPhaseMath = calculatePhaseFunding(project);
+        const previousPhaseMet = previousPhaseMath.remainingForPhaseMinor < 10000n;
 
-        const currentPhaseCap = this.calculatePhaseCap(updatedProject);
-        const currentRemainingForPhase = currentPhaseCap - updatedProject.raisedAmount;
-        const currentPhaseMet = currentRemainingForPhase < 10000n;
+        const currentPhaseMath = calculatePhaseFunding(updatedProject);
+        const currentPhaseMet = currentPhaseMath.remainingForPhaseMinor < 10000n;
 
         const projectRemaining = updatedProject.targetAmount - updatedProject.raisedAmount;
 
@@ -1186,41 +1141,6 @@ export class DonationService implements OnModuleInit {
    * all budget items that fall under the currently active stage and all prior stages.
    */
   private calculatePhaseCap(project: any): bigint {
-    const timeline = (project.executionTimeline as any[]) || [];
-    const rawBudget = (project.budgetBreakdown as any[]) || [];
-    const activeIndex = project.currentPhaseIndex || 0;
-
-    const STAGE_ORDER = ['Early Stage', 'Main Stage', 'Final Stage'];
-
-    // 1. Sort budget items chronologically by stage to ensure accurate accumulation
-    const budget = [...rawBudget].sort((a, b) => {
-      const idxA = STAGE_ORDER.indexOf(a.stage || 'Main Stage');
-      const idxB = STAGE_ORDER.indexOf(b.stage || 'Main Stage');
-      return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
-    });
-
-    // 2. Resolve stage names for the active and all preceding phases
-    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
-
-    let totalMajor = 0;
-
-    // 3. Aggregate amounts for every item belonging to the current or prior stages
-    budget.forEach((item: any) => {
-      const amt = item.amount || item.cost || 0;
-      const itemStage = item.stage || 'Main Stage';
-
-      if (previousStages.includes(itemStage) || itemStage === currentStageName) {
-        totalMajor += amt;
-      }
-    });
-
-    // 4. Return as BigInt Minor Units. Fallback to targetAmount if timeline is empty.
-    let phaseCap = BigInt(Math.round(totalMajor * 100));
-    if (timeline.length === 0 || activeIndex >= timeline.length) {
-      phaseCap = BigInt(project.targetAmount || '0');
-    }
-
-    return phaseCap;
+    return calculatePhaseFunding(project).phaseCapMinor;
   }
 }
