@@ -6,6 +6,7 @@ import { AuditAction, NotificationType, Prisma, ProjectStatus, UserRole } from '
 import { AuditService } from '../audit/audit.service';
 import { StorageService } from '../storage/storage.service';
 import { EmailService } from '../email/email.service';
+import { calculatePhaseFunding } from '@givar/types';
 
 type ProjectMediaValue = {
   url: string;
@@ -56,45 +57,7 @@ export class ProjectService {
 
   private isPhaseFull(project: any): boolean {
     if (project.status !== 'ACTIVE') return false;
-
-    const raised = BigInt(project.raisedAmount || '0');
-    const target = BigInt(project.targetAmount || '0');
-
-    const activeIndex = project.currentPhaseIndex || 0;
-
-    const budget = Array.isArray(project.budgetBreakdown) ? (project.budgetBreakdown as any[]) : [];
-    const timeline = Array.isArray(project.executionTimeline) ? (project.executionTimeline as any[]) : [];
-
-    let previousPhasesMajor = 0;
-    let currentPhaseMajor = 0;
-
-    const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
-    const currentStageName = timeline[activeIndex]?.phase || 'Main Stage';
-
-    budget.forEach((item: any) => {
-      const amt = item.amount || item.cost || 0;
-      const itemStage = item.stage || 'Main Stage';
-
-      if (previousStages.includes(itemStage)) {
-        previousPhasesMajor += amt;
-      } else if (itemStage === currentStageName) {
-        currentPhaseMajor += amt;
-      }
-    });
-
-    const previousPhasesMinor = BigInt(Math.round(previousPhasesMajor * 100));
-    let phaseCapMinor = BigInt(Math.round((previousPhasesMajor + currentPhaseMajor) * 100));
-
-    if (timeline.length === 0 || activeIndex >= timeline.length) {
-      phaseCapMinor = target;
-    }
-
-    const currentPhaseTargetMinor = phaseCapMinor - previousPhasesMinor;
-    let raisedInCurrentPhase = raised - previousPhasesMinor;
-    if (raisedInCurrentPhase < 0n) raisedInCurrentPhase = 0n;
-
-    const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
-    return remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n;
+    return calculatePhaseFunding(project).isPhaseFull;
   }
 
   private async getPhaseFullProjectIds(): Promise<string[]> {

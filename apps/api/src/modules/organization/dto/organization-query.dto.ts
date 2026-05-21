@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { VerificationStatus } from '@givar/database';
 
@@ -19,6 +19,7 @@ export class OrganizationQueryDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
+    @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
     limit?: number = 20;
 
     @IsOptional()

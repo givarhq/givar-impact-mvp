@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Max } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ProjectStatus } from '@givar/database';
 
@@ -23,6 +23,7 @@ export class AdminProjectQueryDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
+    @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
     limit?: number = 20;
 
     @IsOptional()
