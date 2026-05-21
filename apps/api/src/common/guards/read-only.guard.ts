@@ -12,9 +12,11 @@ export class ReadOnlyGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
 
-        // 1. Skip check for safe methods immediately
+        // 1. Skip check for safe methods or specific exemption endpoints immediately
         const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
-        if (safeMethods.includes(request.method)) return true;
+        const isStopImpersonation = request.url.includes('/impersonate/stop');
+
+        if (safeMethods.includes(request.method) || isStopImpersonation) return true;
 
         // 2. Extract Token 
         let isImpersonating = request.user?.isImpersonating;

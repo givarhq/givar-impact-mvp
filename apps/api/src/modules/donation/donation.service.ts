@@ -29,7 +29,7 @@ export class DonationService implements OnModuleInit {
   private readonly logger = new Logger(DonationService.name);
 
   private readonly MIN_DONATION_MINOR = 10000n;           // 100.00
-  private readonly MAX_DONATION_MINOR = 100_000_000_000n; // 1,000,000.00
+  private readonly MAX_DONATION_MINOR = 10_000_000_000n; // 1,000,000.00
 
   private walletRepo!: WalletRepository;
 
@@ -168,7 +168,9 @@ export class DonationService implements OnModuleInit {
     }
 
     if (baseAmount > this.MAX_DONATION_MINOR) {
-      throw new BadRequestException('Amount exceeds maximum allowed per donation');
+      throw new BadRequestException(
+        'Transaction exceeds high-capital threshold (₦100m). Please split the deposit or contact Givar support for institutional onboarding.'
+      );
     }
 
     const project = await this.prisma.project.findUnique({
@@ -424,7 +426,17 @@ export class DonationService implements OnModuleInit {
     }
 
     if (baseAmountBig > this.MAX_DONATION_MINOR) {
-      throw new BadRequestException('Amount exceeds maximum allowed per donation.');
+      const emailToContact = user ? user.email : dto.guestEmail;
+
+      this.emailService.sendAdminHighCapitalAlert({
+        userEmail: emailToContact || 'Anonymous Guest',
+        amount: (Number(baseAmountBig) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+        currency: dto.currency
+      }).catch(err => this.logger.error(`High Capital Alert Failed: ${err.message}`));
+
+      throw new BadRequestException(
+        'Transaction exceeds high-capital threshold (₦100m). Please split the deposit or contact Givar support for institutional onboarding.'
+      );
     }
 
     const project = await this.prisma.project.findUnique({
@@ -966,8 +978,12 @@ export class DonationService implements OnModuleInit {
 
       return result;
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && (error.code === 'P2002' || error.code === 'P2034')) {
         this.logger.warn(`Concurrently received duplicate webhook for reference ${reference}. Handled gracefully.`);
+        return { status: 'duplicate', reference };
+      }
+      if (error instanceof BadRequestException && error.message.includes('Duplicate transaction')) {
+        this.logger.warn(`Concurrently received duplicate webhook for reference ${reference}. Handled gracefully via Repository exception.`);
         return { status: 'duplicate', reference };
       }
       throw error;

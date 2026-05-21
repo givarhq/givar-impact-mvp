@@ -195,8 +195,8 @@ export class WalletRepository {
       };
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
-        if (err.code === 'P2002') {
-          throw new BadRequestException('Duplicate transaction reference');
+        if (err.code === 'P2002' || err.code === 'P2034') {
+          throw new BadRequestException('Duplicate transaction reference or write conflict');
         }
       }
 

@@ -18,7 +18,7 @@ export class CreateDonationDto {
 
   // Support for optional tips
   @IsOptional()
-  @IsNumberString()
+  @Matches(/^\d+$/, { message: 'Tip amount must be a positive integer' })
   tipAmount?: string;
 
   @IsEnum(Currency)
@@ -38,7 +38,7 @@ export class InitiateDirectDonationDto {
 
   // Support for optional tips
   @IsOptional()
-  @IsNumberString()
+  @Matches(/^\d+$/, { message: 'Tip amount must be a positive integer' })
   tipAmount?: string;
 
   // Fix: Explicitly track the gateway fee passed to the donor
