@@ -109,6 +109,8 @@ describe('Financial Mathematics & Limits (e2e)', () => {
     });
 
     afterAll(async () => {
+        // Teardown: Self-healing cleanup for orphaned records from prior crashed runs
+        await prisma.donation.deleteMany({ where: { transaction: { reference: { contains: 'FIN-TEST' } } } });
         await prisma.donation.deleteMany({ where: { projectId: testProjectId } });
         await prisma.walletTransaction.deleteMany({ where: { reference: { contains: 'FIN-TEST' } } });
         await prisma.project.delete({ where: { id: testProjectId } });

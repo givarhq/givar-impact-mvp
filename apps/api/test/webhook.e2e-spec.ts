@@ -103,7 +103,8 @@ describe('Financial engine and security protocols (e2e)', () => {
     });
 
     afterAll(async () => {
-        // Teardown
+        // Teardown: Self-healing cleanup for orphaned records from prior crashed runs
+        await prisma.donation.deleteMany({ where: { transaction: { reference: { contains: 'RACE-REF' } } } });
         await prisma.donation.deleteMany({ where: { projectId: testProjectId } });
         await prisma.walletTransaction.deleteMany({ where: { reference: { contains: 'RACE-REF' } } });
         await prisma.project.delete({ where: { id: testProjectId } });
