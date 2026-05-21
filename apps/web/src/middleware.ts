@@ -14,6 +14,17 @@ function applySecurityHeaders(response: NextResponse) {
     .filter(Boolean)
     .join(' ');
 
+  // Logic: Dynamically extract the origin to avoid strict path-matching CSP violations
+  let apiOrigin = 'http://localhost:3001';
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    try {
+      const url = new URL(process.env.NEXT_PUBLIC_API_URL);
+      apiOrigin = url.origin;
+    } catch {
+      apiOrigin = process.env.NEXT_PUBLIC_API_URL;
+    }
+  }
+
   const cspHeader = `
     default-src 'self';
     script-src ${scriptSrc};
@@ -26,7 +37,7 @@ function applySecurityHeaders(response: NextResponse) {
       https://api.cloudinary.com
       https://open.er-api.com
       https://us.i.posthog.com
-      ${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'};
+      ${apiOrigin};
     frame-src 'self' https://js.paystack.co https://checkout.paystack.com;
     object-src 'none';
     base-uri 'self';
