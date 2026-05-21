@@ -2,8 +2,9 @@ import { apiClient } from '../lib/api-client';
 import { GivingGoal, OrganizationProfile, Project, Wallet } from '../types';
 import { setCookie } from 'cookies-next';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const API_V1 = `${BASE_URL}/v1`;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// LOGIC FIX: Prevent appending /v1 if the environment variable already includes it
+const API_V1 = BASE_URL.endsWith('/v1') ? BASE_URL : `${BASE_URL}/v1`;
 
 /**
  * Enhanced Server Fetch
@@ -47,6 +48,8 @@ async function serverFetch<T>(
     }
 
     if (!res.ok) {
+      // Diagnostic Log: Helpful for debugging SSR network drops in production
+      console.error(`[ServerFetch] Error ${res.status} at ${fullUrl}`);
       return null;
     }
 
@@ -58,6 +61,7 @@ async function serverFetch<T>(
       console.error(`[ServerFetch] Timeout at ${fullUrl}`);
       return null;
     }
+    console.error(`[ServerFetch] Exception at ${fullUrl}:`, error);
     return null;
   }
 }
