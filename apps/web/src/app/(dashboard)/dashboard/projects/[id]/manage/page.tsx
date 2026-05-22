@@ -179,7 +179,7 @@ export default async function ProjectManagePage({
                             <CardContent className="p-6 md:p-8 space-y-6 min-w-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center min-w-0">
                                     <div className="space-y-3 min-w-0">
-                                        <h4 className="text-lg font-bold text-emerald-950 dark:text-emerald-50 leading-tight break-words">{finalReport.title}</h4>
+                                        <h4 className="text-lg font-bold text-emerald-950 leading-tight break-words">{finalReport.title}</h4>
                                         <p className="text-sm text-emerald-900/80 font-medium leading-relaxed break-words">
                                             {finalReport.content}
                                         </p>
@@ -210,8 +210,19 @@ export default async function ProjectManagePage({
                         </Card>
                     )}
 
+                    {/* Integrated Communication Hub - Moved Up */}
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0">
+                        <FeedbackThread
+                            projectId={project.id}
+                            title="Direct line with Givar"
+                            vendors={vendors}
+                            projectCurrency={project.currency}
+                            isOrganizer={true}
+                        />
+                    </div>
+
                     {otherUpdates.length > 0 && (
-                        <div className="space-y-4 min-w-0">
+                        <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
                             <div className="flex items-center gap-3 px-1 min-w-0">
                                 <Megaphone className="h-4 w-4 text-primary shrink-0" />
                                 <h4 className="text-sm font-bold text-foreground truncate">Project updates</h4>
@@ -346,15 +357,6 @@ export default async function ProjectManagePage({
                         </Card>
                     )}
 
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-w-0 pt-6">
-                        <FeedbackThread
-                            projectId={project.id}
-                            title="Direct line with Givar"
-                            vendors={vendors}
-                            projectCurrency={project.currency}
-                            isOrganizer={true}
-                        />
-                    </div>
                 </div>
 
                 <div className="lg:col-span-4 space-y-6 min-w-0">

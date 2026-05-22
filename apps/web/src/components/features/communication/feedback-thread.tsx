@@ -65,7 +65,6 @@ export const FeedbackThread = memo(function FeedbackThread({
     const [newVendorEmail, setNewVendorEmail] = useState('');
     const [newVendorPhone, setNewVendorPhone] = useState('');
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
-    const [isUploadingInvoice, setIsUploadingInvoice] = useState(false);
 
     const fetchMessages = async () => {
         try {
@@ -208,7 +207,10 @@ export const FeedbackThread = memo(function FeedbackThread({
     };
 
     return (
-        <Card id="communication-thread" className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col h-[550px] scroll-mt-24">
+        <Card id="communication-thread" className={cn(
+            "rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden flex flex-col scroll-mt-24 transition-all duration-300",
+            isLoading || messages.length > 0 ? "h-[550px]" : "h-[250px]"
+        )}>
             <CardHeader className="bg-muted/30 border-b border-border/40 p-5 shrink-0 flex flex-row items-center justify-between">
                 <CardTitle className="text-sm font-bold flex items-center gap-2 text-foreground">
                     <MessageSquare className="h-4 w-4 text-primary" /> {title}
@@ -232,9 +234,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center space-y-2 opacity-40">
-                        <div className="h-10 w-10 rounded-2xl bg-muted flex items-center justify-center">
-                            <MessageSquare className="h-5 w-5" />
-                        </div>
+                        <MessageSquare className="h-8 w-8 text-muted-foreground" />
                         <p className="text-xs font-medium">No messages yet. Start the conversation below.</p>
                     </div>
                 ) : (
@@ -370,14 +370,14 @@ export const FeedbackThread = memo(function FeedbackThread({
                 </div>
             </div>
 
-            {/* Amendment Modal */}
+            {/* Amendment Modal (Constrained Height & Scrollable Inner) */}
             <Dialog open={isAmendmentModalOpen} onOpenChange={(open) => !open && !isSending && setIsAmendmentModalOpen(false)}>
-                <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md">
-                    <DialogHeader className="mb-4">
+                <DialogContent className="rounded-3xl border-none shadow-2xl p-0 bg-card max-w-md max-h-[85vh] flex flex-col">
+                    <DialogHeader className="p-6 pb-4 border-b border-border/40 shrink-0">
                         <DialogTitle className="text-lg font-bold text-foreground">Request Funding Amendment</DialogTitle>
                     </DialogHeader>
 
-                    <div className="space-y-4">
+                    <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
                         <div className="space-y-1.5">
                             <label className="text-[11px] font-bold text-muted-foreground ml-1">Expense Description</label>
                             <Input
@@ -491,7 +491,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                             )}
                         </div>
 
-                        <div className="pt-4">
+                        <div className="pt-4 pb-2">
                             <Button
                                 onClick={submitAmendmentRequest}
                                 disabled={isSending || !amendDesc || !amendAmount || !amendVendorId || !invoiceFile || (amendVendorId === 'NEW' && !newVendorName)}

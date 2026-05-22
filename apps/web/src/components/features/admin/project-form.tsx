@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, memo, useMemo, useEffect } from 'react';
+import React, { useState, memo, useMemo, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Image from 'next/image';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -88,6 +88,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
+  const applyParamConsumed = useRef(false);
+
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.imageUrl || null);
   const [videoPreview, setVideoPreview] = useState<string | null>(initialData?.videoUrl || null);
 
@@ -95,7 +97,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const readOnly = initialData ? !isEditing : false;
   const isAdjustmentMode = isLive && isEditing;
 
-  // Hydrate Vendors & Budget mapping for backward compatibility on mount
   const { loadedVendors, mappedBudget } = useMemo(() => {
     const v = initialData?.vendors ? [...initialData.vendors] : [];
     const b = (initialData?.budgetBreakdown || []).map((b: any) => {
@@ -166,10 +167,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     'location'
   ]);
 
-  // Handle Amendment Application from Communication Thread
+  // Handle Amendment Application strictly ONCE
   useEffect(() => {
     const applyAmendment = searchParams.get('applyAmendment');
-    if (applyAmendment && !isSubmitting) {
+
+    if (applyAmendment && !applyParamConsumed.current) {
+      applyParamConsumed.current = true;
       try {
         const data = JSON.parse(decodeURIComponent(applyAmendment));
 
@@ -183,7 +186,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             phone: data.newVendorPhone || '',
             subaccountCode: ''
           };
-          setValue('vendors', [...vendors, newVendor], { shouldDirty: true });
+          setValue('vendors', [...loadedVendors, newVendor], { shouldDirty: true });
         }
 
         const newItem = {
@@ -192,26 +195,35 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           costType: 'SERVICE',
           amount: Number(data.amount) / 100, // DB stores minor, Form expects major
           description: data.expenseDesc,
-          stage: 'Final Stage', // Default fallback
+          stage: 'Final Stage',
           isNewDraft: true
         };
 
-        setValue('budgetBreakdown', [...budget, newItem], { shouldDirty: true });
+        setValue('budgetBreakdown', [...mappedBudget, newItem], { shouldDirty: true });
         setValue('reasonForGoalAdjustment', `Organizer Request: ${data.expenseDesc}`, { shouldDirty: true });
         setValue('amendmentInvoiceKey', data.invoiceKey, { shouldDirty: true });
         setIsEditing(true);
 
-        // Clean URL to prevent re-triggering
-        router.replace(`${pathname}?tab=details`, { scroll: false });
+        // Strip parameter securely without reloading
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete('applyAmendment');
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
 
-        // Scroll to budget breakdown
         setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
 
       } catch (e) {
         console.error("Failed to parse amendment data", e);
       }
     }
-  }, [searchParams, pathname, router, isSubmitting, budget, vendors, setValue]);
+  }, [searchParams, pathname, router, loadedVendors, mappedBudget, setValue]);
+
+  // Ensure Target Amount stays perfectly synched with Budget Math
+  useEffect(() => {
+    if (isEditing) {
+      const total = budget.reduce((sum, item) => sum + (item.amount || 0), 0);
+      setValue('targetAmount', total, { shouldDirty: true });
+    }
+  }, [budget, isEditing, setValue]);
 
   const selectedCategoryObj = categories.find(c => c.id === selectedCategoryId);
   const availableSubcategories = selectedCategoryObj?.subcategories || [];
@@ -283,7 +295,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     setIsEditing(true);
   };
 
-  // Casing Handlers
   const handleBlurTitle = () => { if (titleValue) setValue('title', toTitleCase(titleValue), { shouldDirty: true }); };
   const handleBlurShortDesc = () => { if (shortDescValue) setValue('shortDesc', toSentenceCase(shortDescValue), { shouldDirty: true }); };
   const handleBlurPersonalMessage = () => { if (personalMessageValue) setValue('personalMessage', toSentenceCase(personalMessageValue), { shouldDirty: true }); };
@@ -355,7 +366,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 className="min-h-[100px] bg-white border-amber-200 focus-visible:ring-amber-500/20 text-sm rounded-2xl p-5 shadow-inner resize-none"
               />
             </div>
-            {/* Hidden field for the attached invoice key */}
             <input type="hidden" {...register('amendmentInvoiceKey')} />
           </motion.div>
         )}
@@ -451,9 +461,9 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 <Input
                   value={formatNumberInput(String(field.value || ''))}
                   onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                  className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg")}
+                  className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg", isEditing && "bg-muted/10 opacity-70 pointer-events-none")}
                   placeholder="0.00"
-                  readOnly={readOnly}
+                  readOnly={true} // Auto-calculates via Budget Editor
                 />
               </div>
             )}

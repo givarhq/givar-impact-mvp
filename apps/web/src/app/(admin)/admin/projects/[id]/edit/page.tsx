@@ -127,10 +127,12 @@ export default async function EditProjectPage({
             </TabsContent>
 
             <TabsContent value="communication" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="max-w-4xl min-w-0">
+              <div className="w-full min-w-0">
                 <FeedbackThread
                   projectId={id}
                   title="Direct line with owner"
+                  vendors={project.vendors || []}
+                  projectCurrency={project.currency}
                 />
               </div>
             </TabsContent>
