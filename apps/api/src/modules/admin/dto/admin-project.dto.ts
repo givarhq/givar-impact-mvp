@@ -28,6 +28,12 @@ export class AdminTimelineItem {
   @IsString() phase!: string;
   @IsString() estimatedDate!: string;
   @IsString() deliverables!: string;
+
+  // Whitelisting operational fields so they don't trigger payload pollution errors
+  @IsOptional() @IsString() status?: string;
+  @IsOptional() @IsString() imageUrl?: string;
+  @IsOptional() @IsString() completedAt?: string;
+  @IsOptional() @IsString() updatedAt?: string;
 }
 
 export class AdminMediaItem {
