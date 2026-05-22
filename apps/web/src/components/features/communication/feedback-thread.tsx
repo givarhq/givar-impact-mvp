@@ -148,12 +148,18 @@ export const FeedbackThread = memo(function FeedbackThread({
             const rawNum = Number(parseFormattedNumber(amendAmount));
             const amountMinor = Math.round(rawNum * 100);
 
-            // 3. Construct Metadata Payload
+            // 3. Resolve Vendor Name explicitly so the chat thread renders it correctly without reliance on live props
+            const resolvedVendorName = amendVendorId === 'NEW'
+                ? newVendorName.trim()
+                : (vendors.find(v => v.id === amendVendorId)?.name || 'Unknown Vendor');
+
+            // 4. Construct Metadata Payload
             const metadata = {
                 amendmentRequest: {
                     expenseDesc: amendDesc.trim(),
                     amount: amountMinor.toString(),
                     vendorId: amendVendorId,
+                    vendorName: resolvedVendorName,
                     newVendorName: amendVendorId === 'NEW' ? newVendorName.trim() : undefined,
                     newVendorEmail: amendVendorId === 'NEW' ? newVendorEmail.trim() : undefined,
                     newVendorPhone: amendVendorId === 'NEW' ? newVendorPhone.trim() : undefined,
@@ -161,7 +167,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                 }
             };
 
-            // 4. Send Message
+            // 5. Send Message
             const sent = await ApiService.communication.sendMessage({
                 content: `Proposed new funding item: ${amendDesc.trim()}`,
                 proposalId,
@@ -191,7 +197,9 @@ export const FeedbackThread = memo(function FeedbackThread({
 
     const handleApplyAmendment = (req: any) => {
         const payload = encodeURIComponent(JSON.stringify(req));
-        router.push(`/admin/projects/${projectId}/edit?tab=details&applyAmendment=${payload}`);
+        // Force a hard navigation to completely destroy the soft-routing cache 
+        // and guarantee the Project Form component remounts with the new parameters
+        window.location.href = `/admin/projects/${projectId}/edit?tab=details&applyAmendment=${payload}`;
     };
 
     const viewSecureInvoice = async (key: string) => {
@@ -293,7 +301,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                                                     <div className="text-right">
                                                         <p className="text-[10px] text-muted-foreground font-bold">Recipient</p>
                                                         <p className="text-xs font-bold text-foreground">
-                                                            {req.vendorId === 'NEW' ? req.newVendorName : (vendors.find(v => v.id === req.vendorId)?.name || 'Unknown Vendor')}
+                                                            {req.vendorName || 'Unknown Vendor'}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -370,9 +378,12 @@ export const FeedbackThread = memo(function FeedbackThread({
                 </div>
             </div>
 
-            {/* Amendment Modal (Constrained Height & Scrollable Inner) */}
+            {/* Amendment Modal */}
             <Dialog open={isAmendmentModalOpen} onOpenChange={(open) => !open && !isSending && setIsAmendmentModalOpen(false)}>
-                <DialogContent className="rounded-3xl border-none shadow-2xl p-0 bg-card max-w-md max-h-[85vh] flex flex-col">
+                <DialogContent
+                    className="rounded-3xl border-none shadow-2xl p-0 bg-card max-w-md w-[95vw] flex flex-col"
+                    style={{ maxHeight: '85vh' }}
+                >
                     <DialogHeader className="p-6 pb-4 border-b border-border/40 shrink-0">
                         <DialogTitle className="text-lg font-bold text-foreground">Request Funding Amendment</DialogTitle>
                     </DialogHeader>

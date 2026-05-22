@@ -303,15 +303,21 @@ export class EmailService {
   }
 
   // 20. Alerts admins when a project owner replies to a thread.
-  async sendAdminMessageAlert(data: { senderName: string; projectTitle: string; content: string; contextId: string; isProposal: boolean }) {
+  async sendAdminMessageAlert(data: { senderName: string; projectTitle: string; content: string; contextId: string; isProposal: boolean; isAmendment?: boolean }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
       select: { email: true, firstName: true }
     });
 
     const url = data.isProposal
-      ? `${this.config.get('FRONTEND_URL')}/admin/proposals/${data.contextId}`
-      : `${this.config.get('FRONTEND_URL')}/admin/projects/${data.contextId}/edit`;
+      ? `${this.config.get('FRONTEND_URL')}/admin/proposals/${data.contextId}?tab=communication`
+      : `${this.config.get('FRONTEND_URL')}/admin/projects/${data.contextId}/edit?tab=communication`;
+
+    const subject = data.isAmendment
+      ? `Givar Admin: Funding Amendment Requested for ${data.projectTitle}`
+      : `Givar Admin: New Message for ${data.projectTitle}`;
+
+    const header = data.isAmendment ? 'Funding Amendment Request' : 'Inquiry from Cause Organizer';
 
     await Promise.allSettled(
       admins.map(admin => {
@@ -322,7 +328,7 @@ export class EmailService {
           content: data.content,
           url
         });
-        return this.send(admin.email, `Givar Admin: New Message for ${data.projectTitle}`, EmailTemplates.base(content, 'Inquiry from Cause Organizer'));
+        return this.send(admin.email, subject, EmailTemplates.base(content, header));
       })
     );
   }

@@ -63,6 +63,9 @@ export class CommunicationService {
             throw new BadRequestException('Proposal or Project ID is required');
         }
 
+        const isAmendment = !!dto.metadata?.amendmentRequest;
+        const reqData = dto.metadata?.amendmentRequest;
+
         // 2. Ledger Transaction for Message Persistence and In-App Alerts
         return this.prisma.$transaction(async (tx) => {
             const message = await tx.message.create({
@@ -97,12 +100,17 @@ export class CommunicationService {
                 });
 
                 if (admins.length > 0) {
+                    const notifTitle = isAmendment ? 'Funding Amendment Requested' : 'New message from owner';
+                    const notifContent = isAmendment
+                        ? `An amendment of ₦${(Number(reqData.amount) / 100).toLocaleString()} was requested for "${contextTitle}".`
+                        : `You have a new reply for "${contextTitle}".`;
+
                     await tx.notification.createMany({
                         data: admins.map(admin => ({
                             userId: admin.id,
-                            type: 'MESSAGE' as NotificationType,
-                            title: 'New message from owner',
-                            content: `You have a new reply for "${contextTitle}".`,
+                            type: (isAmendment ? 'PROJECT_STATUS' : 'MESSAGE') as NotificationType,
+                            title: notifTitle,
+                            content: notifContent,
                             link: dto.proposalId
                                 ? `/admin/proposals/${dto.proposalId}?tab=communication`
                                 : `/admin/projects/${dto.projectId}/edit?tab=communication`
@@ -119,6 +127,8 @@ export class CommunicationService {
                 metadata: { isAdmin, context: contextTitle }
             }, tx);
 
+            return message;
+        }).then((message) => {
             // 3. Specialized Stakeholder Email Notification (Async)
             if (isAdmin && recipientEmail && recipientName) {
                 this.emailService.sendFeedbackNotification(recipientEmail, {
@@ -137,7 +147,8 @@ export class CommunicationService {
                     projectTitle: contextTitle,
                     content: message.content,
                     contextId: dto.proposalId || dto.projectId!,
-                    isProposal: !!dto.proposalId
+                    isProposal: !!dto.proposalId,
+                    isAmendment
                 }).catch(() => { });
             }
 
