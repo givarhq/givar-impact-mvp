@@ -22,12 +22,13 @@ export function useProposalAutoSave() {
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
-      // Isolate non-payload data to prevent server validation errors
+      // Isolate non-payload data to prevent server validation errors (forbidNonWhitelisted)
       const {
         saveDraft, setProposal, updateField, addGalleryItem,
         removeGalleryItem, updateGalleryItem, addKycDocument,
         removeKycDocument, addVendor, removeVendor, updateVendor,
         coverImage, gallery, status, coverImageKey,
+        id, category, awarenessStatus, // Only destructure properties defined on ProposalState
         ...dto
       } = proposal;
 
@@ -45,17 +46,30 @@ export function useProposalAutoSave() {
         gallery: mappedGallery,
       };
 
+      // Aggressive cleanup: Strip out hydrated read-only metadata fields that the API dumped 
+      // into the store on load so they don't trigger payload pollution errors.
+      delete payload.subcategoryName;
+      delete payload.subcategory;
+      delete payload.user;
+      delete payload.submittedAt;
+      delete payload.updatedAt;
+      delete payload.approvedAt;
+      delete payload.adminFeedback;
+      delete payload.reviewedBy;
+      delete payload.projectStatus;
+
       // SECURITY & UX FIX: Prevent "subcategoryId must be a UUID" error.
       // Radix Select components often yield an empty string when cleared, but 
       // the NestJS backend strictly expects `null` or a valid UUID.
       if (payload.subcategoryId === '') payload.subcategoryId = null;
       if (payload.categoryId === '') payload.categoryId = null;
 
-      // UX FIX: Strip empty strings from stages so the backend @IsEnum validator doesn't crash
+      // UX FIX: Strip empty strings and frontend-only flags from budget breakdown
       if (payload.budgetBreakdown) {
         payload.budgetBreakdown = payload.budgetBreakdown.map((b: any) => {
           const item = { ...b };
           if (item.stage === '') delete item.stage;
+          delete item.isNewDraft; // Strip frontend-only flag so the DTO doesn't reject it
           return item;
         });
       }
