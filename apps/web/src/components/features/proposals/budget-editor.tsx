@@ -357,14 +357,14 @@ export const BudgetEditor = memo(function BudgetEditor({
               >
                 {/* Column 1: Item */}
                 <div className="md:col-span-4 space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-xs font-bold text-muted-foreground ml-1">Item</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-2 h-4">
+                    Item
                     {item.isNewDraft && (
-                      <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 animate-pulse">
+                      <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 animate-pulse normal-case font-bold">
                         New Request
                       </span>
                     )}
-                  </div>
+                  </label>
                   <Input
                     placeholder="Details..."
                     value={item.description}
@@ -376,7 +376,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 {/* Column 2: Recipient */}
                 <div className="md:col-span-3 space-y-1.5 min-w-0 mt-6 md:mt-0">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Recipient</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1 h-4 flex items-center">Recipient</label>
                   {isLocked ? (
                     <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
                   ) : (
@@ -398,7 +398,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
                 {/* Column 3: Amount */}
                 <div className="md:col-span-2 space-y-1.5 min-w-0 mt-6 md:mt-0">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1 h-4 flex items-center">Amount</label>
                   <div className="relative">
                     {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
                     <Input
@@ -414,7 +414,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 {/* Column 4: Funding Stage & Trash */}
                 <div className="md:col-span-3 flex gap-2 items-end min-w-0 mt-6 md:mt-0">
                   <div className="flex-1 space-y-1.5 min-w-0">
-                    <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
+                    <label className="text-xs font-bold text-muted-foreground ml-1 h-4 flex items-center">Funding Stage</label>
                     {isLocked ? (
                       <Input value={item.stage || 'Not selected'} readOnly className={cn(inputStyle, "font-bold text-foreground px-1")} />
                     ) : (
