@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsUrl, IsBoolean
+  IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsUrl, IsBoolean, ValidateIf
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { Currency, ProjectStatus } from '@givar/database';
@@ -42,7 +42,14 @@ export class CreateAdminProjectDto {
   @IsString() description!: string;
   @IsOptional() @IsString() shortDesc?: string;
   @IsOptional() @IsString() personalMessage?: string;
+
   @IsUUID() categoryId!: string;
+
+  @IsOptional()
+  @ValidateIf((object, value) => value !== null)
+  @IsUUID()
+  subcategoryId?: string | null;
+
   @IsString() location!: string;
 
   @IsNumber() @Min(100) targetAmount!: number;

@@ -265,6 +265,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     try {
       const payload = {
         ...data,
+        subcategoryId: data.subcategoryId === '' ? null : data.subcategoryId,
+        categoryId: data.categoryId === '' ? null : data.categoryId,
         targetAmount: data.targetAmount * 100,
         status,
         endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
