@@ -85,4 +85,5 @@ export class UpdateAdminProjectDto extends PartialType(CreateAdminProjectDto) {
   @IsOptional() @IsEnum(ProjectStatus) status?: ProjectStatus;
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsString() reasonForGoalAdjustment?: string;
+  @IsOptional() @IsString() amendmentInvoiceKey?: string;
 }

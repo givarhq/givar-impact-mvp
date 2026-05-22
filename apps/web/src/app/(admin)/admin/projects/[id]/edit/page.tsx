@@ -16,11 +16,15 @@ export const metadata = {
 };
 
 export default async function EditProjectPage({
-  params
+  params,
+  searchParams
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { id } = await params;
+  const resolvedParams = await searchParams;
+  const activeTab = (resolvedParams.tab as string) || "details";
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
 
@@ -61,7 +65,7 @@ export default async function EditProjectPage({
           </div>
         </div>
 
-        <Tabs defaultValue="details" className="w-full space-y-8 min-w-0">
+        <Tabs defaultValue={activeTab} className="w-full space-y-8 min-w-0">
           <div className="border-b border-border/40 pb-1 overflow-x-auto no-scrollbar">
             <TabsList className="bg-transparent h-12 w-full justify-start gap-8 p-0 border-none shadow-none rounded-none">
               <TabsTrigger

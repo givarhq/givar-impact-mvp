@@ -1114,7 +1114,8 @@ export class AdminService {
             content: isGoalChanging
               ? `Goal adjusted from ${(Number(existing.targetAmount) / 100).toLocaleString()} to ${(Number(project.targetAmount) / 100).toLocaleString()}. Reason: ${dto.reasonForGoalAdjustment}`
               : `Execution plan updated. Reason: ${dto.reasonForGoalAdjustment}`,
-            type: 'ANNOUNCEMENT'
+            type: 'GOAL_ADJUSTMENT',
+            imageUrl: dto.amendmentInvoiceKey || null,
           }
         });
 
