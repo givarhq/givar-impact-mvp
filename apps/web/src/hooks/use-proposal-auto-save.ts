@@ -22,64 +22,106 @@ export function useProposalAutoSave() {
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
-      // Isolate non-payload data to prevent server validation errors (forbidNonWhitelisted)
-      const {
-        saveDraft, setProposal, updateField, addGalleryItem,
-        removeGalleryItem, updateGalleryItem, addKycDocument,
-        removeKycDocument, addVendor, removeVendor, updateVendor,
-        coverImage, gallery, status, coverImageKey,
-        id, category, awarenessStatus, // Only destructure properties defined on ProposalState
-        ...dto
-      } = proposal;
 
-      // Map the gallery to ensure the permanent S3 KEY is stored in the DB 'url' field
-      const mappedGallery = gallery.map(item => ({
-        id: item.id,
-        url: item.key, // Permanent key/path saved to DB
-        type: item.type,
-        caption: item.caption
-      }));
+      // ----------------------------------------------------------------------
+      // BULLETPROOF PAYLOAD CONSTRUCTION
+      // Logic: Instead of destructuring and hoping we caught all bad properties,
+      // we explicitly map ONLY the properties permitted by UpdateProposalDto.
+      // This strictly prevents the NestJS forbidNonWhitelisted pipe from throwing 400s.
+      // ----------------------------------------------------------------------
+      const payload: any = {};
 
-      const payload: any = {
-        ...dto,
-        coverImage: proposal.coverImageKey, // Permanent key saved to DB
-        gallery: mappedGallery,
-      };
+      // 1. Primitive Fields
+      if (proposal.title !== undefined) payload.title = proposal.title;
+      if (proposal.shortDesc !== undefined) payload.shortDesc = proposal.shortDesc;
+      if (proposal.description !== undefined) payload.description = proposal.description;
+      if (proposal.personalMessage !== undefined) payload.personalMessage = proposal.personalMessage;
+      if (proposal.location !== undefined) payload.location = proposal.location;
+      if (proposal.endDate !== undefined) payload.endDate = proposal.endDate;
+      if (proposal.currency !== undefined) payload.currency = proposal.currency;
+      if (proposal.videoUrl !== undefined) payload.videoUrl = proposal.videoUrl;
+      if (proposal.riskAnalysis !== undefined) payload.riskAnalysis = proposal.riskAnalysis;
+      if (proposal.kycDocuments !== undefined) payload.kycDocuments = proposal.kycDocuments;
+      if (proposal.organizationName !== undefined) payload.organizationName = proposal.organizationName;
+      if (proposal.contactPhone !== undefined) payload.contactPhone = proposal.contactPhone;
+      if (proposal.beneficiaryContact !== undefined) payload.beneficiaryContact = proposal.beneficiaryContact;
+      if (proposal.beneficiaryName !== undefined) payload.beneficiaryName = proposal.beneficiaryName;
+      if (proposal.beneficiaryAge !== undefined) payload.beneficiaryAge = proposal.beneficiaryAge;
+      if (proposal.beneficiaryRelationship !== undefined) payload.beneficiaryRelationship = proposal.beneficiaryRelationship;
 
-      // Aggressive cleanup: Strip out hydrated read-only metadata fields that the API dumped 
-      // into the store on load so they don't trigger payload pollution errors.
-      delete payload.subcategoryName;
-      delete payload.subcategory;
-      delete payload.user;
-      delete payload.submittedAt;
-      delete payload.updatedAt;
-      delete payload.approvedAt;
-      delete payload.adminFeedback;
-      delete payload.reviewedBy;
-      delete payload.projectStatus;
+      // Legacy fields
+      if (proposal.vendorName !== undefined) payload.vendorName = proposal.vendorName;
+      if (proposal.vendorContactPerson !== undefined) payload.vendorContactPerson = proposal.vendorContactPerson;
+      if (proposal.vendorEmail !== undefined) payload.vendorEmail = proposal.vendorEmail;
+      if (proposal.vendorPhone !== undefined) payload.vendorPhone = proposal.vendorPhone;
+      if (proposal.vendorAddress !== undefined) payload.vendorAddress = proposal.vendorAddress;
 
-      // SECURITY & UX FIX: Prevent "subcategoryId must be a UUID" error.
-      // Radix Select components often yield an empty string when cleared, but 
-      // the NestJS backend strictly expects `null` or a valid UUID.
-      if (payload.subcategoryId === '') payload.subcategoryId = null;
-      if (payload.categoryId === '') payload.categoryId = null;
+      // Financial Declarations
+      if (proposal.hasPreCollectedFunds !== undefined) payload.hasPreCollectedFunds = proposal.hasPreCollectedFunds;
+      if (proposal.preCollectedHeldAt !== undefined) payload.preCollectedHeldAt = proposal.preCollectedHeldAt;
+      if (proposal.preCollectedProofKey !== undefined) payload.preCollectedProofKey = proposal.preCollectedProofKey;
 
-      // UX FIX: Strip empty strings and frontend-only flags from budget breakdown
-      if (payload.budgetBreakdown) {
-        payload.budgetBreakdown = payload.budgetBreakdown.map((b: any) => {
-          const item = { ...b };
-          if (item.stage === '') delete item.stage;
-          delete item.isNewDraft; // Strip frontend-only flag so the DTO doesn't reject it
-          return item;
+      // Ensure UUIDs are valid or explicitly null to satisfy DTO constraints
+      payload.categoryId = proposal.categoryId === '' ? null : proposal.categoryId;
+      payload.subcategoryId = proposal.subcategoryId === '' ? null : proposal.subcategoryId;
+
+      // 2. Computed / Transformed Fields
+      if (proposal.coverImageKey || proposal.coverImage) {
+        payload.coverImage = proposal.coverImageKey || proposal.coverImage;
+      }
+
+      if (proposal.targetAmount !== undefined && proposal.targetAmount !== null) {
+        payload.targetAmount = proposal.targetAmount * 100;
+      }
+
+      if (proposal.preCollectedAmount !== undefined && proposal.preCollectedAmount !== null) {
+        payload.preCollectedAmount = proposal.preCollectedAmount * 100;
+      }
+
+      // 3. Array & Object Structures (Strictly mapped to strip backend-only data)
+      if (Array.isArray(proposal.gallery)) {
+        payload.gallery = proposal.gallery.map(item => ({
+          id: item.id,
+          url: item.key || item.url, // Ensure permanent S3 key is used
+          type: item.type,
+          caption: item.caption
+        }));
+      }
+
+      if (Array.isArray(proposal.vendors)) {
+        payload.vendors = proposal.vendors.map(v => ({
+          id: v.id,
+          name: v.name,
+          email: v.email || '',
+          phone: v.phone || '',
+          subaccountCode: v.subaccountCode || ''
+        }));
+      }
+
+      if (Array.isArray(proposal.budgetBreakdown)) {
+        payload.budgetBreakdown = proposal.budgetBreakdown.map((b: any) => {
+          const cleanItem: any = {
+            id: b.id,
+            costType: b.costType,
+            amount: b.amount,
+            description: b.description,
+          };
+          if (b.vendorId) cleanItem.vendorId = b.vendorId;
+          // Legacy properties bypass TS interface limits using any type
+          if (b.payTo) cleanItem.payTo = b.payTo;
+          if (b.vendorContact) cleanItem.vendorContact = b.vendorContact;
+          if (b.stage && b.stage !== '') cleanItem.stage = b.stage;
+          return cleanItem;
         });
       }
 
-      if (payload.targetAmount !== undefined && payload.targetAmount !== null) {
-        payload.targetAmount = payload.targetAmount * 100;
-      }
-
-      if (payload.preCollectedAmount !== undefined && payload.preCollectedAmount !== null) {
-        payload.preCollectedAmount = payload.preCollectedAmount * 100;
+      if (Array.isArray(proposal.executionTimeline)) {
+        payload.executionTimeline = proposal.executionTimeline.map(t => ({
+          id: t.id,
+          phase: t.phase,
+          estimatedDate: t.estimatedDate || 'TBD',
+          deliverables: t.deliverables || ''
+        }));
       }
 
       try {
