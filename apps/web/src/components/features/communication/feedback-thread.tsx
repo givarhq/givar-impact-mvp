@@ -217,7 +217,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                 </CardTitle>
                 {isOrganizer && projectId && (
                     <Button
-                        variant="outline"
+                        variant="default"
                         size="sm"
                         className="h-8 rounded-3xl text-xs font-bold gap-1.5 shadow-sm active:scale-95 transition-all"
                         onClick={() => setIsAmendmentModalOpen(true)}
