@@ -9,6 +9,8 @@ lerna-debug.log*
 # Private Credentials
 CREDENTIALS.md
 
+/.turbo
+
 .env.sentry-build-plugin
 
 test-results.txt
