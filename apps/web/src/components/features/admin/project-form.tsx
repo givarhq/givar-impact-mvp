@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, memo, useMemo } from 'react';
+import React, { useState, memo, useMemo, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -50,6 +50,7 @@ const budgetItemSchema = z.object({
   vendorId: z.string().optional(),
   costType: z.string().optional(),
   stage: z.string().optional(),
+  isNewDraft: z.boolean().optional(),
 });
 
 const projectSchema = z.object({
@@ -69,6 +70,7 @@ const projectSchema = z.object({
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.any().optional(),
   reasonForGoalAdjustment: z.string().optional(),
+  amendmentInvoiceKey: z.string().optional(),
   endDate: z.string().optional().nullable(),
 });
 
@@ -81,6 +83,8 @@ interface ProjectFormProps {
 
 export const AdminProjectForm = memo(function AdminProjectForm({ initialData, categories }: ProjectFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -133,6 +137,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       reasonForGoalAdjustment: '',
+      amendmentInvoiceKey: '',
       subcategoryId: initialData.subcategoryId || '',
     } : {
       currency: 'NGN',
@@ -160,6 +165,53 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     'personalMessage',
     'location'
   ]);
+
+  // Handle Amendment Application from Communication Thread
+  useEffect(() => {
+    const applyAmendment = searchParams.get('applyAmendment');
+    if (applyAmendment && !isSubmitting) {
+      try {
+        const data = JSON.parse(decodeURIComponent(applyAmendment));
+
+        let finalVendorId = data.vendorId;
+        if (data.vendorId === 'NEW') {
+          finalVendorId = crypto.randomUUID();
+          const newVendor = {
+            id: finalVendorId,
+            name: data.newVendorName,
+            email: data.newVendorEmail || '',
+            phone: data.newVendorPhone || '',
+            subaccountCode: ''
+          };
+          setValue('vendors', [...vendors, newVendor], { shouldDirty: true });
+        }
+
+        const newItem = {
+          id: crypto.randomUUID(),
+          vendorId: finalVendorId,
+          costType: 'SERVICE',
+          amount: Number(data.amount) / 100, // DB stores minor, Form expects major
+          description: data.expenseDesc,
+          stage: 'Final Stage', // Default fallback
+          isNewDraft: true
+        };
+
+        setValue('budgetBreakdown', [...budget, newItem], { shouldDirty: true });
+        setValue('reasonForGoalAdjustment', `Organizer Request: ${data.expenseDesc}`, { shouldDirty: true });
+        setValue('amendmentInvoiceKey', data.invoiceKey, { shouldDirty: true });
+        setIsEditing(true);
+
+        // Clean URL to prevent re-triggering
+        router.replace(`${pathname}?tab=details`, { scroll: false });
+
+        // Scroll to budget breakdown
+        setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+
+      } catch (e) {
+        console.error("Failed to parse amendment data", e);
+      }
+    }
+  }, [searchParams, pathname, router, isSubmitting, budget, vendors, setValue]);
 
   const selectedCategoryObj = categories.find(c => c.id === selectedCategoryId);
   const availableSubcategories = selectedCategoryObj?.subcategories || [];
@@ -192,17 +244,14 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         ...data,
         targetAmount: data.targetAmount * 100,
         status,
-        endDate: data.endDate ? new Date(data.endDate).toISOString() : null
+        endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
+        // Strip the client-only isNewDraft flag so it doesn't fail the backend DTO validation
+        budgetBreakdown: data.budgetBreakdown.map((b: any) => {
+          const { isNewDraft, ...rest } = b;
+          if (rest.stage === '') delete rest.stage;
+          return rest;
+        })
       };
-
-      // UX FIX: Strip empty strings from stages so the backend @IsEnum validator doesn't crash
-      if (payload.budgetBreakdown) {
-        payload.budgetBreakdown = payload.budgetBreakdown.map((b: any) => {
-          const item = { ...b };
-          if (item.stage === '') delete item.stage;
-          return item;
-        });
-      }
 
       if (initialData) {
         await ApiService.admin.updateProject(initialData.id, payload);
@@ -306,6 +355,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 className="min-h-[100px] bg-white border-amber-200 focus-visible:ring-amber-500/20 text-sm rounded-2xl p-5 shadow-inner resize-none"
               />
             </div>
+            {/* Hidden field for the attached invoice key */}
+            <input type="hidden" {...register('amendmentInvoiceKey')} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -590,7 +641,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       {initialData && !isEditing && (
         <div className="fixed bottom-20 md:bottom-10 right-6 md:right-10 z-50">
           <Button type="button" onClick={handleStartEditing} className="rounded-full h-14 px-8 font-bold gap-3 text-sm shadow-2xl shadow-primary/30 bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98] border-0">
-            <LockOpen className="h-5 w-5" /> Unlock for modification
+            <LockOpen className="h-5 w-5" /> Modify
           </Button>
         </div>
       )}

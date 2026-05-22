@@ -179,7 +179,7 @@ export default async function ProjectManagePage({
                             <CardContent className="p-6 md:p-8 space-y-6 min-w-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center min-w-0">
                                     <div className="space-y-3 min-w-0">
-                                        <h4 className="text-lg font-bold text-emerald-950 leading-tight break-words">{finalReport.title}</h4>
+                                        <h4 className="text-lg font-bold text-emerald-950 dark:text-emerald-50 leading-tight break-words">{finalReport.title}</h4>
                                         <p className="text-sm text-emerald-900/80 font-medium leading-relaxed break-words">
                                             {finalReport.content}
                                         </p>
@@ -350,6 +350,9 @@ export default async function ProjectManagePage({
                         <FeedbackThread
                             projectId={project.id}
                             title="Direct line with Givar"
+                            vendors={vendors}
+                            projectCurrency={project.currency}
+                            isOrganizer={true}
                         />
                     </div>
                 </div>
