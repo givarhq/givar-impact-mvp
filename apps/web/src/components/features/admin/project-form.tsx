@@ -214,7 +214,13 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         const newUrl = `${pathname}?tab=details`;
         window.history.replaceState(null, '', newUrl);
 
-        setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
+        // Smooth scroll precisely to the end of the budget editor
+        setTimeout(() => {
+          const element = document.getElementById('budget-editor-section');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          }
+        }, 500);
 
       } catch (e) {
         console.error("Failed to parse amendment data", e);
@@ -578,7 +584,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       </section>
 
       {/* Financial Budget Section */}
-      <Card className={cn(
+      <Card id="budget-editor-section" className={cn(
         "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
       )}>
