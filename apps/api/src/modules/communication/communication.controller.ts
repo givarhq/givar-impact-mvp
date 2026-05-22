@@ -11,7 +11,7 @@ export class CommunicationController {
      * Post a message to a proposal or project thread.
      */
     @Post()
-    async send(@Req() req: any, @Body() dto: { content: string; proposalId?: string; projectId?: string }) {
+    async send(@Req() req: any, @Body() dto: { content: string; proposalId?: string; projectId?: string; metadata?: any }) {
         if (!dto.content?.trim()) {
             throw new BadRequestException('Message content cannot be empty');
         }

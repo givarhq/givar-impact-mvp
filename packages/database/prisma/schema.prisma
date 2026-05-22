@@ -776,6 +776,7 @@ model Message {
   // Metadata
   isAdmin     Boolean  @default(false) // Was this sent by Givar Admin?
   isRead      Boolean  @default(false)
+  metadata    Json?    @default("{}") // Stores the Funding Amendment Request
   createdAt   DateTime @default(now())
 
   @@map("messages")

@@ -20,6 +20,7 @@ export class CommunicationService {
         content: string;
         proposalId?: string;
         projectId?: string;
+        metadata?: any;
     }) {
         const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPERADMIN;
 
@@ -43,7 +44,7 @@ export class CommunicationService {
             recipientEmail = isAdmin ? proposal.user.email : null;
             recipientName = isAdmin ? proposal.user.firstName : null;
             contextTitle = proposal.title || 'Project Proposal';
-            appLink = `/dashboard/proposals/edit/${dto.proposalId}/hook#communication-thread`;
+            appLink = `/dashboard/proposals/edit/${dto.proposalId}/hook?tab=communication`;
         } else if (dto.projectId) {
             const project = await this.prisma.project.findUnique({
                 where: { id: dto.projectId },
@@ -57,7 +58,7 @@ export class CommunicationService {
             recipientEmail = isAdmin ? project.user.email : null;
             recipientName = isAdmin ? project.user.firstName : null;
             contextTitle = project.title;
-            appLink = `/dashboard/projects/${dto.projectId}/manage#communication-thread`;
+            appLink = `/dashboard/projects/${dto.projectId}/manage?tab=communication`;
         } else {
             throw new BadRequestException('Proposal or Project ID is required');
         }
@@ -71,6 +72,7 @@ export class CommunicationService {
                     proposalId: dto.proposalId,
                     projectId: dto.projectId,
                     isAdmin,
+                    metadata: dto.metadata || {}
                 },
                 include: { author: { select: { firstName: true, lastName: true } } }
             });
@@ -102,8 +104,8 @@ export class CommunicationService {
                             title: 'New message from owner',
                             content: `You have a new reply for "${contextTitle}".`,
                             link: dto.proposalId
-                                ? `/admin/proposals/${dto.proposalId}#communication-thread`
-                                : `/admin/projects/${dto.projectId}/edit#communication-thread`
+                                ? `/admin/proposals/${dto.proposalId}?tab=communication`
+                                : `/admin/projects/${dto.projectId}/edit?tab=communication`
                         }))
                     });
                 }
