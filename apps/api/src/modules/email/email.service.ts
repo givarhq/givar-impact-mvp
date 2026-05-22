@@ -326,7 +326,8 @@ export class EmailService {
           senderName: data.senderName,
           projectTitle: data.projectTitle,
           content: data.content,
-          url
+          url,
+          isAmendment: data.isAmendment
         });
         return this.send(admin.email, subject, EmailTemplates.base(content, header));
       })

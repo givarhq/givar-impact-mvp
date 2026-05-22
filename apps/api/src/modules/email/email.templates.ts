@@ -453,10 +453,13 @@ export const EmailTemplates = {
     </div>
   `,
 
-  adminNewMessage: (data: { adminName: string; senderName: string; projectTitle: string; content: string; url: string }) => `
+  adminNewMessage: (data: { adminName: string; senderName: string; projectTitle: string; content: string; url: string; isAmendment?: boolean }) => `
     <p>Hi ${data.adminName},</p>
-    <p>You have a new message from <strong>${data.senderName}</strong> regarding the cause: <strong>"${data.projectTitle}"</strong>.</p>
-    
+    <p>${data.isAmendment
+      ? `A new funding amendment has been requested by <strong>${data.senderName}</strong> for the cause: <strong>"${data.projectTitle}"</strong>.`
+      : `You have a new message from <strong>${data.senderName}</strong> regarding the cause: <strong>"${data.projectTitle}"</strong>.`
+    }</p>
+
     <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 16px; padding: 24px; margin: 24px 0;">
       <p style="font-size: 13px; color: #111827; line-height: 1.6; margin: 0; font-style: italic;">
         "${data.content}"
@@ -464,7 +467,7 @@ export const EmailTemplates = {
     </div>
 
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.url}" class="button" style="background-color: #111827;">Reply to Owner</a>
+      <a href="${data.url}" class="button" style="background-color: #111827;">${data.isAmendment ? 'Review Amendment' : 'Reply to Owner'}</a>
     </div>
   `,
 
