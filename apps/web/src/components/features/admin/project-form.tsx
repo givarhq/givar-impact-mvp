@@ -124,7 +124,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     return { loadedVendors: v, mappedBudget: b };
   }, [initialData]);
 
-  const { register, control, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm<ProjectFormValues>({
+  const { register, control, handleSubmit, setValue, getValues, watch, formState: { errors }, reset } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: initialData ? {
       ...initialData,
@@ -176,17 +176,21 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       try {
         const data = JSON.parse(decodeURIComponent(applyAmendment));
 
+        // Use getValues() to ensure we push to the current React Hook Form state
+        const currentVendors = getValues('vendors') || loadedVendors;
+        const currentBudget = getValues('budgetBreakdown') || mappedBudget;
+
         let finalVendorId = data.vendorId;
         if (data.vendorId === 'NEW') {
           finalVendorId = crypto.randomUUID();
           const newVendor = {
             id: finalVendorId,
-            name: data.newVendorName,
+            name: data.newVendorName || 'New Vendor',
             email: data.newVendorEmail || '',
             phone: data.newVendorPhone || '',
             subaccountCode: ''
           };
-          setValue('vendors', [...loadedVendors, newVendor], { shouldDirty: true });
+          setValue('vendors', [...currentVendors, newVendor], { shouldDirty: true });
         }
 
         const newItem = {
@@ -199,15 +203,16 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           isNewDraft: true
         };
 
-        setValue('budgetBreakdown', [...mappedBudget, newItem], { shouldDirty: true });
+        setValue('budgetBreakdown', [...currentBudget, newItem], { shouldDirty: true });
         setValue('reasonForGoalAdjustment', `Organizer Request: ${data.expenseDesc}`, { shouldDirty: true });
         setValue('amendmentInvoiceKey', data.invoiceKey, { shouldDirty: true });
+
+        // CRITICAL: Unlock form to modification mode immediately
         setIsEditing(true);
 
-        // Strip parameter securely without reloading
-        const params = new URLSearchParams(searchParams.toString());
-        params.delete('applyAmendment');
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        // Strip parameter securely WITHOUT triggering a Next.js server component reload
+        const newUrl = `${pathname}?tab=details`;
+        window.history.replaceState(null, '', newUrl);
 
         setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 500);
 
@@ -215,7 +220,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         console.error("Failed to parse amendment data", e);
       }
     }
-  }, [searchParams, pathname, router, loadedVendors, mappedBudget, setValue]);
+  }, [searchParams, pathname, loadedVendors, mappedBudget, setValue, getValues]);
 
   // Ensure Target Amount stays perfectly synched with Budget Math
   useEffect(() => {
