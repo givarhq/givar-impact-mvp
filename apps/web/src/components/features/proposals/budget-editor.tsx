@@ -362,27 +362,20 @@ export const BudgetEditor = memo(function BudgetEditor({
                     {item.isNewDraft && (
                       <span
                         className="
-    inline-flex items-center gap-1.5
-    px-2.5 py-1
+    inline-flex items-center gap-1
+    h-5 px-2
     rounded-full
     bg-emerald-500
     text-white
     text-[10px]
-    font-black
-    uppercase
-    tracking-[0.18em]
-    shadow-lg shadow-emerald-500/40
-    border border-white/20
+    font-bold
+    shadow-sm shadow-emerald-500/30
+    border border-emerald-400/30
     animate-pulse
-    relative
-    overflow-hidden
+    shrink-0
   "
                       >
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                        </span>
-
+                        <span className="h-1.5 w-1.5 rounded-full bg-white/90" />
                         New Request
                       </span>
                     )}
