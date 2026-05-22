@@ -108,6 +108,16 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const verMeta = getVerificationMeta();
     const VerIcon = verMeta.icon;
 
+    // Gracefully handle PDF vs Image rendering for the public updates tab
+    const handleViewAsset = (url: string, title: string) => {
+        const isPdf = url.toLowerCase().includes('.pdf');
+        if (isPdf) {
+            window.open(url, '_blank');
+        } else {
+            setLightboxState({ isOpen: true, items: [{ url, type: 'IMAGE', alt: title }], index: 0 });
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -171,10 +181,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </div>
                                         {finalReport.imageUrl && (
                                             <div
-                                                className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md bg-muted cursor-pointer group"
-                                                onClick={() => setLightboxState({ isOpen: true, items: [{ url: finalReport.imageUrl!, type: 'IMAGE', alt: 'Impact Evidence' }], index: 0 })}
+                                                className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md bg-muted cursor-pointer"
+                                                onClick={() => handleViewAsset(finalReport.imageUrl!, 'Impact Evidence')}
                                             >
-                                                <Image src={finalReport.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                                                <Image src={finalReport.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover hover:scale-105 transition-transform duration-700" />
                                             </div>
                                         )}
                                     </div>
@@ -430,7 +440,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                         className={cn("relative w-full rounded-3xl overflow-hidden bg-muted border border-border/10 shadow-inner cursor-pointer group",
                                                             isAdjustment ? "aspect-[4/3] sm:aspect-[16/9] bg-amber-500/5" : "aspect-[21/9]"
                                                         )}
-                                                        onClick={() => setLightboxState({ isOpen: true, items: [{ url: update.imageUrl!, type: 'IMAGE', alt: update.title }], index: 0 })}
+                                                        onClick={() => handleViewAsset(update.imageUrl!, update.title)}
                                                     >
                                                         <Image
                                                             src={update.imageUrl}
