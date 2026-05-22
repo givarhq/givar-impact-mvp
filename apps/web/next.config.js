@@ -17,7 +17,6 @@ const nextConfig = {
     reactStrictMode: true,
     // Logic: Enable React Compiler for optimized VDOM diffing (Next.js 15+)
     reactCompiler: true,
-    // Logic: Ensure local workspace packages are transpiled correctly by Next.js
     transpilePackages: ["@givar/types", "@givar/database"],
     experimental: {
         serverActions: {
@@ -37,6 +36,16 @@ const nextConfig = {
         deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
         imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
         formats: ['image/webp'],
+    },
+    // Logic: Proxy client-side API requests to the backend via Next.js rewrites to achieve Same-Site cookie compliance
+    async rewrites() {
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        return [
+            {
+                source: '/api/v1/:path*',
+                destination: `${backendUrl}/v1/:path*`,
+            },
+        ];
     },
     // Logic: Aggressive minification and production source maps for forensic debugging
     productionBrowserSourceMaps: false,

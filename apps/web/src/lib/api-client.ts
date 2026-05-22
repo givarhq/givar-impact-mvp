@@ -1,7 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import toast from 'react-hot-toast';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Logic: Use absolute URL on Server (node-fetch), relative proxy path (/api/v1) on Client
+const BASE_URL = typeof window === 'undefined'
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api')
+  : '/api';
 const API_URL = BASE_URL.endsWith('/v1') ? BASE_URL : `${BASE_URL}/v1`;
 
 export const apiClient = axios.create({
@@ -52,7 +55,7 @@ apiClient.interceptors.response.use(
       if (data?.error === 'READ_ONLY_MODE_ACTIVE') {
         toast.error("Forensic Mode: Mutations are prohibited.", {
           icon: '🛡️',
-          style: { borderRadius: '12px', fontWeight: 'bold', fontSize: '12px' }
+          style: { borderRadius: '24px', fontWeight: 'bold', fontSize: '12px' }
         });
       } else {
         toast.error("Access denied");
