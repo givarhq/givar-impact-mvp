@@ -574,7 +574,7 @@ export const ApiService = {
   },
 
   communication: {
-    sendMessage: (data: { content: string; proposalId?: string; projectId?: string }) =>
+    sendMessage: (data: { content: string; proposalId?: string; projectId?: string; metadata?: any }) =>
       apiClient.post('/communication', data).then(r => r.data),
 
     getThread: (params: { proposalId?: string; projectId?: string }) => {

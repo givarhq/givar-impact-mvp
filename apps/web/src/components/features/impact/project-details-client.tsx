@@ -171,10 +171,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </div>
                                         {finalReport.imageUrl && (
                                             <div
-                                                className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md bg-muted cursor-pointer"
+                                                className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md bg-muted cursor-pointer group"
                                                 onClick={() => setLightboxState({ isOpen: true, items: [{ url: finalReport.imageUrl!, type: 'IMAGE', alt: 'Impact Evidence' }], index: 0 })}
                                             >
-                                                <Image src={finalReport.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover hover:scale-105 transition-transform duration-700" />
+                                                <Image src={finalReport.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover group-hover:scale-105 transition-transform duration-700" />
                                             </div>
                                         )}
                                     </div>
@@ -427,7 +427,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                             >
                                                 {update.imageUrl && (
                                                     <div
-                                                        className="relative w-full aspect-[21/9] rounded-3xl overflow-hidden bg-muted border border-border/10 shadow-inner cursor-pointer"
+                                                        className={cn("relative w-full rounded-3xl overflow-hidden bg-muted border border-border/10 shadow-inner cursor-pointer group",
+                                                            isAdjustment ? "aspect-[4/3] sm:aspect-[16/9] bg-amber-500/5" : "aspect-[21/9]"
+                                                        )}
                                                         onClick={() => setLightboxState({ isOpen: true, items: [{ url: update.imageUrl!, type: 'IMAGE', alt: update.title }], index: 0 })}
                                                     >
                                                         <Image
@@ -435,8 +437,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                             alt=""
                                                             fill
                                                             sizes="(max-width: 1024px) 100vw, 66vw"
-                                                            className="object-cover hover:scale-105 transition-transform duration-700"
+                                                            className={cn("transition-transform duration-700", isAdjustment ? "object-contain p-4 group-hover:scale-105" : "object-cover hover:scale-105")}
                                                         />
+                                                        {isAdjustment && (
+                                                            <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md border border-border/40 text-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+                                                                <FileText className="h-3 w-3" /> View invoice
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 

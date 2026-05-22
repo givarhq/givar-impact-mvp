@@ -194,7 +194,7 @@ export const BudgetEditor = memo(function BudgetEditor({
   const totalCost = budgetBreakdown.reduce((sum, item) => sum + (item.amount || 0), 0);
 
   const fieldContainerClass = cn(
-    "py-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-start",
+    "py-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-start relative transition-all",
     isLocked && "opacity-90"
   );
 
@@ -345,7 +345,7 @@ export const BudgetEditor = memo(function BudgetEditor({
 
         <div className="space-y-2">
           <AnimatePresence initial={false} mode="popLayout">
-            {budgetBreakdown.map((item) => (
+            {budgetBreakdown.map((item: any) => (
               <motion.div
                 key={item.id}
                 layout
@@ -353,11 +353,18 @@ export const BudgetEditor = memo(function BudgetEditor({
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
                 transition={{ duration: 0.2 }}
-                className={fieldContainerClass}
+                className={cn(fieldContainerClass, item.isNewDraft && "bg-emerald-500/[0.02] border-emerald-500/20 rounded-3xl p-3 -mx-3 shadow-sm")}
               >
                 {/* Column 1: Item */}
                 <div className="md:col-span-4 space-y-1.5 min-w-0">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Item</label>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <label className="text-xs font-bold text-muted-foreground ml-1">Item</label>
+                    {item.isNewDraft && (
+                      <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 animate-pulse">
+                        New Request
+                      </span>
+                    )}
+                  </div>
                   <Input
                     placeholder="Details..."
                     value={item.description}
@@ -368,7 +375,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 2: Recipient */}
-                <div className="md:col-span-3 space-y-1.5 min-w-0">
+                <div className="md:col-span-3 space-y-1.5 min-w-0 mt-6 md:mt-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Recipient</label>
                   {isLocked ? (
                     <Input value={vendors.find(v => v.id === item.vendorId)?.name || 'To be confirmed'} readOnly className={cn(inputStyle, "font-bold text-primary px-1")} />
@@ -390,7 +397,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 3: Amount */}
-                <div className="md:col-span-2 space-y-1.5 min-w-0">
+                <div className="md:col-span-2 space-y-1.5 min-w-0 mt-6 md:mt-0">
                   <label className="text-xs font-bold text-muted-foreground ml-1">Amount</label>
                   <div className="relative">
                     {!isLocked && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">₦</span>}
@@ -405,7 +412,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                 </div>
 
                 {/* Column 4: Funding Stage & Trash */}
-                <div className="md:col-span-3 flex gap-2 items-end min-w-0">
+                <div className="md:col-span-3 flex gap-2 items-end min-w-0 mt-6 md:mt-0">
                   <div className="flex-1 space-y-1.5 min-w-0">
                     <label className="text-xs font-bold text-muted-foreground ml-1">Funding Stage</label>
                     {isLocked ? (
@@ -431,7 +438,7 @@ export const BudgetEditor = memo(function BudgetEditor({
                       size="icon"
                       variant="ghost"
                       onClick={() => removeItem(item.id)}
-                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-11 w-11 shrink-0 transition-colors active:scale-90"
+                      className="text-destructive hover:bg-destructive/10 rounded-3xl h-11 w-11 shrink-0 transition-colors active:scale-90 mb-0.5"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
