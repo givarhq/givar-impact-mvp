@@ -301,7 +301,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                                                     <div className="text-right">
                                                         <p className="text-[10px] text-muted-foreground font-bold">Recipient</p>
                                                         <p className="text-xs font-bold text-foreground">
-                                                            {req.vendorName || 'Unknown Vendor'}
+                                                            {req.vendorId === 'NEW' ? req.newVendorName : (vendors.find(v => v.id === req.vendorId)?.name || 'Unknown Vendor')}
                                                         </p>
                                                     </div>
                                                 </div>
