@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
+      <form method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
         <Input
           label="Email address"
           placeholder="name@example.com"
@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
         />
 
         <Button
-          className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all border-0 gap-2"
+          className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0 gap-2"
           type="submit"
           disabled={isLoading}
         >

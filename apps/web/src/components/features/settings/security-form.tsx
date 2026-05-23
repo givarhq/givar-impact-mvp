@@ -83,7 +83,7 @@ export const SecurityForm = memo(function SecurityForm({ user }: { user: any }) 
         >
             <TwoFactorSetup isEnabled={user.twoFactorEnabled} />
 
-            <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden focus-visible:outline-none outline-none">
+            <Card className="rounded-3xl border-border/40 bg-card overflow-hidden focus-visible:outline-none outline-none">
                 <CardContent className="p-0">
                     <div
                         onClick={() => !isEditing && setIsEditing(true)}
@@ -111,6 +111,7 @@ export const SecurityForm = memo(function SecurityForm({ user }: { user: any }) 
                         <AnimatePresence>
                             {isEditing && (
                                 <motion.form
+                                    method="POST"
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
@@ -160,7 +161,7 @@ export const SecurityForm = memo(function SecurityForm({ user }: { user: any }) 
                                             </div>
 
                                             <div className="flex gap-2 pt-2">
-                                                <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-11 rounded-3xl font-bold text-xs tracking-widest gap-2 shadow-sm border-0 active:scale-95 transition-transform">
+                                                <Button type="submit" disabled={isLoading || strengthScore < 4} className="flex-1 h-11 rounded-3xl font-bold text-xs tracking-widest gap-2 shadow-sm border-0 active:scale-[0.98] transition-transform">
                                                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
                                                     Update Credentials
                                                 </Button>

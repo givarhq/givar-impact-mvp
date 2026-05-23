@@ -382,7 +382,7 @@ export default function StartProposalPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-6 md:p-8 pt-6 min-w-0">
-                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
+                            <form method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
                                 <div className="space-y-5 min-w-0">
                                     <Input
                                         label="Cause title"
