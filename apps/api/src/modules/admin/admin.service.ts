@@ -2782,8 +2782,8 @@ export class AdminService {
     const categoryFilter = categoryIds && categoryIds.length > 0 ? { in: categoryIds } : undefined;
 
     // 1. Core Capital Flow Aggregates
-    const [inflowRes, donationRes, disbursementRes, feeRes, tipRes] = await Promise.all([
-      // Gross Inflow: (Funding + Direct Donations + Tips + Fees)
+    const [inflowRes, userDonationRes, guestDonationRes, disbursementRes] = await Promise.all([
+      // Global Gross Inflow (Only accurate when no category filter is applied)
       this.prisma.walletTransaction.aggregate({
         where: {
           type: TxType.CREDIT,
@@ -2794,10 +2794,16 @@ export class AdminService {
         _sum: { amount: true },
         _count: true
       }),
-      // Donations (Capital Commitment)
+      // Registered User Donations
       this.prisma.donation.aggregate({
         where: { createdAt: dateFilter, project: { categoryId: categoryFilter } },
-        _sum: { amount: true },
+        _sum: { amount: true, baseAmount: true, feeAmount: true, tipAmount: true },
+        _count: true
+      }),
+      // Guest Donations
+      this.prisma.guestDonation.aggregate({
+        where: { createdAt: dateFilter, project: { categoryId: categoryFilter }, status: 'COMPLETED' },
+        _sum: { amount: true, baseAmount: true, feeAmount: true, tipAmount: true },
         _count: true
       }),
       // Disbursements (Capital Deployment)
@@ -2805,32 +2811,25 @@ export class AdminService {
         where: { createdAt: dateFilter, project: { categoryId: categoryFilter } },
         _sum: { amount: true },
         _count: true
-      }),
-      // Platform Fees
-      this.prisma.walletTransaction.aggregate({
-        where: {
-          type: TxType.CREDIT,
-          createdAt: dateFilter,
-          status: TxStatus.COMPLETED,
-          category: TxCategory.TRANSACTION_FEE
-        },
-        _sum: { amount: true }
-      }),
-      // Platform Tips
-      this.prisma.walletTransaction.aggregate({
-        where: {
-          type: TxType.CREDIT,
-          createdAt: dateFilter,
-          status: TxStatus.COMPLETED,
-          category: TxCategory.VOLUNTARY_TIP
-        },
-        _sum: { amount: true }
       })
     ]);
 
-    const totalFees = feeRes._sum.amount || 0n;
-    const totalTips = tipRes._sum.amount || 0n;
+    // Logic: Mathematically derive correct capital metrics by unifying user & guest donation ledgers.
+    // Committed Capital is exclusively the baseAmount (what the project receives), isolating platform revenue.
+    const committedCapital = (userDonationRes._sum.baseAmount || 0n) + (guestDonationRes._sum.baseAmount || 0n);
+    const totalFees = (userDonationRes._sum.feeAmount || 0n) + (guestDonationRes._sum.feeAmount || 0n);
+    const totalTips = (userDonationRes._sum.tipAmount || 0n) + (guestDonationRes._sum.tipAmount || 0n);
     const platformRevenue = totalFees + totalTips;
+
+    // Logic: If a category filter is active, derive gross inflow from the sum of category-specific donations
+    // to ensure the UI KPI cards reflect the isolated sector correctly.
+    const grossInflow = categoryIds && categoryIds.length > 0
+      ? ((userDonationRes._sum.amount || 0n) + (guestDonationRes._sum.amount || 0n)).toString()
+      : (inflowRes._sum.amount || 0n).toString();
+
+    const transactionCount = categoryIds && categoryIds.length > 0
+      ? userDonationRes._count + guestDonationRes._count
+      : inflowRes._count;
 
     // Performance Stats
     const projectStats = await this.prisma.project.findMany({
@@ -2893,13 +2892,13 @@ export class AdminService {
 
     return {
       overview: {
-        grossInflow: inflowRes._sum.amount?.toString() || '0',
-        committedCapital: donationRes._sum.amount?.toString() || '0',
+        grossInflow,
+        committedCapital: committedCapital.toString(),
         deployedCapital: disbursementRes._sum.amount?.toString() || '0',
         platformRevenue: platformRevenue.toString(),
         platformFees: totalFees.toString(),
         platformTips: totalTips.toString(),
-        transactionCount: inflowRes._count,
+        transactionCount,
       },
       performance: {
         topPerformers: topPerformers.map(p => ({ ...p, targetAmount: p.targetAmount.toString(), raisedAmount: p.raisedAmount.toString() })),
