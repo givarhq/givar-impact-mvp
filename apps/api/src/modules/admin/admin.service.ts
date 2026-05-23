@@ -1211,7 +1211,8 @@ export class AdminService {
 
     const metadata = message.metadata as any;
 
-    if (metadata.amendmentRequest.status) {
+    // Logic: Only block if the status is already resolved (APPROVED or REJECTED)
+    if (metadata.amendmentRequest.status && metadata.amendmentRequest.status !== 'PENDING') {
       throw new BadRequestException(`Amendment is already ${metadata.amendmentRequest.status}`);
     }
 
