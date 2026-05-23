@@ -71,6 +71,7 @@ const projectSchema = z.object({
   executionTimeline: z.any().optional(),
   reasonForGoalAdjustment: z.string().optional(),
   amendmentInvoiceKey: z.string().optional(),
+  amendmentMessageId: z.string().optional(),
   endDate: z.string().optional().nullable(),
 });
 
@@ -139,6 +140,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       reasonForGoalAdjustment: '',
       amendmentInvoiceKey: '',
+      amendmentMessageId: '',
       subcategoryId: initialData.subcategoryId || '',
     } : {
       currency: 'NGN',
@@ -206,6 +208,9 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         setValue('budgetBreakdown', [...currentBudget, newItem], { shouldDirty: true });
         setValue('reasonForGoalAdjustment', `Organizer Request: ${data.expenseDesc}`, { shouldDirty: true });
         setValue('amendmentInvoiceKey', data.invoiceKey, { shouldDirty: true });
+        if (data.messageId) {
+          setValue('amendmentMessageId', data.messageId, { shouldDirty: true });
+        }
 
         // CRITICAL: Unlock form to modification mode immediately
         setIsEditing(true);
@@ -380,6 +385,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               />
             </div>
             <input type="hidden" {...register('amendmentInvoiceKey')} />
+            <input type="hidden" {...register('amendmentMessageId')} />
           </motion.div>
         )}
       </AnimatePresence>

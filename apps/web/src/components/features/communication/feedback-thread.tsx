@@ -66,6 +66,10 @@ export const FeedbackThread = memo(function FeedbackThread({
     const [newVendorPhone, setNewVendorPhone] = useState('');
     const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
 
+    // Amendment Rejection State
+    const [rejectModalId, setRejectModalId] = useState<string | null>(null);
+    const [rejectFeedback, setRejectFeedback] = useState('');
+
     const fetchMessages = async () => {
         try {
             const data = await ApiService.communication.getThread({ proposalId, projectId });
@@ -163,7 +167,8 @@ export const FeedbackThread = memo(function FeedbackThread({
                     newVendorName: amendVendorId === 'NEW' ? newVendorName.trim() : undefined,
                     newVendorEmail: amendVendorId === 'NEW' ? newVendorEmail.trim() : undefined,
                     newVendorPhone: amendVendorId === 'NEW' ? newVendorPhone.trim() : undefined,
-                    invoiceKey: key
+                    invoiceKey: key,
+                    status: 'PENDING'
                 }
             };
 
@@ -195,11 +200,30 @@ export const FeedbackThread = memo(function FeedbackThread({
         }
     };
 
-    const handleApplyAmendment = (req: any) => {
-        const payload = encodeURIComponent(JSON.stringify(req));
+    const handleApplyAmendment = (req: any, messageId: string) => {
+        const payload = encodeURIComponent(JSON.stringify({ ...req, messageId }));
         // Force a hard navigation to completely destroy the soft-routing cache 
         // and guarantee the Project Form component remounts with the new parameters
         window.location.href = `/admin/projects/${projectId}/edit?tab=details&applyAmendment=${payload}`;
+    };
+
+    const handleRejectAmendment = async () => {
+        if (!rejectModalId) return;
+        if (!rejectFeedback.trim()) return toast.error("Please provide rejection feedback");
+
+        setIsSending(true);
+        const toastId = toast.loading("Declining amendment...");
+        try {
+            await ApiService.admin.rejectAmendment(rejectModalId, rejectFeedback);
+            toast.success("Amendment declined", { id: toastId });
+            setRejectModalId(null);
+            setRejectFeedback('');
+            await fetchMessages();
+        } catch (e: any) {
+            toast.error(e.response?.data?.message || "Failed to decline amendment", { id: toastId });
+        } finally {
+            setIsSending(false);
+        }
     };
 
     const viewSecureInvoice = async (key: string) => {
@@ -248,8 +272,11 @@ export const FeedbackThread = memo(function FeedbackThread({
                 ) : (
                     <AnimatePresence initial={false}>
                         {messages.map((msg) => {
-                            const isAmendment = !!msg.metadata?.amendmentRequest;
                             const req = msg.metadata?.amendmentRequest;
+                            const isAmendment = !!req;
+                            const isApproved = req?.status === 'APPROVED';
+                            const isRejected = req?.status === 'REJECTED';
+                            const isPending = !req?.status || req?.status === 'PENDING';
 
                             return (
                                 <motion.div
@@ -285,8 +312,17 @@ export const FeedbackThread = memo(function FeedbackThread({
                                     {isAmendment && req && (
                                         <div className="mt-2 w-full max-w-sm rounded-[20px] bg-background border border-border/50 shadow-sm p-4 text-left">
                                             <div className="flex items-center gap-2 mb-3">
-                                                <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-                                                <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Amendment Request</span>
+                                                {!isPending ? (
+                                                    <div className={cn("h-2 w-2 rounded-full", isApproved ? "bg-emerald-500" : "bg-destructive")} />
+                                                ) : (
+                                                    <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                                                )}
+                                                <span className={cn(
+                                                    "text-[10px] font-black uppercase tracking-widest",
+                                                    isApproved ? "text-emerald-600" : isRejected ? "text-destructive" : "text-amber-600"
+                                                )}>
+                                                    {isApproved ? 'Amendment Approved' : isRejected ? 'Amendment Declined' : 'Amendment Request'}
+                                                </span>
                                             </div>
                                             <div className="space-y-2 mb-4">
                                                 <div>
@@ -313,16 +349,26 @@ export const FeedbackThread = memo(function FeedbackThread({
                                                     onClick={() => viewSecureInvoice(req.invoiceKey)}
                                                     className="w-full rounded-2xl text-[11px] font-bold h-8 border border-border/40 shadow-none bg-muted/50 hover:bg-muted"
                                                 >
-                                                    View Invoice
+                                                    View invoice
                                                 </Button>
-                                                {isAdminViewer && projectId && (
-                                                    <Button
-                                                        size="sm"
-                                                        onClick={() => handleApplyAmendment(req)}
-                                                        className="w-full rounded-2xl text-[11px] font-bold h-8 bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
-                                                    >
-                                                        Review & Apply Draft
-                                                    </Button>
+                                                {isAdminViewer && projectId && isPending && (
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => setRejectModalId(msg.id)}
+                                                            className="flex-1 rounded-2xl text-[11px] font-bold h-8 border-destructive/20 text-destructive hover:bg-destructive/10 shadow-none"
+                                                        >
+                                                            Decline
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            onClick={() => handleApplyAmendment(req, msg.id)}
+                                                            className="flex-1 rounded-2xl text-[11px] font-bold h-8 bg-amber-500 hover:bg-amber-600 text-white shadow-sm"
+                                                        >
+                                                            Review & apply
+                                                        </Button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
@@ -390,7 +436,7 @@ export const FeedbackThread = memo(function FeedbackThread({
 
                     <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
                         <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Expense Description</label>
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Expense description</label>
                             <Input
                                 placeholder="e.g. Post-surgery dialysis required"
                                 value={amendDesc}
@@ -401,7 +447,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Amount Required ({projectCurrency})</label>
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Amount required ({projectCurrency})</label>
                             <Input
                                 placeholder="0.00"
                                 value={formatNumberInput(amendAmount)}
@@ -421,7 +467,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                                     {vendors.map(v => (
                                         <SelectItem key={v.id} value={v.id} className="text-xs py-2.5 font-bold">{v.name}</SelectItem>
                                     ))}
-                                    <SelectItem value="NEW" className="text-xs py-2.5 font-bold text-primary">+ Add New Vendor</SelectItem>
+                                    <SelectItem value="NEW" className="text-xs py-2.5 font-bold text-primary">+ Add new vendor</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -435,7 +481,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                                     className="p-4 rounded-2xl bg-muted/10 border border-border/40 space-y-3 overflow-hidden"
                                 >
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-muted-foreground ml-1">Vendor Name</label>
+                                        <label className="text-[10px] font-bold text-muted-foreground ml-1">Vendor name</label>
                                         <Input
                                             placeholder="Hospital or Provider Name"
                                             value={newVendorName}
@@ -471,7 +517,7 @@ export const FeedbackThread = memo(function FeedbackThread({
                         </AnimatePresence>
 
                         <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Scanned Bill / Invoice</label>
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Scanned bill / invoice</label>
                             {invoiceFile ? (
                                 <div className="flex items-center justify-between p-3 bg-muted/20 border border-border/40 rounded-2xl">
                                     <div className="flex items-center gap-2 min-w-0">
@@ -508,7 +554,46 @@ export const FeedbackThread = memo(function FeedbackThread({
                                 disabled={isSending || !amendDesc || !amendAmount || !amendVendorId || !invoiceFile || (amendVendorId === 'NEW' && !newVendorName)}
                                 className="w-full h-12 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98]"
                             >
-                                {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Request to Admin"}
+                                {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit request to Admin"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Rejection Modal */}
+            <Dialog open={!!rejectModalId} onOpenChange={(open) => !open && !isSending && setRejectModalId(null)}>
+                <DialogContent className="rounded-3xl border-none shadow-2xl p-6 bg-card max-w-sm w-[95vw]">
+                    <DialogHeader className="pb-2">
+                        <DialogTitle className="text-lg font-bold text-foreground">Decline Amendment</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Feedback for organizer</label>
+                            <Textarea
+                                placeholder="Explain why this request is being declined..."
+                                value={rejectFeedback}
+                                onChange={(e) => setRejectFeedback(e.target.value)}
+                                className="min-h-[100px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm resize-none"
+                                disabled={isSending}
+                            />
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setRejectModalId(null)}
+                                disabled={isSending}
+                                className="flex-1 rounded-3xl font-bold text-xs"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={handleRejectAmendment}
+                                disabled={isSending || !rejectFeedback.trim()}
+                                className="flex-1 rounded-3xl font-bold text-xs shadow-md border-0"
+                            >
+                                {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm decline"}
                             </Button>
                         </div>
                     </div>
