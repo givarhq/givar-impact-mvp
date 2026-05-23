@@ -586,6 +586,11 @@ export class ProjectService {
 
     if (!project) throw new NotFoundException('Project not found');
 
+    // --- NEW VALIDATION: Cap Waitlist Array to prevent DoS ---
+    if (project.waitlistEmails.length >= 500) {
+      throw new BadRequestException('The waitlist is currently full. Please check back later.');
+    }
+
     const normalizedEmail = email.toLowerCase().trim();
 
     // Prevent duplicates

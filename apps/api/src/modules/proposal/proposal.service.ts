@@ -144,6 +144,17 @@ export class ProposalService {
       throw new BadRequestException('All budget items must have a valid amount, cost type, and description.');
     }
 
+    // --- NEW VALIDATION: Enforce Backend Budget Math ---
+    const budgetTotal = budget.reduce((sum, item) => sum + (item.amount || item.cost || 0), 0);
+    const targetAmountMajor = Number(proposal.targetAmount) / 100;
+
+    if (budgetTotal !== targetAmountMajor) {
+      throw new BadRequestException(
+        `The sum of the budget items (₦${budgetTotal.toLocaleString()}) must exactly match the project target amount (₦${targetAmountMajor.toLocaleString()}).`
+      );
+    }
+    // --------------------------------------------------
+
     const kyc = proposal.kycDocuments as string[];
     if (!kyc || kyc.length === 0) {
       throw new BadRequestException('At least one cause evidence or procurement quote must be uploaded.');

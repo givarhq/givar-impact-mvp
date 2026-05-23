@@ -2100,24 +2100,52 @@ export class AdminService {
     const budget = (project.budgetBreakdown as any[]) || [];
     const milestone = timeline.find(m => m.id === dto.milestoneId);
 
-    const currentStageLogicName = milestone?.phase || 'Main Stage';
+    if (!milestone) throw new BadRequestException('Invalid execution stage specified.');
+
+    const currentStageLogicName = milestone.phase || 'Main Stage';
     const cleanStageName = currentStageLogicName.replace(/^Phase \d+:\s*/i, '');
 
-    const stageBudgetItems = budget
-      .filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName)
-      .map((b: any) => b.description || b.item)
-      .join(', ');
+    const stageBudgetItems = budget.filter((b: any) => (b.stage || 'Main Stage') === currentStageLogicName);
+    const stageDescriptions = stageBudgetItems.map((b: any) => b.description || b.item).join(', ');
 
     const richStageName = milestone
-      ? `${cleanStageName}${stageBudgetItems ? `: ${stageBudgetItems}` : ''}`
+      ? `${cleanStageName}${stageDescriptions ? `: ${stageDescriptions}` : ''}`
       : 'Current Stage';
+
+    // --- NEW VALIDATION: Financial Audit against Raised Amount & Budget Cap ---
+    const disbursementAmount = BigInt(dto.amount);
+
+    // 1. Check against Total Raised
+    const totalDisbursedAgg = await this.prisma.disbursement.aggregate({
+      where: { projectId },
+      _sum: { amount: true }
+    });
+    const totalDisbursed = totalDisbursedAgg._sum.amount || 0n;
+    if (totalDisbursed + disbursementAmount > project.raisedAmount) {
+      throw new BadRequestException('Disbursement exceeds the total available raised capital for this project.');
+    }
+
+    // 2. Check against Phase Budget Cap
+    const stageBudgetTotal = stageBudgetItems.reduce((acc, b) => acc + (b.amount || b.cost || 0), 0);
+    const stageBudgetMinor = BigInt(Math.round(stageBudgetTotal * 100));
+
+    const stageDisbursedAgg = await this.prisma.disbursement.aggregate({
+      where: { projectId, milestoneId: dto.milestoneId },
+      _sum: { amount: true }
+    });
+    const stageDisbursed = stageDisbursedAgg._sum.amount || 0n;
+
+    if (stageDisbursed + disbursementAmount > stageBudgetMinor) {
+      throw new BadRequestException('Disbursement exceeds the total budget allocated for this specific execution stage.');
+    }
+    // -------------------------------------------------------------------------
 
     return this.prisma.$transaction(async (tx) => {
       const disbursement = await tx.disbursement.create({
         data: {
           projectId,
           milestoneId: dto.milestoneId,
-          amount: BigInt(dto.amount),
+          amount: disbursementAmount,
           currency: project.currency,
           vendorName: dto.vendorName,
           reference: dto.reference,
@@ -2175,7 +2203,6 @@ export class AdminService {
       };
     });
   }
-
 
   async getOrganizationQueue(query: {
     page?: number;
@@ -2821,15 +2848,18 @@ export class AdminService {
     const totalTips = (userDonationRes._sum.tipAmount || 0n) + (guestDonationRes._sum.tipAmount || 0n);
     const platformRevenue = totalFees + totalTips;
 
-    // Logic: If a category filter is active, derive gross inflow from the sum of category-specific donations
-    // to ensure the UI KPI cards reflect the isolated sector correctly.
+    // Logic: Guest donations skip the FUNDING wallet transaction step, so their baseAmount is missing from inflowRes.
+    // We add guestDonationRes._sum.baseAmount to inflowRes._sum.amount to get the true global gross inflow.
+    // (Fees and tips from guests ARE captured in inflowRes, so we only add baseAmount to avoid double counting).
+    const globalGrossInflowMinor = (inflowRes._sum.amount || 0n) + (guestDonationRes._sum.baseAmount || 0n);
+
     const grossInflow = categoryIds && categoryIds.length > 0
       ? ((userDonationRes._sum.amount || 0n) + (guestDonationRes._sum.amount || 0n)).toString()
-      : (inflowRes._sum.amount || 0n).toString();
+      : globalGrossInflowMinor.toString();
 
     const transactionCount = categoryIds && categoryIds.length > 0
       ? userDonationRes._count + guestDonationRes._count
-      : inflowRes._count;
+      : inflowRes._count + guestDonationRes._count;
 
     // Performance Stats
     const projectStats = await this.prisma.project.findMany({
