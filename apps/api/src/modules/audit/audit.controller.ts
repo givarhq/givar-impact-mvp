@@ -6,6 +6,41 @@ import { AuditService } from './audit.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SkipThrottle } from '@nestjs/throttler';
+import { IsOptional, IsNumber, Max, IsString, IsEnum } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class AuditQueryDto {
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsNumber()
+  page?: number = 1;
+
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsNumber()
+  @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
+  limit?: number = 20;
+
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsEnum(AuditAction)
+  action?: AuditAction;
+
+  @IsOptional()
+  @IsString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsString()
+  endDate?: string;
+}
 
 @SkipThrottle()
 @Controller('admin/audit')
@@ -21,42 +56,30 @@ export class AuditController {
 
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Get()
-  async getLogs(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('userId') userId?: string,
-    @Query('search') search?: string,
-    @Query('action') action?: AuditAction,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-  ) {
+  async getLogs(@Query() query: AuditQueryDto) {
     return this.auditService.getLogs({
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 20,
-      userId,
-      search,
-      action,
-      startDate,
-      endDate
+      page: query.page,
+      limit: query.limit,
+      userId: query.userId,
+      search: query.search,
+      action: query.action,
+      startDate: query.startDate,
+      endDate: query.endDate
     });
   }
 
   @Roles(UserRole.ADMIN, UserRole.SUPERADMIN)
   @Get('export')
   async exportLogs(
-    @Query('userId') userId?: string,
-    @Query('search') search?: string,
-    @Query('action') action?: AuditAction,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
+    @Query() query: AuditQueryDto,
     @Res() res?: Response,
   ) {
     const csv = await this.auditService.exportLogs({
-      userId,
-      search,
-      action,
-      startDate,
-      endDate
+      userId: query.userId,
+      search: query.search,
+      action: query.action,
+      startDate: query.startDate,
+      endDate: query.endDate
     });
     const timestamp = new Date().toISOString().split('T')[0];
 

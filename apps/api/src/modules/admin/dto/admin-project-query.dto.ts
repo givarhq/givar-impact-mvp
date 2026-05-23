@@ -1,6 +1,6 @@
 import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Max } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { ProjectStatus } from '@givar/database';
+import { ProjectStatus, ProposalStatus, UserRole, AccountType } from '@givar/database';
 
 export class AdminProjectQueryDto {
     @IsOptional()
@@ -43,4 +43,66 @@ export class AdminProjectQueryDto {
     @Transform(({ value }) => value === 'true')
     @IsBoolean()
     isSystem?: boolean;
+}
+
+export class AdminProposalQueryDto {
+    @IsOptional()
+    @IsString()
+    search?: string;
+
+    @IsOptional()
+    @IsEnum(ProposalStatus)
+    status?: ProposalStatus;
+
+    @IsOptional()
+    @IsString()
+    category?: string;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    page?: number = 1;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
+    limit?: number = 20;
+}
+
+export class AdminUserQueryDto {
+    @IsOptional()
+    @IsString()
+    search?: string;
+
+    @IsOptional()
+    @IsEnum(UserRole)
+    role?: UserRole;
+
+    @IsOptional()
+    @IsEnum(AccountType)
+    accountType?: AccountType;
+
+    @IsOptional()
+    @IsString()
+    status?: 'LOCKED' | 'ACTIVE' | 'all';
+
+    @IsOptional()
+    @IsString()
+    sortBy?: string;
+
+    @IsOptional()
+    @IsString()
+    sortOrder?: 'asc' | 'desc';
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    page?: number = 1;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
+    limit?: number = 20;
 }

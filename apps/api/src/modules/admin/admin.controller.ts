@@ -3,13 +3,13 @@ import { type Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { AccountType, ProposalStatus, UserRole } from '@givar/database';
+import { UserRole } from '@givar/database';
 import { AdminService } from './admin.service';
 import { SkipThrottle } from '@nestjs/throttler';
 import { CreateAdminProjectDto, UpdateAdminProjectDto } from './dto/admin-project.dto';
 import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
-import { AdminProjectQueryDto } from './dto/admin-project-query.dto';
+import { AdminProjectQueryDto, AdminProposalQueryDto, AdminUserQueryDto } from './dto/admin-project-query.dto';
 import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 
 @SkipThrottle()
@@ -25,23 +25,16 @@ export class AdminController {
   }
 
   @Get('users')
-  getUsers(
-    @Query('page') page?: number,
-    @Query('search') search?: string,
-    @Query('role') role?: UserRole,
-    @Query('accountType') accountType?: AccountType,
-    @Query('status') status?: 'LOCKED' | 'ACTIVE' | 'all',
-    @Query('sortBy') sortBy?: string,
-    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
-  ) {
+  getUsers(@Query() query: AdminUserQueryDto) {
     return this.service.getAllUsers({
-      page: Number(page) || 1,
-      search,
-      role,
-      accountType,
-      status,
-      sortBy,
-      sortOrder,
+      page: query.page,
+      limit: query.limit,
+      search: query.search,
+      role: query.role,
+      accountType: query.accountType,
+      status: query.status,
+      sortBy: query.sortBy,
+      sortOrder: query.sortOrder as 'asc' | 'desc',
     });
   }
 
@@ -72,19 +65,13 @@ export class AdminController {
   }
 
   @Get('proposals')
-  getProposals(
-    @Query('search') search?: string,
-    @Query('status') status?: ProposalStatus,
-    @Query('category') category?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  getProposals(@Query() query: AdminProposalQueryDto) {
     return this.service.getSubmittedProposals({
-      search,
-      status,
-      category,
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 20,
+      search: query.search,
+      status: query.status,
+      category: query.category,
+      page: query.page,
+      limit: query.limit,
     });
   }
 
