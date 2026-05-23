@@ -362,4 +362,13 @@ export class AdminController {
   ) {
     return this.service.bindProposalVendor(req.user.id, id, budgetItemId, dto);
   }
+
+  @Patch('communication/amendment/:messageId/reject')
+  rejectAmendment(
+    @Req() req: any,
+    @Param('messageId') messageId: string,
+    @Body('feedback') feedback: string
+  ) {
+    return this.service.rejectAmendment(req.user.id, messageId, feedback);
+  }
 }

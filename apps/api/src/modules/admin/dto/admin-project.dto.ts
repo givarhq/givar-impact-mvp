@@ -99,4 +99,5 @@ export class UpdateAdminProjectDto extends PartialType(CreateAdminProjectDto) {
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsString() reasonForGoalAdjustment?: string;
   @IsOptional() @IsString() amendmentInvoiceKey?: string;
+  @IsOptional() @IsString() amendmentMessageId?: string;
 }

@@ -1092,6 +1092,8 @@ export class AdminService {
       updateData.executionTimeline = dto.executionTimeline as any;
     }
 
+    let organizerToNotify: any = null;
+
     const result = await this.prisma.$transaction(async (tx) => {
       if (isGoalChanging && newTarget <= existing.raisedAmount) {
         const intendedStatus = dto.status || existing.status;
@@ -1135,6 +1137,35 @@ export class AdminService {
         });
       }
 
+      // Automatically resolve the associated message amendment request if provided
+      if (dto.amendmentMessageId) {
+        const msg = await tx.message.findUnique({
+          where: { id: dto.amendmentMessageId },
+          include: { author: { select: { id: true, email: true, firstName: true } } }
+        });
+
+        if (msg && msg.metadata && (msg.metadata as any).amendmentRequest) {
+          const metadata = msg.metadata as any;
+          metadata.amendmentRequest.status = 'APPROVED';
+          await tx.message.update({
+            where: { id: msg.id },
+            data: { metadata }
+          });
+
+          await tx.notification.create({
+            data: {
+              userId: msg.authorId,
+              type: 'PROJECT_STATUS',
+              title: 'Amendment approved',
+              content: `Your funding amendment request for "${existing.title}" has been approved and applied.`,
+              link: `/dashboard/projects/${projectId}/manage`
+            }
+          });
+
+          organizerToNotify = msg.author;
+        }
+      }
+
       return project;
     });
 
@@ -1151,12 +1182,78 @@ export class AdminService {
       ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
     }
 
+    if (organizerToNotify) {
+      this.emailService.sendAmendmentStatusAlert(organizerToNotify.email, {
+        name: organizerToNotify.firstName,
+        projectTitle: result.title,
+        status: 'APPROVED',
+        projectUrl: `${this.config.get('FRONTEND_URL')}/dashboard/projects/${projectId}/manage`
+      }).catch((err: any) => this.logger.error(`Amendment approval email failed: ${err.message}`));
+    }
+
     return {
       ...result,
       targetAmount: result.targetAmount?.toString(),
       raisedAmount: result.raisedAmount?.toString(),
       preCollectedAmount: result.preCollectedAmount?.toString(),
     };
+  }
+
+  async rejectAmendment(adminId: string, messageId: string, feedback: string) {
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+      include: { project: true, author: { select: { email: true, firstName: true } } }
+    });
+
+    if (!message || !message.metadata || !(message.metadata as any).amendmentRequest) {
+      throw new NotFoundException('Amendment request not found');
+    }
+
+    const metadata = message.metadata as any;
+
+    if (metadata.amendmentRequest.status) {
+      throw new BadRequestException(`Amendment is already ${metadata.amendmentRequest.status}`);
+    }
+
+    metadata.amendmentRequest.status = 'REJECTED';
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.message.update({
+        where: { id: messageId },
+        data: { metadata }
+      });
+
+      const reply = await tx.message.create({
+        data: {
+          content: `Amendment Request Declined: ${feedback}`,
+          authorId: adminId,
+          projectId: message.projectId,
+          isAdmin: true,
+        }
+      });
+
+      await tx.notification.create({
+        data: {
+          userId: message.authorId,
+          type: 'PROJECT_STATUS',
+          title: 'Amendment declined',
+          content: `Your funding amendment request for "${message.project?.title}" was declined.`,
+          link: `/dashboard/projects/${message.projectId}/manage?tab=communication`
+        }
+      });
+
+      return reply;
+    }).then(async (result) => {
+      this.emailService.sendAmendmentStatusAlert(message.author.email, {
+        name: message.author.firstName,
+        projectTitle: message.project?.title || 'Unknown',
+        status: 'REJECTED',
+        feedback,
+        projectUrl: `${this.config.get('FRONTEND_URL')}/dashboard/projects/${message.projectId}/manage?tab=communication`
+      }).catch((err: any) => this.logger.error(`Amendment rejection email failed: ${err.message}`));
+
+      return result;
+    });
   }
 
   private async broadcastFinancialAdjustment(
