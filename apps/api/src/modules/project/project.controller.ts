@@ -5,7 +5,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { ProjectService } from './project.service';
 import { CreateProjectDto, UpdateProjectDto } from './dto/project.dto';
-import { ProjectQueryDto } from './dto/project-query.dto';
+import { LedgerQueryDto, ProjectQueryDto } from './dto/project-query.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { SkipThrottle } from '@nestjs/throttler';
 import { OptionalJwtAuthGuard } from 'src/common/guards/optional-jwt.guard';
@@ -85,14 +85,12 @@ export class ProjectController {
   @Get('ledger/global')
   getGlobalLedger(
     @Req() req: any,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('type') type?: string,
+    @Query() query: LedgerQueryDto,
   ) {
     return this.service.getProjectLedger(null, {
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 15,
-      type,
+      page: query.page,
+      limit: query.limit,
+      type: query.type,
       requestingUserId: req.user?.id
     });
   }
@@ -104,14 +102,12 @@ export class ProjectController {
   getProjectLedger(
     @Req() req: any,
     @Param('slug') slug: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('type') type?: string,
+    @Query() query: LedgerQueryDto,
   ) {
     return this.service.getProjectLedger(slug, {
-      page: page ? Number(page) : 1,
-      limit: limit ? Number(limit) : 15,
-      type,
+      page: query.page,
+      limit: query.limit,
+      type: query.type,
       requestingUserId: req.user?.id
     });
   }

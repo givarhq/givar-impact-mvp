@@ -16,11 +16,11 @@ export class ProjectQueryDto {
 
   @IsOptional()
   @IsString()
-  category?: string; // Slug
+  category?: string;
 
   @IsOptional()
   @IsString()
-  subcategory?: string; // <-- NEW: Subcategory Slug
+  subcategory?: string;
 
   @IsOptional()
   @IsEnum(ProjectStatus)
@@ -40,4 +40,21 @@ export class ProjectQueryDto {
   @IsNumber()
   @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
   limit?: number = 10;
+}
+
+export class LedgerQueryDto {
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsNumber()
+  page?: number = 1;
+
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
+  @IsNumber()
+  @Max(100, { message: 'Limit cannot exceed 100 to prevent system overload' })
+  limit?: number = 15;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
 }
