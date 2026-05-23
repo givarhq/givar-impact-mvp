@@ -236,7 +236,6 @@ export const MilestoneManager = memo(function MilestoneManager({
 
                       <div className="flex-1 min-w-0 space-y-1.5 w-full">
                         <div className="flex items-center gap-3 mb-1 min-w-0 flex-wrap">
-                          <span className="text-[10px] font-black text-primary tracking-widest uppercase shrink-0">Funding Stage</span>
                           <AnimatePresence>
                             {status === 'COMPLETED' && milestone.completedAt && (
                               <motion.span
