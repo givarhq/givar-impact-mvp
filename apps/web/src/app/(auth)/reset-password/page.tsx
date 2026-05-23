@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 
 const schema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Must contain one  letter')
+    .regex(/[A-Z]/, 'Must contain one letter')
     .regex(/[0-9]/, 'Must contain one number'),
   confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
@@ -80,7 +80,7 @@ export default function ResetPasswordPage({
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 min-w-0">
+      <form method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-5 min-w-0">
         <Input
           label="New password"
           placeholder="••••••••"

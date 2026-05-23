@@ -110,7 +110,7 @@ function LoginComponent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
+      <form method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
         {!isMfaStep ? (
           <div className="space-y-4 animate-in slide-in-from-left-4 duration-300 min-w-0">
             <Input
