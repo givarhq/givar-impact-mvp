@@ -606,4 +606,29 @@ export const EmailTemplates = {
     
     <p>Once the funds reflect in your bank account, please commence execution and provide the cause organizer with the necessary receipts and photographic proof of work.</p>
   `,
+
+  amendmentStatusAlert: (data: { name: string; projectTitle: string; status: string; feedback?: string; projectUrl: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>Your funding amendment request for <strong>${data.projectTitle}</strong> has been reviewed.</p>
+    
+    <div class="stat-box" style="text-align: center; background-color: ${data.status === 'APPROVED' ? '#f0fdf4' : '#fff1f2'}; border-color: ${data.status === 'APPROVED' ? '#bbf7d0' : '#fecdd3'};">
+      <div style="font-size: 11px; text-transform: uppercase; color: ${data.status === 'APPROVED' ? '#059669' : '#e11d48'}; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Status</div>
+      <div style="font-size: 24px; font-weight: 800; color: ${data.status === 'APPROVED' ? '#064e3b' : '#881337'};">${data.status === 'APPROVED' ? 'Approved' : 'Declined'}</div>
+    </div>
+
+    ${data.feedback ? `
+    <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 16px; padding: 20px; margin: 24px 0;">
+      <p style="font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 8px; font-weight: 700;">Admin feedback</p>
+      <p style="font-size: 14px; color: #111827; line-height: 1.6; margin: 0; font-style: italic;">
+        "${data.feedback}"
+      </p>
+    </div>
+    ` : ''}
+
+    <p>${data.status === 'APPROVED' ? 'Your project ledger has been securely updated with the new budget requirements.' : 'Please review the feedback and submit a new request if necessary.'}</p>
+
+    <div style="text-align: center; margin: 36px 0;">
+      <a href="${data.projectUrl}" class="button" style="background-color: ${data.status === 'APPROVED' ? '#10b981' : '#111827'};">Go to management console</a>
+    </div>
+  `,
 };

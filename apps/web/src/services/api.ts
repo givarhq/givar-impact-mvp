@@ -515,6 +515,9 @@ export const ApiService = {
 
     bindProposalVendor: (proposalId: string, budgetItemId: string, data: any) =>
       apiClient.patch(`/admin/proposals/${proposalId}/budget/${budgetItemId}/bind-vendor`, data).then(r => r.data),
+
+    rejectAmendment: (messageId: string, feedback: string) =>
+      apiClient.patch(`/admin/communication/amendment/${messageId}/reject`, { feedback }).then(r => r.data),
   },
 
   recommendations: {

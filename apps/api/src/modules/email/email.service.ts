@@ -393,6 +393,7 @@ export class EmailService {
     return this.send(email, `Givar: Next phase unlocked for ${data.projectTitle}`, html);
   }
 
+  // 27. Sends an alert to admins when a vendor payout is confirmed.
   async sendAdminVendorPayoutAlert(data: { projectTitle: string; phaseName: string; vendorName: string; amount: string; currency: string; reference: string; projectId: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
@@ -416,9 +417,17 @@ export class EmailService {
     );
   }
 
+  // 28. Sends an alert to the vendor when their phase funding is confirmed.
   async sendVendorPhaseFundedAlert(email: string, data: { vendorName: string; projectTitle: string; phaseName: string; amount: string; currency: string; reference: string }) {
     const content = EmailTemplates.vendorPhaseFunded(data);
     const html = EmailTemplates.base(content, 'Capital Secured & Routing Initiated');
     return this.send(email, `Givar Notification: Funds secured for ${data.projectTitle}`, html);
+  }
+
+  // 29. Amendment Status Alert
+  async sendAmendmentStatusAlert(email: string, data: { name: string; projectTitle: string; status: string; feedback?: string; projectUrl: string }) {
+    const content = EmailTemplates.amendmentStatusAlert(data);
+    const html = EmailTemplates.base(content, 'Amendment Request Update');
+    return this.send(email, `Givar: Amendment request ${data.status.toLowerCase()}`, html);
   }
 }
