@@ -54,6 +54,11 @@ export default async function AdminProjectsPage({
         proposalsPromise
     ]);
 
+    // SECURITY FIX: Safely fallback to empty data structures if API fetch returns null 
+    // due to network drop or unauthorized access. This prevents `F.meta is null` UI crash.
+    const safeProjectData = projectData || { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
+    const safeProposalData = proposalData || { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
+
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             <div className="w-full min-w-0">
@@ -63,8 +68,8 @@ export default async function AdminProjectsPage({
             <div className="w-full min-w-0">
                 <ProjectsPageClient
                     activeTab={activeTab}
-                    projectData={projectData}
-                    proposalData={proposalData}
+                    projectData={safeProjectData}
+                    proposalData={safeProposalData}
                     searchParams={resolvedParams}
                 />
             </div>
