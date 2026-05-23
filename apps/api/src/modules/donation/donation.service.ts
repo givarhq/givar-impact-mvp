@@ -629,6 +629,23 @@ export class DonationService implements OnModuleInit {
       return { status: 'ignored_channel', reference };
     }
 
+    // --- CRITICAL SECURITY GUARD: Prevent Paystack Metadata Tampering ---
+    // Malicious users can intercept the initialization payload and alter the metadata
+    // to arbitrarily inflate the baseAmount (e.g. padding it with billions) or use negative fees.
+    if (baseAmount < 0n || feeAmount < 0n || tipAmount < 0n) {
+      this.logger.error(`[SECURITY] Negative metadata detected on ref ${reference}. Aborting ledger entry.`);
+      throw new BadRequestException('Transaction metadata validation failed. Negative values are not permitted.');
+    }
+
+    const declaredInternalTotal = baseAmount + feeAmount + tipAmount;
+
+    // We strictly ensure the sum of internal splits does not exceed the actual charge verified cryptographically by the Paystack webhook.
+    if (declaredInternalTotal > amount) {
+      this.logger.error(`[SECURITY] Metadata tampering detected on ref ${reference}. Declared internal splits (${declaredInternalTotal}) exceed actual gateway charge (${amount}).`);
+      throw new BadRequestException('Transaction metadata validation failed. Potential tampering detected.');
+    }
+    // --------------------------------------------------------------------
+
     try {
       const result = await this.prisma.$transaction(async (tx) => {
         const existingUserDonation = await tx.donation.findFirst({

@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsArray, IsEnum, IsNumber, IsOptional, IsString, IsUUID, ValidateNested, Min, IsBoolean,
-  ValidateIf
+  ValidateIf, ArrayMaxSize
 } from 'class-validator';
 import { Currency } from '@givar/database';
 
@@ -25,7 +25,6 @@ class VendorItemDto {
   subaccountCode?: string;
 }
 
-// 1. Budget Item Structure
 class BudgetItem {
   @IsString()
   id!: string;
@@ -34,7 +33,6 @@ class BudgetItem {
   @IsString()
   vendorId?: string;
 
-  // Legacy fields kept optional for backward compatibility
   @IsOptional()
   @IsString()
   payTo?: string;
@@ -73,7 +71,6 @@ class MediaItemDto {
   caption?: string;
 }
 
-// 2. Timeline Item Structure
 class TimelineItem {
   @IsString()
   id!: string;
@@ -132,31 +129,40 @@ export class UpdateProposalDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(30, { message: 'Maximum of 30 gallery items allowed' })
   @ValidateNested({ each: true })
   @Type(() => MediaItemDto)
   gallery?: MediaItemDto[];
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(50, { message: 'Maximum of 50 budget items allowed' })
   @ValidateNested({ each: true })
   @Type(() => BudgetItem)
   budgetBreakdown?: BudgetItem[];
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(10, { message: 'Maximum of 10 timeline phases allowed' })
   @ValidateNested({ each: true })
   @Type(() => TimelineItem)
   executionTimeline?: TimelineItem[];
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(30, { message: 'Maximum of 30 vendors allowed' })
   @ValidateNested({ each: true })
   @Type(() => VendorItemDto)
   vendors?: VendorItemDto[];
 
   @IsOptional() @IsString() riskAnalysis?: string;
 
-  @IsOptional() @IsArray() @IsString({ each: true }) kycDocuments?: string[];
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10, { message: 'Maximum of 10 KYC documents allowed' })
+  @IsString({ each: true })
+  kycDocuments?: string[];
+
   @IsOptional() @IsString() organizationName?: string;
   @IsOptional() @IsString() contactPhone?: string;
   @IsOptional() @IsString() beneficiaryContact?: string;
