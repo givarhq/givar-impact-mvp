@@ -16,6 +16,7 @@ import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
+import { calculatePhaseFunding } from '@givar/types';
 
 export interface DonationFormProps {
     project: Project | null;
@@ -93,21 +94,25 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         setIsLoading(false);
 
         const detectCurrency = async () => {
-            let finalCurrency = 'USD';
+            let finalCurrency = 'NGN';
+
             try {
-                const res = await fetch('https://ipapi.co/currency/');
-                const ipCurrency = await res.text();
-                if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(ipCurrency.trim())) {
-                    setDetectedCurrency(ipCurrency.trim());
+                const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
+                const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : null;
+                if (userCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(userCurrency)) {
+                    setDetectedCurrency(userCurrency);
                     return;
                 }
             } catch (e) { }
 
             try {
-                const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
-                const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : 'USD';
-                if (['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(userCurrency)) {
-                    finalCurrency = userCurrency;
+                const res = await fetch('https://ipapi.co/currency/');
+                if (res.ok) {
+                    const ipCurrency = await res.text();
+                    if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(ipCurrency.trim().toUpperCase())) {
+                        setDetectedCurrency(ipCurrency.trim().toUpperCase());
+                        return;
+                    }
                 }
             } catch (e) { }
 
@@ -179,7 +184,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const isCompleted = project.status === 'COMPLETED';
     const isFundedState = project.status === 'FUNDED' || (raisedAmountMinor >= targetAmountMinor && targetAmountMinor > 0n && !isCompleted);
 
-    // 1. Calculate Phase Cap for Pause UI
     const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
     let previousPhasesMajor = 0;
     let currentPhaseMajor = 0;
@@ -207,7 +211,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const remainingForPhaseMinor = currentPhaseTargetMinor > raisedInCurrentPhase ? currentPhaseTargetMinor - raisedInCurrentPhase : 0n;
     const isPhaseFull = remainingForPhaseMinor < 10000n && currentPhaseTargetMinor > 0n && !isFundedState && !isCompleted;
 
-    // 2. Identify the Active Budget Item to Cap Transactions
     let cumulativeMajor = 0;
     let activeBudgetItem: any = null;
     let itemRemainingMajor = 0;
@@ -254,12 +257,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
     const netAmountMinor = baseAmountMinor + feeAmountMinor + tipAmountMinor;
 
-    // --- CRITICAL FIX: Dynamic Gateway Fee Display Math ---
     let gatewayFeeMinor = 0n;
     if (netAmountMinor > 0n) {
         const isInternational = detectedCurrency !== 'NGN';
-        const flatFee = 10000n; // 100 NGN in kobo
-        const threshold = 250000n; // 2500 NGN in kobo
+        const flatFee = 10000n; 
+        const threshold = 250000n; 
         const divisor = isInternational ? 961n : 985n;
 
         let chargeMinor = (netAmountMinor * 1000n) / divisor;
@@ -277,7 +279,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const totalCheckoutMinor = netAmountMinor + gatewayFeeMinor;
     const isGuest = !isAuthenticated;
 
-    // Dust Completion Math for UI Feedback
     const gapAfterDonationPhase = remainingForPhaseMinor - baseAmountMinor;
     const isDustCoveredPhase = gapAfterDonationPhase > 0n && gapAfterDonationPhase < 10000n;
 

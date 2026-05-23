@@ -304,7 +304,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                             </Badge>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground mt-1.5">
-                            <span className="flex items-center gap-1 shrink-0"><Calendar className="h-3.5 w-3.5" /> {formatDate(proposal.submittedAt).split(',')[0]}</span>
+                            <span className="flex items-center gap-1 shrink-0"><Calendar className="h-3.5 w-3.5" /> {proposal.submittedAt ? formatDate(proposal.submittedAt).split(',')[0] : 'Draft'}</span>
                             <span className="hidden sm:inline text-border">|</span>
                             <span className="flex items-center gap-1 shrink-0"><MapPin className="h-3.5 w-3.5 text-primary" /> {proposal.location || 'Global Location'}</span>
                             <span className="hidden sm:inline text-border">|</span>
@@ -542,7 +542,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                                         {isStageExpanded && items.map((item: any, i: number) => {
                                                             const vendor = item.vendorId ? vendors.find((v: any) => v.id === item.vendorId) : null;
                                                             const vendorName = vendor ? vendor.name : (item.payTo || item.vendor || 'Pending vendor sourcing');
-                                                            const isPendingVendor = !vendorName || vendorName.toLowerCase() === 'pending vendor sourcing' || vendorName === 'To be confirmed';
 
                                                             let vendorContactEmail = vendor?.email || '';
                                                             let vendorContactPhone = vendor?.phone || '';
@@ -768,7 +767,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                         <CardContent className="p-4 space-y-4">
                             <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/20 border border-border/40 shadow-inner group">
                                 <div className="h-10 w-10 rounded-2xl bg-secondary flex items-center justify-center text-secondary-foreground font-black text-xs border border-border/10 shrink-0 shadow-sm transition-transform group-hover:scale-105">
-                                    {proposal.user?.firstName[0]}{proposal.user?.lastName[0]}
+                                    {proposal.user?.firstName?.[0]}{proposal.user?.lastName?.[0]}
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="text-sm font-bold text-foreground truncate">{proposal.user?.firstName} {proposal.user?.lastName}</div>
