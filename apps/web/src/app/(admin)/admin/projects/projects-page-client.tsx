@@ -36,6 +36,14 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
         const params = new URLSearchParams(window.location.search);
         params.set('tab', value);
         params.set('page', '1');
+
+        // Clear filter pollution to prevent context mismatch when switching tabs
+        params.delete('status');
+        params.delete('categoryId');
+        params.delete('category');
+        params.delete('isSystem');
+        params.delete('search');
+
         router.replace(`?${params.toString()}`);
     };
 
@@ -125,7 +133,7 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
 
                 {activeTab !== 'categories' && (
                     <div className="pt-4 border-t border-border/40 min-w-0">
-                        <Pagination currentPage={activeMeta.page} totalPages={activeMeta.lastPage} />
+                        <Pagination currentPage={activeMeta?.page || 1} totalPages={activeMeta?.lastPage || 1} />
                     </div>
                 )}
             </Tabs>

@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
 import { AdminProjectFilters } from '../../../../components/features/admin/admin-project-filters';
+import { AdminProposalFilters } from '../../../../components/features/admin/admin-proposal-filters';
 import { ProjectsPageClient } from './projects-page-client';
 
 export const metadata = {
@@ -20,16 +21,12 @@ export default async function AdminProjectsPage({
     const resolvedParams = await searchParams;
     const activeTab = String(resolvedParams.tab || 'live');
 
-    // Parallel Fetching: Projects + Categories + Proposals (if needed)
-    // This ensures the page is ready in one pass, activating the skeleton.
-
+    // Build params for Live/Draft Projects
     const projectParams = new URLSearchParams();
-    // Map all known filters
     Object.entries(resolvedParams).forEach(([k, v]) => {
         if (v) projectParams.set(k, String(v));
     });
 
-    // Specific Tab Logic
     projectParams.delete('tab');
     if (activeTab === 'drafts') {
         projectParams.set('status', 'DRAFT');
@@ -37,14 +34,20 @@ export default async function AdminProjectsPage({
         if (!projectParams.has('status')) projectParams.set('excludeDrafts', 'true');
     }
 
-    // Determine what to fetch based on tab
     const categoriesPromise = ApiService.projects.getCategories(token);
     let projectsPromise: Promise<any> = Promise.resolve({ data: [], meta: { total: 0, page: 1, lastPage: 1 } });
     let proposalsPromise: Promise<any> = Promise.resolve({ data: [], meta: { total: 0, page: 1, lastPage: 1 } });
 
     if (activeTab === 'proposals') {
-        proposalsPromise = ApiService.admin.getProposals(token, new URLSearchParams(resolvedParams as any));
-    } else {
+        // Strip forbidden parameters to prevent Backend DTO Payload Pollution Rejections (400 Bad Request)
+        const proposalParams = new URLSearchParams();
+        Object.entries(resolvedParams).forEach(([k, v]) => {
+            if (v && ['search', 'status', 'category', 'page', 'limit'].includes(k)) {
+                proposalParams.set(k, String(v));
+            }
+        });
+        proposalsPromise = ApiService.admin.getProposals(token, proposalParams);
+    } else if (activeTab !== 'categories') {
         projectsPromise = ApiService.admin.getProjects(token, projectParams);
     }
 
@@ -54,16 +57,20 @@ export default async function AdminProjectsPage({
         proposalsPromise
     ]);
 
-    // SECURITY FIX: Safely fallback to empty data structures if API fetch returns null 
-    // due to network drop or unauthorized access. This prevents `F.meta is null` UI crash.
     const safeProjectData = projectData || { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
     const safeProposalData = proposalData || { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
-            <div className="w-full min-w-0">
-                <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
-            </div>
+            {activeTab !== 'categories' && (
+                <div className="w-full min-w-0">
+                    {activeTab === 'proposals' ? (
+                        <AdminProposalFilters categories={categories || []} />
+                    ) : (
+                        <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
+                    )}
+                </div>
+            )}
 
             <div className="w-full min-w-0">
                 <ProjectsPageClient
