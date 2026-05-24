@@ -1124,14 +1124,15 @@ export class AdminService {
         await tx.auditLog.create({
           data: {
             userId: adminId,
-            action: AuditAction.PROJECT_UPDATED,
+            action: dto.amendmentMessageId ? AuditAction.AMENDMENT_APPROVED : AuditAction.PROJECT_UPDATED,
             entityId: projectId,
             entityType: 'Project',
             metadata: {
-              action: 'PLAN_AMENDMENT',
+              action: dto.amendmentMessageId ? 'AMENDMENT_APPROVED' : 'PLAN_AMENDMENT',
               oldGoal: existing.targetAmount.toString(),
               newGoal: project.targetAmount.toString(),
-              reason: dto.reasonForGoalAdjustment
+              reason: dto.reasonForGoalAdjustment,
+              amendmentMessageId: dto.amendmentMessageId || undefined
             },
           },
         });
@@ -1229,6 +1230,7 @@ export class AdminService {
           content: `Amendment Request Declined: ${feedback}`,
           authorId: adminId,
           projectId: message.projectId,
+          proposalId: message.proposalId,
           isAdmin: true,
         }
       });
@@ -1238,8 +1240,26 @@ export class AdminService {
           userId: message.authorId,
           type: 'PROJECT_STATUS',
           title: 'Amendment declined',
-          content: `Your funding amendment request for "${message.project?.title}" was declined.`,
-          link: `/dashboard/projects/${message.projectId}/manage?tab=communication`
+          content: `Your funding amendment request for "${message.project?.title || 'your cause'}" was declined.`,
+          link: message.projectId ? `/dashboard/projects/${message.projectId}/manage?tab=communication` : `/dashboard/proposals/edit/${message.proposalId}/hook?tab=communication`
+        }
+      });
+
+      // Strict Forensic Audit for Amendment Rejection
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.AMENDMENT_REJECTED,
+          entityId: message.projectId || message.proposalId || 'UNKNOWN',
+          entityType: message.projectId ? 'Project' : 'ProjectProposal',
+          metadata: {
+            action: 'REJECT_AMENDMENT',
+            messageId: message.id,
+            feedback,
+            requestedAmount: metadata.amendmentRequest.amount,
+            vendorId: metadata.amendmentRequest.vendorId,
+            expenseDesc: metadata.amendmentRequest.expenseDesc
+          }
         }
       });
 
@@ -1250,7 +1270,7 @@ export class AdminService {
         projectTitle: message.project?.title || 'Unknown',
         status: 'REJECTED',
         feedback,
-        projectUrl: `${this.config.get('FRONTEND_URL')}/dashboard/projects/${message.projectId}/manage?tab=communication`
+        projectUrl: message.projectId ? `${this.config.get('FRONTEND_URL')}/dashboard/projects/${message.projectId}/manage?tab=communication` : `${this.config.get('FRONTEND_URL')}/dashboard/proposals/edit/${message.proposalId}/hook?tab=communication`
       }).catch((err: any) => this.logger.error(`Amendment rejection email failed: ${err.message}`));
 
       return result;

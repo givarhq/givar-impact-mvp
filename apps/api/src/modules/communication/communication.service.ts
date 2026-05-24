@@ -121,10 +121,19 @@ export class CommunicationService {
 
             await this.audit.log({
                 userId,
-                action: AuditAction.MESSAGE_SENT,
+                action: isAmendment ? AuditAction.AMENDMENT_REQUESTED : AuditAction.MESSAGE_SENT,
                 entityId: dto.proposalId || dto.projectId,
                 entityType: dto.proposalId ? 'ProjectProposal' : 'Project',
-                metadata: { isAdmin, context: contextTitle }
+                metadata: {
+                    isAdmin,
+                    context: contextTitle,
+                    ...(isAmendment ? {
+                        requestedAmount: reqData.amount,
+                        vendorId: reqData.vendorId,
+                        expenseDesc: reqData.expenseDesc,
+                        invoiceKey: reqData.invoiceKey
+                    } : {})
+                }
             }, tx);
 
             return message;
