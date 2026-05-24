@@ -5,10 +5,12 @@ import { AdminProjectForm } from '../../../../../../components/features/admin/pr
 import { MilestoneManager } from '../../../../../../components/features/admin/milestone-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../components/ui/tabs';
 import { Button } from '../../../../../../components/ui/button';
-import { ArrowLeft, Settings, Activity, Fingerprint, Sparkles, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Settings, Activity, Fingerprint, Sparkles, MessageSquare, Flag } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectVisibilityForm } from '../../../../../../components/features/admin/visibility/project-visibility-form';
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
+import { ProjectReportsView } from '../../../../../../components/features/admin/project-reports-view';
+import { cn } from '../../../../../../lib/utils/cn';
 
 export const metadata = {
   title: 'Edit Project',
@@ -31,13 +33,18 @@ export default async function EditProjectPage({
   if (!token) redirect('/login');
 
   try {
-    const [project, categories, globalConfig] = await Promise.all([
+    const [project, categories, globalConfig, rawReports] = await Promise.all([
       ApiService.admin.getProjectById(token, id),
       ApiService.projects.getCategories(token),
-      ApiService.admin.getConfig(token)
+      ApiService.admin.getConfig(token),
+      ApiService.admin.getProjectReports(token, id).catch(() => [])
     ]);
 
     if (!project) notFound();
+
+    // Safely fallback to an empty array to prevent null-reference errors
+    const reports = rawReports || [];
+    const pendingReportsCount = reports.filter((r: any) => r.status === 'PENDING').length;
 
     return (
       <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
@@ -95,6 +102,23 @@ export default async function EditProjectPage({
               >
                 <MessageSquare className="mr-2 h-3.5 w-3.5" /> Communication
               </TabsTrigger>
+
+              <TabsTrigger
+                value="disputes"
+                className={cn(
+                  "relative h-12 rounded-none border-b-2 border-transparent px-2 pb-4 pt-2 font-bold text-xs transition-all",
+                  pendingReportsCount > 0 ? "text-destructive data-[state=active]:border-destructive" : "text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground"
+                )}
+              >
+                <div className="flex items-center">
+                  <Flag className="mr-2 h-3.5 w-3.5" /> Disputes
+                  {pendingReportsCount > 0 && (
+                    <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-destructive/10 text-destructive text-[9px] font-black leading-none">
+                      {pendingReportsCount}
+                    </span>
+                  )}
+                </div>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -133,6 +157,16 @@ export default async function EditProjectPage({
                   title="Direct line with owner"
                   vendors={project.vendors || []}
                   projectCurrency={project.currency}
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="disputes" className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="max-w-4xl min-w-0">
+                <ProjectReportsView
+                  reports={reports}
+                  projectId={id}
+                  projectStatus={project.status}
                 />
               </div>
             </TabsContent>
