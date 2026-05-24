@@ -430,4 +430,54 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Amendment Request Update');
     return this.send(email, `Givar: Amendment request ${data.status.toLowerCase()}`, html);
   }
+
+  async sendAdminProjectReportedAlert(data: { projectTitle: string; reason: string; projectId: string }) {
+    const admins = await this.prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+      select: { email: true, firstName: true }
+    });
+
+    if (admins.length === 0) return;
+
+    const url = `${this.config.get('FRONTEND_URL')}/admin/projects?search=${data.projectId}`;
+
+    await Promise.allSettled(
+      admins.map(admin => {
+        const content = EmailTemplates.adminProjectReportedAlert({
+          adminName: admin.firstName,
+          projectTitle: data.projectTitle,
+          reason: data.reason,
+          url
+        });
+        const html = EmailTemplates.base(content, 'Critical: Cause Suspended');
+        return this.send(admin.email, `Givar Admin: Urgent Report for ${data.projectTitle}`, html);
+      })
+    );
+  }
+
+  async sendReportReceivedReporter(email: string, data: { projectName: string }) {
+    const content = EmailTemplates.reportReceivedReporter(data);
+    const html = EmailTemplates.base(content, 'Report Received');
+    return this.send(email, `Givar: We received your report`, html);
+  }
+
+  async sendReportReceivedOrganizer(email: string, data: { name: string; projectName: string; reason: string; projectId: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/projects/${data.projectId}/manage`;
+    const content = EmailTemplates.reportReceivedOrganizer({ ...data, url });
+    const html = EmailTemplates.base(content, 'Important: Cause Suspended');
+    return this.send(email, `Givar Action Required: Cause Suspended`, html);
+  }
+
+  async sendReportResolvedReporter(email: string, data: { projectName: string; actionTaken: string }) {
+    const content = EmailTemplates.reportResolvedReporter(data);
+    const html = EmailTemplates.base(content, 'Report Update');
+    return this.send(email, `Givar: Update on your recent report`, html);
+  }
+
+  async sendReportResolvedOrganizer(email: string, data: { name: string; projectName: string; status: string; feedback: string; projectId: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/dashboard/projects/${data.projectId}/manage`;
+    const content = EmailTemplates.reportResolvedOrganizer({ ...data, url });
+    const html = EmailTemplates.base(content, 'Review Concluded');
+    return this.send(email, `Givar: Dispute review concluded`, html);
+  }
 }

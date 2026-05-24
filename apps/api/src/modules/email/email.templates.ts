@@ -631,4 +631,88 @@ export const EmailTemplates = {
       <a href="${data.projectUrl}" class="button" style="background-color: ${data.status === 'APPROVED' ? '#10b981' : '#111827'};">Go to management console</a>
     </div>
   `,
+
+  adminProjectReportedAlert: (data: { adminName: string; projectTitle: string; reason: string; url: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p>A critical community report has been submitted regarding the cause: <strong>"${data.projectTitle}"</strong>.</p>
+    
+    <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #e11d48; margin-bottom: 8px; font-weight: 700;">Report reason</p>
+      <p style="font-size: 15px; color: #881337; line-height: 1.6; margin: 0; font-weight: 600;">
+        "${data.reason}"
+      </p>
+    </div>
+
+    <p>The system has automatically suspended the cause to halt donations. Immediate administrative review is required.</p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #e11d48;">Review report</a>
+    </div>
+  `,
+
+  reportReceivedReporter: (data: { projectName: string }) => `
+    <p>Hi there,</p>
+    <p>Thank you for submitting a report regarding the cause: <strong>"${data.projectName}"</strong>.</p>
+    
+    <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #0369a1; margin-bottom: 8px; font-weight: 700;">Report Received</p>
+      <p style="font-size: 14px; color: #0c4a6e; line-height: 1.6; margin: 0; font-weight: 500;">
+        Our Trust & Safety team is currently investigating your submission. We take platform integrity very seriously and will take the necessary administrative actions based on our findings.
+      </p>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">If we require further information, we will reach out to this email address.</p>
+  `,
+
+  reportReceivedOrganizer: (data: { name: string; projectName: string; reason: string; url: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>An urgent community report has been filed against your cause: <strong>"${data.projectName}"</strong>.</p>
+    
+    <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #e11d48; margin-bottom: 8px; font-weight: 700;">Cause Temporarily Suspended</p>
+      <p style="font-size: 14px; color: #881337; line-height: 1.6; margin: 0; font-weight: 600;">
+        Report Reason: "${data.reason}"
+      </p>
+    </div>
+
+    <p>To protect the integrity of the platform, donations to this cause have been temporarily paused while our administrative team investigates.</p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #e11d48;">View Console</a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">Our compliance team will contact you shortly if further information is required.</p>
+  `,
+
+  reportResolvedReporter: (data: { projectName: string; actionTaken: string }) => `
+    <p>Hi there,</p>
+    <p>We have concluded our investigation into your report regarding the cause: <strong>"${data.projectName}"</strong>.</p>
+    
+    <div style="background-color: #f9fafb; border: 1px solid #f3f4f6; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #374151; margin-bottom: 8px; font-weight: 700;">Resolution Outcome</p>
+      <p style="font-size: 14px; color: #111827; line-height: 1.6; margin: 0; font-weight: 500;">
+        ${data.actionTaken}
+      </p>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">Thank you for helping us maintain a safe and transparent environment for everyone.</p>
+  `,
+
+  reportResolvedOrganizer: (data: { name: string; projectName: string; status: string; feedback: string; url: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>We have concluded the administrative review of the dispute filed against your cause: <strong>"${data.projectName}"</strong>.</p>
+    
+    <div style="background-color: ${data.status === 'REINSTATED' ? '#f0fdf4' : '#fff1f2'}; border: 1px solid ${data.status === 'REINSTATED' ? '#bbf7d0' : '#fecdd3'}; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: ${data.status === 'REINSTATED' ? '#059669' : '#e11d48'}; margin-bottom: 8px; font-weight: 700;">
+        Review Decision: ${data.status}
+      </p>
+      <p style="font-size: 14px; color: ${data.status === 'REINSTATED' ? '#064e3b' : '#881337'}; line-height: 1.6; margin: 0; font-weight: 600;">
+        "${data.feedback}"
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: ${data.status === 'REINSTATED' ? '#10b981' : '#111827'};">Go to Console</a>
+    </div>
+  `,
 };
