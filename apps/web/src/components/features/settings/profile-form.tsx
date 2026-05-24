@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
     Loader2, ShieldCheck, Camera, AlertCircle,
-    MailCheck, RefreshCcw, ChevronRight, Check, X
+    MailCheck, RefreshCcw, ChevronRight, Check, X, Phone
 } from 'lucide-react';
 import { Input } from '../../ui/input';
 import { Button } from '../../ui/button';
@@ -23,6 +23,7 @@ import { ConfirmModal } from '../../ui/confirm-modal';
 const profileSchema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    phoneNumber: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -33,6 +34,7 @@ interface ProfileFormProps {
         email: string;
         firstName: string;
         lastName: string;
+        phoneNumber?: string;
         role: string;
         accountType: string;
         emailVerified: boolean;
@@ -50,7 +52,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
     const [isVerifying, setIsVerifying] = useState(false);
     const [showCodeInput, setShowCodeInput] = useState(false);
     const [verificationCode, setVerificationCode] = useState('');
-    const [editingField, setEditingField] = useState<'name' | null>(null);
+    const [editingField, setEditingField] = useState<'personal' | null>(null);
     const [switchModal, setSwitchModal] = useState<{ isOpen: boolean, type: 'INDIVIDUAL' | 'ORGANIZER' | null }>({ isOpen: false, type: null });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -64,6 +66,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
         defaultValues: {
             firstName: user.firstName,
             lastName: user.lastName,
+            phoneNumber: user.phoneNumber || '',
         },
     });
 
@@ -216,13 +219,13 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                                 <p className="text-xs text-muted-foreground font-medium">{user.email}</p>
                             </div>
                             <div className="flex flex-wrap justify-center gap-1.5">
-                                <Badge variant="outline" className="rounded-3xl bg-muted/30 px-2 py-0.5 text-xs font-bold  border-border/40">{user.role}</Badge>
+                                <Badge variant="outline" className="rounded-3xl bg-muted/30 px-2 py-0.5 text-xs font-bold border-border/40">{user.role}</Badge>
                                 {user.emailVerified ? (
-                                    <Badge className="rounded-3xl bg-emerald-50 text-emerald-600 border-emerald-100 text-xs font-bold  gap-1">
+                                    <Badge className="rounded-3xl bg-emerald-50 text-emerald-600 border-emerald-100 text-xs font-bold gap-1">
                                         <ShieldCheck className="h-3 w-3" /> Verified
                                     </Badge>
                                 ) : (
-                                    <Badge className="rounded-3xl bg-amber-50 text-amber-600 border-amber-100 text-xs font-bold  gap-1 animate-pulse">
+                                    <Badge className="rounded-3xl bg-amber-50 text-amber-600 border-amber-100 text-xs font-bold gap-1 animate-pulse">
                                         <AlertCircle className="h-3 w-3" /> Unverified
                                     </Badge>
                                 )}
@@ -258,7 +261,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                             <div className="flex items-center gap-3">
                                 <MailCheck className="h-5 w-5 text-amber-600 shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-amber-900 text-xs ">Verify Identity</h4>
+                                    <h4 className="font-bold text-amber-900 text-xs">Verify Identity</h4>
                                     <p className="text-xs text-amber-700 font-medium">Please verify your email to donate to and launch causes.</p>
                                 </div>
                                 {!showCodeInput && (
@@ -279,25 +282,44 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardContent className="p-0">
                             <div
-                                onClick={() => setEditingField('name')}
+                                onClick={() => setEditingField('personal')}
                                 className={cn(
                                     "flex items-center justify-between p-5 md:p-6 border-b border-border/40 transition-all cursor-pointer hover:bg-muted/30",
-                                    editingField === 'name' ? "bg-muted/10" : ""
+                                    editingField === 'personal' ? "bg-muted/10 cursor-default hover:bg-muted/10" : ""
                                 )}
                             >
                                 <div className="space-y-1 flex-1 min-w-0">
-                                    <p className="text-xs font-bold text-muted-foreground tracking-widest">Full Name</p>
-                                    {editingField === 'name' ? (
-                                        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-2 pt-1 animate-in slide-in-from-left-1" onClick={(e) => e.stopPropagation()}>
-                                            <Input {...register('firstName')} error={errors.firstName?.message} className="h-9 rounded-3xl text-sm" />
-                                            <Input {...register('lastName')} error={errors.lastName?.message} className="h-9 rounded-3xl text-sm" />
-                                            <div className="flex gap-2">
-                                                <Button type="submit" size="icon" className="h-9 w-9 shrink-0 rounded-3xl" disabled={isLoading}><Check className="h-4 w-4" /></Button>
-                                                <Button type="button" variant="outline" size="icon" className="h-9 w-9 shrink-0 rounded-3xl" onClick={() => { setEditingField(null); reset(); }}><X className="h-4 w-4" /></Button>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <p className="text-xs font-bold text-muted-foreground tracking-widest uppercase">Personal Information</p>
+                                    </div>
+                                    {editingField === 'personal' ? (
+                                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-1 animate-in slide-in-from-left-1" onClick={(e) => e.stopPropagation()}>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <Input label="First Name" {...register('firstName')} error={errors.firstName?.message} className="h-10 rounded-2xl text-sm" />
+                                                <Input label="Last Name" {...register('lastName')} error={errors.lastName?.message} className="h-10 rounded-2xl text-sm" />
+                                            </div>
+                                            <Input label="Phone Number" placeholder="+234..." {...register('phoneNumber')} error={errors.phoneNumber?.message} className="h-10 rounded-2xl text-sm" />
+
+                                            <div className="flex gap-2 pt-2 border-t border-border/40">
+                                                <Button type="submit" className="h-10 rounded-3xl font-bold text-xs px-6 shadow-sm" disabled={isLoading}>
+                                                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4 mr-2" /> Save Details</>}
+                                                </Button>
+                                                <Button type="button" variant="outline" className="h-10 rounded-3xl font-bold text-xs px-6" onClick={(e) => { e.stopPropagation(); setEditingField(null); reset(); }}>
+                                                    Cancel
+                                                </Button>
                                             </div>
                                         </form>
                                     ) : (
-                                        <p className="text-sm font-bold text-foreground">{user.firstName} {user.lastName}</p>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <p className="text-[10px] font-bold text-muted-foreground tracking-widest mb-0.5">Full Name</p>
+                                                <p className="text-sm font-bold text-foreground">{user.firstName} {user.lastName}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                                {user.phoneNumber || <span className="text-xs font-medium italic text-muted-foreground">Not provided</span>}
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                                 {!editingField && <ChevronRight className="h-4 w-4 shrink-0 ml-4 text-muted-foreground/30 group-hover:text-primary transition-all" />}
