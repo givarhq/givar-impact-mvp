@@ -35,8 +35,8 @@ export default function AgreementPage() {
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Version: 1.2<br />
-                                    Effective Date: <strong>April 08, 2026</strong>
+                                    Version: 1.3<br />
+                                    Effective Date: <strong>May 24, 2026</strong>
                                 </p>
                                 <p>
                                     By submitting a cause on Givar, you agree to the following terms.
@@ -44,7 +44,7 @@ export default function AgreementPage() {
 
                                 <h2>1. Authority and Accuracy</h2>
                                 <p>You confirm that all information provided about the cause, beneficiary, and vendors is accurate to the best of your knowledge.</p>
-                                <p>You also confirm that you are authorised to submit this cause and represent the beneficiary or their interests where reasonably possible.</p>
+                                <p>You also confirm that you are authorised to submit this cause and have obtained any consent or authorisation reasonably required to share the information, documents, and images provided in connection with the cause.</p>
 
                                 <h2>2. Beneficiary Awareness</h2>
                                 <p>You confirm that the beneficiary or their legal guardian is aware of and has authorised the fundraising effort where reasonably possible given the circumstances.</p>
@@ -67,10 +67,14 @@ export default function AgreementPage() {
                                 <h2>6. Updates and Transparency</h2>
                                 <p>You agree to maintain the accuracy of vendor contact information and reasonably cooperate with the Givar team to maintain transparency for donors.</p>
 
-                                <h2>7. Misrepresentation</h2>
+                                <h2>7. Beneficiary Consent and Indemnification</h2>
+                                <p>You are responsible for ensuring that you have the necessary permissions, consents, and authorisations to submit the information, documents, and images provided in connection with a cause.</p>
+                                <p>You agree to indemnify and hold Givar harmless from claims arising from inaccurate information, unauthorised disclosures, or a lack of required consent relating to your submission.</p>
+
+                                <h2>8. Misrepresentation</h2>
                                 <p>Knowingly submitting false, misleading, or unauthorised causes may result in account suspension and potential legal reporting.</p>
 
-                                <h2>8. Contact</h2>
+                                <h2>9. Contact</h2>
                                 <p>For questions regarding cause submissions, please contact: <strong>support@givarapp.com</strong></p>
                             </div>
                         </div>

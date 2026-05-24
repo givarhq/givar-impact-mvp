@@ -35,8 +35,8 @@ export default function AcceptableUsePolicyPage() {
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Version: 1.1<br />
-                                    Effective Date: <strong>March 18, 2026</strong>
+                                    Version: 1.2<br />
+                                    Effective Date: <strong>May 24, 2026</strong>
                                 </p>
                                 <p>
                                     This Acceptable Use Policy outlines the types of activities, causes, and fundraising purposes permitted on the Givar platform.
@@ -53,13 +53,14 @@ export default function AcceptableUsePolicyPage() {
                                     <li>Community development initiatives</li>
                                     <li>Disaster relief and emergency support</li>
                                     <li>Essential welfare support for vulnerable individuals or groups</li>
+                                    <li>Livelihood and economic empowerment initiatives intended to help individuals or communities achieve sustainable self-sufficiency.</li>
                                 </ul>
                                 <p>All campaigns are subject to internal review and verification before publication.</p>
 
                                 <h2>2. Prohibited Campaign Types</h2>
                                 <p>The following activities are strictly prohibited on the platform:</p>
                                 <ul>
-                                    <li>Fundraising for business ventures, investments, or commercial projects</li>
+                                    <li>Fundraising for speculative business ventures, commercial expansion, investment opportunities, or profit-driven enterprises not primarily intended for basic livelihood support or community empowerment.</li>
                                     <li>Campaigns offering financial returns, profit sharing, interest payments, or equity participation</li>
                                     <li>Political fundraising or lobbying activities</li>
                                     <li>Illegal activities or causes that violate local or international laws</li>
