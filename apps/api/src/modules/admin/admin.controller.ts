@@ -358,4 +358,19 @@ export class AdminController {
   ) {
     return this.service.rejectAmendment(req.user.id, messageId, feedback);
   }
+
+  // --- REPORTING ENDPOINTS ---
+  @Get('projects/:id/reports')
+  getProjectReports(@Param('id') id: string) {
+    return this.service.getProjectReports(id);
+  }
+
+  @Patch('reports/:id/resolve')
+  resolveProjectReport(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: { status: 'RESOLVED' | 'DISMISSED'; feedback: string; reinstateProject: boolean }
+  ) {
+    return this.service.resolveProjectReport(req.user.id, id, dto);
+  }
 }
