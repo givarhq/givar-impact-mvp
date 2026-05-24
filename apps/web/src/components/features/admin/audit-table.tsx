@@ -11,7 +11,8 @@ import {
     FileJson,
     User,
     Monitor,
-    ShieldCheck
+    ShieldCheck,
+    FileText
 } from 'lucide-react';
 import { formatDate } from '../../../lib/utils/format';
 import { Badge } from '../../ui/badge';
@@ -22,7 +23,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 const getActionStyle = (action: string) => {
     if (action.includes('LOGIN')) return { icon: LogIn, color: 'text-blue-600', bg: 'bg-blue-500/10', border: 'border-blue-500/10' };
     if (action.includes('WALLET') || action.includes('PAYMENT')) return { icon: CreditCard, color: 'text-emerald-600', bg: 'bg-emerald-500/10', border: 'border-emerald-500/10' };
-    if (action.includes('FAILED') || action.includes('RESTRICT') || action.includes('SUSPEND')) return { icon: ShieldAlert, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/10' };
+    if (action.includes('AMENDMENT_REQUESTED')) return { icon: FileText, color: 'text-purple-600', bg: 'bg-purple-500/10', border: 'border-purple-500/10' };
+    if (action.includes('AMENDMENT_APPROVED')) return { icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-500/10', border: 'border-emerald-500/10' };
+    if (action.includes('FAILED') || action.includes('RESTRICT') || action.includes('SUSPEND') || action.includes('REJECT')) return { icon: ShieldAlert, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/10' };
     if (action.includes('VERIFIED') || action.includes('RESTORE')) return { icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-500/10', border: 'border-emerald-500/10' };
     return { icon: Activity, color: 'text-muted-foreground', bg: 'bg-muted', border: 'border-border/40' };
 };

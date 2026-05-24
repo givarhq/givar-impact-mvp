@@ -131,6 +131,9 @@ export const AuditFilters = memo(function AuditFilters() {
         <SelectItem value="USER_VERIFIED" className="text-xs">Entity KYC Verified</SelectItem>
         <SelectItem value="USER_REJECTED" className="text-xs">Entity KYC Rejected</SelectItem>
         <SelectItem value="MESSAGE_SENT" className="text-xs">Official Message Sent</SelectItem>
+        <SelectItem value="AMENDMENT_REQUESTED" className="text-xs">Amendment Requested</SelectItem>
+        <SelectItem value="AMENDMENT_APPROVED" className="text-xs">Amendment Approved</SelectItem>
+        <SelectItem value="AMENDMENT_REJECTED" className="text-xs">Amendment Declined</SelectItem>
       </SelectGroup>
 
       <SelectGroup>
