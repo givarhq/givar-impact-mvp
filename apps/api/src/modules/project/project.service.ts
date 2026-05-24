@@ -616,7 +616,6 @@ export class ProjectService {
 
     if (!project) throw new NotFoundException('Project not found');
 
-    // Strict string matching to trigger automatic defensive protocols
     const isUnauthorizedBeneficiary = dto.reason === "I am the beneficiary and did not authorise this cause.";
 
     return this.prisma.$transaction(async (tx) => {
@@ -631,13 +630,7 @@ export class ProjectService {
       });
 
       if (isUnauthorizedBeneficiary) {
-        // Auto-suspend the project to lock the checkout gateway
-        await tx.project.update({
-          where: { id },
-          data: { status: 'SUSPENDED' as any, isActive: false }
-        });
-
-        // Trigger immediate administrative escalation (In-App)
+        // Trigger immediate administrative escalation (In-App) without auto-suspending
         const admins = await tx.user.findMany({
           where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
           select: { id: true }
@@ -648,9 +641,9 @@ export class ProjectService {
             data: admins.map(admin => ({
               userId: admin.id,
               type: 'SYSTEM' as any,
-              title: 'Critical: Cause auto-suspended',
-              content: `A beneficiary reported "${project.title}" as unauthorized. The cause has been suspended pending review.`,
-              link: `/admin/projects?search=${id}`
+              title: 'Critical: Cause flagged by beneficiary',
+              content: `A beneficiary reported "${project.title}" as unauthorized. Manual review required.`,
+              link: `/admin/projects/${id}/edit?tab=disputes`
             }))
           });
         }
@@ -664,7 +657,7 @@ export class ProjectService {
         metadata: {
           reporterEmail: dto.reporterEmail,
           reason: dto.reason,
-          autoSuspended: isUnauthorizedBeneficiary
+          isHighRisk: isUnauthorizedBeneficiary
         }
       }, tx);
 
@@ -676,22 +669,12 @@ export class ProjectService {
       }).catch(err => this.logger.error(`Reporter Email Failed: ${err.message}`));
 
       if (isUnauthorizedBeneficiary) {
-        // 2. Alert the Admins
+        // 2. Alert the Admins (High Priority)
         this.emailService.sendAdminProjectReportedAlert({
           projectTitle: project.title,
           reason: dto.reason,
           projectId: id
         }).catch(err => this.logger.error(`Admin Report Email Failed: ${err.message}`));
-
-        // 3. Alert the Project Organizer (Suspension Notice)
-        if (project.user?.email) {
-          this.emailService.sendReportReceivedOrganizer(project.user.email, {
-            name: project.user.firstName,
-            projectName: project.title,
-            reason: dto.reason,
-            projectId: id
-          }).catch(err => this.logger.error(`Organizer Suspension Email Failed: ${err.message}`));
-        }
       }
       return result;
     });

@@ -439,7 +439,8 @@ export class EmailService {
 
     if (admins.length === 0) return;
 
-    const url = `${this.config.get('FRONTEND_URL')}/admin/projects?search=${data.projectId}`;
+    // Direct the admin straight to the project edit console where the new "Disputes" tab lives
+    const url = `${this.config.get('FRONTEND_URL')}/admin/projects/${data.projectId}/edit?tab=disputes`;
 
     await Promise.allSettled(
       admins.map(admin => {
@@ -449,7 +450,7 @@ export class EmailService {
           reason: data.reason,
           url
         });
-        const html = EmailTemplates.base(content, 'Critical: Cause Suspended');
+        const html = EmailTemplates.base(content, 'Critical: Cause Flagged');
         return this.send(admin.email, `Givar Admin: Urgent Report for ${data.projectTitle}`, html);
       })
     );
@@ -459,13 +460,6 @@ export class EmailService {
     const content = EmailTemplates.reportReceivedReporter(data);
     const html = EmailTemplates.base(content, 'Report Received');
     return this.send(email, `Givar: We received your report`, html);
-  }
-
-  async sendReportReceivedOrganizer(email: string, data: { name: string; projectName: string; reason: string; projectId: string }) {
-    const url = `${this.config.get('FRONTEND_URL')}/dashboard/projects/${data.projectId}/manage`;
-    const content = EmailTemplates.reportReceivedOrganizer({ ...data, url });
-    const html = EmailTemplates.base(content, 'Important: Cause Suspended');
-    return this.send(email, `Givar Action Required: Cause Suspended`, html);
   }
 
   async sendReportResolvedReporter(email: string, data: { projectName: string; actionTaken: string }) {

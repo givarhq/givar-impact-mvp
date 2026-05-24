@@ -643,7 +643,7 @@ export const EmailTemplates = {
       </p>
     </div>
 
-    <p>The system has automatically suspended the cause to halt donations. Immediate administrative review is required.</p>
+    <p><strong>This cause has NOT been automatically suspended.</strong> Please review the report immediately and determine if a manual suspension is required to halt incoming donations.</p>
 
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.url}" class="button" style="background-color: #e11d48;">Review report</a>
