@@ -54,7 +54,8 @@ export class AdminService {
       evidenceStats,
       activeOrganizerCount,
       categories,
-      pendingEvidenceCount
+      pendingEvidenceCount,
+      pendingReportsCount
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { createdAt: { lt: thirtyDaysAgo } } }),
@@ -75,7 +76,8 @@ export class AdminService {
       this.prisma.milestoneProof.groupBy({ by: ['status'], _count: true }),
       this.prisma.project.groupBy({ by: ['userId'], where: { status: 'ACTIVE' }, _count: true }).then(r => r.length),
       this.prisma.category.findMany({ select: { id: true, name: true } }),
-      this.prisma.milestoneProof.count({ where: { status: 'PENDING' } })
+      this.prisma.milestoneProof.count({ where: { status: 'PENDING' } }),
+      this.prisma.projectReport.count({ where: { status: 'PENDING' } })
     ]);
 
     const catPerf = categories.map(cat => {
@@ -113,7 +115,6 @@ export class AdminService {
     const orgMap = new Map(organizationStats.map(o => [o.status, o._count]));
 
     // Accurate Liquidity Calculation: Total Active Project Funds + Admin Platform Fees/Tips
-    // (Suspense removed from platform architecture)
     const projectVolume = projects.reduce((acc, p) => acc + p.raisedAmount, 0n);
     const revenueVolume = systemWallets.reduce((acc, w) => acc + w.balance, 0n);
     const totalVolumeNGN = projectVolume + revenueVolume;
@@ -124,7 +125,11 @@ export class AdminService {
     let riskCount = 0;
     let riskLabel = 'System healthy';
 
-    if (pendingKyc > 0) {
+    if (pendingReportsCount > 0) {
+      dominantRisk = 'PROJECT_REPORTS';
+      riskCount = pendingReportsCount;
+      riskLabel = 'Active Reports';
+    } else if (pendingKyc > 0) {
       dominantRisk = 'KYC_PENDING';
       riskCount = pendingKyc;
       riskLabel = 'Pending KYC';
@@ -143,7 +148,8 @@ export class AdminService {
         pendingKycCount: pendingKyc,
         dominantRisk,
         riskLabel,
-        riskCount
+        riskCount,
+        pendingReportsCount
       },
       financials: {
         recentTrends,
@@ -3341,5 +3347,77 @@ export class AdminService {
     });
 
     return updated;
+  }
+
+  async getProjectReports(projectId: string) {
+    return this.prisma.projectReport.findMany({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async resolveProjectReport(
+    adminId: string,
+    reportId: string,
+    dto: { status: 'RESOLVED' | 'DISMISSED'; feedback: string; reinstateProject: boolean }
+  ) {
+    const report = await this.prisma.projectReport.findUnique({
+      where: { id: reportId },
+      include: { project: { include: { user: { select: { email: true, firstName: true } } } } }
+    });
+
+    if (!report) throw new NotFoundException('Report not found');
+    if (report.status !== 'PENDING') throw new BadRequestException('Report has already been resolved');
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updatedReport = await tx.projectReport.update({
+        where: { id: reportId },
+        data: { status: dto.status }
+      });
+
+      if (dto.reinstateProject && report.project.status === 'SUSPENDED') {
+        await tx.project.update({
+          where: { id: report.projectId },
+          data: { status: ProjectStatus.ACTIVE, isActive: true }
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.PROJECT_UPDATED,
+          entityId: report.projectId,
+          entityType: 'Project',
+          metadata: {
+            action: 'REPORT_RESOLVED',
+            reportId,
+            status: dto.status,
+            reinstated: dto.reinstateProject,
+            feedback: dto.feedback
+          }
+        }
+      });
+
+      return updatedReport;
+    });
+
+    // 1. Alert the original reporter
+    this.emailService.sendReportResolvedReporter(report.reporterEmail, {
+      projectName: report.project.title,
+      actionTaken: dto.feedback
+    }).catch(e => this.logger.error(`Reporter resolution email failed: ${e.message}`));
+
+    // 2. Alert the project owner
+    if (report.project.user?.email) {
+      this.emailService.sendReportResolvedOrganizer(report.project.user.email, {
+        name: report.project.user.firstName,
+        projectName: report.project.title,
+        status: dto.status === 'DISMISSED' ? 'REINSTATED' : 'ACTION TAKEN',
+        feedback: dto.feedback,
+        projectId: report.projectId
+      }).catch(e => this.logger.error(`Organizer resolution email failed: ${e.message}`));
+    }
+
+    return result;
   }
 }

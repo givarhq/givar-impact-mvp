@@ -253,6 +253,9 @@ export const ApiService = {
 
     joinWaitlist: (id: string, email: string) =>
       apiClient.post(`/projects/${id}/waitlist`, { email }).then(r => r.data),
+
+    report: (id: string, data: { reporterEmail: string; reason: string; description?: string }) =>
+      apiClient.post(`/projects/${id}/report`, data).then(r => r.data),
   },
 
   // --- DONATIONS ---
@@ -518,6 +521,12 @@ export const ApiService = {
 
     rejectAmendment: (messageId: string, feedback: string) =>
       apiClient.patch(`/admin/communication/amendment/${messageId}/reject`, { feedback }).then(r => r.data),
+
+    getProjectReports: (token: string, projectId: string) =>
+      serverFetch<any[]>(`/admin/projects/${projectId}/reports`, token, { tags: [`admin-reports-${projectId}`] }),
+
+    resolveProjectReport: (id: string, data: { status: 'RESOLVED' | 'DISMISSED', feedback: string, reinstateProject: boolean }) =>
+      apiClient.patch(`/admin/reports/${id}/resolve`, data).then(r => r.data),
   },
 
   recommendations: {

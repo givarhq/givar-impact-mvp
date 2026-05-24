@@ -15,7 +15,9 @@ import {
     Users,
     FileText,
     Building2,
-    History
+    History,
+    Flag,
+    Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -32,6 +34,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { calculatePhaseFunding } from '@givar/types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
+import { Input } from '../../ui/input';
+import { Textarea } from '../../ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { ApiService } from '../../../services/api';
+import toast from 'react-hot-toast';
 
 interface ProjectDetailsClientProps {
     project: ProjectWithDetails & { subcategoryName?: string };
@@ -53,6 +61,13 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
+    // Reporting State
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isReporting, setIsReporting] = useState(false);
+    const [reportReason, setReportReason] = useState('');
+    const [reportEmail, setReportEmail] = useState('');
+    const [reportDesc, setReportDesc] = useState('');
+
     const donateLink = isPublic
         ? `/explore/${project.slug}/donate`
         : `/dashboard/impact/${project.slug}/donate`;
@@ -64,7 +79,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const budget = Array.isArray(project.budgetBreakdown) ? project.budgetBreakdown : [];
     const gallery = Array.isArray(project.gallery) ? project.gallery : [];
 
-    // --- AGGREGATED PHASED FUNDING MATH ---
     const phaseMath = calculatePhaseFunding(project as any);
     const {
         isCompleted,
@@ -108,13 +122,37 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const verMeta = getVerificationMeta();
     const VerIcon = verMeta.icon;
 
-    // Gracefully handle PDF vs Image rendering for the public updates tab
     const handleViewAsset = (url: string, title: string) => {
         const isPdf = url.toLowerCase().includes('.pdf');
         if (isPdf) {
             window.open(url, '_blank');
         } else {
             setLightboxState({ isOpen: true, items: [{ url, type: 'IMAGE', alt: title }], index: 0 });
+        }
+    };
+
+    const submitReport = async () => {
+        if (!reportEmail || !reportReason) {
+            toast.error("Please provide your email and a reason");
+            return;
+        }
+
+        setIsReporting(true);
+        try {
+            await ApiService.projects.report(project.id, {
+                reporterEmail: reportEmail,
+                reason: reportReason,
+                description: reportDesc
+            });
+            toast.success("Report submitted successfully. Our trust & safety team will review this immediately.");
+            setIsReportModalOpen(false);
+            setReportReason('');
+            setReportEmail('');
+            setReportDesc('');
+        } catch (e) {
+            toast.error("Failed to submit report. Please try again.");
+        } finally {
+            setIsReporting(false);
         }
     };
 
@@ -132,6 +170,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         <Badge variant="secondary" className="rounded-3xl font-bold text-xs px-3 py-1 border-none bg-muted">
                             {displayCategory}
                         </Badge>
+                        {project.status === 'SUSPENDED' && (
+                            <Badge variant="destructive" className="rounded-3xl font-bold text-xs px-3 py-1 shadow-none gap-1.5">
+                                <AlertTriangle className="h-3.5 w-3.5" /> Suspended
+                            </Badge>
+                        )}
                     </div>
                     <h1 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
                         {project.title}
@@ -502,7 +545,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                     <div className="space-y-3">
                         <div className="hidden md:block space-y-3">
-                            {(!isCompleted && !isFundedState && !isPhaseFull) && (
+                            {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') && (
                                 <Link href={donateLink} className="block w-full">
                                     <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
                                         Fund this impact
@@ -577,6 +620,15 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                             <strong className="text-emerald-800">Givar Protocol:</strong> Funds are paid directly to verified institutions or service providers (such as hospitals or schools), not to organisers or individuals.
                         </p>
                     </div>
+
+                    <div className="flex justify-center pt-2 pb-6">
+                        <button
+                            onClick={() => setIsReportModalOpen(true)}
+                            className="text-[11px] font-bold text-muted-foreground/50 hover:text-destructive transition-colors flex items-center gap-1.5 outline-none active:scale-95"
+                        >
+                            <Flag className="h-3 w-3" /> Report this cause
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -584,7 +636,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
                 isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
             )}>
-                {(!isCompleted && !isFundedState && !isPhaseFull) ? (
+                {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') ? (
                     <>
                         <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
                             <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
@@ -612,6 +664,86 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
             </div>
 
             <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} />
+
+            <Dialog open={isReportModalOpen} onOpenChange={(open) => !open && !isReporting && setIsReportModalOpen(false)}>
+                <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md w-[95vw]">
+                    <DialogHeader className="pb-2">
+                        <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                            <Flag className="h-5 w-5 text-destructive" /> Report Cause
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-5 pt-2">
+                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                            If you believe this cause violates our policies or uses your identity without permission, please let us know immediately.
+                        </p>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Your email address</label>
+                            <Input
+                                placeholder="name@example.com"
+                                type="email"
+                                value={reportEmail}
+                                onChange={(e) => setReportEmail(e.target.value)}
+                                className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm"
+                                disabled={isReporting}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Reason for reporting</label>
+                            <Select value={reportReason} onValueChange={setReportReason} disabled={isReporting}>
+                                <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-xs font-bold">
+                                    <SelectValue placeholder="Select a reason..." />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl shadow-xl border-border/40">
+                                    <SelectItem value="I am the beneficiary and did not authorise this cause." className="text-xs py-2.5 font-bold text-destructive">
+                                        I am the beneficiary and did not authorise this cause
+                                    </SelectItem>
+                                    <SelectItem value="Fraudulent or misleading information" className="text-xs py-2.5 font-bold">
+                                        Fraudulent or misleading information
+                                    </SelectItem>
+                                    <SelectItem value="Inappropriate content" className="text-xs py-2.5 font-bold">
+                                        Inappropriate content
+                                    </SelectItem>
+                                    <SelectItem value="Other" className="text-xs py-2.5 font-bold">
+                                        Other
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Additional details (Optional)</label>
+                            <Textarea
+                                placeholder="Provide more context to help our investigation..."
+                                value={reportDesc}
+                                onChange={(e) => setReportDesc(e.target.value)}
+                                className="min-h-[100px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm resize-none"
+                                disabled={isReporting}
+                            />
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setIsReportModalOpen(false)}
+                                disabled={isReporting}
+                                className="flex-1 rounded-3xl font-bold text-xs"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={submitReport}
+                                disabled={isReporting || !reportEmail || !reportReason}
+                                className="flex-1 rounded-3xl font-bold text-xs shadow-md border-0"
+                            >
+                                {isReporting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit report"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <ImageLightbox
                 isOpen={lightboxState.isOpen}
