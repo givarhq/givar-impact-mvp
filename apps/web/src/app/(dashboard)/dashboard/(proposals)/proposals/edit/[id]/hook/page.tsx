@@ -18,6 +18,18 @@ import { Controller, useForm } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getCookie } from 'cookies-next';
 
+const RELATIONSHIP_OPTIONS = [
+  'Parent',
+  'Legal Guardian',
+  'Spouse/Partner',
+  'Child',
+  'Sibling',
+  'Other Family Member',
+  'Friend',
+  'Community/Religious Representative',
+  'Healthcare Worker/Caregiver',
+];
+
 export default function HookPage() {
   const router = useRouter();
   const params = useParams();
@@ -35,6 +47,8 @@ export default function HookPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP' | null>(null);
   const [userAccountType, setUserAccountType] = useState<string>('INDIVIDUAL');
+
+  const [relSelect, setRelSelect] = useState<string>('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,6 +85,15 @@ export default function HookPage() {
           setTargetType(parsedAccountType === 'ORGANIZER' ? 'INDIVIDUAL' : 'OTHER');
         }
 
+        // Initialize structured taxonomy relationship state
+        if (activeData.beneficiaryRelationship && activeData.beneficiaryRelationship !== 'Self') {
+          if (RELATIONSHIP_OPTIONS.includes(activeData.beneficiaryRelationship)) {
+            setRelSelect(activeData.beneficiaryRelationship);
+          } else {
+            setRelSelect('Other');
+          }
+        }
+
       } catch (error) {
         toast.error("Draft failed to load");
         router.push('/dashboard/proposals');
@@ -90,7 +113,6 @@ export default function HookPage() {
   const selectedCategoryName = selectedCategoryObj?.name?.toLowerCase() || '';
   const availableSubcategories = selectedCategoryObj?.subcategories || [];
 
-  // Contextual Label Generator
   const getDynamicLabels = () => {
     const isOrg = userAccountType === 'ORGANIZER';
 
@@ -148,7 +170,6 @@ export default function HookPage() {
     );
   }
 
-  // Formatting Handlers
   const handleBlurTitle = () => { if (title) updateField('title', toTitleCase(title)); };
   const handleBlurShortDesc = () => { if (shortDesc) updateField('shortDesc', toSentenceCase(shortDesc)); };
   const handleBlurPersonalMessage = () => { if (personalMessage) updateField('personalMessage', toSentenceCase(personalMessage)); };
@@ -163,20 +184,21 @@ export default function HookPage() {
       updateField('beneficiaryContact', null);
       updateField('organizationName', null);
       updateField('contactPhone', null);
+      setRelSelect('');
     } else if (type === 'GROUP') {
       updateField('beneficiaryRelationship', null);
       updateField('beneficiaryName', null);
       updateField('beneficiaryAge', null);
       updateField('beneficiaryContact', null);
+      setRelSelect('');
     } else {
-      // OTHER or INDIVIDUAL
       updateField('organizationName', null);
       updateField('contactPhone', null);
       updateField('beneficiaryRelationship', null);
+      setRelSelect('');
     }
   };
 
-  // Validation Logic
   const strippedDescription = description ? description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim() : '';
   const titleValid = !!(title && title.trim().length >= 10);
   const locationValid = !!(location && location.trim().length >= 2);
@@ -204,7 +226,6 @@ export default function HookPage() {
               className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
             />
 
-            {/* SECTOR CLASSIFICATION */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
               <div className="space-y-1.5 min-w-0">
                 <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary sector</label>
@@ -272,7 +293,6 @@ export default function HookPage() {
               </div>
             </div>
 
-            {/* WHO IS THIS CAUSE FOR */}
             <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
               <label className="text-[11px] font-bold text-muted-foreground flex items-center h-4">Who is this cause for?</label>
               <div className="flex flex-wrap gap-3">
@@ -358,20 +378,57 @@ export default function HookPage() {
                       onChange={(e) => updateField('beneficiaryAge', parseInt(e.target.value))}
                       className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                     />
+                    <div className="space-y-1.5 min-w-0">
+                      <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">{dynamicLabels.relLabel}</label>
+                      <Select
+                        value={relSelect}
+                        onValueChange={(val) => {
+                          setRelSelect(val);
+                          if (val !== 'Other') {
+                            updateField('beneficiaryRelationship', val);
+                          } else {
+                            updateField('beneficiaryRelationship', '');
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-12 rounded-2xl border-border/60 bg-card focus:bg-background font-medium text-sm">
+                          <SelectValue placeholder="Select relationship..." />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                          {RELATIONSHIP_OPTIONS.map(opt => (
+                            <SelectItem key={opt} value={opt} className="rounded-xl text-xs py-2.5 font-bold">{opt}</SelectItem>
+                          ))}
+                          <SelectItem value="Other" className="rounded-xl text-xs py-2.5 font-bold text-primary">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <Input
-                      label={dynamicLabels.relLabel}
-                      placeholder="e.g. Parent, Sibling, Friend"
-                      value={beneficiaryRelationship || ''}
-                      onChange={(e) => updateField('beneficiaryRelationship', e.target.value)}
-                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                    />
-                    <Input
-                      label="Phone number (optional)"
+                      label="Patient / Representative Phone Number (Optional)"
                       placeholder="Direct contact number"
                       value={beneficiaryContact || ''}
                       onChange={(e) => updateField('beneficiaryContact', e.target.value)}
                       className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                     />
+
+                    <AnimatePresence>
+                      {relSelect === 'Other' && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="col-span-1 md:col-span-2"
+                        >
+                          <Input
+                            label="Specify Relationship"
+                            placeholder="Describe the relationship..."
+                            value={beneficiaryRelationship || ''}
+                            onChange={(e) => updateField('beneficiaryRelationship', e.target.value)}
+                            className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 )}
                 {targetType === 'GROUP' && (
@@ -454,7 +511,7 @@ export default function HookPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
-            <div className="w-full sm:w-auto" /> {/* Spacer */}
+            <div className="w-full sm:w-auto" />
 
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               {!isHookValid && (

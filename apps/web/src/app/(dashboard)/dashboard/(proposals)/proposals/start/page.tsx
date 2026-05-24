@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import {
     Loader2, ArrowRight, ShieldCheck, AlertCircle, ListChecks,
     Image as ImageIcon, FileText, User, Users, Clock, Database,
-    Hourglass, CheckCircle2, ChevronRight, Building2, Tag
+    Hourglass, CheckCircle2, ChevronRight, Building2, Tag, Phone
 } from 'lucide-react';
 import { cn } from '../../../../../../lib/utils/cn';
 import Link from 'next/link';
@@ -60,6 +60,12 @@ export default function StartProposalPage() {
     const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP' | null>(null);
     const [isGateCheckComplete, setIsGateCheckComplete] = useState(false);
 
+    // New Phone Number State
+    const [localUser, setLocalUser] = useState<any>(null);
+    const [hasPhoneNumber, setHasPhoneNumber] = useState(true);
+    const [phoneInput, setPhoneInput] = useState('');
+    const [isSavingPhone, setIsSavingPhone] = useState(false);
+
     useEffect(() => {
         const userCookie = getCookie('givar_user');
         let parsedUser: any = null;
@@ -67,10 +73,12 @@ export default function StartProposalPage() {
         if (userCookie) {
             try {
                 parsedUser = JSON.parse(userCookie as string);
+                setLocalUser(parsedUser);
                 setIsEmailUnverified(parsedUser.emailVerified === false);
                 setOrgStatus(parsedUser.organization?.status || 'NOT_SUBMITTED');
                 setOrgKycType(parsedUser.organization?.kycType || null);
                 setUserAccountType(parsedUser.accountType || 'INDIVIDUAL');
+                setHasPhoneNumber(!!parsedUser.phoneNumber);
             } catch (e) {
                 setIsEmailUnverified(false);
             }
@@ -193,10 +201,30 @@ export default function StartProposalPage() {
             setValue('beneficiaryAge', null as any, { shouldValidate: true });
             setValue('beneficiaryContact', null as any, { shouldValidate: true });
         } else {
-            // OTHER or INDIVIDUAL
             setValue('organizationName', null as any, { shouldValidate: true });
             setValue('contactPhone', null as any, { shouldValidate: true });
             setValue('beneficiaryRelationship', null as any, { shouldValidate: true });
+        }
+    };
+
+    const savePhoneNumber = async () => {
+        setIsSavingPhone(true);
+        try {
+            await ApiService.auth.updateProfile({
+                firstName: localUser.firstName,
+                lastName: localUser.lastName,
+                phoneNumber: phoneInput
+            } as any);
+
+            const updatedUser = { ...localUser, phoneNumber: phoneInput };
+            setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 604800, path: '/' });
+            setLocalUser(updatedUser);
+            setHasPhoneNumber(true);
+            toast.success("Phone number saved securely");
+        } catch (e) {
+            toast.error("Failed to save phone number");
+        } finally {
+            setIsSavingPhone(false);
         }
     };
 
@@ -210,7 +238,7 @@ export default function StartProposalPage() {
     }
 
     const onSubmit = async (data: StartFormValues) => {
-        if (isEmailUnverified || orgStatus !== 'VERIFIED') return;
+        if (isEmailUnverified || orgStatus !== 'VERIFIED' || !hasPhoneNumber) return;
 
         if (targetType === null) {
             toast.error('Please indicate who this cause is for.');
@@ -243,7 +271,7 @@ export default function StartProposalPage() {
     }
 
     const isUpgradeRequired = userAccountType === 'ORGANIZER' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
-    const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED' && !isUpgradeRequired;
+    const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED' && !isUpgradeRequired && hasPhoneNumber;
 
     if (!isReadyToStart) {
         return (
@@ -362,6 +390,50 @@ export default function StartProposalPage() {
                                 )}
                             </Link>
                         )}
+
+                        {/* Step 3: Contact Information */}
+                        {!hasPhoneNumber ? (
+                            <div className="flex flex-col gap-4 p-4 rounded-2xl border bg-muted/10 border-border/40">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-colors bg-amber-500/10 text-amber-600 border-amber-500/20">
+                                        <Phone className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-foreground">Contact information</p>
+                                        <p className="text-xs text-muted-foreground font-medium">A valid phone number is required</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/40">
+                                    <Input
+                                        placeholder="+234..."
+                                        value={phoneInput}
+                                        onChange={e => setPhoneInput(e.target.value)}
+                                        className="h-10 rounded-2xl text-xs bg-background"
+                                        disabled={isSavingPhone}
+                                    />
+                                    <Button
+                                        onClick={savePhoneNumber}
+                                        disabled={!phoneInput || isSavingPhone}
+                                        className="h-10 rounded-2xl font-bold text-xs shrink-0"
+                                    >
+                                        {isSavingPhone ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Number'}
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 border shadow-inner transition-colors bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                                        <CheckCircle2 className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-foreground">Contact information</p>
+                                        <p className="text-xs text-muted-foreground font-medium">Phone number verified</p>
+                                    </div>
+                                </div>
+                                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 shadow-none font-bold text-[11px] px-3 py-1 rounded-full">Saved</Badge>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -371,8 +443,6 @@ export default function StartProposalPage() {
     return (
         <div className="max-w-5xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
-
-                {/* Left Column: Form */}
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
@@ -393,7 +463,6 @@ export default function StartProposalPage() {
                                         className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
                                     />
 
-                                    {/* SECTOR CLASSIFICATION */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
                                         <div className="space-y-1.5 min-w-0">
                                             <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary sector</label>
@@ -459,7 +528,6 @@ export default function StartProposalPage() {
                                         </div>
                                     </div>
 
-                                    {/* WHO IS THIS CAUSE FOR */}
                                     <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
                                         <label className="text-[11px] font-bold text-muted-foreground flex items-center h-4">Who is this cause for?</label>
                                         <div className="flex flex-wrap gap-3">
@@ -543,14 +611,17 @@ export default function StartProposalPage() {
                                                         {...register('beneficiaryAge')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
+
+                                                    {/* Handled dynamically in hook/page.tsx, but basic input here for initiation */}
                                                     <Input
                                                         label={dynamicLabels.relLabel}
                                                         placeholder="e.g. Parent, Sibling, Friend"
                                                         {...register('beneficiaryRelationship')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
+
                                                     <Input
-                                                        label="Phone number (optional)"
+                                                        label="Patient / Representative Phone Number (Optional)"
                                                         placeholder="Direct contact number"
                                                         {...register('beneficiaryContact')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
@@ -601,7 +672,6 @@ export default function StartProposalPage() {
                     </Card>
                 </div>
 
-                {/* Right Column: Preparation Checklist */}
                 <div className="lg:col-span-5 space-y-4 pt-2 lg:pt-0">
                     <div className="flex items-center gap-2 px-2 text-foreground">
                         <ListChecks className="h-5 w-5 text-primary" />
