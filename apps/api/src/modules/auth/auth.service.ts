@@ -417,6 +417,7 @@ export class AuthService {
         email: true,
         firstName: true,
         lastName: true,
+        phoneNumber: true, // Added phone number mapping
         role: true,
         accountType: true,
         emailVerified: true,
@@ -451,14 +452,18 @@ export class AuthService {
     };
   }
 
-  async updateProfile(userId: string, dto: { firstName: string; lastName: string }) {
+  async updateProfile(userId: string, dto: { firstName: string; lastName: string; phoneNumber?: string }) {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: dto,
     });
+
+    // Log distinct actions for phone number capture vs general profile update
+    const action = dto.phoneNumber !== undefined ? 'USER_PHONE_UPDATED' : 'PROFILE_UPDATED';
+
     await this.audit.log({
       userId,
-      action: AuditAction.PROFILE_UPDATED,
+      action: action as any,
       entityId: userId,
       entityType: 'User',
       metadata: { updates: dto }

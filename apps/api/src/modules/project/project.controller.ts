@@ -117,4 +117,13 @@ export class ProjectController {
   async joinWaitlist(@Param('id') id: string, @Body('email') email: string) {
     return this.service.joinWaitlist(id, email);
   }
+
+  @Public()
+  @Post(':id/report')
+  async reportProject(
+    @Param('id') id: string,
+    @Body() dto: { reporterEmail: string; reason: string; description?: string }
+  ) {
+    return this.service.reportProject(id, dto);
+  }
 }

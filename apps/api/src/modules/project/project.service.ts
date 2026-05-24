@@ -607,4 +607,93 @@ export class ProjectService {
 
     return { success: true };
   }
+
+  async reportProject(id: string, dto: { reporterEmail: string; reason: string; description?: string }) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: { user: { select: { email: true, firstName: true } } }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    // Strict string matching to trigger automatic defensive protocols
+    const isUnauthorizedBeneficiary = dto.reason === "I am the beneficiary and did not authorise this cause.";
+
+    return this.prisma.$transaction(async (tx) => {
+      const report = await tx.projectReport.create({
+        data: {
+          projectId: id,
+          reporterEmail: dto.reporterEmail,
+          reason: dto.reason,
+          description: dto.description,
+          status: 'PENDING'
+        }
+      });
+
+      if (isUnauthorizedBeneficiary) {
+        // Auto-suspend the project to lock the checkout gateway
+        await tx.project.update({
+          where: { id },
+          data: { status: 'SUSPENDED' as any, isActive: false }
+        });
+
+        // Trigger immediate administrative escalation (In-App)
+        const admins = await tx.user.findMany({
+          where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+          select: { id: true }
+        });
+
+        if (admins.length > 0) {
+          await tx.notification.createMany({
+            data: admins.map(admin => ({
+              userId: admin.id,
+              type: 'SYSTEM' as any,
+              title: 'Critical: Cause auto-suspended',
+              content: `A beneficiary reported "${project.title}" as unauthorized. The cause has been suspended pending review.`,
+              link: `/admin/projects?search=${id}`
+            }))
+          });
+        }
+      }
+
+      await this.audit.log({
+        userId: undefined, // Public action
+        action: 'PROJECT_REPORTED' as any,
+        entityId: id,
+        entityType: 'Project',
+        metadata: {
+          reporterEmail: dto.reporterEmail,
+          reason: dto.reason,
+          autoSuspended: isUnauthorizedBeneficiary
+        }
+      }, tx);
+
+      return { success: true, message: 'Report submitted successfully' };
+    }).then((result) => {
+      // 1. Email the Reporter (Acknowledgement)
+      this.emailService.sendReportReceivedReporter(dto.reporterEmail, {
+        projectName: project.title
+      }).catch(err => this.logger.error(`Reporter Email Failed: ${err.message}`));
+
+      if (isUnauthorizedBeneficiary) {
+        // 2. Alert the Admins
+        this.emailService.sendAdminProjectReportedAlert({
+          projectTitle: project.title,
+          reason: dto.reason,
+          projectId: id
+        }).catch(err => this.logger.error(`Admin Report Email Failed: ${err.message}`));
+
+        // 3. Alert the Project Organizer (Suspension Notice)
+        if (project.user?.email) {
+          this.emailService.sendReportReceivedOrganizer(project.user.email, {
+            name: project.user.firstName,
+            projectName: project.title,
+            reason: dto.reason,
+            projectId: id
+          }).catch(err => this.logger.error(`Organizer Suspension Email Failed: ${err.message}`));
+        }
+      }
+      return result;
+    });
+  }
 }
