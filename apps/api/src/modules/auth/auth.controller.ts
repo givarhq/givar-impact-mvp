@@ -108,7 +108,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Patch('profile')
-  async updateProfile(@Req() req: any, @Body() dto: { firstName: string; lastName: string }) {
+  async updateProfile(@Req() req: any, @Body() dto: { firstName: string; lastName: string; phoneNumber?: string }) {
     return this.authService.updateProfile(req.user.id, dto);
   }
 
