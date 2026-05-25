@@ -122,7 +122,7 @@ export class ProjectController {
   @Post(':id/report')
   async reportProject(
     @Param('id') id: string,
-    @Body() dto: { reporterEmail: string; reason: string; description?: string }
+    @Body() dto: { reporterEmail: string; reason: import('@givar/database').ReportReason; description?: string }
   ) {
     return this.service.reportProject(id, dto);
   }
