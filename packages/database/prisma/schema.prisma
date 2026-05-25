@@ -189,6 +189,13 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum ReportReason {
+  UNAUTHORIZED_BENEFICIARY
+  FRAUD
+  INAPPROPRIATE
+  OTHER
+}
+
 enum ProposalStatus {
   DRAFT             // User is still writing
   SUBMITTED         // Locked, waiting for admin
@@ -850,7 +857,7 @@ model ProjectReport {
   projectId     String
   project       Project      @relation(fields: [projectId], references: [id])
   reporterEmail String
-  reason        String
+  reason        ReportReason
   description   String?      @db.Text
   status        ReportStatus @default(PENDING)
   

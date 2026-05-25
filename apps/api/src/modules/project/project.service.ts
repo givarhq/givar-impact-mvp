@@ -608,7 +608,9 @@ export class ProjectService {
     return { success: true };
   }
 
-  async reportProject(id: string, dto: { reporterEmail: string; reason: string; description?: string }) {
+  async reportProject(id: string, dto: { reporterEmail: string; reason: import('@givar/database').ReportReason; description?: string }) {
+    const { AuditAction, NotificationType, ReportReason } = await import('@givar/database');
+
     const project = await this.prisma.project.findUnique({
       where: { id },
       include: { user: { select: { email: true, firstName: true } } }
@@ -616,7 +618,18 @@ export class ProjectService {
 
     if (!project) throw new NotFoundException('Project not found');
 
-    const isUnauthorizedBeneficiary = dto.reason === "I am the beneficiary and did not authorise this cause.";
+    // Strict Enum matching ensures business logic cannot be broken by frontend UI text changes
+    const isUnauthorizedBeneficiary = dto.reason === ReportReason.UNAUTHORIZED_BENEFICIARY;
+
+    // Human-readable mapping for emails and in-app notifications
+    const reasonTextMap: Record<typeof ReportReason[keyof typeof ReportReason], string> = {
+      [ReportReason.UNAUTHORIZED_BENEFICIARY]: "I am the beneficiary and did not authorise this cause",
+      [ReportReason.FRAUD]: "Fraudulent or misleading information",
+      [ReportReason.INAPPROPRIATE]: "Inappropriate content",
+      [ReportReason.OTHER]: "Other"
+    };
+
+    const humanReadableReason = reasonTextMap[dto.reason] || dto.reason;
 
     return this.prisma.$transaction(async (tx) => {
       const report = await tx.projectReport.create({
@@ -640,7 +653,7 @@ export class ProjectService {
           await tx.notification.createMany({
             data: admins.map(admin => ({
               userId: admin.id,
-              type: 'SYSTEM' as any,
+              type: NotificationType.SYSTEM, // Strongly typed
               title: 'Critical: Cause flagged by beneficiary',
               content: `A beneficiary reported "${project.title}" as unauthorized. Manual review required.`,
               link: `/admin/projects/${id}/edit?tab=disputes`
@@ -651,7 +664,7 @@ export class ProjectService {
 
       await this.audit.log({
         userId: undefined, // Public action
-        action: 'PROJECT_REPORTED' as any,
+        action: AuditAction.PROJECT_REPORTED, // Strongly typed
         entityId: id,
         entityType: 'Project',
         metadata: {
@@ -670,9 +683,10 @@ export class ProjectService {
 
       if (isUnauthorizedBeneficiary) {
         // 2. Alert the Admins (High Priority)
+        // Pass the human readable english text to the email template
         this.emailService.sendAdminProjectReportedAlert({
           projectTitle: project.title,
-          reason: dto.reason,
+          reason: humanReadableReason,
           projectId: id
         }).catch(err => this.logger.error(`Admin Report Email Failed: ${err.message}`));
       }

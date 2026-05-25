@@ -32,6 +32,14 @@ interface ProjectReportsViewProps {
     projectStatus: string;
 }
 
+// Map the strict database enums back to human-readable strings for the Admin UI
+const REPORT_REASON_MAP: Record<string, string> = {
+    'UNAUTHORIZED_BENEFICIARY': 'I am the beneficiary and did not authorise this cause',
+    'FRAUD': 'Fraudulent or misleading information',
+    'INAPPROPRIATE': 'Inappropriate content',
+    'OTHER': 'Other'
+};
+
 export const ProjectReportsView = memo(function ProjectReportsView({ reports, projectId, projectStatus }: ProjectReportsViewProps) {
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -144,7 +152,7 @@ export const ProjectReportsView = memo(function ProjectReportsView({ reports, pr
                                                     </span>
                                                 </div>
                                                 <h4 className="text-sm font-bold text-foreground leading-tight pt-1">
-                                                    {report.reason}
+                                                    {REPORT_REASON_MAP[report.reason] || report.reason}
                                                 </h4>
                                                 <p className="text-xs text-muted-foreground font-mono">Reported by: {report.reporterEmail}</p>
                                             </div>
@@ -185,7 +193,9 @@ export const ProjectReportsView = memo(function ProjectReportsView({ reports, pr
                     <div className="space-y-6 pt-2">
                         <div className="p-4 rounded-2xl bg-muted/20 border border-border/40 space-y-1.5">
                             <p className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">Target Issue</p>
-                            <p className="text-xs font-bold text-foreground leading-snug">{selectedReport?.reason}</p>
+                            <p className="text-xs font-bold text-foreground leading-snug">
+                                {REPORT_REASON_MAP[selectedReport?.reason || ''] || selectedReport?.reason}
+                            </p>
                         </div>
 
                         <div className="space-y-4">

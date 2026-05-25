@@ -695,16 +695,16 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     <SelectValue placeholder="Select a reason..." />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-2xl shadow-xl border-border/40">
-                                    <SelectItem value="I am the beneficiary and did not authorise this cause." className="text-xs py-2.5 font-bold text-destructive">
+                                    <SelectItem value="UNAUTHORIZED_BENEFICIARY" className="text-xs py-2.5 font-bold text-destructive">
                                         I am the beneficiary and did not authorise this cause
                                     </SelectItem>
-                                    <SelectItem value="Fraudulent or misleading information" className="text-xs py-2.5 font-bold">
+                                    <SelectItem value="FRAUD" className="text-xs py-2.5 font-bold">
                                         Fraudulent or misleading information
                                     </SelectItem>
-                                    <SelectItem value="Inappropriate content" className="text-xs py-2.5 font-bold">
+                                    <SelectItem value="INAPPROPRIATE" className="text-xs py-2.5 font-bold">
                                         Inappropriate content
                                     </SelectItem>
-                                    <SelectItem value="Other" className="text-xs py-2.5 font-bold">
+                                    <SelectItem value="OTHER" className="text-xs py-2.5 font-bold">
                                         Other
                                     </SelectItem>
                                 </SelectContent>
