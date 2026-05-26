@@ -665,7 +665,7 @@ export default function StartProposalPage() {
                                                     </div>
 
                                                     <Input
-                                                        label="Patient / Representative Phone Number (Optional)"
+                                                        label="Patient / Representative Phone (Optional)"
                                                         placeholder="Direct contact number"
                                                         {...register('beneficiaryContact')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"

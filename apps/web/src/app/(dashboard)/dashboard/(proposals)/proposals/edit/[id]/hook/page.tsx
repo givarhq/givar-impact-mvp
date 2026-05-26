@@ -410,7 +410,7 @@ export default function HookPage() {
                     </div>
 
                     <Input
-                      label="Patient / Representative Phone Number (Optional)"
+                      label="Patient / Representative Phone (Optional)"
                       placeholder="Direct contact number"
                       value={beneficiaryContact || ''}
                       onChange={(e) => updateField('beneficiaryContact', e.target.value)}
