@@ -10,6 +10,7 @@ interface IdentitySyncProps {
         email: string;
         firstName: string;
         lastName: string;
+        phoneNumber?: string;
         role: string;
         accountType: string;
         emailVerified: boolean;
@@ -39,6 +40,7 @@ export function IdentitySync({ user }: IdentitySyncProps) {
                     localUser.emailVerified !== user.emailVerified ||
                     localUser.accountType !== user.accountType ||
                     localUser.role !== user.role ||
+                    localUser.phoneNumber !== user.phoneNumber ||
                     localUser.organization?.status !== user.organization?.status ||
                     localUser.organization?.kycType !== user.organization?.kycType;
 

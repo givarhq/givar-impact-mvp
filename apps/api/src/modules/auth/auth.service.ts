@@ -98,6 +98,7 @@ export class AuthService {
         email: result.email,
         firstName: result.firstName,
         lastName: result.lastName,
+        phoneNumber: result.phoneNumber,
         role: result.role,
         emailVerified: result.emailVerified,
         organization: null
@@ -151,8 +152,6 @@ export class AuthService {
       // 3. 2FA Check
       if (user.twoFactorEnabled) {
         if (!dto.twoFactorCode) {
-          // Password is correct, but 2FA is required.
-          // Do not issue JWT yet.
           return { mfaRequired: true };
         }
         const result = await verify({
@@ -211,6 +210,7 @@ export class AuthService {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          phoneNumber: user.phoneNumber,
           role: user.role,
           accountType: user.accountType,
           emailVerified: user.emailVerified,
