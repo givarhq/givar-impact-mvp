@@ -231,7 +231,7 @@ export default function HookPage() {
               className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0 items-end">
               <div className="w-full space-y-1">
                 <label className="text-xs font-bold text-muted-foreground/80 ml-1">Primary sector</label>
                 <Controller
@@ -366,7 +366,7 @@ export default function HookPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden items-end"
                   >
                     <Input
                       label={dynamicLabels.nameLabel}
@@ -410,7 +410,7 @@ export default function HookPage() {
                     </div>
 
                     <Input
-                      label="Patient / Representative Phone (Optional)"
+                      label="Patient / representative phone (optional)"
                       placeholder="Direct contact number"
                       value={beneficiaryContact || ''}
                       onChange={(e) => updateField('beneficiaryContact', e.target.value)}
@@ -426,7 +426,7 @@ export default function HookPage() {
                           className="col-span-1 md:col-span-2"
                         >
                           <Input
-                            label="Specify Relationship"
+                            label="Specify relationship"
                             placeholder="Describe the relationship..."
                             value={beneficiaryRelationship || ''}
                             onChange={(e) => updateField('beneficiaryRelationship', e.target.value)}
@@ -442,7 +442,7 @@ export default function HookPage() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden items-end"
                   >
                     <Input
                       label={dynamicLabels.orgLabel}
@@ -493,7 +493,7 @@ export default function HookPage() {
               className="h-32 rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none"
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0 items-end">
               <Input
                 label="Primary location *"
                 placeholder="e.g. Lagos, Nigeria"

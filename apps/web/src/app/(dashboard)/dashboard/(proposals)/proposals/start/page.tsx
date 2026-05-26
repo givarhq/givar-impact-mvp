@@ -298,7 +298,6 @@ export default function StartProposalPage() {
     const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED' && !isUpgradeRequired && hasPhoneNumber;
 
     if (!isReadyToStart) {
-        // ... (This section remains unchanged, returning the gatekeeper UI)
         return (
             <div className="max-w-2xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
                 <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm">
@@ -490,7 +489,7 @@ export default function StartProposalPage() {
                                         className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background"
                                     />
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0 items-end">
                                         <div className="w-full space-y-1">
                                             <label className="text-xs font-bold text-muted-foreground/80 ml-1">Primary sector</label>
                                             <Controller
@@ -524,8 +523,8 @@ export default function StartProposalPage() {
                                         </div>
 
                                         <div className="w-full space-y-1">
-                                            <label className="text-xs font-bold text-muted-foreground/80 ml-1">
-                                                Specific focus
+                                            <label className="text-xs font-bold text-muted-foreground/80 ml-1 flex items-center gap-1.5">
+                                                <Tag className="h-3 w-3" /> Specific focus
                                             </label>
                                             <Controller
                                                 control={control}
@@ -623,7 +622,7 @@ export default function StartProposalPage() {
                                                     initial={{ opacity: 0, height: 0 }}
                                                     animate={{ opacity: 1, height: 'auto' }}
                                                     exit={{ opacity: 0, height: 0 }}
-                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden items-end"
                                                 >
                                                     <Input
                                                         label={dynamicLabels.nameLabel}
@@ -665,7 +664,7 @@ export default function StartProposalPage() {
                                                     </div>
 
                                                     <Input
-                                                        label="Patient / Representative Phone (Optional)"
+                                                        label="Patient / representative phone (optional)"
                                                         placeholder="Direct contact number"
                                                         {...register('beneficiaryContact')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
@@ -680,7 +679,7 @@ export default function StartProposalPage() {
                                                                 className="col-span-1 md:col-span-2"
                                                             >
                                                                 <Input
-                                                                    label="Specify Relationship"
+                                                                    label="Specify relationship"
                                                                     placeholder="Describe the relationship..."
                                                                     {...register('beneficiaryRelationship')}
                                                                     className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
@@ -695,7 +694,7 @@ export default function StartProposalPage() {
                                                     initial={{ opacity: 0, height: 0 }}
                                                     animate={{ opacity: 1, height: 'auto' }}
                                                     exit={{ opacity: 0, height: 0 }}
-                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden"
+                                                    className="pt-4 grid grid-cols-1 md:grid-cols-2 gap-5 overflow-hidden items-end"
                                                 >
                                                     <Input
                                                         label={dynamicLabels.orgLabel}
