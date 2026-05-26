@@ -166,23 +166,15 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
             <div className="lg:col-span-2 space-y-4 md:space-y-6">
 
                 <div className="space-y-2.5 text-left">
-                    <div className="flex items-center justify-between gap-4 w-full">
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="secondary" className="rounded-3xl font-bold text-xs px-3 py-1 border-none bg-muted">
-                                {displayCategory}
+                    <div className="flex items-center gap-2 flex-wrap w-full">
+                        <Badge variant="secondary" className="rounded-3xl font-bold text-xs px-3 py-1 border-none bg-muted">
+                            {displayCategory}
+                        </Badge>
+                        {project.status === 'SUSPENDED' && (
+                            <Badge variant="destructive" className="rounded-3xl font-bold text-xs px-3 py-1 shadow-none gap-1.5">
+                                <AlertTriangle className="h-3.5 w-3.5" /> Suspended
                             </Badge>
-                            {project.status === 'SUSPENDED' && (
-                                <Badge variant="destructive" className="rounded-3xl font-bold text-xs px-3 py-1 shadow-none gap-1.5">
-                                    <AlertTriangle className="h-3.5 w-3.5" /> Suspended
-                                </Badge>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => setIsReportModalOpen(true)}
-                            className="text-[11px] font-bold text-muted-foreground/60 hover:text-destructive transition-colors flex items-center gap-1.5 outline-none active:scale-95 shrink-0"
-                        >
-                            <Flag className="h-3 w-3" /> Report cause
-                        </button>
+                        )}
                     </div>
                     <h1 className="text-xl md:text-2xl font-bold text-foreground leading-tight">
                         {project.title}
@@ -571,6 +563,14 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <History className="h-4 w-4 text-muted-foreground" /> View donation history
                             </Button>
                         </Link>
+
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsReportModalOpen(true)}
+                            className="w-full h-11 rounded-3xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-bold text-xs gap-2 transition-all active:scale-95"
+                        >
+                            <Flag className="h-4 w-4" /> Report cause
+                        </Button>
                     </div>
 
                     <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
