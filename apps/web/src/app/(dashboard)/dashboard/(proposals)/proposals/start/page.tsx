@@ -48,6 +48,18 @@ interface Category {
     subcategories?: Subcategory[];
 }
 
+const RELATIONSHIP_OPTIONS = [
+    'Parent',
+    'Legal Guardian',
+    'Spouse/Partner',
+    'Child',
+    'Sibling',
+    'Other Family Member',
+    'Friend',
+    'Community/Religious Representative',
+    'Healthcare Worker/Caregiver',
+];
+
 export default function StartProposalPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +77,9 @@ export default function StartProposalPage() {
     const [hasPhoneNumber, setHasPhoneNumber] = useState(true);
     const [phoneInput, setPhoneInput] = useState('');
     const [isSavingPhone, setIsSavingPhone] = useState(false);
+
+    // Relationship Dropdown State
+    const [relSelect, setRelSelect] = useState<string>('');
 
     useEffect(() => {
         const userCookie = getCookie('givar_user');
@@ -195,15 +210,18 @@ export default function StartProposalPage() {
             setValue('beneficiaryContact', null as any, { shouldValidate: true });
             setValue('organizationName', null as any, { shouldValidate: true });
             setValue('contactPhone', null as any, { shouldValidate: true });
+            setRelSelect('');
         } else if (type === 'GROUP') {
             setValue('beneficiaryRelationship', null as any, { shouldValidate: true });
             setValue('beneficiaryName', null as any, { shouldValidate: true });
             setValue('beneficiaryAge', null as any, { shouldValidate: true });
             setValue('beneficiaryContact', null as any, { shouldValidate: true });
+            setRelSelect('');
         } else {
             setValue('organizationName', null as any, { shouldValidate: true });
             setValue('contactPhone', null as any, { shouldValidate: true });
             setValue('beneficiaryRelationship', null as any, { shouldValidate: true });
+            setRelSelect('');
         }
     };
 
@@ -245,6 +263,12 @@ export default function StartProposalPage() {
             return;
         }
 
+        // Additional validation: Ensure relationship is specified if "Other" is selected
+        if ((targetType === 'OTHER' || targetType === 'INDIVIDUAL') && relSelect === 'Other' && !data.beneficiaryRelationship?.trim()) {
+            toast.error('Please specify your relationship to the beneficiary.');
+            return;
+        }
+
         setIsLoading(true);
         try {
             const newProposal = await ApiService.proposals.create({
@@ -274,6 +298,7 @@ export default function StartProposalPage() {
     const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED' && !isUpgradeRequired && hasPhoneNumber;
 
     if (!isReadyToStart) {
+        // ... (This section remains unchanged, returning the gatekeeper UI)
         return (
             <div className="max-w-2xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
                 <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm">
@@ -443,6 +468,8 @@ export default function StartProposalPage() {
     return (
         <div className="max-w-5xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+
+                {/* Left Column: Form */}
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
@@ -464,8 +491,8 @@ export default function StartProposalPage() {
                                     />
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
-                                        <div className="space-y-1.5 min-w-0">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary sector</label>
+                                        <div className="w-full space-y-1">
+                                            <label className="text-xs font-bold text-muted-foreground/80 ml-1">Primary sector</label>
                                             <Controller
                                                 control={control}
                                                 name="categoryId"
@@ -496,9 +523,9 @@ export default function StartProposalPage() {
                                             {errors.categoryId && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.categoryId.message}</p>}
                                         </div>
 
-                                        <div className="space-y-1.5 min-w-0">
-                                            <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5 h-4">
-                                                <Tag className="h-3 w-3" /> Specific focus
+                                        <div className="w-full space-y-1">
+                                            <label className="text-xs font-bold text-muted-foreground/80 ml-1">
+                                                Specific focus
                                             </label>
                                             <Controller
                                                 control={control}
@@ -612,13 +639,30 @@ export default function StartProposalPage() {
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
 
-                                                    {/* Handled dynamically in hook/page.tsx, but basic input here for initiation */}
-                                                    <Input
-                                                        label={dynamicLabels.relLabel}
-                                                        placeholder="e.g. Parent, Sibling, Friend"
-                                                        {...register('beneficiaryRelationship')}
-                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                                    />
+                                                    <div className="w-full space-y-1">
+                                                        <label className="text-xs font-bold text-muted-foreground/80 ml-1">{dynamicLabels.relLabel}</label>
+                                                        <Select
+                                                            value={relSelect}
+                                                            onValueChange={(val) => {
+                                                                setRelSelect(val);
+                                                                if (val !== 'Other') {
+                                                                    setValue('beneficiaryRelationship', val, { shouldValidate: true });
+                                                                } else {
+                                                                    setValue('beneficiaryRelationship', '', { shouldValidate: true });
+                                                                }
+                                                            }}
+                                                        >
+                                                            <SelectTrigger className="h-12 rounded-2xl border-border/60 bg-card focus:bg-background font-medium text-sm">
+                                                                <SelectValue placeholder="Select relationship..." />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="rounded-[22px] shadow-xl border-border/40">
+                                                                {RELATIONSHIP_OPTIONS.map(opt => (
+                                                                    <SelectItem key={opt} value={opt} className="rounded-xl text-xs py-2.5 font-bold">{opt}</SelectItem>
+                                                                ))}
+                                                                <SelectItem value="Other" className="rounded-xl text-xs py-2.5 font-bold text-primary">Other</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
 
                                                     <Input
                                                         label="Patient / Representative Phone Number (Optional)"
@@ -626,6 +670,24 @@ export default function StartProposalPage() {
                                                         {...register('beneficiaryContact')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
+
+                                                    <AnimatePresence>
+                                                        {relSelect === 'Other' && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, height: 0 }}
+                                                                animate={{ opacity: 1, height: 'auto' }}
+                                                                exit={{ opacity: 0, height: 0 }}
+                                                                className="col-span-1 md:col-span-2"
+                                                            >
+                                                                <Input
+                                                                    label="Specify Relationship"
+                                                                    placeholder="Describe the relationship..."
+                                                                    {...register('beneficiaryRelationship')}
+                                                                    className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
+                                                                />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </motion.div>
                                             )}
                                             {targetType === 'GROUP' && (
@@ -652,7 +714,7 @@ export default function StartProposalPage() {
                                         </AnimatePresence>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-center">
+                                <div className="flex items-center justify-center mt-6">
                                     <Button
                                         type="submit"
                                         className="w-auto h-12 rounded-3xl font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0 bg-primary hover:bg-primary/90 text-white"
@@ -672,6 +734,7 @@ export default function StartProposalPage() {
                     </Card>
                 </div>
 
+                {/* Right Column: Preparation Checklist */}
                 <div className="lg:col-span-5 space-y-4 pt-2 lg:pt-0">
                     <div className="flex items-center gap-2 px-2 text-foreground">
                         <ListChecks className="h-5 w-5 text-primary" />

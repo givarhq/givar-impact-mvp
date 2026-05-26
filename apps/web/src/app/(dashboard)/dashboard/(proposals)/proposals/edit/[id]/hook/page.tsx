@@ -85,7 +85,6 @@ export default function HookPage() {
           setTargetType(parsedAccountType === 'ORGANIZER' ? 'INDIVIDUAL' : 'OTHER');
         }
 
-        // Initialize structured taxonomy relationship state
         if (activeData.beneficiaryRelationship && activeData.beneficiaryRelationship !== 'Self') {
           if (RELATIONSHIP_OPTIONS.includes(activeData.beneficiaryRelationship)) {
             setRelSelect(activeData.beneficiaryRelationship);
@@ -203,7 +202,13 @@ export default function HookPage() {
   const titleValid = !!(title && title.trim().length >= 10);
   const locationValid = !!(location && location.trim().length >= 2);
   const descValid = strippedDescription.length >= 20;
-  const isHookValid = titleValid && locationValid && descValid;
+
+  // Validation for "Other" relationship
+  const relationshipValid = targetType === 'OTHER' || targetType === 'INDIVIDUAL'
+    ? (relSelect === 'Other' ? !!(beneficiaryRelationship && beneficiaryRelationship.trim()) : !!relSelect)
+    : true;
+
+  const isHookValid = titleValid && locationValid && descValid && relationshipValid;
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -227,8 +232,8 @@ export default function HookPage() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 min-w-0">
-              <div className="space-y-1.5 min-w-0">
-                <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Primary sector</label>
+              <div className="w-full space-y-1">
+                <label className="text-xs font-bold text-muted-foreground/80 ml-1">Primary sector</label>
                 <Controller
                   control={control}
                   name="categoryId"
@@ -259,8 +264,8 @@ export default function HookPage() {
                 />
               </div>
 
-              <div className="space-y-1.5 min-w-0">
-                <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center gap-1.5 h-4">
+              <div className="w-full space-y-1">
+                <label className="text-xs font-bold text-muted-foreground/80 ml-1 flex items-center gap-1.5">
                   <Tag className="h-3 w-3" /> Specific focus
                 </label>
                 <Controller
@@ -378,8 +383,9 @@ export default function HookPage() {
                       onChange={(e) => updateField('beneficiaryAge', parseInt(e.target.value))}
                       className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                     />
-                    <div className="space-y-1.5 min-w-0">
-                      <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">{dynamicLabels.relLabel}</label>
+
+                    <div className="w-full space-y-1">
+                      <label className="text-xs font-bold text-muted-foreground/80 ml-1">{dynamicLabels.relLabel}</label>
                       <Select
                         value={relSelect}
                         onValueChange={(val) => {
