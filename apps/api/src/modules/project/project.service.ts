@@ -610,18 +610,16 @@ export class ProjectService {
 
   async reportProject(id: string, dto: { reporterEmail: string; reason: import('@givar/database').ReportReason; description?: string }) {
     const { AuditAction, NotificationType, ReportReason } = await import('@givar/database');
-
-    const project = await this.prisma.project.findUnique({
+    
+    const project = await this.prisma.project.findUnique({ 
       where: { id },
       include: { user: { select: { email: true, firstName: true } } }
     });
-
+    
     if (!project) throw new NotFoundException('Project not found');
 
-    // Strict Enum matching ensures business logic cannot be broken by frontend UI text changes
     const isUnauthorizedBeneficiary = dto.reason === ReportReason.UNAUTHORIZED_BENEFICIARY;
 
-    // Human-readable mapping for emails and in-app notifications
     const reasonTextMap: Record<typeof ReportReason[keyof typeof ReportReason], string> = {
       [ReportReason.UNAUTHORIZED_BENEFICIARY]: "I am the beneficiary and did not authorise this cause",
       [ReportReason.FRAUD]: "Fraudulent or misleading information",
@@ -642,29 +640,29 @@ export class ProjectService {
         }
       });
 
-      if (isUnauthorizedBeneficiary) {
-        // Trigger immediate administrative escalation (In-App) without auto-suspending
-        const admins = await tx.user.findMany({
-          where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
-          select: { id: true }
-        });
+      // Notify admins in-app for ALL reports
+      const admins = await tx.user.findMany({
+        where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
+        select: { id: true }
+      });
 
-        if (admins.length > 0) {
-          await tx.notification.createMany({
-            data: admins.map(admin => ({
-              userId: admin.id,
-              type: NotificationType.SYSTEM, // Strongly typed
-              title: 'Critical: Cause flagged by beneficiary',
-              content: `A beneficiary reported "${project.title}" as unauthorized. Manual review required.`,
-              link: `/admin/projects/${id}/edit?tab=disputes`
-            }))
-          });
-        }
+      if (admins.length > 0) {
+        await tx.notification.createMany({
+          data: admins.map(admin => ({
+            userId: admin.id,
+            type: NotificationType.SYSTEM, 
+            title: isUnauthorizedBeneficiary ? 'Critical: Cause flagged by beneficiary' : 'Action Required: Cause reported',
+            content: isUnauthorizedBeneficiary 
+              ? `A beneficiary reported "${project.title}" as unauthorized. Manual review required.`
+              : `A user reported "${project.title}". Reason: ${humanReadableReason}.`,
+            link: `/admin/projects/${id}/edit?tab=disputes`
+          }))
+        });
       }
 
       await this.audit.log({
-        userId: undefined, // Public action
-        action: AuditAction.PROJECT_REPORTED, // Strongly typed
+        userId: undefined, 
+        action: AuditAction.PROJECT_REPORTED, 
         entityId: id,
         entityType: 'Project',
         metadata: {
@@ -676,20 +674,19 @@ export class ProjectService {
 
       return { success: true, message: 'Report submitted successfully' };
     }).then((result) => {
-      // 1. Email the Reporter (Acknowledgement)
+      // 1. Email the Reporter (Acknowledgement for ALL reports)
       this.emailService.sendReportReceivedReporter(dto.reporterEmail, {
         projectName: project.title
       }).catch(err => this.logger.error(`Reporter Email Failed: ${err.message}`));
 
-      if (isUnauthorizedBeneficiary) {
-        // 2. Alert the Admins (High Priority)
-        // Pass the human readable english text to the email template
-        this.emailService.sendAdminProjectReportedAlert({
-          projectTitle: project.title,
-          reason: humanReadableReason,
-          projectId: id
-        }).catch(err => this.logger.error(`Admin Report Email Failed: ${err.message}`));
-      }
+      // 2. Alert the Admins (Email broadcast for ALL reports)
+      this.emailService.sendAdminProjectReportedAlert({
+        projectTitle: project.title,
+        reason: humanReadableReason, 
+        projectId: id,
+        isHighRisk: isUnauthorizedBeneficiary 
+      }).catch(err => this.logger.error(`Admin Report Email Failed: ${err.message}`));
+      
       return result;
     });
   }

@@ -431,7 +431,7 @@ export class EmailService {
     return this.send(email, `Givar: Amendment request ${data.status.toLowerCase()}`, html);
   }
 
-  async sendAdminProjectReportedAlert(data: { projectTitle: string; reason: string; projectId: string }) {
+  async sendAdminProjectReportedAlert(data: { projectTitle: string; reason: string; projectId: string; isHighRisk?: boolean }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
       select: { email: true, firstName: true }
@@ -439,7 +439,6 @@ export class EmailService {
 
     if (admins.length === 0) return;
 
-    // Direct the admin straight to the project edit console where the new "Disputes" tab lives
     const url = `${this.config.get('FRONTEND_URL')}/admin/projects/${data.projectId}/edit?tab=disputes`;
 
     await Promise.allSettled(
@@ -448,10 +447,11 @@ export class EmailService {
           adminName: admin.firstName,
           projectTitle: data.projectTitle,
           reason: data.reason,
-          url
+          url,
+          isHighRisk: data.isHighRisk
         });
-        const html = EmailTemplates.base(content, 'Critical: Cause Flagged');
-        return this.send(admin.email, `Givar Admin: Urgent Report for ${data.projectTitle}`, html);
+        const html = EmailTemplates.base(content, data.isHighRisk ? 'Critical: Cause Flagged' : 'Action Required: Cause Flagged');
+        return this.send(admin.email, `Givar Admin: ${data.isHighRisk ? 'Urgent' : 'New'} Report for ${data.projectTitle}`, html);
       })
     );
   }

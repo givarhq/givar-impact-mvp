@@ -632,9 +632,9 @@ export const EmailTemplates = {
     </div>
   `,
 
-  adminProjectReportedAlert: (data: { adminName: string; projectTitle: string; reason: string; url: string }) => `
+  adminProjectReportedAlert: (data: { adminName: string; projectTitle: string; reason: string; url: string; isHighRisk?: boolean }) => `
     <p>Hi ${data.adminName},</p>
-    <p>A critical community report has been submitted regarding the cause: <strong>"${data.projectTitle}"</strong>.</p>
+    <p>A ${data.isHighRisk ? 'critical' : 'new'} community report has been submitted regarding the cause: <strong>"${data.projectTitle}"</strong>.</p>
     
     <div style="background-color: #fff1f2; border: 1px solid #fecdd3; border-radius: 16px; padding: 24px; margin: 24px 0;">
       <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #e11d48; margin-bottom: 8px; font-weight: 700;">Report reason</p>
@@ -643,7 +643,7 @@ export const EmailTemplates = {
       </p>
     </div>
 
-    <p><strong>This cause has NOT been automatically suspended.</strong> Please review the report immediately and determine if a manual suspension is required to halt incoming donations.</p>
+    <p><strong>This cause has NOT been automatically suspended.</strong> Please review the report ${data.isHighRisk ? 'immediately ' : ''}and determine if a manual suspension is required to halt incoming donations.</p>
 
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.url}" class="button" style="background-color: #e11d48;">Review report</a>
