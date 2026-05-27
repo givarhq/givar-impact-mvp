@@ -179,6 +179,4 @@ export class UpdateProposalDto {
 
   @IsOptional() @IsBoolean() hasPreCollectedFunds?: boolean;
   @IsOptional() @IsNumber() preCollectedAmount?: number;
-  @IsOptional() @IsString() preCollectedHeldAt?: string;
-  @IsOptional() @IsString() preCollectedProofKey?: string;
 }

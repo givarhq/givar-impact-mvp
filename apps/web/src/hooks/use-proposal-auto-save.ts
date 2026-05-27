@@ -58,8 +58,6 @@ export function useProposalAutoSave() {
 
       // Financial Declarations
       if (proposal.hasPreCollectedFunds !== undefined) payload.hasPreCollectedFunds = proposal.hasPreCollectedFunds;
-      if (proposal.preCollectedHeldAt !== undefined) payload.preCollectedHeldAt = proposal.preCollectedHeldAt;
-      if (proposal.preCollectedProofKey !== undefined) payload.preCollectedProofKey = proposal.preCollectedProofKey;
 
       // Ensure UUIDs are valid or explicitly null to satisfy DTO constraints
       payload.categoryId = proposal.categoryId === '' ? null : proposal.categoryId;

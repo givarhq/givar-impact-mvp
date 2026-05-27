@@ -506,9 +506,6 @@ export class AdminService {
 
           hasPreCollectedFunds: proposal.hasPreCollectedFunds,
           preCollectedAmount: proposal.preCollectedAmount,
-          preCollectedHeldAt: proposal.preCollectedHeldAt,
-          preCollectedProofKey: proposal.preCollectedProofKey,
-          preCollectedVerified: proposal.hasPreCollectedFunds ? true : false,
         },
       });
 
