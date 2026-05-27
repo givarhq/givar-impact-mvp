@@ -339,7 +339,9 @@ export const BudgetEditor = memo(function BudgetEditor({
 
         <div className="space-y-2 mb-6">
           <p className="text-xs text-muted-foreground font-medium mb-2">
-            List the main items needed to complete this cause and group them into their execution stages. For partially funded items, enter only the remaining balance still required.
+            List the main items needed to complete this cause and group them into their execution stages.
+            <br />
+            For partially funded items, enter only the remaining balance.
           </p>
         </div>
 

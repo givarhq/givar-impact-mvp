@@ -210,7 +210,7 @@ export default function TrustPage() {
               <div className="flex items-center justify-between p-5 rounded-3xl border border-border/40 bg-card hover:bg-muted/10 transition-colors shadow-sm">
                 <div className="space-y-1">
                   <h4 className="text-sm font-bold text-foreground">Have funds already been raised outside Givar?</h4>
-                  <p className="text-[11px] text-muted-foreground font-medium max-w-[280px]">Previously raised funds must be verified before inclusion in the progress tracker.</p>
+                  <p className="text-[11px] text-muted-foreground font-medium max-w-[280px]">This helps provide additional context about support already received for the cause.</p>
                 </div>
                 <button
                   type="button"
