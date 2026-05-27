@@ -10,7 +10,6 @@ import { Input } from '../../../../../../../../components/ui/input';
 import { ApiService } from '../../../../../../../../services/api';
 import { ArrowLeft, Send, Loader2, ShieldCheck, CheckCircle2, Landmark, FileText, AlertCircle } from 'lucide-react';
 import { DocumentUploader } from '../../../../../../../../components/features/proposals/document-uploader';
-import { ImageUploader } from '../../../../../../../../components/features/proposals/media-uploader';
 import toast from 'react-hot-toast';
 import { cn } from '../../../../../../../../lib/utils/cn';
 import { formatNumberInput, parseFormattedNumber } from '../../../../../../../../lib/utils/format';
@@ -88,8 +87,6 @@ export default function TrustPage() {
       beneficiaryRelationship: store.beneficiaryRelationship,
       beneficiaryContact: store.beneficiaryContact,
       hasPreCollectedFunds: store.hasPreCollectedFunds,
-      preCollectedHeldAt: store.preCollectedHeldAt,
-      preCollectedProofKey: store.preCollectedProofKey,
     };
 
     if (store.targetAmount !== undefined && store.targetAmount !== null) {
@@ -238,50 +235,18 @@ export default function TrustPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="p-6 rounded-3xl bg-muted/20 border border-border/40 space-y-5 overflow-hidden"
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-muted-foreground tracking-widest ml-1">Amount already raised (NGN)</label>
-                        <div className="relative group">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-sm">₦</span>
-                          <Input
-                            value={store.preCollectedAmount === null ? '' : formatNumberInput(String(store.preCollectedAmount))}
-                            onChange={(e) => store.updateField('preCollectedAmount', Number(parseFormattedNumber(e.target.value)))}
-                            className="pl-11 h-12 rounded-2xl bg-background border-border/60 focus:bg-white tabular-nums font-bold"
-                            placeholder="0"
-                            disabled={isSubmitting}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-muted-foreground tracking-widest ml-1">Where funds are held</label>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground tracking-widest ml-1">Estimated amount received (optional) (NGN)</label>
+                      <div className="relative group">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-sm">₦</span>
                         <Input
-                          value={store.preCollectedHeldAt || ''}
-                          onChange={(e) => store.updateField('preCollectedHeldAt', e.target.value)}
-                          className="h-12 rounded-2xl bg-background border-border/60 focus:bg-white"
-                          placeholder="e.g. Zenith Bank, Personal Wallet"
+                          value={store.preCollectedAmount === null ? '' : formatNumberInput(String(store.preCollectedAmount))}
+                          onChange={(e) => store.updateField('preCollectedAmount', e.target.value === '' ? null : Number(parseFormattedNumber(e.target.value)))}
+                          className="pl-11 h-12 rounded-2xl bg-background border-border/60 focus:bg-white tabular-nums font-bold"
+                          placeholder="0"
                           disabled={isSubmitting}
                         />
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-bold text-muted-foreground tracking-widest ml-1">Proof upload</label>
-                      {store.preCollectedProofKey ? (
-                        <div className="flex items-center justify-between p-4 bg-background border border-border/60 rounded-2xl">
-                          <div className="flex items-center gap-3">
-                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                            <span className="text-sm font-bold text-foreground">Proof Attached</span>
-                          </div>
-                          <Button variant="ghost" size="sm" onClick={() => store.updateField('preCollectedProofKey', null)} className="text-xs font-bold text-destructive hover:bg-destructive/10 rounded-xl">Remove</Button>
-                        </div>
-                      ) : (
-                        <div className="h-24">
-                          <ImageUploader
-                            label="Upload screenshot or receipt"
-                            useCase="docs"
-                            onUploadComplete={(data) => store.updateField('preCollectedProofKey', data.key)}
-                          />
-                        </div>
-                      )}
                     </div>
                   </motion.div>
                 )}

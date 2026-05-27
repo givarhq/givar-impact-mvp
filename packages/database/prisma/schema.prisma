@@ -404,9 +404,6 @@ model Project {
 
   hasPreCollectedFunds    Boolean  @default(false)
   preCollectedAmount      BigInt?
-  preCollectedHeldAt      String?
-  preCollectedProofKey    String?
-  preCollectedVerified    Boolean  @default(false)
 
   donations    Donation[]
   subscriptions Subscription[]
@@ -647,11 +644,6 @@ model ProjectProposal {
   videoUrl      String?
 
   // --- 3. The Execution Plan ---
-  // JSON Structure: 
-  // [
-  //   { item: "Borehole Drilling", cost: 800000, vendor: "ABC Drilling Ltd", vendorContact: "080...", type: "SERVICE" },
-  //   { item: "Water Tank (2000L)", cost: 150000, vendor: "Jumia/Market", type: "GOODS" }
-  // ]
   budgetBreakdown Json?
   
   executionTimeline Json?
@@ -659,7 +651,6 @@ model ProjectProposal {
   riskAnalysis      String?      @db.Text
 
   // --- 4. The Trust (Identity Only) ---
-  // KYC: to verify the Proposer is real and distinct from the Vendors to prevent kickback fraud.
   kycDocuments      String[]     
   organizationName  String?
   contactPhone      String?
@@ -676,8 +667,6 @@ model ProjectProposal {
 
   hasPreCollectedFunds    Boolean  @default(false)
   preCollectedAmount      BigInt?
-  preCollectedHeldAt      String?
-  preCollectedProofKey    String?
 
   // Admin Operational Signal for Beneficiary Awareness
   awarenessStatus         String?

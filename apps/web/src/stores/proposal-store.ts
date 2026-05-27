@@ -77,8 +77,6 @@ interface ProposalState {
 
   hasPreCollectedFunds: boolean;
   preCollectedAmount: number | null;
-  preCollectedHeldAt: string | null;
-  preCollectedProofKey: string | null;
   awarenessStatus: string | null;
 
   setProposal: (proposal: any) => void;
@@ -144,8 +142,6 @@ export const useProposalStore = create<ProposalState>()(
 
     hasPreCollectedFunds: false,
     preCollectedAmount: null,
-    preCollectedHeldAt: null,
-    preCollectedProofKey: null,
     awarenessStatus: null,
 
     setProposal: (proposal) => set(state => {
