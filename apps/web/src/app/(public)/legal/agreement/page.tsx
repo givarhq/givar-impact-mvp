@@ -35,8 +35,8 @@ export default function AgreementPage() {
                                 "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                             )}>
                                 <p>
-                                    Version: 1.3<br />
-                                    Effective Date: <strong>May 24, 2026</strong>
+                                    Version: 1.4<br />
+                                    Effective Date: <strong>May 28, 2026</strong>
                                 </p>
                                 <p>
                                     By submitting a cause on Givar, you agree to the following terms.
@@ -65,7 +65,8 @@ export default function AgreementPage() {
                                 </ul>
 
                                 <h2>6. Updates and Transparency</h2>
-                                <p>You agree to maintain the accuracy of vendor contact information and reasonably cooperate with the Givar team to maintain transparency for donors.</p>
+                                <p>You agree to keep information relating to your cause accurate and up to date and to reasonably cooperate with the Givar team to maintain transparency for donors.</p>
+                                <p>This includes notifying Givar if any approved cost item becomes fully funded, partially funded, reduced, cancelled, completed, or otherwise materially changes after submission, including through donations or other support received outside the platform, and maintaining the accuracy of any vendor information provided.</p>
 
                                 <h2>7. Beneficiary Consent and Indemnification</h2>
                                 <p>You are responsible for ensuring that you have the necessary permissions, consents, and authorisations to submit the information, documents, and images provided in connection with a cause.</p>

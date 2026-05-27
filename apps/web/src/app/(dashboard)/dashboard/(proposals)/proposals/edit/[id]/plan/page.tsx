@@ -6,7 +6,7 @@ import { useProposalStore } from '../../../../../../../../stores/proposal-store'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../../../../../components/ui/card';
 import { Button } from '../../../../../../../../components/ui/button';
 import { ApiService } from '../../../../../../../../services/api';
-import { ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { BudgetEditor } from '../../../../../../../../components/features/proposals/budget-editor';
 import { RichTextEditor } from '../../../../../../../../components/ui/rich-text-editor';
 import toast from 'react-hot-toast';
@@ -79,7 +79,14 @@ export default function PlanPage() {
               <BudgetEditor />
             </div>
 
-            <p className="text-[11px] font-medium text-muted-foreground italic text-center pt-2">
+            <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-100 flex items-start gap-3 shadow-sm mt-4">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-900/80 leading-relaxed font-medium">
+                <strong>Important:</strong> If any item listed above later receives funding outside Givar or no longer requires funding, please notify Givar so we can take appropriate action and maintain transparency for donors.
+              </p>
+            </div>
+
+            <p className="text-[11px] font-medium text-muted-foreground italic text-center pt-2 mt-4">
               This cause will be funded one item at a time, based on the stages defined above.
             </p>
           </div>
