@@ -122,7 +122,7 @@ export default function HookPage() {
         optGroup: "A facility or health initiative",
         nameLabel: "Patient's full legal name",
         ageLabel: "Patient's current age",
-        relLabel: "Relationship to patient",
+        relLabel: "Your relationship to patient",
         orgLabel: "Name of clinic or hospital",
       };
     }
@@ -133,7 +133,7 @@ export default function HookPage() {
         optGroup: "A school or group",
         nameLabel: "Student's full legal name",
         ageLabel: "Student's current age",
-        relLabel: "Relationship to student",
+        relLabel: "Your relationship to student",
         orgLabel: "Name of school or institution",
       };
     }
@@ -144,7 +144,7 @@ export default function HookPage() {
         optGroup: "A community or region",
         nameLabel: "Beneficiary's full legal name",
         ageLabel: "Beneficiary's age",
-        relLabel: "Relationship to beneficiary",
+        relLabel: "Your relationship to beneficiary",
         orgLabel: "Name of community or region",
       };
     }
@@ -154,7 +154,7 @@ export default function HookPage() {
       optGroup: "A group or community",
       nameLabel: "Beneficiary full name",
       ageLabel: "Current age",
-      relLabel: "Relationship to submitter",
+      relLabel: "Your relationship to submitter",
       orgLabel: "Name of group or community",
     };
   };
