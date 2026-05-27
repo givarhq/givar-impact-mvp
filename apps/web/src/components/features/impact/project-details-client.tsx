@@ -389,7 +389,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         </h4>
                                         <p className="text-xs text-blue-800 font-medium leading-relaxed">
                                             This cause has already raised <span className="font-bold">{formatCurrency(project.preCollectedAmount, project.currency)}</span> externally.
-                                            {project.preCollectedVerified && " These funds have been verified by Givar."}
                                         </p>
                                     </div>
                                 )}
@@ -574,12 +573,12 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     </div>
 
                     <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
-                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 min-w-0">
+                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 md:py-5 md:px-6 min-w-0">
                             <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
                                 <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-5 space-y-5 min-w-0">
+                        <CardContent className="p-5 space-y-4 min-w-0">
                             <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-2 text-muted-foreground min-w-0">
                                     <VerIcon className="h-4 w-4 shrink-0" />

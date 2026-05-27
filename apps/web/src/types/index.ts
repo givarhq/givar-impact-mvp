@@ -58,9 +58,6 @@ export interface Project {
   vendorAddress?: string | null;
   hasPreCollectedFunds?: boolean;
   preCollectedAmount?: string | null;
-  preCollectedHeldAt?: string | null;
-  preCollectedProofKey?: string | null;
-  preCollectedVerified?: boolean;
 
   // Phased Funding Fields
   currentPhaseIndex?: number;
@@ -187,7 +184,6 @@ export interface ProjectProposal {
     stage?: string;
     // Legacy fields allowed for alignment
     payTo?: string;
-    vendorSubaccount?: string;
     vendorContact?: string;
     item?: string;
     cost?: number;
@@ -231,8 +227,6 @@ export interface ProjectProposal {
   vendorAddress?: string | null;
   hasPreCollectedFunds?: boolean;
   preCollectedAmount?: string | null;
-  preCollectedHeldAt?: string | null;
-  preCollectedProofKey?: string | null;
   awarenessStatus?: string | null;
 
   status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';

@@ -19,7 +19,7 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { formatDate, formatCurrency } from '../../../lib/utils/format';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { Input } from '../../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '../../ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
 import { FeedbackThread } from '../communication/feedback-thread';
@@ -481,15 +481,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                         <p className="text-2xl font-black text-foreground">
                                             <SmartCurrency amount={(proposal.preCollectedAmount || '0').toString()} currency="NGN" visible={true} size="large" />
                                         </p>
-                                        <p className="text-xs text-muted-foreground font-medium pt-1">
-                                            Held at: <span className="font-bold text-foreground">{proposal.preCollectedHeldAt || 'Unknown'}</span>
-                                        </p>
                                     </div>
-                                    {proposal.preCollectedProofKey && (
-                                        <Button onClick={() => viewSecureDoc(proposal.preCollectedProofKey!)} variant="outline" className="rounded-3xl font-bold text-xs h-10 border-blue-500/30 text-blue-700 hover:bg-blue-50 w-full mt-auto">
-                                            <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> View proof document
-                                        </Button>
-                                    )}
                                 </CardContent>
                             </Card>
                         )}
@@ -847,7 +839,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                 {proposal.hasPreCollectedFunds && (
                                     <AssistiveChecklist
                                         title="Pre-Collected Funds"
-                                        items={["Proof of funds provided", "Amount verified", "Decision whether amount is included in tracker"]}
+                                        items={["Amount declared reasonably aligns with expectations"]}
                                     />
                                 )}
                             </CardContent>
