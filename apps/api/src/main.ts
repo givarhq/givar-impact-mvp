@@ -58,7 +58,7 @@ async function bootstrap() {
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Givar Platform API')
-      .setDescription('The immutable ledger and discovery protocol for Givar Impact.')
+      .setDescription('The immutable ledger and discovery protocol for Givar.')
       .setVersion('1.0')
       .addBearerAuth()
       .build();

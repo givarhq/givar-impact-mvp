@@ -5,7 +5,7 @@ import { Card, CardContent } from '../../../components/ui/card';
 
 export const metadata: Metadata = {
     title: 'Contact Us',
-    description: 'Get in touch with the Givar Impact team for support or inquiries.',
+    description: 'Get in touch with the Givar team for support or inquiries.',
 };
 
 export default function ContactPage() {
@@ -60,7 +60,7 @@ export default function ContactPage() {
 
                     <div className="p-6 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
                         <p className="text-xs text-muted-foreground font-medium">
-                            Givar Impact • Lagos, Nigeria
+                            Givar • Lagos, Nigeria
                         </p>
                     </div>
                 </div>

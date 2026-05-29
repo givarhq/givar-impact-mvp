@@ -19,8 +19,8 @@ export class EmailService {
     this.resend = new Resend(resendKey);
 
     const envFrom = this.config.get('RESEND_FROM_EMAIL');
-    // Enforce "Givar" as the sender name instead of "Givar Impact"
-    this.fromEmail = envFrom ? envFrom.replace('Givar Impact', '"Givar"') : 'Givar <onboarding@resend.dev>';
+    // Enforce "Givar" as the sender name instead of "Givar"
+    this.fromEmail = envFrom ? envFrom.replace('Givar', '"Givar"') : 'Givar <onboarding@resend.dev>';
 
     this.isDev = this.config.get('NODE_ENV') === 'development';
   }

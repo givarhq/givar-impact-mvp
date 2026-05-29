@@ -1,4 +1,4 @@
-# Givar Impact Platform
+# Givar Platform
 
 [![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black)](https://nextjs.org/)
 [![Backend: NestJS](https://img.shields.io/badge/Backend-NestJS-E0234E)](https://nestjs.com/)

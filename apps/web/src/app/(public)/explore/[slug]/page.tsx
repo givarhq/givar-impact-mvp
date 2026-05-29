@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       type: 'website',
       url: `${process.env.NEXT_PUBLIC_APP_URL}/explore/${slug}`,
-      siteName: 'Givar Impact',
+      siteName: 'Givar',
     },
     twitter: {
       card: 'summary_large_image',

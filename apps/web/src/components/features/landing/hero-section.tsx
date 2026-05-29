@@ -129,7 +129,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                     >
                         <Image
                             src="/Land.jpg"
-                            alt="Givar Impact Visualization"
+                            alt="Givar Visualization"
                             fill
                             priority
                             sizes="(max-width: 1024px) 100vw, 50vw"

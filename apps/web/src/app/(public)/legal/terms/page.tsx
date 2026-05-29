@@ -6,7 +6,7 @@ import { cn } from '../../../../lib/utils/cn';
 
 export const metadata: Metadata = {
     title: 'Terms of Service',
-    description: 'The rules of engagement for the Givar Impact Platform.',
+    description: 'The rules of engagement for the Givar Platform.',
 };
 
 export default function TermsPage() {

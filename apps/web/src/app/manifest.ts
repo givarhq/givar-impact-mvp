@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'Givar Impact',
+        name: 'Givar',
         short_name: 'Givar',
         description: 'Transparent, verified, and impact-driven philanthropy protocol.',
         start_url: '/',

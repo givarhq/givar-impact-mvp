@@ -342,7 +342,7 @@ model WalletTransaction {
 }
 
 // ---------------------------
-// GIVAR IMPACT (PROJECTS)
+// Givar (PROJECTS)
 // ---------------------------
 
 model Project {

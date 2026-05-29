@@ -39,7 +39,7 @@ export default async function GlobalRecordsPage({
                         </h1>
                     </div>
                     <p className="text-sm text-muted-foreground font-medium max-w-lg">
-                        Real-time history of all capital moving through the Givar Impact ecosystem.
+                        Real-time history of all capital moving through the Givar ecosystem.
                     </p>
                 </div>
 

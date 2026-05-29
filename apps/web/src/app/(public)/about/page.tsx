@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'About Us',
-    description: 'Learn about the mission, approach, and the story behind the Givar Impact infrastructure.',
+    description: 'Learn about the mission, approach, and the story behind the Givar infrastructure.',
 };
 
 export default function AboutPage() {

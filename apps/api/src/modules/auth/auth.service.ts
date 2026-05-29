@@ -592,7 +592,7 @@ export class AuthService {
     // 2. Create standard OTP Auth URI
     const otpAuthUrl = generateURI({
       label: user.email,
-      issuer: 'Givar Impact',
+      issuer: 'Givar',
       secret,
     });
     // 3. Save secret to user node (Pre-enable state)
