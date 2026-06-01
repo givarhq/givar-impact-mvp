@@ -49,7 +49,7 @@ export function AdminSidebar({ user }: { user: any }) {
       <div className="h-full flex flex-col gap-2 rounded-3xl bg-card border border-border/40 shadow-sm overflow-hidden">
 
         {/* Brand Area */}
-        <div className="flex h-16 shrink-0 items-center px-6">
+        <div className="flex h-16 shrink-0 items-center px-5">
           <div className="flex items-center gap-3 font-semibold">
             <div className="relative h-9 w-9 rounded-3xl border border-destructive/20 bg-destructive/10 flex items-center justify-center text-destructive shadow-sm">
               <Lock className="h-4 w-4" />
@@ -65,9 +65,9 @@ export function AdminSidebar({ user }: { user: any }) {
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 px-2 py-2 overflow-y-auto no-scrollbar">
-          <nav className="grid items-start gap-1 text-sm font-medium">
+        {/* Navigation - Removed px-2 to allow edge-to-edge full width */}
+        <div className="flex-1 py-2 overflow-y-auto no-scrollbar">
+          <nav className="grid items-start gap-1 text-sm font-medium w-full">
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -77,10 +77,10 @@ export function AdminSidebar({ user }: { user: any }) {
                   key={index}
                   href={item.href}
                   className={cn(
-                    'group flex items-center gap-3 px-4 py-2.5 transition-all duration-200 rounded-3xl',
+                    'group flex items-center gap-3 px-5 py-2.5 transition-all duration-200 w-full',
                     isActive
-                      ? 'bg-primary/10 text-primary shadow-sm font-bold'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground font-medium'
+                      ? 'border-l-[3px] border-primary bg-primary/5 text-primary font-bold'
+                      : 'border-l-[3px] border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground'
                   )}
                 >
                   <Icon

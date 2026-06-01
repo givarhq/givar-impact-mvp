@@ -39,9 +39,9 @@ export function Sidebar({ user }: { user: any }) {
           </Link>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 px-2 py-2 overflow-y-auto no-scrollbar">
-          <nav className="grid items-start gap-1 text-sm font-medium">
+        {/* Navigation - Removed px-2 to allow edge-to-edge full width */}
+        <div className="flex-1 py-2 overflow-y-auto no-scrollbar">
+          <nav className="grid items-start gap-1 text-sm font-medium w-full">
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = item.href === '/dashboard'
@@ -53,10 +53,10 @@ export function Sidebar({ user }: { user: any }) {
                   key={index}
                   href={item.href}
                   className={cn(
-                    'group flex items-center gap-3 px-4 py-2.5 transition-all duration-200 rounded-3xl',
+                    'group flex items-center gap-3 px-5 py-2.5 transition-all duration-200 w-full',
                     isActive
-                      ? 'bg-primary/10 text-primary shadow-sm font-bold'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground font-medium'
+                      ? 'border-l-[3px] border-primary bg-primary/5 text-primary font-bold'
+                      : 'border-l-[3px] border-transparent text-muted-foreground hover:bg-muted/30 hover:text-foreground'
                   )}
                 >
                   <Icon
