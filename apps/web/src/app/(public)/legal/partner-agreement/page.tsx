@@ -12,7 +12,7 @@ export default function PartnerAgreementPage() {
         <DocsLayout>
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="space-y-2 border-b border-border/40 pb-6">
-                    <h1 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
                         Partner Terms
                     </h1>
                     <p className="text-sm text-muted-foreground font-medium">
@@ -21,11 +21,11 @@ export default function PartnerAgreementPage() {
                 </div>
 
                 <div className={cn(
-                    "max-w-none text-sm md:text-base text-foreground/80 leading-relaxed font-medium",
-                    "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-xl [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40 first:[&_h2]:border-none first:[&_h2]:pt-0 first:[&_h2]:mt-0",
-                    "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-lg [&_h3]:mt-6 [&_h3]:mb-3",
-                    "[&_p]:text-muted-foreground [&_p]:mb-4 [&_p]:last:mb-0",
-                    "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-2 [&_ul]:text-muted-foreground [&_ul_li::marker]:text-primary/50",
+                    "max-w-none text-sm text-foreground leading-loose font-medium",
+                    "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40 first:[&_h2]:border-none first:[&_h2]:pt-0 first:[&_h2]:mt-0",
+                    "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-6 [&_h3]:mb-3",
+                    "[&_p]:text-foreground [&_p]:mb-6 [&_p]:last:mb-0",
+                    "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-3 [&_ul]:text-foreground [&_ul_li::marker]:text-primary/50",
                     "[&_strong]:font-bold [&_strong]:text-foreground",
                     "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                 )}>
