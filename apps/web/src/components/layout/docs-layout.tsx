@@ -7,6 +7,7 @@ import { ArrowLeft, Search, Menu, X, FileText, ChevronRight } from 'lucide-react
 import { getCookie } from 'cookies-next';
 import { cn } from '../../lib/utils/cn';
 import { Input } from '../ui/input';
+import { Footer } from './footer';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const docsNav = [
@@ -227,30 +228,35 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                 </div>
             </aside>
 
-            {/* Main Content Area */}
-            <main className="flex-1 min-w-0 flex justify-center">
-                <div className="w-full max-w-4xl p-6 md:p-10 lg:p-16">
+            {/* Main Content Area & Footer Wrapper */}
+            <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+                <main className="flex-1 flex justify-center">
+                    <div className="w-full max-w-4xl p-6 md:p-10 lg:p-16">
 
-                    {/* Desktop Search */}
-                    <div className="hidden md:block relative mb-12">
-                        <div className="relative group">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                            <Input
-                                placeholder="Search documentation..."
-                                value={desktopQuery}
-                                onChange={e => setDesktopQuery(e.target.value)}
-                                className="h-14 pl-14 rounded-full bg-muted/10 border-border/40 focus:bg-background text-sm shadow-sm transition-all font-medium"
-                            />
+                        {/* Desktop Search */}
+                        <div className="hidden md:block relative mb-12">
+                            <div className="relative group">
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <Input
+                                    placeholder="Search documentation..."
+                                    value={desktopQuery}
+                                    onChange={e => setDesktopQuery(e.target.value)}
+                                    className="h-14 pl-14 rounded-full bg-muted/10 border-border/40 focus:bg-background text-sm shadow-sm transition-all font-medium"
+                                />
+                            </div>
+                            <SearchResults query={desktopQuery} onNavigate={handleNavigate} />
                         </div>
-                        <SearchResults query={desktopQuery} onNavigate={handleNavigate} />
-                    </div>
 
-                    {/* Document Content Slot */}
-                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        {children}
+                        {/* Document Content Slot */}
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {children}
+                        </div>
                     </div>
-                </div>
-            </main>
+                </main>
+
+                {/* Global Footer appended to the content scroll view */}
+                <Footer />
+            </div>
         </div>
     );
 }
