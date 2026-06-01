@@ -56,27 +56,58 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
         return () => { document.body.style.overflow = 'unset'; };
     }, [isMobileMenuOpen, isMobileSearchOpen]);
 
-    const SearchResults = ({ query, onNavigate }: { query: string, onNavigate: (href: string) => void }) => {
+    const SearchResults = ({ query, onNavigate, className }: { query: string, onNavigate: (href: string) => void, className?: string }) => {
+        const lowerQuery = query.toLowerCase();
         const results = searchCorpus.filter(doc =>
-            doc.title.toLowerCase().includes(query.toLowerCase()) ||
-            doc.content.toLowerCase().includes(query.toLowerCase())
+            doc.title.toLowerCase().includes(lowerQuery) ||
+            doc.content.toLowerCase().includes(lowerQuery)
         );
 
         if (!query) return null;
 
+        const renderSnippet = (content: string) => {
+            const matchIndex = content.toLowerCase().indexOf(lowerQuery);
+            if (matchIndex === -1) return content.slice(0, 80) + '...';
+
+            const start = Math.max(0, matchIndex - 40);
+            const end = Math.min(content.length, matchIndex + query.length + 40);
+            let snippet = content.slice(start, end).trim();
+
+            if (start > 0) snippet = '...' + snippet;
+            if (end < content.length) snippet = snippet + '...';
+
+            const parts = snippet.split(new RegExp(`(${query})`, 'gi'));
+            return (
+                <>
+                    {parts.map((part, i) =>
+                        part.toLowerCase() === lowerQuery ? (
+                            <span key={i} className="text-primary font-bold bg-primary/10 px-0.5 rounded-[4px]">{part}</span>
+                        ) : (
+                            <span key={i}>{part}</span>
+                        )
+                    )}
+                </>
+            );
+        };
+
         return (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/40 rounded-3xl shadow-xl overflow-hidden z-50">
+            <div className={cn("bg-card border border-border/40 rounded-3xl shadow-xl overflow-hidden z-50", className)}>
                 {results.length > 0 ? (
                     <div className="py-2">
                         {results.map(res => (
                             <button key={res.href} onClick={() => onNavigate(res.href)} className="w-full text-left px-4 py-3 hover:bg-muted/30 transition-colors flex items-center justify-between group">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                <div className="flex items-start gap-3 min-w-0">
+                                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-0.5">
                                         <FileText className="h-4 w-4" />
                                     </div>
-                                    <span className="text-sm font-bold text-foreground">{res.title}</span>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="text-sm font-bold text-foreground truncate">{res.title}</p>
+                                        <p className="text-xs text-muted-foreground font-medium line-clamp-2 mt-0.5 break-words leading-relaxed">
+                                            {renderSnippet(res.content)}
+                                        </p>
+                                    </div>
                                 </div>
-                                <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:opacity-100 transition-opacity" />
+                                <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:opacity-100 transition-opacity shrink-0 ml-3" />
                             </button>
                         ))}
                     </div>
@@ -214,7 +245,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                         <div className="flex-1 overflow-y-auto p-4 relative bg-background">
                             {mobileQuery ? (
                                 <div className="w-full">
-                                    <SearchResults query={mobileQuery} onNavigate={handleNavigate} />
+                                    <SearchResults query={mobileQuery} onNavigate={handleNavigate} className="w-full" />
                                 </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center h-full text-muted-foreground/40 space-y-3">
@@ -273,7 +304,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                                     )}
                                 </div>
                             </div>
-                            <SearchResults query={desktopQuery} onNavigate={handleNavigate} />
+                            <SearchResults query={desktopQuery} onNavigate={handleNavigate} className="absolute top-full left-0 right-0 mt-2" />
                         </div>
 
                         {/* Document Content Slot */}
