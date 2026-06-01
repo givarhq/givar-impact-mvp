@@ -79,11 +79,16 @@ export function AdminSidebar({ user }: { user: any }) {
                   className={cn(
                     'group flex items-center gap-3 px-4 py-2.5 transition-all duration-200 rounded-3xl',
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-sm font-bold'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                      ? 'bg-primary/10 text-primary shadow-sm font-bold'
+                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground font-medium'
                   )}
                 >
-                  <Icon className={cn("h-4.5 w-4.5 transition-colors", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                  <Icon
+                    className={cn(
+                      "h-4.5 w-4.5 transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    )}
+                  />
                   {item.title}
                 </Link>
               );
