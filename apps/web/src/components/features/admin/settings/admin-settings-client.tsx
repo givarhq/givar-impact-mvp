@@ -10,7 +10,8 @@ import {
     ChevronRight,
     ChevronLeft,
     Zap,
-    Landmark
+    Landmark,
+    FileText
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../ui/tabs';
 import { ProfileForm } from '../../settings/profile-form';
@@ -18,6 +19,7 @@ import { PreferencesForm } from '../../settings/preferences-form';
 import { AdminSecuritySection } from './admin-security-section';
 import { VisibilityControlClient } from '../visibility/visibility-control-client';
 import { FinancialGovernance } from './financial-governance';
+import { LegalDocumentsCms } from './legal-documents-cms';
 import { cn } from '../../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,50 +30,8 @@ interface AdminSettingsClientProps {
     categories: any[];
     initialFeeRule?: any;
     initialFeeHistory?: any[];
+    initialLegalDocs?: any[];
 }
-
-const ADMIN_SETTINGS_OPTIONS = [
-    {
-        id: 'identity',
-        label: 'Admin Identity',
-        icon: UserCircle,
-        color: 'text-blue-500',
-        bg: 'bg-blue-500/10',
-        description: 'Manage your personal profile & account identity.'
-    },
-    {
-        id: 'discovery',
-        label: 'Discovery Engine',
-        icon: Zap,
-        color: 'text-primary',
-        bg: 'bg-primary/10',
-        description: 'Manage recommendation weights & featured causes.'
-    },
-    {
-        id: 'governance',
-        label: 'Support & Contributions',
-        icon: Landmark,
-        color: 'text-purple-500',
-        bg: 'bg-purple-500/10',
-        description: 'Manage operational support fees & contribution rules.'
-    },
-    {
-        id: 'security',
-        label: 'Access Control',
-        icon: Shield,
-        color: 'text-emerald-500',
-        bg: 'bg-emerald-500/10',
-        description: 'Secure your account with passwords & verification codes.'
-    },
-    {
-        id: 'notifications',
-        label: 'System Alerts & Preferences',
-        icon: Bell,
-        color: 'text-amber-500',
-        bg: 'bg-amber-500/10',
-        description: 'Configure how you receive important system updates.'
-    }
-];
 
 export const AdminSettingsClient = memo(function AdminSettingsClient({
     user,
@@ -79,13 +39,67 @@ export const AdminSettingsClient = memo(function AdminSettingsClient({
     initialSlots,
     categories,
     initialFeeRule,
-    initialFeeHistory
+    initialFeeHistory,
+    initialLegalDocs = []
 }: AdminSettingsClientProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
     const activeTab = searchParams.get('tab');
     const effectiveTab = activeTab || 'identity';
+    const isSuperAdmin = user?.role === 'SUPERADMIN';
+
+    // Dynamically inject the Legal CMS tab if the user has Root privileges
+    const ADMIN_SETTINGS_OPTIONS = [
+        {
+            id: 'identity',
+            label: 'Admin Identity',
+            icon: UserCircle,
+            color: 'text-blue-500',
+            bg: 'bg-blue-500/10',
+            description: 'Manage your personal profile & account identity.'
+        },
+        {
+            id: 'discovery',
+            label: 'Discovery Engine',
+            icon: Zap,
+            color: 'text-primary',
+            bg: 'bg-primary/10',
+            description: 'Manage recommendation weights & featured causes.'
+        },
+        {
+            id: 'governance',
+            label: 'Support & Contributions',
+            icon: Landmark,
+            color: 'text-purple-500',
+            bg: 'bg-purple-500/10',
+            description: 'Manage operational support fees & contribution rules.'
+        },
+        ...(isSuperAdmin ? [{
+            id: 'legal',
+            label: 'Legal & Compliance',
+            icon: FileText,
+            color: 'text-zinc-600 dark:text-zinc-400',
+            bg: 'bg-zinc-500/10',
+            description: 'Manage platform policies & legal agreements.'
+        }] : []),
+        {
+            id: 'security',
+            label: 'Access Control',
+            icon: Shield,
+            color: 'text-emerald-500',
+            bg: 'bg-emerald-500/10',
+            description: 'Secure your account with passwords & verification codes.'
+        },
+        {
+            id: 'notifications',
+            label: 'System Alerts & Preferences',
+            icon: Bell,
+            color: 'text-amber-500',
+            bg: 'bg-amber-500/10',
+            description: 'Configure how you receive important system updates.'
+        }
+    ];
 
     const handleTabChange = (value: string) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -148,6 +162,11 @@ export const AdminSettingsClient = memo(function AdminSettingsClient({
                                     initialFeeHistory={initialFeeHistory || []}
                                 />
                             </TabsContent>
+                            {isSuperAdmin && (
+                                <TabsContent value="legal" className="mt-0 outline-none">
+                                    <LegalDocumentsCms initialDocs={initialLegalDocs} />
+                                </TabsContent>
+                            )}
                             <TabsContent value="security" className="mt-0 outline-none">
                                 <AdminSecuritySection user={user} />
                             </TabsContent>
@@ -224,6 +243,9 @@ export const AdminSettingsClient = memo(function AdminSettingsClient({
                                         initialFeeRule={initialFeeRule}
                                         initialFeeHistory={initialFeeHistory || []}
                                     />
+                                )}
+                                {activeTab === 'legal' && isSuperAdmin && (
+                                    <LegalDocumentsCms initialDocs={initialLegalDocs} />
                                 )}
                                 {activeTab === 'security' && <AdminSecuritySection user={user} />}
                                 {activeTab === 'notifications' && <PreferencesForm user={user} />}

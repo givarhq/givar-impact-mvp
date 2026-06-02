@@ -16,14 +16,15 @@ export default async function AdminSettingsPage() {
         redirect('/login');
     }
 
-    // Parallel fetch: Identity + Security + Discovery Engine Data + Fee Governance Data
-    const [user, config, slots, categories, currentFee, feeHistory] = await Promise.all([
+    // Parallel fetch: Identity + Security + Discovery + Fee Governance + Legal Docs
+    const [user, config, slots, categories, currentFee, feeHistory, legalDocs] = await Promise.all([
         ApiService.auth.getMe(token),
         ApiService.admin.getConfig(token),
         ApiService.admin.getSlots(token),
         ApiService.projects.getCategories(token),
         ApiService.fees.getAdminCurrent(token).catch(() => null),
-        ApiService.fees.getHistory(token).catch(() => [])
+        ApiService.fees.getHistory(token).catch(() => []),
+        ApiService.legalDocs.adminGetAll(token).catch(() => [])
     ]);
 
     if (!user || !['ADMIN', 'SUPERADMIN'].includes(user.role)) {
@@ -54,6 +55,7 @@ export default async function AdminSettingsPage() {
                     categories={categories || []}
                     initialFeeRule={currentFee}
                     initialFeeHistory={feeHistory || []}
+                    initialLegalDocs={legalDocs || []}
                 />
             </div>
         </div>
