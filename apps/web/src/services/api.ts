@@ -618,4 +618,27 @@ export const ApiService = {
     updateGlobalRule: (data: any) =>
       apiClient.post('/admin/fees/update', data).then(r => r.data),
   },
+
+  // --- LEGAL DOCUMENTS ---
+  legalDocs: {
+    getAllPublic: () =>
+      serverFetch<any[]>('/projects/legal/docs', undefined, {
+        tags: ['legal-docs'],
+        next: { revalidate: 3600 }
+      }),
+
+    getPublicBySlug: (slug: string) =>
+      serverFetch<any>(`/projects/legal/docs/${slug}`, undefined, {
+        tags: [`legal-doc-${slug}`],
+        next: { revalidate: 3600 }
+      }),
+
+    adminGetAll: (token?: string) =>
+      token
+        ? serverFetch<any[]>('/admin/legal-docs', token, { tags: ['admin-legal-docs'], next: { revalidate: 0 } })
+        : apiClient.get('/admin/legal-docs').then(r => r.data),
+
+    adminUpdate: (slug: string, data: { title: string; content: string }) =>
+      apiClient.patch(`/admin/legal-docs/${slug}`, data).then(r => r.data),
+  },
 };

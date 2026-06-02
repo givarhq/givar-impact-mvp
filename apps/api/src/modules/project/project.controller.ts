@@ -126,4 +126,16 @@ export class ProjectController {
   ) {
     return this.service.reportProject(id, dto);
   }
+
+  @Public()
+  @Get('legal/docs')
+  getAllLegalDocs() {
+    return this.service.getAllLegalDocs();
+  }
+
+  @Public()
+  @Get('legal/docs/:slug')
+  getLegalDoc(@Param('slug') slug: string) {
+    return this.service.getLegalDoc(slug);
+  }
 }

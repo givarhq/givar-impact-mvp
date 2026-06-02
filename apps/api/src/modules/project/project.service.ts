@@ -610,12 +610,12 @@ export class ProjectService {
 
   async reportProject(id: string, dto: { reporterEmail: string; reason: import('@givar/database').ReportReason; description?: string }) {
     const { AuditAction, NotificationType, ReportReason } = await import('@givar/database');
-    
-    const project = await this.prisma.project.findUnique({ 
+
+    const project = await this.prisma.project.findUnique({
       where: { id },
       include: { user: { select: { email: true, firstName: true } } }
     });
-    
+
     if (!project) throw new NotFoundException('Project not found');
 
     const isUnauthorizedBeneficiary = dto.reason === ReportReason.UNAUTHORIZED_BENEFICIARY;
@@ -650,9 +650,9 @@ export class ProjectService {
         await tx.notification.createMany({
           data: admins.map(admin => ({
             userId: admin.id,
-            type: NotificationType.SYSTEM, 
+            type: NotificationType.SYSTEM,
             title: isUnauthorizedBeneficiary ? 'Critical: Cause flagged by beneficiary' : 'Action Required: Cause reported',
-            content: isUnauthorizedBeneficiary 
+            content: isUnauthorizedBeneficiary
               ? `A beneficiary reported "${project.title}" as unauthorized. Manual review required.`
               : `A user reported "${project.title}". Reason: ${humanReadableReason}.`,
             link: `/admin/projects/${id}/edit?tab=disputes`
@@ -661,8 +661,8 @@ export class ProjectService {
       }
 
       await this.audit.log({
-        userId: undefined, 
-        action: AuditAction.PROJECT_REPORTED, 
+        userId: undefined,
+        action: AuditAction.PROJECT_REPORTED,
         entityId: id,
         entityType: 'Project',
         metadata: {
@@ -682,12 +682,27 @@ export class ProjectService {
       // 2. Alert the Admins (Email broadcast for ALL reports)
       this.emailService.sendAdminProjectReportedAlert({
         projectTitle: project.title,
-        reason: humanReadableReason, 
+        reason: humanReadableReason,
         projectId: id,
-        isHighRisk: isUnauthorizedBeneficiary 
+        isHighRisk: isUnauthorizedBeneficiary
       }).catch(err => this.logger.error(`Admin Report Email Failed: ${err.message}`));
-      
+
       return result;
     });
+  }
+
+  async getAllLegalDocs() {
+    return this.prisma.legalDocument.findMany({
+      select: { slug: true, title: true, content: true },
+      orderBy: { updatedAt: 'desc' }
+    });
+  }
+
+  async getLegalDoc(slug: string) {
+    const doc = await this.prisma.legalDocument.findUnique({
+      where: { slug }
+    });
+    if (!doc) throw new NotFoundException('Legal document not found');
+    return doc;
   }
 }
