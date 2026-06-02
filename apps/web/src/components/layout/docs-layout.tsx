@@ -21,17 +21,7 @@ const docsNav = [
     { title: 'Acceptable Use Policy', href: '/legal/acceptable-use', icon: ShieldCheck },
 ];
 
-const searchCorpus = [
-    { title: 'Privacy Policy', href: '/legal/privacy', content: 'We are building a transparent world, but that doesn\'t mean you lose your privacy. Givar distinguishes strictly between public ledger data (where funds are used) and private identity data (who you are). What is public? To prove impact, we display transaction amounts, dates, and project receipts. However, your donor name is masked. What is private? Your email address, phone number, password, and verification documents are strictly private. Data retention: To maintain transparency and accountability, transaction records are retained. Security: We use industry-standard security measures. Information We Collect Identity data Beneficiary data Verification KYC data Transaction data System audit data How We Use Your Information Operate the platform Compliance and security Communication Public Vs Private Information Data Sharing And Third-Party Services Administrative Access Contact support@givarapp.com' },
-    { title: 'Terms of Service', href: '/legal/terms', content: 'Givar is a platform built on trust and transparency. By using the platform, you agree to operate in good faith. Finality of giving: Contributions made on Givar are generally final once a transaction is successfully processed. Prohibited conduct: Submitting false information, engaging in fraud, or attempting to exploit the platform will result in account suspension. Vendor payments: Payments are made through third-party payment providers and directed to verified vendors. Review & intervention: Givar may review campaign activity in cases of suspected fraud. In cases involving a material change in circumstances affecting a cause, including death, recovery, completion of need, overfunding, receipt of support from other sources, or similar events, Givar may suspend, modify, close, or otherwise administer the cause and any undisbursed donations. Platform Overview Accounts And Verification Contributions And Finality Campaign Structure Vendors & Service Delivery Platform Review & Intervention Prohibited Conduct Operational Support Fees Limitation Of Liability' },
-    { title: 'Refund Policy', href: '/legal/refund', content: 'Givar operates a transparent giving platform where contributions are made to support verified causes. Finality of Contributions Contributions made on Givar are generally considered final once a transaction is successfully processed. As payments are directed to verified vendors or institutions for specific project phases, Givar cannot guarantee a refund once funds have been settled. Exception Handling and Vendor Coordination In the event of confirmed fraud, misrepresentation, or if a project cannot proceed as planned. Settlement Status Vendor Return Payment Processing Errors Currency Conversion' },
-    { title: 'Cancellation Policy', href: '/legal/cancellation', content: 'Cause Withdrawal Organisers may withdraw their cause submission at any time before it has been approved for the public feed. Platform Intervention Givar reserves the right to pause, suspend, or remove any cause where there are concerns regarding the accuracy of information. Impact on Received Funds Refunds: Coordinating with the vendor to return the funds. Redirection: With donor consent, redirecting the funds. Ledger Adjustment: Holding the funds in the platform suspense ledger. Organiser Responsibilities Submitting misleading, unauthorized, or fraudulent causes is a violation.' },
-    { title: 'Cause Organiser Agreement', href: '/legal/agreement', content: 'Authority and Accuracy You confirm that all information provided about the cause, beneficiary, and vendors is accurate. Beneficiary Awareness Verification Process Platform Discretion Phased Vendor Disbursements You understand that funds raised on Givar are never paid to organisers personally. Phased Funding Direct Routing Administrative Audit Updates and Transparency Material Changes in Circumstances If a cause can no longer proceed as originally presented due to the death of a beneficiary, recovery, completion of the need, receipt of support from other sources, overfunding, vendor unavailability, or any other material change in circumstances, Givar may suspend, modify, close, or otherwise administer the cause at its discretion. Beneficiary Consent and Indemnification Misrepresentation' },
-    { title: 'Partner Agreement', href: '/legal/partner-agreement', content: 'These Partner Terms outline the expectations for vendors, institutions, and service providers. Role Of Givar Givar is a technology platform that connects donors to verified causes and facilitates direct payments to approved vendors. Phased And Incremental Funding Direct Routing Partial Funding Mandatory Return Of Unused Funds you are legally obligated to return the unused balance to Givar\'s corporate account. Verification and Audit Partners must provide photographic proof of work, invoices, and execution receipts. Misuse' },
-    { title: 'Acceptable Use Policy', href: '/legal/acceptable-use', content: 'This Acceptable Use Policy outlines the types of activities, causes, and fundraising purposes permitted. Permitted Campaign Types Medical treatment and healthcare support Educational expenses Community development Disaster relief Essential welfare Livelihood and economic empowerment. Prohibited Campaign Types speculative business ventures financial returns Political fundraising Illegal activities hate speech Fraudulent luxury consumption. Verification Requirement Platform Enforcement Policy Updates' }
-];
-
-export function DocsLayout({ children }: { children: React.ReactNode }) {
+export function DocsLayout({ children, initialDocs = [] }: { children: React.ReactNode; initialDocs?: any[] }) {
     const router = useRouter();
     const pathname = usePathname();
     const [backLink, setBackLink] = useState('/explore');
@@ -64,6 +54,16 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
             router.push(backLink);
         }
     };
+
+    // Reconstruct the search index dynamically from live database records
+    const searchCorpus = initialDocs.map((doc: any) => ({
+        title: doc.title,
+        href: `/legal/${doc.slug}`,
+        content: (doc.title + ' ' + doc.content)
+            .replace(/<[^>]*>?/gm, ' ')
+            .replace(/&nbsp;/g, ' ')
+            .trim()
+    }));
 
     const SearchResults = ({ query, onNavigate, className }: { query: string, onNavigate: (href: string) => void, className?: string }) => {
         const lowerQuery = query.toLowerCase();
@@ -207,7 +207,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                         >
                             <div className="flex items-center justify-between p-6 pb-2">
                                 <button onClick={handleBack} className="flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-colors group w-fit outline-none bg-transparent border-0 p-0 m-0 cursor-pointer">
-                                    <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Back
+                                    <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Back to Givar
                                 </button>
                                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-muted/50 rounded-full text-muted-foreground hover:text-foreground active:scale-95 transition-all">
                                     <X className="h-4 w-4" />
@@ -272,7 +272,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex flex-col h-full w-full py-8">
                     <div className="px-8 mb-10">
                         <button onClick={handleBack} className="inline-flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-colors group outline-none bg-transparent border-0 p-0 m-0 cursor-pointer">
-                            <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Back
+                            <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Back to Givar
                         </button>
                     </div>
 
@@ -292,7 +292,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                 <main className="flex-1 flex justify-center">
                     <div className="w-full max-w-4xl p-6 md:p-10 lg:p-16">
 
-                        {/* Desktop Search (Exactly Identical to Dashboard) */}
+                        {/* Desktop Search */}
                         <div className="hidden md:block relative mb-12">
                             <div className="relative group min-w-0">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors">
@@ -307,7 +307,7 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                                 />
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                                     {desktopQuery && (
-                                        <button onClick={() => setDesktopQuery('')} className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-colors outline-none active:scale-90">
+                                        <button onClick={() => setDesktopQuery('')} className="p-1 hover:bg-muted rounded-full text-muted-foreground transition-colors outline-none active:scale-95">
                                             <X className="h-3.5 w-3.5" />
                                         </button>
                                     )}
