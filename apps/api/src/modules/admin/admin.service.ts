@@ -3496,11 +3496,13 @@ export class AdminService {
       }
 
       await tx.auditLog.create({
-        userId: adminId,
-        action: AuditAction.LEGAL_DOCUMENT_UPDATED,
-        entityId: doc.id,
-        entityType: 'LegalDocument',
-        metadata: { action: 'BROADCAST_UPDATE', slug, title: doc.title, targetCount: users.length }
+        data: {
+          userId: adminId,
+          action: AuditAction.LEGAL_DOCUMENT_UPDATED,
+          entityId: doc.id,
+          entityType: 'LegalDocument',
+          metadata: { action: 'BROADCAST_UPDATE', slug, title: doc.title, targetCount: users.length }
+        }
       });
     });
 
