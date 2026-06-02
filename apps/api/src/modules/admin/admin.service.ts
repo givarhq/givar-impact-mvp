@@ -3417,4 +3417,58 @@ export class AdminService {
 
     return result;
   }
+
+  async getLegalDocuments() {
+    return this.prisma.legalDocument.findMany({
+      orderBy: { updatedAt: 'desc' },
+      include: { admin: { select: { firstName: true, lastName: true, email: true } } }
+    });
+  }
+
+  async getLegalDocument(slug: string) {
+    const doc = await this.prisma.legalDocument.findUnique({
+      where: { slug }
+    });
+
+    if (!doc) throw new NotFoundException('Legal document not found');
+
+    return doc;
+  }
+
+  async updateLegalDocument(adminId: string, slug: string, dto: { title: string; content: string }) {
+    const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
+
+    // Strict Verification: Standard admins cannot manipulate legal bindings
+    if (admin?.role !== UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Only SuperAdmins can modify legal documents');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const doc = await tx.legalDocument.upsert({
+        where: { slug },
+        update: {
+          title: dto.title,
+          content: dto.content,
+          lastUpdatedBy: adminId
+        },
+        create: {
+          slug,
+          title: dto.title,
+          content: dto.content,
+          lastUpdatedBy: adminId
+        }
+      });
+
+      // Forensic Audit for compliance traceability
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.LEGAL_DOCUMENT_UPDATED,
+        entityId: doc.id,
+        entityType: 'LegalDocument',
+        metadata: { slug, title: doc.title }
+      }, tx);
+
+      return doc;
+    });
+  }
 }

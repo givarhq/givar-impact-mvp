@@ -181,6 +181,9 @@ enum AuditAction {
   CATEGORY_CREATED
   CATEGORY_UPDATED
   CATEGORY_DELETED
+
+  // Legal Document Actions
+  LEGAL_DOCUMENT_UPDATED
 }
 
 enum ReportStatus {
@@ -279,6 +282,7 @@ model User {
   sentMessages Message[] @relation("Author")
   notifications Notification[]
   createdFeeRules TransactionFeeRule[]
+  updatedLegalDocs LegalDocument[]
 
   @@map("users")
 }
@@ -856,4 +860,17 @@ model ProjectReport {
   @@index([projectId])
   @@index([status])
   @@map("project_reports")
+}
+
+model LegalDocument {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  title         String
+  content       String   @db.Text
+  lastUpdatedBy String
+  admin         User     @relation(fields: [lastUpdatedBy], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("legal_documents")
 }

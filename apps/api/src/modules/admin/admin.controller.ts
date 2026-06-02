@@ -373,4 +373,26 @@ export class AdminController {
   ) {
     return this.service.resolveProjectReport(req.user.id, id, dto);
   }
+
+  @Get('legal-docs')
+  @Roles(UserRole.SUPERADMIN)
+  getLegalDocuments() {
+    return this.service.getLegalDocuments();
+  }
+
+  @Get('legal-docs/:slug')
+  @Roles(UserRole.SUPERADMIN)
+  getLegalDocument(@Param('slug') slug: string) {
+    return this.service.getLegalDocument(slug);
+  }
+
+  @Patch('legal-docs/:slug')
+  @Roles(UserRole.SUPERADMIN) // Overrides the class-level [ADMIN, SUPERADMIN] guard
+  updateLegalDocument(
+    @Req() req: any,
+    @Param('slug') slug: string,
+    @Body() dto: { title: string; content: string }
+  ) {
+    return this.service.updateLegalDocument(req.user.id, slug, dto);
+  }
 }
