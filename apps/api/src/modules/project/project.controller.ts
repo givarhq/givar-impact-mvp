@@ -20,6 +20,19 @@ export class ProjectController {
     return this.service.findAllAdvanced(query);
   }
 
+  // 👇 CRITICAL FIX: Move legal routes ABOVE the ':slug' route so they don't get swallowed
+  @Public()
+  @Get('legal/docs')
+  getAllLegalDocs() {
+    return this.service.getAllLegalDocs();
+  }
+
+  @Public()
+  @Get('legal/docs/:slug')
+  getLegalDoc(@Param('slug') slug: string) {
+    return this.service.getLegalDoc(slug);
+  }
+
   // Public: Single Project (SEO friendly) with full details
   @Public()
   @UseGuards(OptionalJwtAuthGuard)
@@ -125,17 +138,5 @@ export class ProjectController {
     @Body() dto: { reporterEmail: string; reason: import('@givar/database').ReportReason; description?: string }
   ) {
     return this.service.reportProject(id, dto);
-  }
-
-  @Public()
-  @Get('legal/docs')
-  getAllLegalDocs() {
-    return this.service.getAllLegalDocs();
-  }
-
-  @Public()
-  @Get('legal/docs/:slug')
-  getLegalDoc(@Param('slug') slug: string) {
-    return this.service.getLegalDoc(slug);
   }
 }
