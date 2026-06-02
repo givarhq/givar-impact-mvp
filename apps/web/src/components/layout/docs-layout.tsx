@@ -56,6 +56,15 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
         return () => { document.body.style.overflow = 'unset'; };
     }, [isMobileMenuOpen, isMobileSearchOpen]);
 
+    const handleBack = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (typeof window !== 'undefined' && document.referrer && document.referrer.includes(window.location.host)) {
+            router.back();
+        } else {
+            router.push(backLink);
+        }
+    };
+
     const SearchResults = ({ query, onNavigate, className }: { query: string, onNavigate: (href: string) => void, className?: string }) => {
         const lowerQuery = query.toLowerCase();
         const results = searchCorpus.filter(doc =>
@@ -197,9 +206,9 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
                             className="fixed inset-y-0 left-0 z-50 w-[85%] max-w-sm bg-card border-r border-border/40 shadow-2xl overflow-y-auto md:hidden flex flex-col"
                         >
                             <div className="flex items-center justify-between p-6 pb-2">
-                                <Link href={backLink} className="flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-colors group w-fit">
+                                <button onClick={handleBack} className="flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-colors group w-fit outline-none bg-transparent border-0 p-0 m-0 cursor-pointer">
                                     <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Back to Givar
-                                </Link>
+                                </button>
                                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-muted/50 rounded-full text-muted-foreground hover:text-foreground active:scale-95 transition-all">
                                     <X className="h-4 w-4" />
                                 </button>
@@ -262,9 +271,9 @@ export function DocsLayout({ children }: { children: React.ReactNode }) {
             <aside className="w-[300px] shrink-0 border-r border-border/40 h-screen sticky top-0 overflow-y-auto hidden md:block bg-card/50">
                 <div className="flex flex-col h-full w-full py-8">
                     <div className="px-8 mb-10">
-                        <Link href={backLink} className="inline-flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-colors group">
+                        <button onClick={handleBack} className="inline-flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-colors group outline-none bg-transparent border-0 p-0 m-0 cursor-pointer">
                             <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Back to Givar
-                        </Link>
+                        </button>
                     </div>
 
                     <div className="px-8 mb-6">
