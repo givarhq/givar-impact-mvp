@@ -715,4 +715,21 @@ export const EmailTemplates = {
       <a href="${data.url}" class="button" style="background-color: ${data.status === 'REINSTATED' ? '#10b981' : '#111827'};">Go to Console</a>
     </div>
   `,
+
+  legalDocumentUpdated: (data: { name: string; documentTitle: string; url: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>We are writing to let you know that we have updated our <strong>${data.documentTitle}</strong>.</p>
+    
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 15px; color: #064e3b; line-height: 1.6; margin: 0; font-weight: 500;">
+        These changes help us maintain our commitment to transparency, security, and compliance on the Givar platform. We encourage you to review the updated document.
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #10b981;">Review Policy</a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280;">Thank you for being part of the Givar community.</p>
+  `,
 };

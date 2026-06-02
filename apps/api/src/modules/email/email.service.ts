@@ -474,4 +474,11 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Review Concluded');
     return this.send(email, `Givar: Dispute review concluded`, html);
   }
+
+  async sendLegalUpdateAlert(email: string, data: { name: string; documentTitle: string; documentSlug: string }) {
+    const url = `${this.config.get('FRONTEND_URL')}/legal/${data.documentSlug}`;
+    const content = EmailTemplates.legalDocumentUpdated({ ...data, url });
+    const html = EmailTemplates.base(content, `Update: ${data.documentTitle}`);
+    return this.send(email, `Givar Policy Update: ${data.documentTitle}`, html);
+  }
 }
