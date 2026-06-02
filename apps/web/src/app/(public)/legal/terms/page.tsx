@@ -16,7 +16,7 @@ export default function TermsPage() {
                         Terms of Service
                     </h1>
                     <p className="text-sm text-muted-foreground font-medium">
-                        Last updated: 8 April 2026
+                        Last updated: 2 June 2026
                     </p>
                 </div>
 
@@ -65,6 +65,7 @@ export default function TermsPage() {
                     <h2 id="platform-review-intervention">6. Platform Review & Intervention</h2>
                     <p>Givar may review campaign activity in cases of suspected fraud, misrepresentation, technical issues, or policy violations.</p>
                     <p>Where necessary, Givar may coordinate with payment providers, vendors, or relevant parties to determine an appropriate outcome.</p>
+                    <p>In cases involving a material change in circumstances affecting a cause, including death, recovery, completion of need, overfunding, receipt of support from other sources, or similar events, Givar may suspend, modify, close, or otherwise administer the cause and any undisbursed donations in accordance with its policies, donor intent, and applicable law.</p>
 
                     <h2 id="prohibited-conduct">7. Prohibited Conduct</h2>
                     <p>You agree not to:</p>

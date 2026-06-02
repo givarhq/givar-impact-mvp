@@ -16,7 +16,7 @@ export default function AgreementPage() {
                         Cause Organiser Agreement
                     </h1>
                     <p className="text-sm text-muted-foreground font-medium">
-                        Last updated: 28 May 2026
+                        Last updated: 2 June 2026
                     </p>
                 </div>
 
@@ -59,14 +59,18 @@ export default function AgreementPage() {
                     <p>You agree to keep information relating to your cause accurate and up to date and to reasonably cooperate with the Givar team to maintain transparency for donors.</p>
                     <p>This includes notifying Givar if any approved cost item becomes fully funded, partially funded, reduced, cancelled, completed, or otherwise materially changes after submission, including through donations or other support received outside the platform, and maintaining the accuracy of any vendor information provided.</p>
 
-                    <h2 id="beneficiary-consent">7. Beneficiary Consent and Indemnification</h2>
+                    <h2 id="material-changes">7. Material Changes in Circumstances</h2>
+                    <p>If a cause can no longer proceed as originally presented due to the death of a beneficiary, recovery, completion of the need, receipt of support from other sources, overfunding, vendor unavailability, or any other material change in circumstances, Givar may suspend, modify, close, or otherwise administer the cause at its discretion.</p>
+                    <p>Donations raised through Givar do not become the property of an organiser or beneficiary solely because they were raised for a particular cause. Any undisbursed funds affected by a material change in circumstances may be applied toward verified outstanding expenses related to the cause, reasonable associated costs, similar verified causes or charitable purposes, or otherwise handled by Givar in a manner consistent with donor intent and applicable law.</p>
+
+                    <h2 id="beneficiary-consent">8. Beneficiary Consent and Indemnification</h2>
                     <p>You are responsible for ensuring that you have the necessary permissions, consents, and authorisations to submit the information, documents, and images provided in connection with a cause.</p>
                     <p>You agree to indemnify and hold Givar harmless from claims arising from inaccurate information, unauthorised disclosures, or a lack of required consent relating to your submission.</p>
 
-                    <h2 id="misrepresentation">8. Misrepresentation</h2>
+                    <h2 id="misrepresentation">9. Misrepresentation</h2>
                     <p>Knowingly submitting false, misleading, or unauthorised causes may result in account suspension and potential legal reporting.</p>
 
-                    <h2 id="contact">9. Contact</h2>
+                    <h2 id="contact">10. Contact</h2>
                     <p>For questions regarding cause submissions, please contact: <strong>support@givarapp.com</strong></p>
                 </div>
             </div>
