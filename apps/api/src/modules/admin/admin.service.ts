@@ -3471,4 +3471,48 @@ export class AdminService {
       return doc;
     });
   }
+
+  async broadcastLegalUpdate(adminId: string, slug: string) {
+    const doc = await this.prisma.legalDocument.findUnique({ where: { slug } });
+    if (!doc) throw new NotFoundException('Document not found');
+
+    const users = await this.prisma.user.findMany({
+      select: { id: true, email: true, firstName: true }
+    });
+
+    // 1. Transactional chunking for In-App Notifications
+    const notifs = users.map(u => ({
+      userId: u.id,
+      type: NotificationType.SYSTEM,
+      title: `${doc.title} Updated`,
+      content: `We have updated our ${doc.title}. Please review the latest changes.`,
+      link: `/legal/${slug}`
+    }));
+
+    await this.prisma.$transaction(async (tx) => {
+      const chunkSize = 1000;
+      for (let i = 0; i < notifs.length; i += chunkSize) {
+        await tx.notification.createMany({ data: notifs.slice(i, i + chunkSize) });
+      }
+
+      await tx.auditLog.create({
+        userId: adminId,
+        action: AuditAction.LEGAL_DOCUMENT_UPDATED,
+        entityId: doc.id,
+        entityType: 'LegalDocument',
+        metadata: { action: 'BROADCAST_UPDATE', slug, title: doc.title, targetCount: users.length }
+      });
+    });
+
+    // 2. Async dispatch emails (Fire & Forget to prevent HTTP timeout)
+    Promise.allSettled(
+      users.map(u => this.emailService.sendLegalUpdateAlert(u.email, {
+        name: u.firstName,
+        documentTitle: doc.title,
+        documentSlug: doc.slug
+      }))
+    ).catch(err => this.logger.error(`Broadcast email failed: ${err.message}`));
+
+    return { success: true, broadcastCount: users.length };
+  }
 }

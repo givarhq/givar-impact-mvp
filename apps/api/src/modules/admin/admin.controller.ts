@@ -395,4 +395,10 @@ export class AdminController {
   ) {
     return this.service.updateLegalDocument(req.user.id, slug, dto);
   }
+
+  @Post('legal-docs/:slug/broadcast')
+  @Roles(UserRole.SUPERADMIN)
+  broadcastLegalDocument(@Req() req: any, @Param('slug') slug: string) {
+    return this.service.broadcastLegalUpdate(req.user.id, slug);
+  }
 }
