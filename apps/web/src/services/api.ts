@@ -640,5 +640,8 @@ export const ApiService = {
 
     adminUpdate: (slug: string, data: { title: string; content: string }) =>
       apiClient.patch(`/admin/legal-docs/${slug}`, data).then(r => r.data),
+
+    adminBroadcast: (slug: string) =>
+      apiClient.post(`/admin/legal-docs/${slug}/broadcast`).then(r => r.data),
   },
 };

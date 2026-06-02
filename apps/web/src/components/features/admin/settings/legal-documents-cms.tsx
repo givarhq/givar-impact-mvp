@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, memo } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Save, Loader2, Info, LayoutTemplate, ShieldCheck } from 'lucide-react';
+import { FileText, Save, Loader2, Info, LayoutTemplate, ShieldCheck, Megaphone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../ui/card';
 import { Input } from '../../../ui/input';
 import { Button } from '../../../ui/button';
@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { cn } from '../../../../lib/utils/cn';
 import { motion } from 'framer-motion';
 import { formatDate } from '../../../../lib/utils/format';
+import { revalidateLegalDocsCache } from '../../../../actions/cache';
 
 interface LegalDoc {
     slug: string;
@@ -52,6 +53,7 @@ export const LegalDocumentsCms = memo(function LegalDocumentsCms({ initialDocs }
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [isBroadcasting, setIsBroadcasting] = useState(false);
     const [activeTab, setActiveTab] = useState('editor');
 
     const currentDocMeta = docs.find(d => d.slug === selectedSlug);
@@ -84,6 +86,8 @@ export const LegalDocumentsCms = memo(function LegalDocumentsCms({ initialDocs }
                 content: safeContent
             });
 
+            await revalidateLegalDocsCache(selectedSlug);
+
             // Update local state to reflect new cache without requiring hard reload
             setDocs(prev => {
                 const filtered = prev.filter(d => d.slug !== selectedSlug);
@@ -96,6 +100,20 @@ export const LegalDocumentsCms = memo(function LegalDocumentsCms({ initialDocs }
             toast.error(error.response?.data?.message || "Failed to publish document", { id: toastId });
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleBroadcast = async () => {
+        if (!window.confirm(`Are you sure you want to broadcast the ${title} update to all users via email and in-app notifications?`)) return;
+        setIsBroadcasting(true);
+        const toastId = toast.loading("Broadcasting update to all users...");
+        try {
+            await ApiService.legalDocs.adminBroadcast(selectedSlug);
+            toast.success("Broadcast completed successfully", { id: toastId });
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Failed to broadcast update", { id: toastId });
+        } finally {
+            setIsBroadcasting(false);
         }
     };
 
@@ -122,7 +140,7 @@ export const LegalDocumentsCms = memo(function LegalDocumentsCms({ initialDocs }
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
                         <div className="space-y-1.5">
                             <label className="text-[11px] font-bold text-muted-foreground ml-1">Select Policy Document</label>
-                            <Select value={selectedSlug} onValueChange={setSelectedSlug} disabled={isSaving}>
+                            <Select value={selectedSlug} onValueChange={setSelectedSlug} disabled={isSaving || isBroadcasting}>
                                 <SelectTrigger className="h-12 rounded-2xl bg-background border-border/60 focus:bg-background text-sm font-bold shadow-sm">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -174,7 +192,7 @@ export const LegalDocumentsCms = memo(function LegalDocumentsCms({ initialDocs }
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="e.g. Terms of Service"
                                     className="h-12 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm font-bold shadow-inner"
-                                    disabled={isSaving}
+                                    disabled={isSaving || isBroadcasting}
                                 />
                             </div>
 
@@ -184,7 +202,7 @@ export const LegalDocumentsCms = memo(function LegalDocumentsCms({ initialDocs }
                                     content={content}
                                     onChange={setContent}
                                     placeholder="Draft the legal policy here. Use headings (H2/H3) for sections to trigger the automatic public styling..."
-                                    readOnly={isSaving}
+                                    readOnly={isSaving || isBroadcasting}
                                 />
                             </div>
 
@@ -224,13 +242,24 @@ export const LegalDocumentsCms = memo(function LegalDocumentsCms({ initialDocs }
                             </div>
                         </TabsContent>
 
-                        <div className="p-6 md:p-8 bg-muted/10 border-t border-border/40 flex justify-end">
+                        <div className="p-6 md:p-8 bg-muted/10 border-t border-border/40 flex flex-col sm:flex-row justify-end gap-3">
+                            {currentDocMeta && (
+                                <Button
+                                    variant="outline"
+                                    onClick={handleBroadcast}
+                                    disabled={isBroadcasting || isSaving}
+                                    className="w-full sm:w-auto h-12 px-6 rounded-3xl font-bold text-sm shadow-sm active:scale-[0.98] transition-all border-primary/20 text-primary hover:bg-primary/5"
+                                >
+                                    {isBroadcasting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Megaphone className="h-4 w-4 mr-2" />}
+                                    Broadcast
+                                </Button>
+                            )}
                             <Button
                                 onClick={handleSave}
-                                disabled={isSaving || !title.trim() || !content.trim()}
+                                disabled={isSaving || !title.trim() || !content.trim() || isBroadcasting}
                                 className="w-full sm:w-auto h-12 px-10 rounded-3xl font-bold text-sm shadow-xl shadow-primary/20 bg-primary text-white hover:bg-primary/90 active:scale-[0.98] transition-all border-0"
                             >
-                                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />}
+                                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                                 Publish Document
                             </Button>
                         </div>
