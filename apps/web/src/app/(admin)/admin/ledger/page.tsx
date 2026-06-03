@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { LedgerOversightClient } from '../../../../components/features/admin/ledger-oversight-client';
+import { Suspense } from 'react';
 
 export const metadata = {
   title: 'Ledger Oversight',
@@ -15,7 +16,9 @@ export default async function LedgerOversightPage() {
   return (
     <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500">
       <div className="w-full min-w-0">
-        <LedgerOversightClient />
+        <Suspense fallback={<div className="h-40 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+          <LedgerOversightClient />
+        </Suspense>
       </div>
     </div>
   );
