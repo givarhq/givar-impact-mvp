@@ -4,6 +4,7 @@ import { AuditTable } from '../../../../components/features/admin/audit-table';
 import { AuditSummary } from '../../../../components/features/admin/audit-summary';
 import { AuditFilters } from '../../../../components/features/admin/audit-filters';
 import { Pagination } from '../../../../components/features/history/pagination';
+import { Suspense } from 'react';
 
 export default async function AdminAuditPage({
   searchParams,
@@ -41,7 +42,9 @@ export default async function AdminAuditPage({
 
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
-      <AuditFilters />
+      <Suspense fallback={<div className="h-10 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+        <AuditFilters />
+      </Suspense>
 
       {enhancedSummary && <AuditSummary stats={enhancedSummary} />}
 
@@ -49,7 +52,9 @@ export default async function AdminAuditPage({
         <AuditTable logs={logs} />
 
         <div className="pt-4 border-t border-border/40">
-          <Pagination currentPage={meta.page} totalPages={meta.lastPage} />
+          <Suspense fallback={<div className="h-10 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+            <Pagination currentPage={meta.page} totalPages={meta.lastPage} />
+          </Suspense>
         </div>
       </div>
     </div>
