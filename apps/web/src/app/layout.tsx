@@ -79,11 +79,14 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
+            {/* Logic: Suspense boundary ensures the hook has access to searchParams on all routes */}
             <Suspense fallback={null}>
               <ScrollToTop />
             </Suspense>
 
-            <ActivityMonitor />
+            <Suspense fallback={null}>
+              <ActivityMonitor />
+            </Suspense>
             <ImpersonationBanner />
 
             {children}
