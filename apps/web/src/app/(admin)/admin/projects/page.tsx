@@ -3,6 +3,7 @@ import { ApiService } from '../../../../services/api';
 import { AdminProjectFilters } from '../../../../components/features/admin/admin-project-filters';
 import { AdminProposalFilters } from '../../../../components/features/admin/admin-proposal-filters';
 import { ProjectsPageClient } from './projects-page-client';
+import { Suspense } from 'react';
 
 export const metadata = {
     title: 'Cause Management',
@@ -64,21 +65,25 @@ export default async function AdminProjectsPage({
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             {activeTab !== 'categories' && (
                 <div className="w-full min-w-0">
-                    {activeTab === 'proposals' ? (
-                        <AdminProposalFilters categories={categories || []} />
-                    ) : (
-                        <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
-                    )}
+                    <Suspense fallback={<div className="h-10 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+                        {activeTab === 'proposals' ? (
+                            <AdminProposalFilters categories={categories || []} />
+                        ) : (
+                            <AdminProjectFilters categories={categories || []} activeTab={activeTab} />
+                        )}
+                    </Suspense>
                 </div>
             )}
 
             <div className="w-full min-w-0">
-                <ProjectsPageClient
-                    activeTab={activeTab}
-                    projectData={safeProjectData}
-                    proposalData={safeProposalData}
-                    searchParams={resolvedParams}
-                />
+                <Suspense fallback={<div className="h-64 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+                    <ProjectsPageClient
+                        activeTab={activeTab}
+                        projectData={safeProjectData}
+                        proposalData={safeProposalData}
+                        searchParams={resolvedParams}
+                    />
+                </Suspense>
             </div>
         </div>
     );
