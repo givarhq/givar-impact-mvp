@@ -5,6 +5,7 @@ import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { MobileNav } from './mobile-nav';
 import { Footer } from './footer';
+import { LegalUpdateBanner } from './legal-update-banner';
 
 export function DashboardShell({
   children,
@@ -22,6 +23,7 @@ export function DashboardShell({
 
         <div className="flex flex-col min-w-0">
           <Header user={user} />
+          <LegalUpdateBanner />
 
           <main className="flex-1 px-4 py-4 md:px-8 md:py-6 pb-24 md:pb-8">
             <div className="mx-auto w-full max-w-6xl">

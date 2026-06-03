@@ -10,7 +10,6 @@ import { ActivityMonitor } from '../components/layout/activity-monitor';
 import { ScrollToTop } from '../components/layout/scroll-to-top';
 import { Suspense } from 'react';
 import { PostHogProvider } from '../components/providers/posthog-provider';
-import { LegalUpdateBanner } from '../components/layout/legal-update-banner';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -80,12 +79,9 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            {/* Logic: Suspense boundary ensures the hook has access to searchParams on all routes */}
             <Suspense fallback={null}>
               <ScrollToTop />
             </Suspense>
-
-            <LegalUpdateBanner />
 
             <ActivityMonitor />
             <ImpersonationBanner />

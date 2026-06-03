@@ -5,6 +5,7 @@ import { AdminSidebar } from './admin-sidebar';
 import { AdminHeader } from './admin-header';
 import { AdminMobileNav } from './admin-mobile-nav';
 import { Footer } from './footer';
+import { LegalUpdateBanner } from './legal-update-banner';
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -21,6 +22,7 @@ export function AdminShell({ children, user }: AdminShellProps) {
 
         <div className="flex flex-col min-w-0">
           <AdminHeader user={user} />
+          <LegalUpdateBanner />
 
           <main className="flex-1 px-4 py-4 md:px-8 md:py-6 pb-24 md:pb-10 overflow-x-hidden">
             <div className="mx-auto w-full max-w-7xl">

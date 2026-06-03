@@ -4,6 +4,7 @@ import { Footer } from './footer';
 import { DashboardShell } from './dashboard-shell';
 import { AdminShell } from './admin-shell';
 import { ApiService } from '../../services/api';
+import { LegalUpdateBanner } from './legal-update-banner';
 
 export async function PublicLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -21,9 +22,6 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
         if (shouldBeInAdminEnv) {
           return <AdminShell user={user}>{children}</AdminShell>;
         } else {
-          // Logic: For static pages (About, Legal, etc.), we wrap the content in the dashboard shell.
-          // Because middleware now handles hard redirects for /explore and /records, 
-          // we no longer have to worry about conflicting props or narrow container widths here.
           return <DashboardShell user={user}>{children}</DashboardShell>;
         }
       }
@@ -37,6 +35,7 @@ export async function PublicLayout({ children }: { children: React.ReactNode }) 
       <LandingHeader variant="auth" />
 
       <main className="flex-1 pt-20">
+        <LegalUpdateBanner />
         {children}
       </main>
 
