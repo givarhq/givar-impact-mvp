@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
 import { UserFilters } from '../../../../components/features/admin/user-filters';
 import { UsersPageClient } from './users-page-client';
+import { Suspense } from 'react';
 
 export const metadata = {
     title: 'User Management',
@@ -44,14 +45,18 @@ export default async function AdminUsersPage({
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
             <div className="w-full min-w-0">
-                <UserFilters />
+                <Suspense fallback={<div className="h-10 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+                    <UserFilters />
+                </Suspense>
             </div>
 
-            <UsersPageClient
-                initialData={initialData}
-                activeTab={activeTab}
-                searchParams={resolvedParams}
-            />
+            <Suspense fallback={<div className="h-64 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+                <UsersPageClient
+                    initialData={initialData}
+                    activeTab={activeTab}
+                    searchParams={resolvedParams}
+                />
+            </Suspense>
         </div>
     );
 }
