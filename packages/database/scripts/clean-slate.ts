@@ -1,132 +1,102 @@
 import 'dotenv/config';
 import { prisma } from '../src/index';
-import * as bcrypt from 'bcrypt';
-import { Currency, UserRole, AccountType } from '@prisma/client';
 
 async function main() {
-    console.log('🚀 Initiating Clean Slate Protocol...');
+    console.log('🚀 Initiating Go-Live Clean Slate Protocol...');
 
-    // 1. Purge dependants and transactional tables
-    console.log('🧹 Purging transactional tables...');
-    await prisma.notification.deleteMany({});
-    await prisma.message.deleteMany({});
-    await prisma.featuredSlot.deleteMany({});
-    await prisma.auditLog.deleteMany({});
-    await prisma.milestoneProof.deleteMany({});
-    await prisma.disbursement.deleteMany({});
-    await prisma.projectUpdate.deleteMany({});
-    await prisma.donation.deleteMany({});
-    await prisma.guestDonation.deleteMany({});
-    await prisma.subscription.deleteMany({});
-    await prisma.givingGoal.deleteMany({});
-    await prisma.walletTransaction.deleteMany({});
-    await prisma.project.deleteMany({});
-    await prisma.projectProposal.deleteMany({});
-    await prisma.organizationProfile.deleteMany({});
-    await prisma.transactionFeeRule.deleteMany({});
-    await prisma.guestDonor.deleteMany({});
+    // 1. Identity Matrix Definitions
+    // The sole account that retains ALL historical data and nodes (drafts, etc.)
+    const FULLY_PROTECTED_ID = '196b3b1c-7418-4b08-9cb7-4f129845b8bd'; // phinehasuzochukwu@gmail.com
 
-    // 2. Anonymize and delete user profiles except target ones
-    const preservedEmails = ['admin@givarapp.com', 'tedunjaiyem@gmail.com'];
+    // The core administration accounts to retain, but whose test nodes will be wiped
+    const MAIN_ADMIN_ID = '12434608-75b7-499e-873f-4b53e4805a79'; // admin@givarapp.com
+    const ACCOUNT_ONLY_IDS = [
+        'cf8fb5ec-04ac-44d5-8d54-1282a4741187', // tedunjaiyem@gmail.com
+        MAIN_ADMIN_ID,
+        'c4e83791-fe53-4d51-8180-a76a91598f35'  // folarin@rytali.com
+    ];
 
-    console.log('👥 Pruning non-essential identities...');
+    const ALL_SAVED_USERS = [FULLY_PROTECTED_ID, ...ACCOUNT_ONLY_IDS];
+    const notFullyProtected = { not: FULLY_PROTECTED_ID };
+    const notAnySavedUser = { notIn: ALL_SAVED_USERS };
 
-    // Clear wallets of users slated for deletion
-    await prisma.wallet.deleteMany({
-        where: {
-            user: {
-                email: { notIn: preservedEmails }
+    await prisma.$transaction(async (tx) => {
+        console.log('🧹 Purging isolated test tables...');
+        // Total truncation for tables that have no relation to the real user's draft
+        await tx.guestDonation.deleteMany({});
+        await tx.guestDonor.deleteMany({});
+
+        console.log('🛡️ Reassigning system dependencies to prevent cascade deletion...');
+        // If any of the deleted test users authored a fee rule or legal document, 
+        // we map it to the Main Admin to prevent those vital tables from being deleted.
+        await tx.transactionFeeRule.updateMany({
+            where: { createdById: notAnySavedUser },
+            data: { createdById: MAIN_ADMIN_ID }
+        });
+        await tx.legalDocument.updateMany({
+            where: { lastUpdatedBy: notAnySavedUser },
+            data: { lastUpdatedBy: MAIN_ADMIN_ID }
+        });
+
+        console.log('🧹 Collapsing relational nodes for all non-protected accounts...');
+
+        // Wipe messages sent by, or attached to projects owned by, non-protected users
+        await tx.message.deleteMany({
+            where: {
+                OR: [
+                    { authorId: notFullyProtected },
+                    { project: { userId: notFullyProtected } },
+                    { proposal: { userId: notFullyProtected } }
+                ]
             }
-        }
+        });
+
+        // Wipe generic tracking records
+        await tx.notification.deleteMany({ where: { userId: notFullyProtected } });
+        await tx.auditLog.deleteMany({ where: { userId: notFullyProtected } });
+        await tx.givingGoal.deleteMany({ where: { userId: notFullyProtected } });
+        await tx.subscription.deleteMany({ where: { userId: notFullyProtected } });
+        await tx.donation.deleteMany({ where: { userId: notFullyProtected } });
+
+        // Wipe project dependencies
+        const projectNotFullyProtected = { project: { userId: notFullyProtected } };
+        await tx.featuredSlot.deleteMany({ where: projectNotFullyProtected });
+        await tx.milestoneProof.deleteMany({ where: projectNotFullyProtected });
+        await tx.disbursement.deleteMany({ where: projectNotFullyProtected });
+        await tx.projectUpdate.deleteMany({ where: projectNotFullyProtected });
+        await tx.projectReport.deleteMany({ where: projectNotFullyProtected });
+
+        // Wipe wallet history
+        await tx.walletTransaction.deleteMany({ where: { wallet: { userId: notFullyProtected } } });
+
+        // Zero out wallets for the admins (ensuring they start production with clean 0.00 balances)
+        await tx.wallet.updateMany({
+            where: { userId: { in: ACCOUNT_ONLY_IDS } },
+            data: { balance: 0n }
+        });
+
+        // Wipe core projects & proposals
+        await tx.project.deleteMany({ where: { userId: notFullyProtected } });
+        await tx.projectProposal.deleteMany({ where: { userId: notFullyProtected } });
+
+        console.log('🧹 Executing final physical deletion of unregistered users...');
+        await tx.organizationProfile.deleteMany({ where: { userId: notAnySavedUser } });
+        await tx.wallet.deleteMany({ where: { userId: notAnySavedUser } });
+        await tx.user.deleteMany({ where: { id: notAnySavedUser } });
+
+    }, {
+        timeout: 40000 // Extended timeout to accommodate large cascade trees
     });
 
-    await prisma.user.deleteMany({
-        where: {
-            email: { notIn: preservedEmails }
-        }
-    });
-
-    // 3. Self-healing setup: Ensure preserved identities are fully valid
-    console.log('🔧 Verifying core system credentials...');
-    const salt = await bcrypt.genSalt(10);
-    const adminPass = await bcrypt.hash('Givartech1$', salt);
-    const userPass = await bcrypt.hash('Password1', salt);
-
-    // Upsert SuperAdmin
-    const admin = await prisma.user.upsert({
-        where: { email: 'admin@givarapp.com' },
-        update: {
-            role: UserRole.SUPERADMIN,
-            accountType: AccountType.INDIVIDUAL,
-            emailVerified: true
-        },
-        create: {
-            email: 'admin@givarapp.com',
-            firstName: 'Givar',
-            lastName: 'Admin',
-            passwordHash: adminPass,
-            role: UserRole.SUPERADMIN,
-            emailVerified: true,
-            accountType: AccountType.INDIVIDUAL
-        }
-    });
-
-    // Upsert Matthew Tedunjaiye
-    const organizer = await prisma.user.upsert({
-        where: { email: 'tedunjaiyem@gmail.com' },
-        update: {
-            role: UserRole.USER,
-            accountType: AccountType.ORGANIZER,
-            emailVerified: true
-        },
-        create: {
-            email: 'tedunjaiyem@gmail.com',
-            firstName: 'Matthew',
-            lastName: 'Tedunjaiye',
-            passwordHash: userPass,
-            role: UserRole.USER,
-            emailVerified: true,
-            accountType: AccountType.ORGANIZER
-        }
-    });
-
-    // Ensure fresh, zero-balance NGN wallets exist for both users
-    await prisma.wallet.upsert({
-        where: { userId_currency: { userId: admin.id, currency: Currency.NGN } },
-        update: { balance: 0n },
-        create: { userId: admin.id, currency: Currency.NGN, balance: 0n }
-    });
-
-    await prisma.wallet.upsert({
-        where: { userId_currency: { userId: organizer.id, currency: Currency.NGN } },
-        update: { balance: 0n },
-        create: { userId: organizer.id, currency: Currency.NGN, balance: 0n }
-    });
-
-    // Re-establish fresh compliance profile for Matthew
-    await prisma.organizationProfile.upsert({
-        where: { userId: organizer.id },
-        update: {
-            legalName: 'Ted Impact Ventures',
-            registrationNumber: 'RC-TED-2024',
-            status: 'VERIFIED',
-            verifiedAt: new Date()
-        },
-        create: {
-            userId: organizer.id,
-            legalName: 'Ted Impact Ventures',
-            registrationNumber: 'RC-TED-2024',
-            status: 'VERIFIED',
-            verifiedAt: new Date()
-        }
-    });
-
-    console.log('✅ Clean slate completed successfully. Preserved core identities and category taxonomy.');
+    console.log('✅ Clean slate completed successfully.');
+    console.log('🛡️ Phinehas account and nodes preserved.');
+    console.log('🛡️ Tedunjaiye, Folarin, and Admin accounts preserved.');
+    console.log('🛡️ Taxonomy, Fee Config, Discovery Algorithm, and Legal Docs preserved.');
 }
 
 main()
     .catch((e) => {
-        console.error(e);
+        console.error('❌ Clean slate execution failed:', e);
         process.exit(1);
     })
     .finally(async () => {
