@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { ApiService } from '../../../../services/api';
 import { FinanceReportClient } from '../../../../components/features/admin/finances/finance-report-client';
 import { AlertTriangle } from 'lucide-react';
+import { Suspense } from 'react';
 
 export const metadata = {
     title: 'Financial Analytics',
@@ -46,10 +47,12 @@ export default async function AdminFinancesPage({
                 <h1 className="text-lg font-bold tracking-tight text-foreground">Financial Analytics</h1>
             </div>
 
-            <FinanceReportClient
-                categories={categories || []}
-                report={report}
-            />
+            <Suspense fallback={<div className="h-40 w-full bg-muted/20 animate-pulse rounded-3xl" />}>
+                <FinanceReportClient
+                    categories={categories || []}
+                    report={report}
+                />
+            </Suspense>
         </div>
     );
 }
