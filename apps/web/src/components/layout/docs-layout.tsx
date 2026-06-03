@@ -32,8 +32,14 @@ export function DocsLayout({ children, initialDocs = [] }: { children: React.Rea
 
     useEffect(() => {
         const token = getCookie('givar_token');
-        if (token) {
-            setBackLink('/dashboard');
+        const defaultFallback = token ? '/dashboard' : '/explore';
+
+        if (typeof window !== 'undefined') {
+            // Retrieve the smart route cached globally by the ActivityMonitor
+            const storedUrl = sessionStorage.getItem('givar_last_non_legal_route');
+            setBackLink(storedUrl || defaultFallback);
+        } else {
+            setBackLink(defaultFallback);
         }
     }, []);
 
@@ -48,11 +54,7 @@ export function DocsLayout({ children, initialDocs = [] }: { children: React.Rea
 
     const handleBack = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (typeof window !== 'undefined' && document.referrer && document.referrer.includes(window.location.host)) {
-            router.back();
-        } else {
-            router.push(backLink);
-        }
+        router.push(backLink);
     };
 
     // Reconstruct the search index dynamically from live database records
