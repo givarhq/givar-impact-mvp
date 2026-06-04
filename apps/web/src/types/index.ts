@@ -229,7 +229,9 @@ export interface ProjectProposal {
   preCollectedAmount?: string | null;
   awarenessStatus?: string | null;
 
-  status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
+  status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'RECOMMENDED' | 'APPROVED' | 'REJECTED';
+  adminFeedback: string | null;
+  internalNotes: string | null;
   submittedAt: string;
   updatedAt: string;
   approvedAt: string | null;
