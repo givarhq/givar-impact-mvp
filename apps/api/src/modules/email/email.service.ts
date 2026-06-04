@@ -481,4 +481,28 @@ export class EmailService {
     const html = EmailTemplates.base(content, `Update: ${data.documentTitle}`);
     return this.send(email, `Givar Policy Update: ${data.documentTitle}`, html);
   }
+
+  async sendSuperAdminRecommendationAlert(data: { projectTitle: string; recommendingAdminName: string; internalNotes: string; proposalId: string }) {
+    const superAdmins = await this.prisma.user.findMany({
+      where: { role: 'SUPERADMIN' },
+      select: { email: true, firstName: true }
+    });
+
+    if (superAdmins.length === 0) return;
+
+    const url = `${this.config.get('FRONTEND_URL')}/admin/proposals/${data.proposalId}`;
+
+    await Promise.allSettled(
+      superAdmins.map(admin => {
+        const content = EmailTemplates.adminProposalRecommended({
+          adminName: admin.firstName,
+          projectTitle: data.projectTitle,
+          recommendingAdminName: data.recommendingAdminName,
+          internalNotes: data.internalNotes,
+          url
+        });
+        return this.send(admin.email, `Givar Superadmin: Cause Recommended for Launch`, EmailTemplates.base(content, 'Cause Recommended'));
+      })
+    );
+  }
 }

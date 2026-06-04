@@ -732,4 +732,21 @@ export const EmailTemplates = {
 
     <p style="font-size: 13px; color: #6b7280;">Thank you for being part of the Givar community.</p>
   `,
+
+  adminProposalRecommended: (data: { adminName: string; projectTitle: string; recommendingAdminName: string; internalNotes: string; url: string }) => `
+    <p>Hi ${data.adminName},</p>
+    <p>A new cause, <strong>"${data.projectTitle}"</strong>, has been reviewed and recommended for approval by <strong>${data.recommendingAdminName}</strong>.</p>
+    
+    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 24px; margin: 24px 0;">
+      <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #059669; margin-bottom: 8px; font-weight: 700;">Admin Internal Notes</p>
+      <p style="font-size: 15px; color: #064e3b; line-height: 1.6; margin: 0; font-style: italic;">
+        "${data.internalNotes}"
+      </p>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.url}" class="button" style="background-color: #064e3b;">Review & Launch Cause</a>
+    </div>
+    <p style="font-size: 13px; color: #6b7280;">This is an automated administrative alert from the Givar Compliance Node.</p>
+  `,
 };

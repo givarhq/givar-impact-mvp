@@ -330,7 +330,8 @@ export class AdminService {
           ProposalStatus.SUBMITTED,
           ProposalStatus.UNDER_REVIEW,
           ProposalStatus.CHANGES_REQUESTED,
-          ProposalStatus.AWAITING_VERIFICATION
+          ProposalStatus.AWAITING_VERIFICATION,
+          ProposalStatus.RECOMMENDED
         ]
       },
 
@@ -353,7 +354,7 @@ export class AdminService {
         include: {
           user: { select: { email: true, firstName: true, lastName: true } },
           category: { select: { name: true, slug: true } },
-          subcategory: { select: { name: true } }, // <-- NEW: Fetch subcategory for Admin review
+          subcategory: { select: { name: true } },
         },
         orderBy: { submittedAt: 'desc' },
       }),
@@ -364,7 +365,7 @@ export class AdminService {
       data: proposals.map(p => ({
         ...p,
         targetAmount: p.targetAmount?.toString() || '0',
-        subcategoryName: p.subcategory?.name // <-- Map
+        subcategoryName: p.subcategory?.name
       })),
       meta: {
         total,
@@ -447,7 +448,7 @@ export class AdminService {
       include: { category: true, user: { select: { email: true, firstName: true } } },
     });
 
-    if (!proposal || (proposal.status !== ProposalStatus.SUBMITTED && proposal.status !== ProposalStatus.UNDER_REVIEW)) {
+    if (!proposal || (proposal.status !== ProposalStatus.SUBMITTED && proposal.status !== ProposalStatus.UNDER_REVIEW && proposal.status !== ProposalStatus.RECOMMENDED)) {
       throw new BadRequestException('Proposal is not in a submittable state for approval');
     }
 
@@ -558,6 +559,75 @@ export class AdminService {
         preCollectedAmount: project.preCollectedAmount?.toString(),
       };
     });
+  }
+
+  async recommendProposal(id: string, adminId: string, internalNotes: string) {
+    const proposal = await this.prisma.projectProposal.findUnique({
+      where: { id },
+      include: { user: { select: { email: true, firstName: true } } }
+    });
+
+    if (!proposal) throw new NotFoundException('Proposal not found');
+
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminId },
+      select: { firstName: true, lastName: true }
+    });
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.projectProposal.update({
+        where: { id },
+        data: {
+          status: ProposalStatus.RECOMMENDED,
+          internalNotes: internalNotes,
+          reviewedBy: adminId,
+        },
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROPOSAL_RECOMMENDED,
+        entityId: id,
+        entityType: 'ProjectProposal',
+        metadata: {
+          action: 'RECOMMEND_PROPOSAL',
+          proposerId: proposal.userId,
+          internalNotes
+        }
+      }, tx);
+
+      const superAdmins = await tx.user.findMany({
+        where: { role: 'SUPERADMIN' },
+        select: { id: true }
+      });
+
+      if (superAdmins.length > 0) {
+        await tx.notification.createMany({
+          data: superAdmins.map(sa => ({
+            userId: sa.id,
+            type: NotificationType.SYSTEM,
+            title: 'Cause recommended for launch',
+            content: `Admin ${admin?.firstName} ${admin?.lastName} has reviewed and recommended "${proposal.title}" for approval.`,
+            link: `/admin/proposals/${id}`
+          }))
+        });
+      }
+
+      return updated;
+    });
+
+    this.emailService.sendSuperAdminRecommendationAlert({
+      projectTitle: proposal.title || 'Untitled',
+      recommendingAdminName: `${admin?.firstName} ${admin?.lastName}`,
+      internalNotes,
+      proposalId: id
+    }).catch(e => this.logger.error(`Recommendation email failed: ${e.message}`));
+
+    return {
+      ...result,
+      targetAmount: result.targetAmount?.toString(),
+      preCollectedAmount: result.preCollectedAmount?.toString(),
+    };
   }
 
   /**
