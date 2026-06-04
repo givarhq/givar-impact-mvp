@@ -9,7 +9,7 @@ import {
     AlertTriangle, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
     AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2, Phone,
-    ChevronDown, ChevronRight, Mail
+    ChevronDown, ChevronRight, Mail, UserCheck
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -29,6 +29,7 @@ import { ConfirmModal } from '../../ui/confirm-modal';
 
 interface ProposalReviewProps {
     proposal: ProjectProposal;
+    isSuperAdmin?: boolean;
 }
 
 const sanitizeHtml = (html: string): string => {
@@ -74,11 +75,12 @@ const AssistiveChecklist = ({ title, items }: { title: string, items: string[] }
     );
 };
 
-export const ProposalReview = memo(function ProposalReview({ proposal }: ProposalReviewProps) {
+export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAdmin = false }: ProposalReviewProps) {
     const router = useRouter();
     const [isProcessing, setIsProcessing] = useState(false);
     const [feedback, setFeedback] = useState('');
-    const [actionType, setActionType] = useState<'reject' | 'changes' | null>(null);
+    const [internalNotes, setInternalNotes] = useState('');
+    const [actionType, setActionType] = useState<'reject' | 'changes' | 'recommend' | null>(null);
     const [showApproveConfirm, setShowApproveConfirm] = useState(false);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
@@ -188,6 +190,25 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
 
     const handleDecision = async () => {
         if (!actionType) return;
+
+        if (actionType === 'recommend') {
+            if (!internalNotes.trim()) return toast.error('Internal notes are required to recommend.');
+            setIsProcessing(true);
+            const toastId = toast.loading('Recommending to Superadmin...');
+            try {
+                await ApiService.admin.recommendProposal(proposal.id, internalNotes.trim());
+                toast.success('Cause recommended successfully', { id: toastId });
+                router.push('/admin/projects?tab=proposals');
+                router.refresh();
+            } catch (e) {
+                toast.error('Recommendation failed to sync', { id: toastId });
+            } finally {
+                setIsProcessing(false);
+            }
+            return;
+        }
+
+        // For reject or changes
         if (!feedback.trim()) return toast.error('Verification feedback is required');
 
         setIsProcessing(true);
@@ -260,6 +281,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
     const statusColor = {
         SUBMITTED: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
         UNDER_REVIEW: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+        RECOMMENDED: 'bg-teal-500/10 text-teal-600 border-teal-500/20',
         CHANGES_REQUESTED: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
         APPROVED: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
         REJECTED: 'bg-destructive/10 text-destructive border-destructive/20',
@@ -658,42 +680,60 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3 text-primary shadow-inner border border-primary/20">
                                             <CheckCircle2 className="h-6 w-6" />
                                         </div>
-                                        <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Final Decision</h3>
+                                        <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Administrative Decision</h3>
                                         <p className="text-xs text-muted-foreground font-medium max-w-sm mx-auto leading-relaxed">
-                                            Please ensure you have reviewed all narrative details, financial structures, and have bound the necessary vendor subaccounts before approving.
+                                            {isSuperAdmin
+                                                ? 'Finalize the project launch or reject the proposal.'
+                                                : 'Provide feedback to the organizer or recommend this cause to the Superadmin for final approval.'}
                                         </p>
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-lg mx-auto mt-2">
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="ghost" onClick={() => setActionType('reject')} className="w-full sm:flex-1 h-11 px-6 rounded-3xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 font-bold text-xs transition-all active:scale-95">
-                                                    Reject
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="rounded-3xl p-6 md:p-8 border-none shadow-2xl bg-card max-w-md">
-                                                <DialogHeader><DialogTitle className="text-base font-bold text-destructive">Reject Proposal</DialogTitle></DialogHeader>
-                                                <div className="space-y-5 pt-2">
-                                                    <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3">
-                                                        <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                                                        <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived and the owner notified.</p>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Rejection reason</label>
-                                                        <Input
-                                                            placeholder="State the basis for this decision..."
-                                                            value={feedback}
-                                                            onChange={(e) => setFeedback(e.target.value)}
-                                                            className="h-10 rounded-2xl text-sm"
-                                                        />
-                                                    </div>
-                                                    <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-11 rounded-3xl font-bold text-xs shadow-md border-0">
-                                                        Finalize rejection
-                                                    </Button>
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
+                                    {proposal.status === 'RECOMMENDED' && isSuperAdmin && (
+                                        <div className="w-full max-w-lg p-5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-left mb-2 shadow-sm animate-in fade-in">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <UserCheck className="h-4 w-4 text-teal-600" />
+                                                <h4 className="text-[11px] font-bold tracking-widest text-teal-700 uppercase">Admin Recommendation Notes</h4>
+                                            </div>
+                                            <p className="text-xs text-teal-900 font-medium italic leading-relaxed">
+                                                "{proposal.internalNotes}"
+                                            </p>
+                                        </div>
+                                    )}
 
+                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-lg mx-auto mt-2">
+                                        {/* REJECT BUTTON (Superadmin Only) */}
+                                        {isSuperAdmin && (
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="ghost" onClick={() => setActionType('reject')} className="w-full sm:flex-1 h-11 px-6 rounded-3xl text-destructive hover:bg-destructive/10 border border-transparent hover:border-destructive/20 font-bold text-xs transition-all active:scale-95">
+                                                        Reject
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="rounded-3xl p-6 md:p-8 border-none shadow-2xl bg-card max-w-md">
+                                                    <DialogHeader><DialogTitle className="text-base font-bold text-destructive">Reject Proposal</DialogTitle></DialogHeader>
+                                                    <div className="space-y-5 pt-2">
+                                                        <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3">
+                                                            <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                                                            <p className="text-xs text-destructive font-medium leading-relaxed">This action is final. The proposal will be archived and the owner notified.</p>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Rejection reason</label>
+                                                            <Input
+                                                                placeholder="State the basis for this decision..."
+                                                                value={feedback}
+                                                                onChange={(e) => setFeedback(e.target.value)}
+                                                                className="h-10 rounded-2xl text-sm"
+                                                            />
+                                                        </div>
+                                                        <Button variant="destructive" onClick={handleDecision} disabled={isProcessing} className="w-full h-11 rounded-3xl font-bold text-xs shadow-md border-0">
+                                                            Finalize rejection
+                                                        </Button>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                        )}
+
+                                        {/* REQUEST CHANGES (Admin & Superadmin) */}
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <Button variant="outline" onClick={() => setActionType('changes')} className="w-full sm:flex-1 h-11 px-6 rounded-3xl border-border/60 text-foreground font-bold text-xs transition-all active:scale-95 bg-background shadow-sm hover:bg-muted">
@@ -719,13 +759,49 @@ export const ProposalReview = memo(function ProposalReview({ proposal }: Proposa
                                             </DialogContent>
                                         </Dialog>
 
-                                        <Button
-                                            onClick={() => setShowApproveConfirm(true)}
-                                            disabled={isProcessing}
-                                            className="w-full sm:w-auto h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
-                                        >
-                                            <Check className="h-4 w-4" /> Verify & launch
-                                        </Button>
+                                        {/* POSITIVE ACTION (Recommend for Admin, Launch for Superadmin) */}
+                                        {!isSuperAdmin ? (
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        onClick={() => setActionType('recommend')}
+                                                        disabled={isProcessing}
+                                                        className="w-full sm:w-auto h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
+                                                    >
+                                                        <UserCheck className="h-4 w-4" /> Recommend cause
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="rounded-3xl p-6 md:p-8 border-none shadow-2xl bg-card max-w-md">
+                                                    <DialogHeader><DialogTitle className="text-base font-bold text-foreground">Recommend to Superadmin</DialogTitle></DialogHeader>
+                                                    <div className="space-y-5 pt-2">
+                                                        <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-3">
+                                                            <ShieldCheck className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                                                            <p className="text-xs text-blue-700 font-medium leading-relaxed">This will flag the proposal as ready for final approval. Please leave internal notes verifying your audit checks.</p>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Internal Notes</label>
+                                                            <textarea
+                                                                className="w-full h-28 rounded-2xl border border-border bg-muted/20 p-4 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 resize-none transition-all"
+                                                                placeholder="e.g. Verified hospital invoice via phone. All subaccounts configured..."
+                                                                value={internalNotes}
+                                                                onChange={(e) => setInternalNotes(e.target.value)}
+                                                            />
+                                                        </div>
+                                                        <Button onClick={handleDecision} disabled={isProcessing} className="w-full h-11 rounded-3xl font-bold text-xs shadow-lg shadow-primary/20 border-0 bg-primary text-white">
+                                                            Submit recommendation
+                                                        </Button>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                        ) : (
+                                            <Button
+                                                onClick={() => setShowApproveConfirm(true)}
+                                                disabled={isProcessing}
+                                                className="w-full sm:w-auto h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
+                                            >
+                                                <Check className="h-4 w-4" /> Verify & launch
+                                            </Button>
+                                        )}
                                     </div>
                                 </>
                             ) : (

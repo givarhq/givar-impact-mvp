@@ -15,9 +15,18 @@ export default async function AdminProposalDetailPage({ params }: { params: Prom
   const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get('givar_token')?.value;
+  const userCookie = cookieStore.get('givar_user')?.value;
 
   if (!token) {
     redirect('/login?reason=session_expired');
+  }
+
+  let isSuperAdmin = false;
+  if (userCookie) {
+    try {
+      const user = JSON.parse(userCookie);
+      isSuperAdmin = user.role === 'SUPERADMIN';
+    } catch (e) { }
   }
 
   try {
@@ -52,7 +61,7 @@ export default async function AdminProposalDetailPage({ params }: { params: Prom
         </div>
 
         <div className="w-full min-w-0">
-          <ProposalReview proposal={proposal} />
+          <ProposalReview proposal={proposal} isSuperAdmin={isSuperAdmin} />
         </div>
       </div>
     );
