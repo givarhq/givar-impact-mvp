@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
     Wallet, Lock, Unlock, ShieldAlert, History, Loader2, Fingerprint,
-    UserCheck, UserSearch, Shield, ShieldOff, CheckCircle2, Clock,
+    UserCheck, UserSearch, Shield, CheckCircle2, Clock,
     ShieldCheck
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -13,6 +13,9 @@ import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { ConfirmModal } from '../../ui/confirm-modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { Input } from '../../ui/input';
 import { formatDate } from '../../../lib/utils/format';
 import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
@@ -67,10 +70,13 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         isOpen: false,
         action: null
     });
-    const [roleConfirm, setRoleConfirm] = useState<{ isOpen: boolean; action: 'PROMOTE' | 'DEMOTE' | null }>({
+
+    // State for SOTA Step-Up Role Management
+    const [roleModal, setRoleModal] = useState<{ isOpen: boolean; targetRole: string | null }>({
         isOpen: false,
-        action: null
+        targetRole: null
     });
+    const [stepUpPassword, setStepUpPassword] = useState('');
 
     const isLocked = !!user.accountLockedUntil && new Date(user.accountLockedUntil) > new Date();
     const isAdmin = user.role === 'ADMIN';
@@ -120,18 +126,26 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
     };
 
     const onConfirmRoleChange = async () => {
-        const action = roleConfirm.action;
-        if (!action) return;
+        if (!roleModal.targetRole) return;
+
+        const requiresPassword = roleModal.targetRole === 'SUPERADMIN' || user.role === 'SUPERADMIN';
+        if (requiresPassword && !stepUpPassword) {
+            return toast.error("Cryptographic verification required.");
+        }
 
         setIsProcessing(true);
+        const toastId = toast.loading("Processing clearance level change...");
         try {
-            const newRole = action === 'PROMOTE' ? 'ADMIN' : 'USER';
-            await ApiService.admin.updateUserRole(user.id, newRole);
-            toast.success(`Role updated`);
-            setRoleConfirm({ isOpen: false, action: null });
+            await ApiService.admin.updateUserRole(user.id, {
+                role: roleModal.targetRole,
+                password: stepUpPassword || undefined
+            });
+            toast.success(`Clearance level updated successfully`, { id: toastId });
+            setRoleModal({ isOpen: false, targetRole: null });
+            setStepUpPassword('');
             router.refresh();
         } catch (e: any) {
-            toast.error(e.response?.data?.message || "Role change failed");
+            toast.error(e.response?.data?.message || "Clearance update failed", { id: toastId });
         } finally {
             setIsProcessing(false);
         }
@@ -175,7 +189,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                             <div className="flex flex-wrap justify-center gap-1.5">
                                 <Badge variant="outline" className={cn(
                                     "rounded-3xl px-2 py-0.5 text-xs font-bold border-border/40",
-                                    isAdmin || isSuperAdmin ? "bg-blue-50 text-blue-600 border-blue-100" : "bg-muted/30"
+                                    isSuperAdmin ? "bg-purple-50 text-purple-600 border-purple-100" : isAdmin ? "bg-blue-50 text-blue-600 border-blue-100" : "bg-muted/30"
                                 )}>
                                     {user.role}
                                 </Badge>
@@ -228,24 +242,21 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                             )}
 
                             <div className="grid grid-cols-2 gap-2">
-                                {!isSuperAdmin && (
-                                    <Button
-                                        variant="outline"
-                                        className="h-10 rounded-3xl font-bold text-xs gap-2 border-border/60"
-                                        onClick={() => setRoleConfirm({ isOpen: true, action: isAdmin ? 'DEMOTE' : 'PROMOTE' })}
-                                        disabled={isProcessing}
-                                    >
-                                        {isAdmin ? <ShieldOff className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
-                                        Role
-                                    </Button>
-                                )}
+                                <Button
+                                    variant="outline"
+                                    className="h-10 rounded-3xl font-bold text-xs gap-2 border-border/60"
+                                    onClick={() => setRoleModal({ isOpen: true, targetRole: user.role })}
+                                    disabled={isProcessing}
+                                >
+                                    <Shield className="h-3.5 w-3.5" />
+                                    Access Level
+                                </Button>
 
                                 <Button
                                     variant={isLocked ? "default" : "destructive"}
                                     className={cn(
                                         "h-10 rounded-3xl font-bold text-xs gap-2 border-0",
                                         !isLocked && "bg-destructive/10 text-destructive hover:bg-destructive",
-                                        isSuperAdmin && "col-span-2"
                                     )}
                                     onClick={() => setStatusConfirm({ isOpen: true, action: isLocked ? 'UNLOCK' : 'LOCK' })}
                                     disabled={isProcessing || isSuperAdmin}
@@ -369,6 +380,81 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 </div>
             </motion.div>
 
+            {/* SOTA Step-Up Auth Modal for Elevation Protocol */}
+            <Dialog open={roleModal.isOpen} onOpenChange={(isOpen) => !isOpen && setRoleModal({ isOpen: false, targetRole: null })}>
+                <DialogContent className="rounded-3xl border-none shadow-2xl bg-card p-6 md:p-8 max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-bold text-foreground">Manage Access Level</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-5 pt-4">
+                        <div className="space-y-1.5">
+                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Select new role</label>
+                            <Select
+                                value={roleModal.targetRole || user.role}
+                                onValueChange={(v) => setRoleModal(prev => ({ ...prev, targetRole: v }))}
+                                disabled={isProcessing}
+                            >
+                                <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm font-bold shadow-inner">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl shadow-xl border-border/40">
+                                    <SelectItem value="USER" className="text-xs font-bold py-2.5">User (Standard)</SelectItem>
+                                    <SelectItem value="ADMIN" className="text-xs font-bold py-2.5 text-blue-600">Admin</SelectItem>
+                                    <SelectItem value="SUPERADMIN" className="text-xs font-bold py-2.5 text-purple-600">Super Admin (Root)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <AnimatePresence>
+                            {(roleModal.targetRole === 'SUPERADMIN' || user.role === 'SUPERADMIN') && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="space-y-3 overflow-hidden"
+                                >
+                                    <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3 shadow-inner mt-2">
+                                        <ShieldAlert className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                                        <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+                                            Root elevation or demotion requires cryptographic verification. Enter your password to proceed.
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-muted-foreground ml-1">Step-up authorization</label>
+                                        <Input
+                                            type="password"
+                                            placeholder="Verify your identity..."
+                                            value={stepUpPassword}
+                                            onChange={(e) => setStepUpPassword(e.target.value)}
+                                            className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background shadow-inner text-sm font-medium"
+                                            disabled={isProcessing}
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <div className="flex gap-2 pt-2 border-t border-border/40">
+                            <Button
+                                variant="ghost"
+                                onClick={() => { setRoleModal({ isOpen: false, targetRole: null }); setStepUpPassword(''); }}
+                                disabled={isProcessing}
+                                className="flex-1 rounded-3xl font-bold text-xs"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={onConfirmRoleChange}
+                                disabled={isProcessing || !roleModal.targetRole || roleModal.targetRole === user.role}
+                                className="flex-1 rounded-3xl font-bold text-xs shadow-md border-0 bg-primary text-white hover:bg-primary/90"
+                            >
+                                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm changes"}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             <ConfirmModal
                 isOpen={showImpersonateConfirm}
                 onClose={() => setShowImpersonateConfirm(false)}
@@ -392,20 +478,6 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                     : `Restore full access for ${user.email}?`
                 }
                 confirmText={statusConfirm.action === 'LOCK' ? 'Lock Account' : 'Unlock Account'}
-            />
-
-            <ConfirmModal
-                isOpen={roleConfirm.isOpen}
-                onClose={() => setRoleConfirm({ isOpen: false, action: null })}
-                onConfirm={onConfirmRoleChange}
-                isLoading={isProcessing}
-                variant={roleConfirm.action === 'DEMOTE' ? 'destructive' : 'warning'}
-                title={roleConfirm.action === 'PROMOTE' ? 'Grant Admin Rights' : 'Revoke Admin Rights'}
-                description={roleConfirm.action === 'PROMOTE'
-                    ? "Elevate this account to administrative status? This provides access to forensic tools & user management."
-                    : "Demote this account to standard user status? All administrative permissions will be revoked."
-                }
-                confirmText={roleConfirm.action === 'PROMOTE' ? 'Promote' : 'Demote'}
             />
         </>
     );
