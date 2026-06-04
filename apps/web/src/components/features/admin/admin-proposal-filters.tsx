@@ -88,6 +88,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
                 <SelectItem value="all" className="text-xs">All statuses</SelectItem>
                 <SelectItem value="SUBMITTED" className="text-xs">Submitted</SelectItem>
                 <SelectItem value="UNDER_REVIEW" className="text-xs">Review</SelectItem>
+                <SelectItem value="RECOMMENDED" className="text-xs">Recommended</SelectItem>
                 <SelectItem value="CHANGES_REQUESTED" className="text-xs">Edits</SelectItem>
               </SelectContent>
             </Select>
@@ -136,6 +137,7 @@ export const AdminProposalFilters = memo(function AdminProposalFilters({ categor
                 <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="SUBMITTED">Submitted</SelectItem>
                 <SelectItem value="UNDER_REVIEW">Review</SelectItem>
+                <SelectItem value="RECOMMENDED">Recommended</SelectItem>
                 <SelectItem value="CHANGES_REQUESTED">Edits</SelectItem>
               </SelectContent>
             </Select>

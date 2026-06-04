@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   FileText, Clock, CheckCircle2, AlertCircle,
   MoreHorizontal, Trash2, Edit2, ArrowRight, XCircle,
-  LayoutDashboard, Info
+  LayoutDashboard, Info, UserCheck
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -31,6 +31,7 @@ const statusConfig: Record<string, { color: string, icon: any, label: string }> 
   AWAITING_VERIFICATION: { color: 'text-amber-500 bg-amber-500/10 border-amber-500/20', icon: Clock, label: 'Pending KYC' },
   SUBMITTED: { color: 'text-blue-500 bg-blue-500/10 border-blue-500/20', icon: Clock, label: 'Submitted' },
   UNDER_REVIEW: { color: 'text-blue-600 bg-blue-600/10 border-blue-600/20', icon: Clock, label: 'In Review' },
+  RECOMMENDED: { color: 'text-teal-600 bg-teal-500/10 border-teal-500/20', icon: UserCheck, label: 'Recommended' },
   CHANGES_REQUESTED: { color: 'text-purple-500 bg-purple-500/10 border-purple-500/20', icon: AlertCircle, label: 'More Info Required' },
   APPROVED: { color: 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20', icon: CheckCircle2, label: 'Live' },
   REJECTED: { color: 'text-destructive bg-destructive/10 border-destructive/20', icon: XCircle, label: 'Rejected' },
