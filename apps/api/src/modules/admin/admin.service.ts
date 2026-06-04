@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import { ProjectStatus, ProposalStatus, AuditAction, Prisma, TxStatus, VerificationStatus, UserRole, AccountType, Currency, TxType, ProofStatus, TxCategory, NotificationType } from '@givar/database';
 import { StorageService } from '../storage/storage.service';
@@ -2382,19 +2382,40 @@ export class AdminService {
     });
   }
 
-  async updateUserRole(adminId: string, userId: string, newRole: UserRole) {
+  async updateUserRole(adminId: string, userId: string, newRole: UserRole, stepUpPassword?: string) {
+    const bcrypt = await import('bcrypt');
     const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
     const target = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!target) throw new NotFoundException('User not found');
 
     // Security Guards
-    if (admin?.role !== UserRole.SUPERADMIN) {
-      throw new ForbiddenException('Only Superadmins can promote or demote roles.');
+    if (adminId === userId) {
+      throw new ForbiddenException('Cannot modify your own access level.');
     }
 
-    if (target.role === UserRole.SUPERADMIN) {
-      throw new ForbiddenException('Cannot modify the Superadmin role directly.');
+    if (admin?.role !== UserRole.SUPERADMIN) {
+      throw new ForbiddenException('Only super admins can promote or demote roles.');
+    }
+
+    const isRootElevation = newRole === UserRole.SUPERADMIN;
+    const isRootDemotion = target.role === UserRole.SUPERADMIN && newRole !== UserRole.SUPERADMIN;
+
+    if (isRootElevation || isRootDemotion) {
+      if (!stepUpPassword) {
+        throw new UnauthorizedException('Security verification required for root access modification.');
+      }
+      const isMatch = await bcrypt.compare(stepUpPassword, admin.passwordHash);
+      if (!isMatch) {
+        throw new ForbiddenException('Security verification failed.');
+      }
+    }
+
+    if (isRootDemotion) {
+      const superAdminCount = await this.prisma.user.count({ where: { role: UserRole.SUPERADMIN } });
+      if (superAdminCount <= 1) {
+        throw new BadRequestException('Cannot demote the last super admin on the platform.');
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -2411,9 +2432,31 @@ export class AdminService {
         metadata: {
           prevRole: target.role,
           newRole,
-          performedBy: adminId
+          performedBy: adminId,
+          stepUpAuthUsed: !!stepUpPassword
         }
       }, tx);
+
+      if (isRootElevation || isRootDemotion) {
+        const superAdmins = await tx.user.findMany({
+          where: { role: UserRole.SUPERADMIN },
+          select: { id: true, email: true }
+        });
+
+        const actionText = isRootElevation ? 'elevated to super admin' : 'demoted from super admin';
+
+        if (superAdmins.length > 0) {
+          await tx.notification.createMany({
+            data: superAdmins.map(sa => ({
+              userId: sa.id,
+              type: NotificationType.SYSTEM,
+              title: 'Critical security alert',
+              content: `${target.email} was ${actionText} by ${admin.email}.`,
+              link: `/admin/users/${target.id}`
+            }))
+          });
+        }
+      }
 
       return updated;
     });

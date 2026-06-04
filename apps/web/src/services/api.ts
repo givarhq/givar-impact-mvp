@@ -335,8 +335,8 @@ export const ApiService = {
     updateUserStatus: (id: string, action: 'LOCK' | 'UNLOCK') =>
       apiClient.patch(`/admin/users/${id}/status`, { action }).then(r => r.data),
 
-    updateUserRole: (id: string, role: string) =>
-      apiClient.patch(`/admin/users/${id}/role`, { role }).then(r => r.data),
+    updateUserRole: (id: string, data: { role: string, password?: string }) =>
+      apiClient.patch(`/admin/users/${id}/role`, data).then(r => r.data),
 
     bulkUpdateUsers: (data: { userIds: string[], action: 'LOCK' | 'UNLOCK' | 'SET_USER' | 'SET_ADMIN' }) =>
       apiClient.post('/admin/users/bulk', data).then(r => r.data),
