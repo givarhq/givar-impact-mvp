@@ -133,13 +133,24 @@ export class AdminController {
   }
 
   @Patch('proposals/:id/approve')
+  @Roles(UserRole.SUPERADMIN)
   approve(@Param('id') id: string, @Req() req: any) {
     return this.service.approveAndPromote(id, req.user.id);
   }
 
   @Patch('proposals/:id/reject')
+  @Roles(UserRole.SUPERADMIN)
   reject(@Param('id') id: string, @Req() req: any, @Body('feedback') feedback: string) {
     return this.service.rejectProposal(id, req.user.id, feedback);
+  }
+
+  @Patch('proposals/:id/recommend')
+  recommendProposal(
+    @Param('id') id: string,
+    @Req() req: any,
+    @Body('internalNotes') internalNotes: string
+  ) {
+    return this.service.recommendProposal(id, req.user.id, internalNotes);
   }
 
   @Patch('projects/:id')

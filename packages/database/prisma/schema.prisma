@@ -151,6 +151,7 @@ enum AuditAction {
   PROJECT_DELETED
   PROJECT_SUSPENDED
   PROPOSAL_REJECTED
+  PROPOSAL_RECOMMENDED
   MILESTONE_PROOF_SUBMITTED
   USER_VERIFIED
   USER_REJECTED
@@ -205,6 +206,7 @@ enum ProposalStatus {
   AWAITING_VERIFICATION // Waiting for verification
   UNDER_REVIEW      // Admin is actively investigating
   CHANGES_REQUESTED // Sent back to user for edits
+  RECOMMENDED       // Admin verified, awaiting Superadmin
   APPROVED          // Promoted to live Project
   REJECTED          // Final decision, dead end
 }
@@ -678,6 +680,7 @@ model ProjectProposal {
   // --- 5. State Machine ---
   status        ProposalStatus  @default(DRAFT)
   adminFeedback String?         @db.Text 
+  internalNotes String?         @db.Text 
   reviewedBy    String?         
   submittedAt   DateTime?
   approvedAt    DateTime?
