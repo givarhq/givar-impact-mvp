@@ -28,7 +28,7 @@ const SYMBOLS: Record<string, string> = {
     USD: '$',
     GBP: '£',
     EUR: '€',
-    CAD: 'C$',
+    CAD: 'C$ ',
 };
 
 const formatDecimalInput = (value: string): string => {
@@ -111,6 +111,18 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     const ipCurrency = await res.text();
                     if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(ipCurrency.trim().toUpperCase())) {
                         setDetectedCurrency(ipCurrency.trim().toUpperCase());
+                        return;
+                    }
+                }
+            } catch (e) { }
+
+            try {
+                const res = await fetch('https://freeipapi.com/api/json');
+                if (res.ok) {
+                    const data = await res.json();
+                    const ipCurrency = data.currency?.code;
+                    if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(ipCurrency.toUpperCase())) {
+                        setDetectedCurrency(ipCurrency.toUpperCase());
                         return;
                     }
                 }
@@ -260,8 +272,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     let gatewayFeeMinor = 0n;
     if (netAmountMinor > 0n) {
         const isInternational = detectedCurrency !== 'NGN';
-        const flatFee = 10000n; 
-        const threshold = 250000n; 
+        const flatFee = 10000n;
+        const threshold = 250000n;
         const divisor = isInternational ? 961n : 985n;
 
         let chargeMinor = (netAmountMinor * 1000n) / divisor;
@@ -313,6 +325,14 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         } else {
             setDisplayAmount(formatDecimalInput(val));
         }
+    };
+
+    const toDisplayMajor = (minorAmountNgn: bigint) => {
+        let majorNgn = Number(minorAmountNgn) / 100;
+        if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
+            return majorNgn * fxRates[detectedCurrency];
+        }
+        return majorNgn;
     };
 
     const handleConfirm = async () => {
@@ -603,7 +623,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                     <span>Operational Support Fee ({feePercentage}%)</span>
                                     <span className="tabular-nums font-bold text-foreground">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(Number(feeAmountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{toDisplayMajor(feeAmountMinor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                                 {inputTipNum > 0 && (
@@ -618,14 +638,14 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                         <span>Payment Gateway Fee</span>
                                         <span className="tabular-nums font-bold text-foreground">
-                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{(Number(gatewayFeeMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{toDisplayMajor(gatewayFeeMinor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
                                 )}
                                 <div className="pt-3 border-t border-border/40 flex justify-between items-center">
                                     <span className="text-sm font-bold text-foreground">Total checkout</span>
                                     <span className="text-sm font-black text-primary tabular-nums">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(Number(totalCheckoutMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{toDisplayMajor(totalCheckoutMinor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
                             </div>

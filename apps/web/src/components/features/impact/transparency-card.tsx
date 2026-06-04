@@ -21,7 +21,7 @@ const SYMBOLS: Record<string, string> = {
     USD: '$',
     GBP: '£',
     EUR: '€',
-    CAD: 'C$',
+    CAD: 'C$ ',
 };
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
@@ -116,7 +116,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
 
                     <div className="space-y-1">
                         <div className="flex items-baseline gap-2">
-                            <span className="text-2xl md:text-3xl font-bold text-primary tracking-tight">
+                            <span className="text-2xl md:text-3xl font-bold text-primary tracking-tight whitespace-pre">
                                 {currencySymbol}{formatNoDecimals(totalRaised)}
                             </span>
                             <span className="text-xs font-medium text-muted-foreground">raised</span>
@@ -140,13 +140,13 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                 <Target className="h-3.5 w-3.5 text-primary" /> Goal
                             </div>
-                            <div className="font-bold text-sm text-foreground">{currencySymbol}{formatNoDecimals(totalTarget)}</div>
+                            <div className="font-bold text-sm text-foreground whitespace-pre">{currencySymbol}{formatNoDecimals(totalTarget)}</div>
                         </div>
                         <div className="p-3 rounded-2xl border border-border/60 flex flex-col items-center justify-center text-center space-y-1.5 shadow-sm bg-muted/10">
                             <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                 <AlertCircle className="h-3.5 w-3.5 text-amber-500" /> Remaining
                             </div>
-                            <div className="font-bold text-sm text-foreground">{currencySymbol}{formatNoDecimals(totalRemaining)}</div>
+                            <div className="font-bold text-sm text-foreground whitespace-pre">{currencySymbol}{formatNoDecimals(totalRemaining)}</div>
                         </div>
                     </div>
                 </div>
@@ -233,7 +233,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                         ) : (
                             <div className="space-y-3">
                                 <div className="flex justify-between items-end text-[10px] sm:text-[11px] font-bold">
-                                    <span className="text-foreground truncate">
+                                    <span className="text-foreground truncate whitespace-pre">
                                         {currencySymbol}{formatNoDecimals(raisedInCurrentPhase)} raised <span className="text-muted-foreground font-medium mx-0.5">of</span> {currencySymbol}{formatNoDecimals(currentPhaseTargetMinor)}
                                     </span>
                                     <span className="text-primary">{phasePercent}%</span>
