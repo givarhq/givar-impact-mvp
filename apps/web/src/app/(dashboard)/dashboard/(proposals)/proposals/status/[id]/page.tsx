@@ -50,7 +50,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
         const currentStatus = proposal.status;
 
         const isIdentityPending = currentStatus === 'AWAITING_VERIFICATION';
-        const isTechnicalReview = currentStatus === 'SUBMITTED' || currentStatus === 'UNDER_REVIEW' || currentStatus === 'CHANGES_REQUESTED';
+        const isTechnicalReview = currentStatus === 'SUBMITTED' || currentStatus === 'UNDER_REVIEW' || currentStatus === 'CHANGES_REQUESTED' || currentStatus === 'RECOMMENDED';
         const isFinalized = currentStatus === 'APPROVED' || currentStatus === 'REJECTED';
 
         const stages = [
@@ -121,6 +121,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
             switch (status) {
                 case 'APPROVED': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
                 case 'REJECTED': return 'bg-destructive/10 text-destructive border-destructive/20';
+                case 'RECOMMENDED': return 'bg-teal-500/10 text-teal-600 border-teal-500/20';
                 case 'CHANGES_REQUESTED': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
                 case 'AWAITING_VERIFICATION': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
                 default: return 'bg-primary/10 text-primary border-primary/20';
@@ -326,7 +327,7 @@ export default async function ProposalStatusPage({ params }: { params: Promise<{
                                                     <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                                                         {stage.desc}
                                                     </p>
-                                                    {isCurrent && currentStatus === 'UNDER_REVIEW' && i === 2 && (
+                                                    {isCurrent && (currentStatus === 'UNDER_REVIEW' || currentStatus === 'RECOMMENDED') && i === 2 && (
                                                         <div className="mt-2 text-[11px] font-bold text-blue-600 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200 w-fit animate-pulse">
                                                             Review in progress
                                                         </div>
