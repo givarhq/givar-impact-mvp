@@ -32,7 +32,7 @@ export function MyProposalsClient({ proposals }: MyProposalsClientProps) {
         proposals.forEach((p) => {
             if (p.status === 'APPROVED' && ['ACTIVE', 'FUNDED'].includes(p.projectStatus)) {
                 live.push(p);
-            } else if (['SUBMITTED', 'UNDER_REVIEW', 'AWAITING_VERIFICATION'].includes(p.status)) {
+            } else if (['SUBMITTED', 'UNDER_REVIEW', 'RECOMMENDED', 'AWAITING_VERIFICATION'].includes(p.status)) {
                 inReview.push(p);
             } else if (['DRAFT', 'CHANGES_REQUESTED', 'REJECTED'].includes(p.status)) {
                 drafts.push(p);
