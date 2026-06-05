@@ -127,8 +127,8 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Post('profile/delete')
   @HttpCode(HttpStatus.OK)
-  async deleteAccount(@Req() req: any, @Body('password') password: string) {
-    return this.authService.deleteAccount(req.user.id, password);
+  async deleteAccount(@Req() req: any, @Body('totpCode') totpCode: string) {
+    return this.authService.deleteAccount(req.user.id, totpCode);
   }
 
   @UseGuards(AuthGuard('jwt'))

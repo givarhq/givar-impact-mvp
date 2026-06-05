@@ -13,21 +13,21 @@ import toast from 'react-hot-toast';
 
 export const DangerZone = memo(function DangerZone() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [password, setPassword] = useState('');
+    const [totpCode, setTotpCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleDelete = async () => {
-        if (!password) return toast.error("Password required to authorize deletion");
+        if (!totpCode) return toast.error("Authentication code required to authorize deletion");
 
         setIsLoading(true);
         try {
-            await ApiService.auth.deleteAccount(password);
+            await ApiService.auth.deleteAccount(totpCode);
             toast.success("Account successfully deleted");
 
             // Logic: Let the Next.js server handle the strict cleanup of HttpOnly cookies
             window.location.href = '/api/auth/clear-session?reason=account_deleted';
         } catch (error: any) {
-            const message = error.response?.data?.message || "Deletion failed. Check your credentials.";
+            const message = error.response?.data?.message || "Deletion failed. Check your authenticator code.";
             toast.error(message);
             setIsLoading(false);
         }
@@ -64,18 +64,19 @@ export const DangerZone = memo(function DangerZone() {
                                 <DialogTitle className="text-lg font-bold tracking-tight text-center">Delete Account</DialogTitle>
                             </DialogHeader>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                Enter your password to authorize permanent removal from Givar.
+                                Enter your authenticator code or recovery code to authorize permanent removal from Givar.
                             </p>
                         </div>
 
                         <div className="space-y-4">
                             <Input
-                                type="password"
-                                label="Confirm Password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="h-10 rounded-3xl bg-muted/20"
+                                type="text"
+                                label="Authenticator code"
+                                placeholder="000000"
+                                maxLength={8}
+                                value={totpCode}
+                                onChange={(e) => setTotpCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
+                                className="h-12 rounded-3xl bg-muted/20 text-center font-bold tracking-[0.5em] text-lg uppercase"
                             />
 
                             <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed flex gap-2.5">
@@ -89,7 +90,7 @@ export const DangerZone = memo(function DangerZone() {
                             <Button
                                 variant="destructive"
                                 onClick={handleDelete}
-                                disabled={isLoading || !password}
+                                disabled={isLoading || !totpCode}
                                 className="rounded-3xl h-10 font-bold text-xs shadow-sm active:scale-95 transition-all"
                             >
                                 {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : 'Confirm Deletion'}
