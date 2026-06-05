@@ -328,9 +328,9 @@ function LoginComponent() {
                   type="text"
                   {...register('twoFactorCode')}
                   maxLength={8}
-                  className="text-center text-2xl font-black tracking-[0.4em] h-14 rounded-3xl bg-muted/20 border-border/60 focus:bg-background uppercase"
                   autoComplete="one-time-code"
                   disabled={isLoading}
+                  className="h-11 text-lg font-semibold tracking-normal text-center rounded-3xl bg-muted/20 border-border/60 focus:bg-background placeholder:normal-case"
                 />
               </div>
             </div>
