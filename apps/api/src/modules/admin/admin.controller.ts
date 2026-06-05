@@ -104,9 +104,9 @@ export class AdminController {
     @Req() req: any,
     @Param('id') id: string,
     @Body('role') role: UserRole,
-    @Body('password') password?: string
+    @Body('totpCode') totpCode?: string
   ) {
-    return this.service.updateUserRole(req.user.id, id, role, password);
+    return this.service.updateUserRole(req.user.id, id, role, totpCode);
   }
 
   @Patch('projects/:id/approve')

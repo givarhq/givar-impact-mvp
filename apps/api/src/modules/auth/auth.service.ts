@@ -541,7 +541,7 @@ export class AuthService {
     });
   }
 
-  async deleteAccount(userId: string, currentPassword: string) {
+  async deleteAccount(userId: string, totpCode: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { _count: { select: { donations: true, projects: true } } }
@@ -549,9 +549,9 @@ export class AuthService {
 
     if (!user) throw new NotFoundException('Account node not found');
 
-    // 1. Password Verification
-    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!isMatch) throw new BadRequestException('Verification failed: Credentials do not match');
+    // 1. TOTP Verification
+    const isValidStepUp = await this.verifyStepUpAuth(userId, totpCode);
+    if (!isValidStepUp) throw new BadRequestException('Verification failed: Invalid authenticator code');
 
     // 2. Ledger Integrity Check
     if (user._count.projects > 0) {
@@ -565,7 +565,7 @@ export class AuthService {
         action: AuditAction.ACCOUNT_DELETED,
         entityId: userId,
         entityType: 'User',
-        metadata: { email: user.email, totalDonations: user._count.donations, anonymized: user._count.donations > 0 }
+        metadata: { email: user.email, totalDonations: user._count.donations, anonymized: user._count.donations > 0, stepUpTotpUsed: true }
       }, tx);
 
       if (user._count.donations > 0) {
@@ -583,6 +583,7 @@ export class AuthService {
             avatarKey: null,
             twoFactorEnabled: false,
             twoFactorSecret: null,
+            twoFactorRecoveryCodes: [],
             preferences: {},
             accountLockedUntil: new Date('2099-12-31T23:59:59.000Z'), // Permanently locked
             emailVerified: false,

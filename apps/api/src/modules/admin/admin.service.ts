@@ -19,6 +19,7 @@ import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 import { NotificationService } from '../notifications/notification.service';
 import { randomUUID } from 'crypto';
 import { calculatePhaseFunding } from '@givar/types';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class AdminService {
@@ -31,7 +32,8 @@ export class AdminService {
     private emailService: EmailService,
     private audit: AuditService,
     private jwtService: JwtService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private authService: AuthService
   ) { }
 
   /**
@@ -2382,8 +2384,7 @@ export class AdminService {
     });
   }
 
-  async updateUserRole(adminId: string, userId: string, newRole: UserRole, stepUpPassword?: string) {
-    const bcrypt = await import('bcrypt');
+  async updateUserRole(adminId: string, userId: string, newRole: UserRole, stepUpTotp?: string) {
     const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
     const target = await this.prisma.user.findUnique({ where: { id: userId } });
 
@@ -2402,11 +2403,11 @@ export class AdminService {
     const isRootDemotion = target.role === UserRole.SUPERADMIN && newRole !== UserRole.SUPERADMIN;
 
     if (isRootElevation || isRootDemotion) {
-      if (!stepUpPassword) {
+      if (!stepUpTotp) {
         throw new UnauthorizedException('Security verification required for root access modification.');
       }
-      const isMatch = await bcrypt.compare(stepUpPassword, admin.passwordHash);
-      if (!isMatch) {
+      const isValidStepUp = await this.authService.verifyStepUpAuth(adminId, stepUpTotp);
+      if (!isValidStepUp) {
         throw new ForbiddenException('Security verification failed.');
       }
     }
@@ -2433,7 +2434,7 @@ export class AdminService {
           prevRole: target.role,
           newRole,
           performedBy: adminId,
-          stepUpAuthUsed: !!stepUpPassword
+          stepUpTotpUsed: !!stepUpTotp
         }
       }, tx);
 
