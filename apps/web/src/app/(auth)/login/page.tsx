@@ -326,11 +326,20 @@ function LoginComponent() {
                   key="mfa-totp-input"
                   placeholder="Enter code"
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
                   {...register('twoFactorCode')}
                   maxLength={8}
-                  autoComplete="one-time-code"
                   disabled={isLoading}
-                  className="h-11 text-lg font-semibold tracking-normal text-center rounded-3xl bg-muted/20 border-border/60 focus:bg-background placeholder:normal-case"
+                  onChange={(e) =>
+                    setValue(
+                      'twoFactorCode',
+                      e.target.value.replace(/\D/g, '').slice(0, 8)
+                    )
+                  }
+                  className="h-11 text-2xl font-black tracking-[0.5em] text-center rounded-3xl bg-muted/20 border-border/60 focus:bg-background
+  placeholder:normal-case placeholder:tracking-normal placeholder:text-sm placeholder:font-medium"
                 />
               </div>
             </div>
