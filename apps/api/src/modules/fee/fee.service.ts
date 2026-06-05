@@ -3,10 +3,11 @@ import { PrismaService } from '../../common/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction, TransactionFeeRule } from '@givar/database';
 import * as bcrypt from 'bcrypt';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class FeeService {
-    constructor(private prisma: PrismaService, private audit: AuditService) { }
+    constructor(private prisma: PrismaService, private audit: AuditService, private authService: AuthService) { }
 
     /**
      * Resolves the currently active transaction fee rule hierarchically.
@@ -87,23 +88,21 @@ export class FeeService {
         adminId: string,
         percentage: number,
         tipEnabled: boolean,
-        password: string,
+        totpCode: string,
         targetType: 'GLOBAL' | 'CATEGORY' | 'SUBCATEGORY' | 'PROJECT',
         targetId?: string
     ) {
         const admin = await this.prisma.user.findUnique({ where: { id: adminId } });
         if (!admin) throw new ForbiddenException('Admin identity not found');
 
-        // Step-Up Authentication Guard
-        const isMatch = await bcrypt.compare(password, admin.passwordHash);
-        if (!isMatch) throw new ForbiddenException('Invalid credentials for financial mutation');
+        const isValidStepUp = await this.authService.verifyStepUpAuth(adminId, totpCode);
+        if (!isValidStepUp) throw new ForbiddenException('Invalid authenticator code for financial mutation');
 
         if (percentage < 0 || percentage > 20) {
             throw new BadRequestException('Fee percentage must be between 0 and 20');
         }
 
         return this.prisma.$transaction(async (tx) => {
-            // Deactivate the current active rule for this specific scope
             const whereClause: any = { isActive: true };
             if (targetType === 'GLOBAL') whereClause.appliesGlobally = true;
             else if (targetType === 'CATEGORY') whereClause.categoryId = targetId;
@@ -144,7 +143,8 @@ export class FeeService {
                     targetId,
                     previousPercentage: currentRule?.percentage ?? 0,
                     newPercentage: percentage,
-                    tipEnabled
+                    tipEnabled,
+                    stepUpTotpUsed: true
                 }
             }, tx);
 

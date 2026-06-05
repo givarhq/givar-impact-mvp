@@ -24,7 +24,7 @@ export class UpdateFeeRuleDto {
     targetId?: string;
 
     @IsString()
-    password!: string;
+    totpCode!: string;
 }
 
 @Controller('fees')
@@ -69,7 +69,7 @@ export class FeeAdminController {
             req.user.id,
             dto.percentage,
             dto.optionalTipEnabled,
-            dto.password,
+            dto.totpCode,
             dto.targetType,
             dto.targetId
         );
