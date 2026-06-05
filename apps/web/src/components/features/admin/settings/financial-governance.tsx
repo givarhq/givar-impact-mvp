@@ -41,7 +41,7 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
     // Form State
     const [percentage, setPercentage] = useState('');
     const [tipEnabled, setTipEnabled] = useState(true);
-    const [password, setPassword] = useState('');
+    const [totpCode, setTotpCode] = useState('');
     const [targetType, setTargetType] = useState<'GLOBAL' | 'CATEGORY' | 'SUBCATEGORY' | 'PROJECT'>('GLOBAL');
     const [targetId, setTargetId] = useState<string>('');
 
@@ -88,8 +88,8 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
         if (isNaN(parsedPercentage) || parsedPercentage < 0 || parsedPercentage > 20) {
             return toast.error("Percentage must be a valid number between 0 and 20.");
         }
-        if (!password) {
-            return toast.error("SuperAdmin password is required to authorize financial mutation.");
+        if (!totpCode) {
+            return toast.error("Authenticator code is required to authorize financial modifications.");
         }
         if (targetType !== 'GLOBAL' && !targetId) {
             return toast.error("Please select the specific target for this fee rule.");
@@ -102,13 +102,13 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
             await ApiService.fees.updateGlobalRule({
                 percentage: parsedPercentage,
                 optionalTipEnabled: tipEnabled,
-                password,
+                totpCode,
                 targetType,
                 targetId: targetType === 'GLOBAL' ? undefined : targetId
             });
             toast.success("Financial parameters successfully updated", { id: toastId });
             setShowModal(false);
-            setPassword('');
+            setTotpCode('');
             setPercentage('');
             setTargetId('');
             setProjectQuery('');
@@ -471,13 +471,15 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                             </div>
 
                             <div className="space-y-1.5 pt-2">
-                                <label className="text-xs font-bold text-destructive ml-1 flex items-center gap-1.5"><Lock className="h-3 w-3" /> Step-Up Authorization</label>
+                                <label className="text-xs font-bold text-destructive ml-1 flex items-center gap-1.5"><Lock className="h-3 w-3" /> Step-up authorization</label>
                                 <Input
-                                    type="password"
-                                    placeholder="SuperAdmin password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="h-11 rounded-2xl bg-destructive/5 border-destructive/20 focus:bg-background shadow-inner transition-all text-xs"
+                                    type="text"
+                                    maxLength={8}
+                                    placeholder="000000"
+                                    value={totpCode}
+                                    onChange={(e) => setTotpCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
+                                    className="h-11 rounded-2xl bg-destructive/5 border-destructive/20 focus:bg-background shadow-inner transition-all text-center tracking-[0.5em] font-bold text-lg uppercase"
+                                    disabled={isUpdating}
                                 />
                             </div>
                         </div>
@@ -485,14 +487,14 @@ export const FinancialGovernance = memo(function FinancialGovernance({ initialFe
                         <div className="grid gap-2 pt-2">
                             <Button
                                 onClick={handleUpdate}
-                                disabled={isUpdating || !password || percentage === '' || (targetType !== 'GLOBAL' && !targetId)}
+                                disabled={isUpdating || !totpCode || percentage === '' || (targetType !== 'GLOBAL' && !targetId)}
                                 className="w-full h-12 rounded-full font-bold text-sm shadow-xl shadow-primary/20 transition-all active:scale-[0.98] border-0 bg-primary text-white hover:bg-primary/90"
                             >
                                 {isUpdating ? <Loader2 className="animate-spin h-5 w-5" /> : 'Authorize Protocol'}
                             </Button>
                             <Button
                                 variant="ghost"
-                                onClick={() => { setShowModal(false); setPassword(''); }}
+                                onClick={() => { setShowModal(false); setTotpCode(''); }}
                                 className="w-full h-10 rounded-full font-bold text-xs text-muted-foreground hover:text-foreground"
                             >
                                 Cancel

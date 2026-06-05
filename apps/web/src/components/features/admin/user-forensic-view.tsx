@@ -76,7 +76,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         isOpen: false,
         targetRole: null
     });
-    const [stepUpPassword, setStepUpPassword] = useState('');
+    const [stepUpTotp, setStepUpTotp] = useState('');
 
     const isLocked = !!user.accountLockedUntil && new Date(user.accountLockedUntil) > new Date();
     const isAdmin = user.role === 'ADMIN';
@@ -129,8 +129,8 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         if (!roleModal.targetRole) return;
 
         const requiresPassword = roleModal.targetRole === 'SUPERADMIN' || user.role === 'SUPERADMIN';
-        if (requiresPassword && !stepUpPassword) {
-            return toast.error("Cryptographic verification required.");
+        if (requiresPassword && !stepUpTotp) {
+            return toast.error("Authenticator code is required for root access modifications.");
         }
 
         setIsProcessing(true);
@@ -138,11 +138,11 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         try {
             await ApiService.admin.updateUserRole(user.id, {
                 role: roleModal.targetRole,
-                password: stepUpPassword || undefined
+                totpCode: stepUpTotp || undefined
             });
             toast.success(`Clearance level updated successfully`, { id: toastId });
             setRoleModal({ isOpen: false, targetRole: null });
-            setStepUpPassword('');
+            setStepUpTotp('');
             router.refresh();
         } catch (e: any) {
             toast.error(e.response?.data?.message || "Clearance update failed", { id: toastId });
@@ -416,17 +416,18 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                                     <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3 shadow-inner mt-2">
                                         <ShieldAlert className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                                         <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
-                                            Root elevation or demotion requires cryptographic verification. Enter your password to proceed.
+                                            Root elevation or demotion requires cryptographic verification. Enter your authenticator code to proceed.
                                         </p>
                                     </div>
                                     <div className="space-y-1.5">
                                         <label className="text-[11px] font-bold text-muted-foreground ml-1">Step-up authorization</label>
                                         <Input
-                                            type="password"
-                                            placeholder="Verify your identity..."
-                                            value={stepUpPassword}
-                                            onChange={(e) => setStepUpPassword(e.target.value)}
-                                            className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background shadow-inner text-sm font-medium"
+                                            type="text"
+                                            maxLength={8}
+                                            placeholder="000000"
+                                            value={stepUpTotp}
+                                            onChange={(e) => setStepUpTotp(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
+                                            className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background shadow-inner text-center tracking-[0.5em] font-bold text-lg uppercase"
                                             disabled={isProcessing}
                                         />
                                     </div>
@@ -437,7 +438,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                         <div className="flex gap-2 pt-2 border-t border-border/40">
                             <Button
                                 variant="ghost"
-                                onClick={() => { setRoleModal({ isOpen: false, targetRole: null }); setStepUpPassword(''); }}
+                                onClick={() => { setRoleModal({ isOpen: false, targetRole: null }); setStepUpTotp(''); }}
                                 disabled={isProcessing}
                                 className="flex-1 rounded-3xl font-bold text-xs"
                             >

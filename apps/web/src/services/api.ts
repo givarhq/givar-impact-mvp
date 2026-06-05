@@ -112,8 +112,8 @@ export const ApiService = {
     updateAvatar: (key: string) =>
       apiClient.patch('/auth/profile/avatar', { key }).then(r => r.data),
 
-    deleteAccount: (password: string) =>
-      apiClient.post('/auth/profile/delete', { password }).then(r => r.data),
+    deleteAccount: (totpCode: string) =>
+      apiClient.post('/auth/profile/delete', { totpCode }).then(r => r.data),
 
     generate2FA: () =>
       apiClient.post('/auth/2fa/generate').then(r => r.data),
@@ -335,7 +335,7 @@ export const ApiService = {
     updateUserStatus: (id: string, action: 'LOCK' | 'UNLOCK') =>
       apiClient.patch(`/admin/users/${id}/status`, { action }).then(r => r.data),
 
-    updateUserRole: (id: string, data: { role: string, password?: string }) =>
+    updateUserRole: (id: string, data: { role: string, totpCode?: string }) =>
       apiClient.patch(`/admin/users/${id}/role`, data).then(r => r.data),
 
     bulkUpdateUsers: (data: { userIds: string[], action: 'LOCK' | 'UNLOCK' | 'SET_USER' | 'SET_ADMIN' }) =>
