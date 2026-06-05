@@ -26,6 +26,7 @@ export default async function AdminAuditPage({
   if (resolvedParams.action) params.set('action', String(resolvedParams.action));
   if (resolvedParams.startDate) params.set('startDate', String(resolvedParams.startDate));
   if (resolvedParams.endDate) params.set('endDate', String(resolvedParams.endDate));
+  if (resolvedParams.userId) params.set('userId', String(resolvedParams.userId)); // ENABLES TARGETED FORENSICS
 
   const [logsResult, summaryStats] = await Promise.all([
     ApiService.admin.getAuditLogs(token, params),

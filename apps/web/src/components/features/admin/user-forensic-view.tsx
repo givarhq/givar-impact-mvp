@@ -6,8 +6,9 @@ import Image from 'next/image';
 import {
     Lock, Unlock, ShieldAlert, History, Loader2, Fingerprint,
     UserCheck, UserSearch, Shield, CheckCircle2, Clock,
-    ShieldCheck
+    ShieldCheck, ArrowRight
 } from 'lucide-react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Badge } from '../../ui/badge';
@@ -368,6 +369,13 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="p-3 bg-muted/10 border-t border-border/40">
+                            <Link href={`/admin/audit?userId=${user.id}`} className="block w-full">
+                                <Button variant="ghost" className="w-full h-9 rounded-2xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all">
+                                    View full history <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                                </Button>
+                            </Link>
                         </div>
                     </Card>
                 </div>
