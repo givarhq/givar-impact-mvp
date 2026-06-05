@@ -28,7 +28,7 @@ const SYMBOLS: Record<string, string> = {
     USD: '$',
     GBP: '£',
     EUR: '€',
-    CAD: 'C$',
+    CAD: 'C$ ',
 };
 
 const formatDecimalInput = (value: string): string => {
@@ -92,7 +92,20 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         setIsLoading(false);
 
         const detectCurrency = async () => {
-            // 1. Primary: ipapi.co
+            // 1. Primary: freeipapi.com (Fastest, Highly Reliable)
+            try {
+                const res = await fetch('https://freeipapi.com/api/json');
+                if (res.ok) {
+                    const data = await res.json();
+                    const ipCurrency = data.currency?.code;
+                    if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(String(ipCurrency).toUpperCase())) {
+                        setDetectedCurrency(String(ipCurrency).toUpperCase());
+                        return;
+                    }
+                }
+            } catch (e) { }
+
+            // 2. Secondary: ipapi.co
             try {
                 const res = await fetch('https://ipapi.co/currency/');
                 if (res.ok) {
@@ -104,25 +117,12 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 }
             } catch (e) { }
 
-            // 2. Secondary: ipwho.is (Robust Fallback)
+            // 3. Tertiary: ipwho.is (Robust Fallback)
             try {
                 const res = await fetch('https://ipwho.is/');
                 if (res.ok) {
                     const data = await res.json();
                     const ipCurrency = data.connection?.currency?.code || data.currency?.code;
-                    if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(String(ipCurrency).toUpperCase())) {
-                        setDetectedCurrency(String(ipCurrency).toUpperCase());
-                        return;
-                    }
-                }
-            } catch (e) { }
-
-            // 3. Tertiary: freeipapi.com
-            try {
-                const res = await fetch('https://freeipapi.com/api/json');
-                if (res.ok) {
-                    const data = await res.json();
-                    const ipCurrency = data.currency?.code;
                     if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(String(ipCurrency).toUpperCase())) {
                         setDetectedCurrency(String(ipCurrency).toUpperCase());
                         return;

@@ -38,6 +38,9 @@ function applySecurityHeaders(response: NextResponse) {
       https://*.i.posthog.com
       https://*.idrivee2-pt.com
       https://*.idrivee2.com
+      https://freeipapi.com
+      https://ipapi.co
+      https://ipwho.is
       ${apiOrigin};
     frame-src 'self' https://js.paystack.co https://checkout.paystack.com;
     object-src 'none';
