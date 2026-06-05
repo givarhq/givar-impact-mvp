@@ -504,7 +504,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     </div>
 
                     <div className="relative min-w-0">
-                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-xl md:text-3xl whitespace-pre">
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 z-10 pointer-events-none font-black text-muted-foreground text-xl md:text-3xl whitespace-pre">
                             {sym}
                         </span>
                         <Input
@@ -613,7 +613,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                                 exit={{ opacity: 0, height: 0 }}
                                                 className="relative pt-2"
                                             >
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground mt-1 whitespace-pre">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-sm font-bold text-muted-foreground mt-1 whitespace-pre">
                                                     {sym}{spc}
                                                 </span>
                                                 <Input
@@ -692,7 +692,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                         >
                             <label className="text-xs font-bold text-muted-foreground ml-1">Receipt delivery email</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none h-4 w-4 text-muted-foreground" />
                                 <Input
                                     type="email"
                                     placeholder="jane@example.com"
