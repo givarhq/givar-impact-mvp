@@ -85,7 +85,8 @@ async function main() {
         await tx.user.deleteMany({ where: { id: notAnySavedUser } });
 
     }, {
-        timeout: 40000 // Extended timeout to accommodate large cascade trees
+        maxWait: 30000, // Elevated to 30s to defeat Neon DB Serverless cold-starts
+        timeout: 120000 // Elevated to 2mins for massive cascading deletions
     });
 
     console.log('✅ Clean slate completed successfully.');
