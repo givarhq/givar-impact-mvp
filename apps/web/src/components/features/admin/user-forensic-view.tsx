@@ -4,7 +4,7 @@ import React, { useState, memo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
-    Wallet, Lock, Unlock, ShieldAlert, History, Loader2, Fingerprint,
+    Lock, Unlock, ShieldAlert, History, Loader2, Fingerprint,
     UserCheck, UserSearch, Shield, CheckCircle2, Clock,
     ShieldCheck
 } from 'lucide-react';
@@ -95,6 +95,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
     const isLocked = !!user.accountLockedUntil && new Date(user.accountLockedUntil) > new Date();
     const targetIsAdmin = user.role === 'ADMIN';
     const targetIsSuperAdmin = user.role === 'SUPERADMIN';
+    const isSystemUser = targetIsAdmin || targetIsSuperAdmin;
 
     const isViewerSuperAdmin = currentUserRole === 'SUPERADMIN';
     const isViewingSelf = currentUserId === user.id;
@@ -289,7 +290,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
 
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3 px-5">
-                            <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
                                 <Fingerprint className="h-3.5 w-3.5" /> Account Information
                             </CardTitle>
                         </CardHeader>
@@ -313,61 +314,34 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 </div>
 
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-3xl">
-                            <p className="text-xs font-bold text-emerald-600 tracking-widest mb-1.5">Total Impact</p>
-                            <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="default" className="text-emerald-700" />
-                        </div>
+                    {!isSystemUser && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="p-4 bg-card border border-border/40 rounded-3xl shadow-sm">
+                                <p className="text-xs font-bold text-muted-foreground mb-1.5">Total Impact</p>
+                                <SmartCurrency amount={user.lifetimeImpact} currency="NGN" visible={true} size="default" className="text-foreground" />
+                            </div>
 
-                        <div className="p-4 bg-primary/5 border border-primary/10 rounded-3xl">
-                            <p className="text-xs font-bold text-primary tracking-widest mb-1.5">Contributions</p>
-                            <h4 className="text-xl font-bold text-foreground tabular-nums">{user._count.donations}</h4>
-                        </div>
+                            <div className="p-4 bg-card border border-border/40 rounded-3xl shadow-sm">
+                                <p className="text-xs font-bold text-muted-foreground mb-1.5">Contributions</p>
+                                <h4 className="text-xl font-bold text-foreground tabular-nums">{user._count.donations}</h4>
+                            </div>
 
-                        <div className="p-4 bg-blue-50 border border-blue-100 rounded-3xl">
-                            <p className="text-xs font-bold text-blue-600 tracking-widest mb-1.5">Live Causes</p>
-                            <h4 className="text-xl font-bold text-foreground tabular-nums">{user._count.projects}</h4>
+                            <div className="p-4 bg-card border border-border/40 rounded-3xl shadow-sm">
+                                <p className="text-xs font-bold text-muted-foreground mb-1.5">Live Causes</p>
+                                <h4 className="text-xl font-bold text-foreground tabular-nums">{user._count.projects}</h4>
+                            </div>
                         </div>
-                    </div>
-
-                    <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
-                        <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
-                            <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
-                                <Wallet className="h-3.5 w-3.5" /> Ledger Info
-                            </CardTitle>
-                        </CardHeader>
-                        <div className="p-0">
-                            {user.wallets.length === 0 ? (
-                                <div className="p-8 text-center text-xs text-muted-foreground italic">No wallets identified.</div>
-                            ) : user.wallets.map((w: any) => (
-                                <div key={w.id} className="flex items-center justify-between p-4 md:px-6 border-b border-border/40 last:border-0 hover:bg-muted/20 transition-colors group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-3xl bg-background border border-border/40 flex items-center justify-center font-bold text-xs text-foreground">
-                                            {w.currency}
-                                        </div>
-                                        <div className="space-y-0.5">
-                                            <p className="text-[11px] font-bold text-muted-foreground tracking-widest">Current Balance</p>
-                                            <SmartCurrency amount={w.balance} currency={w.currency} visible={true} size="small" className="text-foreground" />
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-[11px] font-bold text-muted-foreground">Version</p>
-                                        <p className="text-xs font-mono font-bold text-foreground">v{w.version}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
+                    )}
 
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="p-4 md:px-6 border-b border-border/40 bg-muted/10">
-                            <CardTitle className="text-xs font-bold tracking-widest text-muted-foreground flex items-center gap-2">
+                            <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2">
                                 <History className="h-3.5 w-3.5" /> Audit Trail
                             </CardTitle>
                         </CardHeader>
                         <div className="p-0 overflow-x-auto">
                             <table className="w-full text-left">
-                                <thead className="bg-muted/40 text-[11px] font-bold tracking-widest text-muted-foreground border-b border-border/40">
+                                <thead className="bg-muted/40 text-[11px] font-bold text-muted-foreground border-b border-border/40">
                                     <tr>
                                         <th className="px-6 py-3">Event</th>
                                         <th className="px-6 py-3">IP Address</th>
