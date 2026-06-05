@@ -324,7 +324,7 @@ function LoginComponent() {
               <div className="space-y-2 min-w-0">
                 <Input
                   key="mfa-totp-input"
-                  placeholder="CODE"
+                  placeholder="Enter code"
                   type="text"
                   {...register('twoFactorCode')}
                   maxLength={8}
