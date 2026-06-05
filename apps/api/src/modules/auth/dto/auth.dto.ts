@@ -39,8 +39,8 @@ export class LoginDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MinLength(6, { message: '2FA code must be exactly 6 digits' })
-  @MaxLength(6, { message: '2FA code must be exactly 6 digits' })
+  @MinLength(6, { message: 'Authentication code must be at least 6 characters' })
+  @MaxLength(8, { message: 'Authentication code cannot exceed 8 characters' })
   twoFactorCode?: string;
 }
 

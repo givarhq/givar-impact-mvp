@@ -119,7 +119,7 @@ export class AuthService {
         action: AuditAction.USER_LOGIN_FAILED,
         userId: user.id,
         entityType: 'Session',
-        metadata: { attemptedEmail: dto.email, reason: 'Account Locked' },
+        metadata: { attemptedEmail: dto.email, reason: 'Account locked' },
         req,
       });
       throw new UnauthorizedException('Account temporarily locked. Try again later.');
@@ -149,16 +149,42 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // 3. 2FA Check
+      // 3. 2FA Check & Recovery Code Support
       if (user.twoFactorEnabled) {
         if (!dto.twoFactorCode) {
           return { mfaRequired: true };
         }
-        const result = await verify({
-          token: dto.twoFactorCode,
-          secret: user.twoFactorSecret!,
-        });
-        const is2FAValid = result.valid;
+
+        let is2FAValid = false;
+
+        if (dto.twoFactorCode.length === 6) {
+          const result = await verify({
+            token: dto.twoFactorCode,
+            secret: user.twoFactorSecret!,
+          });
+          is2FAValid = result.valid;
+        } else if (dto.twoFactorCode.length === 8 && user.twoFactorRecoveryCodes?.length > 0) {
+          for (let i = 0; i < user.twoFactorRecoveryCodes.length; i++) {
+            const isRecoveryMatch = await bcrypt.compare(dto.twoFactorCode.toUpperCase(), user.twoFactorRecoveryCodes[i]);
+            if (isRecoveryMatch) {
+              is2FAValid = true;
+              const newCodes = [...user.twoFactorRecoveryCodes];
+              newCodes.splice(i, 1); // Consume the recovery code
+              await this.prisma.user.update({
+                where: { id: user.id },
+                data: { twoFactorRecoveryCodes: newCodes }
+              });
+              await this.audit.log({
+                userId: user.id,
+                action: AuditAction.TWO_FACTOR_RECOVERY_USED,
+                entityType: 'Session',
+                req
+              });
+              break;
+            }
+          }
+        }
+
         if (!is2FAValid) {
           await this.audit.log({
             userId: user.id,
@@ -166,7 +192,7 @@ export class AuthService {
             entityType: 'Session',
             req
           });
-          throw new UnauthorizedException('Invalid 2FA code');
+          throw new UnauthorizedException('Invalid authentication code');
         }
       }
 
@@ -203,8 +229,11 @@ export class AuthService {
         req,
       });
 
+      const isCaptiveAdmin = (user.role === 'ADMIN' || user.role === 'SUPERADMIN') && !user.twoFactorEnabled;
+
       return {
         accessToken,
+        mfaSetupRequired: isCaptiveAdmin,
         user: {
           id: user.id,
           email: user.email,
@@ -224,7 +253,7 @@ export class AuthService {
 
     } catch (error) {
       let reason = 'An unknown error occurred';
-      if (error instanceof UnauthorizedException) reason = 'Bad Credentials';
+      if (error instanceof UnauthorizedException) reason = 'Bad credentials';
       else if (error instanceof ForbiddenException) reason = error.message;
       else if (error instanceof Error) reason = error.message;
 
@@ -619,11 +648,13 @@ export class AuthService {
     if (!user || !user.twoFactorSecret) {
       throw new BadRequestException('2FA initialization not found');
     }
+
     // 1. Verify the provided code against the stored secret
     const result = await verify({
       token: code,
       secret: user.twoFactorSecret,
     });
+
     const isValid = result.valid;
     if (!isValid) {
       await this.audit.log({
@@ -633,23 +664,38 @@ export class AuthService {
       });
       throw new BadRequestException('Invalid verification code');
     }
-    // 2. Flip the activation flag
+
+    // 2. Generate 8 One-Time Recovery Codes
+    const rawCodes = Array.from({ length: 8 }, () => crypto.randomBytes(4).toString('hex').toUpperCase());
+    const hashedCodes = await Promise.all(rawCodes.map(c => bcrypt.hash(c, 10)));
+
+    // 3. Flip the activation flag and save the hashed codes
     await this.prisma.user.update({
       where: { id: userId },
-      data: { twoFactorEnabled: true },
+      data: {
+        twoFactorEnabled: true,
+        twoFactorRecoveryCodes: hashedCodes
+      },
     });
+
     await this.audit.log({
       userId,
       action: AuditAction.TWO_FACTOR_ENABLED,
       entityId: userId,
       entityType: 'UserSecurity',
     });
-    return { success: true };
+
+    return { success: true, recoveryCodes: rawCodes };
   }
 
   async disableTwoFactor(userId: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException();
+
+    // Platform Integrity Check: Prevent Administrators from downgrading their security
+    if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
+      throw new ForbiddenException('Platform policy mandates 2FA for administrative accounts. Disabling is prohibited.');
+    }
 
     // 1. Critical Verification: Re-auth password before disabling security
     const isMatch = await bcrypt.compare(password, user.passwordHash);
@@ -660,6 +706,7 @@ export class AuthService {
       data: {
         twoFactorEnabled: false,
         twoFactorSecret: null,
+        twoFactorRecoveryCodes: []
       },
     });
 
@@ -671,6 +718,40 @@ export class AuthService {
     });
 
     return { success: true };
+  }
+
+  async verifyStepUpAuth(userId: string, code: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) return false;
+
+    // Check standard 6-digit TOTP PIN
+    if (code.length === 6) {
+      const result = await verify({ token: code, secret: user.twoFactorSecret });
+      return result.valid;
+    }
+
+    // Check 8-character Backup Recovery Code
+    if (code.length === 8 && user.twoFactorRecoveryCodes?.length > 0) {
+      for (let i = 0; i < user.twoFactorRecoveryCodes.length; i++) {
+        const isMatch = await bcrypt.compare(code.toUpperCase(), user.twoFactorRecoveryCodes[i]);
+        if (isMatch) {
+          const newCodes = [...user.twoFactorRecoveryCodes];
+          newCodes.splice(i, 1);
+          await this.prisma.user.update({
+            where: { id: userId },
+            data: { twoFactorRecoveryCodes: newCodes }
+          });
+          await this.audit.log({
+            userId,
+            action: AuditAction.TWO_FACTOR_RECOVERY_USED,
+            entityType: 'UserSecurity'
+          });
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   async updatePreferences(userId: string, preferences: any) {

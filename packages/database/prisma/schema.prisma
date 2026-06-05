@@ -120,6 +120,7 @@ enum AuditAction {
   TWO_FACTOR_ENABLED
   TWO_FACTOR_DISABLED
   TWO_FACTOR_VERIFY_FAILED
+  TWO_FACTOR_RECOVERY_USED
 
   // Security Overrides
   USER_LOCKED
@@ -254,8 +255,9 @@ model User {
   avatarKey     String?
   phoneNumber   String?
 
-  twoFactorSecret  String?   // Encrypted TOTP secret
-  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret        String?   // Encrypted TOTP secret
+  twoFactorEnabled       Boolean   @default(false)
+  twoFactorRecoveryCodes String[]  @default([])
 
   preferences      Json?     @default("{}")
   
