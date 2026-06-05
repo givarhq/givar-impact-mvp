@@ -89,7 +89,7 @@ export class AuthService {
     const payload = { sub: result.id, email: result.email, role: result.role };
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get<string>('JWT_SECRET'),
-      expiresIn: '24h',
+      expiresIn: '48h',
     });
 
     return {
@@ -218,7 +218,7 @@ export class AuthService {
       const payload = { sub: user.id, email: user.email, role: user.role };
       const accessToken = this.jwtService.sign(payload, {
         secret: this.config.get<string>('JWT_SECRET'),
-        expiresIn: '24h',
+        expiresIn: '48h',
       });
 
       await this.audit.log({

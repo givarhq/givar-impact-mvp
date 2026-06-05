@@ -30,6 +30,7 @@ export default function TrustPage() {
   // Legal Consent States
   const [hasBeneficiaryConsent, setHasBeneficiaryConsent] = useState(false);
   const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
+  const [hasAgreedToNotifyExternalFunding, setHasAgreedToNotifyExternalFunding] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,7 +138,7 @@ export default function TrustPage() {
   const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
 
   const isAllStepsValid = isHookValid && isMediaValid && isPlanValid && isKycValid;
-  const canSubmit = !isSubmitting && hasAgreedToTerms && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
+  const canSubmit = !isSubmitting && hasAgreedToTerms && hasAgreedToNotifyExternalFunding && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
 
   if (isLoading) {
     return (
@@ -274,6 +275,19 @@ export default function TrustPage() {
                   </span>
                 </div>
               )}
+
+              <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                  checked={hasAgreedToNotifyExternalFunding}
+                  onChange={(e) => setHasAgreedToNotifyExternalFunding(e.target.checked)}
+                  disabled={isSubmitting}
+                />
+                <span className="text-sm font-medium text-foreground leading-relaxed select-none">
+                  I agree to notify Givar within 48 hours if any item listed on this cause is fully funded or partially funded through another source.
+                </span>
+              </div>
 
               <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
                 <input

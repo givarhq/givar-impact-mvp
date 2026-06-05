@@ -46,7 +46,7 @@ export function IdentitySync({ user }: IdentitySyncProps) {
 
                 if (hasDrifted) {
                     // Force synchronization of the local cookie with server truth
-                    setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
+                    setCookie('givar_user', JSON.stringify(user), { maxAge: 172800, path: '/' });
 
                     // Trigger a silent refresh of the current page to update all 
                     // dependent UI overlays (like the Verification Banner) immediately.
@@ -54,7 +54,7 @@ export function IdentitySync({ user }: IdentitySyncProps) {
                 }
             } catch (e) {
                 // If cookie is malformed, re-sync it
-                setCookie('givar_user', JSON.stringify(user), { maxAge: 604800, path: '/' });
+                setCookie('givar_user', JSON.stringify(user), { maxAge: 172800, path: '/' });
             }
         }
     }, [user, pathname]);

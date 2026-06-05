@@ -120,7 +120,7 @@ export default function StartProposalPage() {
                                 status: profile.status,
                                 kycType: profile.kycType
                             };
-                            setCookie('givar_user', JSON.stringify(parsedUser), { maxAge: 604800, path: '/' });
+                            setCookie('givar_user', JSON.stringify(parsedUser), { maxAge: 172800, path: '/' });
                         }
                     }
                 }
@@ -235,7 +235,7 @@ export default function StartProposalPage() {
             } as any);
 
             const updatedUser = { ...localUser, phoneNumber: phoneInput };
-            setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 604800, path: '/' });
+            setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 172800, path: '/' });
             setLocalUser(updatedUser);
             setHasPhoneNumber(true);
             toast.success("Phone number saved securely");

@@ -29,7 +29,7 @@ export function ViewModeToggle({ currentRole, variant = 'header' }: ViewModeTogg
 
     const handleToggle = () => {
         const newMode = viewMode === 'ADMIN' ? 'USER' : 'ADMIN';
-        setCookie('givar_view_mode', newMode, { maxAge: 604800, path: '/' });
+        setCookie('givar_view_mode', newMode, { maxAge: 172800, path: '/' });
 
         toast.success(newMode === 'USER' ? 'Viewing as Giver' : 'Switched to Admin console', {
             icon: newMode === 'USER' ? <User className="h-4 w-4 text-primary" /> : <ShieldCheck className="h-4 w-4 text-destructive" />,

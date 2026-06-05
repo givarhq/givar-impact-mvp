@@ -93,7 +93,7 @@ export const ApiService = {
       const res = await apiClient.get('/auth/me');
 
       if (typeof window !== 'undefined') {
-        const cookieOptions = { maxAge: 604800, path: '/', sameSite: 'lax' as const };
+        const cookieOptions = { maxAge: 172800, path: '/', sameSite: 'lax' as const };
         setCookie('givar_user', JSON.stringify(res.data), cookieOptions);
       }
 

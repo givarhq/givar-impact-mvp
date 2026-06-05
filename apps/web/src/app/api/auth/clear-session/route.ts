@@ -12,14 +12,14 @@ export async function POST(request: Request) {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      maxAge: 86400, // 24 hours
+      maxAge: 172800, // 48 hours
       path: '/'
     });
     cookieStore.set('givar_user', JSON.stringify(body.user), {
       httpOnly: false,
       secure: isProd,
       sameSite: 'lax',
-      maxAge: 86400,
+      maxAge: 172800,
       path: '/'
     });
   }
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         httpOnly: true,
         secure: isProd,
         sameSite: 'lax',
-        maxAge: 86400,
+        maxAge: 172800,
         path: '/'
       });
     } else {
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
         httpOnly: false,
         secure: isProd,
         sameSite: 'lax',
-        maxAge: 86400,
+        maxAge: 172800,
         path: '/'
       });
     } else {
