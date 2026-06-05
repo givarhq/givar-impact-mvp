@@ -9,10 +9,11 @@ import * as z from 'zod';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
-import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowLeft, Lock, Copy, Check } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowLeft, Lock, Copy, Check, CheckCircle2 } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../../lib/utils/cn';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -32,10 +33,12 @@ function LoginComponent() {
   // Step States
   const [isMfaStep, setIsMfaStep] = useState(false);
   const [isMfaSetupStep, setIsMfaSetupStep] = useState(false);
+  const [showRecoveryCodes, setShowRecoveryCodes] = useState(false);
 
   // Setup States
   const [setupData, setSetupData] = useState<{ qrCodeDataUrl: string; secret: string } | null>(null);
   const [setupCode, setSetupCode] = useState('');
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [pendingRedirectUrl, setPendingRedirectUrl] = useState('');
   const [pendingUserId, setPendingUserId] = useState('');
@@ -71,8 +74,6 @@ function LoginComponent() {
 
       const { user, accessToken, mfaSetupRequired } = response;
 
-      // Logic: givar_token is securely set via HttpOnly cookie by the Next.js API route.
-      // We delegate this to our internal endpoint to bypass cross-domain Set-Cookie restrictions.
       await fetch('/api/auth/clear-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -126,14 +127,16 @@ function LoginComponent() {
         localStorage.setItem('givar_last_activity', Date.now().toString());
       }
 
-      // Optionally handle recovery codes display here, but for login flow we can just let them download it from settings later, 
-      // or we just show a quick toast since they are admins and should know best practices.
-      if (response.recoveryCodes) {
-        console.log('Recovery codes generated:', response.recoveryCodes);
-      }
+      toast.success('Protection activated');
 
-      toast.success('Two-factor authentication successfully enabled.');
-      window.location.href = pendingRedirectUrl;
+      if (response.recoveryCodes && response.recoveryCodes.length > 0) {
+        setRecoveryCodes(response.recoveryCodes);
+        setIsMfaSetupStep(false);
+        setShowRecoveryCodes(true);
+        setIsLoading(false);
+      } else {
+        window.location.href = pendingRedirectUrl;
+      }
     } catch (error: any) {
       setServerError(error.response?.data?.message || 'Invalid verification code');
       setIsLoading(false);
@@ -148,18 +151,30 @@ function LoginComponent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const copyRecoveryCodes = () => {
+    const text = `Givar 2FA Recovery Codes:\n\n${recoveryCodes.join('\n')}\n\nKeep these safe. Each code can only be used once.`;
+    navigator.clipboard.writeText(text);
+    toast.success("Recovery codes copied to clipboard");
+  };
+
+  const proceedToDashboard = () => {
+    window.location.href = pendingRedirectUrl;
+  };
+
   return (
     <div className="w-full min-w-0 space-y-8 animate-in fade-in duration-500">
       <div className="space-y-2 text-center min-w-0">
         <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">
-          {isMfaSetupStep ? 'Security Setup Required' : isMfaStep ? 'Two-Factor Authentication' : 'Welcome Back'}
+          {showRecoveryCodes ? 'Save Recovery Codes' : isMfaSetupStep ? 'Security Setup Required' : isMfaStep ? 'Two-Factor Authentication' : 'Welcome Back'}
         </h1>
         <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-          {isMfaSetupStep
-            ? 'Platform policy mandates authenticator protection for your administrative role.'
-            : isMfaStep
-              ? 'Enter the code from your authenticator app or a backup recovery code.'
-              : 'Sign in to manage your campaigns & donations.'
+          {showRecoveryCodes
+            ? 'These are the only way to recover your account if you lose your device.'
+            : isMfaSetupStep
+              ? 'Platform policy mandates authenticator protection for your administrative role.'
+              : isMfaStep
+                ? 'Enter the code from your authenticator app or a backup recovery code.'
+                : 'Sign in to manage your campaigns & donations.'
           }
         </p>
       </div>
@@ -171,7 +186,33 @@ function LoginComponent() {
         </div>
       )}
 
-      {isMfaSetupStep && setupData ? (
+      {showRecoveryCodes ? (
+        <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
+          <div className="grid grid-cols-2 gap-3 p-4 bg-muted/30 border border-border/40 rounded-3xl shadow-inner mb-6">
+            {recoveryCodes.map((code, index) => (
+              <div key={index} className="font-mono text-sm font-bold text-center py-2 bg-background rounded-xl border border-border/60 text-foreground tracking-widest">
+                {code}
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              onClick={copyRecoveryCodes}
+              className="w-full h-12 rounded-3xl font-bold text-sm gap-2 shadow-lg shadow-primary/20 border-0 bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98]"
+            >
+              <Copy className="h-4 w-4" /> Copy codes to clipboard
+            </Button>
+            <Button
+              variant="outline"
+              onClick={proceedToDashboard}
+              className="w-full h-12 rounded-3xl font-bold text-sm border-border/60"
+            >
+              I have saved them securely
+            </Button>
+          </div>
+        </div>
+      ) : isMfaSetupStep && setupData ? (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
           <div className="flex flex-col items-center gap-6">
             <div className="p-4 bg-white rounded-3xl border border-muted shadow-inner group">
@@ -224,49 +265,54 @@ function LoginComponent() {
         </div>
       ) : (
         <form method="POST" onSubmit={handleSubmit(onSubmit)} className="space-y-6 min-w-0">
-          {!isMfaStep ? (
-            <div className="space-y-4 animate-in slide-in-from-left-4 duration-300 min-w-0">
+
+          {/* Email and Password - Hidden visually when MFA step is active to preserve DOM state for password managers */}
+          <div className={cn("space-y-4 animate-in slide-in-from-left-4 duration-300 min-w-0", isMfaStep && "hidden")}>
+            <Input
+              key="auth-email-input"
+              label="Email Address"
+              placeholder="name@example.com"
+              type="email"
+              {...register('email')}
+              error={errors.email?.message}
+              disabled={isLoading}
+              className="h-12 rounded-3xl bg-muted/20 border-border/60 focus:bg-background"
+            />
+
+            <div className="space-y-1.5 min-w-0">
               <Input
-                label="Email Address"
-                placeholder="name@example.com"
-                type="email"
-                {...register('email')}
-                error={errors.email?.message}
+                key="auth-password-input"
+                label="Password"
+                placeholder="••••••••"
+                type={showPassword ? 'text' : 'password'}
+                {...register('password')}
+                error={errors.password?.message}
                 disabled={isLoading}
                 className="h-12 rounded-3xl bg-muted/20 border-border/60 focus:bg-background"
-              />
-
-              <div className="space-y-1.5 min-w-0">
-                <Input
-                  label="Password"
-                  placeholder="••••••••"
-                  type={showPassword ? 'text' : 'password'}
-                  {...register('password')}
-                  error={errors.password?.message}
-                  disabled={isLoading}
-                  className="h-12 rounded-3xl bg-muted/20 border-border/60 focus:bg-background"
-                  rightElement={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="p-2 text-muted-foreground hover:text-foreground transition-colors outline-none"
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  }
-                />
-                <div className="flex justify-end px-1">
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="p-2 text-muted-foreground hover:text-foreground transition-colors outline-none"
                   >
-                    Forgot password?
-                  </Link>
-                </div>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                }
+              />
+              <div className="flex justify-end px-1">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-bold text-primary hover:text-primary/80 transition-colors"
+                >
+                  Forgot password?
+                </Link>
               </div>
             </div>
-          ) : (
-            <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
+          </div>
+
+          {/* MFA Verification Step */}
+          {isMfaStep && (
+            <div key="mfa-verification-step" className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
               <div className="flex flex-col items-center justify-center p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner min-w-0">
                 <div className="h-14 w-14 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-4 border border-primary/10">
                   <ShieldCheck className="h-7 w-7" />
@@ -277,6 +323,7 @@ function LoginComponent() {
 
               <div className="space-y-2 min-w-0">
                 <Input
+                  key="mfa-totp-input"
                   placeholder="CODE"
                   type="text"
                   {...register('twoFactorCode')}
@@ -309,7 +356,7 @@ function LoginComponent() {
               <button
                 type="button"
                 className="w-full h-10 rounded-3xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
-                onClick={() => { setIsMfaStep(false); setServerError(null); }}
+                onClick={() => { setIsMfaStep(false); setServerError(null); setValue('twoFactorCode', ''); }}
                 disabled={isLoading}
               >
                 <ArrowLeft className="h-4 w-4" /> Use different account
@@ -319,7 +366,7 @@ function LoginComponent() {
         </form>
       )}
 
-      {!isMfaStep && !isMfaSetupStep && (
+      {!isMfaStep && !isMfaSetupStep && !showRecoveryCodes && (
         <div className="space-y-6 min-w-0">
           <div className="relative min-w-0">
             <div className="absolute inset-0 flex items-center">
