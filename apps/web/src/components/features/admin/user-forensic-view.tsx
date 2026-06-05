@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -21,6 +21,7 @@ import { ApiService } from '../../../services/api';
 import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getCookie } from 'cookies-next';
 
 interface UserForensicViewProps {
     user: {
@@ -71,16 +72,32 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         action: null
     });
 
-    // State for SOTA Step-Up Role Management
     const [roleModal, setRoleModal] = useState<{ isOpen: boolean; targetRole: string | null }>({
         isOpen: false,
         targetRole: null
     });
     const [stepUpTotp, setStepUpTotp] = useState('');
 
+    const [currentUserRole, setCurrentUserRole] = useState('ADMIN');
+    const [currentUserId, setCurrentUserId] = useState('');
+
+    useEffect(() => {
+        const currentUserCookie = getCookie('givar_user');
+        if (currentUserCookie) {
+            try {
+                const parsed = JSON.parse(currentUserCookie as string);
+                setCurrentUserRole(parsed.role);
+                setCurrentUserId(parsed.id);
+            } catch (e) { }
+        }
+    }, []);
+
     const isLocked = !!user.accountLockedUntil && new Date(user.accountLockedUntil) > new Date();
-    const isAdmin = user.role === 'ADMIN';
-    const isSuperAdmin = user.role === 'SUPERADMIN';
+    const targetIsAdmin = user.role === 'ADMIN';
+    const targetIsSuperAdmin = user.role === 'SUPERADMIN';
+
+    const isViewerSuperAdmin = currentUserRole === 'SUPERADMIN';
+    const isViewingSelf = currentUserId === user.id;
 
     const onConfirmImpersonate = async () => {
         setIsProcessing(true);
@@ -88,7 +105,6 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
         try {
             const response = await ApiService.admin.impersonate(user.id);
 
-            // Logic: Delegate cookie orchestration to Next.js API route to prevent cross-domain token drops
             await fetch('/api/auth/clear-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -189,7 +205,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                             <div className="flex flex-wrap justify-center gap-1.5">
                                 <Badge variant="outline" className={cn(
                                     "rounded-3xl px-2 py-0.5 text-xs font-bold border-border/40",
-                                    isSuperAdmin ? "bg-purple-50 text-purple-600 border-purple-100" : isAdmin ? "bg-blue-50 text-blue-600 border-blue-100" : "bg-muted/30"
+                                    targetIsSuperAdmin ? "bg-purple-50 text-purple-600 border-purple-100" : targetIsAdmin ? "bg-blue-50 text-blue-600 border-blue-100" : "bg-muted/30"
                                 )}>
                                     {user.role}
                                 </Badge>
@@ -226,7 +242,7 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                         </div>
 
                         <CardContent className="p-5 pt-0 space-y-2">
-                            {!isSuperAdmin && (
+                            {!targetIsSuperAdmin && (
                                 <div className="flex justify-center">
                                     <Button
                                         className="w-full max-w-[48rem] h-10 rounded-3xl font-bold text-xs gap-2"
@@ -242,24 +258,27 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                             )}
 
                             <div className="grid grid-cols-2 gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="h-10 rounded-3xl font-bold text-xs gap-2 border-border/60"
-                                    onClick={() => setRoleModal({ isOpen: true, targetRole: user.role })}
-                                    disabled={isProcessing}
-                                >
-                                    <Shield className="h-3.5 w-3.5" />
-                                    Access Level
-                                </Button>
+                                {isViewerSuperAdmin && !isViewingSelf && (
+                                    <Button
+                                        variant="outline"
+                                        className="h-10 rounded-3xl font-bold text-xs gap-2 border-border/60"
+                                        onClick={() => setRoleModal({ isOpen: true, targetRole: user.role })}
+                                        disabled={isProcessing}
+                                    >
+                                        <Shield className="h-3.5 w-3.5" />
+                                        Access Level
+                                    </Button>
+                                )}
 
                                 <Button
                                     variant={isLocked ? "default" : "destructive"}
                                     className={cn(
                                         "h-10 rounded-3xl font-bold text-xs gap-2 border-0",
                                         !isLocked && "bg-destructive/10 text-destructive hover:bg-destructive",
+                                        (!isViewerSuperAdmin || isViewingSelf) && "col-span-2"
                                     )}
                                     onClick={() => setStatusConfirm({ isOpen: true, action: isLocked ? 'UNLOCK' : 'LOCK' })}
-                                    disabled={isProcessing || isSuperAdmin}
+                                    disabled={isProcessing || targetIsSuperAdmin || isViewingSelf}
                                 >
                                     {isLocked ? <Unlock className="h-3.5 w-3.5" /> : <ShieldAlert className="h-3.5 w-3.5" />}
                                     Status
@@ -380,7 +399,6 @@ export const UserForensicView = memo(function UserForensicView({ user }: UserFor
                 </div>
             </motion.div>
 
-            {/* SOTA Step-Up Auth Modal for Elevation Protocol */}
             <Dialog open={roleModal.isOpen} onOpenChange={(isOpen) => !isOpen && setRoleModal({ isOpen: false, targetRole: null })}>
                 <DialogContent className="rounded-3xl border-none shadow-2xl bg-card p-6 md:p-8 max-w-sm">
                     <DialogHeader>

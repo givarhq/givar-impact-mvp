@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 // XSS Sanitizer to verify raw database HTML safety
 const sanitizeHtml = (html: string): string => {
     if (!html) return '';
-    return html
+    let decoded = html.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    return decoded
         .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '')
         .replace(/on\w+\s*=\s*"(?:[^"]*)"/gi, '')
         .replace(/on\w+\s*=\s*'(?:[^']*)'/gi, '')

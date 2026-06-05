@@ -20,8 +20,9 @@ export default async function PublicDonationPage({ params }: { params: Promise<{
   const project = await ApiService.projects.get('', slug);
   if (!project) notFound();
 
-  // Cleanly strip HTML tags from the description if it's used as a fallback excerpt
-  const previewText = project.shortDesc || (project.description ? project.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ') : '');
+  // Decode and cleanly strip HTML tags from the description if it's used as a fallback excerpt
+  const rawDesc = project.description ? project.description.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '';
+  const previewText = project.shortDesc || (rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ') : '');
 
   return (
     <PublicLayout>

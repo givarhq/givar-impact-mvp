@@ -32,8 +32,9 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
     ? `/dashboard/impact/${slug}`
     : `/explore/${slug}`;
 
-  // Cleanly strip HTML tags from the description if it's used as a fallback excerpt
-  const previewText = project.shortDesc || (project.description ? project.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ') : '');
+  // Decode and cleanly strip HTML tags from the description if it's used as a fallback excerpt
+  const rawDesc = project.description ? project.description.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '';
+  const previewText = project.shortDesc || (rawDesc ? rawDesc.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ') : '');
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 pb-24 animate-in fade-in duration-500 min-w-0 overflow-hidden">
@@ -71,7 +72,7 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
                 Goal: <SmartCurrency amount={project.targetAmount} currency={project.currency} visible={true} size="small" />
               </div>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed font-medium line-clamp-6 italic">
+            <p className="text-xs text-muted-foreground leading-relaxed font-medium line-clamp-6 italic min-w-0">
               {previewText}
             </p>
           </div>

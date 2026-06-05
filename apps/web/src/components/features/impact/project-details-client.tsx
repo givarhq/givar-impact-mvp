@@ -48,7 +48,8 @@ interface ProjectDetailsClientProps {
 
 const sanitizeHtml = (html: string): string => {
     if (!html) return '';
-    return html
+    let decoded = html.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    return decoded
         .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '')
         .replace(/on\w+\s*=\s*"(?:[^"]*)"/gi, '')
         .replace(/on\w+\s*=\s*'(?:[^']*)'/gi, '')
@@ -338,16 +339,16 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold[&_h2]:text-foreground[&_h2]:text-lg [&_h2]:mt-6[&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground[&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
+                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
+                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
                                         "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4[&_ul]:space-y-1.5[&_ul]:text-foreground/80[&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal[&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5[&_ol]:text-foreground/80",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
+                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
                                         "[&_li]:pl-1",
-                                        "[&_strong]:font-bold[&_strong]:text-foreground",
+                                        "[&_strong]:font-bold [&_strong]:text-foreground",
                                         "[&_em]:italic",
                                         "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4[&_blockquote]:border-primary/40 [&_blockquote]:pl-4[&_blockquote]:py-1[&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
+                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
                                         "[&_hr]:border-border/40 [&_hr]:my-6"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
@@ -361,9 +362,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         <div
                                             className={cn(
                                                 "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
-                                                "[&_p]:mb-2[&_p]:last:mb-0",
+                                                "[&_p]:mb-2 [&_p]:last:mb-0",
                                                 "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
-                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2[&_ol]:space-y-1",
+                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
                                                 "[&_li]:pl-1",
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
                                                 "[&_em]:italic"
