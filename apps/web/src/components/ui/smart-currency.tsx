@@ -27,7 +27,7 @@ const SYMBOL_MAP: Record<string, string> = {
   USD: '$',
   GBP: '£',
   EUR: '€',
-  CAD: 'C$ ',
+  CAD: 'C$',
 };
 
 export const SmartCurrency = ({ amount, currency, visible, className, size = 'default', hideKobo = false }: SmartCurrencyProps) => {
@@ -36,7 +36,9 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
   }
 
   // 1. Parse BigInt string to Number
-  let numericAmount = typeof amount === 'bigint' ? Number(amount) / 100 : Number(amount) / 100;
+  let numericAmount = typeof amount === 'bigint'
+    ? Number(amount) / 100
+    : Number(amount) / 100;
 
   // Handle Negative Values
   const isNegative = numericAmount < 0;
@@ -47,6 +49,7 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
 
   // Resolve standard currency symbols safely
   const currencySymbol = SYMBOL_MAP[currency] || currency;
+  const spacing = currencySymbol.length > 1 ? ' ' : '';
 
   // 2. Logic Implementation
   if (numericAmount >= 100_000_000) {
@@ -93,11 +96,11 @@ export const SmartCurrency = ({ amount, currency, visible, className, size = 'de
         <span className={cn(styles.symbol, "text-muted-foreground/80 mr-0.5")}>-</span>
       )}
 
-      <span className={cn(styles.symbol, "text-muted-foreground/60 mr-0.5 whitespace-pre")}>
-        {currencySymbol}
+      <span className={cn(styles.symbol, "text-muted-foreground/60 whitespace-pre")}>
+        {currencySymbol}{spacing}
       </span>
 
-      <span className={cn(styles.main, "text-inherit tracking-tight")}>
+      <span className={cn(styles.main, "text-inherit tracking-tight ml-0.5")}>
         {mainPart}
       </span>
 

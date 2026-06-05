@@ -28,7 +28,7 @@ const SYMBOLS: Record<string, string> = {
     USD: '$',
     GBP: '£',
     EUR: '€',
-    CAD: 'C$ ',
+    CAD: 'C$',
 };
 
 const formatDecimalInput = (value: string): string => {
@@ -73,10 +73,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             try {
                 const user = JSON.parse(userCookie as string);
                 setIsUnverified(user.emailVerified === false);
-                if (user.email) {
-                    if (posthog) {
-                        posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
-                    }
+                if (user.email && posthog) {
+                    posthog.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
                 }
             } catch (e) {
                 setIsUnverified(false);
@@ -94,17 +92,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         setIsLoading(false);
 
         const detectCurrency = async () => {
-            let finalCurrency = 'NGN';
-
-            try {
-                const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
-                const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : null;
-                if (userCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(userCurrency)) {
-                    setDetectedCurrency(userCurrency);
-                    return;
-                }
-            } catch (e) { }
-
+            // 1. Primary: ipapi.co
             try {
                 const res = await fetch('https://ipapi.co/currency/');
                 if (res.ok) {
@@ -116,20 +104,45 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 }
             } catch (e) { }
 
+            // 2. Secondary: ipwho.is (Robust Fallback)
             try {
-                const res = await fetch('https://freeipapi.com/api/json');
+                const res = await fetch('https://ipwho.is/');
                 if (res.ok) {
                     const data = await res.json();
-                    const ipCurrency = data.currency?.code;
-                    if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(ipCurrency.toUpperCase())) {
-                        setDetectedCurrency(ipCurrency.toUpperCase());
+                    const ipCurrency = data.connection?.currency?.code || data.currency?.code;
+                    if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(String(ipCurrency).toUpperCase())) {
+                        setDetectedCurrency(String(ipCurrency).toUpperCase());
                         return;
                     }
                 }
             } catch (e) { }
 
-            setDetectedCurrency(finalCurrency);
+            // 3. Tertiary: freeipapi.com
+            try {
+                const res = await fetch('https://freeipapi.com/api/json');
+                if (res.ok) {
+                    const data = await res.json();
+                    const ipCurrency = data.currency?.code;
+                    if (ipCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(String(ipCurrency).toUpperCase())) {
+                        setDetectedCurrency(String(ipCurrency).toUpperCase());
+                        return;
+                    }
+                }
+            } catch (e) { }
+
+            // 4. Absolute Last Resort: OS/Browser Locale
+            try {
+                const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
+                const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : null;
+                if (userCurrency && ['USD', 'GBP', 'EUR', 'CAD', 'NGN'].includes(userCurrency)) {
+                    setDetectedCurrency(userCurrency);
+                    return;
+                }
+            } catch (e) { }
+
+            setDetectedCurrency('NGN');
         };
+
         detectCurrency();
 
         ApiService.fees.getPublicCurrent().then(setFeeRule).catch(console.error);
@@ -305,12 +318,25 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         ? ['1000', '5000', '10000', '25000']
         : ['10', '25', '50', '100'];
 
+    // Dynamic formatting hooks for proper symbol spacing
+    const sym = SYMBOLS[detectedCurrency] || detectedCurrency;
+    const spc = sym.length > 1 ? ' ' : '';
+    const formatMoney = (val: number) => `${sym}${spc}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const toDisplayMajor = (minorAmountNgn: bigint) => {
+        let majorNgn = Number(minorAmountNgn) / 100;
+        if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
+            return majorNgn * fxRates[detectedCurrency];
+        }
+        return majorNgn;
+    };
+
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const formatted = formatDecimalInput(e.target.value);
         const rawNum = Number(parseDecimalNumber(formatted));
 
         if (rawNum > remainingSelectedMajor) {
-            toast.error(`Capped at current allocation limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            toast.error(`Capped at current allocation limit: ${sym}${spc}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
             setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
             setDisplayAmount(formatted);
@@ -320,19 +346,11 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const setQuickAmount = (val: string) => {
         const rawNum = Number(val);
         if (rawNum > remainingSelectedMajor) {
-            toast.error(`Capped at current allocation limit: ${SYMBOLS[detectedCurrency]}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+            toast.error(`Capped at current allocation limit: ${sym}${spc}${remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
             setDisplayAmount(formatDecimalInput(remainingSelectedMajor.toFixed(2)));
         } else {
             setDisplayAmount(formatDecimalInput(val));
         }
-    };
-
-    const toDisplayMajor = (minorAmountNgn: bigint) => {
-        let majorNgn = Number(minorAmountNgn) / 100;
-        if (detectedCurrency !== 'NGN' && fxRates && fxRates[detectedCurrency]) {
-            return majorNgn * fxRates[detectedCurrency];
-        }
-        return majorNgn;
     };
 
     const handleConfirm = async () => {
@@ -481,20 +499,23 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     <div className="flex justify-between items-center px-1">
                         <label className="text-xs font-bold text-muted-foreground">Enter amount ({detectedCurrency})</label>
                         <span className="text-[10px] font-bold text-primary bg-primary/5 px-2.5 py-1 rounded-full border border-primary/20 shadow-sm flex items-center gap-1.5">
-                            Allocation limit: {SYMBOLS[detectedCurrency] || detectedCurrency}{remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            Allocation limit: {sym}{spc}{remainingSelectedMajor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                     </div>
 
                     <div className="relative min-w-0">
-                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-xl md:text-3xl">
-                            {SYMBOLS[detectedCurrency] || detectedCurrency}
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-xl md:text-3xl whitespace-pre">
+                            {sym}
                         </span>
                         <Input
                             type="text"
                             inputMode="decimal"
                             maxLength={14}
                             placeholder="0.00"
-                            className="pl-14 pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto"
+                            className={cn(
+                                "pr-4 h-14 md:h-16 text-xl md:text-3xl font-bold rounded-2xl border border-border bg-muted/30 focus:bg-background focus:border-primary/50 tabular-nums w-full transition-all overflow-x-auto",
+                                sym.length > 1 ? "pl-[4.5rem]" : "pl-11"
+                            )}
                             value={displayAmount}
                             onChange={handleAmountChange}
                             disabled={isUnverified}
@@ -535,8 +556,8 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
                     <div className="flex gap-2 text-xs flex-wrap pt-2">
                         {QUICK_AMOUNTS.map((val) => (
-                            <button key={val} onClick={() => setQuickAmount(val)} disabled={isUnverified} className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-3xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm">
-                                {SYMBOLS[detectedCurrency] || detectedCurrency}{Number(val).toLocaleString()}
+                            <button key={val} onClick={() => setQuickAmount(val)} disabled={isUnverified} className="bg-muted/40 hover:bg-primary hover:text-white border border-border/40 px-4 py-2 rounded-3xl transition-all font-bold text-xs disabled:opacity-50 shadow-sm whitespace-pre">
+                                {sym}{spc}{Number(val).toLocaleString()}
                             </button>
                         ))}
                     </div>
@@ -592,14 +613,17 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                                 exit={{ opacity: 0, height: 0 }}
                                                 className="relative pt-2"
                                             >
-                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground mt-1">
-                                                    {SYMBOLS[detectedCurrency] || detectedCurrency}
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground mt-1 whitespace-pre">
+                                                    {sym}{spc}
                                                 </span>
                                                 <Input
                                                     type="text"
                                                     inputMode="decimal"
                                                     placeholder="0.00"
-                                                    className="pl-10 h-11 text-sm font-bold rounded-2xl bg-muted/30 border-border/40 focus:bg-background tabular-nums"
+                                                    className={cn(
+                                                        "h-11 text-sm font-bold rounded-2xl bg-muted/30 border-border/40 focus:bg-background tabular-nums",
+                                                        sym.length > 1 ? "pl-[3.5rem]" : "pl-10"
+                                                    )}
                                                     value={tipAmount}
                                                     onChange={(e) => {
                                                         const val = formatDecimalInput(e.target.value);
@@ -616,36 +640,36 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             <div className="p-5 rounded-[24px] bg-muted/20 border border-border/40 space-y-3 shadow-inner">
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                     <span>Direct impact</span>
-                                    <span className="tabular-nums font-bold text-foreground">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputAmountNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    <span className="tabular-nums font-bold text-foreground whitespace-pre">
+                                        {formatMoney(inputAmountNum)}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                     <span>Operational Support Fee ({feePercentage}%)</span>
-                                    <span className="tabular-nums font-bold text-foreground">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{toDisplayMajor(feeAmountMinor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    <span className="tabular-nums font-bold text-foreground whitespace-pre">
+                                        {formatMoney(toDisplayMajor(feeAmountMinor))}
                                     </span>
                                 </div>
                                 {inputTipNum > 0 && (
                                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                         <span>Optional Support Contribution</span>
-                                        <span className="tabular-nums font-bold text-foreground">
-                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{(inputTipNum).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        <span className="tabular-nums font-bold text-foreground whitespace-pre">
+                                            {formatMoney(inputTipNum)}
                                         </span>
                                     </div>
                                 )}
                                 {gatewayFeeMinor > 0n && (
                                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                         <span>Payment Gateway Fee</span>
-                                        <span className="tabular-nums font-bold text-foreground">
-                                            {SYMBOLS[detectedCurrency] || detectedCurrency}{toDisplayMajor(gatewayFeeMinor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        <span className="tabular-nums font-bold text-foreground whitespace-pre">
+                                            {formatMoney(toDisplayMajor(gatewayFeeMinor))}
                                         </span>
                                     </div>
                                 )}
                                 <div className="pt-3 border-t border-border/40 flex justify-between items-center">
                                     <span className="text-sm font-bold text-foreground">Total checkout</span>
-                                    <span className="text-sm font-black text-primary tabular-nums">
-                                        {SYMBOLS[detectedCurrency] || detectedCurrency}{toDisplayMajor(totalCheckoutMinor).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    <span className="text-sm font-black text-primary tabular-nums whitespace-pre">
+                                        {formatMoney(toDisplayMajor(totalCheckoutMinor))}
                                     </span>
                                 </div>
                             </div>
