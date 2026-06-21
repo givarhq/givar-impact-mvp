@@ -31,6 +31,8 @@ export default function TrustPage() {
   const [hasBeneficiaryConsent, setHasBeneficiaryConsent] = useState(false);
   const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
   const [hasAgreedToNotifyExternalFunding, setHasAgreedToNotifyExternalFunding] = useState(false);
+  const [hasAgreedToFee, setHasAgreedToFee] = useState(false);
+  const [feePercentage, setFeePercentage] = useState<number>(2.5);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +46,13 @@ export default function TrustPage() {
         }
 
         setCategoryName(proposalData.category?.name?.toLowerCase() || '');
+
+        // Fetch dynamic fee rule from the governance engine
+        const feeRule = await ApiService.fees.getPublicCurrent().catch(() => null);
+        if (feeRule?.percentage !== undefined) {
+          setFeePercentage(feeRule.percentage);
+        }
+
       } catch (error) {
         toast.error('Data synchronization failed');
         router.push('/dashboard/proposals');
@@ -138,7 +147,7 @@ export default function TrustPage() {
   const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
 
   const isAllStepsValid = isHookValid && isMediaValid && isPlanValid && isKycValid;
-  const canSubmit = !isSubmitting && hasAgreedToTerms && hasAgreedToNotifyExternalFunding && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
+  const canSubmit = !isSubmitting && hasAgreedToTerms && hasAgreedToNotifyExternalFunding && hasAgreedToFee && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
 
   if (isLoading) {
     return (
@@ -293,13 +302,26 @@ export default function TrustPage() {
                 <input
                   type="checkbox"
                   className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                  checked={hasAgreedToFee}
+                  onChange={(e) => setHasAgreedToFee(e.target.checked)}
+                  disabled={isSubmitting}
+                />
+                <span className="text-sm font-medium text-foreground leading-relaxed select-none">
+                  I understand that Givar applies a {feePercentage}% Operational Support Fee on donations for cause verification, implementation oversight, and platform operations. This fee is charged separately and does not reduce donations made to my cause.
+                </span>
+              </div>
+
+              <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
                   checked={hasAgreedToTerms}
                   onChange={(e) => setHasAgreedToTerms(e.target.checked)}
                   disabled={isSubmitting}
                 />
                 <div className="space-y-1.5 select-none">
                   <span className="text-sm font-medium text-foreground leading-relaxed block">
-                    I agree to the <Link href="/legal/agreement" className="text-primary hover:underline">Cause Organiser Agreement</Link>.
+                    I agree to the <Link href="/legal/agreement" className="text-primary hover:underline" target="_blank">Cause Organiser Agreement</Link>.
                   </span>
                   <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-1">
                     <li>Organiser responsibilities</li>
