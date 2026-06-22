@@ -60,7 +60,10 @@ export default function SignupPage() {
     setIsLoading(true);
     setServerError(null);
     try {
-      const response = await ApiService.auth.signup({ ...data, defaultCurrency: 'NGN' });
+      // Logic: Strip out the client-only confirmPassword field to prevent backend payload pollution rejection
+      const { confirmPassword, ...validPayload } = data;
+      
+      const response = await ApiService.auth.signup({ ...validPayload, defaultCurrency: 'NGN' });
       const { accessToken, user } = response;
 
       // Logic: Align cookie maxAge with the 24h JWT lifetime (86400 seconds) via backend route
