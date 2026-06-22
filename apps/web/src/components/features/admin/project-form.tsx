@@ -268,22 +268,43 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     setIsSubmitting(true);
     const toastId = toast.loading(status === 'DRAFT' ? "Saving your progress..." : "Publishing cause...");
     try {
-      const payload = {
-        ...data,
-        subcategoryId: data.subcategoryId === '' ? null : data.subcategoryId,
+
+      // Bulletproof Payload Mapping: Explicitly map fields permitted by the target endpoint
+      const payload: any = {
+        title: data.title,
+        description: data.description,
+        shortDesc: data.shortDesc,
+        personalMessage: data.personalMessage,
+        location: data.location,
+        currency: data.currency,
+        coverImage: data.coverImage,
+        videoUrl: data.videoUrl,
         categoryId: data.categoryId === '' ? null : data.categoryId,
+        subcategoryId: data.subcategoryId === '' ? null : data.subcategoryId,
         targetAmount: data.targetAmount * 100,
         status,
         endDate: data.endDate ? new Date(data.endDate).toISOString() : null,
-        // Strip the client-only isNewDraft flag so it doesn't fail the backend DTO validation
-        budgetBreakdown: data.budgetBreakdown.map((b: any) => {
-          const { isNewDraft, ...rest } = b;
-          if (rest.stage === '') delete rest.stage;
-          return rest;
-        })
+        gallery: data.gallery.map((g) => ({
+          id: g.id, url: g.url, type: g.type, caption: g.caption
+        })),
+        vendors: data.vendors.map((v) => ({
+          id: v.id, name: v.name, email: v.email || '', phone: v.phone || '', subaccountCode: v.subaccountCode || ''
+        })),
+        budgetBreakdown: data.budgetBreakdown.map((b: any) => ({
+          id: b.id, vendorId: b.vendorId, costType: b.costType, amount: b.amount, description: b.description, stage: b.stage === '' ? undefined : b.stage
+        })),
+        executionTimeline: data.executionTimeline?.map((t: any) => ({
+          id: t.id, phase: t.phase, estimatedDate: t.estimatedDate || 'TBD', deliverables: t.deliverables || ''
+        })) || [],
+        tags: data.tags || ['Admin Created', 'Verified'],
       };
 
       if (initialData) {
+        // Only append amendment fields if updating
+        if (data.reasonForGoalAdjustment) payload.reasonForGoalAdjustment = data.reasonForGoalAdjustment;
+        if (data.amendmentInvoiceKey) payload.amendmentInvoiceKey = data.amendmentInvoiceKey;
+        if (data.amendmentMessageId) payload.amendmentMessageId = data.amendmentMessageId;
+
         await ApiService.admin.updateProject(initialData.id, payload);
         toast.success(status === 'DRAFT' ? 'Changes saved as draft' : 'Project successfully published', { id: toastId });
         setIsEditing(false);
@@ -293,8 +314,9 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         router.push(status === 'DRAFT' ? '/admin/projects?tab=drafts' : '/admin/projects?tab=live');
       }
       router.refresh();
-    } catch (error) {
-      toast.error('We could not save these changes', { id: toastId });
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'We could not save these changes.';
+      toast.error(Array.isArray(message) ? message[0] : message, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
