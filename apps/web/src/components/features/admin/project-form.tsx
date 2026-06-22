@@ -73,6 +73,7 @@ const projectSchema = z.object({
   amendmentInvoiceKey: z.string().optional(),
   amendmentMessageId: z.string().optional(),
   endDate: z.string().optional().nullable(),
+  tags: z.array(z.string()).optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
