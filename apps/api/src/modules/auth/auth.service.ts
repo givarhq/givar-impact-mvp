@@ -785,6 +785,9 @@ export class AuthService {
 
     let keysToPurge: string[] = [];
 
+    // SOTA FIX: Map AccountType enum ('ORGANIZER' | 'INDIVIDUAL') to KycType enum ('ORGANIZATION' | 'INDIVIDUAL')
+    const targetKycType = targetType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL';
+
     const updated = await this.prisma.$transaction(async (tx) => {
       // 1. Update the User's core account mode
       const updatedUser = await tx.user.update({
@@ -793,14 +796,14 @@ export class AuthService {
       });
 
       // 2. COMPLIANCE GUARD: Invalidate existing KYC if it doesn't match the new account tier
-      if (user.organization && (user.organization.kycType as string) !== targetType) {
+      if (user.organization && (user.organization.kycType as string) !== targetKycType) {
         // Queue old documents for secure deletion
         keysToPurge = user.organization.documentKeys || [];
 
         await tx.organizationProfile.update({
           where: { userId },
           data: {
-            kycType: targetType as any,
+            kycType: targetKycType as any,
             status: VerificationStatus.NOT_SUBMITTED,
             adminFeedback: 'System Reset: Account type changed. Please submit documents matching your new account tier.',
             verifiedAt: null,
@@ -820,7 +823,6 @@ export class AuthService {
           }
         });
 
-        // FIX: Corrected to use this.audit.log
         await this.audit.log({
           userId,
           action: AuditAction.PROFILE_UPDATED,
@@ -834,7 +836,6 @@ export class AuthService {
       }
 
       // 4. Log the actual account switch
-      // FIX: Corrected to use this.audit.log
       await this.audit.log({
         userId,
         action: AuditAction.ACCOUNT_TYPE_CHANGED,
@@ -859,7 +860,7 @@ export class AuthService {
 
     return updated;
   }
-
+  
   async getMyAuditLogs(userId: string, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
 
