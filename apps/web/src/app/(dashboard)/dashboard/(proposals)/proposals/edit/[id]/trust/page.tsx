@@ -67,13 +67,30 @@ export default function TrustPage() {
     setIsSubmitting(true);
     store.updateField('status', 'SUBMITTED');
 
-    // Force an immediate sync of the entire draft state to the backend
-    // This bypasses the debounced auto-saver to ensure no data is lost
+    // Bulletproof Payload Mapping: Strip out all internal UI states (like isNewDraft)
     const mappedGallery = store.gallery.map(item => ({
       id: item.id,
-      url: item.key,
+      url: item.key || item.url, // Ensure we send the permanent key, not a JIT blob
       type: item.type,
       caption: item.caption
+    }));
+
+    const mappedBudget = store.budgetBreakdown.map((b: any) => ({
+      id: b.id,
+      vendorId: b.vendorId,
+      costType: b.costType,
+      amount: b.amount,
+      description: b.description,
+      stage: b.stage === '' ? undefined : b.stage,
+      payTo: b.payTo,
+      vendorContact: b.vendorContact
+    }));
+
+    const mappedTimeline = store.executionTimeline.map((t: any) => ({
+      id: t.id,
+      phase: t.phase,
+      estimatedDate: t.estimatedDate || 'TBD',
+      deliverables: t.deliverables || ''
     }));
 
     const payload = {
@@ -85,11 +102,11 @@ export default function TrustPage() {
       endDate: store.endDate,
       categoryId: store.categoryId,
       subcategoryId: store.subcategoryId,
-      coverImage: store.coverImageKey,
+      coverImage: store.coverImageKey || store.coverImage,
       gallery: mappedGallery,
       videoUrl: store.videoUrl,
-      budgetBreakdown: store.budgetBreakdown,
-      executionTimeline: store.executionTimeline,
+      budgetBreakdown: mappedBudget,
+      executionTimeline: mappedTimeline,
       riskAnalysis: store.riskAnalysis,
       kycDocuments: store.kycDocuments,
       beneficiaryName: store.beneficiaryName,
@@ -118,7 +135,7 @@ export default function TrustPage() {
     } catch (error: any) {
       store.updateField('status', 'DRAFT');
       const message = error.response?.data?.message || 'Please verify all required fields.';
-      toast.error(message);
+      toast.error(Array.isArray(message) ? message[0] : message);
     } finally {
       setIsSubmitting(false);
     }
