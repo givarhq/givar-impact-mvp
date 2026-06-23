@@ -86,10 +86,13 @@ export class AuthService {
     this.emailService.sendVerification(result.email, result.firstName, emailVerificationToken)
       .catch(err => this.logger.error(`Failed to send verification email: ${err}`));
 
+    const isAdmin = result.role === 'ADMIN' || result.role === 'SUPERADMIN';
+    const expiresIn = isAdmin ? '3d' : '7d';
+
     const payload = { sub: result.id, email: result.email, role: result.role };
     const accessToken = this.jwtService.sign(payload, {
       secret: this.config.get<string>('JWT_SECRET'),
-      expiresIn: '48h',
+      expiresIn,
     });
 
     return {
@@ -113,7 +116,6 @@ export class AuthService {
       include: { organization: true }
     });
 
-    // 1. Account Lockout Check
     if (user && user.accountLockedUntil && user.accountLockedUntil > new Date()) {
       await this.audit.log({
         action: AuditAction.USER_LOGIN_FAILED,
@@ -130,7 +132,6 @@ export class AuthService {
 
       const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
       if (!isMatch) {
-        // 2. Progressive Delay
         const newAttemptCount = user.failedLoginAttempts + 1;
         if (newAttemptCount >= 5) {
           await this.prisma.user.update({
@@ -149,7 +150,6 @@ export class AuthService {
         throw new UnauthorizedException('Invalid credentials');
       }
 
-      // 3. 2FA Check & Recovery Code Support
       if (user.twoFactorEnabled) {
         if (!dto.twoFactorCode) {
           return { mfaRequired: true };
@@ -169,7 +169,7 @@ export class AuthService {
             if (isRecoveryMatch) {
               is2FAValid = true;
               const newCodes = [...user.twoFactorRecoveryCodes];
-              newCodes.splice(i, 1); // Consume the recovery code
+              newCodes.splice(i, 1);
               await this.prisma.user.update({
                 where: { id: user.id },
                 data: { twoFactorRecoveryCodes: newCodes }
@@ -196,7 +196,6 @@ export class AuthService {
         }
       }
 
-      // 4. Reset Lockout
       if (user.failedLoginAttempts > 0) {
         await this.prisma.user.update({
           where: { id: user.id },
@@ -215,10 +214,13 @@ export class AuthService {
         }).catch(err => this.logger.error(`Alert failed: ${err}`));
       }
 
+      const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
+      const expiresIn = isAdmin ? '3d' : '7d';
+
       const payload = { sub: user.id, email: user.email, role: user.role };
       const accessToken = this.jwtService.sign(payload, {
         secret: this.config.get<string>('JWT_SECRET'),
-        expiresIn: '48h',
+        expiresIn,
       });
 
       await this.audit.log({

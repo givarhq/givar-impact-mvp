@@ -8,18 +8,21 @@ export async function POST(request: Request) {
 
   // 1. Standard Authentication
   if (body.action === 'login' || body.action === 'signup') {
+    const isAdmin = body.user.role === 'ADMIN' || body.user.role === 'SUPERADMIN';
+    const maxAgeSeconds = isAdmin ? 3 * 24 * 60 * 60 : 7 * 24 * 60 * 60;
+
     cookieStore.set('givar_token', body.token, {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
-      maxAge: 172800, // 48 hours
+      maxAge: maxAgeSeconds,
       path: '/'
     });
     cookieStore.set('givar_user', JSON.stringify(body.user), {
       httpOnly: false,
       secure: isProd,
       sameSite: 'lax',
-      maxAge: 172800,
+      maxAge: maxAgeSeconds,
       path: '/'
     });
   }
@@ -85,13 +88,13 @@ export async function POST(request: Request) {
     const backupToken = cookieStore.get('givar_admin_backup_token')?.value;
     const backupUser = cookieStore.get('givar_admin_backup_user')?.value;
 
-    // Restore Admin Session
+    // Restore Admin Session (Admins have a 3-day lifespan)
     if (backupToken) {
       cookieStore.set('givar_token', backupToken, {
         httpOnly: true,
         secure: isProd,
         sameSite: 'lax',
-        maxAge: 172800,
+        maxAge: 3 * 24 * 60 * 60,
         path: '/'
       });
     } else {
@@ -103,7 +106,7 @@ export async function POST(request: Request) {
         httpOnly: false,
         secure: isProd,
         sameSite: 'lax',
-        maxAge: 172800,
+        maxAge: 3 * 24 * 60 * 60,
         path: '/'
       });
     } else {

@@ -12,12 +12,15 @@ import { AccountType } from '@givar/database';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  private setAuthCookies(res: Response, token: string) {
+  private setAuthCookies(res: Response, token: string, role: string) {
+    const isAdmin = role === 'ADMIN' || role === 'SUPERADMIN';
+    const maxAgeMs = isAdmin ? 3 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
+
     res.cookie('givar_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 172800 * 1000, // 48 hours
+      maxAge: maxAgeMs,
       path: '/'
     });
   }
@@ -36,7 +39,7 @@ export class AuthController {
   @Post('signup')
   async create(@Body() dto: RegisterDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.register(dto, req);
-    this.setAuthCookies(res, result.accessToken);
+    this.setAuthCookies(res, result.accessToken, result.user.role);
     return result;
   }
 
@@ -47,7 +50,7 @@ export class AuthController {
     const result = await this.authService.login(dto, req);
     if (result.mfaRequired) return result;
 
-    this.setAuthCookies(res, result.accessToken);
+    this.setAuthCookies(res, result.accessToken, result.user.role);
     return result;
   }
 
