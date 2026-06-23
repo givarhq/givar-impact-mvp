@@ -54,7 +54,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
   const kycType = isUpgradeRequired ? 'CORPORATE' : (
     isLockedState && profileKycType
       ? profileKycType
-      : (user.accountType === 'CORPORATE' ? 'ORGANIZATION' : 'INDIVIDUAL')
+      : (user.accountType === 'CORPORATE' ? 'CORPORATE' : 'INDIVIDUAL')
   );
 
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
