@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import { IsEmail, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 import { Currency } from '@givar/database';
 
 // Centralized Regex for Money
@@ -19,6 +19,7 @@ export class CreateDonationDto {
   // Support for optional tips
   @IsOptional()
   @Matches(/^\d+$/, { message: 'Tip amount must be a positive integer' })
+  @MaxLength(10, { message: 'Tip amount exceeds maximum allowed limit' })
   tipAmount?: string;
 
   @IsEnum(Currency)
@@ -31,14 +32,15 @@ export class CreateDonationDto {
 
 export class InitiateDirectDonationDto {
   @IsUUID()
-  projectId: string;
+  projectId!: string;
 
   @Matches(MONEY_REGEX, { message: MONEY_MESSAGE })
-  amount: string;
+  amount!: string;
 
   // Support for optional tips
   @IsOptional()
   @Matches(/^\d+$/, { message: 'Tip amount must be a positive integer' })
+  @MaxLength(10, { message: 'Tip amount exceeds maximum allowed limit' })
   tipAmount?: string;
 
   // Fix: Explicitly track the gateway fee passed to the donor
@@ -47,7 +49,7 @@ export class InitiateDirectDonationDto {
   gatewayFeeAmount?: string;
 
   @IsEnum(Currency)
-  currency: Currency;
+  currency!: Currency;
 
   @IsOptional()
   @IsEmail()

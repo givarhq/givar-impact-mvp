@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString, IsNumber, Max } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsNumber, Max, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ProjectStatus } from '@givar/database';
 
@@ -33,6 +33,7 @@ export class ProjectQueryDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
+  @Min(1, { message: 'Page must be at least 1' })
   page?: number = 1;
 
   @IsOptional()
@@ -46,6 +47,7 @@ export class LedgerQueryDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
+  @Min(1, { message: 'Page must be at least 1' })
   page?: number = 1;
 
   @IsOptional()
