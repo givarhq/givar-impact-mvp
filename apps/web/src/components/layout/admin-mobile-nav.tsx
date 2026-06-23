@@ -31,7 +31,7 @@ const ALL_NAV_ITEMS = [
   { title: 'Users', href: '/admin/users', icon: Users },
   { title: 'Verify', href: '/admin/verifications', icon: BadgeCheck },
   // Overflow items
-  { title: 'Organizations', href: '/admin/organizations', icon: Building },
+  { title: 'Organizers', href: '/admin/organizations', icon: Building },
   { title: 'Ledger', href: '/admin/ledger', icon: Database },
   { title: 'Audit', href: '/admin/audit', icon: ShieldAlert },
   { title: 'Analytics', href: '/admin/finances', icon: BarChart3 },

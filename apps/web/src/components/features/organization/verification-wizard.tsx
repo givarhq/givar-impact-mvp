@@ -111,12 +111,17 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
       return toast.error('Please provide your legal name and both required documents.');
     }
 
+    const trimmedRegNumber = regNumber.trim();
+    if (trimmedRegNumber.length > 0 && trimmedRegNumber.length < 5) {
+      return toast.error('Please enter the number exactly as it appears on your uploaded ID (minimum 5 characters).');
+    }
+
     setIsLoading(true);
     const toastId = toast.loading("Submitting...");
     try {
       await ApiService.organizations.submitKyc({
         legalName: legalName.trim(),
-        registrationNumber: regNumber.trim(),
+        registrationNumber: trimmedRegNumber,
         documentKeys: [primaryDoc.key, secondaryDoc.key],
         kycType: kycType,
       });
