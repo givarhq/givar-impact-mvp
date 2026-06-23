@@ -4,9 +4,25 @@ import { useEffect, useCallback, useRef } from 'react';
 import { ApiService } from '../services/api';
 import toast from 'react-hot-toast';
 
-// --- COMPROMISE: 4 Hour Inactivity Limit (Balance Security & Friction) ---
-const INACTIVITY_LIMIT = 4 * 60 * 60 * 1000;
 const ACTIVITY_STORAGE_KEY = 'givar_last_activity';
+
+// Dynamic resolver for inactivity limits based on client requirements
+const getInactivityLimit = (): number => {
+    if (typeof document === 'undefined') return 24 * 60 * 60 * 1000; // SSR fallback
+
+    const userCookie = document.cookie.split('; ').find(row => row.startsWith('givar_user='));
+    if (userCookie) {
+        try {
+            const user = JSON.parse(decodeURIComponent(userCookie.split('=')[1]));
+            if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
+                return 12 * 60 * 60 * 1000; // 12 Hours for Admins
+            }
+        } catch (e) {
+            console.error("Error parsing user cookie");
+        }
+    }
+    return 24 * 60 * 60 * 1000; // 24 Hours for Normal Users
+};
 
 export function useAutoLogout() {
     const checkInterval = useRef<NodeJS.Timeout | null>(null);
@@ -20,7 +36,7 @@ export function useAutoLogout() {
 
         localStorage.removeItem(ACTIVITY_STORAGE_KEY);
 
-        toast('Session expired', {
+        toast('Session expired due to inactivity', {
             icon: '🕒',
             style: { borderRadius: '24px', fontWeight: 'bold', fontSize: '12px' }
         });
@@ -41,9 +57,11 @@ export function useAutoLogout() {
 
         const checkExpiry = () => {
             const lastActivity = localStorage.getItem(ACTIVITY_STORAGE_KEY);
+            const inactivityLimit = getInactivityLimit();
+
             if (lastActivity) {
                 const diff = Date.now() - parseInt(lastActivity, 10);
-                if (diff >= INACTIVITY_LIMIT) {
+                if (diff >= inactivityLimit) {
                     performLogout('inactivity');
                     return true;
                 }
