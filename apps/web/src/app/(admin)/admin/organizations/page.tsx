@@ -6,7 +6,7 @@ import { Pagination } from '../../../../components/features/history/pagination';
 import { Suspense } from 'react';
 
 export const metadata = {
-    title: 'Organizations',
+    title: 'Organizers',
     description: 'Directory of legal entities & verified project organizers.',
 };
 

@@ -49,13 +49,13 @@ export const OrganizationFilters = memo(function OrganizationFilters() {
             <div className="flex items-center justify-between gap-3 relative min-h-[40px] w-full overflow-hidden">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                     <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground shrink-0">
-                        Organizations
+                        Organizers
                     </h1>
 
                     <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all">
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <Input
-                            placeholder="Search organizations or reg ID..."
+                            placeholder="Search organizers or reg ID..."
                             className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-10 w-full placeholder:text-muted-foreground/50"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
