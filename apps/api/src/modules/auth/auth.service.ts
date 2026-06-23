@@ -16,7 +16,7 @@ import { PrismaService } from '../../common/prisma.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto } from './dto/auth.dto';
 import { AuditService } from '../audit/audit.service';
 import { Request } from 'express';
-import { AccountType, AuditAction, ProposalStatus, VerificationStatus } from '@givar/database';
+import { AccountType, AuditAction, KycType, ProposalStatus, VerificationStatus } from '@givar/database';
 import { add } from 'date-fns';
 import { randomUUID } from 'crypto';
 import * as crypto from 'crypto';
@@ -801,7 +801,7 @@ export class AuthService {
         await tx.organizationProfile.update({
           where: { userId },
           data: {
-            kycType: targetType,
+            kycType: targetType as unknown as KycType,
             status: VerificationStatus.NOT_SUBMITTED,
             adminFeedback: 'System Reset: Account type changed. Please submit documents matching your new account tier.',
             verifiedAt: null,
