@@ -49,7 +49,7 @@ describe('Privacy, Limits & State Machines (e2e)', () => {
                 organization: {
                     create: {
                         legalName: 'State Test Org',
-                        kycType: 'ORGANIZATION',
+                        kycType: 'CORPORATE',
                         status: VerificationStatus.VERIFIED
                     }
                 }
