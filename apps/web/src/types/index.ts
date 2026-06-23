@@ -41,7 +41,7 @@ export interface Project {
   riskAnalysis?: string;
   isVerifiedOrganizer: boolean;
   organizerName: string;
-  organizerType?: 'INDIVIDUAL' | 'ORGANIZATION' | 'SYSTEM';
+  organizerType?: 'INDIVIDUAL' | 'CORPORATE' | 'SYSTEM';
   categoryName?: string;
   subcategoryName?: string;
   donorCount?: number;
@@ -269,7 +269,7 @@ export interface OrganizationProfile {
   verifiedAt?: string;
   createdAt: string;
   updatedAt: string;
-  kycType?: 'INDIVIDUAL' | 'ORGANIZATION';
+  kycType?: 'INDIVIDUAL' | 'CORPORATE';
 }
 
 export interface OverviewCardsProps {

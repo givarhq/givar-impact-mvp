@@ -52,12 +52,12 @@ enum UserRole {
 
 enum AccountType {
   INDIVIDUAL
-  ORGANIZER
+  CORPORATE
 }
 
 enum KycType {
   INDIVIDUAL
-  ORGANIZATION
+  CORPORATE
 }
 
 enum SubscriptionStatus {
@@ -702,7 +702,7 @@ model OrganizationProfile {
   userId             String             @unique
   user               User               @relation(fields: [userId], references: [id])
 
-  kycType            KycType            @default(ORGANIZATION)
+  kycType            KycType            @default(CORPORATE)
   
   legalName          String
   registrationNumber String?            // e.g., RC Number

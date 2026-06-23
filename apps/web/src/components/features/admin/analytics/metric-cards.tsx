@@ -70,7 +70,7 @@ export const SectorAllocationCard = memo(function SectorAllocationCard({ data }:
 
 export const EntityCompositionCard = memo(function EntityCompositionCard({ data }: { data: Array<{ type: string; count: number }> }) {
     const total = React.useMemo(() => data.reduce((acc, curr) => acc + curr.count, 0), [data]);
-    const organizers = data.find(d => d.type === 'ORGANIZER')?.count || 0;
+    const organizers = data.find(d => d.type === 'CORPORATE')?.count || 0;
     const individuals = data.find(d => d.type === 'INDIVIDUAL')?.count || 0;
 
     const organizerPercent = total > 0 ? (organizers / total) * 100 : 0;
@@ -107,7 +107,7 @@ export const EntityCompositionCard = memo(function EntityCompositionCard({ data 
                                 <p className="text-sm font-black text-primary tabular-nums">{individuals}</p>
                             </div>
                             <div className="space-y-0.5 border-l-2 border-blue-500 pl-3">
-                                <p className="text-xs font-bold text-foreground leading-tight">Organizers</p>
+                                <p className="text-xs font-bold text-foreground leading-tight">Corporate</p>
                                 <p className="text-sm font-black text-blue-500 tabular-nums">{organizers}</p>
                             </div>
                         </div>
@@ -115,7 +115,7 @@ export const EntityCompositionCard = memo(function EntityCompositionCard({ data 
 
                     <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
                         <p className="text-xs text-primary font-semibold leading-relaxed text-center italic">
-                            Ecosystem ratio: {Math.round(individuals / (organizers || 1))}:1 donor to organizer.
+                            Ecosystem ratio: {Math.round(individuals / (organizers || 1))}:1 donor to corporate entity.
                         </p>
                     </div>
                 </div>

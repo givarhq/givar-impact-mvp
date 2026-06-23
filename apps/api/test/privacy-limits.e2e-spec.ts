@@ -44,7 +44,7 @@ describe('Privacy, Limits & State Machines (e2e)', () => {
                 lastName: 'Tester',
                 passwordHash: 'hashed',
                 role: UserRole.USER,
-                accountType: AccountType.ORGANIZER,
+                accountType: AccountType.CORPORATE,
                 emailVerified: true,
                 organization: {
                     create: {

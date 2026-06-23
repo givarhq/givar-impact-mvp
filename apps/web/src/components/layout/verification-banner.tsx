@@ -9,10 +9,10 @@ interface VerificationBannerProps {
     user: {
         email: string;
         emailVerified: boolean;
-        accountType: 'INDIVIDUAL' | 'ORGANIZER';
+        accountType: 'INDIVIDUAL' | 'CORPORATE';
         organization?: {
             status: 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
-            kycType?: 'INDIVIDUAL' | 'ORGANIZATION';
+            kycType?: 'INDIVIDUAL' | 'CORPORATE';
         } | null;
     };
 }
@@ -27,11 +27,11 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
     const orgKycType = user.organization?.kycType;
 
     const isActivelySeekingKyc = orgStatus === 'PENDING' || orgStatus === 'REJECTED';
-    const isOrganizerLackingKyc = user.accountType === 'ORGANIZER' && orgStatus === 'NOT_SUBMITTED';
+    const isOrganizerLackingKyc = user.accountType === 'CORPORATE' && orgStatus === 'NOT_SUBMITTED';
 
     // COMPLIANCE GUARD: 
     // Trigger the banner if they switched to an Organization account but their verified profile is still an Individual.
-    const isOrganizerNeedingUpgrade = user.accountType === 'ORGANIZER' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
+    const isOrganizerNeedingUpgrade = user.accountType === 'CORPORATE' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
 
     const needsKycBanner = isActivelySeekingKyc || isOrganizerLackingKyc || isOrganizerNeedingUpgrade;
 

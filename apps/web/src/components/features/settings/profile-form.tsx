@@ -53,7 +53,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
     const [showCodeInput, setShowCodeInput] = useState(false);
     const [verificationCode, setVerificationCode] = useState('');
     const [editingField, setEditingField] = useState<'personal' | null>(null);
-    const [switchModal, setSwitchModal] = useState<{ isOpen: boolean, type: 'INDIVIDUAL' | 'ORGANIZER' | null }>({ isOpen: false, type: null });
+    const [switchModal, setSwitchModal] = useState<{ isOpen: boolean, type: 'INDIVIDUAL' | 'CORPORATE' | null }>({ isOpen: false, type: null });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const {
@@ -167,7 +167,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
             await ApiService.auth.switchAccountType(switchModal.type);
             const fullUser = { ...user, accountType: switchModal.type };
             setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 172800, path: '/' });
-            toast.success(`Switched to ${switchModal.type === 'ORGANIZER' ? 'Organization' : 'Personal'} Account`);
+            toast.success(`Switched to ${switchModal.type === 'CORPORATE' ? 'Corporate' : 'Personal'} Account`);
             setSwitchModal({ isOpen: false, type: null });
             window.location.reload();
         } catch (e: any) {
@@ -180,7 +180,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
     const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
 
     // Mapping for UI Display
-    const accountTypeLabel = user.accountType === 'INDIVIDUAL' ? 'Personal Account' : 'Organization Account';
+    const accountTypeLabel = user.accountType === 'INDIVIDUAL' ? 'Personal Account' : 'Corporate Account';
     const isCurrentlyVerified = user.organization?.status === 'VERIFIED';
 
     return (
@@ -246,10 +246,10 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                                 className="w-full h-9 rounded-3xl text-xs font-bold gap-2 border-border/60"
                                 onClick={() => setSwitchModal({
                                     isOpen: true,
-                                    type: user.accountType === 'INDIVIDUAL' ? 'ORGANIZER' : 'INDIVIDUAL'
+                                    type: user.accountType === 'INDIVIDUAL' ? 'CORPORATE' : 'INDIVIDUAL'
                                 })}
                             >
-                                <RefreshCcw className="h-3.5 w-3.5" /> Switch to {user.accountType === 'INDIVIDUAL' ? 'Organization Account' : 'Personal Account'}
+                                <RefreshCcw className="h-3.5 w-3.5" /> Switch to {user.accountType === 'INDIVIDUAL' ? 'Corporate Account' : 'Personal Account'}
                             </Button>
                         </CardContent>
                     </Card>
@@ -346,13 +346,13 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                 onClose={() => setSwitchModal({ isOpen: false, type: null })}
                 onConfirm={executeAccountSwitch}
                 isLoading={isLoading}
-                title={`Switch to ${switchModal.type === 'ORGANIZER' ? 'Organization' : 'Personal'} Mode?`}
+                title={`Switch to ${switchModal.type === 'CORPORATE' ? 'Corporate' : 'Personal'} Mode?`}
                 variant={isCurrentlyVerified ? 'warning' : 'default'}
                 description={
                     <div className="space-y-3">
                         <p className="text-sm text-gray-600">
-                            {switchModal.type === 'ORGANIZER'
-                                ? 'Organization mode lets you manage verified entities and run causes on their behalf.'
+                            {switchModal.type === 'CORPORATE'
+                                ? 'Corporate mode lets you manage verified entities and run causes on their behalf.'
                                 : 'Personal mode is designed for individual use and personal impact.'}
                         </p>
 

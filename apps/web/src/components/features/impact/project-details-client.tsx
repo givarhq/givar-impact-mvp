@@ -114,8 +114,8 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') {
             return { label: 'Platform', icon: BadgeCheck, type: 'Platform' };
         }
-        if (project.organizerType === 'ORGANIZATION') {
-            return { label: 'Organization', icon: Building2, type: 'Organization' };
+        if (project.organizerType === 'CORPORATE') {
+            return { label: 'Corporate', icon: Building2, type: 'Corporate' };
         }
         return { label: 'Advocate', icon: UserCheck, type: 'Individual' };
     };

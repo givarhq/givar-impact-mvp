@@ -81,8 +81,8 @@ export const ApiService = {
     resendVerification: (email: string) =>
       apiClient.post('/auth/resend-verification', { email }).then(r => r.data),
 
-    upgradeToOrganizer: () =>
-      apiClient.patch('/auth/account-type/organizer').then(r => r.data),
+    upgradeToCorporate: () =>
+      apiClient.patch('/auth/account-type/corporate').then(r => r.data),
 
     getMe: async (token?: string) => {
       if (token) return serverFetch<any>('/auth/me', token, {
@@ -127,7 +127,7 @@ export const ApiService = {
     updatePreferences: (prefs: any) =>
       apiClient.patch('/auth/preferences', prefs).then(r => r.data),
 
-    switchAccountType: (type: 'INDIVIDUAL' | 'ORGANIZER') =>
+    switchAccountType: (type: 'INDIVIDUAL' | 'CORPORATE') =>
       apiClient.post('/auth/account-type/switch', { type }).then(r => r.data),
   },
 

@@ -46,15 +46,15 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
 
   // COMPLIANCE GUARD: If they are verified as an INDIVIDUAL but switched their account to ORGANIZER,
   // they MUST submit new corporate documents. Their previous verification is insufficient.
-  const isUpgradeRequired = user.accountType === 'ORGANIZER' && profileKycType === 'INDIVIDUAL' && status === 'VERIFIED';
+  const isUpgradeRequired = user.accountType === 'CORPORATE' && profileKycType === 'INDIVIDUAL' && status === 'VERIFIED';
   const effectiveStatus = isUpgradeRequired ? 'NOT_SUBMITTED' : status;
 
   const isLockedState = effectiveStatus === 'VERIFIED' || effectiveStatus === 'PENDING';
 
-  const kycType = isUpgradeRequired ? 'ORGANIZATION' : (
+  const kycType = isUpgradeRequired ? 'CORPORATE' : (
     isLockedState && profileKycType
       ? profileKycType
-      : (user.accountType === 'ORGANIZER' ? 'ORGANIZATION' : 'INDIVIDUAL')
+      : (user.accountType === 'CORPORATE' ? 'ORGANIZATION' : 'INDIVIDUAL')
   );
 
   const [legalName, setLegalName] = useState(initialProfile?.legalName || '');
@@ -208,7 +208,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
             </div>
             <div className="space-y-1">
               <h2 className="text-xl font-bold tracking-tight text-foreground">
-                {kycType === 'INDIVIDUAL' ? 'Identity verified' : 'Organization verified'}
+                {kycType === 'INDIVIDUAL' ? 'Identity verified' : 'Corporate entity verified'}
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto font-medium">
                 Your account is a recognized and trusted partner. You can now launch public causes on the platform seamlessly.
@@ -218,7 +218,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
               <div className="flex items-center gap-2 mb-3">
                 {kycType === 'INDIVIDUAL' ? <UserCheck className="h-3.5 w-3.5 text-muted-foreground" /> : <Building2 className="h-3.5 w-3.5 text-muted-foreground" />}
                 <p className="text-[11px] font-bold tracking-widest text-muted-foreground">
-                  Verified {kycType === 'INDIVIDUAL' ? 'individual identity' : 'organization identity'}
+                  Verified {kycType === 'INDIVIDUAL' ? 'individual identity' : 'corporate identity'}
                 </p>
               </div>
               <p className="text-lg font-bold text-foreground tracking-tight">{initialProfile?.legalName}</p>
@@ -344,7 +344,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
               </div>
               <div className="space-y-0.5">
                 <h3 className="font-bold text-sm text-foreground">
-                  {kycType === 'INDIVIDUAL' ? 'Identity information' : 'Organization information'}
+                  {kycType === 'INDIVIDUAL' ? 'Identity information' : 'Corporate information'}
                 </h3>
                 <p className="text-xs text-muted-foreground font-medium">
                   {kycType === 'INDIVIDUAL' ? 'Basic details exactly matching your official government ID.' : 'Basic details matching your corporate registration.'}

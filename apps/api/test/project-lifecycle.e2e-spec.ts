@@ -50,7 +50,7 @@ describe('Project Lifecycle & Vendor Binding (e2e)', () => {
                 lastName: 'Test',
                 passwordHash: 'hashed',
                 role: UserRole.USER,
-                accountType: AccountType.ORGANIZER,
+                accountType: AccountType.CORPORATE,
                 emailVerified: true,
                 organization: {
                     create: {

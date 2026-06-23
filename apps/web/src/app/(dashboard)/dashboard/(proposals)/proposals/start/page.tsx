@@ -153,7 +153,7 @@ export default function StartProposalPage() {
 
     // Contextual Label Generator
     const getDynamicLabels = () => {
-        const isOrg = userAccountType === 'ORGANIZER';
+        const isOrg = userAccountType === 'CORPORATE';
 
         if (selectedCategoryName.includes('medical')) {
             return {
@@ -294,7 +294,7 @@ export default function StartProposalPage() {
         );
     }
 
-    const isUpgradeRequired = userAccountType === 'ORGANIZER' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
+    const isUpgradeRequired = userAccountType === 'CORPORATE' && orgStatus === 'VERIFIED' && orgKycType === 'INDIVIDUAL';
     const isReadyToStart = !isEmailUnverified && orgStatus === 'VERIFIED' && !isUpgradeRequired && hasPhoneNumber;
 
     if (!isReadyToStart) {

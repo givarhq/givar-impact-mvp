@@ -19,7 +19,7 @@ export class OrganizationService {
   ) { }
 
   // 1. User: Submit KYC
-  async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[], kycType: 'INDIVIDUAL' | 'ORGANIZATION' }) {
+  async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[], kycType: 'INDIVIDUAL' | 'CORPORATE' }) {
     return this.prisma.$transaction(async (tx) => {
       // 1. Update or Create the Organization Profile
       const profile = await tx.organizationProfile.upsert({
@@ -110,10 +110,10 @@ export class OrganizationService {
       if (status === VerificationStatus.VERIFIED) {
         // --- PATH: APPROVAL ---
 
-        if (updated.kycType === 'ORGANIZATION') {
+        if (updated.kycType === 'CORPORATE') {
           await tx.user.update({
             where: { id: updated.userId },
-            data: { accountType: AccountType.ORGANIZER },
+            data: { accountType: AccountType.CORPORATE },
           });
         }
 
@@ -144,7 +144,7 @@ export class OrganizationService {
         });
       } else if (status === VerificationStatus.REJECTED) {
         // --- PATH: REJECTION ---
-        if (profile.kycType === 'ORGANIZATION') {
+        if (profile.kycType === 'CORPORATE') {
           await tx.user.update({
             where: { id: updated.userId },
             data: { accountType: AccountType.INDIVIDUAL },

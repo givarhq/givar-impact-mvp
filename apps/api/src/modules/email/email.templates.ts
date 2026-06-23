@@ -441,7 +441,7 @@ export const EmailTemplates = {
 
   adminKycSubmitted: (data: { adminName: string; orgName: string; proposerName: string; kycType: string; url: string }) => `
     <p>Hi ${data.adminName},</p>
-    <p><strong>${data.proposerName}</strong> has submitted legal documentation for the ${data.kycType === 'INDIVIDUAL' ? 'individual identity' : 'organization'}: <strong>"${data.orgName}"</strong>.</p>
+    <p><strong>${data.proposerName}</strong> has submitted legal documentation for the ${data.kycType === 'INDIVIDUAL' ? 'individual identity' : 'corporate entity'}: <strong>"${data.orgName}"</strong>.</p>
     
     <div class="stat-box" style="background-color: #faf5ff; border: 1px solid #e9d5ff;">
       <div style="font-size: 11px; text-transform: uppercase; color: #7e22ce; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Compliance Check</div>

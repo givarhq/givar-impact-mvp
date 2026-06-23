@@ -166,7 +166,7 @@ async function main() {
   });
 
   const organizerUser = await prisma.user.create({
-    data: { email: 'tedunjaiyem@gmail.com', firstName: 'Matthew', lastName: 'Tedunjaiye', passwordHash: userPass, role: UserRole.USER, emailVerified: true, accountType: AccountType.ORGANIZER, createdAt: subDays(new Date(), 45) }
+    data: { email: 'tedunjaiyem@gmail.com', firstName: 'Matthew', lastName: 'Tedunjaiye', passwordHash: userPass, role: UserRole.USER, emailVerified: true, accountType: AccountType.CORPORATE, createdAt: subDays(new Date(), 45) }
   });
 
   const testUser = await prisma.user.create({
@@ -202,7 +202,7 @@ async function main() {
 
   // 5. ORGANIZATION PROFILES (HYBRID KYC)
   await prisma.organizationProfile.create({
-    data: { userId: organizerUser.id, legalName: 'Ted Impact Ventures', registrationNumber: 'RC-TED-2024', kycType: KycType.ORGANIZATION, status: VerificationStatus.VERIFIED, verifiedAt: subDays(new Date(), 35) }
+    data: { userId: organizerUser.id, legalName: 'Ted Impact Ventures', registrationNumber: 'RC-TED-2024', kycType: KycType.CORPORATE, status: VerificationStatus.VERIFIED, verifiedAt: subDays(new Date(), 35) }
   });
 
   // 6. PROPOSALS

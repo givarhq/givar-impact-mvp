@@ -125,7 +125,7 @@ export const UserFilters = memo(function UserFilters() {
                             <SelectContent className="rounded-3xl">
                                 <SelectItem value="all" className="text-xs">All types</SelectItem>
                                 <SelectItem value="INDIVIDUAL" className="text-xs">Individual</SelectItem>
-                                <SelectItem value="ORGANIZER" className="text-xs">Organizer</SelectItem>
+                                <SelectItem value="CORPORATE" className="text-xs">Corporate</SelectItem>
                             </SelectContent>
                         </Select>
 
@@ -178,7 +178,7 @@ export const UserFilters = memo(function UserFilters() {
                             <SelectContent className="rounded-3xl">
                                 <SelectItem value="all">All types</SelectItem>
                                 <SelectItem value="INDIVIDUAL">Individual</SelectItem>
-                                <SelectItem value="ORGANIZER">Organizer</SelectItem>
+                                <SelectItem value="CORPORATE">Corporate</SelectItem>
                             </SelectContent>
                         </Select>
                         <Button

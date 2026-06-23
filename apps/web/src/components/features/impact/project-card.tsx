@@ -35,7 +35,7 @@ export const ProjectCard = memo(function ProjectCard({
 
   const getVerIcon = () => {
     if (project.organizerType === 'SYSTEM' || project.organizerName === 'Givar') return BadgeCheck;
-    if (project.organizerType === 'ORGANIZATION') return Building2;
+    if (project.organizerType === 'CORPORATE') return Building2;
     return UserCheck;
   };
 

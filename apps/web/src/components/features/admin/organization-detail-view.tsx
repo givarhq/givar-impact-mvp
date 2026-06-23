@@ -269,7 +269,7 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                 onConfirm={() => handleReview('VERIFIED')}
                 isLoading={isProcessing}
                 variant="default"
-                title={`Verify ${isIndividual ? 'Identity' : 'Organization'}`}
+                title={`Verify ${isIndividual ? 'Identity' : 'Corporate Entity'}`}
                 description={`Establish ${profile.legalName} as a verified ${isIndividual ? 'individual advocate' : 'registered partner'}? This grants permission to launch public causes on the discovery feed.`}
                 confirmText="Confirm verification"
                 cancelText="Cancel audit"

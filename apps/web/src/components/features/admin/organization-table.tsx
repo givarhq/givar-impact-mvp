@@ -73,7 +73,7 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
                                                     <p className="text-sm font-bold text-foreground truncate leading-tight mb-1">{profile.legalName}</p>
                                                     <div className="flex items-center gap-2">
                                                         <Badge variant="outline" className="text-[9px] px-2 py-0 h-5 rounded-3xl font-bold border-border/40 bg-muted/30 text-muted-foreground">
-                                                            {isIndividual ? 'Individual' : 'Organization'}
+                                                            {isIndividual ? 'Individual' : 'Corporate'}
                                                         </Badge>
                                                         <span className="text-[10px] text-muted-foreground font-mono opacity-60">
                                                             {profile.registrationNumber || 'No ID'}
@@ -148,7 +148,7 @@ export const OrganizationTable = memo(function OrganizationTable({ profiles }: {
                                                 isIndividual ? "bg-blue-500/5 text-blue-600 border-blue-500/10" : "bg-purple-500/5 text-purple-600 border-purple-500/10"
                                             )}>
                                                 {isIndividual ? <User className="h-3 w-3" /> : <Building2 className="h-3 w-3" />}
-                                                {isIndividual ? 'Individual' : 'Organization'}
+                                                {isIndividual ? 'Individual' : 'Corporate'}
                                             </div>
                                         </td>
                                         <td className="px-7 py-4">

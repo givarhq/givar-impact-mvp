@@ -417,20 +417,20 @@ export class AuthService {
     });
   }
 
-  async switchToOrganizer(userId: string) {
+  async switchToCorporate(userId: string) {
     const user = await this.prisma.user.update({
       where: { id: userId },
-      data: { accountType: 'ORGANIZER' },
+      data: { accountType: 'CORPORATE' },
     });
 
     await this.audit.log({
       userId,
       action: AuditAction.ACCOUNT_TYPE_CHANGED,
-      metadata: { newType: 'ORGANIZER' }
+      metadata: { newType: 'CORPORATE' }
     });
 
     return {
-      message: 'Account upgraded to Organizer mode',
+      message: 'Account upgraded to Corporate mode',
       user: {
         id: user.id,
         accountType: user.accountType

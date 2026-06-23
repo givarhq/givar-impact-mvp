@@ -95,9 +95,9 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Patch('account-type/organizer')
-  switchToOrganizer(@Req() req: any) {
-    return this.authService.switchToOrganizer(req.user.id);
+  @Patch('account-type/corporate')
+  switchToCorporate(@Req() req: any) {
+    return this.authService.switchToCorporate(req.user.id);
   }
 
   @UseGuards(AuthGuard('jwt'))

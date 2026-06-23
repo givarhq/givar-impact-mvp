@@ -113,7 +113,7 @@ export default function HookPage() {
   const availableSubcategories = selectedCategoryObj?.subcategories || [];
 
   const getDynamicLabels = () => {
-    const isOrg = userAccountType === 'ORGANIZER';
+    const isOrg = userAccountType === 'CORPORATE';
 
     if (selectedCategoryName.includes('medical')) {
       return {
@@ -301,7 +301,7 @@ export default function HookPage() {
             <div className="space-y-3 p-5 md:p-6 rounded-3xl bg-muted/10 border border-border/40 shadow-sm mt-6">
               <label className="text-[11px] font-bold text-muted-foreground flex items-center h-4">Who is this cause for?</label>
               <div className="flex flex-wrap gap-3">
-                {userAccountType === 'ORGANIZER' ? (
+                {userAccountType === 'CORPORATE' ? (
                   <>
                     <button
                       type="button"
