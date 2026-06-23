@@ -281,7 +281,7 @@ export class EmailService {
   }
 
   // 19. Broadcasts to all admins when an entity submits KYC for the first time or updates it.
-  async sendAdminKycAlert(data: { orgName: string; proposerName: string }) {
+  async sendAdminKycAlert(data: { orgName: string; proposerName: string; kycType: string }) {
     const admins = await this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPERADMIN'] } },
       select: { email: true, firstName: true }
@@ -295,9 +295,10 @@ export class EmailService {
           adminName: admin.firstName,
           orgName: data.orgName,
           proposerName: data.proposerName,
+          kycType: data.kycType,
           url
         });
-        return this.send(admin.email, `Givar Admin: KYC Audit Required for ${data.orgName}`, EmailTemplates.base(content, 'New Organization Verification'));
+        return this.send(admin.email, `Givar Admin: KYC Audit Required for ${data.orgName}`, EmailTemplates.base(content, 'New Identity Verification'));
       })
     );
   }

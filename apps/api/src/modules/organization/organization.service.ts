@@ -62,7 +62,8 @@ export class OrganizationService {
       // 4. Trigger External Email Broadcast to Admins (Async)
       this.emailService.sendAdminKycAlert({
         orgName: data.legalName,
-        proposerName: `${profile.user.firstName} ${profile.user.lastName}`
+        proposerName: `${profile.user.firstName} ${profile.user.lastName}`,
+        kycType: data.kycType
       }).catch(err => this.logger.error(`Admin KYC Email Failed: ${err.message}`));
 
       // 5. Trigger Confirmation Email to User (Async)
