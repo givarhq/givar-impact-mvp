@@ -62,7 +62,7 @@ export function VerificationBanner({ user }: VerificationBannerProps) {
         colorTheme = 'blue';
     } else if (isOrganizerNeedingUpgrade) {
         title = 'Upgrade your verification';
-        description = 'You switched to an Organization account. Please supply corporate documents.';
+        description = 'You switched to a Corporate account. Please supply corporate documents.';
         buttonText = 'Upgrade now';
         linkTab = 'verification';
         Icon = Building2;
