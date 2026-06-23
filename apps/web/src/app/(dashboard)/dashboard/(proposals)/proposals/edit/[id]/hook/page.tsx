@@ -82,7 +82,7 @@ export default function HookPage() {
         } else if (activeData.beneficiaryRelationship === 'Self') {
           setTargetType('SELF');
         } else if (activeData.beneficiaryName) {
-          setTargetType(parsedAccountType === 'ORGANIZER' ? 'INDIVIDUAL' : 'OTHER');
+          setTargetType(parsedAccountType === 'CORPORATE' ? 'INDIVIDUAL' : 'OTHER');
         }
 
         if (activeData.beneficiaryRelationship && activeData.beneficiaryRelationship !== 'Self') {
