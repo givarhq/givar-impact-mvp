@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsOptional, IsString, Max } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { VerificationStatus } from '@givar/database';
 
@@ -14,6 +14,7 @@ export class OrganizationQueryDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
+    @Min(1, { message: 'Page must be at least 1' })
     page?: number = 1;
 
     @IsOptional()

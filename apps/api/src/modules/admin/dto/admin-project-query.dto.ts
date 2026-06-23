@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Max } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ProjectStatus, ProposalStatus, UserRole, AccountType } from '@givar/database';
 
@@ -18,6 +18,7 @@ export class AdminProjectQueryDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
+    @Min(1, { message: 'Page must be at least 1' })
     page?: number = 1;
 
     @IsOptional()
@@ -61,6 +62,7 @@ export class AdminProposalQueryDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
+    @Min(1, { message: 'Page must be at least 1' })
     page?: number = 1;
 
     @IsOptional()
@@ -98,6 +100,7 @@ export class AdminUserQueryDto {
     @IsOptional()
     @Type(() => Number)
     @IsNumber()
+    @Min(1, { message: 'Page must be at least 1' })
     page?: number = 1;
 
     @IsOptional()

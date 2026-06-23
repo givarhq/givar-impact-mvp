@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsOptional, IsString, IsIn, IsNumber, Max } from 'class-validator';
+import { IsDateString, IsEnum, IsOptional, IsString, IsIn, IsNumber, Max, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { TxType, TxStatus } from '@givar/database';
 
@@ -6,6 +6,7 @@ export class TransactionQueryDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
+  @Min(1, { message: 'Page must be at least 1' })
   page?: number = 1;
 
   @IsOptional()
