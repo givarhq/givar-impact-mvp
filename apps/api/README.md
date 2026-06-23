@@ -63,7 +63,7 @@ Givar maintains a platform-wide "Watchtower" that records every state mutation.
 ### 8. Hybrid Identity and Kyc State Machine (src/modules/organization)
 The verification pipeline supports diverse entity types (`KycType`).
 - **State Convergence:** When an Admin verifies an organization, the account is upgraded.
-    - **Corporate Entity:** `User.accountType` upgrades to `ORGANIZER`.
+    - **Corporate Entity:** `User.accountType` upgrades to `CORPORATE`.
     - **Individual Advocate:** `User.accountType` remains `INDIVIDUAL`, but the profile gains `VERIFIED` status to launch public causes.
 - **Identity Pinning:** Once verified, an organization’s `legalName` is pinned to all its projects, preventing identity swapping during active fundraising.
 
