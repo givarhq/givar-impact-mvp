@@ -44,7 +44,7 @@ describe('Infrastructure Security & Payload Penetration (e2e)', () => {
                 acceptTerms: true,
                 // INJECTED PAYLOADS: Attempting to elevate privileges during account creation
                 role: 'SUPERADMIN',
-                accountType: 'ORGANIZER',
+                accountType: 'CORPORATE',
                 emailVerified: true
             });
 
