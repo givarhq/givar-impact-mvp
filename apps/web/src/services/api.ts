@@ -561,7 +561,7 @@ export const ApiService = {
   },
 
   organizations: {
-    submitKyc: (data: { legalName: string, registrationNumber?: string, documentKeys: string[], kycType: 'INDIVIDUAL' | 'ORGANIZATION' }) =>
+    submitKyc: (data: { legalName: string, registrationNumber?: string, documentKeys: string[], kycType: 'INDIVIDUAL' | 'CORPORATE' }) =>
       apiClient.post('/organizations/verify', data).then(r => r.data),
 
     getMe: (token?: string) =>
