@@ -6,13 +6,14 @@ import { AuditService } from './audit.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { SkipThrottle } from '@nestjs/throttler';
-import { IsOptional, IsNumber, Max, IsString, IsEnum } from 'class-validator';
+import { IsOptional, IsNumber, Max, IsString, IsEnum, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class AuditQueryDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   @IsNumber()
+  @Min(1, { message: 'Page must be at least 1' })
   page?: number = 1;
 
   @IsOptional()

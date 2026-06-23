@@ -157,7 +157,7 @@ export const ApiService = {
       serverFetch<{ data: any[]; meta: any }>(
         `/wallet/transactions?${params.toString()}`,
         token,
-        { tags: ['wallet-history'] }
+        { tags: ['wallet-history'], next: { revalidate: 0 } }
       ),
 
     exportCsv: (params: URLSearchParams) =>
@@ -236,7 +236,7 @@ export const ApiService = {
       apiClient.post(`/projects/${projectId}/proof`, data).then(r => r.data),
 
     getOwnerView: (id: string, token: string) =>
-      serverFetch<any>(`/projects/${id}/manage`, token, { tags: [`project-manage-${id}`] }),
+      serverFetch<any>(`/projects/${id}/manage`, token, { tags: [`project-manage-${id}`], next: { revalidate: 0 } }),
 
     globalSearch: (query: string) =>
       apiClient.get(`/projects/search/global?q=${encodeURIComponent(query)}`).then(r => r.data),
@@ -289,11 +289,11 @@ export const ApiService = {
 
     getHistory: (token: string) =>
       serverFetch<any[]>('/donations/my-history', token, {
-        tags: ['donation-history']
+        tags: ['donation-history'], next: { revalidate: 0 }
       }),
 
     getSubscriptions: (token: string) =>
-      serverFetch<any[]>('/donations/subscriptions', token, { tags: ['subscriptions'] }),
+      serverFetch<any[]>('/donations/subscriptions', token, { tags: ['subscriptions'], next: { revalidate: 0 } }),
 
     updateSubscription: (id: string, status: 'ACTIVE' | 'PAUSED' | 'CANCELLED') =>
       apiClient.patch(`/donations/subscriptions/${id}`, { status }).then(r => r.data),
@@ -327,10 +327,10 @@ export const ApiService = {
       }),
 
     getUsers: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/users?${params.toString()}`, token, { tags: ['admin-users'] }),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/users?${params.toString()}`, token, { tags: ['admin-users'], next: { revalidate: 0 } }),
 
     getUserDetail: (token: string, id: string) =>
-      serverFetch<any>(`/admin/users/${id}`, token, { tags: [`admin-user-${id}`] }),
+      serverFetch<any>(`/admin/users/${id}`, token, { tags: [`admin-user-${id}`], next: { revalidate: 0 } }),
 
     updateUserStatus: (id: string, action: 'LOCK' | 'UNLOCK') =>
       apiClient.patch(`/admin/users/${id}/status`, { action }).then(r => r.data),
@@ -356,7 +356,7 @@ export const ApiService = {
       serverFetch<{ data: Project[]; meta: any }>(
         `/admin/projects?${params.toString()}`,
         token,
-        { tags: ['admin-projects'] }
+        { tags: ['admin-projects'], next: { revalidate: 0 } }
       ),
 
     approveProject: (id: string) =>
@@ -370,7 +370,7 @@ export const ApiService = {
       apiClient.post(`/admin/projects/${id}/finalize`, data).then(r => r.data),
 
     getAuditLogs: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token, { tags: ['admin-audit'] }),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/audit?${params.toString()}`, token, { tags: ['admin-audit'], next: { revalidate: 0 } }),
 
     getAuditSummary: (token: string) =>
       serverFetch<{ total24h: number; failedLogins24h: number; highRisk24h: number }>('/admin/audit/summary', token, { next: { revalidate: 0 } }),
@@ -381,10 +381,10 @@ export const ApiService = {
       }),
 
     getProposals: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/proposals?${params.toString()}`, token, { tags: ['admin-proposals'] }),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/proposals?${params.toString()}`, token, { tags: ['admin-proposals'], next: { revalidate: 0 } }),
 
     getProposalDetail: (token: string, id: string) =>
-      serverFetch<any>(`/admin/proposals/${id}`, token, { tags: [`admin-proposal-${id}`] }),
+      serverFetch<any>(`/admin/proposals/${id}`, token, { tags: [`admin-proposal-${id}`], next: { revalidate: 0 } }),
 
     approveProposal: (id: string) =>
       apiClient.patch(`/admin/proposals/${id}/approve`).then(r => r.data),
@@ -414,7 +414,7 @@ export const ApiService = {
       apiClient.get(`/projects/${slug}`).then(r => r.data),
 
     getProjectById: (token: string, id: string) =>
-      serverFetch<any>(`/admin/projects/${id}`, token, { tags: [`admin-project-${id}`] }),
+      serverFetch<any>(`/admin/projects/${id}`, token, { tags: [`admin-project-${id}`], next: { revalidate: 0 } }),
 
     verifyExternalRef: (token: string, ref: string) =>
       serverFetch<any>(`/admin/reconcile/verify/${ref}`, token, { next: { revalidate: 0 } }),
@@ -435,7 +435,7 @@ export const ApiService = {
       apiClient.patch(`/admin/projects/${projectId}/milestones/${milestoneId}`, { status, imageUrl }).then(r => r.data),
 
     getPendingEvidence: (token: string, params: URLSearchParams) =>
-      serverFetch<{ data: any[]; meta: any }>(`/admin/evidence/pending?${params.toString()}`, token, { tags: ['admin-evidence'] }),
+      serverFetch<{ data: any[]; meta: any }>(`/admin/evidence/pending?${params.toString()}`, token, { tags: ['admin-evidence'], next: { revalidate: 0 } }),
 
     reviewEvidence: (id: string, data: { status: 'APPROVED' | 'REJECTED', feedback?: string }) =>
       apiClient.patch(`/admin/evidence/${id}/review`, data).then(r => r.data),
@@ -526,7 +526,7 @@ export const ApiService = {
       apiClient.patch(`/admin/communication/amendment/${messageId}/reject`, { feedback }).then(r => r.data),
 
     getProjectReports: (token: string, projectId: string) =>
-      serverFetch<any[]>(`/admin/projects/${projectId}/reports`, token, { tags: [`admin-reports-${projectId}`] }),
+      serverFetch<any[]>(`/admin/projects/${projectId}/reports`, token, { tags: [`admin-reports-${projectId}`], next: { revalidate: 0 } }),
 
     resolveProjectReport: (id: string, data: { status: 'RESOLVED' | 'DISMISSED', feedback: string, reinstateProject: boolean }) =>
       apiClient.patch(`/admin/reports/${id}/resolve`, data).then(r => r.data),
@@ -570,7 +570,7 @@ export const ApiService = {
         : apiClient.get('/organizations/me').then(r => r.data),
 
     getPending: (token: string) =>
-      serverFetch<any[]>('/organizations/admin/pending', token, { tags: ['admin-kyc-queue'] }),
+      serverFetch<any[]>('/organizations/admin/pending', token, { tags: ['admin-kyc-queue'], next: { revalidate: 0 } }),
 
     review: (id: string, data: { status: 'VERIFIED' | 'REJECTED', feedback?: string }) =>
       apiClient.patch(`/organizations/admin/review/${id}`, data).then(r => r.data),
@@ -579,10 +579,10 @@ export const ApiService = {
       serverFetch<{ data: OrganizationProfile[]; meta: any }>(
         `/organizations/admin/list?${params.toString()}`,
         token,
-        { tags: ['admin-orgs-list'] }
+        { tags: ['admin-orgs-list'], next: { revalidate: 0 } }
       ),
     getOrganizationById: (token: string, id: string) =>
-      serverFetch<any>(`/organizations/admin/${id}`, token, { tags: [`admin-org-${id}`] }),
+      serverFetch<any>(`/organizations/admin/${id}`, token, { tags: [`admin-org-${id}`], next: { revalidate: 0 } }),
 
     getPreviewUrl: (key: string) =>
       apiClient.get(`/organizations/documents/preview?key=${encodeURIComponent(key)}`).then(r => r.data),
