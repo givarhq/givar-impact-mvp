@@ -524,7 +524,7 @@ export const EmailTemplates = {
 
   kycApproved: (data: { name: string; kycType: string; url: string }) => `
   <p>Hi ${data.name},</p>
-  <p>Good news! Your <strong>${data.kycType === 'INDIVIDUAL' ? 'identity' : 'organization'}</strong> has been verified by the Givar team.</p>
+  <p>Good news! Your <strong>${data.kycType === 'INDIVIDUAL' ? 'identity' : 'corporate entity'}</strong> has been verified by the Givar team.</p>
   
   <div class="stat-box" style="text-align: center;">
     <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Verification Status</div>
