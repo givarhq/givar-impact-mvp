@@ -445,7 +445,7 @@ export const EmailTemplates = {
     
     <div class="stat-box" style="background-color: #faf5ff; border: 1px solid #e9d5ff;">
       <div style="font-size: 11px; text-transform: uppercase; color: #7e22ce; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Compliance Check</div>
-      <p style="font-size: 14px; color: #581c87; margin: 0; font-weight: 600;">${data.kycType === 'INDIVIDUAL' ? 'Verify government identification and liveness check' : 'Verify incorporation documents and registration IDs'} to grant CORPORATE status.</p>
+      <p style="font-size: 14px; color: #581c87; margin: 0; font-weight: 600;">${data.kycType === 'INDIVIDUAL' ? 'Verify government identification and liveness check to grant Individual status.' : 'Verify incorporation documents and registration IDs to grant Corporate status.'}</p>
     </div>
 
     <div style="text-align: center; margin: 32px 0;">
