@@ -61,10 +61,10 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
   const [regNumber, setRegNumber] = useState(initialProfile?.registrationNumber || '');
 
   // Wipe previous docs from state if an upgrade is required so they don't accidentally re-submit their personal ID
-  const [primaryDoc, setPrimaryDoc] = useState<{ key: string, name: string } | null>(
+  const [primaryDoc, setPrimaryDoc] = useState<{ key: string, name: string, localUrl?: string } | null>(
     !isUpgradeRequired && initialProfile?.documentKeys?.[0] ? { key: initialProfile.documentKeys[0], name: 'Uploaded document 1' } : null
   );
-  const [secondaryDoc, setSecondaryDoc] = useState<{ key: string, name: string } | null>(
+  const [secondaryDoc, setSecondaryDoc] = useState<{ key: string, name: string, localUrl?: string } | null>(
     !isUpgradeRequired && initialProfile?.documentKeys?.[1] ? { key: initialProfile.documentKeys[1], name: 'Uploaded document 2' } : null
   );
 
@@ -91,10 +91,13 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
         headers: { 'Content-Type': file.type }
       });
 
+      const isImage = file.type.startsWith('image/');
+      const localUrl = isImage ? URL.createObjectURL(file) : undefined;
+
       if (slot === 'primary') {
-        setPrimaryDoc({ key, name: file.name });
+        setPrimaryDoc({ key, name: file.name, localUrl });
       } else {
-        setSecondaryDoc({ key, name: file.name });
+        setSecondaryDoc({ key, name: file.name, localUrl });
       }
 
       toast.success('File uploaded securely', { id: toastId });
@@ -375,6 +378,15 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
           {/* Document Uploads */}
           <div className="space-y-6">
 
+            {effectiveStatus === 'REJECTED' && (
+              <div className="p-3.5 rounded-2xl bg-destructive/5 border border-destructive/10 flex items-start gap-3 shadow-sm">
+                <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                <p className="text-xs text-destructive font-medium leading-relaxed">
+                  Your previous documents were rejected. Please ensure you upload new, compliant images.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Slot 1 */}
               <div className="space-y-3">
@@ -390,8 +402,12 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                 {primaryDoc ? (
                   <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/40 rounded-3xl group">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0">
-                        <FileText className="h-5 w-5" />
+                      <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 relative overflow-hidden">
+                        {primaryDoc.localUrl ? (
+                          <img src={primaryDoc.localUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                          <FileText className="h-5 w-5" />
+                        )}
                       </div>
                       <div className="min-w-0">
                         <span className="text-xs font-bold text-foreground truncate block">{primaryDoc.name}</span>
@@ -401,9 +417,6 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" onClick={(e) => { e.preventDefault(); viewDoc(primaryDoc.key, primaryDoc.name); }}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
                       <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all" onClick={() => setPrimaryDoc(null)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -443,8 +456,14 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                 {secondaryDoc ? (
                   <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/40 rounded-3xl group">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0">
-                        {kycType === 'INDIVIDUAL' ? <Camera className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                      <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 relative overflow-hidden">
+                        {secondaryDoc.localUrl ? (
+                          <img src={secondaryDoc.localUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : kycType === 'INDIVIDUAL' ? (
+                          <Camera className="h-5 w-5" />
+                        ) : (
+                          <FileText className="h-5 w-5" />
+                        )}
                       </div>
                       <div className="min-w-0">
                         <span className="text-xs font-bold text-foreground truncate block">{secondaryDoc.name}</span>
@@ -454,9 +473,6 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-2xl transition-all" onClick={(e) => { e.preventDefault(); viewDoc(secondaryDoc.key, secondaryDoc.name); }}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
                       <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-2xl transition-all" onClick={() => setSecondaryDoc(null)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>

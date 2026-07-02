@@ -566,7 +566,7 @@ export const ApiService = {
 
     getMe: (token?: string) =>
       token
-        ? serverFetch<any>('/organizations/me', token, { tags: ['org-profile'] })
+        ? serverFetch<any>('/organizations/me', token, { tags: ['org-profile'], next: { revalidate: 0 } })
         : apiClient.get('/organizations/me').then(r => r.data),
 
     getPending: (token: string) =>
