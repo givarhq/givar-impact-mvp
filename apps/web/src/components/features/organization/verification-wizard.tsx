@@ -110,13 +110,14 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
   };
 
   const handleSubmit = async () => {
-    if (!legalName.trim() || !primaryDoc || !secondaryDoc) {
-      return toast.error('Please provide your legal name and both required documents.');
+    const trimmedRegNumber = regNumber.trim();
+
+    if (!legalName.trim() || !primaryDoc || !secondaryDoc || !trimmedRegNumber) {
+      return toast.error('Please complete all fields and upload the required documents.');
     }
 
-    const trimmedRegNumber = regNumber.trim();
-    if (trimmedRegNumber.length > 0 && trimmedRegNumber.length < 5) {
-      return toast.error('Please enter the number exactly as it appears on your uploaded ID (minimum 5 characters).');
+    if (trimmedRegNumber.length < 5) {
+      return toast.error('Please enter the ID/Registration number exactly as it appears on your document (minimum 5 characters).');
     }
 
     setIsLoading(true);
@@ -357,7 +358,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <Input
-                label={kycType === 'INDIVIDUAL' ? "Full legal name" : "Legal organization name"}
+                label={kycType === 'INDIVIDUAL' ? "Full legal name *" : "Legal organization name *"}
                 placeholder={kycType === 'INDIVIDUAL' ? "e.g. Jane Doe" : "e.g. Global Relief Foundation"}
                 value={legalName}
                 onChange={(e) => setLegalName(e.target.value)}
@@ -365,7 +366,7 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
                 className="h-12 rounded-3xl bg-muted/20"
               />
               <Input
-                label={kycType === 'INDIVIDUAL' ? "Government ID number" : "Registration number (RC / TIN)"}
+                label={kycType === 'INDIVIDUAL' ? "Government ID number *" : "Registration number (RC / TIN) *"}
                 placeholder={kycType === 'INDIVIDUAL' ? "e.g. NIN, SSN, or Passport No." : "e.g. RC-1234567"}
                 value={regNumber}
                 onChange={(e) => setRegNumber(e.target.value)}
@@ -540,8 +541,8 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
       <div className="flex justify-end pt-2">
         <Button
           onClick={handleSubmit}
-          disabled={isLoading || !legalName.trim() || !primaryDoc || !secondaryDoc}
-          className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0"
+          disabled={isLoading}
+          className="h-12 rounded-3xl px-10 font-bold text-sm shadow-lg shadow-primary/20 active:scale-[0.98] transition-all gap-2 border-0 bg-primary text-white"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
           {isUpgradeRequired ? 'Submit Corporate Verification' : 'Submit'}

@@ -20,6 +20,10 @@ export class OrganizationService {
 
   // 1. User: Submit KYC
   async submitKyc(userId: string, data: { legalName: string, registrationNumber?: string, documentKeys: string[], kycType: 'INDIVIDUAL' | 'CORPORATE' }) {
+    if (!data.registrationNumber || data.registrationNumber.trim().length < 5) {
+      throw new BadRequestException('A valid registration or ID number (minimum 5 characters) is required to verify your identity.');
+    }
+
     return this.prisma.$transaction(async (tx) => {
       // 1. Update or Create the Organization Profile
       const profile = await tx.organizationProfile.upsert({
