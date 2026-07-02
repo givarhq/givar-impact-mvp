@@ -401,18 +401,33 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
 
                 {primaryDoc ? (
                   <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/40 rounded-3xl group">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 relative overflow-hidden">
-                        {primaryDoc.localUrl ? (
-                          <img src={primaryDoc.localUrl} alt="Preview" className="w-full h-full object-cover" />
-                        ) : (
+                    <div className="flex items-center gap-4 min-w-0">
+                      {primaryDoc.localUrl ? (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setLightboxState({
+                              isOpen: true,
+                              items: [{ url: primaryDoc.localUrl!, type: 'IMAGE', alt: primaryDoc.name }],
+                              index: 0
+                            });
+                          }}
+                          className="relative h-16 w-16 rounded-2xl bg-background border border-border/50 shrink-0 overflow-hidden group/preview hover:ring-2 hover:ring-primary/20 transition-all shadow-sm focus:outline-none"
+                        >
+                          <img src={primaryDoc.localUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover/preview:scale-110 duration-500" />
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                            <Eye className="h-5 w-5 text-white" />
+                          </div>
+                        </button>
+                      ) : (
+                        <div className="h-12 w-12 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0">
                           <FileText className="h-5 w-5" />
-                        )}
-                      </div>
+                        </div>
+                      )}
                       <div className="min-w-0">
-                        <span className="text-xs font-bold text-foreground truncate block">{primaryDoc.name}</span>
-                        <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                          <CheckCircle2 className="h-3 w-3" /> Securely attached
+                        <span className="text-sm font-bold text-foreground truncate block">{primaryDoc.name}</span>
+                        <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Securely attached
                         </span>
                       </div>
                     </div>
@@ -455,20 +470,33 @@ export const VerificationWizard = memo(function VerificationWizard({ user, initi
 
                 {secondaryDoc ? (
                   <div className="flex items-center justify-between p-4 bg-muted/20 border border-border/40 rounded-3xl group">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 relative overflow-hidden">
-                        {secondaryDoc.localUrl ? (
-                          <img src={secondaryDoc.localUrl} alt="Preview" className="w-full h-full object-cover" />
-                        ) : kycType === 'INDIVIDUAL' ? (
-                          <Camera className="h-5 w-5" />
-                        ) : (
-                          <FileText className="h-5 w-5" />
-                        )}
-                      </div>
+                    <div className="flex items-center gap-4 min-w-0">
+                      {secondaryDoc.localUrl ? (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setLightboxState({
+                              isOpen: true,
+                              items: [{ url: secondaryDoc.localUrl!, type: 'IMAGE', alt: secondaryDoc.name }],
+                              index: 0
+                            });
+                          }}
+                          className="relative h-16 w-16 rounded-2xl bg-background border border-border/50 shrink-0 overflow-hidden group/preview hover:ring-2 hover:ring-primary/20 transition-all shadow-sm focus:outline-none"
+                        >
+                          <img src={secondaryDoc.localUrl} alt="Preview" className="w-full h-full object-cover transition-transform group-hover/preview:scale-110 duration-500" />
+                          <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                            <Eye className="h-5 w-5 text-white" />
+                          </div>
+                        </button>
+                      ) : (
+                        <div className="h-12 w-12 rounded-2xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0">
+                          {kycType === 'INDIVIDUAL' ? <Camera className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                        </div>
+                      )}
                       <div className="min-w-0">
-                        <span className="text-xs font-bold text-foreground truncate block">{secondaryDoc.name}</span>
-                        <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-0.5">
-                          <CheckCircle2 className="h-3 w-3" /> Securely attached
+                        <span className="text-sm font-bold text-foreground truncate block">{secondaryDoc.name}</span>
+                        <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Securely attached
                         </span>
                       </div>
                     </div>
