@@ -107,9 +107,15 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                 {profile.status}
                             </Badge>
                         </div>
-                        <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground mt-1">
                             <span className="flex items-center gap-1.5 shrink-0"><Calendar className="h-3.5 w-3.5" /> Registered on {formatDate(profile.createdAt).split(',')[0]}</span>
-                            <span className="flex items-center gap-1.5 shrink-0"><Fingerprint className="h-3.5 w-3.5 text-primary" /> {isIndividual ? 'Gov ID' : 'Reg ID'}: {profile.registrationNumber || 'Not provided'}</span>
+
+                            {/* ENHANCED ID DISPLAY */}
+                            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary shrink-0">
+                                <Fingerprint className="h-3.5 w-3.5" />
+                                <span className="font-bold text-xs">{isIndividual ? 'Gov ID' : 'Reg ID'}: {profile.registrationNumber || 'NOT PROVIDED'}</span>
+                            </div>
+
                             <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-3xl bg-muted/50 border border-border/40", isIndividual ? "text-blue-600" : "text-purple-600")}>
                                 {isIndividual ? 'Individual account' : 'Corporate entity'}
                             </span>
@@ -145,9 +151,10 @@ export const OrganizationDetailView = memo(function OrganizationDetailView({ pro
                                         onChange={(e) => setFeedback(e.target.value)}
                                     />
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Button variant="outline" className="rounded-3xl h-12 font-bold text-xs border-destructive/20 text-destructive hover:bg-destructive/5 transition-all active:scale-95" onClick={() => handleReview('REJECTED')} disabled={isProcessing}>Reject identity</Button>
-                                    <Button className="rounded-3xl h-12 font-bold bg-amber-500 hover:bg-amber-600 border-0 text-xs text-white shadow-md active:scale-95" disabled={true}>Request edits</Button>
+                                <div className="grid grid-cols-1 gap-3">
+                                    <Button className="rounded-3xl h-12 font-bold bg-amber-500 hover:bg-amber-600 border-0 text-xs text-white shadow-md active:scale-95" onClick={() => handleReview('REJECTED')} disabled={isProcessing || !feedback.trim()}>
+                                        Decline & Request Edits
+                                    </Button>
                                 </div>
                             </div>
                         </DialogContent>

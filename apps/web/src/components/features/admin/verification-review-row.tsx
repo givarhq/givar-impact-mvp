@@ -2,7 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, X, FileText, Loader2, CheckCircle2, ShieldAlert, Eye, User, Building2 } from 'lucide-react';
+import { Check, X, FileText, Loader2, CheckCircle2, ShieldAlert, Eye, User, Building2, Fingerprint } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { ApiService } from '../../../services/api';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
@@ -74,7 +74,7 @@ export const VerificationReviewRow = memo(function VerificationReviewRow({ profi
         isHandled ? "bg-muted/10 opacity-70" : "hover:bg-muted/30"
       )}>
         <td className="px-6 py-5 align-top">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <div className={cn(
                 "h-5 w-5 rounded-md flex items-center justify-center shrink-0",
@@ -84,9 +84,12 @@ export const VerificationReviewRow = memo(function VerificationReviewRow({ profi
               </div>
               <span className="font-bold text-sm text-foreground leading-tight">{profile.legalName}</span>
             </div>
-            <span className="text-[11px] text-muted-foreground font-mono bg-muted/50 px-2 py-0.5 rounded-3xl w-fit border border-border/40 ml-7">
-              {profile.registrationNumber || 'No registration ID'}
-            </span>
+
+            {/* ENHANCED ID DISPLAY IN TABLE ROW */}
+            <div className="flex items-center gap-1.5 text-[11px] text-foreground font-mono bg-muted/50 px-2.5 py-1 rounded-full w-fit border border-border/40 ml-7">
+              <Fingerprint className="h-3 w-3 text-muted-foreground" />
+              <span className="font-bold">{profile.registrationNumber || 'NO ID PROVIDED'}</span>
+            </div>
           </div>
         </td>
 
@@ -133,7 +136,7 @@ export const VerificationReviewRow = memo(function VerificationReviewRow({ profi
                   </DialogTrigger>
                   <DialogContent className="rounded-3xl p-8 border-none shadow-2xl bg-card">
                     <DialogHeader>
-                      <DialogTitle className="text-lg font-bold">Decline Identity</DialogTitle>
+                      <DialogTitle className="text-lg font-bold">Decline & Request Edits</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-6 pt-2">
                       <p className="text-xs text-muted-foreground leading-relaxed">
@@ -145,8 +148,8 @@ export const VerificationReviewRow = memo(function VerificationReviewRow({ profi
                         value={feedback}
                         onChange={(e) => setFeedback(e.target.value)}
                       />
-                      <Button variant="destructive" className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-md border-0 active:scale-95" onClick={() => handleReview('REJECTED')} disabled={isLoading || !feedback.trim()}>
-                        {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm decision'}
+                      <Button className="w-full h-12 rounded-3xl font-bold text-xs tracking-widest shadow-md border-0 active:scale-95 bg-amber-500 hover:bg-amber-600 text-white" onClick={() => handleReview('REJECTED')} disabled={isLoading || !feedback.trim()}>
+                        {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Decline & Request Edits'}
                       </Button>
                     </div>
                   </DialogContent>
