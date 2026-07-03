@@ -543,7 +543,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                                                 <div className="text-muted-foreground/50 group-hover:text-primary transition-colors mt-0.5">
                                                                     {isStageExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                                                 </div>
-                                                                <div className="font-bold text-foreground text-xs uppercase tracking-widest">{stage}</div>
+                                                                <div className="font-bold text-foreground text-xs  tracking-widest">{stage}</div>
                                                                 <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">
                                                                     {items.length} {items.length === 1 ? 'Item' : 'Items'}
                                                                 </Badge>
@@ -633,7 +633,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                                                                     >
                                                                                         <div className="px-14 py-4 border-t border-border/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                                                             <div className="space-y-1">
-                                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Mail className="h-3 w-3" /> Vendor Email</p>
+                                                                                                <p className="text-[10px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5"><Mail className="h-3 w-3" /> Vendor Email</p>
                                                                                                 {vendorContactEmail ? (
                                                                                                     <a href={`mailto:${vendorContactEmail}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactEmail}</a>
                                                                                                 ) : (
@@ -641,7 +641,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                                                                                 )}
                                                                                             </div>
                                                                                             <div className="space-y-1">
-                                                                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5"><Phone className="h-3 w-3" /> Vendor Phone</p>
+                                                                                                <p className="text-[10px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5"><Phone className="h-3 w-3" /> Vendor Phone</p>
                                                                                                 {vendorContactPhone ? (
                                                                                                     <a href={`tel:${vendorContactPhone}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactPhone}</a>
                                                                                                 ) : (
@@ -693,7 +693,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                         <div className="w-full max-w-lg p-5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-left mb-2 shadow-sm animate-in fade-in">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <UserCheck className="h-4 w-4 text-teal-600" />
-                                                <h4 className="text-[11px] font-bold tracking-widest text-teal-700 uppercase">Admin Recommendation Notes</h4>
+                                                <h4 className="text-[11px] font-bold tracking-widest text-teal-700 ">Admin Recommendation Notes</h4>
                                             </div>
                                             <p className="text-xs text-teal-900 font-medium italic leading-relaxed">
                                                 "{proposal.internalNotes}"
