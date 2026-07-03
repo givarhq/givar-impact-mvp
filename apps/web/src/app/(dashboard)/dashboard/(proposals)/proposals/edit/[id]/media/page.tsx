@@ -85,8 +85,8 @@ export default function MediaPage() {
       <Card className="border-border/40 bg-card rounded-3xl overflow-hidden shadow-sm min-w-0">
         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
           <CardTitle className="text-lg md:text-xl font-bold">Project Media</CardTitle>
-          <CardDescription className="text-xs font-medium">
-            High-quality visuals build trust & help donors connect with your cause mission.
+          <CardDescription className="text-sm font-medium mt-1.5 leading-relaxed text-muted-foreground">
+            Photos and videos help donors better understand your cause and build confidence in your campaign.
           </CardDescription>
         </CardHeader>
 
@@ -95,9 +95,14 @@ export default function MediaPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-w-0">
             {/* Cover Asset Section */}
             <div className="space-y-4 min-w-0">
-              <div className="flex items-center gap-2 px-1">
-                <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Primary hero image *</label>
+              <div className="space-y-1.5 px-1">
+                <div className="flex items-center gap-2">
+                  <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Primary Hero Image *</label>
+                </div>
+                <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                  Upload a clear, high-quality photo that best represents your cause. This could be a photo of the beneficiary, the treatment, or another relevant image that helps donors understand the situation.
+                </p>
               </div>
               {coverImage ? (
                 <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted">
@@ -135,9 +140,14 @@ export default function MediaPage() {
 
             {/* Elevator Pitch Video Section */}
             <div className="space-y-4 min-w-0">
-              <div className="flex items-center gap-2 px-1">
-                <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Pitch Video (Optional)</label>
+              <div className="space-y-1.5 px-1">
+                <div className="flex items-center gap-2">
+                  <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Pitch Video (Optional)</label>
+                </div>
+                <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                  You can upload a short video introducing yourself or explaining your cause. This is optional, but it can provide additional context for donors.
+                </p>
               </div>
               {videoPreview ? (
                 <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-black">
@@ -175,7 +185,7 @@ export default function MediaPage() {
           {/* Gallery Section */}
           <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
             <div className="flex justify-between items-center px-1">
-              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Project gallery</label>
+              <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Project gallery</label>
               <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
             </div>
 
