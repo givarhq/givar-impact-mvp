@@ -370,9 +370,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                     )}
                                 </div>
                                 <div className="p-6 flex flex-col justify-center bg-card/50">
-                                    <h4 className="text-xs font-bold text-primary mb-1.5 tracking-tight">Elevator Pitch</h4>
+                                    <h4 className="text-xs font-bold text-primary mb-1.5 tracking-tight">Brief Summary</h4>
                                     <p className="text-sm leading-relaxed text-foreground font-medium italic">
-                                        &quot;{proposal.shortDesc || "No elevator pitch provided for this proposal."}&quot;
+                                        &quot;{proposal.shortDesc || "No brief summary provided for this proposal."}&quot;
                                     </p>
                                     {proposal.gallery && (proposal.gallery as any[]).length > 0 && (
                                         <div className="mt-6">
@@ -1055,6 +1055,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                 items={lightboxState.items}
                 initialIndex={lightboxState.index}
             />
-        </motion.div>
+        </motion.div >
     );
 });
