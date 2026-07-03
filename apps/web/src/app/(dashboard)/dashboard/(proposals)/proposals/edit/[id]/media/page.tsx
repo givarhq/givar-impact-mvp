@@ -98,7 +98,7 @@ export default function MediaPage() {
               <div className="space-y-1.5 px-1">
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Primary Hero Image *</label>
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ">Primary Hero Image *</label>
                 </div>
                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                   Upload a clear, high-quality photo that best represents your cause. This could be a photo of the beneficiary, the treatment, or another relevant image that helps donors understand the situation.
@@ -143,7 +143,7 @@ export default function MediaPage() {
               <div className="space-y-1.5 px-1">
                 <div className="flex items-center gap-2">
                   <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Intro Video (Optional)</label>
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest ">Intro Video (Optional)</label>
                 </div>
                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                   You can upload a short video introducing yourself or explaining your cause. This is optional, but it can provide additional context for donors.
@@ -185,7 +185,7 @@ export default function MediaPage() {
           {/* Gallery Section */}
           <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
             <div className="flex justify-between items-center px-1">
-              <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Project gallery</label>
+              <label className="text-[11px] font-bold text-muted-foreground tracking-widest ">Project gallery</label>
               <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
             </div>
 
