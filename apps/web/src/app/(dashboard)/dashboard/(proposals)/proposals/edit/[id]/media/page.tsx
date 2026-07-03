@@ -138,12 +138,12 @@ export default function MediaPage() {
               )}
             </div>
 
-            {/* Elevator Pitch Video Section */}
+            {/* Introductory Video Section */}
             <div className="space-y-4 min-w-0">
               <div className="space-y-1.5 px-1">
                 <div className="flex items-center gap-2">
                   <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Pitch Video (Optional)</label>
+                  <label className="text-[11px] font-bold text-muted-foreground tracking-widest uppercase">Intro Video (Optional)</label>
                 </div>
                 <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                   You can upload a short video introducing yourself or explaining your cause. This is optional, but it can provide additional context for donors.

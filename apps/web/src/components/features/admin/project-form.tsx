@@ -513,8 +513,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1">Short Elevator Pitch</label>
-          <Textarea className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")} {...register('shortDesc')} onBlur={handleBlurShortDesc} readOnly={readOnly} placeholder="A brief summary for donor lists..." maxLength={140} />
+          <label className="text-[11px] font-bold text-muted-foreground ml-1">Brief Summary (Optional)</label>
+          <Textarea className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")} {...register('shortDesc')} onBlur={handleBlurShortDesc} readOnly={readOnly} placeholder="A short, catchy summary of the cause..." maxLength={140} />
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
@@ -572,7 +572,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <Video className="h-3.5 w-3.5 text-muted-foreground" />
-              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Pitch Video (Optional)</label>
+              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Intro Video (Optional)</label>
             </div>
             {videoPreview ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-black">

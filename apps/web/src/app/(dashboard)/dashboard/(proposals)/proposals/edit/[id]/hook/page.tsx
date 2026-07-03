@@ -464,8 +464,8 @@ export default function HookPage() {
             </div>
 
             <Textarea
-              label="Elevator pitch"
-              placeholder="A punchy one-liner (max 140 chars)..."
+              label="Brief summary (optional)"
+              placeholder="A short, catchy summary of your cause (max 140 chars)..."
               value={shortDesc || ''}
               onChange={(e) => updateField('shortDesc', e.target.value)}
               onBlur={handleBlurShortDesc}
