@@ -157,6 +157,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         }
     };
 
+    // Strip HTML and spaces to check if there is real content
+    const hasAdditionalNotes = project.riskAnalysis && project.riskAnalysis.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim().length > 0;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -354,7 +357,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
                                 />
 
-                                {project.riskAnalysis && (
+                                {hasAdditionalNotes && (
                                     <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
                                         <h4 className="text-sm font-bold text-amber-700 flex items-center gap-2 mb-3">
                                             <AlertTriangle className="h-4 w-4" /> Additional Notes
@@ -369,7 +372,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 "[&_strong]:font-bold [&_strong]:text-amber-950",
                                                 "[&_em]:italic"
                                             )}
-                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.riskAnalysis) }}
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.riskAnalysis!) }}
                                         />
                                     </div>
                                 )}
