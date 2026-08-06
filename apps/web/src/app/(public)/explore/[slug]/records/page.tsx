@@ -35,8 +35,8 @@ export default async function PublicProjectLedgerPage({
     const initialLedger = await ApiService.projects.getLedger(paramsObj, slug, token);
 
     return (
-        <PublicLayout>
-            <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 animate-in fade-in duration-500">
+        <PublicLayout variant="app">
+            <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
                 <div className="flex flex-col gap-4 px-1 min-w-0">
                     <Link href={`/explore/${slug}`} className="w-fit" prefetch={false}>
                         <Button variant="ghost" size="sm" className="pl-0 text-muted-foreground hover:text-foreground group rounded-3xl">
