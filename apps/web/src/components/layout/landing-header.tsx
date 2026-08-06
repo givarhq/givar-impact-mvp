@@ -46,17 +46,19 @@ export const LandingHeader = memo(function LandingHeader({
     <>
       <header
         className={cn(
-          isApp ? 'sticky top-0 z-30' : 'fixed top-0 left-0 right-0 z-50',
-          'transition-all duration-300',
-          isAuth || isMenuOpen || isApp
-            ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl py-4 shadow-sm'
-            : scrolled
-              ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-border/40 py-3 shadow-sm'
-              : 'bg-transparent py-6',
-          isApp && 'border-border/40 md:border-none'
+          isApp
+            ? 'sticky top-0 z-30 h-14 md:h-16 flex items-center bg-background/80 backdrop-blur-xl border-b border-border/40 md:border-none md:shadow-none transition-all'
+            : cn(
+              'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+              isAuth || isMenuOpen
+                ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl py-4 shadow-sm'
+                : scrolled
+                  ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-border/40 py-3 shadow-sm'
+                  : 'bg-transparent py-6'
+            )
         )}
       >
-        <div className={cn("container mx-auto px-4 md:px-6 relative flex items-center justify-between", isApp && "max-w-none")}>
+        <div className={cn("container mx-auto px-4 md:px-6 relative flex items-center justify-between", isApp && "max-w-none px-4 md:px-6")}>
           <div className={cn(isApp ? "md:hidden" : "flex", "items-center flex-1 min-w-0")}>
             <Link href="/" className="flex items-center gap-2 group relative z-10 outline-none" onClick={() => setIsMenuOpen(false)}>
               <div>
@@ -147,7 +149,7 @@ export const LandingHeader = memo(function LandingHeader({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed top-[60px] left-0 right-0 z-50 bg-card  border-border/40 shadow-2xl md:hidden overflow-hidden"
+              className="fixed top-[60px] left-0 right-0 z-50 bg-card border-b border-border/40 shadow-2xl md:hidden overflow-hidden"
             >
               <div className="flex flex-col p-6 gap-6">
                 <nav className="flex flex-col gap-5">
