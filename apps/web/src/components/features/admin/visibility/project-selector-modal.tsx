@@ -53,10 +53,10 @@ export const ProjectSelectorModal = memo(function ProjectSelectorModal({
             setIsLoading(true);
             try {
                 const token = getCookie('givar_token') as string;
+                // LOGIC FIX: Removed status: 'ACTIVE' so Admins can feature FUNDED or COMPLETED projects
                 const params = new URLSearchParams({
                     search: query.trim(),
-                    limit: '5',
-                    status: 'ACTIVE',
+                    limit: '10',
                     excludeDrafts: 'true'
                 });
                 const response = await ApiService.admin.getProjects(token, params);
