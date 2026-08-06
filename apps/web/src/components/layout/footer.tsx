@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Github, Twitter, Linkedin } from 'lucide-react';
+import { Instagram, Facebook, Twitter, Mail } from 'lucide-react';
 
 export const Footer = memo(function Footer() {
     return (
@@ -61,9 +61,18 @@ export const Footer = memo(function Footer() {
                     <div>&copy; {new Date().getFullYear()} Givar Inc. All rights reserved.</div>
 
                     <div className="flex gap-6">
-                        <Github className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
-                        <Twitter className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
-                        <Linkedin className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
+                        <a href="https://instagram.com/givar.app" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                            <Instagram className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
+                        </a>
+                        <a href="https://facebook.com/givarapp" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                            <Facebook className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
+                        </a>
+                        <a href="https://x.com/givarapp" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)">
+                            <Twitter className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
+                        </a>
+                        <a href="mailto:support@givarapp.com" aria-label="Email Support">
+                            <Mail className="h-5 w-5 hover:text-primary cursor-pointer transition-colors" />
+                        </a>
                     </div>
                 </div>
 
