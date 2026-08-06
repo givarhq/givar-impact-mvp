@@ -56,7 +56,7 @@ const budgetItemSchema = z.object({
 const projectSchema = z.object({
   title: z.string().min(5, "The title is a bit too short"),
   description: z.string().min(10, "Please provide a more detailed description"),
-  shortDesc: z.string().optional(),
+  shortDesc: z.string().optional().nullable(),
   personalMessage: z.string().optional().nullable(),
   categoryId: z.string().uuid("Please select a sector"),
   subcategoryId: z.string().uuid("Please select a specific focus").optional().nullable(),
@@ -69,9 +69,9 @@ const projectSchema = z.object({
   vendors: z.array(vendorItemSchema),
   budgetBreakdown: z.array(budgetItemSchema),
   executionTimeline: z.any().optional(),
-  reasonForGoalAdjustment: z.string().optional(),
-  amendmentInvoiceKey: z.string().optional(),
-  amendmentMessageId: z.string().optional(),
+  reasonForGoalAdjustment: z.string().optional().nullable(),
+  amendmentInvoiceKey: z.string().optional().nullable(),
+  amendmentMessageId: z.string().optional().nullable(),
   endDate: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
 });
@@ -137,6 +137,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       budgetBreakdown: mappedBudget,
       executionTimeline: initialData.executionTimeline || [],
       personalMessage: initialData.personalMessage || '',
+      shortDesc: initialData.shortDesc || '',
       targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       reasonForGoalAdjustment: '',
@@ -150,6 +151,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       budgetBreakdown: [],
       executionTimeline: [],
       personalMessage: '',
+      shortDesc: '',
       endDate: '',
       subcategoryId: '',
     }
@@ -394,12 +396,11 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
             <div className="space-y-2">
               <div className="flex justify-between items-end px-1">
                 <label className="text-[10px] font-bold text-amber-800">Narrative</label>
-                <span className={cn(
-                  "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                  (reason?.length || 0) < 10 ? "text-destructive bg-destructive/5" : "text-emerald-600 bg-emerald-50"
-                )}>
-                  {reason?.length || 0} / 10 Characters Minimum
-                </span>
+                {(reason?.length || 0) < 10 && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-destructive bg-destructive/5">
+                    {reason?.length || 0} / 10 Characters Minimum
+                  </span>
+                )}
               </div>
               <Textarea
                 {...register('reasonForGoalAdjustment')}
@@ -514,7 +515,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
         <div className="md:col-span-12 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1">Brief Summary (Optional)</label>
-          <Textarea className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")} {...register('shortDesc')} onBlur={handleBlurShortDesc} readOnly={readOnly} placeholder="A short, catchy summary of the cause..." maxLength={140} />
+          <Textarea className={cn(getAreaClass("min-h-[80px]"), "resize-none rounded-3xl")} {...register('shortDesc')} error={errors.shortDesc?.message} onBlur={handleBlurShortDesc} readOnly={readOnly} placeholder="A short, catchy summary of the cause..." maxLength={140} />
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
@@ -555,7 +556,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 <Image src={coverPreview || coverImage} alt="Project Hero" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover transition-transform duration-700 group-hover:scale-105" unoptimized />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl h-10 px-6 font-bold text-xs shadow-xl active:scale-95" onClick={() => { setValue('coverImage', '', { shouldDirty: true }); setCoverPreview(null); }}>
+                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl font-bold h-10 px-6 text-xs active:scale-95 transition-all shadow-lg" onClick={() => { setValue('coverImage', '', { shouldDirty: true }); setCoverPreview(null); }}>
                       <X className="h-4 w-4 mr-2" /> Remove
                     </Button>
                   </div>
