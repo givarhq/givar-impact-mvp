@@ -3,15 +3,15 @@ import { Skeleton } from '../../../components/ui/skeleton';
 
 export default function GlobalRecordsLoading() {
     return (
-        <PublicLayout>
-            <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 animate-in fade-in duration-500">
+        <PublicLayout variant="app">
+            <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
                 {/* Header Skeleton */}
-                <div className="flex flex-col gap-2 px-1 text-center md:text-left">
-                    <div className="flex items-center justify-center md:justify-start gap-3">
+                <div className="flex flex-col gap-2 px-1 text-left">
+                    <div className="flex items-center justify-start gap-3">
                         <Skeleton className="h-10 w-10 rounded-2xl" />
                         <Skeleton className="h-8 w-48 rounded-3xl" />
                     </div>
-                    <Skeleton className="h-4 w-full max-w-lg mx-auto md:mx-0 rounded-3xl" />
+                    <Skeleton className="h-4 w-full max-w-lg rounded-3xl" />
                 </div>
 
                 <div className="w-full min-w-0 space-y-6">

@@ -27,8 +27,8 @@ export default async function GlobalRecordsPage({
     const ledger = await ApiService.projects.getLedger(paramsObj, undefined, token);
 
     return (
-        <PublicLayout>
-            <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 animate-in fade-in duration-500">
+        <PublicLayout variant="app">
+            <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20">
                 <div className="flex flex-col gap-2 px-1 text-left">
                     <div className="flex items-center justify-start gap-3">
                         <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shadow-inner shrink-0">
