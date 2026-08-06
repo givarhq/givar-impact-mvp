@@ -278,13 +278,17 @@ export const EmailTemplates = {
     currency: string;
     reason: string;
     projectUrl: string;
-  }) => `
+  }) => {
+    const isGoalChange = data.oldGoal !== data.newGoal;
+
+    return `
     <p>Hi ${data.name},</p>
     <p>This is an automated transparency notice regarding the cause <strong>${data.projectTitle}</strong>.</p>
     
     <div class="stat-box" style="background-color: #fffbeb; border: 1px solid #fde68a;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Ledger Amendment Detail</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #b45309; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">${isGoalChange ? 'Ledger Amendment Detail' : 'Execution Plan Update'}</div>
       
+      ${isGoalChange ? `
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
         <tr>
           <td style="padding-bottom: 12px;">
@@ -299,6 +303,11 @@ export const EmailTemplates = {
           </td>
         </tr>
       </table>
+      ` : `
+      <p style="font-size: 14px; color: #92400e; margin: 0; font-weight: 500; line-height: 1.5;">
+        The internal budget breakdown or execution roadmap for this cause has been updated by the organizer. The overall financial goal remains unchanged at <strong>${data.currency} ${data.newGoal}</strong>.
+      </p>
+      `}
 
       <div style="height: 1px; background-color: #fde68a; margin: 16px 0;"></div>
       
@@ -306,14 +315,15 @@ export const EmailTemplates = {
       <p style="font-size: 14px; color: #92400e; margin: 0; font-style: italic; line-height: 1.5;">"${data.reason}"</p>
     </div>
 
-    <p>Givar requires all live financial changes to be verified by audit nodes and broadcasted to the community to maintain the integrity of our immutable ledger.</p>
+    <p>Givar requires all live financial or structural changes to be verified by audit nodes and broadcasted to the community to maintain the integrity of our immutable ledger.</p>
     
     <div style="text-align: center; margin: 32px 0;">
       <a href="${data.projectUrl}" class="button" style="background-color: #b45309;">View Cause Updates</a>
     </div>
 
     <p style="font-size: 13px; color: #6b7280;">If you have any questions regarding this amendment, please contact the Givar Audit Team.</p>
-  `,
+  `
+  },
 
   projectFunded: (data: { name: string; projectTitle: string; amount: string; currency: string; projectUrl: string }) => `
     <p>Hi ${data.name},</p>

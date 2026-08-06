@@ -176,9 +176,12 @@ export class EmailService {
       projectUrl: string;
     }
   ) {
+    const isGoalChange = data.oldGoal !== data.newGoal;
     const content = EmailTemplates.financialAdjustment(data);
-    const html = EmailTemplates.base(content, 'Ledger Amendment Notice');
-    return this.send(email, `Givar Alert: Financial update for ${data.projectTitle}`, html);
+    const header = isGoalChange ? 'Ledger Amendment Notice' : 'Project Plan Update';
+    const html = EmailTemplates.base(content, header);
+
+    return this.send(email, `Givar Alert: ${isGoalChange ? 'Financial update' : 'Update'} for ${data.projectTitle}`, html);
   }
 
   // 13. Project Fully Funded Alert (To Organizer)
