@@ -147,7 +147,7 @@ export const LandingHeader = memo(function LandingHeader({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed top-[60px] left-0 right-0 z-50 bg-card border-b border-border/40 shadow-2xl md:hidden overflow-hidden"
+              className="fixed top-[60px] left-0 right-0 z-50 bg-card  border-border/40 shadow-2xl md:hidden overflow-hidden"
             >
               <div className="flex flex-col p-6 gap-6">
                 <nav className="flex flex-col gap-5">
