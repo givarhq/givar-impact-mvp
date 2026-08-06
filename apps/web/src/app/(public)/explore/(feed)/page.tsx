@@ -39,8 +39,8 @@ export default async function ExplorePage({
     const categories = await ApiService.projects.getCategories(token);
 
     return (
-        <PublicLayout>
-            <div className="container mx-auto px-4 py-8 space-y-10 min-h-screen pb-24 lg:px-12 xl:px-24">
+        <PublicLayout variant="app">
+            <div className="space-y-6 md:space-y-10 animate-in fade-in duration-500 pb-20 min-w-0">
                 {/* Header Section */}
                 <div className="px-1">
                     <ImpactFilters
