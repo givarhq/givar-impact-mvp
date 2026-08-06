@@ -46,6 +46,7 @@ export default async function ExplorePage({
                     <ImpactFilters
                         categories={categories || []}
                         totalCount={meta.total}
+                        hideSearch={true}
                     />
                 </div>
 
