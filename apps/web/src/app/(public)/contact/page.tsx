@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
     return (
-        <PublicLayout>
-            <div className="container mx-auto px-4 py-4 md:py-8 max-w-5xl">
+        <PublicLayout variant="app">
+            <div className="py-4 md:py-8 max-w-5xl mx-auto min-w-0 w-full">
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="text-center space-y-3 pt-2">
                         <h1 className="text-xl md:text-3xl font-black tracking-tighter text-foreground">

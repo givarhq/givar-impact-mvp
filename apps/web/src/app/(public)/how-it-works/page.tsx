@@ -9,8 +9,10 @@ export const metadata: Metadata = {
 
 export default function HowItWorksPage() {
     return (
-        <PublicLayout>
-            <HowItWorksContent />
+        <PublicLayout variant="app">
+            <div className="w-full min-w-0">
+                <HowItWorksContent />
+            </div>
         </PublicLayout>
     );
 }

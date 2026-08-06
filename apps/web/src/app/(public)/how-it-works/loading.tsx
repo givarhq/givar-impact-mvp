@@ -3,8 +3,8 @@ import { Skeleton } from '../../../components/ui/skeleton';
 
 export default function HowItWorksLoading() {
     return (
-        <PublicLayout>
-            <div className="container mx-auto px-4 py-16 md:py-24 space-y-24 animate-in fade-in duration-500 max-w-5xl">
+        <PublicLayout variant="app">
+            <div className="py-16 md:py-24 space-y-24 animate-in fade-in duration-500 w-full min-w-0 max-w-5xl mx-auto">
                 {/* Hero Skeleton */}
                 <div className="text-center space-y-6">
                     <Skeleton className="h-12 w-3/4 max-w-lg mx-auto rounded-3xl" />
