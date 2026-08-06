@@ -57,7 +57,7 @@ export const LandingHeader = memo(function LandingHeader({
         )}
       >
         <div className={cn("container mx-auto px-4 md:px-6 relative flex items-center justify-between", isApp && "max-w-none")}>
-          <div className={cn(isApp && "flex items-center flex-1 min-w-0")}>
+          <div className={cn(isApp ? "md:hidden" : "flex", "items-center flex-1 min-w-0")}>
             <Link href="/" className="flex items-center gap-2 group relative z-10 outline-none" onClick={() => setIsMenuOpen(false)}>
               <div>
                 <Image

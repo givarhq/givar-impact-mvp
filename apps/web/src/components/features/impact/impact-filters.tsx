@@ -13,9 +13,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ImpactFiltersProps {
   categories: any[];
   totalCount: number;
+  hideSearch?: boolean;
 }
 
-export const ImpactFilters = memo(function ImpactFilters({ categories, totalCount }: ImpactFiltersProps) {
+export const ImpactFilters = memo(function ImpactFilters({ categories, totalCount, hideSearch = false }: ImpactFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -69,29 +70,33 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
             Explore Causes
           </h1>
 
-          <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
-            <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
-            <Input
-              placeholder="Search causes by title or location..."
-              className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-11 w-full placeholder:text-muted-foreground/50 font-medium"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          {!hideSearch && (
+            <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
+              <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
+              <Input
+                placeholder="Search causes by title or location..."
+                className="bg-transparent border-none shadow-none focus-visible:ring-0 text-sm h-11 w-full placeholder:text-muted-foreground/50 font-medium"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
-            className={cn(
-              "md:hidden h-11 w-11 rounded-3xl transition-all",
-              isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
-            )}
-          >
-            {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-          </Button>
+          {!hideSearch && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
+              className={cn(
+                "md:hidden h-11 w-11 rounded-3xl transition-all",
+                isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
+              )}
+            >
+              {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+            </Button>
+          )}
 
           <div className="hidden md:block">
             <Select value={sort} onValueChange={setSort}>
@@ -113,7 +118,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
 
       {/* Mobile Expanded Filters Area */}
       <AnimatePresence>
-        {isMobileSearchVisible && (
+        {!hideSearch && isMobileSearchVisible && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
