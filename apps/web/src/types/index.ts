@@ -317,7 +317,7 @@ export interface DashboardShellProps {
 
 export interface LandingHeaderProps {
   hideAuthButtons?: boolean;
-  variant?: 'default' | 'auth';
+  variant?: 'default' | 'auth' | 'app';
 }
 
 export interface InputProps
