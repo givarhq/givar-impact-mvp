@@ -8,6 +8,7 @@ import { Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { LandingHeaderProps } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PublicGlobalSearch } from '../features/impact/public-global-search';
 
 export const LandingHeader = memo(function LandingHeader({
   hideAuthButtons = false,
@@ -15,7 +16,9 @@ export const LandingHeader = memo(function LandingHeader({
 }: LandingHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const isAuth = variant === 'auth';
+  const isApp = variant === 'app';
 
   const handleScroll = useCallback(() => {
     setScrolled(window.scrollY > 20);
@@ -43,45 +46,57 @@ export const LandingHeader = memo(function LandingHeader({
     <>
       <header
         className={cn(
-          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-          isAuth || isMenuOpen
+          isApp ? 'sticky top-0 z-30' : 'fixed top-0 left-0 right-0 z-50',
+          'transition-all duration-300',
+          isAuth || isMenuOpen || isApp
             ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl py-4 shadow-sm'
             : scrolled
               ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-border/40 py-3 shadow-sm'
-              : 'bg-transparent py-6'
+              : 'bg-transparent py-6',
+          isApp && 'border-border/40 md:border-none'
         )}
       >
-        <div className="container mx-auto px-4 md:px-6 relative flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group relative z-10 outline-none" onClick={() => setIsMenuOpen(false)}>
-            <div>
-              <Image
-                src="/Givar1.png"
-                alt="Givar Logo"
-                width={30}
-                height={30}
-                className="object-contain transition-transform group-hover:scale-105"
-                priority
-              />
+        <div className={cn("container mx-auto px-4 md:px-6 relative flex items-center justify-between", isApp && "max-w-none")}>
+          <div className={cn(isApp && "flex items-center flex-1 min-w-0")}>
+            <Link href="/" className="flex items-center gap-2 group relative z-10 outline-none" onClick={() => setIsMenuOpen(false)}>
+              <div>
+                <Image
+                  src="/Givar1.png"
+                  alt="Givar Logo"
+                  width={30}
+                  height={30}
+                  className="object-contain transition-transform group-hover:scale-105"
+                  priority
+                />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                Givar<span className="text-primary">.</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Desktop Nav vs App Search */}
+          {isApp ? (
+            <div className="hidden md:flex flex-[3] justify-center px-8">
+              <div className="w-full max-w-6xl flex justify-center">
+                <PublicGlobalSearch />
+              </div>
             </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
-              Givar<span className="text-primary">.</span>
-            </span>
-          </Link>
+          ) : (
+            <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold text-muted-foreground">
+              <Link href="/explore" className="hover:text-primary transition-colors">
+                Explore Causes
+              </Link>
+              <Link href="/how-it-works" className="hover:text-primary transition-colors">
+                How It Works
+              </Link>
+              <Link href="/about" className="hover:text-primary transition-colors">
+                About
+              </Link>
+            </nav>
+          )}
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold text-muted-foreground">
-            <Link href="/explore" className="hover:text-primary transition-colors">
-              Explore Causes
-            </Link>
-            <Link href="/how-it-works" className="hover:text-primary transition-colors">
-              How It Works
-            </Link>
-            <Link href="/about" className="hover:text-primary transition-colors">
-              About
-            </Link>
-          </nav>
-
-          <div className="relative z-10 flex items-center justify-end gap-2 md:gap-3">
+          <div className={cn("relative z-10 flex items-center justify-end gap-2 md:gap-3 shrink-0", isApp && "flex-1")}>
             {!hideAuthButtons && (
               <>
                 <Link href="/login" className="hidden md:flex items-center justify-center">
