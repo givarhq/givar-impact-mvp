@@ -79,38 +79,15 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
 
   return (
     <div className="space-y-4 md:space-y-6 w-full min-w-0">
-      {hideSearch ? (
-        /* Public Mode: CategoryBrowser occupies the top row on desktop alongside Sort */
-        <div className="space-y-3 w-full min-w-0">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 w-full min-w-0">
-            <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">
-              Explore Causes
-            </h1>
+      {/* Header Row */}
+      <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
+        <div className="flex items-center gap-6 flex-1 min-w-0">
+          <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">
+            Explore Causes
+          </h1>
 
-            <div className="flex-1 min-w-0 overflow-hidden">
-              <CategoryBrowser
-                categories={categories}
-                selected={activeCategory}
-                onSelect={(slug) => {
-                  setActiveCategory(slug);
-                  setActiveSubcategory('all');
-                }}
-              />
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 justify-end">
-              {SortDropdown}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Auth Mode: Standard Search + Sort top row, CategoryBrowser below */
-        <div className="flex items-center justify-between gap-4 relative min-h-[44px] w-full min-w-0">
-          <div className="flex items-center gap-6 flex-1 min-w-0">
-            <h1 className="md:hidden text-lg font-bold tracking-tight text-foreground whitespace-nowrap shrink-0">
-              Explore Causes
-            </h1>
-
+          {/* Desktop Layout Swap */}
+          {!hideSearch ? (
             <div className="hidden md:flex items-center flex-1 max-w-md group border-b border-border/40 focus-within:border-primary/30 transition-all min-w-0">
               <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors shrink-0" />
               <Input
@@ -120,31 +97,43 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
-              className={cn(
-                "md:hidden h-11 w-11 rounded-3xl transition-all",
-                isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
-              )}
-            >
-              {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-            </Button>
-
-            <div className="hidden md:block">
-              {SortDropdown}
+          ) : (
+            <div className="hidden md:block flex-1 min-w-0 overflow-hidden">
+              <CategoryBrowser
+                categories={categories}
+                selected={activeCategory}
+                onSelect={(slug) => {
+                  setActiveCategory(slug);
+                  setActiveSubcategory('all');
+                }}
+              />
             </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Mobile Search Toggle is ALWAYS available */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
+            className={cn(
+              "md:hidden h-11 w-11 rounded-3xl transition-all",
+              isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
+            )}
+          >
+            {isMobileSearchVisible ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+          </Button>
+
+          <div className="hidden md:block">
+            {SortDropdown}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Mobile Expanded Filters Area */}
       <AnimatePresence>
-        {isMobileSearchVisible && !hideSearch && (
+        {isMobileSearchVisible && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -176,68 +165,57 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
         )}
       </AnimatePresence>
 
-      {/* Category Navigation for Authenticated View or Mobile Public View */}
-      {!hideSearch ? (
-        <div className="pt-2 w-full min-w-0 overflow-hidden space-y-3">
-          <CategoryBrowser
-            categories={categories}
-            selected={activeCategory}
-            onSelect={(slug) => {
-              setActiveCategory(slug);
-              setActiveSubcategory('all');
-            }}
-          />
-        </div>
-      ) : (
-        <div className="md:hidden pt-2 w-full min-w-0 overflow-hidden">
-          <CategoryBrowser
-            categories={categories}
-            selected={activeCategory}
-            onSelect={(slug) => {
-              setActiveCategory(slug);
-              setActiveSubcategory('all');
-            }}
-          />
-        </div>
-      )}
+      {/* Category Navigation (Hidden on Desktop if hideSearch is true, as it's rendered in the top row) */}
+      <div className={cn("w-full min-w-0 overflow-hidden", hideSearch ? "md:hidden pt-2" : "pt-2 space-y-3")}>
+        <CategoryBrowser
+          categories={categories}
+          selected={activeCategory}
+          onSelect={(slug) => {
+            setActiveCategory(slug);
+            setActiveSubcategory('all'); // Reset subcategory when changing primary sector
+          }}
+        />
+      </div>
 
-      {/* Subcategory Pill Row (Direct Conditional Render eliminates phantom padding) */}
-      <AnimatePresence>
-        {activeCategory !== 'all' && availableSubcategories.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0, y: -10 }}
-            animate={{ opacity: 1, height: 'auto', y: 0 }}
-            exit={{ opacity: 0, height: 0, y: -10 }}
-            className="flex gap-2 overflow-x-auto no-scrollbar py-1 w-full min-w-0"
-          >
-            <button
-              onClick={() => setActiveSubcategory('all')}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap border shrink-0",
-                activeSubcategory === 'all'
-                  ? "bg-primary text-white border-primary shadow-sm"
-                  : "bg-transparent text-muted-foreground border-border/60 hover:border-foreground hover:text-foreground"
-              )}
+      {/* Subcategory Pill Row (Always visible beneath the top row elements) */}
+      <div className="w-full min-w-0 overflow-hidden pt-1">
+        <AnimatePresence>
+          {activeCategory !== 'all' && availableSubcategories.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: 'auto', y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              className="flex gap-2 overflow-x-auto no-scrollbar py-1"
             >
-              All {selectedCategoryObj?.name}
-            </button>
-            {availableSubcategories.map((sub: any) => (
               <button
-                key={sub.id}
-                onClick={() => setActiveSubcategory(sub.slug)}
+                onClick={() => setActiveSubcategory('all')}
                 className={cn(
                   "px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap border shrink-0",
-                  activeSubcategory === sub.slug
+                  activeSubcategory === 'all'
                     ? "bg-primary text-white border-primary shadow-sm"
                     : "bg-transparent text-muted-foreground border-border/60 hover:border-foreground hover:text-foreground"
                 )}
               >
-                {sub.name}
+                All {selectedCategoryObj?.name}
               </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {availableSubcategories.map((sub: any) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setActiveSubcategory(sub.slug)}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-[10px] font-bold transition-all whitespace-nowrap border shrink-0",
+                    activeSubcategory === sub.slug
+                      ? "bg-primary text-white border-primary shadow-sm"
+                      : "bg-transparent text-muted-foreground border-border/60 hover:border-foreground hover:text-foreground"
+                  )}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 });
