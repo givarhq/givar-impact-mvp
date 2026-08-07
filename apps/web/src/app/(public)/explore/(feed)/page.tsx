@@ -40,7 +40,7 @@ export default async function ExplorePage({
 
     return (
         <PublicLayout variant="app">
-            <div className="space-y-6 md:space-y-10 animate-in fade-in duration-500 pb-20 min-w-0">
+            <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20 min-w-0">
                 {/* Header Section */}
                 <div className="px-1">
                     <ImpactFilters
