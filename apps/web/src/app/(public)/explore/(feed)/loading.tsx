@@ -5,7 +5,7 @@ import { cn } from '../../../../lib/utils/cn';
 export default function PublicExploreLoading() {
     return (
         <PublicLayout variant="app">
-            <div className="space-y-4 md:space-y-4 animate-in fade-in duration-500 pb-20 min-w-0">
+            <div className="space-y-1 md:space-y-1 animate-in fade-in duration-500 pb-20 min-w-0">
                 {/* Header Filter Row Skeleton */}
                 <div className="space-y-8">
                     <div className="flex items-center justify-between gap-4 h-[44px]">
