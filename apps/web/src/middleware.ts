@@ -10,6 +10,7 @@ function applySecurityHeaders(response: NextResponse) {
     isDev && "'unsafe-eval'",
     "https://js.paystack.co",
     "https://*.i.posthog.com",
+    "https://accounts.google.com/gsi/client"
   ]
     .filter(Boolean)
     .join(' ');
@@ -27,7 +28,7 @@ function applySecurityHeaders(response: NextResponse) {
   const cspHeader = `
     default-src 'self';
     script-src ${scriptSrc};
-    style-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style;
     img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://*.idrivee2-pt.com https://*.idrivee2.com;
     media-src 'self' blob: data: https://*.idrivee2-pt.com https://*.idrivee2.com https://res.cloudinary.com;
     font-src 'self' data:;
@@ -41,8 +42,9 @@ function applySecurityHeaders(response: NextResponse) {
       https://freeipapi.com
       https://ipapi.co
       https://ipwho.is
+      https://accounts.google.com
       ${apiOrigin};
-    frame-src 'self' https://js.paystack.co https://checkout.paystack.com;
+    frame-src 'self' https://js.paystack.co https://checkout.paystack.com https://accounts.google.com/;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
