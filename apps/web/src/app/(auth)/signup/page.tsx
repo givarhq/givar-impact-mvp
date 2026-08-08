@@ -11,6 +11,7 @@ import { ApiService } from '../../../services/api';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../../../lib/utils/cn';
 import { usePostHog } from 'posthog-js/react';
+import { GoogleLogin } from '@react-oauth/google';
 
 const signupSchema = z.object({
   firstName: z.string().min(2, 'First name is too short'),
@@ -56,13 +57,38 @@ export default function SignupPage() {
   ];
   const strengthScore = strengthRules.filter(r => r.met).length;
 
+  const onGoogleSuccess = async (credentialResponse: any) => {
+    setIsLoading(true);
+    setServerError(null);
+    try {
+      const response = await ApiService.auth.googleLogin(credentialResponse.credential);
+      const { accessToken, user } = response;
+
+      await fetch('/api/auth/clear-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'signup', token: accessToken, user })
+      });
+
+      // Link anonymous session to the new user and log acquisition
+      posthog?.identify(user.id, { email: user.email, name: `${user.firstName} ${user.lastName}` });
+      posthog?.capture('user_signup');
+
+      window.location.href = '/dashboard';
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Google authentication failed. Please try again.';
+      setServerError(Array.isArray(message) ? message[0] : message);
+      setIsLoading(false);
+    }
+  };
+
   async function onSubmit(data: SignupFormValues) {
     setIsLoading(true);
     setServerError(null);
     try {
       // Logic: Strip out the client-only confirmPassword field to prevent backend payload pollution rejection
       const { confirmPassword, ...validPayload } = data;
-      
+
       const response = await ApiService.auth.signup({ ...validPayload, defaultCurrency: 'NGN' });
       const { accessToken, user } = response;
 
@@ -220,6 +246,22 @@ export default function SignupPage() {
           )}
         </Button>
       </form>
+
+      {!isLoading && (
+        <div className="flex justify-center animate-in slide-in-from-bottom-2 pt-2 pb-1">
+          <div className="w-full max-w-[280px]">
+            <GoogleLogin
+              onSuccess={onGoogleSuccess}
+              onError={() => setServerError('Google authentication failed. Please try again.')}
+              useOneTap
+              shape="pill"
+              theme="outline"
+              text="signup_with"
+              width="100%"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6 min-w-0">
         <div className="relative min-w-0">
