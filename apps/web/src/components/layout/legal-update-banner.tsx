@@ -13,13 +13,22 @@ export function LegalUpdateBanner() {
     useEffect(() => {
         const checkBannerVisibility = async () => {
             try {
-                // 1. Fetch public legal documents to find the latest policy update timestamp
-                const docs = await ApiService.legalDocs.getAllPublic();
-                if (!docs || docs.length === 0) return;
+                // 1. Performance Optimization: Check Session Storage first to avoid heavy API calls on every page load
+                const cachedUpdate = sessionStorage.getItem('givar_latest_legal_update');
+                let latestDocUpdate = cachedUpdate ? parseInt(cachedUpdate, 10) : 0;
 
-                // Determine the newest update date among all platform legal documents
-                const latestDocUpdate = Math.max(...docs.map((d: any) => new Date(d.updatedAt).getTime()));
+                if (!latestDocUpdate) {
+                    const docs = await ApiService.legalDocs.getAllPublic();
+                    if (!docs || docs.length === 0) return;
 
+                    // Determine the newest update date among all platform legal documents
+                    latestDocUpdate = Math.max(...docs.map((d: any) => new Date(d.updatedAt).getTime()));
+
+                    // Cache it for the duration of the browser tab
+                    sessionStorage.setItem('givar_latest_legal_update', latestDocUpdate.toString());
+                }
+
+                // 2. Resolve User Identity
                 const userCookie = getCookie('givar_user');
                 let user: any = null;
 
@@ -30,23 +39,19 @@ export function LegalUpdateBanner() {
                     } catch (e) { }
                 }
 
+                // 3. Compare Timestamps
                 if (user) {
                     // Logged-in user: Compare DB dismissal timestamp with the latest doc update
                     const dismissedAtStr = user.preferences?.legalBannerDismissedAt;
                     const dismissedAt = dismissedAtStr ? new Date(dismissedAtStr).getTime() : 0;
 
-                    // Re-show banner if any legal document was updated AFTER the user last dismissed it
-                    if (latestDocUpdate > dismissedAt) {
-                        setIsVisible(true);
-                    }
+                    if (latestDocUpdate > dismissedAt) setIsVisible(true);
                 } else {
                     // Guest user: Compare local storage timestamp
                     const localDismissedAtStr = localStorage.getItem('givar_legal_banner_dismissed_at');
                     const localDismissedAt = localDismissedAtStr ? new Date(localDismissedAtStr).getTime() : 0;
 
-                    if (latestDocUpdate > localDismissedAt) {
-                        setIsVisible(true);
-                    }
+                    if (latestDocUpdate > localDismissedAt) setIsVisible(true);
                 }
             } catch (e) {
                 // Failsafe: Do not block rendering if fetch fails
@@ -70,8 +75,10 @@ export function LegalUpdateBanner() {
             };
 
             try {
+                // Background sync to DB
                 await ApiService.auth.updatePreferences(updatedPreferences);
-                // Sync local user cookie
+
+                // Sync local user cookie instantly for fast navigations
                 const updatedUser = { ...userData, preferences: updatedPreferences };
                 setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 172800, path: '/' });
             } catch (e) {
