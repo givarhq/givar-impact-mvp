@@ -105,7 +105,7 @@ export const EmailTemplates = {
     </div>
     
     <p><strong>Reference:</strong> <code style="background-color: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-family: monospace;">${data.ref}</code></p>
-    <p>Thank you for your commitment to transparent impact.</p>
+    <p>Thank you for giving with confidence. 💚</p>
   `,
 
   securityAlert: (data: { ip: string; time: string }) => `
