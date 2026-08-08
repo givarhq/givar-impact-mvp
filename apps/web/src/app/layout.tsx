@@ -10,6 +10,7 @@ import { ActivityMonitor } from '../components/layout/activity-monitor';
 import { ScrollToTop } from '../components/layout/scroll-to-top';
 import { Suspense } from 'react';
 import { PostHogProvider } from '../components/providers/posthog-provider';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -73,47 +74,49 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.className, 'bg-background min-h-screen antialiased')}>
         <PostHogProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            {/* Logic: Suspense boundary ensures the hook has access to searchParams on all routes */}
-            <Suspense fallback={null}>
-              <ScrollToTop />
-            </Suspense>
+          <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              {/* Logic: Suspense boundary ensures the hook has access to searchParams on all routes */}
+              <Suspense fallback={null}>
+                <ScrollToTop />
+              </Suspense>
 
-            <Suspense fallback={null}>
-              <ActivityMonitor />
-            </Suspense>
-            <ImpersonationBanner />
+              <Suspense fallback={null}>
+                <ActivityMonitor />
+              </Suspense>
+              <ImpersonationBanner />
 
-            {children}
+              {children}
 
-            <Toaster
-              position="top-center"
-              toastOptions={{
-                style: {
-                  borderRadius: '24px',
-                  fontWeight: 'bold',
-                  fontSize: '12px',
-                  padding: '12px 20px',
-                  background: 'hsl(var(--card))',
-                  color: 'hsl(var(--foreground))',
-                  border: '1px solid hsl(var(--border))',
-                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                  opacity: 1,
-                },
-                success: {
-                  iconTheme: {
-                    primary: 'hsl(var(--primary))',
-                    secondary: '#fff',
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  style: {
+                    borderRadius: '24px',
+                    fontWeight: 'bold',
+                    fontSize: '12px',
+                    padding: '12px 20px',
+                    background: 'hsl(var(--card))',
+                    color: 'hsl(var(--foreground))',
+                    border: '1px solid hsl(var(--border))',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                    opacity: 1,
                   },
-                },
-              }}
-            />
-          </ThemeProvider>
+                  success: {
+                    iconTheme: {
+                      primary: 'hsl(var(--primary))',
+                      secondary: '#fff',
+                    },
+                  },
+                }}
+              />
+            </ThemeProvider>
+          </GoogleOAuthProvider>
         </PostHogProvider>
       </body>
     </html >

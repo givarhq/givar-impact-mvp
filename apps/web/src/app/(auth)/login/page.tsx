@@ -14,10 +14,11 @@ import { usePostHog } from 'posthog-js/react';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../lib/utils/cn';
+import { GoogleLogin } from '@react-oauth/google';
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
+  password: z.string().optional().or(z.literal('')),
   twoFactorCode: z.string().optional(),
 });
 
@@ -44,6 +45,9 @@ function LoginComponent() {
   const [pendingUserId, setPendingUserId] = useState('');
   const [pendingUserEmail, setPendingUserEmail] = useState('');
 
+  // Google Auth Cache
+  const [googleCredential, setGoogleCredential] = useState<string>('');
+
   const {
     register,
     handleSubmit,
@@ -57,55 +61,91 @@ function LoginComponent() {
 
   const emailValue = watch('email');
 
-  async function onSubmit(data: LoginFormValues) {
+  const handleAuthSuccess = async (response: any) => {
+    const { user, accessToken, mfaSetupRequired } = response;
+
+    await fetch('/api/auth/clear-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', token: accessToken, user })
+    });
+
+    const redirectPath = searchParams.get('redirect');
+    const targetUrl = (user.role === 'ADMIN' || user.role === 'SUPERADMIN')
+      ? (redirectPath || '/admin')
+      : (redirectPath || '/dashboard');
+
+    // Captive Portal: Intercept admins lacking 2FA
+    if (mfaSetupRequired) {
+      const setupInfo = await ApiService.auth.generate2FA();
+      setSetupData(setupInfo);
+      setPendingRedirectUrl(targetUrl);
+      setPendingUserId(user.id);
+      setPendingUserEmail(user.email);
+      setIsMfaSetupStep(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // Standard Login Completion
+    posthog?.identify(user.id, { email: user.email });
+    posthog?.capture('user_login');
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('givar_last_activity', Date.now().toString());
+    }
+
+    window.location.href = targetUrl;
+  };
+
+  const onGoogleSuccess = async (credentialResponse: any) => {
     setIsLoading(true);
     setServerError(null);
-
     try {
-      const response = await ApiService.auth.login(data);
+      const credential = credentialResponse.credential;
+      const response = await ApiService.auth.googleLogin(credential);
 
       if (response.mfaRequired) {
+        setGoogleCredential(credential);
         setIsMfaStep(true);
         setIsLoading(false);
-        setServerError(null);
         setTimeout(() => setFocus('twoFactorCode'), 100);
         return;
       }
 
-      const { user, accessToken, mfaSetupRequired } = response;
+      await handleAuthSuccess(response);
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Google authentication failed. Please try again.';
+      setServerError(Array.isArray(message) ? message[0] : message);
+      setIsLoading(false);
+    }
+  };
 
-      await fetch('/api/auth/clear-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'login', token: accessToken, user })
-      });
+  async function onSubmit(data: LoginFormValues) {
+    if (!isMfaStep && (!data.email || !data.password)) {
+      setServerError('Please provide your email and password.');
+      return;
+    }
 
-      const redirectPath = searchParams.get('redirect');
-      const targetUrl = (user.role === 'ADMIN' || user.role === 'SUPERADMIN')
-        ? (redirectPath || '/admin')
-        : (redirectPath || '/dashboard');
+    setIsLoading(true);
+    setServerError(null);
 
-      // Captive Portal: Intercept admins lacking 2FA
-      if (mfaSetupRequired) {
-        const setupInfo = await ApiService.auth.generate2FA();
-        setSetupData(setupInfo);
-        setPendingRedirectUrl(targetUrl);
-        setPendingUserId(user.id);
-        setPendingUserEmail(user.email);
-        setIsMfaSetupStep(true);
+    try {
+      let response;
+      if (isMfaStep && googleCredential) {
+        response = await ApiService.auth.googleLogin(googleCredential, data.twoFactorCode);
+      } else {
+        response = await ApiService.auth.login(data);
+      }
+
+      if (response.mfaRequired) {
+        setIsMfaStep(true);
         setIsLoading(false);
+        setTimeout(() => setFocus('twoFactorCode'), 100);
         return;
       }
 
-      // Standard Login Completion
-      posthog?.identify(user.id, { email: user.email });
-      posthog?.capture('user_login');
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('givar_last_activity', Date.now().toString());
-      }
-
-      window.location.href = targetUrl;
+      await handleAuthSuccess(response);
     } catch (error: any) {
       let message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
       if (Array.isArray(message)) message = message[0];
@@ -317,7 +357,7 @@ function LoginComponent() {
                 <div className="h-14 w-14 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-4 border border-primary/10">
                   <ShieldCheck className="h-7 w-7" />
                 </div>
-                <p className="text-sm font-bold text-foreground truncate max-w-full">{emailValue}</p>
+                <p className="text-sm font-bold text-foreground truncate max-w-full">{googleCredential ? 'Google Account' : emailValue}</p>
                 <p className="text-xs font-bold text-muted-foreground tracking-widest mt-1.5">We just need to confirm it&apos;s you</p>
               </div>
 
@@ -365,7 +405,7 @@ function LoginComponent() {
               <button
                 type="button"
                 className="w-full h-10 rounded-3xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
-                onClick={() => { setIsMfaStep(false); setServerError(null); setValue('twoFactorCode', ''); }}
+                onClick={() => { setIsMfaStep(false); setServerError(null); setValue('twoFactorCode', ''); setGoogleCredential(''); }}
                 disabled={isLoading}
               >
                 <ArrowLeft className="h-4 w-4" /> Use different account
@@ -373,6 +413,22 @@ function LoginComponent() {
             )}
           </div>
         </form>
+      )}
+
+      {!isMfaStep && !isLoading && !isMfaSetupStep && !showRecoveryCodes && (
+        <div className="flex justify-center animate-in slide-in-from-bottom-2 pt-2 pb-1">
+          <div className="w-full max-w-[280px]">
+            <GoogleLogin
+              onSuccess={onGoogleSuccess}
+              onError={() => setServerError('Google authentication failed. Please try again.')}
+              useOneTap
+              shape="pill"
+              theme="outline"
+              text="continue_with"
+              width="100%"
+            />
+          </div>
+        </div>
       )}
 
       {!isMfaStep && !isMfaSetupStep && !showRecoveryCodes && (
