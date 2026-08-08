@@ -3,22 +3,64 @@
 import React, { useState, useEffect } from 'react';
 import { X, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { getCookie, setCookie } from 'cookies-next';
+import { ApiService } from '../../services/api';
 
 export function LegalUpdateBanner() {
     const [isVisible, setIsVisible] = useState(false);
-    const BANNER_VERSION = 'givar_legal_banner_v2'; // Bumped version to reset dismissal for the new design
+    const [userData, setUserData] = useState<any>(null);
 
     useEffect(() => {
-        if (!localStorage.getItem(BANNER_VERSION)) {
-            setIsVisible(true);
+        const userCookie = getCookie('givar_user');
+        let user: any = null;
+
+        if (userCookie) {
+            try {
+                user = JSON.parse(decodeURIComponent(userCookie as string));
+                setUserData(user);
+            } catch (e) { }
+        }
+
+        if (user) {
+            // Logged-in user: Read dismissal state directly from Database Preferences
+            const isDismissedInDb = user.preferences?.legalBannerDismissed === true;
+            if (!isDismissedInDb) {
+                setIsVisible(true);
+            }
+        } else {
+            // Guest user: Fallback to local storage
+            const isDismissedLocally = localStorage.getItem('givar_legal_banner_dismissed') === 'true';
+            if (!isDismissedLocally) {
+                setIsVisible(true);
+            }
         }
     }, []);
 
     if (!isVisible) return null;
 
-    const dismiss = () => {
-        localStorage.setItem(BANNER_VERSION, 'true');
+    const dismiss = async () => {
         setIsVisible(false);
+
+        if (userData) {
+            // 1. Persist to Database via User Preferences
+            const updatedPreferences = {
+                ...userData.preferences,
+                legalBannerDismissed: true,
+                legalBannerDismissedAt: new Date().toISOString()
+            };
+
+            try {
+                await ApiService.auth.updatePreferences(updatedPreferences);
+                // Update local cookie so client state stays synchronized
+                const updatedUser = { ...userData, preferences: updatedPreferences };
+                setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 172800, path: '/' });
+            } catch (e) {
+                console.error("Failed to persist legal banner dismissal to DB");
+            }
+        } else {
+            // 2. Guest fallback
+            localStorage.setItem('givar_legal_banner_dismissed', 'true');
+        }
     };
 
     return (
