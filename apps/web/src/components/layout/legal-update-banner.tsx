@@ -11,55 +11,75 @@ export function LegalUpdateBanner() {
     const [userData, setUserData] = useState<any>(null);
 
     useEffect(() => {
-        const userCookie = getCookie('givar_user');
-        let user: any = null;
-
-        if (userCookie) {
+        const checkBannerVisibility = async () => {
             try {
-                user = JSON.parse(decodeURIComponent(userCookie as string));
-                setUserData(user);
-            } catch (e) { }
-        }
+                // 1. Fetch public legal documents to find the latest policy update timestamp
+                const docs = await ApiService.legalDocs.getAllPublic();
+                if (!docs || docs.length === 0) return;
 
-        if (user) {
-            // Logged-in user: Read dismissal state directly from Database Preferences
-            const isDismissedInDb = user.preferences?.legalBannerDismissed === true;
-            if (!isDismissedInDb) {
-                setIsVisible(true);
+                // Determine the newest update date among all platform legal documents
+                const latestDocUpdate = Math.max(...docs.map((d: any) => new Date(d.updatedAt).getTime()));
+
+                const userCookie = getCookie('givar_user');
+                let user: any = null;
+
+                if (userCookie) {
+                    try {
+                        user = JSON.parse(decodeURIComponent(userCookie as string));
+                        setUserData(user);
+                    } catch (e) { }
+                }
+
+                if (user) {
+                    // Logged-in user: Compare DB dismissal timestamp with the latest doc update
+                    const dismissedAtStr = user.preferences?.legalBannerDismissedAt;
+                    const dismissedAt = dismissedAtStr ? new Date(dismissedAtStr).getTime() : 0;
+
+                    // Re-show banner if any legal document was updated AFTER the user last dismissed it
+                    if (latestDocUpdate > dismissedAt) {
+                        setIsVisible(true);
+                    }
+                } else {
+                    // Guest user: Compare local storage timestamp
+                    const localDismissedAtStr = localStorage.getItem('givar_legal_banner_dismissed_at');
+                    const localDismissedAt = localDismissedAtStr ? new Date(localDismissedAtStr).getTime() : 0;
+
+                    if (latestDocUpdate > localDismissedAt) {
+                        setIsVisible(true);
+                    }
+                }
+            } catch (e) {
+                // Failsafe: Do not block rendering if fetch fails
             }
-        } else {
-            // Guest user: Fallback to local storage
-            const isDismissedLocally = localStorage.getItem('givar_legal_banner_dismissed') === 'true';
-            if (!isDismissedLocally) {
-                setIsVisible(true);
-            }
-        }
+        };
+
+        checkBannerVisibility();
     }, []);
 
     if (!isVisible) return null;
 
     const dismiss = async () => {
         setIsVisible(false);
+        const nowIso = new Date().toISOString();
 
         if (userData) {
-            // 1. Persist to Database via User Preferences
+            // 1. Store the exact dismissal timestamp in the User's Database Preferences
             const updatedPreferences = {
                 ...userData.preferences,
-                legalBannerDismissed: true,
-                legalBannerDismissedAt: new Date().toISOString()
+                legalBannerDismissedAt: nowIso
             };
 
             try {
                 await ApiService.auth.updatePreferences(updatedPreferences);
-                // Update local cookie so client state stays synchronized
+                // Sync local user cookie
                 const updatedUser = { ...userData, preferences: updatedPreferences };
                 setCookie('givar_user', JSON.stringify(updatedUser), { maxAge: 172800, path: '/' });
             } catch (e) {
-                console.error("Failed to persist legal banner dismissal to DB");
+                console.error("Failed to save legal banner dismissal timestamp to DB");
             }
         } else {
             // 2. Guest fallback
-            localStorage.setItem('givar_legal_banner_dismissed', 'true');
+            localStorage.setItem('givar_legal_banner_dismissed_at', nowIso);
         }
     };
 
