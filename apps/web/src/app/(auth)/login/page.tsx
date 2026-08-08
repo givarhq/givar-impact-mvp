@@ -202,7 +202,7 @@ function LoginComponent() {
   };
 
   return (
-    <div className="w-full min-w-0 space-y-8 animate-in fade-in duration-500">
+    <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-500">
       <div className="space-y-2 text-center min-w-0">
         <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">
           {showRecoveryCodes ? 'Save Recovery Codes' : isMfaSetupStep ? 'Security Setup Required' : isMfaStep ? 'Two-Factor Authentication' : 'Welcome Back'}
@@ -310,7 +310,7 @@ function LoginComponent() {
           <div className={cn("space-y-4 animate-in slide-in-from-left-4 duration-300 min-w-0", isMfaStep && "hidden")}>
             <Input
               key="auth-email-input"
-              label="Email Address"
+              label="Email address"
               placeholder="name@example.com"
               type="email"
               {...register('email')}
@@ -397,7 +397,7 @@ function LoginComponent() {
                   {isMfaStep ? 'Verifying...' : 'Signing in...'}
                 </>
               ) : (
-                isMfaStep ? 'Verify Authentication' : 'Sign In'
+                isMfaStep ? 'Verify Authentication' : 'Sign in'
               )}
             </Button>
 
@@ -415,24 +415,9 @@ function LoginComponent() {
         </form>
       )}
 
-      {!isMfaStep && !isLoading && !isMfaSetupStep && !showRecoveryCodes && (
-        <div className="flex justify-center animate-in slide-in-from-bottom-2 pt-2 pb-1">
-          <div className="w-full max-w-[280px]">
-            <GoogleLogin
-              onSuccess={onGoogleSuccess}
-              onError={() => setServerError('Google authentication failed. Please try again.')}
-              useOneTap
-              shape="pill"
-              theme="outline"
-              text="continue_with"
-              width="100%"
-            />
-          </div>
-        </div>
-      )}
-
+      {/* Re-grouped Optional Auth Footer */}
       {!isMfaStep && !isMfaSetupStep && !showRecoveryCodes && (
-        <div className="space-y-6 min-w-0">
+        <div className="space-y-5 min-w-0 pt-2">
           <div className="relative min-w-0">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border/60" />
@@ -442,7 +427,20 @@ function LoginComponent() {
             </div>
           </div>
 
-          <div className="text-center min-w-0">
+          {!isLoading && (
+            <div className="flex justify-center w-full animate-in fade-in duration-500">
+              <GoogleLogin
+                onSuccess={onGoogleSuccess}
+                onError={() => setServerError('Google authentication failed. Please try again.')}
+                useOneTap
+                shape="pill"
+                theme="outline"
+                text="continue_with"
+              />
+            </div>
+          )}
+
+          <div className="text-center min-w-0 pb-2">
             <p className="text-sm font-medium text-muted-foreground">
               New to the platform?{' '}
               <Link href="/signup" className="font-bold text-primary hover:underline underline-offset-4">

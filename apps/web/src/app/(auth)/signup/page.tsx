@@ -112,9 +112,9 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="w-full min-w-0 space-y-8 animate-in fade-in duration-500">
+    <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-500">
       <div className="space-y-2 text-center min-w-0">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">Create an Account</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">Create an account</h1>
         <p className="text-sm text-muted-foreground font-medium leading-relaxed">
           Join Givar & start making an impact today.
         </p>
@@ -241,15 +241,25 @@ export default function SignupPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              Sign Up
+              Sign up
             </div>
           )}
         </Button>
       </form>
 
-      {!isLoading && (
-        <div className="flex justify-center animate-in slide-in-from-bottom-2 pt-2 pb-1">
-          <div className="w-full max-w-[280px]">
+      {/* Re-grouped Optional Auth Footer */}
+      <div className="space-y-5 min-w-0 pt-2">
+        <div className="relative min-w-0">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-border/60" />
+          </div>
+          <div className="relative flex justify-center text-[11px] tracking-[0.2em] font-black">
+            <span className="bg-background dark:bg-card px-4 text-muted-foreground/60">Or</span>
+          </div>
+        </div>
+
+        {!isLoading && (
+          <div className="flex justify-center w-full animate-in fade-in duration-500">
             <GoogleLogin
               onSuccess={onGoogleSuccess}
               onError={() => setServerError('Google authentication failed. Please try again.')}
@@ -257,23 +267,11 @@ export default function SignupPage() {
               shape="pill"
               theme="outline"
               text="signup_with"
-              width="100%"
             />
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="space-y-6 min-w-0">
-        <div className="relative min-w-0">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border/60" />
-          </div>
-          <div className="relative flex justify-center text-[11px]  tracking-[0.2em] font-black">
-            <span className="bg-background dark:bg-card px-4 text-muted-foreground/60">Or</span>
-          </div>
-        </div>
-
-        <div className="text-center min-w-0">
+        <div className="text-center min-w-0 pb-2">
           <p className="text-sm font-medium text-muted-foreground">
             Already have an account?{' '}
             <Link href="/login" className="font-bold text-primary hover:underline underline-offset-4">
