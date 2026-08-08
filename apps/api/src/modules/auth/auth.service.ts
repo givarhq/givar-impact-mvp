@@ -130,6 +130,10 @@ export class AuthService {
     try {
       if (!user) throw new UnauthorizedException('Invalid credentials');
 
+      if (!user.passwordHash) {
+        throw new UnauthorizedException('Please sign in using Google.');
+      }
+
       const isMatch = await bcrypt.compare(dto.password, user.passwordHash);
       if (!isMatch) {
         const newAttemptCount = user.failedLoginAttempts + 1;
@@ -269,6 +273,183 @@ export class AuthService {
 
       throw error;
     }
+  }
+
+  async googleLogin(idToken: string, twoFactorCode?: string, req?: Request) {
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(this.config.get('GOOGLE_CLIENT_ID'));
+
+    let payload;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: this.config.get('GOOGLE_CLIENT_ID'),
+      });
+      payload = ticket.getPayload();
+    } catch (error) {
+      throw new UnauthorizedException('Invalid Google token');
+    }
+
+    if (!payload) throw new UnauthorizedException('Invalid Google token');
+
+    const { email, sub: googleId, given_name, family_name, picture, email_verified } = payload;
+    if (!email) throw new BadRequestException('Email not provided by Google');
+
+    let user: any = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { googleId },
+          { email }
+        ]
+      },
+      include: { organization: true }
+    });
+
+    if (user && user.accountLockedUntil && user.accountLockedUntil > new Date()) {
+      await this.audit.log({
+        action: AuditAction.USER_LOGIN_FAILED,
+        userId: user.id,
+        entityType: 'Session',
+        metadata: { attemptedEmail: email, reason: 'Account locked' },
+        req,
+      });
+      throw new UnauthorizedException('Account temporarily locked. Try again later.');
+    }
+
+    // Security: Enforce 2FA for Google Logins if enabled
+    if (user && user.twoFactorEnabled) {
+      if (!twoFactorCode) {
+        // Unifying the return type to satisfy TypeScript
+        return { mfaRequired: true, mfaSetupRequired: false, accessToken: '', user: null };
+      }
+
+      let is2FAValid = false;
+
+      if (twoFactorCode.length === 6) {
+        const result = await verify({
+          token: twoFactorCode,
+          secret: user.twoFactorSecret,
+        });
+        is2FAValid = result.valid;
+      } else if (twoFactorCode.length === 8 && user.twoFactorRecoveryCodes?.length > 0) {
+        for (let i = 0; i < user.twoFactorRecoveryCodes.length; i++) {
+          const isRecoveryMatch = await bcrypt.compare(twoFactorCode.toUpperCase(), user.twoFactorRecoveryCodes[i]);
+          if (isRecoveryMatch) {
+            is2FAValid = true;
+            const newCodes = [...user.twoFactorRecoveryCodes];
+            newCodes.splice(i, 1);
+            await this.prisma.user.update({
+              where: { id: user.id },
+              data: { twoFactorRecoveryCodes: newCodes }
+            });
+            await this.audit.log({
+              userId: user.id,
+              action: AuditAction.TWO_FACTOR_RECOVERY_USED,
+              entityType: 'Session',
+              req
+            });
+            break;
+          }
+        }
+      }
+
+      if (!is2FAValid) {
+        await this.audit.log({
+          userId: user.id,
+          action: AuditAction.TWO_FACTOR_VERIFY_FAILED,
+          entityType: 'Session',
+          req
+        });
+        throw new UnauthorizedException('Invalid authentication code');
+      }
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      if (!user) {
+        user = await tx.user.create({
+          data: {
+            email,
+            googleId,
+            passwordHash: '',
+            firstName: given_name || 'User',
+            lastName: family_name || '',
+            emailVerified: email_verified || true,
+            avatarKey: picture,
+          },
+          include: { organization: true }
+        });
+
+        await tx.wallet.create({
+          data: {
+            userId: user.id,
+            currency: 'NGN',
+            balance: 0n,
+          },
+        });
+
+        await this.audit.log({
+          userId: user.id,
+          action: AuditAction.USER_REGISTER,
+          entityId: user.id,
+          entityType: 'User',
+          metadata: { email: user.email, method: 'GOOGLE_OAUTH' },
+          req,
+        }, tx);
+      } else if (!user.googleId) {
+        user = await tx.user.update({
+          where: { id: user.id },
+          data: { googleId, emailVerified: true },
+          include: { organization: true }
+        });
+      }
+
+      if (user.failedLoginAttempts > 0) {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { failedLoginAttempts: 0, accountLockedUntil: null },
+        });
+      }
+
+      await this.audit.log({
+        userId: user.id,
+        action: AuditAction.USER_LOGIN,
+        entityId: user.id,
+        entityType: 'Session',
+        metadata: { method: 'GOOGLE_OAUTH' },
+        req,
+      }, tx);
+
+      const isCaptiveAdmin = (user.role === 'ADMIN' || user.role === 'SUPERADMIN') && !user.twoFactorEnabled;
+      const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
+      const expiresIn = isAdmin ? '3d' : '7d';
+
+      const jwtPayload = { sub: user.id, email: user.email, role: user.role };
+      const accessToken = this.jwtService.sign(jwtPayload, {
+        secret: this.config.get<string>('JWT_SECRET'),
+        expiresIn,
+      });
+
+      return {
+        mfaRequired: false,
+        mfaSetupRequired: isCaptiveAdmin,
+        accessToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          accountType: user.accountType,
+          emailVerified: user.emailVerified,
+          organization: user.organization ? {
+            status: user.organization.status,
+            legalName: user.organization.legalName,
+            kycType: user.organization.kycType
+          } : null
+        }
+      };
+    });
   }
 
   async logout(userId: string) {

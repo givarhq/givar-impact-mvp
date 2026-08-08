@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, Res, UseGuards }
+import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Patch, Post, Query, Req, Res, UseGuards }
   from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto, ResetPasswordDto, Verify2FADto } from './dto/auth.dto';
@@ -51,6 +51,26 @@ export class AuthController {
     if (result.mfaRequired) return result;
 
     this.setAuthCookies(res, result.accessToken, result.user.role);
+    return result;
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Public()
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  async googleLogin(
+    @Body('credential') credential: string,
+    @Body('twoFactorCode') twoFactorCode: string | undefined,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    if (!credential) throw new BadRequestException('Google credential is required');
+    const result = await this.authService.googleLogin(credential, twoFactorCode, req);
+
+    if (result.mfaRequired || result.mfaSetupRequired) return result;
+
+    // The non-null assertion (!) is safe here because user is guaranteed to exist if MFA is not required
+    this.setAuthCookies(res, result.accessToken, result.user!.role);
     return result;
   }
 
