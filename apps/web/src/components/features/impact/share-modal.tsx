@@ -13,9 +13,10 @@ interface ShareModalProps {
   onClose: () => void;
   projectTitle: string;
   projectSlug: string;
+  isFunded?: boolean;
 }
 
-export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTitle, projectSlug }: ShareModalProps) {
+export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTitle, projectSlug, isFunded = false }: ShareModalProps) {
   const posthog = usePostHog();
   const [copied, setCopied] = useState(false);
 
@@ -23,7 +24,10 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
     ? `${window.location.origin}/explore/${projectSlug}`
     : '';
 
-  const shareText = `Join me in supporting ${projectTitle} on Givar. It's transparent & impactful.`;
+  // Dynamic share text based on the project's funding status
+  const shareText = isFunded
+    ? `The cause "${projectTitle}" has been successfully funded on Givar! Check out the incredible impact.`
+    : `Join me in supporting ${projectTitle} on Givar. It's transparent & impactful.`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);
@@ -49,7 +53,7 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
         url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}&via=givarapp`;
         break;
       case 'email':
-        url = `mailto:?subject=${encodeURIComponent(`Check out ${projectTitle}`)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
+        url = `mailto:?subject=${encodeURIComponent(isFunded ? `Impact achieved for ${projectTitle}` : `Check out ${projectTitle}`)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
         break;
     }
 
@@ -66,7 +70,7 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
       isOpen={isOpen}
       onClose={onClose}
       title="Share this cause"
-      description="Help us reach more donors by sharing this project with your network."
+      description={isFunded ? "Celebrate this success by sharing the verified impact with your network." : "Help us reach more donors by sharing this project with your network."}
     >
       <div className="space-y-5 pt-3">
 
