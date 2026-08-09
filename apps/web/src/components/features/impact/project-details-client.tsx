@@ -342,17 +342,12 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 <div
                                     className={cn(
                                         "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-6 [&_h2]:mb-3",
-                                        "[&_h3]:font-bold [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-5 [&_h3]:mb-2",
-                                        "[&_p]:mb-4 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-4 [&_ul]:space-y-1.5 [&_ul]:text-foreground/80 [&_ul_li::marker]:text-primary/70",
-                                        "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-4 [&_ol]:space-y-1.5 [&_ol]:text-foreground/80",
-                                        "[&_li]:pl-1",
+                                        "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40 first:[&_h2]:border-none first:[&_h2]:pt-0 first:[&_h2]:mt-0",
+                                        "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-6 [&_h3]:mb-3",
+                                        "[&_p]:text-foreground [&_p]:mb-6 [&_p]:last:mb-0",
+                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-3 [&_ul]:text-foreground [&_ul_li::marker]:text-primary/50",
                                         "[&_strong]:font-bold [&_strong]:text-foreground",
-                                        "[&_em]:italic",
-                                        "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors",
-                                        "[&_blockquote]:border-l-4 [&_blockquote]:border-primary/40 [&_blockquote]:pl-4 [&_blockquote]:py-1 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:bg-primary/[0.02] [&_blockquote]:rounded-r-xl",
-                                        "[&_hr]:border-border/40 [&_hr]:my-6"
+                                        "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
                                     )}
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
                                 />
@@ -665,7 +660,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 )}
             </div>
 
-            <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} />
+            <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} isFunded={isCompleted || isFundedState} />
 
             <Dialog open={isReportModalOpen} onOpenChange={(open) => !open && !isReporting && setIsReportModalOpen(false)}>
                 <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md w-[95vw]">
