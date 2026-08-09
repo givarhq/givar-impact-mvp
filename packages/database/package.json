@@ -14,6 +14,7 @@
         "db:align": "tsx scripts/align-legacy-data.ts",
         "db:migrate-stages": "tsx scripts/migrate-stages.ts",
         "db:clean-slate": "tsx scripts/clean-slate.ts",
+        "db:resend-funded": "tsx scripts/resend-funded-emails.ts",
         "dev": "prisma generate --watch"
     },
     "dependencies": {
