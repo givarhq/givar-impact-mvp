@@ -69,16 +69,24 @@ export class ProjectService {
   }
 
   // Robust Search Engine
-  async findAllAdvanced(query: ProjectQueryDto) {
+  
+    async findAllAdvanced(query: ProjectQueryDto) {
     const { page = 1, limit = 9, search, category, subcategory, status, sort } = query;
     const skip = (page - 1) * limit;
 
     const phaseFullIds = await this.getPhaseFullProjectIds();
 
+    const recConfig = await this.prisma.recommendationConfig.findUnique({ where: { id: 'default' } });
+    const showFundedProjects = recConfig?.showFundedProjects ?? false;
+
     // 1. Dynamic Filter Construction
     const where: Prisma.ProjectWhereInput = {
       isActive: true,
-      ...(status ? { status } : { status: ProjectStatus.ACTIVE }),
+      ...(status 
+        ? { status } 
+        : (showFundedProjects 
+            ? { status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] } }
+            : { status: ProjectStatus.ACTIVE })),
       ...(category && { category: { slug: category } }),
       ...(subcategory && { subcategory: { slug: subcategory } }),
       ...(search && {
@@ -90,8 +98,7 @@ export class ProjectService {
       }),
     };
 
-    // Logic: Strictly exclude paused causes from the standard Active Feed.
-    // If the client specifically requests COMPLETED causes, we bypass this exclusion.
+    // Logic: Strictly exclude paused causes from the standard Active Feed unless showFundedProjects is enabled.
     if (!status || status === ProjectStatus.ACTIVE) {
       where.id = { notIn: phaseFullIds };
     }
