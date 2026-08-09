@@ -52,6 +52,7 @@ export class RecommendationsService {
      * Grouped Discovery Feed Logic.
      * Ranks projects and groups them by category for App-Store style rows.
      */
+
     async getGroupedFeed(userId?: string, limitPerCategory: number = 4) {
         const config = await this.getInternalConfig();
         const [projects, featuredSlots] = await Promise.all([
@@ -63,11 +64,15 @@ export class RecommendationsService {
 
         const pinnedIds = new Set(featuredSlots.map(s => s.projectId));
 
-        // Logic: Exclude paused and fully funded causes directly to enforce the 'Ready to Fund' rule
+        // Logic: Respect the showFundedProjects admin configuration for discovery candidates
         const filteredCandidates = projects.filter(p => {
-            const isStatusActive = p.status === ProjectStatus.ACTIVE;
-            const isMathIncomplete = BigInt(p.raisedAmount) < BigInt(p.targetAmount);
-            return isStatusActive && isMathIncomplete && !this.isPhaseFull(p);
+            const isFundedOrCompleted = p.status === ProjectStatus.FUNDED || p.status === ProjectStatus.COMPLETED || BigInt(p.raisedAmount) >= BigInt(p.targetAmount);
+
+            if (isFundedOrCompleted) {
+                return config.showFundedProjects;
+            }
+
+            return p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p);
         });
 
         if (filteredCandidates.length === 0) return [];
@@ -309,17 +314,23 @@ export class RecommendationsService {
         return updated;
     }
 
+    
+
     private async recommendPipeline(options: { limit: number; page: number; userId?: string }) {
         const config = await this.getInternalConfig();
         const projects = await this.repo.getCandidates();
 
         if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-        // Logic: Strictly enforce the 'Ready to Fund' rule across the Smart Discovery feed
+        // Logic: Respect the showFundedProjects admin configuration across the Smart Discovery feed
         const filteredCandidates = projects.filter(p => {
-            const isStatusActive = p.status === ProjectStatus.ACTIVE;
-            const isMathIncomplete = BigInt(p.raisedAmount) < BigInt(p.targetAmount);
-            return isStatusActive && isMathIncomplete && !this.isPhaseFull(p);
+            const isFundedOrCompleted = p.status === ProjectStatus.FUNDED || p.status === ProjectStatus.COMPLETED || BigInt(p.raisedAmount) >= BigInt(p.targetAmount);
+
+            if (isFundedOrCompleted) {
+                return config.showFundedProjects;
+            }
+
+            return p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p);
         });
 
         if (filteredCandidates.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
@@ -406,7 +417,7 @@ export class RecommendationsService {
         }));
 
         return { data, meta: { total, page: options.page, lastPage } };
-    }
+                }
 
     private async getInternalConfig() {
         const now = Date.now();
