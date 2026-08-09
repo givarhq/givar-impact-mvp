@@ -950,7 +950,8 @@ export class DonationService implements OnModuleInit {
             }
           });
 
-          this.broadcastProjectFunded(projectId, result.projectTitle, result.projectSlug, amount, currency);
+          // FIX: Pass the project's targetAmount instead of the donor's amount to accurately reflect the cause goal
+          this.broadcastProjectFunded(projectId, result.projectTitle, result.projectSlug, BigInt(result.targetAmount), currency);
         }
       }
 
