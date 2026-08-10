@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -9,12 +9,13 @@ import * as z from 'zod';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
 import { ApiService } from '../../../services/api';
-import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowLeft, Lock, Copy, Check, CheckCircle2 } from 'lucide-react';
+import { Loader2, AlertCircle, Eye, EyeOff, ShieldCheck, ArrowLeft, Copy, Check } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
 import toast from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '../../../lib/utils/cn';
 import { GoogleLogin } from '@react-oauth/google';
+import { OtpInput } from '../../../components/ui/otp-input';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
@@ -33,6 +34,9 @@ function LoginComponent() {
 
   // Step States
   const [isMfaStep, setIsMfaStep] = useState(false);
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+
   const [isMfaSetupStep, setIsMfaSetupStep] = useState(false);
   const [showRecoveryCodes, setShowRecoveryCodes] = useState(false);
 
@@ -52,7 +56,6 @@ function LoginComponent() {
     register,
     handleSubmit,
     setValue,
-    setFocus,
     watch,
     formState: { errors },
   } = useForm<LoginFormValues>({
@@ -60,6 +63,11 @@ function LoginComponent() {
   });
 
   const emailValue = watch('email');
+
+  // Synchronize local mfaCode state with react-hook-form
+  useEffect(() => {
+    setValue('twoFactorCode', mfaCode);
+  }, [mfaCode, setValue]);
 
   const handleAuthSuccess = async (response: any) => {
     const { user, accessToken, mfaSetupRequired } = response;
@@ -109,7 +117,6 @@ function LoginComponent() {
         setGoogleCredential(credential);
         setIsMfaStep(true);
         setIsLoading(false);
-        setTimeout(() => setFocus('twoFactorCode'), 100);
         return;
       }
 
@@ -141,7 +148,6 @@ function LoginComponent() {
       if (response.mfaRequired) {
         setIsMfaStep(true);
         setIsLoading(false);
-        setTimeout(() => setFocus('twoFactorCode'), 100);
         return;
       }
 
@@ -150,7 +156,7 @@ function LoginComponent() {
       let message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
       if (Array.isArray(message)) message = message[0];
       setServerError(message);
-      if (isMfaStep) setValue('twoFactorCode', '');
+      if (isMfaStep) setMfaCode('');
       setIsLoading(false);
     }
   }
@@ -179,6 +185,7 @@ function LoginComponent() {
       }
     } catch (error: any) {
       setServerError(error.response?.data?.message || 'Invalid verification code');
+      setSetupCode('');
       setIsLoading(false);
     }
   }
@@ -205,7 +212,7 @@ function LoginComponent() {
     <div className="w-full min-w-0 space-y-6 animate-in fade-in duration-500">
       <div className="space-y-2 text-center min-w-0">
         <h1 className="text-2xl font-bold tracking-tight text-foreground leading-tight">
-          {showRecoveryCodes ? 'Save Recovery Codes' : isMfaSetupStep ? 'Security Setup Required' : isMfaStep ? 'Two-Factor Authentication' : 'Welcome Back'}
+          {showRecoveryCodes ? 'Save Recovery Codes' : isMfaSetupStep ? 'Two-Factor Setup' : isMfaStep ? 'Two-Factor Authentication' : 'Welcome Back'}
         </h1>
         <p className="text-sm text-muted-foreground font-medium leading-relaxed">
           {showRecoveryCodes
@@ -213,7 +220,7 @@ function LoginComponent() {
             : isMfaSetupStep
               ? 'Platform policy mandates authenticator protection for your administrative role.'
               : isMfaStep
-                ? 'Enter the code from your authenticator app or a backup recovery code.'
+                ? 'Enter the code from your authenticator app or an emergency recovery code.'
                 : 'Sign in to manage your campaigns & donations.'
           }
         </p>
@@ -228,9 +235,9 @@ function LoginComponent() {
 
       {showRecoveryCodes ? (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
-          <div className="grid grid-cols-2 gap-3 p-4 bg-muted/30 border border-border/40 rounded-3xl shadow-inner mb-6">
+          <div className="grid grid-cols-2 gap-3 p-5 bg-muted/20 border border-border/40 rounded-3xl shadow-inner mb-6">
             {recoveryCodes.map((code, index) => (
-              <div key={index} className="font-mono text-sm font-bold text-center py-2 bg-background rounded-xl border border-border/60 text-foreground tracking-widest">
+              <div key={index} className="font-mono text-sm font-bold text-center py-2 bg-background rounded-xl border border-border/60 text-foreground tracking-widest shadow-sm">
                 {code}
               </div>
             ))}
@@ -246,7 +253,7 @@ function LoginComponent() {
             <Button
               variant="outline"
               onClick={proceedToDashboard}
-              className="w-full h-12 rounded-3xl font-bold text-sm border-border/60"
+              className="w-full h-12 rounded-3xl font-bold text-sm border-border/60 hover:bg-muted"
             >
               I have saved them securely
             </Button>
@@ -255,9 +262,9 @@ function LoginComponent() {
       ) : isMfaSetupStep && setupData ? (
         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
           <div className="flex flex-col items-center gap-6">
-            <div className="p-4 bg-white rounded-3xl border border-muted shadow-inner group">
+            <div className="p-3 bg-white rounded-3xl border border-muted shadow-sm group">
               <motion.img
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 src={setupData.qrCodeDataUrl}
                 alt="2FA QR Code"
@@ -265,42 +272,42 @@ function LoginComponent() {
               />
             </div>
 
-            <div className="w-full space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold tracking-widest text-muted-foreground ml-2 uppercase">Manual Key</label>
-                <div className="flex gap-2">
-                  <code className="flex-1 bg-muted/50 p-4 rounded-2xl text-xs font-mono break-all border border-border/40 flex items-center text-foreground font-bold shadow-inner">
+            <div className="w-full space-y-6">
+              <div className="space-y-2 text-center">
+                <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Manual Key</label>
+                <div className="flex items-center justify-center gap-2 max-w-[280px] mx-auto">
+                  <code className="flex-1 bg-muted/30 py-2.5 px-4 rounded-2xl text-xs font-mono text-foreground font-bold shadow-sm truncate border border-border/40">
                     {setupData.secret}
                   </code>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-12 w-12 shrink-0 rounded-2xl border-border/50 bg-background hover:bg-muted active:scale-90 transition-all"
+                    className="h-9 w-9 shrink-0 rounded-2xl border-border/50 bg-background hover:bg-muted active:scale-95 transition-all"
                     onClick={copySecret}
                   >
-                    {copied ? <Check className="h-4.5 w-4.5 text-emerald-500" /> : <Copy className="h-4.5 w-4.5 text-muted-foreground" />}
+                    {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
                   </Button>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold tracking-widest text-primary ml-2 uppercase">Enter 6-Digit Code</label>
-                <Input
-                  placeholder="000 000"
+              <div className="space-y-3 pt-2">
+                <label className="text-xs font-bold text-foreground text-center block">Enter the 6-digit code</label>
+                <OtpInput
                   value={setupCode}
-                  onChange={(e) => setSetupCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="h-14 text-center text-2xl font-black tracking-[0.5em] rounded-3xl bg-muted/20 border-border/60 focus:bg-background shadow-inner"
+                  onChange={setSetupCode}
+                  maxLength={6}
+                  disabled={isLoading}
                 />
               </div>
             </div>
           </div>
 
           <Button
-            className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0"
+            className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0 bg-primary hover:bg-primary/90 text-white"
             onClick={handleCompleteMfaSetup}
             disabled={isLoading || setupCode.length !== 6}
           >
-            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : 'Activate Protection & Continue'}
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : 'Activate protection & continue'}
           </Button>
         </div>
       ) : (
@@ -353,34 +360,49 @@ function LoginComponent() {
           {/* MFA Verification Step */}
           {isMfaStep && (
             <div key="mfa-verification-step" className="space-y-6 animate-in slide-in-from-right-4 duration-300 min-w-0">
-              <div className="flex flex-col items-center justify-center p-6 bg-primary/5 rounded-3xl border border-primary/20 shadow-inner min-w-0">
-                <div className="h-14 w-14 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-4 border border-primary/10">
-                  <ShieldCheck className="h-7 w-7" />
+              <div className="flex flex-col items-center justify-center p-6 bg-card border border-border/40 shadow-sm rounded-3xl min-w-0 text-center">
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 border border-primary/20 shadow-inner">
+                  <ShieldCheck className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-bold text-foreground truncate max-w-full">{googleCredential ? 'Google Account' : emailValue}</p>
-                <p className="text-xs font-bold text-muted-foreground tracking-widest mt-1.5">We just need to confirm it&apos;s you</p>
+                <p className="text-sm font-bold text-foreground truncate max-w-full">
+                  {googleCredential ? 'Google Account' : emailValue}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground mt-1.5">
+                  {useRecoveryCode ? "Enter an 8-character recovery code." : "Enter the 6-digit code from your app."}
+                </p>
               </div>
 
-              <div className="space-y-2 min-w-0">
-                <Input
-                  key="mfa-totp-input"
-                  placeholder="Enter code"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="one-time-code"
-                  {...register('twoFactorCode')}
-                  maxLength={8}
-                  disabled={isLoading}
-                  onChange={(e) =>
-                    setValue(
-                      'twoFactorCode',
-                      e.target.value.replace(/\D/g, '').slice(0, 8)
-                    )
-                  }
-                  className="h-11 text-2xl font-black tracking-[0.5em] text-center rounded-3xl bg-muted/20 border-border/60 focus:bg-background
-  placeholder:normal-case placeholder:tracking-normal placeholder:text-sm placeholder:font-medium"
-                />
+              <div className="space-y-4 min-w-0">
+                {!useRecoveryCode ? (
+                  <OtpInput
+                    value={mfaCode}
+                    onChange={setMfaCode}
+                    maxLength={6}
+                    disabled={isLoading}
+                  />
+                ) : (
+                  <Input
+                    placeholder="e.g. A1B2C3D4"
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8))}
+                    disabled={isLoading}
+                    className="h-14 text-center text-xl font-bold tracking-[0.4em] uppercase rounded-2xl bg-muted/20 border-border/60 focus:bg-background shadow-inner"
+                  />
+                )}
+
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseRecoveryCode(!useRecoveryCode);
+                      setMfaCode('');
+                      setServerError(null);
+                    }}
+                    className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors outline-none"
+                  >
+                    {useRecoveryCode ? "Use authenticator app instead" : "Use an emergency recovery code"}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -389,7 +411,7 @@ function LoginComponent() {
             <Button
               className="w-full h-12 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] border-0"
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || (isMfaStep && (!useRecoveryCode ? mfaCode.length !== 6 : mfaCode.length !== 8))}
             >
               {isLoading ? (
                 <>
@@ -397,7 +419,7 @@ function LoginComponent() {
                   {isMfaStep ? 'Verifying...' : 'Signing in...'}
                 </>
               ) : (
-                isMfaStep ? 'Verify Authentication' : 'Sign in'
+                isMfaStep ? 'Verify authentication' : 'Sign in'
               )}
             </Button>
 
@@ -405,7 +427,7 @@ function LoginComponent() {
               <button
                 type="button"
                 className="w-full h-10 rounded-3xl text-xs font-bold text-muted-foreground hover:text-foreground transition-all flex items-center justify-center gap-2"
-                onClick={() => { setIsMfaStep(false); setServerError(null); setValue('twoFactorCode', ''); setGoogleCredential(''); }}
+                onClick={() => { setIsMfaStep(false); setUseRecoveryCode(false); setServerError(null); setMfaCode(''); setGoogleCredential(''); }}
                 disabled={isLoading}
               >
                 <ArrowLeft className="h-4 w-4" /> Use different account
