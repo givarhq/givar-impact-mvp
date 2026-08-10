@@ -346,9 +346,9 @@ export const EmailTemplates = {
       <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Cause Goal Reached</div>
       <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
     </div>
-    <p>Your contribution was essential in making this happen. We will keep you updated as the execution phases begin and milestones are achieved.</p>
+    <p>Your contribution was essential in making this happen. We'll share an update with you once the outcome is confirmed.</p>
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${data.projectUrl}" class="button">View Cause Timeline</a>
+      <a href="${data.projectUrl}" class="button">View cause details</a>
     </div>
     <p style="font-size: 14px; color: #6b7280;">Thank you for your generosity and for being part of this impact journey.</p>
   `,
