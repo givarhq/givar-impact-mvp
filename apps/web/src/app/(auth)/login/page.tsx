@@ -142,7 +142,18 @@ function LoginComponent() {
       if (isMfaStep && googleCredential) {
         response = await ApiService.auth.googleLogin(googleCredential, data.twoFactorCode);
       } else {
-        response = await ApiService.auth.login(data);
+        // FIX: Strictly isolate the initial login payload to prevent the 
+        // backend from validating an empty 2FA string before the MFA step is reached.
+        const payload: any = {
+          email: data.email,
+          password: data.password,
+        };
+
+        if (isMfaStep && data.twoFactorCode) {
+          payload.twoFactorCode = data.twoFactorCode;
+        }
+
+        response = await ApiService.auth.login(payload);
       }
 
       if (response.mfaRequired) {
