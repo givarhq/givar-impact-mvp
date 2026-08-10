@@ -11,13 +11,17 @@ const TARGET_PROJECT_ID = process.argv[2] || '90eb087b-89ee-4f37-9197-bd529efd73
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://www.givarapp.com';
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL
-    ? process.env.RESEND_FROM_EMAIL.replace('Givar', '"Givar"')
-    : '"Givar" <onboarding@resend.dev>';
+
+// Strict Sender Formatting
+let FROM_EMAIL = 'Givar <onboarding@resend.dev>';
+if (process.env.RESEND_FROM_EMAIL) {
+  const match = process.env.RESEND_FROM_EMAIL.match(/<(.+)>/);
+  FROM_EMAIL = match ? `Givar <${match[1]}>` : `Givar <${process.env.RESEND_FROM_EMAIL}>`;
+}
 
 if (!RESEND_API_KEY) {
-    console.error('❌ Missing RESEND_API_KEY in environment variables.');
-    process.exit(1);
+  console.error('❌ Missing RESEND_API_KEY in environment variables.');
+  process.exit(1);
 }
 
 const resend = new Resend(RESEND_API_KEY);
@@ -110,92 +114,91 @@ const projectFundedDonor = (data: { name: string; projectTitle: string; amount: 
 // --- MAIN EXECUTION LOGIC ---
 
 async function main() {
-    console.log(`🚀 Initiating email resend protocol for project: ${TARGET_PROJECT_ID}`);
+  console.log(`🚀 Initiating email resend protocol for project: ${TARGET_PROJECT_ID}`);
 
-    const project = await prisma.project.findUnique({
-        where: { id: TARGET_PROJECT_ID },
-        include: { user: true }
+  const project = await prisma.project.findUnique({
+    where: { id: TARGET_PROJECT_ID },
+    include: { user: true }
+  });
+
+  if (!project) {
+    console.error(`❌ Project ${TARGET_PROJECT_ID} not found on the ledger.`);
+    process.exit(1);
+  }
+
+  const targetAmountMajor = (Number(project.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // 1. Fetch Unique Donors
+  const userDonors = await prisma.donation.findMany({
+    where: { projectId: project.id },
+    select: { user: { select: { email: true, firstName: true, preferences: true } } },
+    distinct: ['userId'],
+  });
+
+  const guestDonors = await prisma.guestDonation.findMany({
+    where: { projectId: project.id },
+    select: { guestDonor: { select: { email: true, name: true } } },
+    distinct: ['guestDonorId'],
+  });
+
+  const recipients = [
+    ...userDonors
+      .filter(d => {
+        const prefs = d.user?.preferences as any;
+        return prefs?.milestoneUpdates !== false;
+      })
+      .map(d => ({ email: d.user!.email, name: d.user!.firstName })),
+    ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
+  ].filter((v, i, a) => v.email && a.findIndex(t => t.email === v.email) === i);
+
+  console.log(`📨 Found ${recipients.length} eligible donors to notify...`);
+
+  // 2. Dispatch to Donors
+  const donorPromises = recipients.map(r => {
+    const content = projectFundedDonor({
+      name: r.name,
+      projectTitle: project.title,
+      amount: targetAmountMajor,
+      currency: project.currency,
+      projectUrl: `${FRONTEND_URL}/explore/${project.slug}`
     });
+    const html = baseTemplate(content, 'Cause Successfully Funded');
 
-    if (!project) {
-        console.error(`❌ Project ${TARGET_PROJECT_ID} not found on the ledger.`);
-        process.exit(1);
-    }
-
-    // Fix: Using the correct project.targetAmount (Cause Goal) instead of individual donation amounts
-    const targetAmountMajor = (Number(project.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    // 1. Fetch Unique Donors
-    const userDonors = await prisma.donation.findMany({
-        where: { projectId: project.id },
-        select: { user: { select: { email: true, firstName: true, preferences: true } } },
-        distinct: ['userId'],
+    return resend.emails.send({
+      from: FROM_EMAIL,
+      to: r.email,
+      subject: 'Givar: The cause you supported is fully funded!',
+      html
     });
+  });
 
-    const guestDonors = await prisma.guestDonation.findMany({
-        where: { projectId: project.id },
-        select: { guestDonor: { select: { email: true, name: true } } },
-        distinct: ['guestDonorId'],
+  const results = await Promise.allSettled(donorPromises);
+  const successCount = results.filter(r => r.status === 'fulfilled').length;
+  console.log(`✅ Dispatched corrected emails to ${successCount}/${recipients.length} donors.`);
+
+  // 3. Dispatch to Organizer
+  if (project.user) {
+    const orgContent = projectFundedOrg({
+      name: project.user.firstName,
+      projectTitle: project.title,
+      amount: targetAmountMajor,
+      currency: project.currency,
+      projectUrl: `${FRONTEND_URL}/dashboard/projects/${project.id}/manage`
     });
+    const orgHtml = baseTemplate(orgContent, 'Cause Fully Funded');
 
-    const recipients = [
-        ...userDonors
-            .filter(d => {
-                const prefs = d.user?.preferences as any;
-                return prefs?.milestoneUpdates !== false;
-            })
-            .map(d => ({ email: d.user!.email, name: d.user!.firstName })),
-        ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
-    ].filter((v, i, a) => v.email && a.findIndex(t => t.email === v.email) === i);
-
-    console.log(`📨 Found ${recipients.length} eligible donors to notify...`);
-
-    // 2. Dispatch to Donors
-    const donorPromises = recipients.map(r => {
-        const content = projectFundedDonor({
-            name: r.name,
-            projectTitle: project.title,
-            amount: targetAmountMajor,
-            currency: project.currency,
-            projectUrl: `${FRONTEND_URL}/explore/${project.slug}`
-        });
-        const html = baseTemplate(content, 'Cause Successfully Funded');
-
-        return resend.emails.send({
-            from: FROM_EMAIL,
-            to: r.email,
-            subject: 'Givar: The cause you supported is fully funded!',
-            html
-        });
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: project.user.email,
+      subject: `Givar: Success! ${project.title} is fully funded`,
+      html: orgHtml
     });
+    console.log(`✅ Dispatched corrected email to organizer: ${project.user.email}`);
+  }
 
-    const results = await Promise.allSettled(donorPromises);
-    const successCount = results.filter(r => r.status === 'fulfilled').length;
-    console.log(`✅ Dispatched corrected emails to ${successCount}/${recipients.length} donors.`);
-
-    // 3. Dispatch to Organizer
-    if (project.user) {
-        const orgContent = projectFundedOrg({
-            name: project.user.firstName,
-            projectTitle: project.title,
-            amount: targetAmountMajor,
-            currency: project.currency,
-            projectUrl: `${FRONTEND_URL}/dashboard/projects/${project.id}/manage`
-        });
-        const orgHtml = baseTemplate(orgContent, 'Cause Fully Funded');
-
-        await resend.emails.send({
-            from: FROM_EMAIL,
-            to: project.user.email,
-            subject: `Givar: Success! ${project.title} is fully funded`,
-            html: orgHtml
-        });
-        console.log(`✅ Dispatched corrected email to organizer: ${project.user.email}`);
-    }
-
-    console.log('🎉 Email resend protocol completed successfully.');
+  console.log('🎉 Email resend protocol completed successfully.');
 }
 
 main()
-    .catch(console.error)
-    .finally(() => prisma.$disconnect());
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
