@@ -494,6 +494,8 @@ model Donation {
   feeAmount          BigInt    @default(0) // The exact cut taken by platform
   tipAmount          BigInt    @default(0) // Optional donor tip to platform
 
+  wantsUpdates       Boolean   @default(true) // Donor Opt-In for Impact Emails
+
   createdAt     DateTime @default(now())
 
   // Relationships
@@ -541,6 +543,8 @@ model GuestDonation {
   feePercentageUsed  Float     @default(0)
   feeAmount          BigInt    @default(0)
   tipAmount          BigInt    @default(0)
+
+  wantsUpdates       Boolean   @default(true) // Guest Opt-In for Impact Emails
 
   status        TxStatus     @default(COMPLETED)
   
