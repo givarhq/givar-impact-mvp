@@ -312,6 +312,7 @@ export class DonationService implements OnModuleInit {
           feeRuleId: feeRule.id,
           currency: dto.currency,
           message: dto.message?.trim() || null,
+          wantsUpdates: dto.wantsUpdates ?? true,
         },
       });
 
@@ -543,6 +544,7 @@ export class DonationService implements OnModuleInit {
           donorCurrency: dto.donorCurrency,
           donorAmount: dto.donorAmount,
           fxRate: dto.fxRate,
+          wantsUpdates: dto.wantsUpdates ?? true,
           custom_fields: [
             {
               display_name: 'Project Title',
@@ -617,11 +619,12 @@ export class DonationService implements OnModuleInit {
     donorCurrency?: string;
     donorAmount?: string;
     fxRate?: number;
+    wantsUpdates?: boolean;
   }) {
     const {
       userId, guestEmail, guestName, projectId, amount, currency, reference, channel, authorization,
       donorCurrency, donorAmount, fxRate,
-      baseAmount = amount, feeAmount = 0n, tipAmount = 0n, feePercentageUsed = 0, feeRuleId = null
+      baseAmount = amount, feeAmount = 0n, tipAmount = 0n, feePercentageUsed = 0, feeRuleId = null, wantsUpdates = true
     } = data;
 
     if (channel && !['card', 'bank', 'bank_transfer', 'ussd', 'qr', 'mobile_money', 'apple_pay'].includes(channel)) {
@@ -761,6 +764,7 @@ export class DonationService implements OnModuleInit {
               feeRuleId: feeRuleId,
               currency,
               message: 'Direct payment fulfillment',
+              wantsUpdates,
             },
           });
           processedDonationId = donation.id;
@@ -794,7 +798,8 @@ export class DonationService implements OnModuleInit {
               currency,
               reference,
               status: TxStatus.COMPLETED,
-              message: formattedPhase
+              message: formattedPhase,
+              wantsUpdates,
             }
           });
           processedDonationId = guestDonation.id;
@@ -1114,20 +1119,22 @@ export class DonationService implements OnModuleInit {
 
   private async broadcastProjectFunded(projectId: string, projectTitle: string, projectSlug: string, totalAmount: bigint, currency: string) {
     // 1. Fetch all unique donors (Registered) including their notification preferences
+    // FILTERED BY wantsUpdates: true
     const userDonors = await this.prisma.donation.findMany({
-      where: { projectId },
+      where: { projectId, wantsUpdates: true },
       select: { user: { select: { email: true, firstName: true, preferences: true } } },
       distinct: ['userId'],
     });
 
     // 2. Fetch all unique guest donors
+    // FILTERED BY wantsUpdates: true
     const guestDonors = await this.prisma.guestDonation.findMany({
-      where: { projectId },
+      where: { projectId, wantsUpdates: true },
       select: { guestDonor: { select: { email: true, name: true } } },
       distinct: ['guestDonorId'],
     });
 
-    // 3. Combine into unique recipient list, filtering out registered users who disabled milestone/impact updates
+    // 3. Combine into unique recipient list, filtering out registered users who disabled milestone/impact updates globally
     const recipients = [
       ...userDonors
         .filter(d => (d.user?.preferences as any)?.milestoneUpdates !== false)

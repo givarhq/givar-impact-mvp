@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
 import { Currency } from '@givar/database';
 
 // Centralized Regex for Money
@@ -28,6 +28,10 @@ export class CreateDonationDto {
   @IsString()
   @IsOptional()
   message?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  wantsUpdates?: boolean;
 }
 
 export class InitiateDirectDonationDto {
@@ -71,4 +75,8 @@ export class InitiateDirectDonationDto {
   @IsOptional()
   @IsNumber()
   fxRate?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  wantsUpdates?: boolean;
 }
