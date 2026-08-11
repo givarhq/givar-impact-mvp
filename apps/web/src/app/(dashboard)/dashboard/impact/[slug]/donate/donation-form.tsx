@@ -57,6 +57,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const [displayAmount, setDisplayAmount] = useState('');
     const [tipAmount, setTipAmount] = useState('');
     const [activeTipPreset, setActiveTipPreset] = useState<number | 'custom' | null>(null);
+    const [wantsUpdates, setWantsUpdates] = useState(true);
 
     const [feeRule, setFeeRule] = useState<{ percentage: number; optionalTipEnabled: boolean } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -395,12 +396,13 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 currency: project.currency,
                 donorCurrency: finalDonorCurrency,
                 donorAmount: finalDonorAmount,
-                fxRate: finalFxRate
+                fxRate: finalFxRate,
+                wantsUpdates // Send the user's opt-in preference to the backend
             };
 
             if (isGuest) {
                 payload.guestEmail = guestEmail.toLowerCase().trim();
-                payload.guestName = 'Guest Supporter';
+                payload.guestName = 'Anonymous Supporter';
             }
 
             const data = await ApiService.donations.direct(payload);
@@ -729,6 +731,22 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                         </motion.div>
                     )}
                 </AnimatePresence>
+
+                {/* THE OPT-IN CHECKBOX */}
+                <div className="pt-2">
+                    <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors cursor-pointer group">
+                        <input
+                            type="checkbox"
+                            className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                            checked={wantsUpdates}
+                            onChange={(e) => setWantsUpdates(e.target.value === 'true' || e.target.checked)}
+                            disabled={isLoading}
+                        />
+                        <span className="text-xs font-medium text-foreground leading-relaxed select-none">
+                            Keep me updated on the impact of my donation.
+                        </span>
+                    </label>
+                </div>
 
                 <div className="flex items-center justify-center pt-4 border-t border-border/40">
                     <Button

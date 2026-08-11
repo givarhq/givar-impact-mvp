@@ -676,14 +676,15 @@ export class AdminService {
 
       return updatedProject;
     }).then(async (updated) => {
+      // FILTERED BY wantsUpdates: true
       const userDonors = await this.prisma.donation.findMany({
-        where: { projectId },
+        where: { projectId, wantsUpdates: true },
         select: { user: { select: { email: true, firstName: true, preferences: true } } },
         distinct: ['userId'],
       });
 
       const guestDonors = await this.prisma.guestDonation.findMany({
-        where: { projectId },
+        where: { projectId, wantsUpdates: true },
         select: { guestDonor: { select: { email: true, name: true } } },
         distinct: ['guestDonorId'],
       });
@@ -1362,15 +1363,15 @@ export class AdminService {
     reason: string,
     organizer: { email: string; firstName: string; preferences?: any }
   ) {
-    // 1. Fetch unique donors with their preference profiles
+    // 1. Fetch unique donors with their preference profiles (FILTERED)
     const userDonors = await this.prisma.donation.findMany({
-      where: { projectId },
+      where: { projectId, wantsUpdates: true },
       select: { user: { select: { email: true, firstName: true, preferences: true } } },
       distinct: ['userId'],
     });
 
     const guestDonors = await this.prisma.guestDonation.findMany({
-      where: { projectId },
+      where: { projectId, wantsUpdates: true },
       select: { guestDonor: { select: { email: true, name: true } } },
       distinct: ['guestDonorId'],
     });
@@ -1382,7 +1383,7 @@ export class AdminService {
         .filter(d => (d.user?.preferences as any)?.milestoneUpdates !== false)
         .map(d => ({ email: d.user!.email, name: d.user!.firstName })),
 
-      // Guest Donors (Always notified as they have no preference profile)
+      // Guest Donors
       ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
     ];
 
@@ -1830,14 +1831,15 @@ export class AdminService {
   }
 
   private async broadcastMilestoneUpdate(projectId: string, projectTitle: string, projectSlug: string, milestonePhase: string, imageUrl?: string) {
+    // FILTERED BY wantsUpdates: true
     const userDonors = await this.prisma.donation.findMany({
-      where: { projectId },
+      where: { projectId, wantsUpdates: true },
       select: { user: { select: { email: true, firstName: true, preferences: true } } },
       distinct: ['userId'],
     });
 
     const guestDonors = await this.prisma.guestDonation.findMany({
-      where: { projectId },
+      where: { projectId, wantsUpdates: true },
       select: { guestDonor: { select: { email: true, name: true } } },
       distinct: ['guestDonorId'],
     });
