@@ -527,7 +527,6 @@ export class ProjectService {
     ]);
 
     const maskName = (firstName?: string | null, lastName?: string | null, fullName?: string | null) => {
-      // Explicitly intercept system defaults so they don't get awkwardly masked
       if (fullName && ['guest donor', 'anonymous guest', 'anonymous supporter', 'anonymous'].includes(fullName.toLowerCase().trim())) {
         return 'Guest Supporter';
       }
@@ -545,7 +544,6 @@ export class ProjectService {
 
     donations.forEach(d => {
       const isRequester = requestingUserId && d.userId === requestingUserId;
-      const isSystemNode = d.user?.role === 'ADMIN' || d.user?.role === 'SUPERADMIN';
 
       entries.push({
         id: d.id,
@@ -554,7 +552,7 @@ export class ProjectService {
         currency: d.currency,
         reference: d.transaction?.reference || d.transactionId,
         createdAt: d.createdAt,
-        actorName: isSystemNode ? 'Givar Treasury' : (isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName)),
+        actorName: isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName),
         isYou: isRequester,
         projectName: d.project.title,
         projectSlug: d.project.slug,
