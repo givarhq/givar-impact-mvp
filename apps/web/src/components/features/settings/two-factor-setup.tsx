@@ -120,37 +120,38 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
             </Card>
 
             <Dialog open={showSetup} onOpenChange={(open) => !open && !isLoading && setShowSetup(false)}>
-                <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md w-[95vw]">
-                    <div className="p-6 md:p-10 space-y-8">
+                {/* Logic: Flex column layout with constrained max-height allows internal scrolling on small mobile screens without losing action buttons */}
+                <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md w-[95vw] max-h-[90vh] flex flex-col">
+                    <div className="p-5 md:p-8 space-y-6 md:space-y-8 overflow-y-auto no-scrollbar flex-1">
                         <div className="text-center space-y-3">
                             <div className="h-12 w-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-inner">
                                 <ShieldCheck className="h-6 w-6" />
                             </div>
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold tracking-tight text-center leading-none">Enable Two-Factor Authentication</DialogTitle>
+                                <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight text-center leading-none">Enable Two-Factor</DialogTitle>
                             </DialogHeader>
-                            <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                            <p className="text-xs md:text-sm text-muted-foreground font-medium leading-relaxed">
                                 Scan the QR code below with your authenticator app, or enter the manual key.
                             </p>
                         </div>
 
                         {setupData && (
-                            <div className="flex flex-col items-center gap-8">
-                                <div className="p-3 bg-white rounded-3xl border border-border/40 shadow-sm group">
+                            <div className="flex flex-col items-center gap-6">
+                                <div className="p-3 bg-white rounded-3xl border border-muted shadow-sm group">
                                     <motion.img
                                         initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
                                         src={setupData.qrCodeDataUrl}
                                         alt="2FA QR Code"
-                                        className="w-40 h-40 mix-blend-multiply transition-transform duration-500"
+                                        className="w-32 h-32 md:w-40 md:h-40 mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
                                     />
                                 </div>
 
                                 <div className="w-full space-y-6">
                                     <div className="space-y-2 text-center">
-                                        <label className="text-[10px] font-bold text-muted-foreground tracking-widest">Manual key</label>
-                                        <div className="flex items-center justify-center gap-2 max-w-[280px] mx-auto">
-                                            <code className="flex-1 bg-muted/30 py-2.5 px-4 rounded-2xl text-xs font-mono border border-border/40 text-foreground font-bold shadow-sm truncate">
+                                        <label className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Manual Key</label>
+                                        <div className="flex items-center justify-center gap-2 max-w-[280px] mx-auto min-w-0">
+                                            <code className="flex-1 bg-muted/30 py-2.5 px-3 rounded-2xl text-[10px] md:text-xs font-mono text-foreground font-bold shadow-sm truncate border border-border/40">
                                                 {setupData.secret}
                                             </code>
                                             <Button
@@ -165,7 +166,7 @@ export const TwoFactorSetup = memo(function TwoFactorSetup({ isEnabled: initialE
                                     </div>
 
                                     <div className="space-y-3 pt-2">
-                                        <label className="text-xs font-bold text-foreground text-center block">Enter the 6-digit code from your app</label>
+                                        <label className="text-xs font-bold text-foreground text-center block">Enter the 6-digit code</label>
                                         <OtpInput
                                             value={verificationCode}
                                             onChange={setVerificationCode}

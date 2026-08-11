@@ -10,11 +10,13 @@ import { Input } from '../../ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
 import { ApiService } from '../../../services/api';
 import toast from 'react-hot-toast';
+import { OtpInput } from '../../ui/otp-input';
 
 export const DangerZone = memo(function DangerZone() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [totpCode, setTotpCode] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
     const handleDelete = async () => {
         if (!totpCode) return toast.error("Authentication code required to authorize deletion");
@@ -54,8 +56,8 @@ export const DangerZone = memo(function DangerZone() {
             </div>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-sm">
-                    <div className="p-6 md:p-8 space-y-6">
+                <DialogContent className="rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-w-md w-[95vw]">
+                    <div className="p-5 md:p-8 space-y-6">
                         <div className="text-center space-y-2">
                             <div className="h-12 w-12 rounded-3xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
                                 <XCircle className="h-6 w-6" />
@@ -69,17 +71,45 @@ export const DangerZone = memo(function DangerZone() {
                         </div>
 
                         <div className="space-y-4">
-                            <Input
-                                type="text"
-                                label="Authenticator code"
-                                placeholder="000000"
-                                maxLength={8}
-                                value={totpCode}
-                                onChange={(e) => setTotpCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
-                                className="h-12 rounded-3xl bg-muted/20 text-center font-bold tracking-[0.5em] text-lg uppercase"
-                            />
+                            {!useRecoveryCode ? (
+                                <div className="space-y-3">
+                                    <label className="text-xs font-bold text-foreground text-center block">Enter the 6-digit code</label>
+                                    <OtpInput
+                                        value={totpCode}
+                                        onChange={setTotpCode}
+                                        maxLength={6}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <label className="text-xs font-bold text-foreground text-center block">Enter recovery code</label>
+                                    <Input
+                                        type="text"
+                                        placeholder="e.g. A1B2C3D4"
+                                        maxLength={8}
+                                        value={totpCode}
+                                        onChange={(e) => setTotpCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
+                                        className="h-14 rounded-3xl bg-muted/20 text-center font-bold tracking-[0.4em] text-lg uppercase shadow-inner"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            )}
 
-                            <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed flex gap-2.5">
+                            <div className="flex justify-center pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setUseRecoveryCode(!useRecoveryCode);
+                                        setTotpCode('');
+                                    }}
+                                    className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors outline-none"
+                                >
+                                    {useRecoveryCode ? "Use authenticator app instead" : "Use an emergency recovery code"}
+                                </button>
+                            </div>
+
+                            <div className="p-3.5 rounded-3xl bg-amber-50 border border-amber-100 text-xs text-amber-700 leading-relaxed flex gap-2.5 mt-4">
                                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                                 <span>Note: Accounts with active projects are restricted from deletion to maintain donor trust.</span>
                             </div>
@@ -90,7 +120,7 @@ export const DangerZone = memo(function DangerZone() {
                             <Button
                                 variant="destructive"
                                 onClick={handleDelete}
-                                disabled={isLoading || !totpCode}
+                                disabled={isLoading || (!useRecoveryCode ? totpCode.length !== 6 : totpCode.length !== 8)}
                                 className="rounded-3xl h-10 font-bold text-xs shadow-sm active:scale-95 transition-all"
                             >
                                 {isLoading ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : 'Confirm Deletion'}
