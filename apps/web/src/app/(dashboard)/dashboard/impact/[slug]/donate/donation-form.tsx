@@ -400,7 +400,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
 
             if (isGuest) {
                 payload.guestEmail = guestEmail.toLowerCase().trim();
-                payload.guestName = 'Guest donor';
+                payload.guestName = 'Guest Supporter';
             }
 
             const data = await ApiService.donations.direct(payload);

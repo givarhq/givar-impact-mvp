@@ -69,8 +69,8 @@ export class ProjectService {
   }
 
   // Robust Search Engine
-  
-    async findAllAdvanced(query: ProjectQueryDto) {
+
+  async findAllAdvanced(query: ProjectQueryDto) {
     const { page = 1, limit = 9, search, category, subcategory, status, sort } = query;
     const skip = (page - 1) * limit;
 
@@ -82,11 +82,11 @@ export class ProjectService {
     // 1. Dynamic Filter Construction
     const where: Prisma.ProjectWhereInput = {
       isActive: true,
-      ...(status 
-        ? { status } 
-        : (showFundedProjects 
-            ? { status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] } }
-            : { status: ProjectStatus.ACTIVE })),
+      ...(status
+        ? { status }
+        : (showFundedProjects
+          ? { status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] } }
+          : { status: ProjectStatus.ACTIVE })),
       ...(category && { category: { slug: category } }),
       ...(subcategory && { subcategory: { slug: subcategory } }),
       ...(search && {
@@ -470,6 +470,10 @@ export class ProjectService {
    * Public Ledger Aggregation Engine
    * Unifies platform-wide or project-specific capital flow with masked identities.
    */
+  /**
+   * Public Ledger Aggregation Engine
+   * Unifies platform-wide or project-specific capital flow with masked identities.
+   */
   async getProjectLedger(slug: string | null, query: { page?: number; limit?: number; type?: string; requestingUserId?: string }) {
     const { page = 1, limit = 15, type = 'all', requestingUserId } = query;
     const skip = (page - 1) * limit;
@@ -498,9 +502,9 @@ export class ProjectService {
       fetchInflows ? this.prisma.donation.findMany({
         where: donationWhere,
         include: {
-          user: { select: { id: true, firstName: true, lastName: true, role: true } }, // <-- Added role
+          user: { select: { id: true, firstName: true, lastName: true, role: true } },
           project: { select: { title: true, slug: true } },
-          transaction: { select: { reference: true, metadata: true, category: true } } // <-- Added category
+          transaction: { select: { reference: true, metadata: true, category: true } }
         },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
@@ -523,20 +527,25 @@ export class ProjectService {
     ]);
 
     const maskName = (firstName?: string | null, lastName?: string | null, fullName?: string | null) => {
+      // Explicitly intercept system defaults so they don't get awkwardly masked
+      if (fullName && ['guest donor', 'anonymous guest', 'anonymous supporter', 'anonymous'].includes(fullName.toLowerCase().trim())) {
+        return 'Guest Supporter';
+      }
+
       if (firstName && lastName) return `${firstName[0]}*** ${lastName[0]}.`;
       if (fullName) {
         const parts = fullName.trim().split(' ');
         if (parts.length > 1) return `${parts[0][0]}*** ${parts[1][0]}.`;
         return `${fullName[0]}***`;
       }
-      return 'Anonymous Supporter';
+      return 'Guest Supporter';
     };
 
     const entries: any[] = [];
 
     donations.forEach(d => {
       const isRequester = requestingUserId && d.userId === requestingUserId;
-      const isSystemNode = d.user?.role === 'ADMIN' || d.user?.role === 'SUPERADMIN'; // <-- New Check
+      const isSystemNode = d.user?.role === 'ADMIN' || d.user?.role === 'SUPERADMIN';
 
       entries.push({
         id: d.id,
@@ -550,7 +559,7 @@ export class ProjectService {
         projectName: d.project.title,
         projectSlug: d.project.slug,
         phaseName: (d.transaction?.metadata as any)?.phaseName || null,
-        category: d.transaction?.category || 'DONATION' // <-- Passed to UI
+        category: d.transaction?.category || 'DONATION'
       });
     });
 
