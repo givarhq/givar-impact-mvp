@@ -325,7 +325,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                             <Activity className="h-6 w-6 text-blue-500" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground mb-2">Impact Happens</h3>
-                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Treasury funds are released directly to verified vendors to execute the mission.</p>
+                        <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Treasury funds are released directly to verified vendors or institutions to execute that specific stage of the mission.</p>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20 text-[10px] font-bold text-blue-700 dark:text-blue-400 w-fit">
                             <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Milestone Achieved
                         </div>
@@ -441,8 +441,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
             <ShareModal
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
-                projectTitle={shareProject?.title || ''}
-                projectSlug={shareProject?.slug || ''}
+                project={shareProject}
             />
         </div>
     );
