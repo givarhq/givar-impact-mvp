@@ -125,12 +125,28 @@ export class StorageService {
     if (item.updates && Array.isArray(item.updates)) {
       item.updates = await Promise.all(
         item.updates.map(async (u: any) => {
+          const hydratedU = { ...u };
+
           const key = getCleanKey(u.imageUrl);
           if (key) {
             const { viewUrl } = await this.getPresignedViewUrl(key);
-            return { ...u, imageUrl: viewUrl };
+            hydratedU.imageUrl = viewUrl;
           }
-          return u;
+
+          if (u.assets && Array.isArray(u.assets)) {
+            hydratedU.assets = await Promise.all(
+              u.assets.map(async (assetKey: string) => {
+                const aKey = getCleanKey(assetKey);
+                if (aKey) {
+                  const { viewUrl } = await this.getPresignedViewUrl(aKey);
+                  return viewUrl;
+                }
+                return assetKey;
+              })
+            );
+          }
+
+          return hydratedU;
         }),
       );
     }

@@ -439,6 +439,7 @@ model ProjectUpdate {
   content     String     @db.Text
   type        UpdateType @default(ANNOUNCEMENT)
   imageUrl    String?
+  assets      String[]   @default([])
   
   createdAt   DateTime   @default(now())
   

@@ -636,7 +636,7 @@ export class AdminService {
    * Finalizes a project, records the final impact achievement update, 
    * and dispatches the donor summary email.
    */
-  async finalizeProject(adminId: string, projectId: string, dto: { completionNote: string; imageUrl?: string }) {
+  async finalizeProject(adminId: string, projectId: string, dto: { completionNote: string; imageUrl?: string; assets?: string[] }) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: { disbursements: true, user: true }
@@ -657,7 +657,8 @@ export class AdminService {
           title: 'Impact Achieved',
           content: dto.completionNote,
           type: 'IMPACT_ACHIEVED',
-          imageUrl: dto.imageUrl || null
+          imageUrl: dto.imageUrl || (dto.assets && dto.assets.length > 0 ? dto.assets[0] : null),
+          assets: dto.assets || []
         }
       });
 
@@ -701,9 +702,10 @@ export class AdminService {
       ).join('<br/>');
 
       let signedImageUrl: string | undefined = undefined;
-      if (dto.imageUrl) {
+      const thumbKey = dto.imageUrl || (dto.assets && dto.assets.length > 0 ? dto.assets[0] : undefined);
+      if (thumbKey) {
         try {
-          const { viewUrl } = await this.storage.getPresignedViewUrl(dto.imageUrl);
+          const { viewUrl } = await this.storage.getPresignedViewUrl(thumbKey);
           signedImageUrl = viewUrl;
         } catch (e) {
           this.logger.warn('Failed to sign completion image for impact email');
