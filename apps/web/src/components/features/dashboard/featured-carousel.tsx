@@ -266,8 +266,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
             <ShareModal
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
-                projectTitle={shareProject?.title || ''}
-                projectSlug={shareProject?.slug || ''}
+                project={shareProject}
             />
         </div>
     );

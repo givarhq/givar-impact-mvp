@@ -63,8 +63,7 @@ export const ProjectGrid = memo(function ProjectGrid({ projects, isPublic = fals
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}
-        projectTitle={shareProject?.title || ''}
-        projectSlug={shareProject?.slug || ''}
+        project={shareProject}
       />
     </div>
   );

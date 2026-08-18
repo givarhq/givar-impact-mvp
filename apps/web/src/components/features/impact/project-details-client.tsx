@@ -158,6 +158,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         }
     };
 
+    // Strip HTML and spaces to check if there is real content
     const hasAdditionalNotes = project.riskAnalysis && project.riskAnalysis.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim().length > 0;
 
     const finalAssets = finalReport?.assets && finalReport.assets.length > 0
@@ -713,7 +714,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 )}
             </div>
 
-            <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} projectTitle={project.title} projectSlug={project.slug} isFunded={isCompleted || isFundedState} />
+            <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} project={project} />
 
             <Dialog open={isReportModalOpen} onOpenChange={(open) => !open && !isReporting && setIsReportModalOpen(false)}>
                 <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md w-[95vw]">
