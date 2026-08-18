@@ -70,6 +70,7 @@ export interface ProjectUpdate {
   title: string;
   content: string;
   imageUrl?: string | null;
+  assets?: string[];
   type: 'MILESTONE' | 'ANNOUNCEMENT' | 'IMPACT_REPORT' | 'VERIFICATION_UPDATE' | 'GOAL_ADJUSTMENT' | 'MILESTONE_UPDATE' | 'FUNDS_DISBURSED' | 'IMPACT_ACHIEVED';
   createdAt: string;
 }

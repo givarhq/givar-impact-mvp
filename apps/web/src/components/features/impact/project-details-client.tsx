@@ -17,7 +17,8 @@ import {
     Building2,
     History,
     Flag,
-    Loader2
+    Loader2,
+    ExternalLink
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -124,7 +125,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const VerIcon = verMeta.icon;
 
     const handleViewAsset = (url: string, title: string) => {
-        const isPdf = url.toLowerCase().includes('.pdf');
+        const isPdf = url.toLowerCase().includes('.pdf') || url.toLowerCase().includes('.doc');
         if (isPdf) {
             window.open(url, '_blank');
         } else {
@@ -157,8 +158,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         }
     };
 
-    // Strip HTML and spaces to check if there is real content
     const hasAdditionalNotes = project.riskAnalysis && project.riskAnalysis.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim().length > 0;
+
+    const finalAssets = finalReport?.assets && finalReport.assets.length > 0
+        ? finalReport.assets
+        : (finalReport?.imageUrl ? [finalReport.imageUrl] : []);
 
     return (
         <motion.div
@@ -216,7 +220,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     </div>
                                 </CardHeader>
                                 <CardContent className="p-6 md:p-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                         <div className="space-y-4">
                                             <h4 className="text-lg font-bold text-emerald-950 dark:text-emerald-50 leading-tight">{finalReport.title}</h4>
                                             <p className="text-sm text-emerald-900/80 dark:text-emerald-100/80 leading-relaxed font-medium">
@@ -226,12 +230,35 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 <ShieldCheck className="h-4 w-4" /> Verified by Givar Audit
                                             </div>
                                         </div>
-                                        {finalReport.imageUrl && (
-                                            <div
-                                                className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md bg-muted cursor-pointer"
-                                                onClick={() => handleViewAsset(finalReport.imageUrl!, 'Impact Evidence')}
-                                            >
-                                                <Image src={finalReport.imageUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover hover:scale-105 transition-transform duration-700" />
+                                        {finalAssets.length > 0 && (
+                                            <div className={cn("grid gap-3", finalAssets.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+                                                {finalAssets.map((assetUrl: string, idx: number) => {
+                                                    const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
+                                                    return (
+                                                        <div
+                                                            key={idx}
+                                                            className={cn(
+                                                                "relative rounded-2xl overflow-hidden border border-emerald-500/20 shadow-md bg-muted cursor-pointer group hover:shadow-lg transition-all",
+                                                                finalAssets.length === 1 && !isPdf ? "aspect-video" : "aspect-square"
+                                                            )}
+                                                            onClick={() => handleViewAsset(assetUrl, 'Impact Evidence')}
+                                                        >
+                                                            {isPdf ? (
+                                                                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-emerald-50/50">
+                                                                    <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 mb-2 group-hover:scale-110 transition-transform shadow-sm">
+                                                                        <FileText className="h-6 w-6" />
+                                                                    </div>
+                                                                    <p className="text-[11px] font-bold text-emerald-800 text-center px-2">View Document</p>
+                                                                </div>
+                                                            ) : (
+                                                                <Image src={assetUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                                                            )}
+                                                            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                                                                <ExternalLink className="h-6 w-6 text-white drop-shadow-md" />
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </div>
@@ -468,6 +495,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     project.updates.map((update, idx) => {
                                         const isAdjustment = update.type === 'GOAL_ADJUSTMENT' || update.title === 'Financial Goal Adjusted';
                                         const isImpact = update.type === 'IMPACT_ACHIEVED';
+
+                                        const updateAssets = update.assets && update.assets.length > 0 ? update.assets : (update.imageUrl ? [update.imageUrl] : []);
+
                                         return (
                                             <Card
                                                 key={idx}
@@ -476,25 +506,48 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     isAdjustment ? "bg-amber-50 border-amber-100" : isImpact ? "bg-emerald-50 border-emerald-100" : "bg-card border-border/40"
                                                 )}
                                             >
-                                                {update.imageUrl && (
-                                                    <div
-                                                        className={cn("relative w-full rounded-3xl overflow-hidden bg-muted border border-border/10 shadow-inner cursor-pointer group",
-                                                            isAdjustment ? "aspect-[4/3] sm:aspect-[16/9] bg-amber-500/5" : "aspect-[21/9]"
-                                                        )}
-                                                        onClick={() => handleViewAsset(update.imageUrl!, update.title)}
-                                                    >
-                                                        <Image
-                                                            src={update.imageUrl}
-                                                            alt=""
-                                                            fill
-                                                            sizes="(max-width: 1024px) 100vw, 66vw"
-                                                            className={cn("transition-transform duration-700", isAdjustment ? "object-contain p-4 group-hover:scale-105" : "object-cover hover:scale-105")}
-                                                        />
-                                                        {isAdjustment && (
-                                                            <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md border border-border/40 text-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
-                                                                <FileText className="h-3 w-3" /> View invoice
-                                                            </div>
-                                                        )}
+                                                {updateAssets.length > 0 && (
+                                                    <div className={cn("grid gap-3", updateAssets.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+                                                        {updateAssets.map((assetUrl: string, assetIdx: number) => {
+                                                            const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
+                                                            return (
+                                                                <div
+                                                                    key={assetIdx}
+                                                                    className={cn(
+                                                                        "relative rounded-2xl overflow-hidden shadow-inner cursor-pointer group hover:shadow-md transition-all",
+                                                                        isAdjustment ? "bg-amber-500/5 border border-amber-500/20" : "bg-muted border border-border/10",
+                                                                        updateAssets.length === 1 && !isPdf ? (isAdjustment ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-[21/9]") : "aspect-square"
+                                                                    )}
+                                                                    onClick={() => handleViewAsset(assetUrl, update.title)}
+                                                                >
+                                                                    {isPdf ? (
+                                                                        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-background/50">
+                                                                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2 group-hover:scale-110 transition-transform shadow-sm">
+                                                                                <FileText className="h-6 w-6" />
+                                                                            </div>
+                                                                            <p className="text-[11px] font-bold text-foreground text-center px-2 truncate w-full">View Document</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <Image
+                                                                            src={assetUrl}
+                                                                            alt={update.title}
+                                                                            fill
+                                                                            sizes="(max-width: 1024px) 100vw, 66vw"
+                                                                            className={cn("transition-transform duration-700", isAdjustment ? "object-contain p-4 group-hover:scale-105" : "object-cover hover:scale-105")}
+                                                                        />
+                                                                    )}
+                                                                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                                                                        {isAdjustment ? (
+                                                                            <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md border border-border/40 text-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+                                                                                <FileText className="h-3 w-3" /> View invoice
+                                                                            </div>
+                                                                        ) : (
+                                                                            <ExternalLink className="h-6 w-6 text-white drop-shadow-md" />
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
 

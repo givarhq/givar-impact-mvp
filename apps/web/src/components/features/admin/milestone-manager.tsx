@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle2, Clock, PlayCircle, Loader2, Calendar,
-  RotateCcw, Check, Send, Unlock, Users,
+  RotateCcw, Check, Send, Unlock, Users, FileText, UploadCloud, X
 } from 'lucide-react';
 import { Card, CardContent } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -63,7 +63,7 @@ export const MilestoneManager = memo(function MilestoneManager({
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [completionNote, setCompletionNote] = useState('');
-  const [finalProofImage, setFinalProofImage] = useState<{ key: string; url: string } | null>(null);
+  const [finalAssets, setFinalAssets] = useState<{ key: string; url: string; name: string; type: string }[]>([]);
 
   const isFullyCompleted = timeline.length > 0 && timeline.every(m => m.status === 'COMPLETED');
   const totalRaisedMinor = BigInt(raisedAmount || '0');
@@ -117,6 +117,60 @@ export const MilestoneManager = memo(function MilestoneManager({
     }
   };
 
+  const handleAssetUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds 10MB limit');
+      e.target.value = '';
+      return;
+    }
+
+    setIsFinalizing(true);
+    const toastId = toast.loading("Encrypting and uploading asset...");
+
+    try {
+      const { uploadUrl, key, publicUrl, provider, uploadData } = await ApiService.proposals.getUploadUrl({
+        fileType: file.type,
+        useCase: 'docs', // Using secure document pipeline for final evidence
+      });
+
+      let finalKey = key;
+      let finalUrl = publicUrl;
+
+      if (provider === 'cloudinary') {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('api_key', uploadData.apiKey);
+        formData.append('timestamp', uploadData.timestamp.toString());
+        formData.append('signature', uploadData.signature);
+        formData.append('folder', uploadData.folder);
+
+        const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+        if (!res.ok) throw new Error('Cloudinary upload failed');
+        const data = await res.json();
+
+        finalKey = data.secure_url;
+        finalUrl = data.secure_url;
+      } else {
+        await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+      }
+
+      setFinalAssets(prev => [...prev, { key: finalKey, url: finalUrl || finalKey, name: file.name, type: file.type }]);
+      toast.success('Asset uploaded successfully', { id: toastId });
+    } catch (err) {
+      toast.error('Asset upload failed', { id: toastId });
+    } finally {
+      setIsFinalizing(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeFinalAsset = (key: string) => {
+    setFinalAssets(prev => prev.filter(a => a.key !== key));
+  };
+
   const handleFinalizeProject = async () => {
     if (!completionNote.trim()) {
       toast.error("Please provide a final completion note");
@@ -127,10 +181,13 @@ export const MilestoneManager = memo(function MilestoneManager({
     try {
       await ApiService.admin.finalizeProject(projectId, {
         completionNote: completionNote.trim(),
-        imageUrl: finalProofImage?.key
+        assets: finalAssets.map(a => a.key),
+        imageUrl: finalAssets.find(a => a.type.startsWith('image/'))?.key
       });
       toast.success("Project officially marked as completed", { id: toastId });
       setShowFinalizeModal(false);
+      setFinalAssets([]);
+      setCompletionNote('');
       router.refresh();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to finalize project", { id: toastId });
@@ -399,7 +456,7 @@ export const MilestoneManager = memo(function MilestoneManager({
           </DialogContent>
         </Dialog>
 
-        {/* Finalize Project Dialog */}
+        {/* Finalize Project Dialog (Multi-Asset Supported) */}
         <Dialog open={showFinalizeModal} onOpenChange={setShowFinalizeModal}>
           <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md min-w-0">
             <DialogHeader>
@@ -409,7 +466,7 @@ export const MilestoneManager = memo(function MilestoneManager({
             </DialogHeader>
             <div className="space-y-6 pt-4 min-w-0">
               <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                This will officially close the project and email all donors a final summary of the impact they made possible.
+                This will officially close the project and email all donors a final summary of the impact they made possible. Attach all relevant hospital reports and photos.
               </p>
 
               <div className="space-y-2 min-w-0">
@@ -423,37 +480,43 @@ export const MilestoneManager = memo(function MilestoneManager({
                 />
               </div>
 
-              <div className="space-y-2 min-w-0">
-                <label className="text-xs font-bold text-muted-foreground ml-1">Final evidence photo</label>
-                <AnimatePresence mode="wait">
-                  {finalProofImage ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="relative aspect-video rounded-[24px] overflow-hidden border border-border/40 bg-muted shadow-inner group"
-                    >
-                      <Image
-                        src={finalProofImage.url}
-                        alt="Final Proof"
-                        fill
-                        sizes="(max-width: 768px) 100vw, 400px"
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button variant="destructive" size="sm" className="rounded-full h-9 px-4" onClick={() => setFinalProofImage(null)}>
-                          Change image
+              <div className="space-y-3 min-w-0">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Final Evidence Assets</label>
+                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{finalAssets.length} / 5</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {finalAssets.map((asset, i) => {
+                    const isPdf = asset.type === 'application/pdf';
+                    return (
+                      <div key={i} className="flex items-center justify-between p-3 bg-muted/20 border border-border/40 rounded-2xl group">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-8 w-8 rounded-xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/40 shrink-0">
+                            {isPdf ? <FileText className="h-4 w-4" /> : <Image src={asset.url} alt="" width={32} height={32} className="rounded-xl object-cover" />}
+                          </div>
+                          <p className="text-xs font-bold text-foreground truncate">{asset.name}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors shrink-0" onClick={() => removeFinalAsset(asset.key)}>
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-32">
-                      <ImageUploader
-                        label="Upload final result photo"
-                        onUploadComplete={(data) => setFinalProofImage({ key: data.key, url: data.previewUrl })}
-                      />
-                    </motion.div>
+                    );
+                  })}
+
+                  {finalAssets.length < 5 && (
+                    <label className={cn(
+                      "flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-border/60 rounded-2xl cursor-pointer bg-muted/5 hover:bg-muted/20 transition-all",
+                      isFinalizing && "opacity-50 cursor-wait pointer-events-none"
+                    )}>
+                      <div className="flex items-center justify-center gap-2">
+                        <UploadCloud className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-xs font-bold text-muted-foreground">Upload Image or PDF</span>
+                      </div>
+                      <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleAssetUpload} disabled={isFinalizing} />
+                    </label>
                   )}
-                </AnimatePresence>
+                </div>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2 pt-2 min-w-0">
