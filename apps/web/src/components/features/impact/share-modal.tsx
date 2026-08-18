@@ -7,33 +7,64 @@ import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import toast from 'react-hot-toast';
 import { usePostHog } from 'posthog-js/react';
+import { calculatePhaseFunding } from '@givar/types';
 
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
-  projectTitle: string;
-  projectSlug: string;
+  project?: any;
+  // Legacy props for backward compatibility during refactoring
+  projectTitle?: string;
+  projectSlug?: string;
   isFunded?: boolean;
 }
 
-export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTitle, projectSlug, isFunded = false }: ShareModalProps) {
+export const ShareModal = memo(function ShareModal({ isOpen, onClose, project, projectTitle, projectSlug, isFunded: legacyIsFunded = false }: ShareModalProps) {
   const posthog = usePostHog();
   const [copied, setCopied] = useState(false);
 
+  const title = project?.title || projectTitle || '';
+  const slug = project?.slug || projectSlug || '';
+
+  const phaseMath = project ? calculatePhaseFunding(project) : null;
+
+  const isSuspended = project?.status === 'SUSPENDED';
+  const isCompleted = phaseMath?.isCompleted || false;
+  const isFunded = phaseMath?.isFundedState || (!project && legacyIsFunded);
+  const isPhaseFull = phaseMath?.isPhaseFull || false;
+
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/explore/${projectSlug}`
+    ? `${window.location.origin}/explore/${slug}`
     : '';
 
-  // Dynamic share text based on the project's funding status
-  const shareText = isFunded
-    ? `The cause "${projectTitle}" has been successfully funded on Givar! Check out the incredible impact.`
-    : `Join me in supporting ${projectTitle} on Givar. It's transparent & impactful.`;
+  // Dynamic share text based on the project's funding and moderation status
+  let shareText = `Join me in supporting '${title}' on Givar. Transparent, verified, and direct impact.`;
+  let modalDesc = `Help us reach more donors by sharing this cause with your network.`;
+  let emailSubj = `Support ${title} on Givar`;
+  let emailBody = `Join me in supporting ${title} on Givar. It's transparent and impactful.`;
+
+  if (isSuspended) {
+    shareText = `Check out this cause on Givar: ${title}. Note: This cause is currently under administrative review.`;
+    modalDesc = `Share this cause to review the public ledger.`;
+    emailSubj = `Cause under review: ${title}`;
+    emailBody = `Check out the public ledger and updates for ${title} on Givar.`;
+  } else if (isCompleted) {
+    shareText = `Impact achieved! The cause '${title}' has been successfully executed and verified on Givar.`;
+    modalDesc = `Celebrate this verified impact by sharing with your network.`;
+    emailSubj = `Impact achieved for ${title}`;
+    emailBody = `See how ${title} was successfully executed and verified on Givar.`;
+  } else if (isFunded || isPhaseFull) {
+    shareText = `Goal reached! The current stage for '${title}' is fully funded on Givar. Track execution progress.`;
+    modalDesc = `Share this milestone as vendor execution begins.`;
+    emailSubj = `Goal reached for ${title}`;
+    emailBody = `The current stage for ${title} is fully funded! Track execution progress on Givar.`;
+  }
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     toast.success('Link copied');
-    posthog?.capture('project_shared', { platform: 'clipboard', project_slug: projectSlug });
+    posthog?.capture('project_shared', { platform: 'clipboard', project_slug: slug });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -43,7 +74,7 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
       case 'instagram':
         navigator.clipboard.writeText(shareUrl);
         toast.success('Link copied! Paste it in your Instagram bio or story.');
-        posthog?.capture('project_shared', { platform, project_slug: projectSlug });
+        posthog?.capture('project_shared', { platform, project_slug: slug });
         onClose();
         return; // Exit early as IG does not support web share URLs
       case 'facebook':
@@ -53,11 +84,11 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
         url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}&via=givarapp`;
         break;
       case 'email':
-        url = `mailto:?subject=${encodeURIComponent(isFunded ? `Impact achieved for ${projectTitle}` : `Check out ${projectTitle}`)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
+        url = `mailto:?subject=${encodeURIComponent(emailSubj)}&body=${encodeURIComponent(emailBody + '\n\n' + shareUrl)}`;
         break;
     }
 
-    posthog?.capture('project_shared', { platform, project_slug: projectSlug });
+    posthog?.capture('project_shared', { platform, project_slug: slug });
 
     if (url) {
       window.open(url, '_blank', 'width=600,height=400');
@@ -70,7 +101,7 @@ export const ShareModal = memo(function ShareModal({ isOpen, onClose, projectTit
       isOpen={isOpen}
       onClose={onClose}
       title="Share this cause"
-      description={isFunded ? "Celebrate this success by sharing the verified impact with your network." : "Help us reach more donors by sharing this project with your network."}
+      description={modalDesc}
     >
       <div className="space-y-5 pt-3">
 

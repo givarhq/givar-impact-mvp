@@ -122,7 +122,7 @@ export const InfiniteDiscoveryGrid = memo(function InfiniteDiscoveryGrid({
                 ) : null}
             </div>
 
-            <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} projectTitle={shareProject?.title || ''} projectSlug={shareProject?.slug || ''} />
+            <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} project={shareProject} />
         </div>
     );
 });

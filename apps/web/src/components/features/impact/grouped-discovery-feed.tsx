@@ -173,8 +173,7 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
             <ShareModal
                 isOpen={isShareOpen}
                 onClose={() => setIsShareOpen(false)}
-                projectTitle={shareProject?.title || ''}
-                projectSlug={shareProject?.slug || ''}
+                project={shareProject}
             />
         </div>
     );
