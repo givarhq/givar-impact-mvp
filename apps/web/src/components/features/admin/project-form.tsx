@@ -12,7 +12,7 @@ import {
   Loader2, Save, X, Image as ImageIcon, Video,
   Briefcase, MapPin, ShieldCheck, ExternalLink,
   LockOpen, Fingerprint, FileText, Send, Trash2,
-  Tag, Clock, Landmark
+  Tag, Clock, Landmark, CheckCircle2, RefreshCcw, Quote, AlertTriangle
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -21,11 +21,13 @@ import { RichTextEditor } from '../../ui/rich-text-editor';
 import { ApiService } from '../../../services/api';
 import { BudgetEditor } from '../proposals/budget-editor';
 import { MediaManager, ImageUploader, VideoUploader } from '../proposals/media-uploader';
-import { formatNumberInput, parseFormattedNumber, toTitleCase, toSentenceCase } from '../../../lib/utils/format';
+import { formatNumberInput, parseFormattedNumber, toTitleCase, toSentenceCase, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Textarea } from '../../ui/textarea';
-import { Card } from '../../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
+import { Badge } from '../../ui/badge';
 
 const mediaItemSchema = z.object({
   id: z.string(),
@@ -83,12 +85,25 @@ interface ProjectFormProps {
   categories: any[];
 }
 
+const sanitizeHtml = (html: string): string => {
+  if (!html) return '';
+  let decoded = html.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  return decoded
+    .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, '')
+    .replace(/on\w+\s*=\s*"(?:[^"]*)"/gi, '')
+    .replace(/on\w+\s*=\s*'(?:[^']*)'/gi, '')
+    .replace(/on\w+\s*=\s*([^"\s>]+)/gi, '')
+    .replace(/href\s*=\s*"(javascript:[^"]*)"/gi, '')
+    .replace(/href\s*=\s*'(javascript:[^']*)'/gi, '');
+};
+
 export const AdminProjectForm = memo(function AdminProjectForm({ initialData, categories }: ProjectFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
   const applyParamConsumed = useRef(false);
 
@@ -336,6 +351,19 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
   const handleStartEditing = () => {
     setIsEditing(true);
+  };
+
+  const handleViewAsset = (url: string, title: string) => {
+    const isPdf = url.toLowerCase().includes('.pdf') || url.toLowerCase().includes('.doc');
+    if (isPdf) {
+      window.open(url, '_blank');
+    } else {
+      setLightboxState({ isOpen: true, items: [{ url, type: 'IMAGE', alt: title }], index: 0 });
+    }
+  };
+
+  const formatUpdateType = (type: string) => {
+    return type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
   };
 
   const handleBlurTitle = () => { if (titleValue) setValue('title', toTitleCase(titleValue), { shouldDirty: true }); };
@@ -642,6 +670,110 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         />
       </Card>
 
+      {/* Updates / Final Reports Viewer */}
+      {initialData?.updates && initialData.updates.length > 0 && (
+        <section className="bg-card p-6 md:p-10 rounded-3xl border border-border/40 shadow-sm space-y-8">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center shadow-inner shrink-0 border border-emerald-500/20 text-emerald-600">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-base text-foreground leading-none">Project Updates</h3>
+              <p className="text-xs text-muted-foreground font-medium mt-1.5 tracking-tight">Recorded milestones and final achievements</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {initialData.updates.map((update: any, idx: number) => {
+              const isAdjustment = update.type === 'GOAL_ADJUSTMENT' || update.title === 'Financial Goal Adjusted';
+              const isImpact = update.type === 'IMPACT_ACHIEVED';
+
+              const updateAssets = update.assets && update.assets.length > 0 ? update.assets : (update.imageUrl ? [update.imageUrl] : []);
+
+              return (
+                <Card
+                  key={idx}
+                  className={cn(
+                    "relative flex flex-col gap-4 p-5 md:p-6 rounded-3xl border shadow-sm transition-all",
+                    isAdjustment ? "bg-amber-50 border-amber-100" : isImpact ? "bg-emerald-50 border-emerald-100" : "bg-card border-border/40"
+                  )}
+                >
+                  {updateAssets.length > 0 && (
+                    <div className={cn("grid gap-3", updateAssets.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+                      {updateAssets.map((assetUrl: string, assetIdx: number) => {
+                        const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
+                        return (
+                          <div
+                            key={assetIdx}
+                            className={cn(
+                              "relative rounded-2xl overflow-hidden shadow-inner cursor-pointer group hover:shadow-md transition-all",
+                              isAdjustment ? "bg-amber-500/5 border border-amber-500/20" : "bg-muted border border-border/10",
+                              updateAssets.length === 1 && !isPdf ? (isAdjustment ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-[21/9]") : "aspect-square"
+                            )}
+                            onClick={() => handleViewAsset(assetUrl, update.title)}
+                          >
+                            {isPdf ? (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-background/50">
+                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2 group-hover:scale-110 transition-transform shadow-sm">
+                                  <FileText className="h-6 w-6" />
+                                </div>
+                                <p className="text-[11px] font-bold text-foreground text-center px-2 truncate w-full">View Document</p>
+                              </div>
+                            ) : (
+                              <Image
+                                src={assetUrl}
+                                alt={update.title}
+                                fill
+                                sizes="(max-width: 1024px) 100vw, 66vw"
+                                className={cn("transition-transform duration-700", isAdjustment ? "object-contain p-4 group-hover:scale-105" : "object-cover hover:scale-105")}
+                              />
+                            )}
+                            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                              {isAdjustment ? (
+                                <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md border border-border/40 text-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+                                  <FileText className="h-3 w-3" /> View invoice
+                                </div>
+                              ) : (
+                                <ExternalLink className="h-6 w-6 text-white drop-shadow-md" />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold border-none",
+                          isAdjustment ? "bg-amber-500/10 text-amber-700" :
+                            isImpact ? "bg-emerald-500/10 text-emerald-700" :
+                              "bg-primary/10 text-primary")}>
+                          {isAdjustment ? 'Amendment' : formatUpdateType(update.type)}
+                        </Badge>
+                        <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
+                        </span>
+                      </div>
+                      <h4 className={cn("text-lg font-bold", isAdjustment ? "text-amber-900" : isImpact ? "text-emerald-900" : "text-foreground")}>{update.title}</h4>
+                    </div>
+                    {isAdjustment && <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />}
+                    {isImpact && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
+                  </div>
+
+                  <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/80" : isImpact ? "text-emerald-900/80" : "text-muted-foreground")}>{update.content}</p>
+
+                  <div className="pt-4 border-t border-border/40 text-[10px] font-bold text-muted-foreground flex items-center gap-1.5">
+                    <ShieldCheck className={cn("h-3 w-3", isImpact ? "text-emerald-600" : "text-primary")} /> Verified entry
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Control Terminal Bar */}
       {(isEditing || !initialData) && (
         <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-4 md:p-5 bg-background/90 backdrop-blur-2xl border-t border-border/40 z-50 shadow-2xl">
@@ -698,6 +830,13 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           </Button>
         </div>
       )}
+
+      <ImageLightbox
+        isOpen={lightboxState.isOpen}
+        onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+        items={lightboxState.items}
+        initialIndex={lightboxState.index}
+      />
     </div>
   );
 });

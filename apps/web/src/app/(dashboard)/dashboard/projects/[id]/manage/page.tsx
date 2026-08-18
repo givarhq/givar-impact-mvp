@@ -138,6 +138,11 @@ export default async function ProjectManagePage({
         orgName = project.user.organization.legalName;
     }
 
+    // Safely extract final report assets
+    const finalAssets = finalReport?.assets && finalReport.assets.length > 0
+        ? finalReport.assets
+        : (finalReport?.imageUrl ? [finalReport.imageUrl] : []);
+
     return (
         <div className="w-full min-w-0 space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-24">
 
@@ -177,16 +182,41 @@ export default async function ProjectManagePage({
                                 <CardTitle className="text-sm font-bold text-emerald-800 truncate">Final impact report</CardTitle>
                             </CardHeader>
                             <CardContent className="p-6 md:p-8 space-y-6 min-w-0">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center min-w-0">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start min-w-0">
                                     <div className="space-y-3 min-w-0">
                                         <h4 className="text-lg font-bold text-emerald-950 leading-tight break-words">{finalReport.title}</h4>
                                         <p className="text-sm text-emerald-900/80 font-medium leading-relaxed break-words">
                                             {finalReport.content}
                                         </p>
                                     </div>
-                                    {finalReport.imageUrl && (
-                                        <div className="relative aspect-video rounded-2xl overflow-hidden border-emerald-500/20 shadow-md min-w-0">
-                                            <Image src={finalReport.imageUrl} alt="Impact" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
+                                    {finalAssets.length > 0 && (
+                                        <div className={cn("grid gap-3", finalAssets.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+                                            {finalAssets.map((assetUrl: string, idx: number) => {
+                                                const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
+                                                return (
+                                                    <a
+                                                        key={idx}
+                                                        href={assetUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={cn(
+                                                            "relative rounded-2xl overflow-hidden border border-emerald-500/20 shadow-md bg-muted cursor-pointer group hover:shadow-lg transition-all",
+                                                            finalAssets.length === 1 && !isPdf ? "aspect-video" : "aspect-square"
+                                                        )}
+                                                    >
+                                                        {isPdf ? (
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-emerald-50/50">
+                                                                <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 mb-2 group-hover:scale-110 transition-transform shadow-sm">
+                                                                    <FileText className="h-6 w-6" />
+                                                                </div>
+                                                                <p className="text-[11px] font-bold text-emerald-800 text-center px-2">View Document</p>
+                                                            </div>
+                                                        ) : (
+                                                            <Image src={assetUrl} alt="Impact" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                                                        )}
+                                                    </a>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>
@@ -228,20 +258,55 @@ export default async function ProjectManagePage({
                                 <h4 className="text-sm font-bold text-foreground truncate">Project updates</h4>
                             </div>
                             <div className="grid gap-3 min-w-0">
-                                {otherUpdates.map((update) => (
-                                    <Card key={update.id} className="rounded-3xl border-border/40 bg-card p-5 shadow-sm min-w-0">
-                                        <div className="flex justify-between items-start gap-4 min-w-0">
-                                            <div className="space-y-1 min-w-0 flex-1">
-                                                <Badge variant="secondary" className="text-[10px] font-bold rounded-3xl bg-muted border-none mb-1">
-                                                    {update.type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}
-                                                </Badge>
-                                                <h5 className="text-sm font-bold text-foreground truncate">{update.title}</h5>
-                                                <p className="text-sm text-muted-foreground font-medium leading-relaxed break-words">{update.content}</p>
+                                {otherUpdates.map((update) => {
+                                    const isAdjustment = update.type === 'GOAL_ADJUSTMENT' || update.title === 'Financial Goal Adjusted';
+                                    const updateAssets = update.assets && update.assets.length > 0 ? update.assets : (update.imageUrl ? [update.imageUrl] : []);
+
+                                    return (
+                                        <Card key={update.id} className={cn("rounded-3xl border-border/40 bg-card p-5 shadow-sm min-w-0", isAdjustment && "bg-amber-50 border-amber-100")}>
+                                            <div className="flex justify-between items-start gap-4 min-w-0">
+                                                <div className="space-y-1 min-w-0 flex-1">
+                                                    <Badge variant="secondary" className={cn("text-[10px] font-bold rounded-3xl border-none mb-1", isAdjustment ? "bg-amber-500/10 text-amber-700" : "bg-muted")}>
+                                                        {isAdjustment ? 'Amendment' : update.type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}
+                                                    </Badge>
+                                                    <h5 className="text-sm font-bold text-foreground truncate">{update.title}</h5>
+                                                    <p className="text-sm text-muted-foreground font-medium leading-relaxed break-words">{update.content}</p>
+
+                                                    {updateAssets.length > 0 && (
+                                                        <div className={cn("grid gap-2 mt-3", updateAssets.length === 1 ? "grid-cols-1 max-w-[240px]" : "grid-cols-2 max-w-md")}>
+                                                            {updateAssets.map((assetUrl: string, assetIdx: number) => {
+                                                                const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
+                                                                return (
+                                                                    <a
+                                                                        key={assetIdx}
+                                                                        href={assetUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className={cn(
+                                                                            "relative rounded-2xl overflow-hidden border shadow-sm bg-muted cursor-pointer group hover:shadow-md transition-all",
+                                                                            isAdjustment ? "border-amber-500/20" : "border-border/20",
+                                                                            updateAssets.length === 1 && !isPdf ? (isAdjustment ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-[21/9]") : "aspect-square"
+                                                                        )}
+                                                                    >
+                                                                        {isPdf ? (
+                                                                            <div className="absolute inset-0 flex flex-col items-center justify-center p-3 bg-background/50">
+                                                                                <FileText className="h-5 w-5 text-primary mb-1 group-hover:scale-110 transition-transform" />
+                                                                                <p className="text-[10px] font-bold text-foreground text-center truncate w-full">View Document</p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <Image src={assetUrl} alt="Update" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                                        )}
+                                                                    </a>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="text-[11px] font-bold text-muted-foreground whitespace-nowrap shrink-0">{formatDate(update.createdAt).split(',')[0]}</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-muted-foreground whitespace-nowrap shrink-0">{formatDate(update.createdAt).split(',')[0]}</span>
-                                        </div>
-                                    </Card>
-                                ))}
+                                        </Card>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
