@@ -1762,13 +1762,16 @@ export class AdminService {
     });
 
     if (project.user) {
-      this.emailService.sendOwnerMilestoneAlert(project.user.email, {
-        name: project.user.firstName,
-        project: project.title,
-        milestone: richStageName,
-        status: status.replace('_', ' '),
-        projectId
-      }).catch(err => this.logger.error(`Owner Milestone Email Failed: ${err.message}`));
+      // Suppress the owner alert for the last phase completion to prevent double emails to the organizer
+      if (!(status === 'COMPLETED' && isLastPhase)) {
+        this.emailService.sendOwnerMilestoneAlert(project.user.email, {
+          name: project.user.firstName,
+          project: project.title,
+          milestone: richStageName,
+          status: status.replace('_', ' '),
+          projectId
+        }).catch(err => this.logger.error(`Owner Milestone Email Failed: ${err.message}`));
+      }
     }
 
     if (status === 'COMPLETED' && previousStatus !== 'COMPLETED') {
@@ -1802,13 +1805,17 @@ export class AdminService {
         signedProofUrl = viewUrl;
       }
 
-      this.broadcastMilestoneUpdate(
-        projectId,
-        project.title,
-        project.slug,
-        richStageName,
-        signedProofUrl
-      ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
+      // ONLY broadcast to donors if this is NOT the final phase.
+      // If it is the final phase, they will get the comprehensive "Impact Achieved" email upon Finalization instead.
+      if (!isLastPhase) {
+        this.broadcastMilestoneUpdate(
+          projectId,
+          project.title,
+          project.slug,
+          richStageName,
+          signedProofUrl
+        ).catch(err => this.logger.error(`Broadcast failed: ${err.message}`));
+      }
 
       if (emailsToNotify.length > 0) {
         const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${project.slug}`;
