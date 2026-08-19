@@ -636,7 +636,7 @@ export class AdminService {
    * Finalizes a project, records the final impact achievement update, 
    * and dispatches the donor summary email.
    */
-  async finalizeProject(adminId: string, projectId: string, dto: { completionNote: string; imageUrl?: string; assets?: string[] }) {
+  async finalizeProject(adminId: string, projectId: string, dto: { publicImpactNote: string; donorUpdateMessage: string; imageUrl?: string; assets?: string[] }) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: { disbursements: true, user: true }
@@ -655,7 +655,7 @@ export class AdminService {
         data: {
           projectId,
           title: 'Impact Achieved',
-          content: dto.completionNote,
+          content: dto.publicImpactNote,
           type: 'IMPACT_ACHIEVED',
           imageUrl: dto.imageUrl || (dto.assets && dto.assets.length > 0 ? dto.assets[0] : null),
           assets: dto.assets || []
@@ -694,7 +694,7 @@ export class AdminService {
         ...userDonors
           .filter(d => (d.user?.preferences as any)?.milestoneUpdates !== false)
           .map(d => ({ email: d.user!.email, name: d.user!.firstName })),
-        ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Giver' })),
+        ...guestDonors.map(d => ({ email: d.guestDonor.email, name: d.guestDonor.name || 'Anonymous Supporter' })),
       ].filter((v, i, a) => a.findIndex(t => t.email === v.email) === i);
 
       const disbursementSummary = project.disbursements.map(d =>
@@ -719,7 +719,8 @@ export class AdminService {
             projectTitle: project.title,
             projectSlug: project.slug,
             mediaThumbnail: signedImageUrl,
-            disbursementSummary
+            disbursementSummary,
+            donorUpdateMessage: dto.donorUpdateMessage
           })
         )
       ).catch(err => this.logger.error('Final Impact Broadcast Failed', err));

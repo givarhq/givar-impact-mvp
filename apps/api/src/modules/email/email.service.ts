@@ -207,11 +207,11 @@ export class EmailService {
   }
 
   // 15. Impact Achieved Alert (To Donors)
-  async sendImpactAchievedDonorAlert(email: string, data: { name: string; projectTitle: string; projectSlug: string; mediaThumbnail?: string; disbursementSummary?: string }) {
+  async sendImpactAchievedDonorAlert(email: string, data: { name: string; projectTitle: string; projectSlug: string; mediaThumbnail?: string; disbursementSummary?: string; donorUpdateMessage: string }) {
     const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${data.projectSlug}`;
     const content = EmailTemplates.impactAchievedDonor({ ...data, projectUrl });
-    const html = EmailTemplates.base(content, 'Impact Successfully Achieved');
-    return this.send(email, `Givar: Mission Accomplished for ${data.projectTitle}!`, html);
+    const html = EmailTemplates.base(content, 'Impact Achieved');
+    return this.send(email, `Givar: Impact Achieved for "${data.projectTitle}"!`, html);
   }
 
   // 16. Dispatches a friendly notification when an Admin leaves feedback.

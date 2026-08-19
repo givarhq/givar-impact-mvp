@@ -353,12 +353,12 @@ export const EmailTemplates = {
     <p style="font-size: 14px; color: #6b7280;">Thank you for your generosity and for being part of this impact journey.</p>
   `,
 
-  impactAchievedDonor: (data: { name: string; projectTitle: string; projectUrl: string; mediaThumbnail?: string; disbursementSummary?: string }) => `
+  impactAchievedDonor: (data: { name: string; projectTitle: string; projectUrl: string; mediaThumbnail?: string; disbursementSummary?: string; donorUpdateMessage: string }) => `
     <p>Hi ${data.name},</p>
-    <p>We are thrilled to announce that the impact you supported has been fully realized!</p>
+    <p style="white-space: pre-wrap; margin-bottom: 24px;">${data.donorUpdateMessage}</p>
     
     <div class="stat-box" style="text-align: center; background-color: #f0fdf4; border-color: #bbf7d0;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Impact Achieved</div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">CAUSE COMPLETED</div>
       <div style="font-size: 24px; font-weight: 800; color: #064e3b; line-height: 1.3;">${data.projectTitle}</div>
     </div>
 
@@ -368,7 +368,7 @@ export const EmailTemplates = {
       </div>
     ` : ''}
 
-    <p>Thank you for making this possible. All cause milestones are now verified and finalized on the Givar immutable ledger.</p>
+    <p>In keeping with our commitment to transparency, the final outcome and supporting evidence have been verified and recorded on the Givar public ledger.</p>
 
     ${data.disbursementSummary ? `
       <div style="margin: 24px 0; padding: 20px; border-radius: 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; font-size: 13px; color: #475569;">
