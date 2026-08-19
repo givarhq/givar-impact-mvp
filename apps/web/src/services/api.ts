@@ -367,7 +367,7 @@ export const ApiService = {
       apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
 
     // Endpoint to finalize a project and trigger donor notifications
-    finalizeProject: (id: string, data: { completionNote: string; imageUrl?: string; assets?: string[] }) =>
+    finalizeProject: (id: string, data: { publicImpactNote: string; donorUpdateMessage: string; imageUrl?: string; assets?: string[] }) =>
       apiClient.post(`/admin/projects/${id}/finalize`, data).then(r => r.data),
 
     getAuditLogs: (token: string, params: URLSearchParams) =>

@@ -62,7 +62,8 @@ export const MilestoneManager = memo(function MilestoneManager({
   // Finalization States
   const [showFinalizeModal, setShowFinalizeModal] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const [completionNote, setCompletionNote] = useState('');
+  const [publicImpactNote, setPublicImpactNote] = useState('');
+  const [donorUpdateMessage, setDonorUpdateMessage] = useState('');
   const [finalAssets, setFinalAssets] = useState<{ key: string; url: string; name: string; type: string }[]>([]);
 
   const isFullyCompleted = timeline.length > 0 && timeline.every(m => m.status === 'COMPLETED');
@@ -172,22 +173,24 @@ export const MilestoneManager = memo(function MilestoneManager({
   };
 
   const handleFinalizeProject = async () => {
-    if (!completionNote.trim()) {
-      toast.error("Please provide a final completion note");
+    if (!publicImpactNote.trim() || !donorUpdateMessage.trim()) {
+      toast.error("Please provide both the public impact note and the donor update message.");
       return;
     }
     setIsFinalizing(true);
     const toastId = toast.loading("Finalizing project and notifying donors...");
     try {
       await ApiService.admin.finalizeProject(projectId, {
-        completionNote: completionNote.trim(),
+        publicImpactNote: publicImpactNote.trim(),
+        donorUpdateMessage: donorUpdateMessage.trim(),
         assets: finalAssets.map(a => a.key),
         imageUrl: finalAssets.find(a => a.type.startsWith('image/'))?.key
       });
       toast.success("Project officially marked as completed", { id: toastId });
       setShowFinalizeModal(false);
       setFinalAssets([]);
-      setCompletionNote('');
+      setPublicImpactNote('');
+      setDonorUpdateMessage('');
       router.refresh();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to finalize project", { id: toastId });
@@ -473,11 +476,22 @@ export const MilestoneManager = memo(function MilestoneManager({
                 </p>
 
                 <div className="space-y-2 min-w-0">
-                  <label className="text-xs font-bold text-muted-foreground ml-1">Final impact note</label>
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Public impact note</label>
                   <Textarea
-                    placeholder="Summarize the final results and express gratitude to the donors..."
-                    value={completionNote}
-                    onChange={(e) => setCompletionNote(e.target.value)}
+                    placeholder="Summarize the final results for the public ledger page..."
+                    value={publicImpactNote}
+                    onChange={(e) => setPublicImpactNote(e.target.value)}
+                    className="min-h-[80px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none text-sm"
+                    disabled={isFinalizing}
+                  />
+                </div>
+
+                <div className="space-y-2 min-w-0">
+                  <label className="text-xs font-bold text-muted-foreground ml-1">Donor update message (Email)</label>
+                  <Textarea
+                    placeholder="Write a personalized update that will be emailed directly to the donors..."
+                    value={donorUpdateMessage}
+                    onChange={(e) => setDonorUpdateMessage(e.target.value)}
                     className="min-h-[100px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background resize-none text-sm"
                     disabled={isFinalizing}
                   />
@@ -526,7 +540,7 @@ export const MilestoneManager = memo(function MilestoneManager({
                   <Button
                     className="w-full sm:flex-1 h-12 rounded-3xl font-bold text-sm shadow-xl shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-[0.98] min-w-0 truncate"
                     onClick={handleFinalizeProject}
-                    disabled={isFinalizing || !completionNote.trim()}
+                    disabled={isFinalizing || !publicImpactNote.trim() || !donorUpdateMessage.trim()}
                   >
                     {isFinalizing ? <Loader2 className="h-5 w-5 animate-spin mx-auto" /> : <><Send className="h-4 w-4 mr-2 hidden sm:inline-block" /> Mark completed</>}
                   </Button>

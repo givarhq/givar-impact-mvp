@@ -28,8 +28,7 @@ export const ProjectCard = memo(function ProjectCard({
     totalPercent
   } = phaseMath;
 
-  const isMedical = project.categoryName?.toLowerCase() === 'medical';
-  const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
+  const completedText = 'Cause Completed';
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 

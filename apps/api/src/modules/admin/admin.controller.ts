@@ -123,7 +123,7 @@ export class AdminController {
   finalizeProject(
     @Req() req: any,
     @Param('id') id: string,
-    @Body() dto: { completionNote: string; imageUrl?: string }
+    @Body() dto: { publicImpactNote: string; donorUpdateMessage: string; imageUrl?: string; assets?: string[] }
   ) {
     return this.service.finalizeProject(req.user.id, id, dto);
   }

@@ -97,8 +97,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const raised = Number(project.raisedAmount || 0);
     const target = Number(project.targetAmount || 0);
 
-    const isMedical = project.category?.name?.toLowerCase() === 'medical' || project.categoryName?.toLowerCase() === 'medical';
-    const completedText = isMedical ? 'Treatment Completed' : 'Impact Achieved';
+    const completedText = 'Cause Completed';
 
     const finalReport = project.updates?.find(u => u.type === 'IMPACT_ACHIEVED' || u.type === 'IMPACT_REPORT');
     const otherUpdates = project.updates?.filter(u => u.type !== 'IMPACT_ACHIEVED') || [];
@@ -596,6 +595,22 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     <TransparencyCard project={project} />
 
                     <div className="space-y-3">
+                        {budget.length > 1 && (
+                            <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5">
+                                        <ShieldCheck className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Funding</h4>
+                                        <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
+                                            This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
+                                        </p>
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+
                         <div className="hidden md:block space-y-3">
                             {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') && (
                                 <Link href={donateLink} className="block w-full">
