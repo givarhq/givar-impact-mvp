@@ -53,7 +53,7 @@ const steps = [
     }
 ];
 
-export function HowItWorksContent() {
+export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
     return (
         <div className="relative w-full pb-16 overflow-hidden bg-background">
             {/* Background Accents */}
@@ -182,36 +182,38 @@ export function HowItWorksContent() {
                     </div>
                 </motion.div>
 
-                {/* Bottom CTA Action */}
-                <motion.section
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4 }}
-                    className="mt-12 md:mt-16 mb-4 text-center max-w-xl mx-auto space-y-5 relative z-10"
-                >
-                    <div className="space-y-1.5">
-                        <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
-                            Ready to make a difference?
-                        </h2>
-                        <p className="text-xs md:text-sm text-muted-foreground font-medium">
-                            Join thousands of people creating real impact with Givar.
-                        </p>
-                    </div>
+                {/* Bottom CTA Action - Only show if not logged in */}
+                {!isAuthenticated && (
+                    <motion.section
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4 }}
+                        className="mt-12 md:mt-16 mb-4 text-center max-w-xl mx-auto space-y-5 relative z-10"
+                    >
+                        <div className="space-y-1.5">
+                            <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
+                                Ready to make a difference?
+                            </h2>
+                            <p className="text-xs md:text-sm text-muted-foreground font-medium">
+                                Join thousands of people creating real impact with Givar.
+                            </p>
+                        </div>
 
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
-                        <Link href="/explore" className="w-full sm:w-auto">
-                            <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-8 shadow-md active:scale-95 transition-all border-0 text-sm">
-                                Explore Causes <ArrowRight className="ml-1.5 h-4 w-4" />
-                            </Button>
-                        </Link>
-                        <Link href="/signup" className="w-full sm:w-auto">
-                            <Button variant="outline" className="w-full h-11 rounded-full bg-card hover:bg-muted text-foreground font-bold px-8 border-border/60 shadow-sm active:scale-95 transition-all text-sm">
-                                Create Account
-                            </Button>
-                        </Link>
-                    </div>
-                </motion.section>
+                        <div className="flex flex-col sm:flex-row justify-center items-center gap-3 pt-2">
+                            <Link href="/explore" className="w-full sm:w-auto">
+                                <Button className="w-full h-11 rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-8 shadow-md active:scale-95 transition-all border-0 text-sm">
+                                    Explore Causes <ArrowRight className="ml-1.5 h-4 w-4" />
+                                </Button>
+                            </Link>
+                            <Link href="/signup" className="w-full sm:w-auto">
+                                <Button variant="outline" className="w-full h-11 rounded-full bg-card hover:bg-muted text-foreground font-bold px-8 border-border/60 shadow-sm active:scale-95 transition-all text-sm">
+                                    Create Account
+                                </Button>
+                            </Link>
+                        </div>
+                    </motion.section>
+                )}
 
             </div>
         </div>
