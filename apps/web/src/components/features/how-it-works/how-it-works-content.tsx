@@ -80,13 +80,14 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.1]">
                         Transparent Impact. <span className="text-primary">Every Step.</span>
                     </h1>
-                    <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto pt-1">
-                        We make giving simple, accountable, and meaningful. Here's how your support creates real change.
-                    </p>
+                    <div className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto pt-1 space-y-1">
+                        <p>We make giving simple, accountable, and meaningful.</p>
+                        <p>Here's how your support creates real change.</p>
+                    </div>
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-16 md:mt-20">
+                <div className="relative mt-10 md:mt-14">
                     {/* Playfully Wavy Connecting Dotted Line (Desktop Only) */}
                     <div className="absolute top-0 left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
                         <svg width="100%" height="100%" viewBox="0 0 1000 32" preserveAspectRatio="none" className="overflow-visible">
