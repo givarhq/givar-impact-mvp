@@ -66,7 +66,8 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 />
             </div>
 
-            <div className="container mx-auto px-4 pt-6 pb-12 md:pt-10 max-w-[1400px] relative z-10">
+            {/* Removed top padding (pt-6 md:pt-10) entirely to align with the PublicLayout padding */}
+            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-0">
                 {/* Header Section */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
@@ -87,7 +88,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-10 md:mt-14">
+                <div className="relative mt-16 md:mt-20">
                     {/* Playfully Wavy Connecting Dotted Line (Desktop Only) */}
                     <div className="absolute top-0 left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
                         <svg width="100%" height="100%" viewBox="0 0 1000 32" preserveAspectRatio="none" className="overflow-visible">
