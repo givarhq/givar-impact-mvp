@@ -118,7 +118,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 </div>
 
                                 {/* Image Card */}
-                                <div className="relative w-full aspect-[1/1.1] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40 mt-6">
+                                <div className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40 mt-6">
                                     <Image
                                         src={step.img}
                                         alt={step.title}
