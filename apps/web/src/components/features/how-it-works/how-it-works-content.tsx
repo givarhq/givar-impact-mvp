@@ -87,9 +87,10 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-12 md:mt-16">
-                    {/* Playfully Wavy Connecting Dotted Line (Desktop Only) */}
-                    <div className="absolute top-0 left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
+                <div className="relative mt-10 md:mt-12">
+                    {/* Playfully Wavy Connecting Dotted Line (Desktop Only) 
+                        Positioned exactly at top: 32px to mathematically intersect the center of the icons */}
+                    <div className="absolute top-[32px] left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
                         <svg width="100%" height="100%" viewBox="0 0 1000 32" preserveAspectRatio="none" className="overflow-visible">
                             <path
                                 d="M 0,16 C 166,46 166,-14 333,16 C 500,46 500,-14 666,16 C 833,46 833,-14 1000,16"
@@ -102,7 +103,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                         </svg>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
@@ -110,31 +111,32 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="relative flex flex-col items-center text-center group"
+                                className="relative flex flex-col items-center text-center group w-full"
                             >
-                                {/* Floating Icon resting precisely inside the cutout */}
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-12 w-12 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
-                                    <step.icon className="h-5 w-5" />
-                                </div>
+                                {/* Wrapper for Image and Icon to share exact coordinate plane */}
+                                <div className="relative w-full mt-8 mb-5">
+                                    {/* Image Card with Smooth CSS Mask Cutout */}
+                                    <div
+                                        className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted shadow-sm border border-border/40"
+                                        style={{
+                                            WebkitMaskImage: 'radial-gradient(circle at 50% 0%, transparent 36px, black 38px)',
+                                            maskImage: 'radial-gradient(circle at 50% 0%, transparent 36px, black 38px)'
+                                        }}
+                                    >
+                                        <Image
+                                            src={step.img}
+                                            alt={step.title}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                        />
+                                        <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
+                                    </div>
 
-                                {/* Image Card with CSS Mask for the Magic Cutout */}
-                                <div
-                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
-                                    style={{
-                                        // Cuts a perfect 32px radius circle exactly at the top-center edge
-                                        WebkitMaskImage: 'radial-gradient(circle at 50% 0%, transparent 32px, black 33px)',
-                                        maskImage: 'radial-gradient(circle at 50% 0%, transparent 32px, black 33px)'
-                                    }}
-                                >
-                                    <Image
-                                        src={step.img}
-                                        alt={step.title}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                    />
-                                    {/* Inner shadow overlay for depth */}
-                                    <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
+                                    {/* Floating Icon - Centered perfectly to match the 36px radial cutout radius */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-14 w-14 bg-card rounded-full border border-border/60 shadow-xl flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
+                                        <step.icon className="h-6 w-6" />
+                                    </div>
                                 </div>
 
                                 {/* Text Content */}
