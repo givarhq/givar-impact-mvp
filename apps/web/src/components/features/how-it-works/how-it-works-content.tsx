@@ -56,6 +56,31 @@ const steps = [
 export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
     return (
         <div className="relative w-full pb-16 overflow-hidden bg-background">
+            {/* SVG Mask Definition for the Smooth Notch */}
+            <svg width="0" height="0" className="absolute pointer-events-none">
+                <defs>
+                    <mask id="smooth-notch">
+                        {/* 1. Fill the entire card with white (visible) */}
+                        <rect width="100%" height="100%" fill="white" />
+                        {/* 2. Subtract the perfectly rounded notch at the top center in black (invisible) */}
+                        <svg x="50%" y="0" overflow="visible">
+                            <path
+                                d="M -52 -10 
+                                   L -52 0 
+                                   L -38 0 
+                                   C -28 0, -25 6, -20 16 
+                                   C -12 34, -4 40, 0 40 
+                                   C 4 40, 12 34, 20 16 
+                                   C 25 6, 28 0, 38 0 
+                                   L 52 0 
+                                   L 52 -10 Z"
+                                fill="black"
+                            />
+                        </svg>
+                    </mask>
+                </defs>
+            </svg>
+
             {/* Background Accents */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
@@ -88,9 +113,8 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
 
                 {/* Steps Grid */}
                 <div className="relative mt-10 md:mt-12">
-                    {/* Playfully Wavy Connecting Dotted Line (Desktop Only) 
-                        Positioned exactly at top: 32px to mathematically intersect the center of the icons */}
-                    <div className="absolute top-[32px] left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
+                    {/* Playfully Wavy Connecting Dotted Line (Desktop Only) */}
+                    <div className="absolute top-0 left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
                         <svg width="100%" height="100%" viewBox="0 0 1000 32" preserveAspectRatio="none" className="overflow-visible">
                             <path
                                 d="M 0,16 C 166,46 166,-14 333,16 C 500,46 500,-14 666,16 C 833,46 833,-14 1000,16"
@@ -111,36 +135,34 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="relative flex flex-col items-center text-center group w-full"
+                                className="relative flex flex-col items-center text-center group"
                             >
-                                {/* Wrapper for Image and Icon to share exact coordinate plane */}
-                                <div className="relative w-full mt-8 mb-5">
-                                    {/* Image Card with Smooth CSS Mask Cutout */}
-                                    <div
-                                        className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted shadow-sm border border-border/40"
-                                        style={{
-                                            WebkitMaskImage: 'radial-gradient(circle at 50% 0%, transparent 36px, black 38px)',
-                                            maskImage: 'radial-gradient(circle at 50% 0%, transparent 36px, black 38px)'
-                                        }}
-                                    >
-                                        <Image
-                                            src={step.img}
-                                            alt={step.title}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                        <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
-                                    </div>
+                                {/* Floating Icon perfectly cradled in the cutout */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-12 w-12 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
+                                    <step.icon className="h-5 w-5" />
+                                </div>
 
-                                    {/* Floating Icon - Centered perfectly to match the 36px radial cutout radius */}
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-14 w-14 bg-card rounded-full border border-border/60 shadow-xl flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
-                                        <step.icon className="h-6 w-6" />
-                                    </div>
+                                {/* Image Card with Smooth Notch Mask */}
+                                <div
+                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
+                                    style={{
+                                        WebkitMaskImage: 'url(#smooth-notch)',
+                                        maskImage: 'url(#smooth-notch)'
+                                    }}
+                                >
+                                    <Image
+                                        src={step.img}
+                                        alt={step.title}
+                                        fill
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                    />
+                                    {/* Inner shadow overlay for depth */}
+                                    <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
                                 </div>
 
                                 {/* Text Content */}
-                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">
+                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2 px-1">
                                     {step.num}. {step.title}
                                 </h3>
                                 <p className="text-[13px] md:text-sm text-muted-foreground font-medium leading-snug mb-5 flex-1 px-1">
