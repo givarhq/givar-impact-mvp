@@ -56,31 +56,6 @@ const steps = [
 export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
     return (
         <div className="relative w-full pb-16 overflow-hidden bg-background">
-            {/* SVG Mask Definition for the Smooth Notch */}
-            <svg width="0" height="0" className="absolute pointer-events-none">
-                <defs>
-                    <mask id="smooth-notch">
-                        {/* 1. Fill the entire card with white (visible) */}
-                        <rect width="100%" height="100%" fill="white" />
-                        {/* 2. Subtract the perfectly rounded notch at the top center in black (invisible) */}
-                        <svg x="50%" y="0" overflow="visible">
-                            <path
-                                d="M -52 -10 
-                                   L -52 0 
-                                   L -38 0 
-                                   C -28 0, -25 6, -20 16 
-                                   C -12 34, -4 40, 0 40 
-                                   C 4 40, 12 34, 20 16 
-                                   C 25 6, 28 0, 38 0 
-                                   L 52 0 
-                                   L 52 -10 Z"
-                                fill="black"
-                            />
-                        </svg>
-                    </mask>
-                </defs>
-            </svg>
-
             {/* Background Accents */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
@@ -112,7 +87,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-10 md:mt-12">
+                <div className="relative mt-12 md:mt-16">
                     {/* Playfully Wavy Connecting Dotted Line (Desktop Only) */}
                     <div className="absolute top-0 left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
                         <svg width="100%" height="100%" viewBox="0 0 1000 32" preserveAspectRatio="none" className="overflow-visible">
@@ -127,7 +102,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                         </svg>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-4">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
@@ -137,17 +112,18 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="relative flex flex-col items-center text-center group"
                             >
-                                {/* Floating Icon perfectly cradled in the cutout */}
+                                {/* Floating Icon resting precisely inside the cutout */}
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-12 w-12 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
                                     <step.icon className="h-5 w-5" />
                                 </div>
 
-                                {/* Image Card with Smooth Notch Mask */}
+                                {/* Image Card with CSS Mask for the Magic Cutout */}
                                 <div
                                     className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
                                     style={{
-                                        WebkitMaskImage: 'url(#smooth-notch)',
-                                        maskImage: 'url(#smooth-notch)'
+                                        // Cuts a perfect 32px radius circle exactly at the top-center edge
+                                        WebkitMaskImage: 'radial-gradient(circle at 50% 0%, transparent 32px, black 33px)',
+                                        maskImage: 'radial-gradient(circle at 50% 0%, transparent 32px, black 33px)'
                                     }}
                                 >
                                     <Image
@@ -162,7 +138,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 </div>
 
                                 {/* Text Content */}
-                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2 px-1">
+                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">
                                     {step.num}. {step.title}
                                 </h3>
                                 <p className="text-[13px] md:text-sm text-muted-foreground font-medium leading-snug mb-5 flex-1 px-1">
