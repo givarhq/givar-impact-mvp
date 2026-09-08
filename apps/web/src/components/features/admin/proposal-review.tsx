@@ -349,24 +349,24 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="grid grid-cols-1 md:grid-cols-2">
-                                <div className="relative aspect-video bg-black md:border-r border-border/40 overflow-hidden">
+                                <div className="relative w-full min-h-[250px] bg-muted/10 md:border-r border-border/40 overflow-hidden flex items-center justify-center">
                                     {proposal.videoUrl ? (
                                         <video
                                             src={proposal.videoUrl}
                                             controls
-                                            className="w-full h-full object-contain"
+                                            className="w-full h-auto max-h-[400px] object-contain"
                                             poster={proposal.coverImage || undefined}
                                         />
                                     ) : proposal.coverImage ? (
                                         <Image
                                             src={proposal.coverImage}
                                             alt="Hero"
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 600px"
-                                            className="object-cover"
+                                            width={800}
+                                            height={600}
+                                            className="w-full h-auto max-h-[400px] object-contain"
                                         />
                                     ) : (
-                                        <div className="flex items-center justify-center h-full text-muted-foreground/30 text-xs font-bold">Pending media</div>
+                                        <div className="flex items-center justify-center h-full text-muted-foreground/30 text-xs font-bold py-12">Pending media</div>
                                     )}
                                 </div>
                                 <div className="p-6 flex flex-col justify-center bg-card/50">
