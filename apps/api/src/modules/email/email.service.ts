@@ -153,7 +153,13 @@ export class EmailService {
 
   // 10. Cause Status (Approval/Rejection/Changes)
   async sendProposalStatusUpdate(email: string, data: { name: string; project: string; status: string; feedback?: string }) {
-    const url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
+    let url = `${this.config.get('FRONTEND_URL')}/dashboard/proposals`;
+
+    // Automatically route users straight to the drafts tab if action is required
+    if (data.status === 'CHANGES REQUESTED' || data.status === 'REJECTED') {
+      url += '?tab=drafts';
+    }
+
     const content = EmailTemplates.proposalStatusUpdate({ ...data, url });
     // Enforce standardized bold header for cause updates
     const html = EmailTemplates.base(content, 'Update on Your Cause');

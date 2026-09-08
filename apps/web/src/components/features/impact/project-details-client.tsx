@@ -269,554 +269,555 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 </AnimatePresence>
 
                 <div className="space-y-3">
-                    {(project as any).videoUrl ? (
-                        <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-black shadow-sm">
-                            <video
-                                src={(project as any).videoUrl}
-                                controls
-                                className="w-full h-full object-contain"
-                                poster={project.imageUrl}
-                            />
-                        </div>
-                    ) : (
-                        <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-muted shadow-sm">
-                            {project.imageUrl ? (
-                                <Image
-                                    src={project.imageUrl}
-                                    alt={project.title}
-                                    fill
-                                    sizes="(max-width: 1024px) 100vw, 66vw"
-                                    className="object-cover"
-                                    priority
+                    <div className="space-y-3">
+                        {(project as any).videoUrl ? (
+                            <div className="relative aspect-video w-full rounded-3xl overflow-hidden border border-border/40 bg-black shadow-sm">
+                                <video
+                                    src={(project as any).videoUrl}
+                                    controls
+                                    className="w-full h-full object-contain"
+                                    poster={project.imageUrl}
                                 />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary/10">
-                                    <span className="text-xs font-bold opacity-40">Pending visuals</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {gallery.length > 0 && (
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                            {gallery.map((item: MediaItem, i: number) => (
-                                <button
-                                    key={i}
-                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxState({ isOpen: true, items: gallery.map((g: any) => ({ url: g.url, type: g.type, alt: g.caption })), index: i }); }}
-                                    className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 bg-muted hover:ring-2 hover:ring-primary/40 transition-all group active:scale-95"
-                                >
+                            </div>
+                        ) : (
+                            <div className="relative w-full rounded-3xl overflow-hidden border border-border/40 bg-muted/10 shadow-sm flex items-center justify-center min-h-[200px]">
+                                {project.imageUrl ? (
                                     <Image
-                                        src={item.url}
-                                        alt={item.caption || `Gallery ${i}`}
-                                        fill
-                                        sizes="(max-width: 768px) 25vw, 16vw"
-                                        className="object-cover transition-transform group-hover:scale-110"
+                                        src={project.imageUrl}
+                                        alt={project.title}
+                                        width={1200}
+                                        height={800}
+                                        className="w-full h-auto max-h-[70vh] object-contain rounded-3xl"
+                                        priority
                                     />
-                                    {item.type === 'VIDEO' && (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                            <div className="h-6 w-6 rounded-3xl bg-white/90 flex items-center justify-center text-primary shadow-sm">
-                                                <ChevronRight className="h-3.5 w-3.5 fill-current ml-0.5" />
+                                ) : (
+                                    <div className="w-full aspect-video flex items-center justify-center text-muted-foreground bg-secondary/10">
+                                        <span className="text-xs font-bold opacity-40">Pending visuals</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {gallery.length > 0 && (
+                            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                                {gallery.map((item: MediaItem, i: number) => (
+                                    <button
+                                        key={i}
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightboxState({ isOpen: true, items: gallery.map((g: any) => ({ url: g.url, type: g.type, alt: g.caption })), index: i }); }}
+                                        className="relative aspect-square rounded-3xl overflow-hidden border border-border/40 bg-muted hover:ring-2 hover:ring-primary/40 transition-all group active:scale-95"
+                                    >
+                                        <Image
+                                            src={item.url}
+                                            alt={item.caption || `Gallery ${i}`}
+                                            fill
+                                            sizes="(max-width: 768px) 25vw, 16vw"
+                                            className="object-cover transition-transform group-hover:scale-110"
+                                        />
+                                        {item.type === 'VIDEO' && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                <div className="h-6 w-6 rounded-3xl bg-white/90 flex items-center justify-center text-primary shadow-sm">
+                                                    <ChevronRight className="h-3.5 w-3.5 fill-current ml-0.5" />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <Tabs defaultValue="story" className="w-full">
+                        <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
+                            <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
+                            <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Implementation Plan</TabsTrigger>
+                            <TabsTrigger value="updates" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                                Updates
+                                <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
+                                    {project.updates?.length || 0}
+                                </span>
+                            </TabsTrigger>
+                        </TabsList>
+
+                        <AnimatePresence mode="wait">
+                            <TabsContent value="story" className="mt-6 outline-none">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-6"
+                                >
+                                    {project.shortDesc && (
+                                        <p className="text-foreground/90 text-md font-medium leading-relaxed italic border-l-4 border-primary/30 pl-6 py-1">
+                                            {project.shortDesc}
+                                        </p>
+                                    )}
+
+                                    {project.personalMessage && (
+                                        <div className="bg-primary/[0.03] border border-primary/20 rounded-3xl p-6 relative overflow-hidden">
+                                            <Quote className="absolute -top-2 -left-2 h-16 w-16 text-primary/10 -rotate-12" />
+                                            <div className="relative z-10 pl-2 space-y-2">
+                                                <h4 className="text-[10px] font-bold text-primary tracking-widest uppercase">
+                                                    Message from Organizer
+                                                </h4>
+                                                <p className="text-sm md:text-base text-foreground/90 font-medium leading-relaxed italic">
+                                                    "{project.personalMessage}"
+                                                </p>
                                             </div>
                                         </div>
                                     )}
-                                </button>
-                            ))}
-                        </div>
-                    )}
+
+                                    <div
+                                        className={cn(
+                                            "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
+                                            "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40 first:[&_h2]:border-none first:[&_h2]:pt-0 first:[&_h2]:mt-0",
+                                            "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-6 [&_h3]:mb-3",
+                                            "[&_p]:text-foreground [&_p]:mb-6 [&_p]:last:mb-0",
+                                            "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-3 [&_ul]:text-foreground [&_ul_li::marker]:text-primary/50",
+                                            "[&_strong]:font-bold [&_strong]:text-foreground",
+                                            "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
+                                        )}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
+                                    />
+
+                                    {hasAdditionalNotes && (
+                                        <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
+                                            <h4 className="text-sm font-bold text-amber-700 flex items-center gap-2 mb-3">
+                                                <AlertTriangle className="h-4 w-4" /> Additional Notes
+                                            </h4>
+                                            <div
+                                                className={cn(
+                                                    "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
+                                                    "[&_p]:mb-2 [&_p]:last:mb-0",
+                                                    "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
+                                                    "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
+                                                    "[&_li]:pl-1",
+                                                    "[&_strong]:font-bold [&_strong]:text-amber-950",
+                                                    "[&_em]:italic"
+                                                )}
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.riskAnalysis!) }}
+                                            />
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </TabsContent>
+
+                            <TabsContent value="plan" className="mt-6 outline-none space-y-8">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    {project.hasPreCollectedFunds && project.preCollectedAmount && (
+                                        <div className="mb-8 p-5 rounded-3xl bg-blue-50/50 border border-blue-100 shadow-sm">
+                                            <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-1">
+                                                <Landmark className="h-4 w-4" /> Previously Raised Funds
+                                            </h4>
+                                            <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                                                This cause has already raised <span className="font-bold">{formatCurrency(project.preCollectedAmount, project.currency)}</span> externally.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    <div className="mb-6">
+                                        <p className="text-sm text-muted-foreground font-medium leading-relaxed">
+                                            This cause is funded one item at a time. Once an item is fully funded and confirmed, the next becomes available.
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground">
+                                                <tr>
+                                                    <th className="px-6 py-4">Item</th>
+                                                    <th className="px-6 py-4 hidden md:table-cell">Recipient</th>
+                                                    <th className="px-6 py-4 hidden sm:table-cell">Amount</th>
+                                                    <th className="px-6 py-4 text-right">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border/40 text-xs font-medium">
+                                                {budget.map((item: any, i: number) => {
+                                                    const itemStage = item.stage || 'Main Stage';
+
+                                                    const isItemCompleted = previousStages.includes(itemStage) || isCompleted || isFundedState;
+                                                    const isItemCurrent = itemStage === currentStageLogicName && !isCompleted && !isFundedState && !isPhaseFull;
+                                                    const isItemFull = itemStage === currentStageLogicName && isPhaseFull;
+
+                                                    let statusBadge;
+                                                    if (isItemCompleted) {
+                                                        statusBadge = <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><CheckCircle2 className="h-3.5 w-3.5" /> Completed</Badge>;
+                                                    } else if (isItemCurrent || isItemFull) {
+                                                        statusBadge = <Badge className="bg-blue-50 text-blue-600 border-blue-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> In Progress</Badge>;
+                                                    } else {
+                                                        statusBadge = <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>;
+                                                    }
+
+                                                    const vendorName = item.vendorId
+                                                        ? (project as any).vendors?.find((v: any) => v.id === item.vendorId)?.name
+                                                        : (item.payTo || item.vendor || 'Pending vendor sourcing');
+
+                                                    return (
+                                                        <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
+                                                            <td className="px-6 py-4">
+                                                                <div className="font-bold text-foreground text-sm mb-1">{item.description || item.item}</div>
+                                                                <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{itemStage}</span>
+                                                                <div className="sm:hidden font-mono text-foreground font-bold mt-2">
+                                                                    {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">{vendorName}</td>
+                                                            <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
+                                                                {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex justify-end">
+                                                                    {statusBadge}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </motion.div>
+                            </TabsContent>
+
+                            <TabsContent value="updates" className="mt-6 outline-none">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-4"
+                                >
+                                    {project.updates && project.updates.length > 0 ? (
+                                        project.updates.map((update, idx) => {
+                                            const isAdjustment = update.type === 'GOAL_ADJUSTMENT' || update.title === 'Financial Goal Adjusted';
+                                            const isImpact = update.type === 'IMPACT_ACHIEVED';
+
+                                            const updateAssets = update.assets && update.assets.length > 0 ? update.assets : (update.imageUrl ? [update.imageUrl] : []);
+
+                                            return (
+                                                <Card
+                                                    key={idx}
+                                                    className={cn(
+                                                        "relative flex flex-col gap-4 p-5 md:p-6 rounded-3xl border shadow-sm transition-all",
+                                                        isAdjustment ? "bg-amber-50 border-amber-100" : isImpact ? "bg-emerald-50 border-emerald-100" : "bg-card border-border/40"
+                                                    )}
+                                                >
+                                                    {updateAssets.length > 0 && (
+                                                        <div className={cn("grid gap-3", updateAssets.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+                                                            {updateAssets.map((assetUrl: string, assetIdx: number) => {
+                                                                const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
+                                                                return (
+                                                                    <div
+                                                                        key={assetIdx}
+                                                                        className={cn(
+                                                                            "relative rounded-2xl overflow-hidden shadow-inner cursor-pointer group hover:shadow-md transition-all",
+                                                                            isAdjustment ? "bg-amber-500/5 border border-amber-500/20" : "bg-muted border border-border/10",
+                                                                            updateAssets.length === 1 && !isPdf ? (isAdjustment ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-[21/9]") : "aspect-square"
+                                                                        )}
+                                                                        onClick={() => handleViewAsset(assetUrl, update.title)}
+                                                                    >
+                                                                        {isPdf ? (
+                                                                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-background/50">
+                                                                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2 group-hover:scale-110 transition-transform shadow-sm">
+                                                                                    <FileText className="h-6 w-6" />
+                                                                                </div>
+                                                                                <p className="text-[11px] font-bold text-foreground text-center px-2 truncate w-full">View Document</p>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <Image
+                                                                                src={assetUrl}
+                                                                                alt={update.title}
+                                                                                fill
+                                                                                sizes="(max-width: 1024px) 100vw, 66vw"
+                                                                                className={cn("transition-transform duration-700", isAdjustment ? "object-contain p-4 group-hover:scale-105" : "object-cover hover:scale-105")}
+                                                                            />
+                                                                        )}
+                                                                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                                                                            {isAdjustment ? (
+                                                                                <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md border border-border/40 text-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
+                                                                                    <FileText className="h-3 w-3" /> View invoice
+                                                                                </div>
+                                                                            ) : (
+                                                                                <ExternalLink className="h-6 w-6 text-white drop-shadow-md" />
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="space-y-1">
+                                                            <div className="flex items-center gap-3 mb-1">
+                                                                <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold border-none",
+                                                                    isAdjustment ? "bg-amber-500/10 text-amber-700" :
+                                                                        isImpact ? "bg-emerald-500/10 text-emerald-700" :
+                                                                            "bg-primary/10 text-primary")}>
+                                                                    {isAdjustment ? 'Amendment' : formatUpdateType(update.type)}
+                                                                </Badge>
+                                                                <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+                                                                    <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
+                                                                </span>
+                                                            </div>
+                                                            <h4 className={cn("text-lg font-bold", isAdjustment ? "text-amber-900" : isImpact ? "text-emerald-900" : "text-foreground")}>{update.title}</h4>
+                                                        </div>
+                                                        {isAdjustment && <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />}
+                                                        {isImpact && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
+                                                    </div>
+
+                                                    <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/80" : isImpact ? "text-emerald-900/80" : "text-muted-foreground")}>{update.content}</p>
+
+                                                    <div className="pt-4 border-t border-border/40 text-[10px] font-bold text-muted-foreground flex items-center gap-1.5">
+                                                        <ShieldCheck className={cn("h-3 w-3", isImpact ? "text-emerald-600" : "text-primary")} /> Verified entry
+                                                    </div>
+                                                </Card>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-center py-16 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
+                                            <Clock className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
+                                            <p className="text-xs font-bold text-muted-foreground">No activity logged</p>
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </TabsContent>
+                        </AnimatePresence>
+                    </Tabs>
                 </div>
 
-                <Tabs defaultValue="story" className="w-full">
-                    <TabsList className="w-full h-11 p-1 bg-muted/50 border border-border/40 rounded-3xl overflow-x-auto no-scrollbar">
-                        <TabsTrigger value="story" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Story</TabsTrigger>
-                        <TabsTrigger value="plan" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Implementation Plan</TabsTrigger>
-                        <TabsTrigger value="updates" className="flex-1 rounded-3xl px-2 h-full text-xs font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                            Updates
-                            <span className="ml-2 px-1.5 py-0.5 rounded-3xl bg-primary/10 text-primary text-[11px] font-bold">
-                                {project.updates?.length || 0}
-                            </span>
-                        </TabsTrigger>
-                    </TabsList>
+                <div className="lg:col-span-1">
+                    <div className="sticky top-20 space-y-4 md:space-y-6">
+                        <TransparencyCard project={project} />
 
-                    <AnimatePresence mode="wait">
-                        <TabsContent value="story" className="mt-6 outline-none">
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-6"
-                            >
-                                {project.shortDesc && (
-                                    <p className="text-foreground/90 text-md font-medium leading-relaxed italic border-l-4 border-primary/30 pl-6 py-1">
-                                        {project.shortDesc}
-                                    </p>
-                                )}
-
-                                {project.personalMessage && (
-                                    <div className="bg-primary/[0.03] border border-primary/20 rounded-3xl p-6 relative overflow-hidden">
-                                        <Quote className="absolute -top-2 -left-2 h-16 w-16 text-primary/10 -rotate-12" />
-                                        <div className="relative z-10 pl-2 space-y-2">
-                                            <h4 className="text-[10px] font-bold text-primary tracking-widest uppercase">
-                                                Message from Organizer
-                                            </h4>
-                                            <p className="text-sm md:text-base text-foreground/90 font-medium leading-relaxed italic">
-                                                "{project.personalMessage}"
+                        <div className="space-y-3">
+                            {budget.length > 1 && (
+                                <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
+                                    <div className="flex items-start gap-3">
+                                        <div className="mt-0.5">
+                                            <ShieldCheck className="h-4 w-4 text-primary" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Funding</h4>
+                                            <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
+                                                This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
                                             </p>
                                         </div>
                                     </div>
-                                )}
-
-                                <div
-                                    className={cn(
-                                        "text-sm text-foreground/80 leading-relaxed max-w-none break-words",
-                                        "[&_h2]:font-bold [&_h2]:tracking-tight [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:mt-10 [&_h2]:mb-4 [&_h2]:pt-6 [&_h2]:border-t [&_h2]:border-border/40 first:[&_h2]:border-none first:[&_h2]:pt-0 first:[&_h2]:mt-0",
-                                        "[&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:text-foreground [&_h3]:text-base [&_h3]:mt-6 [&_h3]:mb-3",
-                                        "[&_p]:text-foreground [&_p]:mb-6 [&_p]:last:mb-0",
-                                        "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-6 [&_ul]:space-y-3 [&_ul]:text-foreground [&_ul_li::marker]:text-primary/50",
-                                        "[&_strong]:font-bold [&_strong]:text-foreground",
-                                        "[&_a]:text-primary [&_a]:underline hover:[&_a]:text-primary/80 transition-colors"
-                                    )}
-                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.description) }}
-                                />
-
-                                {hasAdditionalNotes && (
-                                    <div className="mt-8 p-5 rounded-3xl bg-amber-50 border border-amber-100">
-                                        <h4 className="text-sm font-bold text-amber-700 flex items-center gap-2 mb-3">
-                                            <AlertTriangle className="h-4 w-4" /> Additional Notes
-                                        </h4>
-                                        <div
-                                            className={cn(
-                                                "text-xs text-amber-900/80 leading-relaxed break-words font-medium whitespace-pre-line",
-                                                "[&_p]:mb-2 [&_p]:last:mb-0",
-                                                "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ul]:space-y-1",
-                                                "[&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_ol]:space-y-1",
-                                                "[&_li]:pl-1",
-                                                "[&_strong]:font-bold [&_strong]:text-amber-950",
-                                                "[&_em]:italic"
-                                            )}
-                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(project.riskAnalysis!) }}
-                                        />
-                                    </div>
-                                )}
-                            </motion.div>
-                        </TabsContent>
-
-                        <TabsContent value="plan" className="mt-6 outline-none space-y-8">
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                            >
-                                {project.hasPreCollectedFunds && project.preCollectedAmount && (
-                                    <div className="mb-8 p-5 rounded-3xl bg-blue-50/50 border border-blue-100 shadow-sm">
-                                        <h4 className="text-sm font-bold text-blue-900 flex items-center gap-2 mb-1">
-                                            <Landmark className="h-4 w-4" /> Previously Raised Funds
-                                        </h4>
-                                        <p className="text-xs text-blue-800 font-medium leading-relaxed">
-                                            This cause has already raised <span className="font-bold">{formatCurrency(project.preCollectedAmount, project.currency)}</span> externally.
-                                        </p>
-                                    </div>
-                                )}
-
-                                <div className="mb-6">
-                                    <p className="text-sm text-muted-foreground font-medium leading-relaxed">
-                                        This cause is funded one item at a time. Once an item is fully funded and confirmed, the next becomes available.
-                                    </p>
-                                </div>
-
-                                <div className="rounded-3xl border border-border/40 bg-card shadow-sm overflow-hidden">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead className="bg-muted/40 border-b border-border/40 text-[11px] font-bold text-muted-foreground">
-                                            <tr>
-                                                <th className="px-6 py-4">Item</th>
-                                                <th className="px-6 py-4 hidden md:table-cell">Recipient</th>
-                                                <th className="px-6 py-4 hidden sm:table-cell">Amount</th>
-                                                <th className="px-6 py-4 text-right">Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-border/40 text-xs font-medium">
-                                            {budget.map((item: any, i: number) => {
-                                                const itemStage = item.stage || 'Main Stage';
-
-                                                const isItemCompleted = previousStages.includes(itemStage) || isCompleted || isFundedState;
-                                                const isItemCurrent = itemStage === currentStageLogicName && !isCompleted && !isFundedState && !isPhaseFull;
-                                                const isItemFull = itemStage === currentStageLogicName && isPhaseFull;
-
-                                                let statusBadge;
-                                                if (isItemCompleted) {
-                                                    statusBadge = <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><CheckCircle2 className="h-3.5 w-3.5" /> Completed</Badge>;
-                                                } else if (isItemCurrent || isItemFull) {
-                                                    statusBadge = <Badge className="bg-blue-50 text-blue-600 border-blue-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> In Progress</Badge>;
-                                                } else {
-                                                    statusBadge = <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-border/40 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Upcoming</Badge>;
-                                                }
-
-                                                const vendorName = item.vendorId
-                                                    ? (project as any).vendors?.find((v: any) => v.id === item.vendorId)?.name
-                                                    : (item.payTo || item.vendor || 'Pending vendor sourcing');
-
-                                                return (
-                                                    <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-bold text-foreground text-sm mb-1">{item.description || item.item}</div>
-                                                            <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{itemStage}</span>
-                                                            <div className="sm:hidden font-mono text-foreground font-bold mt-2">
-                                                                {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 hidden md:table-cell text-muted-foreground font-medium">{vendorName}</td>
-                                                        <td className="px-6 py-4 hidden sm:table-cell font-mono text-foreground font-bold tabular-nums">
-                                                            {formatCurrency(((item.amount || item.cost || 0) * 100).toString(), project.currency)}
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex justify-end">
-                                                                {statusBadge}
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </motion.div>
-                        </TabsContent>
-
-                        <TabsContent value="updates" className="mt-6 outline-none">
-                            <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.2 }}
-                                className="space-y-4"
-                            >
-                                {project.updates && project.updates.length > 0 ? (
-                                    project.updates.map((update, idx) => {
-                                        const isAdjustment = update.type === 'GOAL_ADJUSTMENT' || update.title === 'Financial Goal Adjusted';
-                                        const isImpact = update.type === 'IMPACT_ACHIEVED';
-
-                                        const updateAssets = update.assets && update.assets.length > 0 ? update.assets : (update.imageUrl ? [update.imageUrl] : []);
-
-                                        return (
-                                            <Card
-                                                key={idx}
-                                                className={cn(
-                                                    "relative flex flex-col gap-4 p-5 md:p-6 rounded-3xl border shadow-sm transition-all",
-                                                    isAdjustment ? "bg-amber-50 border-amber-100" : isImpact ? "bg-emerald-50 border-emerald-100" : "bg-card border-border/40"
-                                                )}
-                                            >
-                                                {updateAssets.length > 0 && (
-                                                    <div className={cn("grid gap-3", updateAssets.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
-                                                        {updateAssets.map((assetUrl: string, assetIdx: number) => {
-                                                            const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
-                                                            return (
-                                                                <div
-                                                                    key={assetIdx}
-                                                                    className={cn(
-                                                                        "relative rounded-2xl overflow-hidden shadow-inner cursor-pointer group hover:shadow-md transition-all",
-                                                                        isAdjustment ? "bg-amber-500/5 border border-amber-500/20" : "bg-muted border border-border/10",
-                                                                        updateAssets.length === 1 && !isPdf ? (isAdjustment ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-[21/9]") : "aspect-square"
-                                                                    )}
-                                                                    onClick={() => handleViewAsset(assetUrl, update.title)}
-                                                                >
-                                                                    {isPdf ? (
-                                                                        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-background/50">
-                                                                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-2 group-hover:scale-110 transition-transform shadow-sm">
-                                                                                <FileText className="h-6 w-6" />
-                                                                            </div>
-                                                                            <p className="text-[11px] font-bold text-foreground text-center px-2 truncate w-full">View Document</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <Image
-                                                                            src={assetUrl}
-                                                                            alt={update.title}
-                                                                            fill
-                                                                            sizes="(max-width: 1024px) 100vw, 66vw"
-                                                                            className={cn("transition-transform duration-700", isAdjustment ? "object-contain p-4 group-hover:scale-105" : "object-cover hover:scale-105")}
-                                                                        />
-                                                                    )}
-                                                                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                                                                        {isAdjustment ? (
-                                                                            <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-md border border-border/40 text-foreground text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1.5">
-                                                                                <FileText className="h-3 w-3" /> View invoice
-                                                                            </div>
-                                                                        ) : (
-                                                                            <ExternalLink className="h-6 w-6 text-white drop-shadow-md" />
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-
-                                                <div className="flex items-start justify-between gap-4">
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-3 mb-1">
-                                                            <Badge className={cn("h-5 px-2 rounded-3xl text-[10px] font-bold border-none",
-                                                                isAdjustment ? "bg-amber-500/10 text-amber-700" :
-                                                                    isImpact ? "bg-emerald-500/10 text-emerald-700" :
-                                                                        "bg-primary/10 text-primary")}>
-                                                                {isAdjustment ? 'Amendment' : formatUpdateType(update.type)}
-                                                            </Badge>
-                                                            <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                                                                <Clock className="h-3 w-3" /> {formatDate(update.createdAt).split(',')[0]}
-                                                            </span>
-                                                        </div>
-                                                        <h4 className={cn("text-lg font-bold", isAdjustment ? "text-amber-900" : isImpact ? "text-emerald-900" : "text-foreground")}>{update.title}</h4>
-                                                    </div>
-                                                    {isAdjustment && <RefreshCcw className="h-4 w-4 text-amber-500 shrink-0" />}
-                                                    {isImpact && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
-                                                </div>
-
-                                                <p className={cn("text-xs leading-relaxed font-medium", isAdjustment ? "text-amber-900/80" : isImpact ? "text-emerald-900/80" : "text-muted-foreground")}>{update.content}</p>
-
-                                                <div className="pt-4 border-t border-border/40 text-[10px] font-bold text-muted-foreground flex items-center gap-1.5">
-                                                    <ShieldCheck className={cn("h-3 w-3", isImpact ? "text-emerald-600" : "text-primary")} /> Verified entry
-                                                </div>
-                                            </Card>
-                                        );
-                                    })
-                                ) : (
-                                    <div className="text-center py-16 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
-                                        <Clock className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
-                                        <p className="text-xs font-bold text-muted-foreground">No activity logged</p>
-                                    </div>
-                                )}
-                            </motion.div>
-                        </TabsContent>
-                    </AnimatePresence>
-                </Tabs>
-            </div>
-
-            <div className="lg:col-span-1">
-                <div className="sticky top-20 space-y-4 md:space-y-6">
-                    <TransparencyCard project={project} />
-
-                    <div className="space-y-3">
-                        {budget.length > 1 && (
-                            <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
-                                <div className="flex items-start gap-3">
-                                    <div className="mt-0.5">
-                                        <ShieldCheck className="h-4 w-4 text-primary" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Funding</h4>
-                                        <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
-                                            This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
-                                        </p>
-                                    </div>
-                                </div>
-                            </Card>
-                        )}
-
-                        <div className="hidden md:block space-y-3">
-                            {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') && (
-                                <Link href={donateLink} className="block w-full">
-                                    <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
-                                        Fund this impact
-                                    </Button>
-                                </Link>
+                                </Card>
                             )}
 
-                            <Button variant="outline" className="w-full h-11 rounded-3xl border-border/60 text-foreground font-bold text-xs gap-2 hover:bg-muted transition-all active:scale-95" onClick={() => setIsShareModalOpen(true)}>
-                                <Share2 className="h-4 w-4" /> Share cause
-                            </Button>
-                        </div>
+                            <div className="hidden md:block space-y-3">
+                                {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') && (
+                                    <Link href={donateLink} className="block w-full">
+                                        <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                                            Fund this impact
+                                        </Button>
+                                    </Link>
+                                )}
 
-                        <Link href={recordsLink} className="block w-full">
-                            <Button variant="secondary" className="w-full h-11 rounded-3xl border border-border/40 text-foreground font-bold text-xs gap-2 hover:bg-muted/50 transition-all active:scale-95 bg-muted/30 shadow-sm">
-                                <History className="h-4 w-4 text-muted-foreground" /> View donation history
-                            </Button>
-                        </Link>
-
-                        <Button
-                            variant="ghost"
-                            onClick={() => setIsReportModalOpen(true)}
-                            className="w-full h-11 rounded-3xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-bold text-xs gap-2 transition-all active:scale-95"
-                        >
-                            <Flag className="h-4 w-4" /> Report cause
-                        </Button>
-                    </div>
-
-                    <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
-                        <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 md:py-5 md:px-6 min-w-0">
-                            <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
-                                <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-5 space-y-4 min-w-0">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
-                                    <VerIcon className="h-4 w-4 shrink-0" />
-                                    <span className="text-xs font-medium truncate">{verMeta.type}</span>
-                                </div>
-                                <span className="text-xs font-bold text-foreground truncate max-w-[140px] text-right">
-                                    {project.organizerName}
-                                </span>
+                                <Button variant="outline" className="w-full h-11 rounded-3xl border-border/60 text-foreground font-bold text-xs gap-2 hover:bg-muted transition-all active:scale-95" onClick={() => setIsShareModalOpen(true)}>
+                                    <Share2 className="h-4 w-4" /> Share cause
+                                </Button>
                             </div>
 
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
-                                    <Users className="h-4 w-4 shrink-0" />
-                                    <span className="text-xs font-medium truncate">Donors</span>
-                                </div>
-                                <span className="text-xs font-bold text-foreground tabular-nums text-right">
-                                    {project.donorCount || 0}
-                                </span>
-                            </div>
+                            <Link href={recordsLink} className="block w-full">
+                                <Button variant="secondary" className="w-full h-11 rounded-3xl border border-border/40 text-foreground font-bold text-xs gap-2 hover:bg-muted/50 transition-all active:scale-95 bg-muted/30 shadow-sm">
+                                    <History className="h-4 w-4 text-muted-foreground" /> View donation history
+                                </Button>
+                            </Link>
 
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
-                                    <FileText className="h-4 w-4 shrink-0" />
-                                    <span className="text-xs font-medium truncate">Budget & Plan</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                                    <CheckCircle2 className="h-3.5 w-3.5" /> Approved
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2 text-muted-foreground min-w-0">
-                                    <BadgeCheck className="h-4 w-4 shrink-0" />
-                                    <span className="text-xs font-medium truncate">Legal Documents</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                                    <CheckCircle2 className="h-3.5 w-3.5" /> Audited
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 flex items-start gap-3">
-                        <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-                        <p className="text-xs text-emerald-900/70 leading-relaxed font-medium">
-                            <strong className="text-emerald-800">Givar Protocol:</strong> Funds are paid directly to verified institutions or service providers (such as hospitals or schools), not to organisers or individuals.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div className={cn(
-                "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
-                isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
-            )}>
-                {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') ? (
-                    <>
-                        <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
-                            <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
-                                Fund this impact
-                            </Button>
-                        </Link>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setIsShareModalOpen(true)}
-                            className="h-12 w-12 rounded-3xl border-border/60 text-foreground shrink-0 bg-background shadow-lg active:scale-95 transition-all pointer-events-auto"
-                        >
-                            <Share2 className="h-5 w-5" />
-                        </Button>
-                    </>
-                ) : (
-                    <Button
-                        variant="outline"
-                        onClick={() => setIsShareModalOpen(true)}
-                        className="w-full h-12 rounded-3xl border-border/60 text-foreground bg-background shadow-lg active:scale-95 transition-all pointer-events-auto font-bold text-sm gap-2"
-                    >
-                        <Share2 className="h-4 w-4" /> Share cause
-                    </Button>
-                )}
-            </div>
-
-            <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} project={project} />
-
-            <Dialog open={isReportModalOpen} onOpenChange={(open) => !open && !isReporting && setIsReportModalOpen(false)}>
-                <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md w-[95vw]">
-                    <DialogHeader className="pb-2">
-                        <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                            <Flag className="h-5 w-5 text-destructive" /> Report Cause
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-5 pt-2">
-                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                            If you believe this cause violates our policies or uses your identity without permission, please let us know immediately.
-                        </p>
-
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Your email address</label>
-                            <Input
-                                placeholder="name@example.com"
-                                type="email"
-                                value={reportEmail}
-                                onChange={(e) => setReportEmail(e.target.value)}
-                                className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm"
-                                disabled={isReporting}
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Reason for reporting</label>
-                            <Select value={reportReason} onValueChange={setReportReason} disabled={isReporting}>
-                                <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-xs font-bold">
-                                    <SelectValue placeholder="Select a reason..." />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl shadow-xl border-border/40">
-                                    <SelectItem value="UNAUTHORIZED_BENEFICIARY" className="text-xs py-2.5 font-bold text-destructive">
-                                        I am the beneficiary and did not authorise this cause
-                                    </SelectItem>
-                                    <SelectItem value="FRAUD" className="text-xs py-2.5 font-bold">
-                                        Fraudulent or misleading information
-                                    </SelectItem>
-                                    <SelectItem value="INAPPROPRIATE" className="text-xs py-2.5 font-bold">
-                                        Inappropriate content
-                                    </SelectItem>
-                                    <SelectItem value="OTHER" className="text-xs py-2.5 font-bold">
-                                        Other
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-[11px] font-bold text-muted-foreground ml-1">Additional details (Optional)</label>
-                            <Textarea
-                                placeholder="Provide more context to help our investigation..."
-                                value={reportDesc}
-                                onChange={(e) => setReportDesc(e.target.value)}
-                                className="min-h-[100px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm resize-none"
-                                disabled={isReporting}
-                            />
-                        </div>
-
-                        <div className="flex gap-2 pt-2">
                             <Button
                                 variant="ghost"
-                                onClick={() => setIsReportModalOpen(false)}
-                                disabled={isReporting}
-                                className="flex-1 rounded-3xl font-bold text-xs"
+                                onClick={() => setIsReportModalOpen(true)}
+                                className="w-full h-11 rounded-3xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 font-bold text-xs gap-2 transition-all active:scale-95"
                             >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                onClick={submitReport}
-                                disabled={isReporting || !reportEmail || !reportReason}
-                                className="flex-1 rounded-3xl font-bold text-xs shadow-md border-0"
-                            >
-                                {isReporting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit report"}
+                                <Flag className="h-4 w-4" /> Report cause
                             </Button>
                         </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
 
-            <ImageLightbox
-                isOpen={lightboxState.isOpen}
-                onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
-                items={lightboxState.items}
-                initialIndex={lightboxState.index}
-            />
+                        <Card className="rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden min-w-0">
+                            <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5 md:py-5 md:px-6 min-w-0">
+                                <CardTitle className="text-xs font-bold text-foreground flex items-center gap-2 truncate">
+                                    <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified by Givar
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-5 space-y-4 min-w-0">
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                        <VerIcon className="h-4 w-4 shrink-0" />
+                                        <span className="text-xs font-medium truncate">{verMeta.type}</span>
+                                    </div>
+                                    <span className="text-xs font-bold text-foreground truncate max-w-[140px] text-right">
+                                        {project.organizerName}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                        <Users className="h-4 w-4 shrink-0" />
+                                        <span className="text-xs font-medium truncate">Donors</span>
+                                    </div>
+                                    <span className="text-xs font-bold text-foreground tabular-nums text-right">
+                                        {project.donorCount || 0}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                        <FileText className="h-4 w-4 shrink-0" />
+                                        <span className="text-xs font-medium truncate">Budget & Plan</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                                        <CheckCircle2 className="h-3.5 w-3.5" /> Approved
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 text-muted-foreground min-w-0">
+                                        <BadgeCheck className="h-4 w-4 shrink-0" />
+                                        <span className="text-xs font-medium truncate">Legal Documents</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                                        <CheckCircle2 className="h-3.5 w-3.5" /> Audited
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <div className="p-5 bg-emerald-50/50 rounded-3xl border border-emerald-100/50 flex items-start gap-3">
+                            <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+                            <p className="text-xs text-emerald-900/70 leading-relaxed font-medium">
+                                <strong className="text-emerald-800">Givar Protocol:</strong> Funds are paid directly to verified institutions or service providers (such as hospitals or schools), not to organisers or individuals.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={cn(
+                    "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
+                    isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
+                )}>
+                    {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') ? (
+                        <>
+                            <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
+                                <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
+                                    Fund this impact
+                                </Button>
+                            </Link>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setIsShareModalOpen(true)}
+                                className="h-12 w-12 rounded-3xl border-border/60 text-foreground shrink-0 bg-background shadow-lg active:scale-95 transition-all pointer-events-auto"
+                            >
+                                <Share2 className="h-5 w-5" />
+                            </Button>
+                        </>
+                    ) : (
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsShareModalOpen(true)}
+                            className="w-full h-12 rounded-3xl border-border/60 text-foreground bg-background shadow-lg active:scale-95 transition-all pointer-events-auto font-bold text-sm gap-2"
+                        >
+                            <Share2 className="h-4 w-4" /> Share cause
+                        </Button>
+                    )}
+                </div>
+
+                <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} project={project} />
+
+                <Dialog open={isReportModalOpen} onOpenChange={(open) => !open && !isReporting && setIsReportModalOpen(false)}>
+                    <DialogContent className="rounded-3xl border-none shadow-2xl p-6 md:p-8 bg-card max-w-md w-[95vw]">
+                        <DialogHeader className="pb-2">
+                            <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                                <Flag className="h-5 w-5 text-destructive" /> Report Cause
+                            </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-5 pt-2">
+                            <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                If you believe this cause violates our policies or uses your identity without permission, please let us know immediately.
+                            </p>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-muted-foreground ml-1">Your email address</label>
+                                <Input
+                                    placeholder="name@example.com"
+                                    type="email"
+                                    value={reportEmail}
+                                    onChange={(e) => setReportEmail(e.target.value)}
+                                    className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm"
+                                    disabled={isReporting}
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-muted-foreground ml-1">Reason for reporting</label>
+                                <Select value={reportReason} onValueChange={setReportReason} disabled={isReporting}>
+                                    <SelectTrigger className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-xs font-bold">
+                                        <SelectValue placeholder="Select a reason..." />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-2xl shadow-xl border-border/40">
+                                        <SelectItem value="UNAUTHORIZED_BENEFICIARY" className="text-xs py-2.5 font-bold text-destructive">
+                                            I am the beneficiary and did not authorise this cause
+                                        </SelectItem>
+                                        <SelectItem value="FRAUD" className="text-xs py-2.5 font-bold">
+                                            Fraudulent or misleading information
+                                        </SelectItem>
+                                        <SelectItem value="INAPPROPRIATE" className="text-xs py-2.5 font-bold">
+                                            Inappropriate content
+                                        </SelectItem>
+                                        <SelectItem value="OTHER" className="text-xs py-2.5 font-bold">
+                                            Other
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-bold text-muted-foreground ml-1">Additional details (Optional)</label>
+                                <Textarea
+                                    placeholder="Provide more context to help our investigation..."
+                                    value={reportDesc}
+                                    onChange={(e) => setReportDesc(e.target.value)}
+                                    className="min-h-[100px] rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm resize-none"
+                                    disabled={isReporting}
+                                />
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setIsReportModalOpen(false)}
+                                    disabled={isReporting}
+                                    className="flex-1 rounded-3xl font-bold text-xs"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={submitReport}
+                                    disabled={isReporting || !reportEmail || !reportReason}
+                                    className="flex-1 rounded-3xl font-bold text-xs shadow-md border-0"
+                                >
+                                    {isReporting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit report"}
+                                </Button>
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <ImageLightbox
+                    isOpen={lightboxState.isOpen}
+                    onClose={() => setLightboxState(prev => ({ ...prev, isOpen: false }))}
+                    items={lightboxState.items}
+                    initialIndex={lightboxState.index}
+                />
         </motion.div>
     );
 });

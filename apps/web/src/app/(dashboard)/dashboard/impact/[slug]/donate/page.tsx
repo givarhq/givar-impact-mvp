@@ -52,13 +52,13 @@ export default async function DonationPage({ params }: { params: Promise<{ slug:
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start min-w-0">
         {/* Project Context Sidebar */}
         <div className="lg:col-span-4 space-y-6 min-w-0">
-          <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 shadow-sm bg-muted min-w-0">
+          <div className="relative w-full rounded-3xl overflow-hidden border border-border/40 shadow-sm bg-muted/10 min-w-0 flex justify-center">
             {project.imageUrl && (
               <Image
                 src={project.imageUrl}
-                fill
-                sizes="(max-width: 1024px) 100vw, 33vw"
-                className="object-cover"
+                width={800}
+                height={600}
+                className="w-full h-auto max-h-[350px] object-contain rounded-3xl"
                 alt={project.title}
                 priority
               />

@@ -580,11 +580,25 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Primary hero image</label>
             </div>
             {coverPreview || coverImage ? (
-              <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted">
-                <Image src={coverPreview || coverImage} alt="Project Hero" fill sizes="(max-width: 768px) 100vw, 800px" className="object-cover transition-transform duration-700 group-hover:scale-105" unoptimized />
+              <div className="relative w-full rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted/10 flex justify-center">
+                <Image
+                  src={coverPreview || coverImage}
+                  alt="Cover"
+                  width={1200}
+                  height={800}
+                  className="w-full h-auto max-h-[500px] object-contain rounded-3xl"
+                  unoptimized
+                />
                 {!readOnly && (
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
-                    <Button type="button" variant="destructive" size="sm" className="rounded-3xl font-bold h-10 px-6 text-xs active:scale-95 transition-all shadow-lg" onClick={() => { setValue('coverImage', '', { shouldDirty: true }); setCoverPreview(null); }}>
+                    <Button
+                      variant="destructive"
+                      className="rounded-3xl font-bold h-10 px-6 text-xs active:scale-95 transition-all shadow-lg"
+                      onClick={() => {
+                        setValue('coverImage', '', { shouldDirty: true });
+                        setCoverPreview(null);
+                      }}
+                    >
                       <X className="h-4 w-4 mr-2" /> Remove
                     </Button>
                   </div>
