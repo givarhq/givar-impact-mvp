@@ -16,6 +16,8 @@ import {
     Clock,
     XCircle,
     ChevronRight,
+    Download,
+    Loader2
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -26,8 +28,11 @@ import { Button } from '../../ui/button';
 import { Pagination } from '../history/pagination';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TxStatus, TxType } from '../../../types';
+import { TxStatus, TxType, Transaction } from '../../../types';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
+import { generateImpactReceipt } from '../../../lib/utils/receipt-generator';
+import { Badge } from '../../ui/badge';
+import Link from 'next/link';
 
 interface PublicLedgerClientProps {
     project?: any;
@@ -52,6 +57,7 @@ const statusStyles: Record<TxStatus, { icon: React.ElementType, text: string }> 
 
 export const PublicLedgerClient = memo(function PublicLedgerClient({ project, initialData }: PublicLedgerClientProps) {
     const [selectedEntry, setSelectedEntry] = useState<any>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
     const isGlobalView = !project || project.id === 'global';
@@ -59,6 +65,73 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
     const copyReference = (ref: string) => {
         navigator.clipboard.writeText(ref);
         toast.success('Reference copied');
+    };
+
+    const handleDownloadReceipt = async (tx: any) => {
+        setIsGenerating(true);
+        const loadToast = toast.loading('Preparing your impact receipt...');
+        try {
+            await generateImpactReceipt(tx);
+            toast.success('Receipt successfully downloaded', { id: loadToast });
+        } catch (err) {
+            toast.error('We could not generate your receipt right now', { id: loadToast });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const getPaymentContext = (tx: any) => {
+        if (tx.type === 'DEBIT' && tx.reference?.startsWith('DON-')) {
+            return { label: 'Givar Wallet', method: 'Wallet Balance' };
+        }
+
+        let methodString = 'Card';
+        if (tx.metadata?.channel) {
+            if (tx.metadata.channel === 'apple_pay') {
+                methodString = 'Apple Pay';
+            } else {
+                methodString = tx.metadata.channel.charAt(0).toUpperCase() + tx.metadata.channel.slice(1).replace('_', ' ');
+            }
+        }
+
+        if (tx.metadata?.authorization) {
+            const auth = tx.metadata.authorization;
+            const brand = auth.brand ? auth.brand.charAt(0).toUpperCase() + auth.brand.slice(1) : '';
+            const country = auth.country_code ? `(${auth.country_code})` : '';
+            if (brand) methodString = `${brand} ${country}`.trim();
+        }
+
+        if (tx.type === 'DEBIT' && !tx.reference?.startsWith('DON-')) {
+            return { label: 'Direct Payment', method: `Paystack • ${methodString}` };
+        }
+        if (tx.type === 'CREDIT' && tx.metadata?.channel) {
+            return { label: 'Payment Gateway', method: `Paystack • ${methodString}` };
+        }
+        if (tx.type === 'CREDIT') {
+            return { label: 'Source', method: 'System Transfer' };
+        }
+        return { label: 'Payment Method', method: 'Wallet Balance' };
+    };
+
+    const getFinancialBreakdown = (tx: any) => {
+        // Handle both authenticated user structure and guest structure natively
+        const financials = tx.financials || tx.donation || tx.guestDonation;
+
+        // Use explicit properties if available, fallback to metadata for older structures
+        const meta = tx.metadata || {};
+        const rawBase = tx.baseAmount || meta.baseAmount;
+        const rawFee = tx.feeAmount || meta.feeAmount;
+        const rawTip = tx.tipAmount || meta.tipAmount;
+        const rawPercentage = tx.feePercentageUsed || meta.feePercentage;
+
+        if (!rawBase) return null;
+
+        return {
+            base: String(rawBase),
+            fee: String(rawFee || '0'),
+            tip: String(rawTip || '0'),
+            feePercentage: rawPercentage || 0
+        };
     };
 
     const viewSecureReceipt = async (key: string) => {
@@ -236,15 +309,146 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 <div className="max-w-full overflow-hidden leading-none">
                                     <SmartCurrency amount={selectedEntry.amount} currency={selectedEntry.currency} visible={true} size="large" className="text-foreground" />
                                 </div>
+
+                                {selectedEntry.type === 'INFLOW' && getFinancialBreakdown(selectedEntry) && (
+                                    <div className="mt-4 pt-4 border-t border-border/40 space-y-2">
+                                        <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
+                                            <span>Project Impact</span>
+                                            <SmartCurrency amount={getFinancialBreakdown(selectedEntry)!.base} currency={selectedEntry.currency} visible={true} size="small" className="text-foreground" />
+                                        </div>
+                                        {BigInt(getFinancialBreakdown(selectedEntry)!.fee) > 0n && (
+                                            <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
+                                                <span>Operational Support Fee ({getFinancialBreakdown(selectedEntry)!.feePercentage}%)</span>
+                                                <SmartCurrency amount={getFinancialBreakdown(selectedEntry)!.fee} currency={selectedEntry.currency} visible={true} size="small" className="text-foreground" />
+                                            </div>
+                                        )}
+                                        {BigInt(getFinancialBreakdown(selectedEntry)!.tip) > 0n && (
+                                            <div className="flex justify-between items-center text-[10px] font-bold text-muted-foreground tracking-wide">
+                                                <span>Optional Support Contribution</span>
+                                                <SmartCurrency amount={getFinancialBreakdown(selectedEntry)!.tip} currency={selectedEntry.currency} visible={true} size="small" className="text-foreground" />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* --- HIDDEN RECEIPT GENERATION DOM --- */}
+                            <div className="absolute left-[-9999px] top-[-9999px]">
+                                <div id={`receipt-${selectedEntry.id}`} className="w-[800px] p-16 bg-white text-slate-900 font-sans">
+                                    <div className="flex justify-between items-start border-b-2 border-emerald-500 pb-10">
+                                        <div>
+                                            <h1 className="text-4xl font-black tracking-tighter text-emerald-600">Givar.</h1>
+                                            <p className="text-sm text-slate-500 mt-1 tracking-widest font-bold">Public Impact Record</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm font-bold">Transaction Reference</p>
+                                            <p className="text-xs font-mono text-slate-500">{selectedEntry.reference}</p>
+                                        </div>
+                                    </div>
+                                    <div className="py-12 grid grid-cols-2 gap-10">
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-bold text-slate-400 ">{selectedEntry.type === 'INFLOW' ? 'Contributor Identity' : 'Payee Identity'}</p>
+                                            <p className="text-lg font-bold">
+                                                {selectedEntry.actorName}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1 text-right">
+                                            <p className="text-xs font-bold text-slate-400 ">Verification Date</p>
+                                            <p className="text-lg font-bold">{formatDate(selectedEntry.createdAt)}</p>
+                                            <p className="text-sm text-slate-500 pt-2">
+                                                Method: {getPaymentContext(selectedEntry).method}
+                                            </p>
+                                            <p className="text-sm text-slate-500 pt-1">
+                                                Record Type: {selectedEntry.type === 'INFLOW' ? 'CONTRIBUTION' : 'DISBURSEMENT'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 mb-10">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <div>
+                                                <p className="text-xs font-bold text-emerald-600 mb-1">Beneficiary Cause</p>
+                                                <p className="text-xl font-black">{selectedEntry.projectName || selectedEntry.description}</p>
+                                                {selectedEntry.phaseName && (
+                                                    <p className="text-sm font-bold text-emerald-700 mt-1">{selectedEntry.phaseName}</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {selectedEntry.type === 'INFLOW' && getFinancialBreakdown(selectedEntry) ? (
+                                            <div className="space-y-3 pt-6 border-t border-emerald-200">
+                                                <div className="flex justify-between text-sm font-medium text-emerald-800">
+                                                    <span>Direct Project Impact</span>
+                                                    <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedEntry)!.base, selectedEntry.currency)}</span>
+                                                </div>
+                                                {BigInt(getFinancialBreakdown(selectedEntry)!.fee) > 0n && (
+                                                    <div className="flex justify-between text-sm font-medium text-emerald-800">
+                                                        <span>Operational Support Fee ({getFinancialBreakdown(selectedEntry)!.feePercentage}%)</span>
+                                                        <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedEntry)!.fee, selectedEntry.currency)}</span>
+                                                    </div>
+                                                )}
+                                                {BigInt(getFinancialBreakdown(selectedEntry)!.tip) > 0n && (
+                                                    <div className="flex justify-between text-sm font-medium text-emerald-800">
+                                                        <span>Optional Support Contribution</span>
+                                                        <span className="font-bold">{formatCurrency(getFinancialBreakdown(selectedEntry)!.tip, selectedEntry.currency)}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-center pt-4 border-t border-emerald-200 mt-2">
+                                                    <span className="text-sm font-bold text-emerald-900">Total Contribution</span>
+                                                    <span className="text-2xl font-black text-emerald-700">{formatCurrency(selectedEntry.amount, selectedEntry.currency)}</span>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-right">
+                                                <p className="text-xs font-bold text-emerald-600 mb-1">Amount</p>
+                                                <p className="text-3xl font-black text-emerald-700">{formatCurrency(selectedEntry.amount, selectedEntry.currency)}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="pt-10 border-t border-slate-100 flex justify-between items-center">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 bg-emerald-600 rounded-full flex items-center justify-center text-white">
+                                                <CheckCircle2 className="h-6 w-6" />
+                                            </div>
+                                            <p className="text-xs max-w-[200px] text-slate-400 leading-tight">
+                                                This digital document serves as official public proof of transaction. Verified on the Givar Transparent Ledger.
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="h-12 w-32 bg-slate-100 rounded opacity-50 ml-auto mb-2 flex items-center justify-center italic text-xs">Digital Verification Signature</div>
+                                            <p className="text-xs font-bold text-slate-400 ">Authorized by Givar Platform</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-1.5 min-w-0">
-                                <span className="text-xs font-bold text-muted-foreground block px-1">Identification</span>
+                                <span className="text-xs font-bold text-muted-foreground tracking-widest block px-1">Purpose & Identification</span>
                                 <div className="p-4 rounded-3xl bg-card border border-border/40 shadow-sm space-y-3 min-w-0">
-                                    <div className="flex items-center justify-between gap-3">
+                                    {selectedEntry.projectName ? (
+                                        <Link
+                                            href={`/explore/${selectedEntry.projectSlug}`}
+                                            className="block group/link min-w-0"
+                                        >
+                                            <div className="flex items-center justify-between gap-3">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-bold text-sm text-foreground leading-tight line-clamp-2 group-hover/link:text-primary transition-colors">
+                                                        {selectedEntry.projectName}
+                                                    </p>
+                                                    {selectedEntry.phaseName && (
+                                                        <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
+                                                            {selectedEntry.phaseName}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="h-9 w-9 rounded-3xl bg-primary/10 flex items-center justify-center text-primary group-hover/link:bg-primary group-hover/link:text-white transition-all border border-primary/10 shrink-0 shadow-sm">
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    ) : (
                                         <div className="min-w-0 flex-1">
-                                            <p className="font-bold text-sm text-foreground leading-tight line-clamp-2 group-hover/link:text-primary transition-colors">
-                                                {selectedEntry.projectName ? selectedEntry.projectName : selectedEntry.description}
+                                            <p className="font-bold text-sm text-foreground leading-tight">
+                                                {selectedEntry.description}
                                             </p>
                                             {selectedEntry.phaseName && (
                                                 <p className="text-[11px] font-bold text-muted-foreground mt-0.5">
@@ -252,12 +456,12 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 </p>
                                             )}
                                         </div>
-                                    </div>
+                                    )}
 
                                     <div className="pt-3 border-t border-border/40 flex justify-between items-center gap-4">
                                         <div className="min-w-0 flex-1">
                                             <span className="text-xs font-bold text-muted-foreground tracking-tighter block mb-0.5">Reference ID</span>
-                                            <p className="font-mono text-xs truncate text-foreground/50">{selectedEntry.reference}</p>
+                                            <p className="font-mono text-[10px] truncate text-foreground/50">{selectedEntry.reference}</p>
                                         </div>
                                         <button
                                             onClick={() => copyReference(selectedEntry.reference)}
@@ -301,22 +505,35 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 </div>
                             </div>
 
-                            {selectedEntry.receiptKey && (
-                                <Button
-                                    onClick={() => viewSecureReceipt(selectedEntry.receiptKey)}
-                                    className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg active:scale-95 transition-all border-0"
-                                >
-                                    <FileText className="h-4 w-4" /> View proof of payment
-                                </Button>
-                            )}
+                            <div className="flex flex-col gap-2 pt-1">
+                                {selectedEntry.type === 'INFLOW' && (
+                                    <Button
+                                        onClick={() => handleDownloadReceipt(selectedEntry)}
+                                        disabled={isGenerating}
+                                        className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg active:scale-95 transition-all border-0"
+                                    >
+                                        {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                                        Download public receipt
+                                    </Button>
+                                )}
 
-                            <Button
-                                variant="ghost"
-                                onClick={() => setSelectedEntry(null)}
-                                className="w-auto mx-auto flex h-10 rounded-3xl text-xs font-bold text-muted-foreground hover:text-foreground"
-                            >
-                                Close details
-                            </Button>
+                                {selectedEntry.type === 'OUTFLOW' && selectedEntry.receiptKey && (
+                                    <Button
+                                        onClick={() => viewSecureReceipt(selectedEntry.receiptKey)}
+                                        className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg active:scale-95 transition-all border-0"
+                                    >
+                                        <FileText className="h-4 w-4" /> View proof of payment
+                                    </Button>
+                                )}
+
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => setSelectedEntry(null)}
+                                    className="w-auto mx-auto flex h-10 rounded-3xl text-xs font-bold text-muted-foreground hover:text-foreground"
+                                >
+                                    Close details
+                                </Button>
+                            </div>
                         </div>
                     )}
                 </DialogContent>
