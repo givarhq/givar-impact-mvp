@@ -164,7 +164,9 @@ export default function TrustPage() {
   const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
 
   const isAllStepsValid = isHookValid && isMediaValid && isPlanValid && isKycValid;
-  const canSubmit = !isSubmitting && hasAgreedToTerms && hasAgreedToNotifyExternalFunding && hasAgreedToFee && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
+
+  // Logic: Only enforce `hasAgreedToFee` validation if the fee is functionally > 0
+  const canSubmit = !isSubmitting && hasAgreedToTerms && hasAgreedToNotifyExternalFunding && (feePercentage === 0 || hasAgreedToFee) && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
 
   if (isLoading) {
     return (
@@ -315,18 +317,20 @@ export default function TrustPage() {
                 </span>
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
-                <input
-                  type="checkbox"
-                  className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
-                  checked={hasAgreedToFee}
-                  onChange={(e) => setHasAgreedToFee(e.target.checked)}
-                  disabled={isSubmitting}
-                />
-                <span className="text-sm font-medium text-foreground leading-relaxed select-none">
-                  I understand that Givar applies a {feePercentage}% Operational Support Fee on donations for cause verification, implementation oversight, and platform operations. This fee is charged separately and does not reduce donations made to my cause.
-                </span>
-              </div>
+              {feePercentage > 0 && (
+                <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                    checked={hasAgreedToFee}
+                    onChange={(e) => setHasAgreedToFee(e.target.checked)}
+                    disabled={isSubmitting}
+                  />
+                  <span className="text-sm font-medium text-foreground leading-relaxed select-none">
+                    I understand that Givar applies a {feePercentage}% Operational Support Fee on donations for cause verification, implementation oversight, and platform operations. This fee is charged separately and does not reduce donations made to my cause.
+                  </span>
+                </div>
+              )}
 
               <div className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors">
                 <input

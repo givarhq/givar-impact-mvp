@@ -577,10 +577,14 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2 px-1">
                                         <HandHeart className="h-4 w-4 text-primary" />
-                                        <label className="text-xs font-bold text-foreground">Support Givar's infrastructure (optional)</label>
+                                        <label className="text-xs font-bold text-foreground">
+                                            {feePercentage === 0 ? "Support Givar’s operations (optional)" : "Support Givar's infrastructure (optional)"}
+                                        </label>
                                     </div>
                                     <p className="text-[11px] text-muted-foreground font-medium px-1 leading-relaxed">
-                                        Givar operates on radical transparency. If you value our platform, please consider an optional support contribution to help us maintain our servers and payment gateways.
+                                        {feePercentage === 0
+                                            ? "Givar does not charge a platform fee on donations. If you value our work, you can make an optional contribution to support our platform and operations."
+                                            : "Givar operates on radical transparency. If you value our platform, please consider an optional support contribution to help us maintain our servers and payment gateways."}
                                     </p>
 
                                     <div className="flex gap-2">
@@ -646,12 +650,14 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                                         {formatMoney(inputAmountNum)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
-                                    <span>Operational Support Fee ({feePercentage}%)</span>
-                                    <span className="tabular-nums font-bold text-foreground whitespace-pre">
-                                        {formatMoney(toDisplayMajor(feeAmountMinor))}
-                                    </span>
-                                </div>
+                                {feeAmountMinor > 0n && (
+                                    <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+                                        <span>Operational Support Fee ({feePercentage}%)</span>
+                                        <span className="tabular-nums font-bold text-foreground whitespace-pre">
+                                            {formatMoney(toDisplayMajor(feeAmountMinor))}
+                                        </span>
+                                    </div>
+                                )}
                                 {inputTipNum > 0 && (
                                     <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
                                         <span>Optional Support Contribution</span>
