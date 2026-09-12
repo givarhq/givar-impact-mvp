@@ -56,31 +56,6 @@ const steps = [
 export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
     return (
         <div className="relative w-full pb-16 overflow-hidden bg-background">
-            {/* SVG Mask Definition for the Smoother, Shallower Notch */}
-            <svg width="0" height="0" className="absolute pointer-events-none">
-                <defs>
-                    <mask id="smooth-notch">
-                        {/* 1. Fill the entire card with white (visible) */}
-                        <rect width="100%" height="100%" fill="white" />
-                        {/* 2. Subtract the smoothly curved, shallower notch at the top center in black (invisible) */}
-                        <svg x="50%" y="0" overflow="visible">
-                            <path
-                                d="M -54 -10 
-                                   L -54 0 
-                                   L -36 0 
-                                   C -26 0, -25 5, -21 13 
-                                   C -15 25, -6 28, 0 28 
-                                   C 6 28, 15 25, 21 13 
-                                   C 25 5, 26 0, 36 0 
-                                   L 54 0 
-                                   L 54 -10 Z"
-                                fill="black"
-                            />
-                        </svg>
-                    </mask>
-                </defs>
-            </svg>
-
             {/* Background Accents */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
@@ -123,24 +98,26 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="relative flex flex-col items-center text-center group"
                             >
-                                {/* Connecting Arrow (Desktop Only - positioned between cards) */}
+                                {/* Connecting Arrow (Desktop Only) */}
                                 {index < steps.length - 1 && (
                                     <div className="hidden lg:flex absolute top-1/2 -right-[1.1rem] -translate-y-1/2 z-30 h-8 w-8 rounded-full bg-card border border-border/60 text-muted-foreground items-center justify-center shadow-sm">
                                         <ArrowRight className="h-4 w-4 opacity-50" />
                                     </div>
                                 )}
 
-                                {/* Floating Icon resting perfectly inside the smoother cutout */}
+                                {/* Floating Icon */}
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 h-10 w-10 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
                                     <step.icon className="h-5 w-5" />
                                 </div>
 
-                                {/* Image Card with Smooth Notch Mask */}
+                                {/* Image Card with the perfectly shallow CSS notch */}
                                 <div
-                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
+                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40 mt-6"
                                     style={{
-                                        WebkitMaskImage: 'url(#smooth-notch)',
-                                        maskImage: 'url(#smooth-notch)'
+                                        // This math places the circle's center 12px ABOVE the card and makes it wider,
+                                        // resulting in a perfectly smooth, shallow scoop without sharp corners.
+                                        WebkitMaskImage: 'radial-gradient(circle at 50% -12px, transparent 42px, black 43px)',
+                                        maskImage: 'radial-gradient(circle at 50% -12px, transparent 42px, black 43px)'
                                     }}
                                 >
                                     <Image
@@ -207,7 +184,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     </div>
                 </motion.div>
 
-                {/* Bottom CTA Action - Only show if not logged in */}
+                {/* Bottom CTA Action */}
                 {!isAuthenticated && (
                     <motion.section
                         initial={{ opacity: 0, scale: 0.98 }}
