@@ -56,6 +56,31 @@ const steps = [
 export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated?: boolean }) {
     return (
         <div className="relative w-full pb-16 overflow-hidden bg-background">
+            {/* SVG Mask Definition for the Smoother, Shallower Notch */}
+            <svg width="0" height="0" className="absolute pointer-events-none">
+                <defs>
+                    <mask id="smooth-notch">
+                        {/* 1. Fill the entire card with white (visible) */}
+                        <rect width="100%" height="100%" fill="white" />
+                        {/* 2. Subtract the smoothly curved, shallower notch at the top center in black (invisible) */}
+                        <svg x="50%" y="0" overflow="visible">
+                            <path
+                                d="M -54 -10 
+                                   L -54 0 
+                                   L -36 0 
+                                   C -26 0, -25 5, -21 13 
+                                   C -15 25, -6 28, 0 28 
+                                   C 6 28, 15 25, 21 13 
+                                   C 25 5, 26 0, 36 0 
+                                   L 54 0 
+                                   L 54 -10 Z"
+                                fill="black"
+                            />
+                        </svg>
+                    </mask>
+                </defs>
+            </svg>
+
             {/* Background Accents */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
@@ -87,21 +112,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-12 md:mt-16">
-                    {/* Playfully Wavy Connecting Dotted Line (Desktop Only) */}
-                    <div className="absolute top-0 left-[12.5%] right-[12.5%] -translate-y-1/2 hidden lg:block z-0 pointer-events-none h-10">
-                        <svg width="100%" height="100%" viewBox="0 0 1000 32" preserveAspectRatio="none" className="overflow-visible">
-                            <path
-                                d="M 0,16 C 166,46 166,-14 333,16 C 500,46 500,-14 666,16 C 833,46 833,-14 1000,16"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeDasharray="6 6"
-                                className="text-emerald-500/30"
-                            />
-                        </svg>
-                    </div>
-
+                <div className="relative mt-10 md:mt-12">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-4">
                         {steps.map((step, index) => (
                             <motion.div
@@ -112,18 +123,24 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="relative flex flex-col items-center text-center group"
                             >
-                                {/* Floating Icon resting precisely inside the cutout */}
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-12 w-12 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
+                                {/* Connecting Arrow (Desktop Only - positioned between cards) */}
+                                {index < steps.length - 1 && (
+                                    <div className="hidden lg:flex absolute top-1/2 -right-[1.1rem] -translate-y-1/2 z-30 h-8 w-8 rounded-full bg-card border border-border/60 text-muted-foreground items-center justify-center shadow-sm">
+                                        <ArrowRight className="h-4 w-4 opacity-50" />
+                                    </div>
+                                )}
+
+                                {/* Floating Icon resting perfectly inside the smoother cutout */}
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 h-10 w-10 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
                                     <step.icon className="h-5 w-5" />
                                 </div>
 
-                                {/* Image Card with CSS Mask for the Magic Cutout */}
+                                {/* Image Card with Smooth Notch Mask */}
                                 <div
                                     className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
                                     style={{
-                                        // Cuts a perfect 32px radius circle exactly at the top-center edge
-                                        WebkitMaskImage: 'radial-gradient(circle at 50% 0%, transparent 32px, black 33px)',
-                                        maskImage: 'radial-gradient(circle at 50% 0%, transparent 32px, black 33px)'
+                                        WebkitMaskImage: 'url(#smooth-notch)',
+                                        maskImage: 'url(#smooth-notch)'
                                     }}
                                 >
                                     <Image
@@ -138,7 +155,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 </div>
 
                                 {/* Text Content */}
-                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">
+                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2 px-1">
                                     {step.num}. {step.title}
                                 </h3>
                                 <p className="text-[13px] md:text-sm text-muted-foreground font-medium leading-snug mb-5 flex-1 px-1">
