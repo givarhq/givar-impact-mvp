@@ -11,6 +11,7 @@ import { ProjectVisibilityForm } from '../../../../../../components/features/adm
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 import { ProjectReportsView } from '../../../../../../components/features/admin/project-reports-view';
 import { cn } from '../../../../../../lib/utils/cn';
+import { CorporateSponsorshipTrigger } from '../../../../../../components/features/admin/corporate-sponsorship-trigger';
 
 export const metadata = {
   title: 'Edit Project',
@@ -68,6 +69,10 @@ export default async function EditProjectPage({
                   {id}
                 </div>
               </div>
+            </div>
+
+            <div className="flex items-center shrink-0">
+              <CorporateSponsorshipTrigger projectId={id} projectCurrency={project.currency} />
             </div>
           </div>
         </div>

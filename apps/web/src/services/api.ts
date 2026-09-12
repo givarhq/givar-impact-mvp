@@ -470,6 +470,9 @@ export const ApiService = {
         responseType: 'blob',
       }),
 
+    logCorporateSponsorship: (projectId: string, data: { sponsorName: string; sponsorEmail: string; amount: string; reference?: string; sponsorLogoUrl?: string }) =>
+      apiClient.post(`/admin/projects/${projectId}/corporate-sponsorship`, data).then(r => r.data),
+
     createCategory: (data: { name: string; description?: string; icon?: string }) =>
       apiClient.post('/admin/categories', data).then(r => r.data),
 
