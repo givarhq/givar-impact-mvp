@@ -29,7 +29,7 @@ function applySecurityHeaders(response: NextResponse) {
     default-src 'self';
     script-src ${scriptSrc};
     style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style;
-    img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://*.idrivee2-pt.com https://*.idrivee2.com;
+    img-src 'self' blob: data: https://images.unsplash.com https://res.cloudinary.com https://*.idrivee2-pt.com https://*.idrivee2.com https://logo.clearbit.com;
     media-src 'self' blob: data: https://*.idrivee2-pt.com https://*.idrivee2.com https://res.cloudinary.com;
     font-src 'self' data:;
     connect-src 'self'
