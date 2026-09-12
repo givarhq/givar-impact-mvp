@@ -3657,6 +3657,7 @@ export class AdminService {
     const reference = dto.reference || `CORP-${randomUUID().slice(0, 8).toUpperCase()}`;
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Identify or register the Corporate Entity as a verifiable Guest Donor
       const guestDonor = await tx.guestDonor.upsert({
         where: { email: dto.sponsorEmail.toLowerCase().trim() },
         update: {
@@ -3677,6 +3678,7 @@ export class AdminService {
         }
       });
 
+      // 2. Log the inflow without platform fees (100% pass-through for manual sponsorships)
       const guestDonation = await tx.guestDonation.create({
         data: {
           guestDonorId: guestDonor.id,
@@ -3690,11 +3692,13 @@ export class AdminService {
         }
       });
 
+      // 3. Update the Project's financial progress bar organically
       const updatedProject = await tx.project.update({
         where: { id: projectId },
         data: { raisedAmount: { increment: amountMinor } }
       });
 
+      // 4. State Convergence: Check if the corporate wire fully funded the project
       const isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
       if (isGoalMet && updatedProject.status !== 'FUNDED' && updatedProject.status !== 'COMPLETED') {
         await tx.project.update({
@@ -3703,6 +3707,7 @@ export class AdminService {
         });
       }
 
+      // 5. System Notifications for the Cause Organizer
       await tx.notification.create({
         data: {
           userId: project.userId,
@@ -3725,6 +3730,7 @@ export class AdminService {
         });
       }
 
+      // 6. Mandatory Forensic Logging
       await tx.auditLog.create({
         data: {
           userId: adminId,
@@ -3743,13 +3749,16 @@ export class AdminService {
       return { updatedProject, isGoalMet };
     });
 
+    // 7. Fire & Forget Notification Transmissions outside the transaction
     this.emailService.sendDonationReceipt(dto.sponsorEmail, {
       amount: (Number(amountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
       currency: project.currency,
       project: project.title,
       phaseName: 'Corporate Sponsorship',
       date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-      ref: reference
+      ref: reference,
+      donorCurrency: dto.donorCurrency,
+      donorAmount: dto.donorAmount ? (Number(dto.donorAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined
     }).catch(err => this.logger.error(`Failed to send corporate receipt: ${err.message}`));
 
     if (result.isGoalMet) {

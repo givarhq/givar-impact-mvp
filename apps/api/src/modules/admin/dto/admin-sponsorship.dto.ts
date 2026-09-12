@@ -23,4 +23,12 @@ export class LogCorporateSponsorshipDto {
     @IsOptional()
     @IsUrl({}, { message: 'Please provide a valid URL for the sponsor logo' })
     sponsorLogoUrl?: string;
+
+    @IsOptional()
+    @IsString()
+    donorCurrency?: string;
+
+    @IsOptional()
+    @IsNumberString({ no_symbols: true })
+    donorAmount?: string;
 }
