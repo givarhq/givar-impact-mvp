@@ -88,7 +88,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
 
                 {/* Steps Grid */}
                 <div className="relative mt-12 md:mt-16">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-6">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
@@ -98,28 +98,19 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="relative flex flex-col items-center text-center group"
                             >
-                                {/* Floating Icon resting inside the smooth notch */}
-                                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-20 h-10 w-10 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
-                                    <step.icon className="h-[22px] w-[22px]" />
+                                {/* Floating Icon shifted up */}
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
+                                    <step.icon className="h-6 w-6" />
                                 </div>
 
-                                {/* Image Card with SVG Overlay for the Magic Cutout */}
-                                <div className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40">
-
-                                    {/* The Smooth Notch Overlay (Squircles) */}
-                                    <svg
-                                        width="92"
-                                        height="24"
-                                        viewBox="0 0 92 24"
-                                        className="absolute -top-[1px] left-1/2 -translate-x-1/2 z-10 text-background"
-                                        preserveAspectRatio="none"
-                                    >
-                                        <path
-                                            d="M0,0 L92,0 L92,4 C80,4 76,22 68,22 L24,22 C16,22 12,4 0,4 Z"
-                                            fill="currentColor"
-                                        />
-                                    </svg>
-
+                                {/* Image Card with Shallow Cutout Mask */}
+                                <div
+                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
+                                    style={{
+                                        WebkitMaskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)',
+                                        maskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)'
+                                    }}
+                                >
                                     <Image
                                         src={step.img}
                                         alt={step.title}
@@ -128,7 +119,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                                     />
                                     {/* Inner shadow overlay for depth */}
-                                    <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none z-10" />
+                                    <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
                                 </div>
 
                                 {/* Text Content */}
@@ -149,7 +140,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
 
                                 {/* Connecting Arrow between steps (Desktop) */}
                                 {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-[80px] -right-[24px] w-[24px] items-center justify-center z-30 text-emerald-500/40">
+                                    <div className="hidden lg:flex absolute top-[30%] -right-[24px] w-[24px] items-center justify-center z-30 text-emerald-500/40">
                                         <ArrowRight className="h-5 w-5" />
                                     </div>
                                 )}
