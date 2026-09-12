@@ -40,7 +40,8 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
     const [uploadedLogo, setUploadedLogo] = useState<{ key: string; previewUrl: string } | null>(null);
 
     const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
-    const autoLogoUrl = cleanDomain && !logoError ? `https://logo.clearbit.com/${cleanDomain}` : '';
+    // Using Google's Universal Favicon resolver which indexes any website on the internet
+    const autoLogoUrl = cleanDomain && !logoError ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128` : '';
 
     // Fetch live FX rates on mount
     useEffect(() => {
@@ -200,7 +201,7 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                                                 <LinkIcon className="h-5 w-5 text-muted-foreground/30" />
                                             )}
                                         </div>
-                                        <Input placeholder="Website (e.g. mtn.com)" value={domain} onChange={handleDomainChange} disabled={isLoading} className="h-10 rounded-xl bg-background text-xs font-medium" />
+                                        <Input placeholder="Website (e.g. givarapp.com)" value={domain} onChange={handleDomainChange} disabled={isLoading} className="h-10 rounded-xl bg-background text-xs font-medium" />
                                     </motion.div>
                                 ) : (
                                     <motion.div key="upload" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
@@ -347,7 +348,7 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                         </div>
                     </div>
 
-                    <div className="px-6 md:px-8 pb-6 pt-2 flex justify-end gap-3 min-w-0">
+                    <div className="px-6 md:px-8 pb-6 pt-3 flex justify-end gap-3 shrink-0 border-t border-border/40">
                         <Button
                             variant="ghost"
                             onClick={() => setIsOpen(false)}
