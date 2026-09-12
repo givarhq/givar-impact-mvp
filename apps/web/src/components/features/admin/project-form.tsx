@@ -63,7 +63,7 @@ const projectSchema = z.object({
   categoryId: z.string().uuid("Please select a sector"),
   subcategoryId: z.string().uuid("Please select a specific focus").optional().nullable(),
   location: z.string().min(2, "A location is required"),
-  targetAmount: z.number().min(100, "Minimum goal amount is 100"),
+  targetAmount: z.number({ invalid_type_error: "Budget breakdown must total at least ₦100" }).min(100, "Budget breakdown must total at least ₦100"),
   currency: z.enum(['NGN', 'USD', 'GBP']),
   coverImage: z.string().min(1, "A primary image is required"),
   videoUrl: z.string().optional().nullable(),
@@ -153,13 +153,14 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       executionTimeline: initialData.executionTimeline || [],
       personalMessage: initialData.personalMessage || '',
       shortDesc: initialData.shortDesc || '',
-      targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : undefined,
+      targetAmount: initialData.targetAmount ? Number(initialData.targetAmount) / 100 : 0,
       endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
       reasonForGoalAdjustment: '',
       amendmentInvoiceKey: '',
       amendmentMessageId: '',
       subcategoryId: initialData.subcategoryId || '',
     } : {
+      targetAmount: 0,
       currency: 'NGN',
       gallery: [],
       vendors: [],
@@ -169,6 +170,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       shortDesc: '',
       endDate: '',
       subcategoryId: '',
+      coverImage: '',
+      videoUrl: '',
     }
   });
 
@@ -187,7 +190,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     'location'
   ]);
 
-  // Handle Amendment Application strictly ONCE
   useEffect(() => {
     const applyAmendment = searchParams.get('applyAmendment');
 
@@ -196,7 +198,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       try {
         const data = JSON.parse(decodeURIComponent(applyAmendment));
 
-        // Use getValues() to ensure we push to the current React Hook Form state
         const currentVendors = getValues('vendors') || loadedVendors;
         const currentBudget = getValues('budgetBreakdown') || mappedBudget;
 
@@ -217,7 +218,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           id: crypto.randomUUID(),
           vendorId: finalVendorId,
           costType: 'SERVICE',
-          amount: Number(data.amount) / 100, // DB stores minor, Form expects major
+          amount: Number(data.amount) / 100,
           description: data.expenseDesc,
           stage: 'Final Stage',
           isNewDraft: true
@@ -230,14 +231,11 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           setValue('amendmentMessageId', data.messageId, { shouldDirty: true });
         }
 
-        // CRITICAL: Unlock form to modification mode immediately
         setIsEditing(true);
 
-        // Strip parameter securely WITHOUT triggering a Next.js server component reload
         const newUrl = `${pathname}?tab=details`;
         window.history.replaceState(null, '', newUrl);
 
-        // Smooth scroll precisely to the end of the budget editor
         setTimeout(() => {
           const element = document.getElementById('budget-editor-section');
           if (element) {
@@ -251,13 +249,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     }
   }, [searchParams, pathname, loadedVendors, mappedBudget, setValue, getValues]);
 
-  // Ensure Target Amount stays perfectly synched with Budget Math
   useEffect(() => {
-    if (isEditing) {
-      const total = budget.reduce((sum, item) => sum + (item.amount || 0), 0);
-      setValue('targetAmount', total, { shouldDirty: true });
+    if (!initialData || isEditing) {
+      const total = (budget || []).reduce((sum, item) => sum + (item.amount || 0), 0);
+      setValue('targetAmount', total, { shouldDirty: true, shouldValidate: true });
     }
-  }, [budget, isEditing, setValue]);
+  }, [budget, isEditing, initialData, setValue]);
 
   const selectedCategoryObj = categories.find(c => c.id === selectedCategoryId);
   const availableSubcategories = selectedCategoryObj?.subcategories || [];
@@ -286,8 +283,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     setIsSubmitting(true);
     const toastId = toast.loading(status === 'DRAFT' ? "Saving your progress..." : "Publishing cause...");
     try {
-
-      // Bulletproof Payload Mapping: Explicitly map fields permitted by the target endpoint
       const payload: any = {
         title: data.title,
         description: data.description,
@@ -318,7 +313,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       };
 
       if (initialData) {
-        // Only append amendment fields if updating
         if (data.reasonForGoalAdjustment) payload.reasonForGoalAdjustment = data.reasonForGoalAdjustment;
         if (data.amendmentInvoiceKey) payload.amendmentInvoiceKey = data.amendmentInvoiceKey;
         if (data.amendmentMessageId) payload.amendmentMessageId = data.amendmentMessageId;
@@ -524,7 +518,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         <div className="md:col-span-4 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center justify-between h-4">
             <span>Capital Funding Goal (NGN)</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold border border-primary/20 tracking-widest">Auto-calculated</span>
+            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium border border-primary/20">Auto-calculated</span>
           </label>
           <Controller
             control={control}
@@ -537,7 +531,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                   onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
                   className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg opacity-80 cursor-not-allowed")}
                   placeholder="0.00"
-                  readOnly={true} // Auto-calculates via Budget Editor
+                  readOnly={true}
                 />
               </div>
             )}
@@ -581,7 +575,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
-              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Primary hero image</label>
+              <label className="text-[11px] font-bold text-muted-foreground">Primary hero image</label>
             </div>
             {coverPreview || coverImage ? (
               <div className="relative w-full rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-muted/10 flex justify-center">
@@ -599,7 +593,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                       variant="destructive"
                       className="rounded-3xl font-bold h-10 px-6 text-xs active:scale-95 transition-all shadow-lg"
                       onClick={() => {
-                        setValue('coverImage', '', { shouldDirty: true });
+                        setValue('coverImage', '', { shouldDirty: true, shouldValidate: true });
                         setCoverPreview(null);
                       }}
                     >
@@ -610,7 +604,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               </div>
             ) : (
               <div className="aspect-video">
-                <ImageUploader label="Upload image" onUploadComplete={(data) => { setValue('coverImage', data.key, { shouldDirty: true }); setCoverPreview(data.previewUrl); }} />
+                <ImageUploader label="Upload image" onUploadComplete={(data) => { setValue('coverImage', data.key, { shouldDirty: true, shouldValidate: true }); setCoverPreview(data.previewUrl); }} />
               </div>
             )}
             {errors.coverImage && <p className="text-[11px] font-bold text-destructive px-2 mt-1">{errors.coverImage.message}</p>}
@@ -619,7 +613,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
           <div className="space-y-3 min-w-0">
             <div className="flex items-center gap-2 px-1">
               <Video className="h-3.5 w-3.5 text-muted-foreground" />
-              <label className="text-[11px] font-bold text-muted-foreground tracking-widest">Intro Video (Optional)</label>
+              <label className="text-[11px] font-bold text-muted-foreground">Intro Video (Optional)</label>
             </div>
             {videoPreview ? (
               <div className="relative aspect-video rounded-3xl overflow-hidden border border-border/40 group shadow-md bg-black">
@@ -646,7 +640,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
 
         <div className="space-y-4 min-w-0 pt-4 border-t border-border/40">
           <div className="flex justify-between items-center px-1">
-            <label className="text-[11px] font-bold text-muted-foreground  tracking-widest">Supporting Gallery</label>
+            <label className="text-[11px] font-bold text-muted-foreground">Supporting gallery</label>
             <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-3xl border border-primary/10">{gallery.length} / 10 assets</span>
           </div>
           <div className={cn("transition-opacity duration-500", readOnly && "pointer-events-none opacity-90")}>
@@ -677,7 +671,11 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
         <BudgetEditor
           budgetItems={budget as any}
-          onBudgetChange={(items) => setValue('budgetBreakdown', items as any, { shouldDirty: true })}
+          onBudgetChange={(items) => {
+            setValue('budgetBreakdown', items as any, { shouldDirty: true, shouldValidate: true });
+            const total = items.reduce((sum, item) => sum + (item.amount || 0), 0);
+            setValue('targetAmount', total, { shouldDirty: true, shouldValidate: true });
+          }}
           vendorsList={vendors as any}
           onVendorsChange={(items) => setValue('vendors', items as any, { shouldDirty: true })}
           readOnly={readOnly}
@@ -814,7 +812,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 disabled={isSubmitting}
                 onClick={handleSubmit(
                   (d) => onSubmit(d, 'DRAFT'),
-                  () => toast.error("Form validation failed. Please check required fields, media, and budget.")
+                  (formErrors) => {
+                    const firstError = Object.values(formErrors)[0]?.message as string;
+                    toast.error(firstError || "Please review the form for missing or invalid fields.");
+                  }
                 )}
                 variant="secondary"
                 title="Save as Draft"
@@ -828,7 +829,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
                 onClick={handleSubmit(
                   (d) => onSubmit(d, 'ACTIVE'),
-                  () => toast.error("Form validation failed. Please check required fields, media, and budget.")
+                  (formErrors) => {
+                    const firstError = Object.values(formErrors)[0]?.message as string;
+                    toast.error(firstError || "Please review the form for missing or invalid fields.");
+                  }
                 )}
                 className="w-auto rounded-3xl h-11 px-5 md:px-6 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0"
               >
