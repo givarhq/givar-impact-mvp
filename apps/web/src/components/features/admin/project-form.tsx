@@ -524,7 +524,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         <div className="md:col-span-4 space-y-1.5">
           <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center justify-between h-4">
             <span>Capital Funding Goal (NGN)</span>
-            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold border border-primary/20 tracking-widest uppercase">Auto-calculated</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold border border-primary/20 tracking-widest">Auto-calculated</span>
           </label>
           <Controller
             control={control}
