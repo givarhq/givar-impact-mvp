@@ -16,6 +16,7 @@ import {
     FileText
 } from 'lucide-react';
 import { Button } from '../../ui/button';
+import { cn } from '../../../lib/utils/cn';
 
 const steps = [
     {
@@ -98,7 +99,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 className="relative flex flex-col items-center text-center group"
                             >
                                 {/* Floating Icon shifted up */}
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600">
                                     <step.icon className="h-6 w-6" />
                                 </div>
 
@@ -115,7 +116,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                         alt={step.title}
                                         fill
                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                        className="object-cover"
                                     />
                                     {/* Inner shadow overlay for depth */}
                                     <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
@@ -137,9 +138,9 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                     </span>
                                 </div>
 
-                                {/* Prominent Directional Arrow in Circular Container (Desktop Only) */}
+                                {/* Compact Directional Arrow Badge between steps (Desktop Only) */}
                                 {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-[28%] -right-[28px] h-8 w-8 rounded-full bg-white dark:bg-zinc-900 border border-border/60 shadow-md items-center justify-center text-primary z-30 transition-transform duration-200 hover:scale-105">
+                                    <div className="hidden lg:flex absolute top-[30%] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white dark:bg-zinc-900 border border-border/60 shadow-sm items-center justify-center text-primary z-30">
                                         <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                                     </div>
                                 )}
