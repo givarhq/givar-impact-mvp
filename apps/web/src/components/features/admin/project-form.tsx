@@ -522,7 +522,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
 
         <div className="md:col-span-4 space-y-1.5">
-          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center h-4">Capital Funding Goal (NGN)</label>
+          <label className="text-[11px] font-bold text-muted-foreground ml-1 flex items-center justify-between h-4">
+            <span>Capital Funding Goal (NGN)</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold border border-primary/20 tracking-widest uppercase">Auto-calculated</span>
+          </label>
           <Controller
             control={control}
             name="targetAmount"
@@ -530,15 +533,16 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               <div className="relative group">
                 <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-muted-foreground text-sm">₦</span>
                 <Input
-                  value={formatNumberInput(String(field.value || ''))}
+                  value={formatNumberInput(String(field.value || '0'))}
                   onChange={(e) => field.onChange(Number(parseFormattedNumber(e.target.value)))}
-                  className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg", isEditing && "bg-muted/10 opacity-70 pointer-events-none")}
+                  className={cn(getInputClass(), "pl-11 font-black tabular-nums text-lg opacity-80 cursor-not-allowed")}
                   placeholder="0.00"
                   readOnly={true} // Auto-calculates via Budget Editor
                 />
               </div>
             )}
           />
+          {errors.targetAmount && <p className="text-[11px] font-bold text-destructive px-1">{errors.targetAmount.message}</p>}
         </div>
 
         <div className="md:col-span-12 space-y-1.5">
@@ -808,7 +812,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               <Button
                 type="button"
                 disabled={isSubmitting}
-                onClick={handleSubmit((d) => onSubmit(d, 'DRAFT'))}
+                onClick={handleSubmit(
+                  (d) => onSubmit(d, 'DRAFT'),
+                  () => toast.error("Form validation failed. Please check required fields, media, and budget.")
+                )}
                 variant="secondary"
                 title="Save as Draft"
                 className="rounded-full h-11 w-11 p-0 flex items-center justify-center border border-border/60 bg-muted/40 shadow-none hover:bg-muted active:scale-95 transition-all"
@@ -819,7 +826,10 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
               <Button
                 type="button"
                 disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
-                onClick={handleSubmit((d) => onSubmit(d, 'ACTIVE'))}
+                onClick={handleSubmit(
+                  (d) => onSubmit(d, 'ACTIVE'),
+                  () => toast.error("Form validation failed. Please check required fields, media, and budget.")
+                )}
                 className="w-auto rounded-3xl h-11 px-5 md:px-6 font-bold text-[11px] shadow-xl shadow-primary/30 active:scale-[0.98] transition-all bg-primary text-white border-0"
               >
                 {isSubmitting ? (
