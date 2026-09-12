@@ -479,11 +479,6 @@ export class ProjectService {
     };
   }
 
-
-  /**
-   * Public Ledger Aggregation Engine
-   * Unifies platform-wide or project-specific capital flow with masked identities.
-   */
   /**
    * Public Ledger Aggregation Engine
    * Unifies platform-wide or project-specific capital flow with masked identities.
@@ -518,14 +513,14 @@ export class ProjectService {
         include: {
           user: { select: { id: true, firstName: true, lastName: true, role: true } },
           project: { select: { title: true, slug: true } },
-          transaction: { select: { reference: true, metadata: true, category: true } }
+          transaction: { select: { reference: true, metadata: true, category: true, status: true } }
         },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
       }) : Promise.resolve([]),
       fetchInflows ? this.prisma.guestDonation.findMany({
         where: guestDonationWhere,
-        include: { guestDonor: { select: { name: true } }, project: { select: { title: true, slug: true } } },
+        include: { guestDonor: { select: { name: true, isCorporate: true } }, project: { select: { title: true, slug: true } } },
         orderBy: { createdAt: 'desc' },
         take: skip + limit
       }) : Promise.resolve([]),
@@ -564,6 +559,7 @@ export class ProjectService {
         type: 'INFLOW',
         amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
         currency: d.currency,
+        status: d.transaction?.status || 'COMPLETED', // <--- FIXED
         reference: d.transaction?.reference || d.transactionId,
         createdAt: d.createdAt,
         actorName: isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName),
@@ -580,12 +576,15 @@ export class ProjectService {
       type: 'INFLOW',
       amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
       currency: d.currency,
+      status: 'COMPLETED', // <--- FIXED
       reference: d.reference,
       createdAt: d.createdAt,
-      actorName: maskName(null, null, d.guestDonor?.name),
+      actorName: d.guestDonor?.isCorporate ? d.guestDonor.name : maskName(null, null, d.guestDonor?.name),
       projectName: d.project.title,
       projectSlug: d.project.slug,
-      phaseName: d.message?.startsWith('Phase') ? d.message : null
+      phaseName: d.message?.startsWith('Phase') ? d.message : null,
+      message: d.message,
+      isCorporate: d.guestDonor?.isCorporate
     }));
 
     disbursements.forEach(d => entries.push({
@@ -593,6 +592,7 @@ export class ProjectService {
       type: 'OUTFLOW',
       amount: d.amount.toString(),
       currency: d.currency,
+      status: 'COMPLETED', // <--- FIXED
       reference: d.reference,
       createdAt: d.createdAt,
       actorName: d.vendorName,

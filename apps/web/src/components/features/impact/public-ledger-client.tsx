@@ -17,7 +17,8 @@ import {
     XCircle,
     ChevronRight,
     Download,
-    Loader2
+    Loader2,
+    Building2
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -81,6 +82,10 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
     };
 
     const getPaymentContext = (tx: any) => {
+        if (tx.isCorporate) {
+            return { label: 'Payment Method', method: 'Direct Corporate Wire' };
+        }
+
         if (tx.type === 'DEBIT' && tx.reference?.startsWith('DON-')) {
             return { label: 'Givar Wallet', method: 'Wallet Balance' };
         }
@@ -196,7 +201,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                     const statusStyle = statusStyles['COMPLETED'];
 
                                     const displayCategory = entry.type === 'INFLOW'
-                                        ? (entry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION')
+                                        ? (entry.isCorporate ? 'CORPORATE SPONSORSHIP' : (entry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION'))
                                         : (entry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT');
 
                                     return (
@@ -210,8 +215,12 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                         >
                                             <td className="block md:table-cell p-4 md:px-6 md:py-4 border-none w-full min-w-0">
                                                 <div className="flex items-center gap-3 w-full min-w-0">
-                                                    <div className={cn("h-10 w-10 shrink-0 flex items-center justify-center rounded-3xl shadow-sm border border-border/10", typeStyle.bg, typeStyle.text)}>
-                                                        <typeStyle.icon className="h-5 w-5" />
+                                                    <div className={cn(
+                                                        "h-10 w-10 shrink-0 flex items-center justify-center rounded-3xl shadow-sm border border-border/10",
+                                                        entry.isCorporate ? "bg-emerald-600/10 text-emerald-600" : typeStyle.bg,
+                                                        entry.isCorporate ? "" : typeStyle.text
+                                                    )}>
+                                                        {entry.isCorporate ? <Building2 className="h-5 w-5" /> : <typeStyle.icon className="h-5 w-5" />}
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
@@ -230,7 +239,10 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                         </div>
 
                                                         <div className="flex items-center gap-3 mt-2 min-w-0">
-                                                            <span className="px-2 py-0.5 rounded-full bg-muted border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0 truncate max-w-[120px] md:max-w-none">
+                                                            <span className={cn(
+                                                                "px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-widest shrink-0 truncate max-w-[120px] md:max-w-none mr-1",
+                                                                entry.isCorporate ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted border-border/40 text-muted-foreground"
+                                                            )}>
                                                                 {displayCategory}
                                                             </span>
                                                             <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
@@ -297,9 +309,12 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                     <FileText className="h-12 w-12" />
                                 </div>
                                 <div className="absolute top-3 left-4">
-                                    <span className="px-2 py-0.5 rounded-full bg-background/60 border border-border/40 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-widest",
+                                        selectedEntry.isCorporate ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-background/60 border-border/40 text-muted-foreground"
+                                    )}>
                                         {selectedEntry.type === 'INFLOW'
-                                            ? (selectedEntry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION')
+                                            ? (selectedEntry.isCorporate ? 'CORPORATE SPONSORSHIP' : (selectedEntry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION'))
                                             : (selectedEntry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT')}
                                     </span>
                                 </div>
@@ -359,7 +374,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 Method: {getPaymentContext(selectedEntry).method}
                                             </p>
                                             <p className="text-sm text-slate-500 pt-1">
-                                                Record Type: {selectedEntry.type === 'INFLOW' ? 'CONTRIBUTION' : 'DISBURSEMENT'}
+                                                Record Type: {selectedEntry.type === 'INFLOW' ? (selectedEntry.isCorporate ? 'CORPORATE SPONSORSHIP' : 'CONTRIBUTION') : 'DISBURSEMENT'}
                                             </p>
                                         </div>
                                     </div>
@@ -481,25 +496,30 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                     </span>
                                     <div className="flex items-center gap-2 font-bold text-sm truncate">
                                         <span className="truncate">{selectedEntry.actorName}</span>
+                                        {selectedEntry.isCorporate && (
+                                            <Badge className="bg-emerald-500/10 text-emerald-600 border-none shadow-none text-[9px] px-2 py-0 h-4 ml-1">CORPORATE SPONSOR</Badge>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground block mb-1">Status</span>
-                                    <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs truncate">
-                                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-                                        <span className="truncate">Verified</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase block mb-1">Status</span>
+                                    <div className={cn("flex items-center gap-2 font-bold text-xs truncate", statusStyles[selectedEntry.status as TxStatus]?.text || 'text-emerald-500')}>
+                                        {React.createElement(statusStyles[selectedEntry.status as TxStatus]?.icon || CheckCircle2, { className: "h-3.5 w-3.5 shrink-0" })}
+                                        <span className="truncate">{selectedEntry.status?.charAt(0) + selectedEntry.status?.slice(1).toLowerCase()}</span>
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
-                                    <span className="text-xs font-bold text-muted-foreground block mb-1">Method</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase block mb-1">Method</span>
                                     <div className="flex items-center gap-2">
                                         {selectedEntry.type === 'OUTFLOW' ? (
                                             <CreditCard className="h-3.5 w-3.5 text-primary shrink-0" />
+                                        ) : selectedEntry.isCorporate ? (
+                                            <Building2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                                         ) : (
                                             <Wallet className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                         )}
-                                        <p className="text-xs font-bold text-foreground truncate ">
-                                            {selectedEntry.type === 'INFLOW' ? 'Direct support' : 'Project payment'}
+                                        <p className="text-xs font-bold text-foreground truncate " title={getPaymentContext(selectedEntry).method}>
+                                            {getPaymentContext(selectedEntry).method}
                                         </p>
                                     </div>
                                 </div>
@@ -509,7 +529,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 {selectedEntry.type === 'INFLOW' && (
                                     <Button
                                         onClick={() => handleDownloadReceipt(selectedEntry)}
-                                        disabled={isGenerating}
+                                        disabled={isGenerating || selectedEntry.status !== 'COMPLETED'}
                                         className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg active:scale-95 transition-all border-0"
                                     >
                                         {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
