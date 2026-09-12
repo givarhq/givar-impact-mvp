@@ -87,8 +87,8 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-12 md:mt-16">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-6">
+                <div className="relative mt-6 md:mt-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-5">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
@@ -138,10 +138,10 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                     </span>
                                 </div>
 
-                                {/* Connecting Arrow between steps (Desktop) */}
+                                {/* Prominent Directional Arrow in Circular Container (Desktop Only) */}
                                 {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-[30%] -right-[24px] w-[24px] items-center justify-center z-30 text-emerald-500/40">
-                                        <ArrowRight className="h-5 w-5" />
+                                    <div className="hidden lg:flex absolute top-[28%] -right-[28px] h-8 w-8 rounded-full bg-white dark:bg-zinc-900 border border-border/60 shadow-md items-center justify-center text-primary z-30 transition-transform duration-200 hover:scale-105">
+                                        <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                                     </div>
                                 )}
                             </motion.div>
