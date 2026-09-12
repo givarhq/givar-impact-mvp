@@ -5,7 +5,7 @@ import { ShieldCheck, Target, AlertCircle, Copy, Check, CheckCircle2, Clock, Bel
 import { Card } from '../../ui/card';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Project } from '../../../types';
+import { ProjectWithDetails } from '../../../types';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { ApiService } from '../../../services/api';
@@ -13,7 +13,7 @@ import { getCookie } from 'cookies-next';
 import { calculatePhaseFunding } from '@givar/types';
 
 interface TransparencyCardProps {
-    project: Project & { donorCount?: number };
+    project: ProjectWithDetails;
 }
 
 const SYMBOLS: Record<string, string> = {
@@ -25,7 +25,7 @@ const SYMBOLS: Record<string, string> = {
 };
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
-    // --- AGGREGATED PHASED FUNDING MATH FIX ---
+    // --- AGGREGATED PHASED FUNDING MATH ---
     const phaseMath = calculatePhaseFunding(project as any);
 
     const {
@@ -48,6 +48,9 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
     const [isWaitlisted, setIsWaitlisted] = useState(false);
     const [copied, setCopied] = useState(false);
+
+    // Smart UI flag to suppress default boxes if a corporate sponsor is rendering instead
+    const hasCorporateSponsorCompleted = project.corporateSponsor && (isCompleted || isFundedState);
 
     useEffect(() => {
         const userCookie = getCookie('givar_user');
@@ -153,20 +156,22 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 </div>
             </Card>
 
-            {/* Segment 2: Phased Funding Note */}
-            <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
-                <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                        <ShieldCheck className="h-4 w-4 text-primary" />
+            {/* Segment 2: Phased Funding Note (Suppressed if Corporate Sponsor exists and project is funded) */}
+            {!hasCorporateSponsorCompleted && (!isCompleted && !isFundedState) && (
+                <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                        <div className="mt-0.5">
+                            <ShieldCheck className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                            <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Funding</h4>
+                            <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
+                                This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
+                            </p>
+                        </div>
                     </div>
-                    <div className="space-y-1">
-                        <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Funding</h4>
-                        <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
-                            This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
-                        </p>
-                    </div>
-                </div>
-            </Card>
+                </Card>
+            )}
 
             {/* Segment 3: Current Funding Phase */}
             {(!isCompleted && !isFundedState) ? (
@@ -251,17 +256,18 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                         )}
                     </Card>
                 </div>
-            ) : (
+            ) : !hasCorporateSponsorCompleted ? (
+                // Only show this default "Cause Fully Funded" box if NO corporate sponsor exists
                 <Card className="p-5 md:p-6 rounded-3xl border border-primary/20 bg-primary/5 text-center space-y-2 shadow-sm">
                     <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                         <CheckCircle2 className="h-6 w-6" />
                     </div>
-                    <h3 className="text-base font-bold text-foreground tracking-tight">Campaign Fully Funded</h3>
-                    <p className="text-[11px] text-foreground/80 font-medium">
-                        All financial requirements have been met.
+                    <h3 className="text-base font-bold text-foreground tracking-tight">Cause Fully Funded</h3>
+                    <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
+                        The full amount needed has been raised. Thank you to everyone who supported this cause. 💚
                     </p>
                 </Card>
-            )}
+            ) : null}
         </div>
     );
 });
