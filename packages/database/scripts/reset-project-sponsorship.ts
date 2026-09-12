@@ -1,4 +1,11 @@
-import 'dotenv/config';
+import { resolve } from 'path';
+import * as dotenv from 'dotenv';
+
+// Load environment variables from apps/api/.env, packages/database/.env, and root .env
+dotenv.config({ path: resolve(__dirname, '../../../apps/api/.env') });
+dotenv.config({ path: resolve(__dirname, '../.env') });
+dotenv.config();
+
 import { prisma } from '../src/index';
 
 const TARGET_PROJECT = process.argv[2];
@@ -9,19 +16,45 @@ async function main() {
         process.exit(1);
     }
 
+    const cleanTarget = TARGET_PROJECT.trim();
+
+    // Search by project ID, slug, or proposal ID
     const project = await prisma.project.findFirst({
         where: {
-            OR: [{ id: TARGET_PROJECT }, { slug: TARGET_PROJECT }]
+            OR: [
+                { id: cleanTarget },
+                { slug: cleanTarget },
+                { proposalId: cleanTarget }
+            ]
         },
         include: {
             guestDonations: {
-                where: { guestDonor: { isCorporate: true } }
+                where: {
+                    OR: [
+                        { guestDonor: { isCorporate: true } },
+                        { message: 'Corporate Sponsorship' }
+                    ]
+                }
             }
         }
     });
 
     if (!project) {
-        console.error(`Project "${TARGET_PROJECT}" not found.`);
+        console.error(`Project "${cleanTarget}" not found in database.`);
+        const existingProjects = await prisma.project.findMany({
+            select: { id: true, slug: true, title: true, proposalId: true },
+            take: 10,
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (existingProjects.length > 0) {
+            console.log('\nAvailable recent projects in this database:');
+            existingProjects.forEach(p => {
+                console.log(`- Title: "${p.title}" | Slug: "${p.slug}" | ID: "${p.id}"${p.proposalId ? ` | Proposal ID: "${p.proposalId}"` : ''}`);
+            });
+        } else {
+            console.log('No projects found in this database. Please check your DATABASE_URL connection.');
+        }
         process.exit(1);
     }
 
