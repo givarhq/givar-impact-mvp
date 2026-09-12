@@ -257,6 +257,11 @@ export interface ProjectWithDetails extends Project {
   donorCount?: number;
   isVerifiedOrganizer: boolean;
   organizerName: string;
+  corporateSponsor?: {
+    name: string;
+    logoUrl: string | null;
+    amount: string;
+  } | null;
 }
 
 export interface OrganizationProfile {

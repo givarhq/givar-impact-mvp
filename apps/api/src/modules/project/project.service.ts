@@ -176,6 +176,12 @@ export class ProjectService {
             role: true,
             organization: { select: { status: true, legalName: true, verifiedAt: true, kycType: true } }
           }
+        },
+        guestDonations: { // Capture the corporate sponsor if they exist
+          where: { status: 'COMPLETED', guestDonor: { isCorporate: true } },
+          include: { guestDonor: true },
+          orderBy: { createdAt: 'desc' },
+          take: 1
         }
       }
     });
@@ -196,6 +202,13 @@ export class ProjectService {
 
     const isSystemProject = project.user?.role === 'ADMIN' || project.user?.role === 'SUPERADMIN';
 
+    const corporateSponsor = safeProject.guestDonations?.[0] ? {
+      name: safeProject.guestDonations[0].guestDonor.name,
+      logoUrl: safeProject.guestDonations[0].guestDonor.logoUrl,
+      amount: safeProject.guestDonations[0].amount.toString()
+    } : null;
+    delete safeProject.guestDonations; // Sanitize response
+
     return {
       ...safeProject,
       isWaitlisted: !!isWaitlisted, // Inject the isolated boolean state
@@ -207,7 +220,8 @@ export class ProjectService {
       isVerifiedOrganizer: isSystemProject ? true : safeProject.user?.organization?.status === 'VERIFIED',
       organizerName: isSystemProject ? 'Givar' : (safeProject.user?.organization?.legalName || 'Individual'),
       organizerType: isSystemProject ? 'SYSTEM' : (safeProject.user?.organization?.kycType || 'INDIVIDUAL'),
-      isGivarOfficial: isSystemProject
+      isGivarOfficial: isSystemProject,
+      corporateSponsor
     };
   }
 

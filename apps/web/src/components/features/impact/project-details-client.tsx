@@ -86,20 +86,10 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         isCompleted,
         isFundedState,
         isPhaseFull,
-        currentStageDisplayName,
         currentStageLogicName,
-        raisedInCurrentPhase,
-        currentPhaseTargetMinor,
-        phasePercent,
         previousStages
     } = phaseMath;
 
-    const raised = Number(project.raisedAmount || 0);
-    const target = Number(project.targetAmount || 0);
-
-    const completedText = 'Cause Completed';
-
-    const finalReport = project.updates?.find(u => u.type === 'IMPACT_ACHIEVED' || u.type === 'IMPACT_REPORT');
     const otherUpdates = project.updates?.filter(u => u.type !== 'IMPACT_ACHIEVED') || [];
 
     const formatUpdateType = (type: string) => {
@@ -160,10 +150,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     // Strip HTML and spaces to check if there is real content
     const hasAdditionalNotes = project.riskAnalysis && project.riskAnalysis.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim().length > 0;
 
-    const finalAssets = finalReport?.assets && finalReport.assets.length > 0
-        ? finalReport.assets
-        : (finalReport?.imageUrl ? [finalReport.imageUrl] : []);
-
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -201,72 +187,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         </div>
                     </div>
                 </div>
-
-                <AnimatePresence>
-                    {isCompleted && finalReport && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0, y: 20 }}
-                            animate={{ opacity: 1, height: 'auto', y: 0 }}
-                            className="pt-2"
-                        >
-                            <Card className="rounded-3xl border-emerald-500/20 bg-emerald-500/[0.03] shadow-sm overflow-hidden">
-                                <CardHeader className="bg-emerald-500/10 border-b border-emerald-500/10 py-4 px-6 flex flex-row items-center gap-3">
-                                    <div className="h-11 w-11 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-600 shrink-0 shadow-inner">
-                                        <CheckCircle2 className="h-6 w-6" />
-                                    </div>
-                                    <div className="space-y-0.5">
-                                        <CardTitle className="text-sm font-bold text-emerald-800">{completedText}</CardTitle>
-                                        <p className="text-[11px] text-emerald-700/80 font-bold">Final evidence and verification report</p>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-6 md:p-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                                        <div className="space-y-4">
-                                            <h4 className="text-lg font-bold text-emerald-950 dark:text-emerald-50 leading-tight">{finalReport.title}</h4>
-                                            <p className="text-sm text-emerald-900/80 dark:text-emerald-100/80 leading-relaxed font-medium">
-                                                {finalReport.content}
-                                            </p>
-                                            <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-600 bg-emerald-500/10 w-fit px-3 py-1.5 rounded-full border border-emerald-500/20">
-                                                <ShieldCheck className="h-4 w-4" /> Verified by Givar Audit
-                                            </div>
-                                        </div>
-                                        {finalAssets.length > 0 && (
-                                            <div className={cn("grid gap-3", finalAssets.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
-                                                {finalAssets.map((assetUrl: string, idx: number) => {
-                                                    const isPdf = assetUrl.toLowerCase().includes('.pdf') || assetUrl.toLowerCase().includes('.doc');
-                                                    return (
-                                                        <div
-                                                            key={idx}
-                                                            className={cn(
-                                                                "relative rounded-2xl overflow-hidden border border-emerald-500/20 shadow-md bg-muted cursor-pointer group hover:shadow-lg transition-all",
-                                                                finalAssets.length === 1 && !isPdf ? "aspect-video" : "aspect-square"
-                                                            )}
-                                                            onClick={() => handleViewAsset(assetUrl, 'Impact Evidence')}
-                                                        >
-                                                            {isPdf ? (
-                                                                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-emerald-50/50">
-                                                                    <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 mb-2 group-hover:scale-110 transition-transform shadow-sm">
-                                                                        <FileText className="h-6 w-6" />
-                                                                    </div>
-                                                                    <p className="text-[11px] font-bold text-emerald-800 text-center px-2">View Document</p>
-                                                                </div>
-                                                            ) : (
-                                                                <Image src={assetUrl} alt="Impact Evidence" fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover group-hover:scale-105 transition-transform duration-700" />
-                                                            )}
-                                                            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                                                                <ExternalLink className="h-6 w-6 text-white drop-shadow-md" />
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 <div className="space-y-3">
                     {(project as any).videoUrl ? (
@@ -593,23 +513,47 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
-                    <div className="space-y-3">
-                        {budget.length > 1 && (
-                            <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
-                                <div className="flex items-start gap-3">
-                                    <div className="mt-0.5">
-                                        <ShieldCheck className="h-4 w-4 text-primary" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest">Phased Funding</h4>
-                                        <p className="text-[11px] text-foreground/80 font-medium leading-relaxed">
-                                            This cause is funded in stages. Once a stage is fully funded and confirmed, the next stage opens for funding.
-                                        </p>
-                                    </div>
+                    {project.corporateSponsor && (isCompleted || isFundedState) && (
+                        <div className="bg-emerald-50/50 rounded-3xl p-6 text-center space-y-4 border border-emerald-100/50 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+                            <div className="flex items-center justify-center gap-3">
+                                <div className="flex items-end gap-1.5 pb-1">
+                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full -rotate-[30deg] transform translate-y-1" />
+                                    <div className="h-4 w-[2px] bg-emerald-500 rounded-full" />
+                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full rotate-[30deg] transform translate-y-1" />
                                 </div>
-                            </Card>
-                        )}
+                                <h3 className="text-[15px] font-bold text-foreground">Funding completed by</h3>
+                                <div className="flex items-end gap-1.5 pb-1">
+                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full -rotate-[30deg] transform translate-y-1" />
+                                    <div className="h-4 w-[2px] bg-emerald-500 rounded-full" />
+                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full rotate-[30deg] transform translate-y-1" />
+                                </div>
+                            </div>
 
+                            {project.corporateSponsor.logoUrl ? (
+                                <div className="relative h-12 w-full max-w-[200px] mx-auto my-4">
+                                    <Image
+                                        src={project.corporateSponsor.logoUrl}
+                                        alt={project.corporateSponsor.name}
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-xl font-black text-emerald-900 my-4">{project.corporateSponsor.name}</div>
+                            )}
+
+                            <p className="text-sm font-medium text-foreground leading-relaxed">
+                                <span className="font-bold">{project.corporateSponsor.name}</span> brought this cause to full funding with a contribution of <span className="font-bold"><SmartCurrency amount={project.corporateSponsor.amount} currency={project.currency} visible={true} size="default" /></span>.
+                            </p>
+
+                            <p className="text-sm font-medium text-muted-foreground pt-1">
+                                Thank you for making a real difference. <span className="text-emerald-500">💚</span>
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="space-y-3">
                         <div className="hidden md:block space-y-3">
                             {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') && (
                                 <Link href={donateLink} className="block w-full">
