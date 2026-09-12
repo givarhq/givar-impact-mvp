@@ -145,6 +145,7 @@ enum AuditAction {
   FUNDS_REALLOCATED
   TRANSACTION_RESOLVED
   RECEIPT_VIEWED
+  CORPORATE_SPONSORSHIP_LOGGED
   
   // Project/Admin
   PROJECT_CREATED
@@ -514,6 +515,8 @@ model GuestDonor {
   id            String          @id @default(uuid())
   email         String          @unique // normalized
   name          String?         
+  isCorporate   Boolean         @default(false)
+  logoUrl       String?         // Supports Clearbit API URL or direct S3 key
   totalDonated  BigInt          @default(0)
   donationCount Int             @default(0)
   firstDonated  DateTime        @default(now())

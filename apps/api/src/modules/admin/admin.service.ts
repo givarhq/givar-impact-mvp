@@ -20,6 +20,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { randomUUID } from 'crypto';
 import { calculatePhaseFunding } from '@givar/types';
 import { AuthService } from '../auth/auth.service';
+import { LogCorporateSponsorshipDto } from './dto/admin-sponsorship.dto';
 
 @Injectable()
 export class AdminService {
@@ -3642,5 +3643,129 @@ export class AdminService {
     ).catch(err => this.logger.error(`Broadcast email failed: ${err.message}`));
 
     return { success: true, broadcastCount: users.length };
+  }
+
+  async logCorporateSponsorship(adminId: string, projectId: string, dto: LogCorporateSponsorshipDto) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { user: { select: { email: true, firstName: true } } }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    const amountMinor = BigInt(dto.amount);
+    const reference = dto.reference || `CORP-${randomUUID().slice(0, 8).toUpperCase()}`;
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const guestDonor = await tx.guestDonor.upsert({
+        where: { email: dto.sponsorEmail.toLowerCase().trim() },
+        update: {
+          totalDonated: { increment: amountMinor },
+          donationCount: { increment: 1 },
+          lastDonated: new Date(),
+          isCorporate: true,
+          logoUrl: dto.sponsorLogoUrl || null,
+          name: dto.sponsorName
+        },
+        create: {
+          email: dto.sponsorEmail.toLowerCase().trim(),
+          name: dto.sponsorName,
+          totalDonated: amountMinor,
+          donationCount: 1,
+          isCorporate: true,
+          logoUrl: dto.sponsorLogoUrl || null
+        }
+      });
+
+      const guestDonation = await tx.guestDonation.create({
+        data: {
+          guestDonorId: guestDonor.id,
+          projectId,
+          amount: amountMinor,
+          baseAmount: amountMinor,
+          currency: project.currency,
+          reference,
+          status: 'COMPLETED',
+          message: 'Corporate Sponsorship',
+        }
+      });
+
+      const updatedProject = await tx.project.update({
+        where: { id: projectId },
+        data: { raisedAmount: { increment: amountMinor } }
+      });
+
+      const isGoalMet = updatedProject.raisedAmount >= updatedProject.targetAmount;
+      if (isGoalMet && updatedProject.status !== 'FUNDED' && updatedProject.status !== 'COMPLETED') {
+        await tx.project.update({
+          where: { id: projectId },
+          data: { status: 'FUNDED', fundedAt: new Date() }
+        });
+      }
+
+      await tx.notification.create({
+        data: {
+          userId: project.userId,
+          type: 'DONATION_RECEIVED',
+          title: 'Corporate sponsorship received',
+          content: `Your cause "${project.title}" received a corporate sponsorship of ${project.currency} ${(Number(amountMinor) / 100).toLocaleString()}.`,
+          link: `/dashboard/projects/${project.id}/manage`
+        }
+      });
+
+      if (isGoalMet) {
+        await tx.notification.create({
+          data: {
+            userId: project.userId,
+            type: 'PROJECT_STATUS',
+            title: 'Goal reached via sponsorship!',
+            content: `Success! "${project.title}" is now fully funded by ${dto.sponsorName}.`,
+            link: `/dashboard/projects/${project.id}/manage`
+          }
+        });
+      }
+
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.CORPORATE_SPONSORSHIP_LOGGED,
+          entityId: guestDonation.id,
+          entityType: 'GuestDonation',
+          metadata: {
+            sponsorName: dto.sponsorName,
+            amount_naira: (Number(amountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+            reference,
+            isGoalMet
+          }
+        }
+      });
+
+      return { updatedProject, isGoalMet };
+    });
+
+    this.emailService.sendDonationReceipt(dto.sponsorEmail, {
+      amount: (Number(amountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+      currency: project.currency,
+      project: project.title,
+      phaseName: 'Corporate Sponsorship',
+      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      ref: reference
+    }).catch(err => this.logger.error(`Failed to send corporate receipt: ${err.message}`));
+
+    if (result.isGoalMet) {
+      this.emailService.sendProjectFundedAlert(project.user.email, {
+        name: project.user.firstName,
+        projectTitle: project.title,
+        amount: (Number(result.updatedProject.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+        currency: project.currency,
+        projectId: project.id
+      }).catch(err => this.logger.error(`Project Funded Alert Failed: ${err.message}`));
+    }
+
+    return {
+      success: true,
+      raisedAmount: result.updatedProject.raisedAmount.toString(),
+      status: result.updatedProject.status
+    };
   }
 }

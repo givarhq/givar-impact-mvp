@@ -11,6 +11,7 @@ import { UpdateMilestoneDto } from './dto/admin-milestone.dto';
 import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 import { AdminProjectQueryDto, AdminProposalQueryDto, AdminUserQueryDto } from './dto/admin-project-query.dto';
 import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
+import { LogCorporateSponsorshipDto } from './dto/admin-sponsorship.dto';
 
 @SkipThrottle()
 @Controller('admin')
@@ -412,5 +413,14 @@ export class AdminController {
   @Roles(UserRole.SUPERADMIN)
   broadcastLegalDocument(@Req() req: any, @Param('slug') slug: string) {
     return this.service.broadcastLegalUpdate(req.user.id, slug);
+  }
+
+  @Post('projects/:id/corporate-sponsorship')
+  logCorporateSponsorship(
+    @Req() req: any,
+    @Param('id') projectId: string,
+    @Body() dto: LogCorporateSponsorshipDto
+  ) {
+    return this.service.logCorporateSponsorship(req.user.id, projectId, dto);
   }
 }
