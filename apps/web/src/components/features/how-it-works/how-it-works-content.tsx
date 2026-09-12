@@ -87,7 +87,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-10 md:mt-12">
+                <div className="relative mt-12 md:mt-16">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-4">
                         {steps.map((step, index) => (
                             <motion.div
@@ -98,26 +98,18 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="relative flex flex-col items-center text-center group"
                             >
-                                {/* Connecting Arrow (Desktop Only) */}
-                                {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-1/2 -right-[1.1rem] -translate-y-1/2 z-30 h-8 w-8 rounded-full bg-card border border-border/60 text-muted-foreground items-center justify-center shadow-sm">
-                                        <ArrowRight className="h-4 w-4 opacity-50" />
-                                    </div>
-                                )}
-
-                                {/* Floating Icon */}
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 h-10 w-10 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
-                                    <step.icon className="h-5 w-5" />
+                                {/* Floating Icon resting less deepened inside the cutout */}
+                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600 transition-transform duration-300 group-hover:scale-110">
+                                    <step.icon className="h-6 w-6" />
                                 </div>
 
-                                {/* Image Card with the perfectly shallow CSS notch */}
+                                {/* Image Card with CSS Mask for the Magic Cutout */}
                                 <div
-                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40 mt-6"
+                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
                                     style={{
-                                        // This math places the circle's center 12px ABOVE the card and makes it wider,
-                                        // resulting in a perfectly smooth, shallow scoop without sharp corners.
-                                        WebkitMaskImage: 'radial-gradient(circle at 50% -12px, transparent 42px, black 43px)',
-                                        maskImage: 'radial-gradient(circle at 50% -12px, transparent 42px, black 43px)'
+                                        // Cuts a smooth curved notch instead of sharp
+                                        WebkitMaskImage: 'radial-gradient(circle at 50% -6px, transparent 28px, black 29px)',
+                                        maskImage: 'radial-gradient(circle at 50% -6px, transparent 28px, black 29px)'
                                     }}
                                 >
                                     <Image
@@ -132,7 +124,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 </div>
 
                                 {/* Text Content */}
-                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2 px-1">
+                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">
                                     {step.num}. {step.title}
                                 </h3>
                                 <p className="text-[13px] md:text-sm text-muted-foreground font-medium leading-snug mb-5 flex-1 px-1">
@@ -146,6 +138,13 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                         {step.badge}
                                     </span>
                                 </div>
+
+                                {/* Connecting Arrow between steps (Desktop) */}
+                                {index < steps.length - 1 && (
+                                    <div className="hidden lg:flex absolute top-[30%] -right-[24px] w-[24px] items-center justify-center z-30 text-emerald-500/40">
+                                        <ArrowRight className="h-5 w-5" />
+                                    </div>
+                                )}
                             </motion.div>
                         ))}
                     </div>
@@ -184,7 +183,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     </div>
                 </motion.div>
 
-                {/* Bottom CTA Action */}
+                {/* Bottom CTA Action - Only show if not logged in */}
                 {!isAuthenticated && (
                     <motion.section
                         initial={{ opacity: 0, scale: 0.98 }}
