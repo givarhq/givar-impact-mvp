@@ -147,7 +147,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
         }
     };
 
-    // Strip HTML and spaces to check if there is real content
     const hasAdditionalNotes = project.riskAnalysis && project.riskAnalysis.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim().length > 0;
 
     return (
@@ -513,24 +512,25 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
+                    {/* Compact Celebratory Corporate Sponsorship Showcase */}
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
-                        <div className="bg-emerald-50/50 rounded-3xl p-6 text-center space-y-4 border border-emerald-100/50 shadow-sm animate-in fade-in zoom-in-95 duration-500">
-                            <div className="flex items-center justify-center gap-3">
-                                <div className="flex items-end gap-1.5 pb-1">
-                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full -rotate-[30deg] transform translate-y-1" />
-                                    <div className="h-4 w-[2px] bg-emerald-500 rounded-full" />
-                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full rotate-[30deg] transform translate-y-1" />
-                                </div>
-                                <h3 className="text-[15px] font-bold text-foreground">Funding completed by</h3>
-                                <div className="flex items-end gap-1.5 pb-1">
-                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full -rotate-[30deg] transform translate-y-1" />
-                                    <div className="h-4 w-[2px] bg-emerald-500 rounded-full" />
-                                    <div className="h-3 w-[2px] bg-emerald-500 rounded-full rotate-[30deg] transform translate-y-1" />
-                                </div>
+                        <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-4 sm:p-5 text-center space-y-2.5 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+                            <div className="flex items-center justify-center gap-2.5">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-emerald-600 shrink-0">
+                                    <line x1="4" y1="6" x2="9" y2="10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="2" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="4" y1="20" x2="9" y2="16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                </svg>
+                                <h3 className="text-sm sm:text-[15px] font-bold text-foreground">Funding completed by</h3>
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-emerald-600 shrink-0">
+                                    <line x1="20" y1="6" x2="15" y2="10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="22" y1="13" x2="16" y2="13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="20" y1="20" x2="15" y2="16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                </svg>
                             </div>
 
                             {project.corporateSponsor.logoUrl ? (
-                                <div className="relative h-12 w-full max-w-[200px] mx-auto my-4">
+                                <div className="relative h-9 sm:h-10 w-full max-w-[160px] mx-auto my-1">
                                     <Image
                                         src={project.corporateSponsor.logoUrl}
                                         alt={project.corporateSponsor.name}
@@ -540,16 +540,17 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     />
                                 </div>
                             ) : (
-                                <div className="text-xl font-black text-emerald-900 my-4">{project.corporateSponsor.name}</div>
+                                <div className="text-base sm:text-lg font-black text-emerald-900 dark:text-emerald-300 my-1">{project.corporateSponsor.name}</div>
                             )}
 
-                            <p className="text-sm font-medium text-foreground leading-relaxed">
-                                <span className="font-bold">{project.corporateSponsor.name}</span> brought this cause to full funding with a contribution of <span className="font-bold"><SmartCurrency amount={project.corporateSponsor.amount} currency={project.currency} visible={true} size="default" /></span>.
-                            </p>
-
-                            <p className="text-sm font-medium text-muted-foreground pt-1">
-                                Thank you for making a real difference. <span className="text-emerald-500">💚</span>
-                            </p>
+                            <div className="space-y-1">
+                                <p className="text-xs sm:text-[13px] font-medium text-foreground/90 leading-snug">
+                                    <span className="font-bold text-foreground">{project.corporateSponsor.name}</span> brought this cause to full funding with a contribution of <span className="font-bold text-foreground"><SmartCurrency amount={project.corporateSponsor.amount} currency={project.currency} visible={true} size="small" /></span>.
+                                </p>
+                                <p className="text-xs sm:text-[13px] font-medium text-muted-foreground pt-0.5">
+                                    Thank you for making a real difference. <span className="text-emerald-500">💚</span>
+                                </p>
+                            </div>
                         </div>
                     )}
 
