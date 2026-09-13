@@ -516,20 +516,26 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
                         <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-3.5 sm:p-4 text-center space-y-2 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
                             <div className="relative flex items-center justify-between w-full px-1">
-                                {/* Left Confetti Sparks: Staggered wide across the corner, angled upward */}
+                                {/* Left Confetti Sparks (Non-parallel, fanned, angled slightly in toward the text) */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0">
-                                    <line x1="52" y1="14" x2="46" y2="5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                    <line x1="34" y1="22" x2="25" y2="13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                    <line x1="18" y1="30" x2="8" y2="24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    {/* Inner dash - angled slightly in toward the funding text */}
+                                    <line x1="50" y1="18" x2="54" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    {/* Middle dash - nearly upright, bridging the arc */}
+                                    <line x1="30" y1="22" x2="26" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    {/* Outer dash - flaring out toward the left edge */}
+                                    <line x1="14" y1="26" x2="4" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
 
                                 <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight px-1 whitespace-nowrap">Funding completed by</h3>
 
-                                {/* Right Confetti Sparks: Staggered wide across the corner, angled upward */}
+                                {/* Right Confetti Sparks (Non-parallel, fanned, angled slightly in toward the text) */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0">
-                                    <line x1="12" y1="14" x2="18" y2="5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                    <line x1="30" y1="22" x2="39" y2="13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                                    <line x1="46" y1="30" x2="56" y2="24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    {/* Inner dash - angled slightly in toward the funding text */}
+                                    <line x1="14" y1="18" x2="10" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    {/* Middle dash - nearly upright, bridging the arc */}
+                                    <line x1="34" y1="22" x2="38" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    {/* Outer dash - flaring out toward the right edge */}
+                                    <line x1="50" y1="26" x2="60" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
                             </div>
 
