@@ -516,18 +516,18 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
                         <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-3.5 sm:p-4 text-center space-y-2 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
                             <div className="relative flex items-center justify-between w-full px-1">
-                                {/* Left Confetti Sparks: Topmost dash angled down slightly */}
+                                {/* Left Confetti Sparks: Topmost dash angled down slightly counter-clockwise */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 -rotate-[20deg] transition-transform">
-                                    <line x1="49" y1="17" x2="55" y2="9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <line x1="50" y1="18" x2="48" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="30" y1="22" x2="26" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="14" y1="26" x2="4" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
 
                                 <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight px-1 whitespace-nowrap">Funding completed by</h3>
 
-                                {/* Right Confetti Sparks: Topmost dash angled down slightly */}
+                                {/* Right Confetti Sparks: Topmost dash angled down slightly clockwise */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 rotate-[20deg] transition-transform">
-                                    <line x1="15" y1="17" x2="9" y2="9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                    <line x1="14" y1="18" x2="16" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="34" y1="22" x2="38" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="50" y1="26" x2="60" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
