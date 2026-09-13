@@ -533,7 +533,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 </svg>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 my-3">
+                            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 my-4 px-2">
                                 {project.corporateSponsor.logoUrl && (
                                     <div className="relative h-10 w-10 sm:h-12 sm:w-12 shrink-0">
                                         <Image
@@ -545,7 +545,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         />
                                     </div>
                                 )}
-                                <div className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-emerald-300 tracking-tight">
+                                <div className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-emerald-300 tracking-tight text-left leading-tight">
                                     {project.corporateSponsor.name}
                                 </div>
                             </div>
