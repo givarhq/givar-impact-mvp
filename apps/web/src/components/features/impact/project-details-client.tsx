@@ -515,27 +515,21 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     {/* Celebratory Corporate Sponsorship Showcase */}
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
                         <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-3.5 sm:p-4 text-center space-y-2 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
-                            <div className="relative flex items-center justify-between w-full px-1.5 sm:px-3">
-                                {/* Left Confetti Sparklines (Shorter Dashes & Widely Fanned Out) */}
-                                <svg width="40" height="34" viewBox="0 0 40 34" fill="none" className="text-emerald-600 shrink-0">
-                                    {/* Top upward dash */}
-                                    <line x1="27" y1="16" x2="22" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Middle outward dash */}
-                                    <line x1="24" y1="21" x2="13" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Lower outward dash */}
-                                    <line x1="25" y1="26" x2="15" y2="30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            <div className="relative flex items-center justify-between w-full px-1">
+                                {/* Left Confetti Sparks: Staggered wide across the corner, angled upward */}
+                                <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0">
+                                    <line x1="52" y1="14" x2="46" y2="5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="34" y1="22" x2="25" y2="13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="18" y1="30" x2="8" y2="24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                                 </svg>
 
-                                <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight mx-auto px-1">Funding completed by</h3>
+                                <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight px-1 whitespace-nowrap">Funding completed by</h3>
 
-                                {/* Right Confetti Sparklines (Shorter Dashes & Widely Fanned Out) */}
-                                <svg width="40" height="34" viewBox="0 0 40 34" fill="none" className="text-emerald-600 shrink-0">
-                                    {/* Top upward dash */}
-                                    <line x1="13" y1="16" x2="18" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Middle outward dash */}
-                                    <line x1="16" y1="21" x2="27" y2="16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Lower outward dash */}
-                                    <line x1="15" y1="26" x2="25" y2="30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                {/* Right Confetti Sparks: Staggered wide across the corner, angled upward */}
+                                <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0">
+                                    <line x1="12" y1="14" x2="18" y2="5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="30" y1="22" x2="39" y2="13" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                    <line x1="46" y1="30" x2="56" y2="24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                                 </svg>
                             </div>
 
