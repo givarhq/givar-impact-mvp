@@ -199,7 +199,7 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projec
                 className="rounded-3xl h-10 px-6 font-bold text-xs shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-95 gap-2"
             >
                 {isLocked ? <Lock className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
-                <span>{isLocked ? 'Ledger sealed' : 'Log corporate sponsorship'}</span>
+                <span>{isLocked ? 'Donation ended' : 'Log corporate sponsorship'}</span>
             </Button>
 
             <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && setIsOpen(false)}>
