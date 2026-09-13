@@ -514,9 +514,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                     {/* Celebratory Corporate Sponsorship Showcase */}
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
-                        <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-3.5 sm:p-4 text-center space-y-2 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
+                        <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-4 sm:p-5 text-center flex flex-col gap-4 sm:gap-5 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
                             <div className="relative flex items-center justify-between w-full px-1">
-                                {/* Left Confetti Sparks: Distinct non-parallel angles for top, middle, and bottom */}
+                                {/* Left Confetti Sparks */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 -rotate-[20deg] transition-transform">
                                     <line x1="50" y1="18" x2="48" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="32" y1="23" x2="24" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -525,7 +525,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                                 <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight px-1 whitespace-nowrap">Funding completed by</h3>
 
-                                {/* Right Confetti Sparks: Distinct non-parallel angles for top, middle, and bottom */}
+                                {/* Right Confetti Sparks */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 rotate-[20deg] transition-transform">
                                     <line x1="14" y1="18" x2="16" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="32" y1="23" x2="40" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -533,7 +533,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 </svg>
                             </div>
 
-                            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 my-4 px-2">
+                            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 px-2">
                                 {project.corporateSponsor.logoUrl && (
                                     <div className="relative h-10 w-10 sm:h-12 sm:w-12 shrink-0">
                                         <Image
@@ -545,14 +545,14 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         />
                                     </div>
                                 )}
-                                <div className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-emerald-300 tracking-tight text-left leading-tight">
+                                <div className="text-2xl sm:text-3xl font-black text-emerald-950 dark:text-emerald-300 tracking-tight text-left leading-tight">
                                     {project.corporateSponsor.name}
                                 </div>
                             </div>
 
-                            <div className="space-y-0.5">
+                            <div className="space-y-1">
                                 <p className="text-xs sm:text-[13px] font-medium text-foreground/90 leading-snug">
-                                    <span className="font-bold text-foreground">{project.corporateSponsor.name}</span> brought this cause to full funding with a contribution of <span className="font-bold text-foreground"><SmartCurrency amount={project.corporateSponsor.amount} currency={project.currency} visible={true} size="small" /></span>.
+                                    {project.corporateSponsor.name} brought this cause to full funding with a contribution of <span className="font-bold text-foreground"><SmartCurrency amount={project.corporateSponsor.amount} currency={project.currency} visible={true} size="small" /></span>.
                                 </p>
                                 <p className="text-[11px] sm:text-xs font-medium text-muted-foreground pt-0.5">
                                     Thank you for making a real difference. <span className="text-emerald-500">💚</span>
