@@ -83,7 +83,6 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                 img2.src = googleUrl;
 
                 img2.onload = () => {
-                    // Google returns a default globe if it fails, so it will almost always 'load'.
                     setResolvedLogoUrl(googleUrl);
                     setLogoStatus('success');
                 };
@@ -236,6 +235,10 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                                                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                                             ) : resolvedLogoUrl ? (
                                                 <Image src={resolvedLogoUrl} alt="Logo" fill className="object-contain p-2" unoptimized />
+                                            ) : logoStatus === 'fallback' && domain ? (
+                                                <div className="h-full w-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-xl">
+                                                    {domain.charAt(0).toUpperCase()}
+                                                </div>
                                             ) : (
                                                 <LinkIcon className="h-5 w-5 text-muted-foreground/30" />
                                             )}
@@ -246,7 +249,11 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                                                 <Input
                                                     placeholder="e.g. mtn.com or givarapp.com"
                                                     value={domain}
-                                                    onChange={(e) => setDomain(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setDomain(e.target.value);
+                                                        setLogoStatus('idle');
+                                                        setResolvedLogoUrl('');
+                                                    }}
                                                     disabled={isLoading}
                                                     className="h-10 pl-9 rounded-xl bg-background text-xs font-medium focus:bg-white shadow-sm transition-all"
                                                 />
@@ -403,7 +410,7 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                         </div>
                     </div>
 
-                    <div className="px-6 md:px-8 pb-6 pt-3 flex justify-end gap-3 shrink-0 border-t border-border/40 bg-muted/5">
+                    <div className="px-6 md:px-8 pb-6 pt-3 flex justify-end gap-3 min-w-0 border-t border-border/40 bg-muted/5">
                         <Button
                             variant="ghost"
                             onClick={() => setIsOpen(false)}
