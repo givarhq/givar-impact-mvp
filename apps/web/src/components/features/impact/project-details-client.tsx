@@ -545,7 +545,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                         />
                                     </div>
                                 )}
-                                <div className="text-lg sm:text-xl font-black text-emerald-950 dark:text-emerald-300 tracking-tight">
+                                <div className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-emerald-300 tracking-tight">
                                     {project.corporateSponsor.name}
                                 </div>
                             </div>
