@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Building2, Globe, Loader2, Mail, Hash, CheckCircle2, Banknote, UploadCloud, Link as LinkIcon, Trash2, Info, Search } from 'lucide-react';
+import { Building2, Globe, Loader2, Mail, Hash, CheckCircle2, Banknote, UploadCloud, Link as LinkIcon, Trash2, Info, Search, Lock } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
@@ -16,7 +16,7 @@ import { Tabs, TabsList, TabsTrigger } from '../../ui/tabs';
 import { ImageUploader } from '../proposals/media-uploader';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { projectId: string; projectCurrency: string }) {
+export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projectStatus }: { projectId: string; projectCurrency: string; projectStatus: string }) {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -39,8 +39,13 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
     const [logoStatus, setLogoStatus] = useState<'idle' | 'crawling' | 'success' | 'fallback'>('idle');
     const [resolvedLogoUrl, setResolvedLogoUrl] = useState<string>('');
     const [uploadedLogo, setUploadedLogo] = useState<{ key: string; previewUrl: string } | null>(null);
+    const [logoError, setLogoError] = useState(false);
 
-    // Fetch live FX rates on mount
+    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
+    const autoLogoUrl = cleanDomain && !logoError ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128` : '';
+
+    const isLocked = projectStatus === 'COMPLETED' || projectStatus === 'SUSPENDED';
+
     useEffect(() => {
         fetch('https://open.er-api.com/v6/latest/NGN')
             .then(res => res.json())
@@ -52,7 +57,6 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
             .catch(() => console.error("Failed to fetch live FX rates"));
     }, []);
 
-    // Silent Background Logo Crawler
     useEffect(() => {
         if (!domain.trim() || logoMode !== 'auto') {
             setResolvedLogoUrl('');
@@ -60,14 +64,12 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
             return;
         }
 
-        const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
+        const clean = domain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
 
-        // Wait 600ms after the user stops typing before crawling
         const timeout = setTimeout(() => {
             setLogoStatus('crawling');
 
-            // Tier 1: Try High-Res Clearbit Logo
-            const clearbitUrl = `https://logo.clearbit.com/${cleanDomain}`;
+            const clearbitUrl = `https://logo.clearbit.com/${clean}`;
             const img1 = new window.Image();
             img1.src = clearbitUrl;
 
@@ -77,8 +79,7 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
             };
 
             img1.onerror = () => {
-                // Tier 2: Clearbit failed, try Google Favicon
-                const googleUrl = `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128`;
+                const googleUrl = `https://www.google.com/s2/favicons?domain=${clean}&sz=128`;
                 const img2 = new window.Image();
                 img2.src = googleUrl;
 
@@ -125,6 +126,11 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
             const estimatedNgn = rawDonor * rate;
             setAmount(formatNumberInput(Math.round(estimatedNgn).toString()));
         }
+    };
+
+    const handleDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setDomain(e.target.value);
+        setLogoError(false);
     };
 
     const handleSubmit = async () => {
@@ -189,10 +195,11 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
         <>
             <Button
                 onClick={() => setIsOpen(true)}
+                disabled={isLocked}
                 className="rounded-3xl h-10 px-6 font-bold text-xs shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-95 gap-2"
             >
-                <Building2 className="h-4 w-4" />
-                <span>Log corporate sponsorship</span>
+                {isLocked ? <Lock className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
+                <span>{isLocked ? 'Ledger sealed' : 'Log corporate sponsorship'}</span>
             </Button>
 
             <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && setIsOpen(false)}>
@@ -229,44 +236,40 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
 
                             <AnimatePresence mode="wait">
                                 {logoMode === 'auto' ? (
-                                    <motion.div key="auto" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-xl bg-background border border-border/60 flex items-center justify-center shrink-0 overflow-hidden shadow-inner relative group">
-                                            {logoStatus === 'crawling' ? (
-                                                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                                            ) : resolvedLogoUrl ? (
-                                                <Image src={resolvedLogoUrl} alt="Logo" fill className="object-contain p-2" unoptimized />
-                                            ) : logoStatus === 'fallback' && domain ? (
-                                                <div className="h-full w-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-xl">
-                                                    {domain.charAt(0).toUpperCase()}
-                                                </div>
-                                            ) : (
-                                                <LinkIcon className="h-5 w-5 text-muted-foreground/30" />
-                                            )}
-                                        </div>
-                                        <div className="flex-1 space-y-1.5">
-                                            <div className="relative">
+                                    <motion.div key="auto" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1.5">
+                                        <div className="flex items-center gap-4 w-full">
+                                            <div className="h-12 w-12 rounded-xl bg-background border border-border/60 flex items-center justify-center shrink-0 overflow-hidden shadow-inner relative group">
+                                                {logoStatus === 'crawling' ? (
+                                                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                                ) : resolvedLogoUrl ? (
+                                                    <Image src={resolvedLogoUrl} alt="Logo" fill className="object-contain p-2" unoptimized />
+                                                ) : logoStatus === 'fallback' && domain ? (
+                                                    <div className="h-full w-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-xl">
+                                                        {domain.charAt(0).toUpperCase()}
+                                                    </div>
+                                                ) : (
+                                                    <LinkIcon className="h-5 w-5 text-muted-foreground/30" />
+                                                )}
+                                            </div>
+                                            <div className="relative flex-1">
                                                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                                 <Input
                                                     placeholder="e.g. mtn.com or givarapp.com"
                                                     value={domain}
-                                                    onChange={(e) => {
-                                                        setDomain(e.target.value);
-                                                        setLogoStatus('idle');
-                                                        setResolvedLogoUrl('');
-                                                    }}
+                                                    onChange={handleDomainChange}
                                                     disabled={isLoading}
                                                     className="h-10 pl-9 rounded-xl bg-background text-xs font-medium focus:bg-white shadow-sm transition-all"
                                                 />
                                             </div>
-                                            <div className="h-3">
-                                                {logoStatus === 'crawling' && <p className="text-[9px] font-bold text-primary animate-pulse tracking-widest flex items-center gap-1"><Search className="h-3 w-3" /> CRAWLING DOMAIN...</p>}
-                                                {logoStatus === 'success' && <p className="text-[9px] font-bold text-emerald-600 tracking-widest flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> LOGO CAPTURED</p>}
-                                                {logoStatus === 'fallback' && <p className="text-[9px] font-bold text-amber-600 tracking-widest">COULD NOT FIND LOGO</p>}
-                                            </div>
+                                        </div>
+                                        <div className="h-4 pl-[64px]">
+                                            {logoStatus === 'crawling' && <p className="text-[10px] font-bold text-primary animate-pulse tracking-widest flex items-center gap-1"><Search className="h-3 w-3" /> Crawling domain...</p>}
+                                            {logoStatus === 'success' && <p className="text-[10px] font-bold text-emerald-600 tracking-widest flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Logo captured</p>}
+                                            {logoStatus === 'fallback' && <p className="text-[10px] font-bold text-amber-600 tracking-widest flex items-center gap-1"><Info className="h-3 w-3" /> Could not find logo</p>}
                                         </div>
                                     </motion.div>
                                 ) : (
-                                    <motion.div key="upload" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
+                                    <motion.div key="upload" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="w-full">
                                         {uploadedLogo ? (
                                             <div className="flex items-center justify-between p-2 bg-background border border-border/60 rounded-xl shadow-sm">
                                                 <div className="flex items-center gap-3">
@@ -278,7 +281,7 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                                                 <Button variant="ghost" size="icon" onClick={() => setUploadedLogo(null)} className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-lg"><Trash2 className="h-4 w-4" /></Button>
                                             </div>
                                         ) : (
-                                            <div className="h-20">
+                                            <div className="w-full">
                                                 <ImageUploader label="Upload logo (PNG/JPG)" onUploadComplete={setUploadedLogo} useCase="public" />
                                             </div>
                                         )}
@@ -323,7 +326,7 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                         <div className="space-y-4 pt-4 border-t border-border/40">
                             <div className="flex items-center justify-between">
                                 <label className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
-                                    <Banknote className="h-4 w-4 text-primary" /> Transferred Capital
+                                    <Banknote className="h-4 w-4 text-primary" /> Transferred capital
                                 </label>
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-muted-foreground">Foreign currency?</span>
@@ -350,10 +353,10 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency }: { pr
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl">
-                                                    <SelectItem value="USD" className="text-xs font-bold">USD ($)</SelectItem>
-                                                    <SelectItem value="GBP" className="text-xs font-bold">GBP (£)</SelectItem>
-                                                    <SelectItem value="EUR" className="text-xs font-bold">EUR (€)</SelectItem>
-                                                    <SelectItem value="CAD" className="text-xs font-bold">CAD (C$)</SelectItem>
+                                                    <SelectItem value="USD" className="text-xs font-bold">USD</SelectItem>
+                                                    <SelectItem value="GBP" className="text-xs font-bold">GBP</SelectItem>
+                                                    <SelectItem value="EUR" className="text-xs font-bold">EUR</SelectItem>
+                                                    <SelectItem value="CAD" className="text-xs font-bold">CAD</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <Input
