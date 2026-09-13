@@ -1,3 +1,4 @@
+// apps/web/src/components/features/how-it-works/how-it-works-content.tsx
 'use client';
 
 import React from 'react';
@@ -96,22 +97,23 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="relative flex flex-col items-center text-center group"
+                                className="relative flex flex-col items-center h-full group pt-8"
                             >
-                                {/* Floating Icon shifted up */}
-                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600">
+                                {/* Floating Icon sitting on the notch */}
+                                <div className="absolute top-8 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600">
                                     <step.icon className="h-6 w-6" />
                                 </div>
 
-                                {/* Image Card Wrapper for Exact Arrow Alignment */}
-                                <div className="relative w-full mb-5 z-10">
-                                    <div
-                                        className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted shadow-sm border border-border/40"
-                                        style={{
-                                            WebkitMaskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)',
-                                            maskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)'
-                                        }}
-                                    >
+                                {/* White Card Wrapper */}
+                                <div
+                                    className="bg-card w-full rounded-[32px] border border-border/40 shadow-sm p-3 pb-6 flex flex-col items-center text-center h-full relative z-10"
+                                    style={{
+                                        WebkitMaskImage: 'radial-gradient(circle at 50% 0px, transparent 26px, black 27px)',
+                                        maskImage: 'radial-gradient(circle at 50% 0px, transparent 26px, black 27px)'
+                                    }}
+                                >
+                                    {/* Image Wrapper */}
+                                    <div className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden mb-5 bg-muted">
                                         <Image
                                             src={step.img}
                                             alt={step.title}
@@ -119,33 +121,32 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                                             className="object-cover"
                                         />
-                                        {/* Inner shadow overlay for depth */}
                                         <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
                                     </div>
 
-                                    {/* Compact Directional Arrow Badge centered exactly on the image height matching the floating icon green */}
-                                    {index < steps.length - 1 && (
-                                        <div className="hidden lg:flex absolute top-1/2 left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-emerald-600 shadow-sm items-center justify-center text-white z-30">
-                                            <ArrowRight className="h-4 w-4 stroke-[2.5]" />
-                                        </div>
-                                    )}
+                                    {/* Text Content */}
+                                    <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">
+                                        {step.num}. {step.title}
+                                    </h3>
+                                    <p className="text-[13px] md:text-sm text-muted-foreground font-medium leading-snug mb-5 flex-1 px-1">
+                                        {step.desc}
+                                    </p>
+
+                                    {/* Bottom Badge */}
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-full mt-auto shadow-sm transition-colors">
+                                        <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-500 shrink-0" />
+                                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                                            {step.badge}
+                                        </span>
+                                    </div>
                                 </div>
 
-                                {/* Text Content */}
-                                <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">
-                                    {step.num}. {step.title}
-                                </h3>
-                                <p className="text-[13px] md:text-sm text-muted-foreground font-medium leading-snug mb-5 flex-1 px-1">
-                                    {step.desc}
-                                </p>
-
-                                {/* Bottom Badge */}
-                                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-full mt-auto shadow-sm transition-colors">
-                                    <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-500 shrink-0" />
-                                    <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
-                                        {step.badge}
-                                    </span>
-                                </div>
+                                {/* Arrow Badge (between cards) */}
+                                {index < steps.length - 1 && (
+                                    <div className="hidden lg:flex absolute top-[160px] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-emerald-600 shadow-sm items-center justify-center text-white z-30">
+                                        <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+                                    </div>
+                                )}
                             </motion.div>
                         ))}
                     </div>
