@@ -516,25 +516,19 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
                         <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-3.5 sm:p-4 text-center space-y-2 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
                             <div className="relative flex items-center justify-between w-full px-1">
-                                {/* Left Confetti Sparks (Non-parallel, fanned, angled slightly in toward the text) */}
-                                <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0">
-                                    {/* Inner dash - angled slightly in toward the funding text */}
+                                {/* Left Confetti Sparks: Angling and spacing preserved, rotated downward counter-clockwise toward 60 degrees */}
+                                <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 -rotate-[20deg] transition-transform">
                                     <line x1="50" y1="18" x2="54" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Middle dash - nearly upright, bridging the arc */}
                                     <line x1="30" y1="22" x2="26" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Outer dash - flaring out toward the left edge */}
                                     <line x1="14" y1="26" x2="4" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
 
                                 <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight px-1 whitespace-nowrap">Funding completed by</h3>
 
-                                {/* Right Confetti Sparks (Non-parallel, fanned, angled slightly in toward the text) */}
-                                <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0">
-                                    {/* Inner dash - angled slightly in toward the funding text */}
+                                {/* Right Confetti Sparks: Angling and spacing preserved, rotated downward clockwise toward 60 degrees */}
+                                <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 rotate-[20deg] transition-transform">
                                     <line x1="14" y1="18" x2="10" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Middle dash - nearly upright, bridging the arc */}
                                     <line x1="34" y1="22" x2="38" y2="11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                    {/* Outer dash - flaring out toward the right edge */}
                                     <line x1="50" y1="26" x2="60" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                 </svg>
                             </div>
