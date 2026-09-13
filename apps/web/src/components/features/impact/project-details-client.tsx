@@ -533,19 +533,22 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 </svg>
                             </div>
 
-                            {project.corporateSponsor.logoUrl ? (
-                                <div className="relative h-8 sm:h-9 w-full max-w-[140px] mx-auto my-0.5">
-                                    <Image
-                                        src={project.corporateSponsor.logoUrl}
-                                        alt={project.corporateSponsor.name}
-                                        fill
-                                        className="object-contain"
-                                        unoptimized
-                                    />
+                            <div className="flex flex-col items-center justify-center gap-1.5 my-3 md:my-4">
+                                {project.corporateSponsor.logoUrl && (
+                                    <div className="relative h-10 sm:h-12 w-10 sm:w-12 shrink-0">
+                                        <Image
+                                            src={project.corporateSponsor.logoUrl}
+                                            alt={project.corporateSponsor.name}
+                                            fill
+                                            className="object-contain"
+                                            unoptimized
+                                        />
+                                    </div>
+                                )}
+                                <div className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-emerald-50 tracking-tight text-center leading-tight">
+                                    {project.corporateSponsor.name}
                                 </div>
-                            ) : (
-                                <div className="text-sm sm:text-base font-black text-emerald-900 dark:text-emerald-300 my-0.5">{project.corporateSponsor.name}</div>
-                            )}
+                            </div>
 
                             <div className="space-y-0.5">
                                 <p className="text-xs sm:text-[13px] font-medium text-foreground/90 leading-snug">
