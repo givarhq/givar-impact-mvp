@@ -123,9 +123,9 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                         <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
                                     </div>
 
-                                    {/* Compact Directional Arrow Badge centered exactly on the image height with deep emerald shade */}
+                                    {/* Compact Directional Arrow Badge centered exactly on the image height matching the floating icon green */}
                                     {index < steps.length - 1 && (
-                                        <div className="hidden lg:flex absolute top-1/2 left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-emerald-700 shadow-sm items-center justify-center text-white z-30">
+                                        <div className="hidden lg:flex absolute top-1/2 left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-emerald-600 shadow-sm items-center justify-center text-white z-30">
                                             <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                                         </div>
                                     )}
