@@ -72,7 +72,7 @@ export default async function EditProjectPage({
             </div>
 
             <div className="flex items-center shrink-0">
-              <CorporateSponsorshipTrigger projectId={id} projectCurrency={project.currency} />
+              <CorporateSponsorshipTrigger projectId={id} projectCurrency={project.currency} projectStatus={project.status} />
             </div>
           </div>
         </div>
