@@ -533,7 +533,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                 </svg>
                             </div>
 
-                            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 px-2 mt-1 mb-3">
+                            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4 mt-2.5 mb-4 px-2">
                                 {project.corporateSponsor.logoUrl && (
                                     <div className="relative h-10 w-10 sm:h-12 sm:w-12 shrink-0">
                                         <Image
