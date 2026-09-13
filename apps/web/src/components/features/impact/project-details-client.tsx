@@ -515,21 +515,27 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                     {/* Celebratory Corporate Sponsorship Showcase */}
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
                         <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-3.5 sm:p-4 text-center space-y-2 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
-                            <div className="relative flex items-center justify-between w-full px-0.5 sm:px-1">
-                                {/* Left Celebration Sunburst */}
-                                <svg width="36" height="36" viewBox="0 0 44 44" fill="none" className="text-emerald-600 shrink-0 -rotate-6">
-                                    <line x1="30" y1="22" x2="20" y2="6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                                    <line x1="26" y1="26" x2="8" y2="14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                                    <line x1="24" y1="32" x2="6" y2="26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                            <div className="relative flex items-center justify-between w-full px-1 sm:px-2">
+                                {/* Left Confetti Sparklines (Thinner & Widely Spread Out) */}
+                                <svg width="42" height="38" viewBox="0 0 44 40" fill="none" className="text-emerald-600 shrink-0">
+                                    {/* Top steep ray */}
+                                    <line x1="28" y1="20" x2="19" y2="4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                                    {/* Middle wide ray */}
+                                    <line x1="24" y1="24" x2="4" y2="12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                                    {/* Bottom shallow ray */}
+                                    <line x1="24" y1="30" x2="2" y2="26" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
                                 </svg>
 
                                 <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight mx-auto px-1">Funding completed by</h3>
 
-                                {/* Right Celebration Sunburst */}
-                                <svg width="36" height="36" viewBox="0 0 44 44" fill="none" className="text-emerald-600 shrink-0 rotate-6">
-                                    <line x1="14" y1="22" x2="22" y2="6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                                    <line x1="16" y1="26" x2="34" y2="14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                                    <line x1="18" y1="32" x2="36" y2="26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                                {/* Right Confetti Sparklines (Thinner & Widely Spread Out) */}
+                                <svg width="42" height="38" viewBox="0 0 44 40" fill="none" className="text-emerald-600 shrink-0">
+                                    {/* Top steep ray */}
+                                    <line x1="16" y1="20" x2="25" y2="4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                                    {/* Middle wide ray */}
+                                    <line x1="20" y1="24" x2="40" y2="12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                                    {/* Bottom shallow ray */}
+                                    <line x1="20" y1="30" x2="42" y2="26" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
                                 </svg>
                             </div>
 
