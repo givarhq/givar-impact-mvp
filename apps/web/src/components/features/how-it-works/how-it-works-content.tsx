@@ -140,7 +140,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
 
                                 {/* Compact Directional Arrow Badge between steps (Desktop Only) */}
                                 {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-[30%] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-white dark:bg-zinc-900 border border-border/60 shadow-sm items-center justify-center text-primary z-30">
+                                    <div className="hidden lg:flex absolute top-1/2 left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary shadow-sm items-center justify-center text-white z-30">
                                         <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                                     </div>
                                 )}
@@ -155,14 +155,14 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.4 }}
-                    className="mt-16 md:mt-20 flex flex-col xl:flex-row items-center justify-center gap-6 lg:gap-8 p-5 lg:p-4 rounded-[32px] lg:rounded-full bg-card border border-border/60 shadow-lg w-fit mx-auto relative overflow-hidden"
+                    className="mt-16 md:mt-20 flex flex-col xl:flex-row items-center justify-between gap-6 lg:gap-8 p-5 lg:px-10 lg:py-5 rounded-[32px] lg:rounded-full bg-card border border-border/60 shadow-lg w-full max-w-5xl mx-auto relative overflow-hidden"
                 >
-                    <div className="flex items-center gap-3 pr-0 xl:pr-6 border-b xl:border-b-0 xl:border-r border-border/40 pb-4 xl:pb-0 z-10">
+                    <div className="flex items-center gap-3 pr-0 xl:pr-6 border-b xl:border-b-0 xl:border-r border-border/40 pb-4 xl:pb-0 z-10 shrink-0">
                         <Image src="/Givar1.png" alt="Givar" width={24} height={24} className="object-contain" />
                         <span className="text-base md:text-lg font-black text-foreground tracking-tight">Give With Confidence.</span>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-center gap-5 lg:gap-8 z-10">
+                    <div className="flex flex-wrap items-center justify-center xl:justify-between gap-5 lg:gap-8 z-10 flex-1 w-full">
                         <div className="flex items-center gap-2">
                             <ShieldCheck className="h-4.5 w-4.5 text-emerald-600" />
                             <span className="text-[11px] md:text-xs font-bold text-muted-foreground">Verified Causes</span>
