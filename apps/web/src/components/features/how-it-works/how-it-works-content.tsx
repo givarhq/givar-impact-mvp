@@ -103,23 +103,32 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                     <step.icon className="h-6 w-6" />
                                 </div>
 
-                                {/* Image Card with Shallow Cutout Mask */}
-                                <div
-                                    className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted mb-5 shadow-sm border border-border/40"
-                                    style={{
-                                        WebkitMaskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)',
-                                        maskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)'
-                                    }}
-                                >
-                                    <Image
-                                        src={step.img}
-                                        alt={step.title}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                        className="object-cover"
-                                    />
-                                    {/* Inner shadow overlay for depth */}
-                                    <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
+                                {/* Image Card Wrapper for Exact Arrow Alignment */}
+                                <div className="relative w-full mb-5 z-10">
+                                    <div
+                                        className="relative w-full aspect-[762/519] rounded-[24px] overflow-hidden bg-muted shadow-sm border border-border/40"
+                                        style={{
+                                            WebkitMaskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)',
+                                            maskImage: 'radial-gradient(circle at 50% -12px, transparent 25px, black 26px)'
+                                        }}
+                                    >
+                                        <Image
+                                            src={step.img}
+                                            alt={step.title}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                            className="object-cover"
+                                        />
+                                        {/* Inner shadow overlay for depth */}
+                                        <div className="absolute inset-0 border border-black/5 rounded-[24px] pointer-events-none" />
+                                    </div>
+
+                                    {/* Compact Directional Arrow Badge centered exactly on the image height with deep emerald shade */}
+                                    {index < steps.length - 1 && (
+                                        <div className="hidden lg:flex absolute top-1/2 left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-emerald-700 shadow-sm items-center justify-center text-white z-30">
+                                            <ArrowRight className="h-4 w-4 stroke-[2.5]" />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Text Content */}
@@ -137,13 +146,6 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                         {step.badge}
                                     </span>
                                 </div>
-
-                                {/* Compact Directional Arrow Badge between steps (Desktop Only) */}
-                                {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-1/2 left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary shadow-sm items-center justify-center text-white z-30">
-                                        <ArrowRight className="h-4 w-4 stroke-[2.5]" />
-                                    </div>
-                                )}
                             </motion.div>
                         ))}
                     </div>
