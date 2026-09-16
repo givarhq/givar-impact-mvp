@@ -99,7 +99,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 className="relative flex flex-col items-center h-full group pt-8"
                             >
                                 {/* Floating Icon sitting on the notch */}
-                                <div className="absolute top-8 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-emerald-600">
+                                <div className="absolute top-8 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-primary">
                                     <step.icon className="h-6 w-6" />
                                 </div>
 
@@ -142,7 +142,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
 
                                 {/* Arrow Badge (between cards) */}
                                 {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-[calc(50%+16px)] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-emerald-600 shadow-sm items-center justify-center text-white z-30">
+                                    <div className="hidden lg:flex absolute top-[calc(50%+16px)] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary shadow-sm items-center justify-center text-white z-30">
                                         <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                                     </div>
                                 )}
