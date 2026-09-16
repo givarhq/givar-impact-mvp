@@ -20,11 +20,14 @@ export default async function ImpactPage({
 
     let projects: any[] = [];
     let groupedProjects: any[] = [];
+    let completedProjects: any[] = [];
     let meta = { total: 0, page: 1, lastPage: 1 };
 
     // Fetch initial data
     if (isSmartDiscovery) {
-        groupedProjects = await ApiService.recommendations.getGroupedFeed(token);
+        const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
+        groupedProjects = groupedFeedRes?.groups || [];
+        completedProjects = groupedFeedRes?.completed || [];
     } else {
         const projectsResult = await ApiService.projects.list(token, params);
         projects = projectsResult?.data || [];
@@ -46,6 +49,8 @@ export default async function ImpactPage({
                 {isSmartDiscovery ? (
                     <GroupedDiscoveryFeed
                         groupedData={groupedProjects}
+                        completedProjects={completedProjects}
+                        isPublic={false}
                     />
                 ) : (
                     <InfiniteDiscoveryGrid

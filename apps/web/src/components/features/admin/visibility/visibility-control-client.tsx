@@ -209,11 +209,11 @@ export const VisibilityControlClient = memo(function VisibilityControlClient({ i
                                         </div>
                                         <div className="space-y-0.5 min-w-0 flex-1">
                                             <div className="flex items-center">
-                                                <h4 className="text-sm font-bold text-foreground truncate">Show Completed Projects</h4>
-                                                <SettingTooltip content="If enabled, fully funded projects will remain in the main feed rows. If disabled, they move to the 'Mission Accomplished' section or search-only." />
+                                                <h4 className="text-sm font-bold text-foreground truncate">Show Completed Causes</h4>
+                                                <SettingTooltip content="If enabled, a dedicated 'Completed Causes' section will appear at the bottom of the discovery feed showcasing verified successes." />
                                             </div>
                                             <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                                                Keep funded causes visible in category rows.
+                                                Showcase funded causes in a dedicated hall of fame section.
                                             </p>
                                         </div>
                                     </div>
