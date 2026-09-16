@@ -26,6 +26,7 @@ export default async function ImpactPage({
     // Fetch initial data
     if (isSmartDiscovery) {
         const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
+        // Safely destructure the new object payload
         groupedProjects = groupedFeedRes?.groups || [];
         completedProjects = groupedFeedRes?.completed || [];
     } else {

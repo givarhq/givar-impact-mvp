@@ -25,6 +25,7 @@ export default async function ExplorePage({
     // Initial Server-Side Fetch
     if (isSmartDiscovery) {
         const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
+        // Safely destructure the new object payload
         groupedProjects = groupedFeedRes?.groups || [];
         completedProjects = groupedFeedRes?.completed || [];
     } else {
