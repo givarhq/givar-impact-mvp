@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { RecommendationsRepository } from './recommendations.repository';
-import { RankingEngine, RankingCandidate } from './ranking.engine';
+import { RankingEngine } from './ranking.engine';
 import { DiversityEngine, ScoredItem } from './diversity.engine';
 import { PersonalizationEngine } from './personalization.engine';
 import { AdminOverrideEngine } from './admin-override.engine';
@@ -60,22 +60,13 @@ export class RecommendationsService {
             this.repo.getFeaturedSlots()
         ]);
 
-        if (projects.length === 0) return [];
+        if (projects.length === 0) return { groups: [], completed: [] };
 
         const pinnedIds = new Set(featuredSlots.map(s => s.projectId));
 
-        // Logic: Respect the showFundedProjects admin configuration for discovery candidates
-        const filteredCandidates = projects.filter(p => {
-            const isFundedOrCompleted = p.status === ProjectStatus.FUNDED || p.status === ProjectStatus.COMPLETED || BigInt(p.raisedAmount) >= BigInt(p.targetAmount);
-
-            if (isFundedOrCompleted) {
-                return config.showFundedProjects;
-            }
-
-            return p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p);
-        });
-
-        if (filteredCandidates.length === 0) return [];
+        // Logic: Main feed rows ALWAYS ONLY show ACTIVE projects.
+        // The completed showcase is strictly isolated to the bottom section.
+        const filteredCandidates = projects.filter(p => p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p));
 
         const projectIds = filteredCandidates.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
@@ -139,16 +130,15 @@ export class RecommendationsService {
         }
 
         const allSelectedIds = resultGroups.flatMap(g => g.projectIds);
-        if (allSelectedIds.length === 0) return [];
 
-        const hydratedProjects = await this.prisma.project.findMany({
+        const hydratedProjects = allSelectedIds.length > 0 ? await this.prisma.project.findMany({
             where: { id: { in: allSelectedIds } },
             include: {
                 category: { select: { name: true, slug: true, icon: true } },
                 subcategory: { select: { name: true } },
                 user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
             }
-        });
+        }) : [];
 
         const processedProjects = await Promise.all(hydratedProjects.map(async (p) => {
             const hydrated = await this.storage.hydrateEntityMedia(p as any);
@@ -169,12 +159,51 @@ export class RecommendationsService {
             };
         }));
 
-        return resultGroups.map(group => ({
+        const finalGroups = resultGroups.map(group => ({
             category: group.category,
             projects: group.projectIds
                 .map(id => processedProjects.find(p => p.id === id))
                 .filter(Boolean)
         }));
+
+        // --- NEW LOGIC: Fetch Completed Projects separately if toggled ON ---
+        let completedProjects = [];
+        if (config.showFundedProjects) {
+            const completedRaw = await this.prisma.project.findMany({
+                where: { status: ProjectStatus.COMPLETED, isActive: true },
+                take: 8, // Fetch up to 8 recent completed projects
+                orderBy: { fundedAt: 'desc' },
+                include: {
+                    category: { select: { name: true, slug: true, icon: true } },
+                    subcategory: { select: { name: true } },
+                    user: { select: { role: true, organization: { select: { status: true, legalName: true, kycType: true } } } }
+                }
+            });
+
+            completedProjects = await Promise.all(completedRaw.map(async (p) => {
+                const hydrated = await this.storage.hydrateEntityMedia(p as any);
+                const raised = Number(hydrated.raisedAmount || 0n);
+                const target = Number(hydrated.targetAmount || 0n);
+                const isSystem = p.user?.role === 'ADMIN' || p.user?.role === 'SUPERADMIN';
+
+                return {
+                    ...hydrated,
+                    targetAmount: hydrated.targetAmount.toString(),
+                    raisedAmount: hydrated.raisedAmount.toString(),
+                    percentFunded: target > 0 ? Math.min(100, Math.round((raised / target) * 100)) : 0,
+                    categoryName: hydrated.category?.name || 'General Impact',
+                    subcategoryName: hydrated.subcategory?.name,
+                    isVerifiedOrganizer: isSystem || p.user?.organization?.status === 'VERIFIED',
+                    organizerName: isSystem ? 'Givar' : (p.user?.organization?.legalName || 'Individual Donor'),
+                    organizerType: isSystem ? 'SYSTEM' : (p.user?.organization?.kycType || 'INDIVIDUAL'),
+                };
+            }));
+        }
+
+        return {
+            groups: finalGroups,
+            completed: completedProjects
+        };
     }
 
     async getRecommendationConfig() { return this.getInternalConfig(); }
@@ -314,24 +343,14 @@ export class RecommendationsService {
         return updated;
     }
 
-    
-
     private async recommendPipeline(options: { limit: number; page: number; userId?: string }) {
         const config = await this.getInternalConfig();
         const projects = await this.repo.getCandidates();
 
         if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-        // Logic: Respect the showFundedProjects admin configuration across the Smart Discovery feed
-        const filteredCandidates = projects.filter(p => {
-            const isFundedOrCompleted = p.status === ProjectStatus.FUNDED || p.status === ProjectStatus.COMPLETED || BigInt(p.raisedAmount) >= BigInt(p.targetAmount);
-
-            if (isFundedOrCompleted) {
-                return config.showFundedProjects;
-            }
-
-            return p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p);
-        });
+        // Logic: Main feed rows ALWAYS ONLY show ACTIVE projects.
+        const filteredCandidates = projects.filter(p => p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p));
 
         if (filteredCandidates.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
@@ -417,7 +436,7 @@ export class RecommendationsService {
         }));
 
         return { data, meta: { total, page: options.page, lastPage } };
-                }
+    }
 
     private async getInternalConfig() {
         const now = Date.now();

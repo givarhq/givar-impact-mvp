@@ -24,15 +24,13 @@ export default async function DashboardPage({
     dbUser,
     history,
     featuredResponse,
-    groupedFeed,
-    completedResponse,
+    groupedFeedRes,
     activeGoal
   ] = await Promise.all([
     ApiService.auth.getMe(token),
     ApiService.donations.getHistory(token),
     ApiService.recommendations.getFeatured(token),
     ApiService.recommendations.getGroupedFeed(token),
-    ApiService.projects.list(token, new URLSearchParams({ limit: '4', status: 'COMPLETED' })),
     ApiService.goals.getActive(token, 'MONTHLY'),
   ]);
 
@@ -45,7 +43,10 @@ export default async function DashboardPage({
   }, 0n);
 
   const featuredProjects = featuredResponse?.data || [];
-  const completedProjects = completedResponse?.data || [];
+
+  // Extract groups and completed showcases natively populated by the discovery engine
+  const groupedFeed = groupedFeedRes?.groups || [];
+  const completedProjects = groupedFeedRes?.completed || [];
 
   return (
     <div className="animate-in fade-in duration-300">

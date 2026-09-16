@@ -24,12 +24,9 @@ export default async function ExplorePage({
 
     // Initial Server-Side Fetch
     if (isSmartDiscovery) {
-        const [groupedFeedRes, completedRes] = await Promise.all([
-            ApiService.recommendations.getGroupedFeed(token),
-            ApiService.projects.list(token || '', new URLSearchParams({ limit: '4', status: 'COMPLETED' }))
-        ]);
-        groupedProjects = groupedFeedRes || [];
-        completedProjects = completedRes?.data || [];
+        const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
+        groupedProjects = groupedFeedRes?.groups || [];
+        completedProjects = groupedFeedRes?.completed || [];
     } else {
         const projectsResult = await ApiService.projects.list(token || '', params);
         projects = projectsResult?.data || [];
