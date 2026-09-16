@@ -563,9 +563,11 @@ export class DonationService implements OnModuleInit {
 
       if (activeContext.activeSubaccount) {
         paystackPayload.subaccount = activeContext.activeSubaccount;
-        // CRITICAL FIX: Add gateway fee to transaction_charge so the vendor receives strictly the baseAmount.
-        paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig + gatewayFeeMinor);
-        paystackPayload.bearer = 'account';
+        // CRITICAL FIX: We only take our platform fee and tip as the transaction_charge.
+        // By setting bearer: 'subaccount', Paystack deducts its gateway fee directly from the subaccount.
+        // Since we already padded the gross amount with the exact gateway fee, the subaccount receives exactly the baseAmount.
+        paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
+        paystackPayload.bearer = 'subaccount';
       }
 
       const response = await axios.post(

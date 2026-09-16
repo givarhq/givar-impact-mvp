@@ -115,6 +115,13 @@ export function RichTextEditor({
         }
     }, [content, editor]);
 
+    // Force Tiptap to react to ReadOnly state changes
+    React.useEffect(() => {
+        if (editor) {
+            editor.setEditable(!readOnly);
+        }
+    }, [readOnly, editor]);
+
     if (!editor) return null;
 
     return (

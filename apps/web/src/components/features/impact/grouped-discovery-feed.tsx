@@ -142,8 +142,8 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                                 <CheckCircle2 className="h-4.5 w-4.5" />
                             </div>
                             <div>
-                                <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Mission Accomplished</h3>
-                                <p className="text-xs text-muted-foreground font-medium tracking-tight">Verified Successes</p>
+                                <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Completed Causes</h3>
+                                <p className="text-xs text-muted-foreground font-medium tracking-tight">Verified Outcomes</p>
                             </div>
                         </div>
 
