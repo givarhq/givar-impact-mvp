@@ -15,8 +15,8 @@ export default async function ImpactPage({
   const resolvedParams = await searchParams;
   const params = new URLSearchParams(resolvedParams as any);
 
-  // Logic: Identify Smart Discovery Context
-  const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category');
+  // Logic: Smart Discovery applies ONLY on default active view with no filters/search
+  const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category') && !params.has('status');
 
   let projects: any[] = [];
   let groupedProjects: any[] = [];
@@ -26,7 +26,6 @@ export default async function ImpactPage({
   // Fetch initial data
   if (isSmartDiscovery) {
     const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
-    // Safely destructure the new object payload
     groupedProjects = groupedFeedRes?.groups || [];
     completedProjects = groupedFeedRes?.completed || [];
   } else {

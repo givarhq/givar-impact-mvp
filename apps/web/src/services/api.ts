@@ -557,7 +557,7 @@ export const ApiService = {
 
     getGroupedFeed: (token?: string) =>
       token
-        ? serverFetch<any[]>('/recommendations/grouped', token, {
+        ? serverFetch<{ groups: any[]; completed: any[] }>('/recommendations/grouped', token, {
           tags: ['grouped-feed'],
           next: { revalidate: 0 }
         })
