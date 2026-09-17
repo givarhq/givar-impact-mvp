@@ -15,7 +15,8 @@ export default async function ExplorePage({
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value;
 
-    const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category');
+    // Smart Discovery applies ONLY on default active view with no filters/search
+    const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category') && !params.has('status');
 
     let projects: any[] = [];
     let groupedProjects: any[] = [];
@@ -25,7 +26,6 @@ export default async function ExplorePage({
     // Initial Server-Side Fetch
     if (isSmartDiscovery) {
         const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
-        // Safely destructure the new object payload
         groupedProjects = groupedFeedRes?.groups || [];
         completedProjects = groupedFeedRes?.completed || [];
     } else {
@@ -38,17 +38,16 @@ export default async function ExplorePage({
 
     return (
         <PublicLayout variant="app">
-            <div className="space-y-1 md:space-y-1 animate-in fade-in duration-500 pb-20 min-w-0">
+            <div className="space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-20 min-w-0">
                 {/* Header Section */}
                 <div className="px-1">
                     <ImpactFilters
                         categories={categories || []}
                         totalCount={meta.total}
-                        hideSearch={true}
                     />
                 </div>
 
-                {/* Optimized Discovery Grid */}
+                {/* Discovery Grid */}
                 <div className="min-h-[400px]">
                     {isSmartDiscovery ? (
                         <GroupedDiscoveryFeed

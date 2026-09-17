@@ -5,7 +5,7 @@ import { Project } from '../../../types';
 import { ProjectCard } from './project-card';
 import { ShareModal } from './share-modal';
 import { Button } from '../../ui/button';
-import { ArrowRight, Inbox, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Heart, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../lib/utils/cn';
@@ -38,18 +38,22 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
         setIsShareOpen(true);
     };
 
-    const isEmpty = (!groupedData || groupedData.length === 0) && completedProjects.length === 0;
+    const hasActiveGroups = groupedData && groupedData.some(g => g.projects && g.projects.length > 0);
+    const isEmpty = !hasActiveGroups && completedProjects.length === 0;
 
+    // Empty state matching Image 1
     if (isEmpty) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-border/40 rounded-3xl bg-muted/5 min-w-0">
-                <div className="h-14 w-14 bg-muted/50 rounded-3xl flex items-center justify-center mb-4 border border-border/40">
-                    <Inbox className="h-6 w-6 text-muted-foreground/40" />
+            <div className="w-full rounded-[32px] border border-dashed border-border/60 bg-card/50 p-8 sm:p-14 flex flex-col items-center justify-center text-center space-y-3 min-w-0">
+                <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-primary border border-primary/20 shadow-inner">
+                    <Heart className="h-7 w-7 stroke-[2.2]" />
                 </div>
-                <h3 className="text-sm font-bold text-foreground tracking-tight">No causes found</h3>
-                <p className="text-xs text-muted-foreground mt-1.5 max-w-[240px] font-medium leading-relaxed">
-                    There are currently no active projects matching the criteria.
-                </p>
+                <div className="space-y-1 max-w-sm">
+                    <h3 className="text-xl md:text-2xl font-bold text-foreground">Nothing here... for now</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground font-medium leading-relaxed">
+                        New causes will appear here when they’re ready. Check back soon.
+                    </p>
+                </div>
             </div>
         );
     }
@@ -128,34 +132,33 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                 })}
             </AnimatePresence>
 
-            {/* Dedicated "Hall of Fame" Section for Completed Projects */}
+            {/* Dedicated "Completed Causes" Section (2 columns for horizontal cards matching Image 1) */}
             <AnimatePresence>
                 {completedProjects.length > 0 && (
                     <motion.section
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className={cn("space-y-6 min-w-0", groupedData.length > 0 && "pt-8 border-t border-border/40")}
+                        className={cn("space-y-6 min-w-0", hasActiveGroups && "pt-8 border-t border-border/40")}
                     >
-                        <div className="flex items-center gap-3 px-1">
-                            <div className="h-9 w-9 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/10">
-                                <CheckCircle2 className="h-4.5 w-4.5" />
+                        {hasActiveGroups && (
+                            <div className="flex items-center gap-3 px-1">
+                                <div className="h-9 w-9 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/10">
+                                    <CheckCircle2 className="h-4.5 w-4.5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Completed Causes</h3>
+                                    <p className="text-xs text-muted-foreground font-medium tracking-tight">Verified Outcomes</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Completed Causes</h3>
-                                <p className="text-xs text-muted-foreground font-medium tracking-tight">Verified Outcomes</p>
-                            </div>
-                        </div>
+                        )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-w-0">
-                            {completedProjects.map((project, pIndex) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 min-w-0">
+                            {completedProjects.map((project) => (
                                 <motion.div
                                     key={project.id}
                                     layout
-                                    className={cn(
-                                        "min-w-0 flex-1",
-                                        pIndex === 3 && "hidden xl:block"
-                                    )}
+                                    className="min-w-0 flex-1"
                                 >
                                     <ProjectCard
                                         project={project}
