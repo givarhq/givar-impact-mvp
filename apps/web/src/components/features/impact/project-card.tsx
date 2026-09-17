@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, Check, MapPin, UserCheck, BadgeCheck, Building2, Target } from 'lucide-react';
+import { Heart, MapPin, UserCheck, BadgeCheck, Building2, Target, ArrowRight, BookOpen } from 'lucide-react';
 import { ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
@@ -17,7 +17,7 @@ export const ProjectCard = memo(function ProjectCard({
   isPublic = false,
   hideKobo = true
 }: ProjectCardProps) {
-
+  const posthog = usePostHog();
   const phaseMath = calculatePhaseFunding(project as any);
 
   const {
@@ -28,7 +28,7 @@ export const ProjectCard = memo(function ProjectCard({
     totalPercent
   } = phaseMath;
 
-  const completedText = 'Cause Completed';
+  const isActuallyCompleted = isCompleted || project.status === 'COMPLETED';
 
   const detailsLink = isPublic ? `/explore/${project.slug}` : `/dashboard/impact/${project.slug}`;
 
@@ -39,7 +39,6 @@ export const ProjectCard = memo(function ProjectCard({
   };
 
   const VerIcon = getVerIcon();
-  const posthog = usePostHog();
 
   const handleProjectClick = () => {
     posthog?.capture('project_clicked', {
@@ -53,6 +52,59 @@ export const ProjectCard = memo(function ProjectCard({
     ? `${project.categoryName} • ${project.subcategoryName}`
     : (project.categoryName || 'Active cause');
 
+  // --- MOCKUP 1: COMPLETED CARD LAYOUT ---
+  if (isActuallyCompleted) {
+    return (
+      <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
+        <Card className="group flex flex-col sm:flex-row rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none p-4 gap-4">
+          {/* Left Thumbnail */}
+          <div className="relative w-full sm:w-[170px] aspect-[4/3] rounded-2xl overflow-hidden bg-muted shrink-0">
+            {project.imageUrl ? (
+              <Image
+                src={project.imageUrl}
+                alt={project.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 170px"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
+                <Heart className="h-8 w-8 fill-current" />
+              </div>
+            )}
+          </div>
+
+          {/* Right Details */}
+          <div className="flex-1 flex flex-col justify-between min-w-0">
+            <div>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 mb-1.5">
+                Completed
+              </span>
+              <h3 className="font-bold text-base text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+                {project.title}
+              </h3>
+              <p className="text-xs text-muted-foreground font-medium line-clamp-2 mt-1 leading-relaxed">
+                {project.shortDesc || project.description}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground font-medium text-[11px] truncate">
+                <span className="flex items-center gap-1 truncate"><BookOpen className="h-3 w-3 shrink-0" /> {displayCategory}</span>
+                <span className="shrink-0">|</span>
+                <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 shrink-0" /> {project.location || 'Global'}</span>
+              </div>
+              <span className="text-primary font-bold text-xs flex items-center gap-1 shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">
+                View outcome <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </div>
+        </Card>
+      </Link>
+    );
+  }
+
+  // --- ACTIVE CARD LAYOUT ---
   return (
     <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
       <Card
@@ -100,9 +152,9 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
 
           <div className="space-y-2 sm:space-y-3 mt-auto min-w-0 gap-2 sm:gap-3">
-            {(isCompleted || isFundedState) && (
+            {isFundedState && (
               <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
-                <Check className="h-3 w-3" /> {isCompleted ? completedText : 'Goal Reached'}
+                Goal Reached
               </div>
             )}
 
