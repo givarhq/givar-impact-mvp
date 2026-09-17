@@ -97,7 +97,26 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
 
   return (
     <div className="space-y-3 w-full min-w-0">
-      {/* Row 1: Active Causes | Completed Causes Tabs + Search */}
+      {/* Mobile Page Header (md:hidden) */}
+      <div className="md:hidden flex items-center justify-between gap-3 min-w-0">
+        <h1 className="text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
+          Explore Causes
+        </h1>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
+          className={cn(
+            "h-9 w-9 rounded-full transition-all shrink-0",
+            isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
+          )}
+        >
+          {isMobileSearchVisible ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Row 1 (Desktop) / Row 2 (Mobile): Active Causes | Completed Causes Tabs + Desktop Search */}
       <div className="flex items-center justify-between gap-3 min-w-0">
         <div className="flex items-center gap-2">
           <button
@@ -136,24 +155,9 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
             />
           </div>
         )}
-
-        {/* Mobile Search Toggle */}
-        <div className="md:hidden flex justify-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileSearchVisible(!isMobileSearchVisible)}
-            className={cn(
-              "h-9 w-9 rounded-full transition-all",
-              isMobileSearchVisible ? "bg-primary/10 text-primary" : "bg-muted/50"
-            )}
-          >
-            {isMobileSearchVisible ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
-          </Button>
-        </div>
       </div>
 
-      {/* Row 2: Category Pills & Sort Dropdown */}
+      {/* Row 2 (Desktop) / Row 3 (Mobile): Category Pills & Sort Dropdown */}
       <div className="flex items-center justify-between gap-4 pt-0.5">
         <div className="flex-1 min-w-0 overflow-hidden">
           <CategoryBrowser
