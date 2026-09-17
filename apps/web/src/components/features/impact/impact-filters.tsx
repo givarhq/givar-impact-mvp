@@ -86,15 +86,32 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
 
   return (
     <div className="space-y-3 w-full min-w-0">
-      {/* Row 1: Heading & Search Input */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
-        <div className="space-y-0.5 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-            Explore Causes
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-            Discover and support verified causes creating real change.
-          </p>
+      {/* Row 1: Active Causes | Completed Causes Tabs + Search */}
+      <div className="flex items-center justify-between gap-3 min-w-0">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleStatusChange('ACTIVE')}
+            className={cn(
+              "rounded-full px-5 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-sm",
+              activeStatus === 'ACTIVE'
+                ? "bg-primary text-white border border-primary shadow-primary/20"
+                : "bg-card text-foreground border border-border/60 hover:bg-muted/50"
+            )}
+          >
+            Active Causes
+          </button>
+
+          <button
+            onClick={() => handleStatusChange('COMPLETED')}
+            className={cn(
+              "rounded-full px-5 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-sm",
+              activeStatus === 'COMPLETED'
+                ? "bg-primary text-white border border-primary shadow-primary/20"
+                : "bg-card text-foreground border border-border/60 hover:bg-muted/50"
+            )}
+          >
+            Completed Causes
+          </button>
         </div>
 
         {!hideSearch && (
@@ -125,35 +142,8 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
         </div>
       </div>
 
-      {/* Row 2: Active Causes | Completed Causes Tabs */}
-      <div className="flex items-center gap-2 pt-0.5">
-        <button
-          onClick={() => handleStatusChange('ACTIVE')}
-          className={cn(
-            "rounded-full px-5 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-sm",
-            activeStatus === 'ACTIVE'
-              ? "bg-primary text-white border border-primary shadow-primary/20"
-              : "bg-card text-foreground border border-border/60 hover:bg-muted/50"
-          )}
-        >
-          Active Causes
-        </button>
-
-        <button
-          onClick={() => handleStatusChange('COMPLETED')}
-          className={cn(
-            "rounded-full px-5 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-sm",
-            activeStatus === 'COMPLETED'
-              ? "bg-primary text-white border border-primary shadow-primary/20"
-              : "bg-card text-foreground border border-border/60 hover:bg-muted/50"
-          )}
-        >
-          Completed Causes
-        </button>
-      </div>
-
-      {/* Row 3: Category Pills & Sort Dropdown */}
-      <div className="flex items-center justify-between gap-4 pt-1">
+      {/* Row 2: Category Pills & Sort Dropdown */}
+      <div className="flex items-center justify-between gap-4 pt-0.5">
         <div className="flex-1 min-w-0 overflow-hidden">
           <CategoryBrowser
             categories={categories}
@@ -177,7 +167,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden space-y-3 overflow-hidden w-full min-w-0 pt-2"
+            className="md:hidden space-y-3 overflow-hidden w-full min-w-0 pt-1"
           >
             <div className="relative group min-w-0">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground shrink-0" />
