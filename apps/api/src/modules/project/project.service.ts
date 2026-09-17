@@ -65,7 +65,10 @@ export class ProjectService {
       where: { status: 'ACTIVE', isActive: true },
       select: { id: true, targetAmount: true, raisedAmount: true, currentPhaseIndex: true, executionTimeline: true, budgetBreakdown: true, status: true }
     });
-    return activeProjects.filter(p => this.isPhaseFull(p)).map(p => p.id);
+    // Strictly isolate any cause that has met its goal or has a full phase
+    return activeProjects
+      .filter(p => this.isPhaseFull(p) || (p.targetAmount > 0n && p.raisedAmount >= p.targetAmount))
+      .map(p => p.id);
   }
 
   // Robust Search Engine
@@ -76,17 +79,12 @@ export class ProjectService {
 
     const phaseFullIds = await this.getPhaseFullProjectIds();
 
-    const recConfig = await this.prisma.recommendationConfig.findUnique({ where: { id: 'default' } });
-    const showFundedProjects = recConfig?.showFundedProjects ?? false;
-
-    // 1. Dynamic Filter Construction
+    // 1. Dynamic Filter Construction: Strictly separate ACTIVE and COMPLETED
     const where: Prisma.ProjectWhereInput = {
       isActive: true,
-      ...(status
-        ? { status }
-        : (showFundedProjects
-          ? { status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] } }
-          : { status: ProjectStatus.ACTIVE })),
+      ...(status === ProjectStatus.COMPLETED
+        ? { status: { in: [ProjectStatus.COMPLETED, ProjectStatus.FUNDED] } }
+        : { status: ProjectStatus.ACTIVE }),
       ...(category && { category: { slug: category } }),
       ...(subcategory && { subcategory: { slug: subcategory } }),
       ...(search && {
@@ -98,7 +96,7 @@ export class ProjectService {
       }),
     };
 
-    // Logic: Strictly exclude paused causes from the standard Active Feed unless showFundedProjects is enabled.
+    // Strictly exclude paused or fully funded causes from the Active Feed
     if (!status || status === ProjectStatus.ACTIVE) {
       where.id = { notIn: phaseFullIds };
     }

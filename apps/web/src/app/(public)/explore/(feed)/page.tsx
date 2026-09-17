@@ -15,20 +15,22 @@ export default async function ExplorePage({
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value;
 
-    // Smart Discovery applies ONLY on default active view with no filters/search
-    const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category') && !params.has('status');
+    const currentStatus = params.get('status') || 'ACTIVE';
+
+    // Smart Discovery (Grouped Rows) applies ONLY when viewing Active Causes with no search, sort, or category filter
+    const isSmartDiscovery = currentStatus === 'ACTIVE' && !params.has('search') && !params.has('sort') && !params.has('category');
 
     let projects: any[] = [];
     let groupedProjects: any[] = [];
-    let completedProjects: any[] = [];
     let meta = { total: 0, page: 1, lastPage: 1 };
 
     // Initial Server-Side Fetch
     if (isSmartDiscovery) {
         const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
         groupedProjects = groupedFeedRes?.groups || [];
-        completedProjects = groupedFeedRes?.completed || [];
     } else {
+        // Explicitly set the status param before querying the database
+        params.set('status', currentStatus);
         const projectsResult = await ApiService.projects.list(token || '', params);
         projects = projectsResult?.data || [];
         meta = projectsResult?.meta || meta;
@@ -52,7 +54,7 @@ export default async function ExplorePage({
                     {isSmartDiscovery ? (
                         <GroupedDiscoveryFeed
                             groupedData={groupedProjects}
-                            completedProjects={completedProjects}
+                            completedProjects={[]} // Never pass completed causes to the active view
                             isPublic={true}
                         />
                     ) : (

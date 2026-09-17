@@ -24,15 +24,24 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
   const [activeSubcategory, setActiveSubcategory] = useState(searchParams.get('subcategory') || 'all');
   const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
-  const [activeStatus, setActiveStatus] = useState(searchParams.get('status') || 'ACTIVE');
+  const [activeStatus, setActiveStatus] = useState<'ACTIVE' | 'COMPLETED'>(
+    (searchParams.get('status') as 'ACTIVE' | 'COMPLETED') || 'ACTIVE'
+  );
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
   useEffect(() => {
-    if (search === (searchParams.get('search') || '') &&
-      activeCategory === (searchParams.get('category') || 'all') &&
-      activeSubcategory === (searchParams.get('subcategory') || 'all') &&
-      sort === (searchParams.get('sort') || 'newest') &&
-      activeStatus === (searchParams.get('status') || 'ACTIVE')) return;
+    const currentStatus = searchParams.get('status') || 'ACTIVE';
+    const currentCategory = searchParams.get('category') || 'all';
+    const currentSubcategory = searchParams.get('subcategory') || 'all';
+    const currentSort = searchParams.get('sort') || 'newest';
+    const currentSearch = searchParams.get('search') || '';
+
+    if (search === currentSearch &&
+      activeCategory === currentCategory &&
+      activeSubcategory === currentSubcategory &&
+      sort === currentSort &&
+      activeStatus === currentStatus &&
+      searchParams.has('status')) return;
 
     const params = new URLSearchParams(searchParams.toString());
 
@@ -40,7 +49,9 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
     if (activeCategory !== 'all') params.set('category', activeCategory); else params.delete('category');
     if (activeSubcategory !== 'all') params.set('subcategory', activeSubcategory); else params.delete('subcategory');
     if (sort !== 'newest') params.set('sort', sort); else params.delete('sort');
-    if (activeStatus !== 'ACTIVE') params.set('status', activeStatus); else params.delete('status');
+
+    // Explicitly set status in the URL so both ACTIVE and COMPLETED update the link
+    params.set('status', activeStatus);
 
     params.delete('page');
 
@@ -48,7 +59,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
       if (params.toString() !== searchParams.toString()) {
         router.replace(`?${params.toString()}`, { scroll: false });
       }
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timeout);
   }, [search, activeCategory, activeSubcategory, sort, activeStatus, router, searchParams]);
