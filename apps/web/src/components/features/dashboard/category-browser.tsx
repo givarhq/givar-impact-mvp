@@ -157,7 +157,7 @@ export const CategoryBrowser = memo(function CategoryBrowser({ categories, selec
                     <button
                         onClick={() => handleScroll('left')}
                         aria-label="Scroll Left"
-                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="h-8 w-8 rounded-full border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -168,8 +168,7 @@ export const CategoryBrowser = memo(function CategoryBrowser({ categories, selec
                 ref={scrollRef}
                 onScroll={checkScroll}
                 role="tablist"
-                className="flex gap-2 overflow-x-auto pb-1 px-1 scroll-smooth w-full touch-pan-x touch-pan-y min-w-0 no-scrollbar"
-                style={{ scrollbarGutter: 'stable' }}
+                className="flex gap-2 overflow-x-auto pb-0.5 px-0.5 scroll-smooth w-full touch-pan-x touch-pan-y min-w-0 no-scrollbar"
             >
                 {allCategories.map((cat, index) => {
                     const Icon = resolveIcon(cat);
@@ -188,10 +187,10 @@ export const CategoryBrowser = memo(function CategoryBrowser({ categories, selec
                             }}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             className={cn(
-                                "flex items-center gap-2 px-4 py-2 rounded-3xl border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary relative",
+                                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 whitespace-nowrap text-xs font-bold shrink-0 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-95 relative",
                                 isActive
-                                    ? "bg-primary/10 text-primary border-primary/50 shadow-sm scale-[1.02]"
-                                    : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/50 hover:text-foreground"
+                                    ? "bg-primary/10 text-primary border-primary/50 shadow-sm"
+                                    : "bg-card text-muted-foreground border-border/60 hover:bg-muted/40 hover:text-foreground"
                             )}
                         >
                             <Icon
@@ -201,13 +200,6 @@ export const CategoryBrowser = memo(function CategoryBrowser({ categories, selec
                                 )}
                             />
                             <span className="truncate">{cat.name}</span>
-                            {isActive && (
-                                <motion.div
-                                    layoutId="categoryRing"
-                                    className="absolute inset-0 rounded-3xl ring-2 ring-primary/20 pointer-events-none"
-                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                />
-                            )}
                         </button>
                     );
                 })}
@@ -218,7 +210,7 @@ export const CategoryBrowser = memo(function CategoryBrowser({ categories, selec
                     <button
                         onClick={() => handleScroll('right')}
                         aria-label="Scroll Right"
-                        className="h-8 w-8 rounded-3xl border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="h-8 w-8 rounded-full border border-border/60 bg-card shadow-sm flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </button>

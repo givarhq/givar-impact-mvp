@@ -11,6 +11,21 @@ import { motion } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
 import { calculatePhaseFunding } from '@givar/types';
 
+// Utility to clean raw HTML tags and entities from descriptions for card previews
+const cleanDescription = (text?: string | null) => {
+  if (!text) return '';
+  return text
+    .replace(/<[^>]*>?/gm, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+};
+
 export const ProjectCard = memo(function ProjectCard({
   project,
   onShare,
@@ -52,7 +67,7 @@ export const ProjectCard = memo(function ProjectCard({
     ? `${project.categoryName} • ${project.subcategoryName}`
     : (project.categoryName || 'Active cause');
 
-  // --- MOCKUP 1: COMPLETED CARD LAYOUT ---
+  // --- COMPLETED CARD LAYOUT (Image 1 Mockup) ---
   if (isActuallyCompleted) {
     return (
       <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
@@ -84,7 +99,7 @@ export const ProjectCard = memo(function ProjectCard({
                 {project.title}
               </h3>
               <p className="text-xs text-muted-foreground font-medium line-clamp-2 mt-1 leading-relaxed">
-                {project.shortDesc || project.description}
+                {cleanDescription(project.shortDesc || project.description)}
               </p>
             </div>
 
