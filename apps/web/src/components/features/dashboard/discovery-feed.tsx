@@ -30,13 +30,24 @@ export const DiscoveryFeed = memo(function DiscoveryFeed({ groupedTrending }: Di
             </div>
 
             {hasActiveProjects ? (
-                <GroupedDiscoveryFeed
-                    groupedData={groupedTrending || []}
-                    completedProjects={[]} // Never show completed causes on Home -> Discovery
-                    isPublic={false}
-                />
+                <>
+                    <GroupedDiscoveryFeed
+                        groupedData={groupedTrending || []}
+                        completedProjects={[]} // Never show completed causes on Home -> Discovery
+                        isPublic={false}
+                    />
+
+                    <div className="flex justify-center py-6">
+                        <Link
+                            href="/dashboard/impact"
+                            className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide"
+                        >
+                            View all
+                        </Link>
+                    </div>
+                </>
             ) : (
-                /* Empty state matching Image 2 */
+                /* Empty state matching Image 2 without any duplicate bottom links */
                 <div className="w-full rounded-[32px] border border-dashed border-border/60 bg-card/50 p-8 sm:p-14 flex flex-col items-center justify-center text-center space-y-4">
                     <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-primary border border-primary/20 shadow-inner">
                         <Heart className="h-7 w-7 stroke-[2.2]" />
