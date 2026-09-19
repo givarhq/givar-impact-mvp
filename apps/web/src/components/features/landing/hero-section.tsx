@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ProjectCard } from '../impact/project-card';
 import { ShareModal } from '../impact/share-modal';
 import { Project } from '../../../types';
-import { cn } from 'apps/web/src/lib/utils/cn';
+import { cn } from '../../../lib/utils/cn';
 
 interface PlatformStats {
     totalVolume: string;
@@ -26,11 +26,17 @@ interface PlatformStats {
 
 interface HeroSectionProps {
     featuredProjects: Project[];
+    completedProjects?: Project[];
     stats: PlatformStats;
 }
 
-export const HeroSection = memo(function HeroSection({ featuredProjects, stats }: HeroSectionProps) {
+export const HeroSection = memo(function HeroSection({
+    featuredProjects,
+    completedProjects = [],
+    stats
+}: HeroSectionProps) {
     const displayProjects = featuredProjects.slice(0, 3);
+    const displayCompleted = completedProjects.slice(0, 4);
     const [isShareOpen, setIsShareOpen] = useState(false);
     const [shareProject, setShareProject] = useState<Project | null>(null);
 
@@ -284,7 +290,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </motion.div>
             </section>
 
-            {/* HOW IT WORKS */}
+            {/* HOW IT WORKS (Maintained exactly as is) */}
             <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6 scroll-mt-28">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See Real-Time Impact</h2>
@@ -318,7 +324,7 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
+                        className="relative z-10 bg-white dark:bg-zinc-900 rounded-[32px] p-5 border border-border/40 shadow-round hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] transition-all duration-300 flex flex-col group"
                     >
                         <div className="absolute -top-3 -left-3 h-10 w-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-base shadow-lg shadow-blue-500/20 transition-transform group-hover:scale-110">2</div>
                         <div className="h-12 w-12 bg-blue-50 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center mb-4 border border-blue-100 dark:border-blue-900/20">
@@ -352,20 +358,23 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                 </div>
             </section>
 
-            {/* FEATURED CAUSES */}
-            <section className="w-full max-w-6xl mx-auto px-6 py-20 border-t border-border/40">
-                <div className="flex items-center justify-between mb-10">
-                    <h2 className="text-3xl font-extrabold text-foreground tracking-tight">Featured Causes</h2>
-                    <Link
-                        href="/explore"
-                        className="flex items-center text-sm font-bold text-primary hover:underline underline-offset-4 hidden sm:flex"
-                    >
-                        <span>View all causes</span>
-                        <ArrowRight className="ml-1 h-4 w-4" />
-                    </Link>
-                </div>
+            {/* FEATURED CAUSES (Conditionally rendered only when active causes exist) */}
+            {displayProjects.length > 0 && (
+                <section className="w-full max-w-6xl mx-auto px-6 py-20 border-t border-border/40">
+                    <div className="flex items-center justify-between mb-10">
+                        <div className="space-y-1">
+                            <h2 className="text-3xl font-extrabold text-foreground tracking-tight">Featured Causes</h2>
+                            <p className="text-sm text-muted-foreground font-medium">Critical causes actively seeking community contributions.</p>
+                        </div>
+                        <Link
+                            href="/explore?status=ACTIVE"
+                            className="flex items-center text-sm font-bold text-primary hover:underline underline-offset-4 hidden sm:flex shrink-0"
+                        >
+                            <span>View all causes</span>
+                            <ArrowRight className="ml-1 h-4 w-4" />
+                        </Link>
+                    </div>
 
-                {displayProjects.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {displayProjects.map((project, index) => (
                             <motion.div
@@ -387,21 +396,65 @@ export const HeroSection = memo(function HeroSection({ featuredProjects, stats }
                             </motion.div>
                         ))}
                     </div>
-                ) : (
-                    <div className="p-16 text-center bg-white dark:bg-zinc-900 rounded-[32px] border border-border/40 shadow-sm">
-                        <Activity className="h-10 w-10 text-muted-foreground/30 mx-auto mb-4" />
-                        <p className="font-bold text-muted-foreground text-sm">Discovering platform causes...</p>
-                    </div>
-                )}
 
-                <div className="mt-10 flex justify-center sm:hidden">
-                    <Link href="/explore">
-                        <Button variant="outline" className="w-auto h-12 rounded-3xl font-bold border-border/60 dark:border-white/10 dark:bg-zinc-900 px-8 transition-all active:scale-95">
-                            View all causes <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </Link>
-                </div>
-            </section>
+                    <div className="mt-10 flex justify-center sm:hidden">
+                        <Link href="/explore?status=ACTIVE">
+                            <Button variant="outline" className="w-auto h-12 rounded-3xl font-bold border-border/60 dark:border-white/10 dark:bg-zinc-900 px-8 transition-all active:scale-95">
+                                View all causes <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </div>
+                </section>
+            )}
+
+            {/* COMPLETED CAUSES (Social proof & verified outcomes) */}
+            {displayCompleted.length > 0 && (
+                <section className="w-full max-w-6xl mx-auto px-6 py-20 border-t border-border/40">
+                    <div className="flex items-center justify-between mb-10">
+                        <div className="space-y-1">
+                            <h2 className="text-3xl font-extrabold text-foreground tracking-tight">Completed Causes</h2>
+                            <p className="text-sm text-muted-foreground font-medium">Verified outcomes and real-world impact made possible by our community.</p>
+                        </div>
+                        <Link
+                            href="/explore?status=COMPLETED"
+                            className="flex items-center text-sm font-bold text-primary hover:underline underline-offset-4 hidden sm:flex shrink-0"
+                        >
+                            <span>View all outcomes</span>
+                            <ArrowRight className="ml-1 h-4 w-4" />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {displayCompleted.map((project, index) => (
+                            <motion.div
+                                key={project.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <ProjectCard
+                                    project={project as any}
+                                    onDonate={() => { }}
+                                    onShare={(p) => {
+                                        setShareProject(p as Project);
+                                        setIsShareOpen(true);
+                                    }}
+                                    isPublic={true}
+                                />
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="mt-10 flex justify-center sm:hidden">
+                        <Link href="/explore?status=COMPLETED">
+                            <Button variant="outline" className="w-auto h-12 rounded-3xl font-bold border-border/60 dark:border-white/10 dark:bg-zinc-900 px-8 transition-all active:scale-95">
+                                View all outcomes <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </div>
+                </section>
+            )}
 
             {/* TRUST SECTION */}
             <section className="w-full max-w-5xl mx-auto px-6 py-20 border-t border-border/40 text-center">

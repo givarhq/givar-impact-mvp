@@ -2,6 +2,7 @@ import { LandingHeader } from '../components/layout/landing-header';
 import { HeroSection } from '../components/features/landing/hero-section';
 import { Footer } from '../components/layout/footer';
 import { ApiService } from '../services/api';
+import { Project } from '../types';
 
 async function getLandingStats() {
     try {
@@ -16,23 +17,29 @@ async function getLandingStats() {
 }
 
 export default async function LandingPage() {
-    let featuredProjects = [];
-    try {
-        const response = await ApiService.recommendations.getFeatured();
-        featuredProjects = response?.data || [];
-    } catch (error) {
-        console.error("Discovery engine unavailable for landing hydration");
-    }
+    let featuredProjects: Project[] = [];
+    let completedProjects: Project[] = [];
 
-    const stats = await getLandingStats();
+    // Parallel fetch for active featured causes, completed causes, and platform statistics
+    const [featuredRes, completedRes, stats] = await Promise.all([
+        ApiService.recommendations.getFeatured().catch(() => null),
+        ApiService.projects.list('', new URLSearchParams({ limit: '4', status: 'COMPLETED' })).catch(() => null),
+        getLandingStats()
+    ]);
+
+    featuredProjects = featuredRes?.data || [];
+    completedProjects = completedRes?.data || [];
 
     return (
         <div className="min-h-screen bg-[#fafafa] dark:bg-background text-foreground font-sans selection:bg-primary/20 transition-colors duration-300">
-
             <LandingHeader />
 
             <main className="overflow-hidden">
-                <HeroSection featuredProjects={featuredProjects} stats={stats} />
+                <HeroSection
+                    featuredProjects={featuredProjects}
+                    completedProjects={completedProjects}
+                    stats={stats}
+                />
             </main>
 
             <Footer />
