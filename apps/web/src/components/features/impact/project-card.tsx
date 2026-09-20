@@ -67,24 +67,24 @@ export const ProjectCard = memo(function ProjectCard({
     ? `${project.categoryName} • ${project.subcategoryName}`
     : (project.categoryName || 'Active cause');
 
-  // --- COMPLETED CARD LAYOUT (Image 1 Mockup) ---
+  // --- COMPLETED CARD LAYOUT (Ultra-compact on mobile, horizontal row on desktop) ---
   if (isActuallyCompleted) {
     return (
       <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
-        <Card className="group flex flex-col sm:flex-row rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none p-4 gap-4">
-          {/* Left Thumbnail */}
-          <div className="relative w-full sm:w-[170px] aspect-[4/3] rounded-2xl overflow-hidden bg-muted shrink-0">
+        <Card className="group flex flex-row rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none p-3 sm:p-4 gap-3 sm:gap-4">
+          {/* Left Thumbnail (Compact row thumbnail on mobile, wider on desktop) */}
+          <div className="relative w-[100px] sm:w-[160px] md:w-[170px] aspect-[4/3] rounded-2xl overflow-hidden bg-muted shrink-0 my-auto sm:my-0">
             {project.imageUrl ? (
               <Image
                 src={project.imageUrl}
                 alt={project.title}
                 fill
-                sizes="(max-width: 768px) 100vw, 170px"
+                sizes="(max-width: 640px) 100px, 170px"
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20">
-                <Heart className="h-8 w-8 fill-current" />
+                <Heart className="h-6 w-6 sm:h-8 sm:w-8 fill-current" />
               </div>
             )}
           </div>
@@ -92,25 +92,25 @@ export const ProjectCard = memo(function ProjectCard({
           {/* Right Details */}
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-600 mb-1.5">
+              <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-500/10 text-emerald-600 mb-1 sm:mb-1.5 w-fit">
                 Completed
               </span>
-              <h3 className="font-bold text-base text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+              <h3 className="font-bold text-sm sm:text-base text-foreground leading-snug line-clamp-1 group-hover:text-primary transition-colors">
                 {project.title}
               </h3>
-              <p className="text-xs text-muted-foreground font-medium line-clamp-2 mt-1 leading-relaxed">
+              <p className="text-xs text-muted-foreground font-medium line-clamp-1 sm:line-clamp-2 mt-0.5 sm:mt-1 leading-snug sm:leading-relaxed">
                 {cleanDescription(project.shortDesc || project.description)}
               </p>
             </div>
 
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/40 text-xs">
-              <div className="flex items-center gap-2 text-muted-foreground font-medium text-[11px] truncate">
+            <div className="flex items-center justify-between mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/40 text-xs">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-muted-foreground font-medium text-[10px] sm:text-[11px] truncate">
                 <span className="flex items-center gap-1 truncate"><BookOpen className="h-3 w-3 shrink-0" /> {displayCategory}</span>
                 <span className="shrink-0">|</span>
                 <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3 shrink-0" /> {project.location || 'Global'}</span>
               </div>
-              <span className="text-primary font-bold text-xs flex items-center gap-1 shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">
-                View outcome <ArrowRight className="h-3.5 w-3.5" />
+              <span className="text-primary font-bold text-[11px] sm:text-xs flex items-center gap-1 shrink-0 ml-2 group-hover:translate-x-0.5 transition-transform">
+                View outcome <ArrowRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               </span>
             </div>
           </div>
@@ -119,7 +119,7 @@ export const ProjectCard = memo(function ProjectCard({
     );
   }
 
-  // --- ACTIVE CARD LAYOUT ---
+  // --- ACTIVE CARD LAYOUT (Horizontal row on mobile, vertical card on desktop) ---
   return (
     <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
       <Card
