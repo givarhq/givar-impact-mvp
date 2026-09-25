@@ -92,6 +92,9 @@ export const LandingHeader = memo(function LandingHeader({
               <Link href="/how-it-works" className="hover:text-primary transition-colors">
                 How It Works
               </Link>
+              <Link href="/for-companies" className="hover:text-primary transition-colors">
+                For Companies
+              </Link>
               <Link href="/about" className="hover:text-primary transition-colors">
                 About
               </Link>
@@ -158,6 +161,9 @@ export const LandingHeader = memo(function LandingHeader({
                   </Link>
                   <Link href="/how-it-works" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
                     How It Works
+                  </Link>
+                  <Link href="/for-companies" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    For Companies
                   </Link>
                   <Link href="/about" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
                     About
