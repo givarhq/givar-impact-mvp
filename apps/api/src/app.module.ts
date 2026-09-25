@@ -21,6 +21,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
 import { CommunicationModule } from './modules/communication/communication.module';
 import { NotificationModule } from './modules/notifications/notification.module';
 import { FeeModule } from './modules/fee/fee.module';
+import { CorporateModule } from './modules/corporate/corporate.module';
 
 @Module({
   imports: [
@@ -55,7 +56,8 @@ import { FeeModule } from './modules/fee/fee.module';
     RecommendationsModule,
     CommunicationModule,
     NotificationModule,
-    FeeModule
+    FeeModule,
+    CorporateModule
   ],
   controllers: [],
   providers: [
