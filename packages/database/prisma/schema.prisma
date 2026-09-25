@@ -187,6 +187,9 @@ enum AuditAction {
 
   // Legal Document Actions
   LEGAL_DOCUMENT_UPDATED
+
+  // Corporate Actions
+  CORPORATE_ENQUIRY_RECEIVED
 }
 
 enum ReportStatus {
@@ -240,6 +243,12 @@ enum NotificationType {
   PROPOSAL_STATUS
   MILESTONE_ALERT
   DONATION_RECEIVED
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  ARCHIVED
 }
 
 // ---------------------------
@@ -887,4 +896,20 @@ model LegalDocument {
   updatedAt     DateTime @updatedAt
 
   @@map("legal_documents")
+}
+
+model CorporateEnquiry {
+  id              String        @id @default(uuid())
+  companyName     String
+  contactName     String
+  role            String
+  email           String
+  phone           String?
+  areasOfInterest String[]
+  notes           String?       @db.Text
+  status          EnquiryStatus @default(NEW)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("corporate_enquiries")
 }
