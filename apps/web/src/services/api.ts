@@ -651,4 +651,17 @@ export const ApiService = {
     adminBroadcast: (slug: string) =>
       apiClient.post(`/admin/legal-docs/${slug}/broadcast`).then(r => r.data),
   },
+
+  // --- CORPORATE ---
+  corporate: {
+    submitEnquiry: (data: {
+      companyName: string;
+      name: string;
+      role: string;
+      email: string;
+      phone?: string;
+      areas: string[];
+      notes?: string;
+    }) => apiClient.post('/corporate/enquiry', data).then(r => r.data),
+  },
 };
