@@ -759,4 +759,30 @@ export const EmailTemplates = {
     </div>
     <p style="font-size: 13px; color: #6b7280;">This is an automated administrative alert from the Givar Compliance Node.</p>
   `,
+
+  corporateEnquiryAdmin: (data: { companyName: string; contactName: string; role: string; email: string; phone?: string | null; areasOfInterest: string[]; notes?: string | null }) => `
+    <p>A new corporate partnership enquiry has been submitted.</p>
+    <div class="stat-box">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Company details</div>
+      <p style="margin: 0; font-size: 14px;"><strong>Company name:</strong> ${data.companyName}</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px;"><strong>Contact name:</strong> ${data.contactName}</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px;"><strong>Role or title:</strong> ${data.role}</p>
+      <p style="margin: 4px 0 0 0; font-size: 14px;"><strong>Work email:</strong> ${data.email}</p>
+      ${data.phone ? `<p style="margin: 4px 0 0 0; font-size: 14px;"><strong>Phone number:</strong> ${data.phone}</p>` : ''}
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Areas of interest</div>
+      <p style="margin: 0; font-size: 14px;">${data.areasOfInterest.join(', ')}</p>
+      ${data.notes ? `
+      <div style="height: 1px; background-color: #bbf7d0; margin: 16px 0;"></div>
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 8px;">Additional notes</div>
+      <p style="margin: 0; font-size: 14px; font-style: italic;">"${data.notes}"</p>
+      ` : ''}
+    </div>
+  `,
+
+  corporateEnquiryConfirmation: (name: string) => `
+    <p>Hi ${name},</p>
+    <p>Thank you for your interest in partnering with Givar.</p>
+    <p>Our team will be in touch to learn more about your organisation’s CSR goals and how Givar can help turn them into verified impact.</p>
+  `,
 };

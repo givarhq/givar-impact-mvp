@@ -521,4 +521,16 @@ export class EmailService {
       })
     );
   }
+
+  async sendCorporateEnquiryNotification(data: { companyName: string; contactName: string; role: string; email: string; phone?: string | null; areasOfInterest: string[]; notes?: string | null }) {
+    const content = EmailTemplates.corporateEnquiryAdmin(data);
+    const html = EmailTemplates.base(content, 'New Corporate Partnership Enquiry');
+    return this.send('hello@givarapp.com', `New Corporate Enquiry: ${data.companyName}`, html);
+  }
+
+  async sendCorporateEnquiryConfirmation(email: string, name: string) {
+    const content = EmailTemplates.corporateEnquiryConfirmation(name);
+    const html = EmailTemplates.base(content, 'Partner with Givar');
+    return this.send(email, 'Givar: Enquiry received', html);
+  }
 }
