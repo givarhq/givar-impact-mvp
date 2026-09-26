@@ -17,33 +17,6 @@ export const metadata: Metadata = {
     description: 'Turn your CSR budget into verified, transparent impact.',
 };
 
-const steps = [
-    {
-        num: 1,
-        title: '1. You Set Your Focus',
-        desc: 'Tell us your budget and the causes you care about.',
-        icon: FileText,
-    },
-    {
-        num: 2,
-        title: '2. We Find And Verify',
-        desc: 'We source and verify genuine needs with supporting evidence.',
-        icon: Users,
-    },
-    {
-        num: 3,
-        title: '3. You Support',
-        desc: 'Select causes to fund.',
-        icon: Heart,
-    },
-    {
-        num: 4,
-        title: '4. See The Impact',
-        desc: 'We track the funding and document the outcome, so you can see the real difference your support made.',
-        icon: BarChart3,
-    },
-];
-
 export default function ForCompaniesPage() {
     return (
         <div className="min-h-screen w-full bg-[#fbfdfc] dark:bg-background text-foreground font-sans selection:bg-primary/20 overflow-x-hidden">
@@ -98,18 +71,24 @@ export default function ForCompaniesPage() {
                                 {/* Seamless Left Fade Overlay */}
                                 <div className="hidden lg:block absolute inset-y-0 left-0 w-36 bg-gradient-to-r from-[#fbfdfc] dark:from-background to-transparent z-10 pointer-events-none" />
 
-                                {/* Handwritten Annotation inside top-left corner */}
+                                {/* Handwritten Annotation in top-left with heart on top of curved underline */}
                                 <div className="absolute top-3 left-3 sm:top-5 sm:left-6 z-20 pointer-events-none select-none text-left -rotate-[5deg] inline-flex flex-col items-start">
                                     <p className={`${caveat.className} text-xl sm:text-2xl font-bold text-[#064e3b] dark:text-emerald-400 leading-tight`}>
                                         A brighter <br />
                                         tomorrow <br />
                                         is possible.
                                     </p>
-                                    <div className="flex items-center gap-1.5 mt-1 text-primary">
-                                        <svg width="20" height="18" viewBox="0 0 40 36" fill="none" className="stroke-current stroke-[2.5] shrink-0">
+
+                                    {/* Heart on top with curved underline directly below */}
+                                    <div className="flex flex-col items-center w-full max-w-[110px] mt-1 text-primary">
+                                        <svg width="22" height="18" viewBox="0 0 40 36" fill="none" className="stroke-current stroke-[2.5]">
                                             <path d="M20 32C20 32 4 22 4 11C4 5 8.5 2 13.5 2C17 2 19 4 20 6C21 4 23 2 26.5 2C31.5 2 36 5 36 11C36 22 20 32 20 32Z" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
-                                        <div className="w-12 h-1 bg-primary rounded-full" />
+
+                                        {/* Curved brand green underline */}
+                                        <svg width="74" height="12" viewBox="0 0 74 12" fill="none" className="text-primary -mt-0.5">
+                                            <path d="M3 9C20 3 54 3 71 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                                        </svg>
                                     </div>
                                 </div>
 
