@@ -11,6 +11,13 @@ import { LandingHeaderProps } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PublicGlobalSearch } from '../features/impact/public-global-search';
 
+const NAV_ITEMS = [
+  { title: 'Explore Causes', href: '/explore' },
+  { title: 'How It Works', href: '/how-it-works' },
+  { title: 'About', href: '/about' },
+  { title: 'For Companies', href: '/for-companies' },
+];
+
 export const LandingHeader = memo(function LandingHeader({
   hideAuthButtons = false,
   variant = 'default',
@@ -42,6 +49,11 @@ export const LandingHeader = memo(function LandingHeader({
       document.body.style.overflow = 'unset';
     };
   }, [isMenuOpen]);
+
+  const isRouteActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <>
@@ -86,55 +98,25 @@ export const LandingHeader = memo(function LandingHeader({
               </div>
             </div>
           ) : (
-            <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold text-muted-foreground">
-              <Link
-                href="/explore"
-                className={cn(
-                  "hover:text-foreground transition-colors py-1 relative",
-                  pathname.startsWith('/explore') && "text-foreground font-bold"
-                )}
-              >
-                Explore Causes
-                {pathname.startsWith('/explore') && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                )}
-              </Link>
-              <Link
-                href="/how-it-works"
-                className={cn(
-                  "hover:text-foreground transition-colors py-1 relative",
-                  pathname.startsWith('/how-it-works') && "text-foreground font-bold"
-                )}
-              >
-                How It Works
-                {pathname.startsWith('/how-it-works') && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                )}
-              </Link>
-              <Link
-                href="/about"
-                className={cn(
-                  "hover:text-foreground transition-colors py-1 relative",
-                  pathname.startsWith('/about') && "text-foreground font-bold"
-                )}
-              >
-                About
-                {pathname.startsWith('/about') && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                )}
-              </Link>
-              <Link
-                href="/for-companies"
-                className={cn(
-                  "hover:text-foreground transition-colors py-1 relative",
-                  pathname.startsWith('/for-companies') ? "text-primary font-bold" : "text-muted-foreground"
-                )}
-              >
-                For Companies
-                {pathname.startsWith('/for-companies') && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-primary rounded-full" />
-                )}
-              </Link>
+            <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold">
+              {NAV_ITEMS.map((item) => {
+                const active = isRouteActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "transition-colors py-1 relative",
+                      active ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {item.title}
+                    {active && (
+                      <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-primary rounded-full animate-in fade-in duration-200" />
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
           )}
 
@@ -143,12 +125,12 @@ export const LandingHeader = memo(function LandingHeader({
               <>
                 <Link href="/login" className="hidden md:flex items-center justify-center">
                   <span className="text-sm font-semibold text-foreground hover:text-primary px-3 py-2 transition-colors cursor-pointer">
-                    Sign In
+                    Sign in
                   </span>
                 </Link>
                 <Link href="/signup" className="flex items-center justify-center">
                   <Button className="h-10 px-6 rounded-full bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm shadow-sm">
-                    Get Started
+                    Get started
                   </Button>
                 </Link>
               </>
@@ -186,23 +168,31 @@ export const LandingHeader = memo(function LandingHeader({
               className="fixed top-[60px] left-0 right-0 z-50 bg-card border-b border-border/40 shadow-2xl md:hidden overflow-hidden"
             >
               <div className="flex flex-col p-6 gap-6">
-                <nav className="flex flex-col gap-5">
-                  <Link href="/explore" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    Explore Causes
-                  </Link>
-                  <Link href="/how-it-works" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    How It Works
-                  </Link>
-                  <Link href="/about" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    About
-                  </Link>
-                  <Link href="/for-companies" className="text-base font-bold text-primary transition-colors flex items-center justify-between" onClick={() => setIsMenuOpen(false)}>
-                    <span>For Companies</span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  </Link>
+                <nav className="flex flex-col gap-4">
+                  {NAV_ITEMS.map((item) => {
+                    const active = isRouteActive(item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "text-base transition-colors flex items-center justify-between py-1",
+                          active ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground font-semibold"
+                        )}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <span>{item.title}</span>
+                        {active && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                      </Link>
+                    );
+                  })}
                   {!hideAuthButtons && (
-                    <Link href="/login" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors pt-2 border-t border-border/40" onClick={() => setIsMenuOpen(false)}>
-                      Sign In
+                    <Link
+                      href="/login"
+                      className="text-base font-semibold text-muted-foreground hover:text-foreground transition-colors pt-3 border-t border-border/40"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sign in
                     </Link>
                   )}
                 </nav>
