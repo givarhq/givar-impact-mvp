@@ -16,7 +16,6 @@ import {
     FileText
 } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { cn } from '../../../lib/utils/cn';
 
 const steps = [
     {
@@ -62,33 +61,33 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 0.4 }}
                     transition={{ duration: 1.5 }}
-                    className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-gradient-to-bl from-emerald-500/10 to-transparent blur-[120px] rounded-full"
+                    className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-gradient-to-bl from-primary/10 to-transparent blur-[120px] rounded-full"
                 />
             </div>
 
-            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-0">
-                {/* Header Section */}
+            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-0 md:-mt-6">
+                {/* Header Section - Only Renders On Mobile */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="text-center space-y-3 max-w-3xl mx-auto"
+                    className="text-center space-y-3 max-w-3xl mx-auto md:hidden pb-6"
                 >
-                    <p className="text-[11px] md:text-xs font-bold tracking-widest text-emerald-600 uppercase">
+                    <p className="text-[11px] font-bold tracking-widest text-primary uppercase">
                         How It Works
                     </p>
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.1]">
+                    <h1 className="text-3xl font-black tracking-tight text-foreground leading-[1.1]">
                         Transparent Impact. <span className="text-primary">Every Step.</span>
                     </h1>
-                    <div className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto pt-1 space-y-1">
+                    <div className="text-sm text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto pt-1 space-y-1">
                         <p>We make giving simple, accountable, and meaningful.</p>
                         <p>Here's how your support creates real change.</p>
                     </div>
                 </motion.section>
 
-                {/* Steps Grid */}
-                <div className="relative mt-2 md:mt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2">
+                {/* Steps Grid - Tight top alignment on desktop without pushing content down */}
+                <div className="relative mt-2 md:mt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2 md:pt-0">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
@@ -98,12 +97,12 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="relative flex flex-col items-center h-full group pt-8"
                             >
-                                {/* Floating Icon sitting on the notch */}
+                                {/* Floating Icon */}
                                 <div className="absolute top-8 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-primary">
                                     <step.icon className="h-6 w-6" />
                                 </div>
 
-                                {/* White Card Wrapper */}
+                                {/* Card Wrapper */}
                                 <div
                                     className="bg-card w-full rounded-[32px] border border-border/40 shadow-sm p-3 pb-6 flex flex-col items-center text-center h-full relative z-10"
                                     style={{
@@ -132,15 +131,15 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                     </p>
 
                                     {/* Bottom Badge */}
-                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-full mt-auto shadow-sm transition-colors">
-                                        <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-500 shrink-0" />
-                                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full mt-auto shadow-sm transition-colors">
+                                        <CheckCircle2 className="h-3 w-3 text-primary shrink-0" />
+                                        <span className="text-[10px] font-bold text-primary">
                                             {step.badge}
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Arrow Badge (between cards) */}
+                                {/* Arrow Badge */}
                                 {index < steps.length - 1 && (
                                     <div className="hidden lg:flex absolute top-[calc(50%+16px)] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary shadow-sm items-center justify-center text-white z-30">
                                         <ArrowRight className="h-4 w-4 stroke-[2.5]" />
@@ -166,25 +165,25 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
 
                     <div className="flex flex-wrap items-center justify-center xl:justify-between gap-5 lg:gap-8 z-10 flex-1 w-full">
                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-4.5 w-4.5 text-emerald-600" />
+                            <ShieldCheck className="h-4.5 w-4.5 text-primary" />
                             <span className="text-[11px] md:text-xs font-bold text-muted-foreground">Verified Causes</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Lock className="h-4.5 w-4.5 text-emerald-600" />
+                            <Lock className="h-4.5 w-4.5 text-primary" />
                             <span className="text-[11px] md:text-xs font-bold text-muted-foreground">Secure Payments</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Users className="h-4.5 w-4.5 text-emerald-600" />
+                            <Users className="h-4.5 w-4.5 text-primary" />
                             <span className="text-[11px] md:text-xs font-bold text-muted-foreground">Real Impact</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <FileText className="h-4.5 w-4.5 text-emerald-600" />
+                            <FileText className="h-4.5 w-4.5 text-primary" />
                             <span className="text-[11px] md:text-xs font-bold text-muted-foreground">Transparent Updates</span>
                         </div>
                     </div>
                 </motion.div>
 
-                {/* Bottom CTA Action - Only show if not logged in */}
+                {/* Bottom CTA Action */}
                 {!isAuthenticated && (
                     <motion.section
                         initial={{ opacity: 0, scale: 0.98 }}
@@ -195,7 +194,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     >
                         <div className="space-y-1.5">
                             <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
-                                Ready to make a difference?
+                                Ready to Make a Difference?
                             </h2>
                             <p className="text-xs md:text-sm text-muted-foreground font-medium">
                                 Join thousands of people creating real impact with Givar.
