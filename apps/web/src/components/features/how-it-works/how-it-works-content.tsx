@@ -20,7 +20,7 @@ import { Button } from '../../ui/button';
 const steps = [
     {
         num: 1,
-        title: "You Give",
+        title: "You give",
         desc: "You contribute securely to a verified cause you care about.",
         badge: "Your donation is safe and secure.",
         img: "/howphone.png",
@@ -28,7 +28,7 @@ const steps = [
     },
     {
         num: 2,
-        title: "Direct To Providers",
+        title: "Direct to providers",
         desc: "Funds are sent directly to verified providers to meet real needs.",
         badge: "No middlemen. No delays.",
         img: "/howlap.png",
@@ -36,7 +36,7 @@ const steps = [
     },
     {
         num: 3,
-        title: "Impact Happens",
+        title: "Impact happens",
         desc: "Lives improve. Communities grow. Real change takes place.",
         badge: "This is the reason you give.",
         img: "/howpatient.png",
@@ -44,7 +44,7 @@ const steps = [
     },
     {
         num: 4,
-        title: "See Your Impact",
+        title: "See your impact",
         desc: "See verified outcomes and the impact your support made.",
         badge: "Verified. Transparent. Impactful.",
         img: "/howthanks.png",
@@ -65,18 +65,14 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 />
             </div>
 
-            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-2 sm:pt-4">
+            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-0">
                 {/* Header Section */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="text-center space-y-3 max-w-3xl mx-auto pb-4 sm:pb-6"
+                    className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-2"
                 >
-                    {/* "How It Works" text tag only renders on mobile */}
-                    <p className="md:hidden text-[11px] font-bold tracking-widest text-primary uppercase">
-                        How It Works
-                    </p>
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.1]">
                         Transparent Impact. <span className="text-primary">Every Step.</span>
                     </h1>
@@ -87,8 +83,8 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 </motion.section>
 
                 {/* Steps Grid */}
-                <div className="relative mt-2 md:mt-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2 md:pt-2">
+                <div className="relative mt-2 md:mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
@@ -98,12 +94,12 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
                                 className="relative flex flex-col items-center h-full group pt-8"
                             >
-                                {/* Floating Icon */}
+                                {/* Floating Icon sitting on the notch */}
                                 <div className="absolute top-8 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-primary">
                                     <step.icon className="h-6 w-6" />
                                 </div>
 
-                                {/* Card Wrapper */}
+                                {/* White Card Wrapper */}
                                 <div
                                     className="bg-card w-full rounded-[32px] border border-border/40 shadow-sm p-3 pb-6 flex flex-col items-center text-center h-full relative z-10"
                                     style={{
@@ -140,7 +136,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                     </div>
                                 </div>
 
-                                {/* Arrow Badge */}
+                                {/* Arrow Badge (between cards) */}
                                 {index < steps.length - 1 && (
                                     <div className="hidden lg:flex absolute top-[calc(50%+16px)] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary shadow-sm items-center justify-center text-white z-30">
                                         <ArrowRight className="h-4 w-4 stroke-[2.5]" />
@@ -161,7 +157,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 >
                     <div className="flex items-center gap-3 pr-0 xl:pr-6 border-b xl:border-b-0 xl:border-r border-border/40 pb-4 xl:pb-0 z-10 shrink-0">
                         <Image src="/Givar1.png" alt="Givar" width={24} height={24} className="object-contain" />
-                        <span className="text-base md:text-lg font-black text-foreground tracking-tight">Give With Confidence.</span>
+                        <span className="text-base md:text-lg font-black text-foreground tracking-tight">Give with confidence.</span>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-center xl:justify-between gap-5 lg:gap-8 z-10 flex-1 w-full">
@@ -195,7 +191,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     >
                         <div className="space-y-1.5">
                             <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
-                                Ready to Make a Difference?
+                                Ready to make a difference?
                             </h2>
                             <p className="text-xs md:text-sm text-muted-foreground font-medium">
                                 Join thousands of people creating real impact with Givar.
