@@ -17,13 +17,40 @@ export const metadata: Metadata = {
     description: 'Turn your CSR budget into verified, transparent impact.',
 };
 
+const steps = [
+    {
+        num: 1,
+        title: '1. You Set Your Focus',
+        desc: 'Tell us your budget and the causes you care about.',
+        icon: FileText,
+    },
+    {
+        num: 2,
+        title: '2. We Find And Verify',
+        desc: 'We source and verify genuine needs with supporting evidence.',
+        icon: Users,
+    },
+    {
+        num: 3,
+        title: '3. You Support',
+        desc: 'Select causes to fund.',
+        icon: Heart,
+    },
+    {
+        num: 4,
+        title: '4. See The Impact',
+        desc: 'We track the funding and document the outcome, so you can see the real difference your support made.',
+        icon: BarChart3,
+    },
+];
+
 export default function ForCompaniesPage() {
     return (
         <div className="min-h-screen w-full bg-[#fbfdfc] dark:bg-background text-foreground font-sans selection:bg-primary/20 overflow-x-hidden">
             <LandingHeader />
 
             <main className="w-full">
-                {/* HERO SECTION - Shifted up */}
+                {/* HERO SECTION */}
                 <section className="relative w-full max-w-7xl mx-auto px-6 sm:px-8 pt-20 sm:pt-24 lg:pt-28 pb-12 lg:pb-16">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
 
@@ -59,7 +86,7 @@ export default function ForCompaniesPage() {
                             </div>
                         </div>
 
-                        {/* Right Visual Column - Borderless, wide landscape with corner & edge fades */}
+                        {/* Right Visual Column (Wide landscape format with blended left gradient edge) */}
                         <div className="lg:col-span-7 relative flex justify-center lg:justify-end items-center">
                             <div
                                 className="relative w-full aspect-[16/10] sm:aspect-[16/10] lg:h-[480px] overflow-hidden"
@@ -71,19 +98,19 @@ export default function ForCompaniesPage() {
                                 {/* Seamless Left Fade Overlay */}
                                 <div className="hidden lg:block absolute inset-y-0 left-0 w-36 bg-gradient-to-r from-[#fbfdfc] dark:from-background to-transparent z-10 pointer-events-none" />
 
-                                {/* Handwritten Annotation inside top-right corner */}
-                                <div className="absolute top-2 right-2 sm:top-4 sm:right-6 z-20 pointer-events-none select-none text-right">
-                                    <p className={`${caveat.className} text-xl sm:text-2xl font-bold text-[#064e3b] dark:text-emerald-400 leading-tight -rotate-[5deg]`}>
+                                {/* Handwritten Annotation inside top-left corner */}
+                                <div className="absolute top-3 left-3 sm:top-5 sm:left-6 z-20 pointer-events-none select-none text-left -rotate-[5deg] inline-flex flex-col items-start">
+                                    <p className={`${caveat.className} text-xl sm:text-2xl font-bold text-[#064e3b] dark:text-emerald-400 leading-tight`}>
                                         A brighter <br />
                                         tomorrow <br />
                                         is possible.
                                     </p>
-                                    <div className="flex justify-end items-center mt-1 mr-2 text-primary">
-                                        <svg width="22" height="18" viewBox="0 0 40 36" fill="none" className="stroke-current stroke-[2.5]">
+                                    <div className="flex items-center gap-1.5 mt-1 text-primary">
+                                        <svg width="20" height="18" viewBox="0 0 40 36" fill="none" className="stroke-current stroke-[2.5] shrink-0">
                                             <path d="M20 32C20 32 4 22 4 11C4 5 8.5 2 13.5 2C17 2 19 4 20 6C21 4 23 2 26.5 2C31.5 2 36 5 36 11C36 22 20 32 20 32Z" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
+                                        <div className="w-12 h-1 bg-primary rounded-full" />
                                     </div>
-                                    <div className="w-12 h-1 bg-primary rounded-full ml-auto mt-1 -rotate-[5deg]" />
                                 </div>
 
                                 {/* Main Girl Image */}
@@ -101,7 +128,7 @@ export default function ForCompaniesPage() {
                     </div>
                 </section>
 
-                {/* SECTION 2: 4 MINIMALIST CONNECTED STEPS (Reverted directly to Mockup design) */}
+                {/* SECTION 2: 4 MINIMALIST CONNECTED STEPS */}
                 <section className="w-full bg-[#f8fafc] dark:bg-zinc-950/40 py-16 lg:py-20 border-t border-border/40">
                     <div className="max-w-6xl mx-auto px-6 sm:px-8 text-center space-y-12">
 
@@ -199,7 +226,7 @@ export default function ForCompaniesPage() {
                     </div>
                 </section>
 
-                {/* SECTION 3: CLOSING SECTION WITH ACCURATE CURSIVE AND CENTERED UNDERLINE */}
+                {/* SECTION 3: CLOSING SECTION (Untouched as requested) */}
                 <section className="relative w-full bg-white dark:bg-background overflow-hidden py-20 lg:py-24">
 
                     {/* Brand Green Organic Wave Backdrop */}
