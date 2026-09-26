@@ -72,8 +72,8 @@ export const HeroSection = memo(function HeroSection({
                             className="space-y-8"
                         >
                             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-emerald-950 dark:text-white leading-[1.1] md:leading-[1.05]">
-                                Give With <br />
-                                <span className="text-primary">Confidence</span>
+                                Give with <br />
+                                <span className="text-primary">confidence</span>
                             </h1>
 
                             <div className="space-y-6 max-w-lg">
@@ -101,7 +101,7 @@ export const HeroSection = memo(function HeroSection({
                             <div className="flex flex-row items-center justify-center lg:justify-start gap-4 pt-2">
                                 <Link href="/explore">
                                     <Button className="w-auto h-12 sm:h-14 px-8 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-sm sm:text-base shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
-                                        Explore Causes <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                                        Explore causes <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                                     </Button>
                                 </Link>
 
@@ -110,7 +110,7 @@ export const HeroSection = memo(function HeroSection({
                                         variant="outline"
                                         className="w-auto h-12 sm:h-14 px-8 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
                                     >
-                                        Create Account
+                                        Create account
                                     </Button>
                                 </Link>
 
@@ -119,7 +119,7 @@ export const HeroSection = memo(function HeroSection({
                                         variant="outline"
                                         className="w-auto h-12 sm:h-14 px-8 rounded-full bg-white dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800 text-foreground hover:bg-muted font-bold text-sm sm:text-base border-border/60 shadow-sm transition-all active:scale-95"
                                     >
-                                        Sign In
+                                        Sign in
                                     </Button>
                                 </Link>
                             </div>
@@ -159,7 +159,7 @@ export const HeroSection = memo(function HeroSection({
                                         <Activity className="h-5 w-5" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
+                                        <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-time volume</p>
                                         <div className="text-lg font-black font-mono truncate">
                                             <SmartCurrency
                                                 amount={stats.totalVolume}
@@ -229,7 +229,7 @@ export const HeroSection = memo(function HeroSection({
                                         <Activity className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-Time Volume</p>
+                                        <p className="text-xs text-emerald-900/60 dark:text-white/60 font-bold">Real-time volume</p>
                                         <div className="text-lg font-black font-mono">
                                             <SmartCurrency
                                                 amount={stats.totalVolume}
@@ -290,10 +290,10 @@ export const HeroSection = memo(function HeroSection({
                 </motion.div>
             </section>
 
-            {/* HOW IT WORKS (Maintained exactly as is) */}
+            {/* HOW IT WORKS */}
             <section id="how-it-works" className="w-full max-w-6xl mx-auto px-6 py-6 scroll-mt-28">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See Real-Time Impact</h2>
+                    <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">See real-time impact</h2>
                     <p className="text-muted-foreground font-medium mt-4 max-w-xl mx-auto">Follow your donation from the moment it leaves your account to the exact moment it changes a life.</p>
                 </div>
 
@@ -311,10 +311,10 @@ export const HeroSection = memo(function HeroSection({
                         <div className="h-12 w-12 bg-primary/5 dark:bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/10">
                             <Wallet className="h-6 w-6 text-primary" />
                         </div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">You Contribute</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-2">You contribute</h3>
                         <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Support a verified cause instantly using your card, Apple Pay, or direct bank transfer.</p>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/50 dark:bg-zinc-800 rounded-xl border border-border/60 dark:border-white/10 text-[10px] font-bold text-foreground w-fit">
-                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Capital Deployed
+                            <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Capital deployed
                         </div>
                     </motion.div>
 
@@ -330,10 +330,10 @@ export const HeroSection = memo(function HeroSection({
                         <div className="h-12 w-12 bg-blue-50 dark:bg-blue-900/10 rounded-2xl flex items-center justify-center mb-4 border border-blue-100 dark:border-blue-900/20">
                             <Activity className="h-6 w-6 text-blue-500" />
                         </div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">Impact Happens</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-2">Impact happens</h3>
                         <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Treasury funds are released directly to verified vendors or institutions to execute that specific stage of the mission.</p>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-900/20 text-[10px] font-bold text-blue-700 dark:text-blue-400 w-fit">
-                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Milestone Achieved
+                            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" /> Milestone achieved
                         </div>
                     </motion.div>
 
@@ -349,20 +349,20 @@ export const HeroSection = memo(function HeroSection({
                         <div className="h-12 w-12 bg-amber-50 dark:bg-amber-900/10 rounded-2xl flex items-center justify-center mb-4 border border-amber-100 dark:border-amber-900/20">
                             <Heart className="h-6 w-6 text-amber-500 fill-current" />
                         </div>
-                        <h3 className="text-lg font-bold text-foreground mb-2">You Get Proof</h3>
+                        <h3 className="text-lg font-bold text-foreground mb-2">You get proof</h3>
                         <p className="text-xs text-muted-foreground font-medium mb-4 leading-relaxed flex-1">Photographic evidence and project receipts are uploaded to the public records.</p>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-border/10 dark:border-emerald-900/20 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 w-fit">
-                            <ShieldCheck className="h-3 w-3" /> Ledger Verified
+                            <ShieldCheck className="h-3 w-3" /> Ledger verified
                         </div>
                     </motion.div>
                 </div>
             </section>
 
-            {/* FEATURED CAUSES (Centered header and centered bottom CTA) */}
+            {/* FEATURED CAUSES */}
             {displayProjects.length > 0 && (
                 <section className="w-full max-w-6xl mx-auto px-6 py-20 border-t border-border/40">
                     <div className="text-center mb-12 space-y-3">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">Featured Causes</h2>
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">Featured causes</h2>
                         <p className="text-muted-foreground font-medium max-w-xl mx-auto text-sm sm:text-base">Critical causes actively seeking community contributions.</p>
                     </div>
 
@@ -398,11 +398,11 @@ export const HeroSection = memo(function HeroSection({
                 </section>
             )}
 
-            {/* COMPLETED CAUSES (Centered header and centered bottom CTA) */}
+            {/* COMPLETED CAUSES */}
             {displayCompleted.length > 0 && (
                 <section className="w-full max-w-6xl mx-auto px-6 py-20 border-t border-border/40">
                     <div className="text-center mb-12 space-y-3">
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">Completed Causes</h2>
+                        <h2 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight">Completed causes</h2>
                         <p className="text-muted-foreground font-medium max-w-xl mx-auto text-sm sm:text-base">Verified outcomes and real-world impact made possible by our community.</p>
                     </div>
 
@@ -441,15 +441,15 @@ export const HeroSection = memo(function HeroSection({
             {/* TRUST SECTION */}
             <section className="w-full max-w-5xl mx-auto px-6 py-20 border-t border-border/40 text-center">
                 <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-12">
-                    Why People <span className="text-primary">Trust</span> Givar
+                    Why people <span className="text-primary">trust</span> Givar
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10">
                     {[
-                        { icon: ShieldCheck, title: 'Verified Causes', desc: 'Every campaign vetted', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/10' },
-                        { icon: Wallet, title: 'Direct Payments', desc: 'No middlemen', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/10' },
-                        { icon: Activity, title: 'Transparent Tracking', desc: 'See every update', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/10' },
-                        { icon: Heart, title: 'Real Impact', desc: 'Proof delivered', color: 'text-rose-500', bg: 'bg-rose-900/10' }
+                        { icon: ShieldCheck, title: 'Verified causes', desc: 'Every campaign vetted', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/10' },
+                        { icon: Wallet, title: 'Direct payments', desc: 'No middlemen', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/10' },
+                        { icon: Activity, title: 'Transparent tracking', desc: 'See every update', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/10' },
+                        { icon: Heart, title: 'Real impact', desc: 'Proof delivered', color: 'text-rose-500', bg: 'bg-rose-900/10' }
                     ].map((item, i) => (
                         <div key={i} className="flex items-center gap-4 bg-white dark:bg-zinc-900 rounded-full pl-3 pr-6 py-3 shadow-sm border border-border/60 dark:border-white/10 w-full">
                             <div className={cn("h-10 w-10 rounded-full flex items-center justify-center shrink-0", item.bg, item.color)}>
@@ -464,11 +464,11 @@ export const HeroSection = memo(function HeroSection({
                 </div>
 
                 <div className="flex flex-wrap justify-center items-center gap-3 text-xs font-bold text-muted-foreground">
-                    <span>Fast Setup</span>
+                    <span>Fast setup</span>
                     <span>•</span>
-                    <span>Secure Access</span>
+                    <span>Secure access</span>
                     <span>•</span>
-                    <span>Transparent by Design</span>
+                    <span>Transparent by design</span>
                 </div>
             </section>
 
