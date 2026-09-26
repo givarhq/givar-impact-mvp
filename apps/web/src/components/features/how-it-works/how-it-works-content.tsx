@@ -65,13 +65,13 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 />
             </div>
 
-            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-0">
+            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-2 sm:pt-4">
                 {/* Header Section */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-2"
+                    className="text-center space-y-3 max-w-3xl mx-auto pb-0"
                 >
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.1]">
                         Transparent Impact. <span className="text-primary">Every Step.</span>
@@ -82,9 +82,9 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     </div>
                 </motion.section>
 
-                {/* Steps Grid */}
-                <div className="relative mt-2 md:mt-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2">
+                {/* Steps Grid - Tightened clearance directly below subtext */}
+                <div className="relative mt-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-0">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
@@ -92,10 +92,10 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: "-50px" }}
                                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="relative flex flex-col items-center h-full group pt-8"
+                                className="relative flex flex-col items-center h-full group pt-6"
                             >
                                 {/* Floating Icon sitting on the notch */}
-                                <div className="absolute top-8 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-primary">
+                                <div className="absolute top-6 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 h-11 w-11 bg-card rounded-full border border-border/60 shadow-lg flex items-center justify-center text-primary">
                                     <step.icon className="h-6 w-6" />
                                 </div>
 
@@ -138,7 +138,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
 
                                 {/* Arrow Badge (between cards) */}
                                 {index < steps.length - 1 && (
-                                    <div className="hidden lg:flex absolute top-[calc(50%+16px)] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary shadow-sm items-center justify-center text-white z-30">
+                                    <div className="hidden lg:flex absolute top-[calc(50%+12px)] left-[calc(100%+12px)] -translate-x-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary shadow-sm items-center justify-center text-white z-30">
                                         <ArrowRight className="h-4 w-4 stroke-[2.5]" />
                                     </div>
                                 )}
