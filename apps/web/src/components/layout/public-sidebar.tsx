@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Compass, Database, Info, HelpCircle } from 'lucide-react';
+import { Compass, Database, Info, HelpCircle, Building2 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 
 export function PublicSidebar() {
@@ -13,6 +13,7 @@ export function PublicSidebar() {
         { title: 'Explore Causes', href: '/explore', icon: Compass },
         { title: 'Public Records', href: '/records', icon: Database },
         { title: 'How It Works', href: '/how-it-works', icon: HelpCircle },
+        { title: 'For Companies', href: '/for-companies', icon: Building2 },
         { title: 'About Us', href: '/about', icon: Info },
     ];
 
