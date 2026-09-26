@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Caveat } from 'next/font/google';
 import { ShieldCheck, Users, FileText, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
@@ -13,6 +14,11 @@ import { ApiService } from '../../../../services/api';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../../../../lib/utils/cn';
+
+const caveat = Caveat({
+    subsets: ['latin'],
+    weight: ['600', '700'],
+});
 
 const partnerSchema = z.object({
     companyName: z.string().min(2, 'Company name is required'),
@@ -28,8 +34,8 @@ type PartnerFormValues = z.infer<typeof partnerSchema>;
 
 const IMPACT_AREAS = [
     'Medical',
-    'Education',
     'Community & essential needs',
+    'Education',
     'Other'
 ];
 
@@ -76,8 +82,8 @@ export function PartnerForm() {
 
     return (
         <div className="max-w-4xl mx-auto w-full min-w-0">
-            {/* Header */}
-            <div className="text-center space-y-3 mb-10 md:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header - Shifted up */}
+            <div className="text-center space-y-2 mb-6 md:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <p className="text-[11px] md:text-xs font-bold tracking-widest text-primary uppercase">
                     Partner With Givar
                 </p>
@@ -90,17 +96,19 @@ export function PartnerForm() {
             </div>
 
             <div className="relative">
-                {/* Decorative Annotation (Visible on Desktop) */}
-                <div className="hidden lg:block absolute -right-32 top-1/2 -translate-y-1/2 rotate-[-6deg] z-0">
-                    <p className="text-emerald-700 font-serif italic text-xl font-bold whitespace-nowrap">
+                {/* Decorative Annotation with Caveat cursive font and emerald text / brand green heart */}
+                <div className="hidden lg:block absolute -right-32 top-1/2 -translate-y-1/2 -rotate-[6deg] z-0 select-none">
+                    <p className={`${caveat.className} text-[#064e3b] dark:text-emerald-400 text-2xl font-bold whitespace-nowrap leading-tight`}>
                         A healthier<br />
                         tomorrow<br />
-                        is possible. ♡
+                        is possible.
                     </p>
-                    {/* SVG Brush Underline */}
-                    <svg className="absolute -bottom-3 left-0 w-full h-3 text-primary opacity-60" viewBox="0 0 100 10" preserveAspectRatio="none">
-                        <path d="M0 5 Q 50 10 100 5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
+                    <div className="flex justify-start items-center mt-1 text-primary">
+                        <svg width="22" height="18" viewBox="0 0 40 36" fill="none" className="stroke-current stroke-[2.5]">
+                            <path d="M20 32C20 32 4 22 4 11C4 5 8.5 2 13.5 2C17 2 19 4 20 6C21 4 23 2 26.5 2C31.5 2 36 5 36 11C36 22 20 32 20 32Z" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </div>
+                    <div className="w-16 h-1 bg-primary rounded-full mt-1.5 -rotate-[2deg]" />
                 </div>
 
                 {/* Form Container */}
@@ -190,6 +198,7 @@ export function PartnerForm() {
                                                     return (
                                                         <label
                                                             key={area}
+                                                            onClick={() => toggleArea(area)}
                                                             className={cn(
                                                                 "flex items-center gap-3 p-4 rounded-2xl border cursor-pointer transition-all active:scale-[0.98]",
                                                                 isChecked
@@ -270,33 +279,33 @@ export function PartnerForm() {
             </div>
 
             {/* Bottom Value Props */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-16 md:pt-24 pb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-                <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-3">
-                    <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shadow-inner border border-emerald-500/20">
-                        <ShieldCheck className="h-6 w-6" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 md:pt-16 pb-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-2">
+                    <div className="h-11 w-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-inner border border-primary/20">
+                        <ShieldCheck className="h-5 w-5" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-foreground mb-1">Verified causes</h4>
+                        <h4 className="font-bold text-foreground text-sm mb-0.5">Verified causes</h4>
                         <p className="text-xs text-muted-foreground font-medium leading-relaxed">Support genuine needs with confidence.</p>
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-3">
-                    <div className="h-12 w-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center shadow-inner border border-blue-500/20">
-                        <Users className="h-6 w-6" />
+                <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-2">
+                    <div className="h-11 w-11 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center shadow-inner border border-blue-500/20">
+                        <Users className="h-5 w-5" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-foreground mb-1">Real impact</h4>
+                        <h4 className="font-bold text-foreground text-sm mb-0.5">Real impact</h4>
                         <p className="text-xs text-muted-foreground font-medium leading-relaxed">Funds go directly to trusted providers.</p>
                     </div>
                 </div>
 
-                <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-3">
-                    <div className="h-12 w-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shadow-inner border border-amber-500/20">
-                        <FileText className="h-6 w-6" />
+                <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-2">
+                    <div className="h-11 w-11 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shadow-inner border border-amber-500/20">
+                        <FileText className="h-5 w-5" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-foreground mb-1">Transparent outcomes</h4>
+                        <h4 className="font-bold text-foreground text-sm mb-0.5">Transparent outcomes</h4>
                         <p className="text-xs text-muted-foreground font-medium leading-relaxed">We document the difference your support makes.</p>
                     </div>
                 </div>
