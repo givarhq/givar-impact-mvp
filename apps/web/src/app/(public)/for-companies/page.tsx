@@ -35,7 +35,7 @@ export default function ForCompaniesPage() {
 
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#0f172a] dark:text-white leading-[1.08]">
                                 Let Givar be <br />
-                                your <span className="text-primary">CSR Engine.</span>
+                                your <span className="text-primary">CSR engine.</span>
                             </h1>
 
                             <p className="text-lg sm:text-xl font-bold text-[#1e293b] dark:text-zinc-100 leading-snug">
