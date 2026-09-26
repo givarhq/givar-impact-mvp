@@ -65,27 +65,28 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 />
             </div>
 
-            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-4 md:pt-8">
-                {/* Header Section - Only Renders On Mobile */}
+            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-2 sm:pt-4">
+                {/* Header Section */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="text-center space-y-3 max-w-3xl mx-auto md:hidden pb-6"
+                    className="text-center space-y-3 max-w-3xl mx-auto pb-4 sm:pb-6"
                 >
-                    <p className="text-[11px] font-bold tracking-widest text-primary uppercase">
+                    {/* "How It Works" text tag only renders on mobile */}
+                    <p className="md:hidden text-[11px] font-bold tracking-widest text-primary uppercase">
                         How It Works
                     </p>
-                    <h1 className="text-3xl font-black tracking-tight text-foreground leading-[1.1]">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.1]">
                         Transparent Impact. <span className="text-primary">Every Step.</span>
                     </h1>
-                    <div className="text-sm text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto pt-1 space-y-1">
+                    <div className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto pt-1 space-y-1">
                         <p>We make giving simple, accountable, and meaningful.</p>
                         <p>Here's how your support creates real change.</p>
                     </div>
                 </motion.section>
 
-                {/* Steps Grid - Balanced Spacing Without Header Overlap */}
+                {/* Steps Grid */}
                 <div className="relative mt-2 md:mt-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2 md:pt-2">
                         {steps.map((step, index) => (
