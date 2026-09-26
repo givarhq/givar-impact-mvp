@@ -226,10 +226,10 @@ export function Header({ user }: { user: any }) {
             className="fixed inset-0 top-[56px] z-50 bg-background/95 dark:bg-background/98 backdrop-blur-2xl flex flex-col justify-between px-6 py-8 md:hidden overflow-y-auto"
           >
             <div className="flex flex-col w-full space-y-6">
-              {/* Restored Previous "Submit a cause" Button Styling */}
+              {/* Fully Rounded "Submit a cause" Pill Button */}
               <Link
                 href="/dashboard/proposals/start"
-                className="flex items-center gap-3 p-3.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm transition-all active:scale-[0.98]"
+                className="flex items-center gap-3 px-5 py-3.5 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-sm transition-all active:scale-[0.98]"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Rocket className="h-4.5 w-4.5 shrink-0" />
@@ -244,8 +244,8 @@ export function Header({ user }: { user: any }) {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "py-5 text-xl font-medium transition-colors flex items-center justify-between",
-                        isActive ? "text-primary font-semibold" : "text-foreground hover:text-primary"
+                        "py-5 text-xl font-semibold transition-colors flex items-center justify-between",
+                        isActive ? "text-primary" : "text-foreground hover:text-primary"
                       )}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
