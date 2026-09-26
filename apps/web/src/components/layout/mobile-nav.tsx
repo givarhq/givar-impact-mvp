@@ -56,18 +56,20 @@ export function MobileNav({ user }: { user: any }) {
           );
         })}
 
-        {/* Profile Avatar on Dock - Scaled up to match vertical height of icon + label */}
+        {/* Profile Avatar Tab on Mobile Dock */}
         <Link
           href="/dashboard/settings"
-          aria-label="Profile"
-          className="flex items-center justify-center p-1 rounded-lg transition-all w-16 h-full"
+          className={cn(
+            "flex flex-col items-center justify-center p-1 rounded-lg transition-all w-16",
+            isSettingsActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
         >
-          <div className="relative">
+          <div className="relative mb-0.5">
             <div
               className={cn(
-                "relative h-8 w-8 rounded-full overflow-hidden border transition-all flex items-center justify-center shadow-sm",
+                "relative h-5 w-5 rounded-full overflow-hidden border transition-all flex items-center justify-center",
                 isSettingsActive
-                  ? "border-primary ring-2 ring-primary/40 ring-offset-2 ring-offset-background"
+                  ? "border-primary ring-2 ring-primary/30"
                   : "border-border/60 bg-muted"
               )}
             >
@@ -76,20 +78,21 @@ export function MobileNav({ user }: { user: any }) {
                   src={avatarUrl}
                   alt=""
                   fill
-                  sizes="32px"
+                  sizes="20px"
                   className="object-cover"
                 />
               ) : (
-                <span className="text-xs font-bold text-foreground">
+                <span className="text-[9px] font-bold text-foreground">
                   {initials}
                 </span>
               )}
             </div>
 
             {hasUnread && (
-              <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-destructive rounded-full border-2 border-background" />
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-destructive rounded-full border border-background" />
             )}
           </div>
+          <span className="text-[10px] font-medium text-center">Profile</span>
         </Link>
       </nav>
     </div>
