@@ -55,6 +55,10 @@ export const LandingHeader = memo(function LandingHeader({
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
+  const visibleNavItems = isAuth
+    ? NAV_ITEMS.filter((item) => item.href !== '/explore')
+    : NAV_ITEMS;
+
   return (
     <>
       <header
@@ -99,7 +103,7 @@ export const LandingHeader = memo(function LandingHeader({
             </div>
           ) : (
             <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold">
-              {NAV_ITEMS.map((item) => {
+              {visibleNavItems.map((item) => {
                 const active = isRouteActive(item.href);
                 return (
                   <Link
@@ -169,7 +173,7 @@ export const LandingHeader = memo(function LandingHeader({
             >
               <div className="flex flex-col p-6 gap-6">
                 <nav className="flex flex-col gap-4">
-                  {NAV_ITEMS.map((item) => {
+                  {visibleNavItems.map((item) => {
                     const active = isRouteActive(item.href);
                     return (
                       <Link
