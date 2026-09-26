@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
     return (
-        <PublicLayout variant="app">
+        <PublicLayout>
             <div className="py-4 md:py-8 min-w-0">
                 <AboutContent />
             </div>

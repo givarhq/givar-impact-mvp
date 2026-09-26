@@ -13,7 +13,7 @@ export default async function HowItWorksPage() {
     const isAuthenticated = !!cookieStore.get('givar_token')?.value;
 
     return (
-        <PublicLayout variant="app">
+        <PublicLayout>
             <div className="w-full min-w-0">
                 <HowItWorksContent isAuthenticated={isAuthenticated} />
             </div>
