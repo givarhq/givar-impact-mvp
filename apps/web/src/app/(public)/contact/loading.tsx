@@ -3,8 +3,8 @@ import { Skeleton } from '../../../components/ui/skeleton';
 
 export default function ContactLoading() {
     return (
-        <PublicLayout variant="app">
-            <div className="py-4 md:py-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500 w-full min-w-0">
+        <PublicLayout>
+            <div className="py-4 md:py-8 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500 w-full min-w-0 px-6">
                 {/* Header Skeleton */}
                 <div className="text-center space-y-3 pt-2">
                     <Skeleton className="h-12 w-48 md:w-64 mx-auto rounded-3xl" />
