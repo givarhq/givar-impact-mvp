@@ -147,7 +147,7 @@ export const LandingHeader = memo(function LandingHeader({
                   </span>
                 </Link>
                 <Link href="/signup" className="flex items-center justify-center">
-                  <Button className="h-10 px-6 rounded-xl bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm shadow-sm">
+                  <Button className="h-10 px-6 rounded-full bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm shadow-sm">
                     Get Started
                   </Button>
                 </Link>
