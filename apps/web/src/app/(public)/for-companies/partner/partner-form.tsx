@@ -85,10 +85,10 @@ export function PartnerForm() {
             {/* Header - Shifted up */}
             <div className="text-center space-y-2 mb-6 md:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <p className="text-[11px] md:text-xs font-bold tracking-widest text-primary uppercase">
-                    Partner With Givar
+                    Partner with Givar
                 </p>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-tight">
-                    Let's Create Real Impact Together.
+                    Let's create real impact together.
                 </h1>
                 <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto">
                     Tell us a little about your organisation and we'll be in touch to explore how we can work together.
