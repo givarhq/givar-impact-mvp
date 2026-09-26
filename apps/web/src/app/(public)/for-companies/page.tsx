@@ -34,7 +34,7 @@ export default function ForCompaniesPage() {
                             </span>
 
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-[#0f172a] dark:text-white leading-[1.08]">
-                                Let Givar Be <br />
+                                Let Givar be <br />
                                 Your <span className="text-primary">CSR Engine.</span>
                             </h1>
 
@@ -49,7 +49,7 @@ export default function ForCompaniesPage() {
                             <div className="pt-1 space-y-3">
                                 <Link href="/for-companies/partner">
                                     <Button className="h-12 sm:h-13 px-8 rounded-full font-bold text-sm sm:text-base bg-primary hover:bg-primary/90 text-white shadow-md active:scale-95 transition-all border-0">
-                                        Partner With Givar <ArrowRight className="ml-2 h-4 w-4 stroke-[2.5]" />
+                                        Partner with Givar <ArrowRight className="ml-2 h-4 w-4 stroke-[2.5]" />
                                     </Button>
                                 </Link>
 
@@ -113,7 +113,7 @@ export default function ForCompaniesPage() {
 
                         <div className="space-y-2">
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-[#0f172a] dark:text-white">
-                                Your CSR. <span className="text-primary">Powered By Givar.</span>
+                                Your CSR. <span className="text-primary">Powered by Givar.</span>
                             </h2>
                             <p className="text-base sm:text-lg font-bold text-muted-foreground">
                                 You provide the funding. We handle the work.
@@ -134,7 +134,7 @@ export default function ForCompaniesPage() {
                                 </div>
 
                                 <h3 className="text-base font-bold text-[#0f172a] dark:text-white pt-1">
-                                    1. You Set Your Focus
+                                    1. You set your focus
                                 </h3>
                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed max-w-[220px]">
                                     Tell us your budget and the causes you care about.
@@ -152,7 +152,7 @@ export default function ForCompaniesPage() {
                                 </div>
 
                                 <h3 className="text-base font-bold text-[#0f172a] dark:text-white pt-1">
-                                    2. We Find And Verify
+                                    2. We find and verify
                                 </h3>
                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed max-w-[220px]">
                                     We source and verify genuine needs with supporting evidence.
@@ -170,7 +170,7 @@ export default function ForCompaniesPage() {
                                 </div>
 
                                 <h3 className="text-base font-bold text-[#0f172a] dark:text-white pt-1">
-                                    3. You Support
+                                    3. You support
                                 </h3>
                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed max-w-[220px]">
                                     Select causes to fund.
@@ -184,7 +184,7 @@ export default function ForCompaniesPage() {
                                 </div>
 
                                 <h3 className="text-base font-bold text-[#0f172a] dark:text-white pt-1">
-                                    4. See The Impact
+                                    4. See the impact
                                 </h3>
                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed max-w-[220px]">
                                     We track the funding and document the outcome, so you can see the real difference your support made.
@@ -197,7 +197,7 @@ export default function ForCompaniesPage() {
                         <div className="pt-4">
                             <Link href="/for-companies/partner">
                                 <Button className="h-12 px-8 rounded-full font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-md active:scale-95 transition-all border-0">
-                                    Partner With Givar <ArrowRight className="ml-2 h-4 w-4 stroke-[2.5]" />
+                                    Partner with Givar <ArrowRight className="ml-2 h-4 w-4 stroke-[2.5]" />
                                 </Button>
                             </Link>
                         </div>
@@ -235,7 +235,7 @@ export default function ForCompaniesPage() {
                             {/* Left Statement */}
                             <div className="lg:col-span-7 space-y-4">
                                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#0f172a] dark:text-white leading-snug max-w-xl">
-                                    Together, We Can Build A More Transparent, Compassionate World.
+                                    Together, we can build a more transparent, compassionate world.
                                 </h2>
                                 <div className="w-16 h-1 bg-primary rounded-full" />
                             </div>
