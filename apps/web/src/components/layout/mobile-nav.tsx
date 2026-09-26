@@ -56,20 +56,18 @@ export function MobileNav({ user }: { user: any }) {
           );
         })}
 
-        {/* Profile Avatar Tab on Mobile Dock */}
+        {/* Profile Avatar on Dock - Rendered cleanly without text label */}
         <Link
           href="/dashboard/settings"
-          className={cn(
-            "flex flex-col items-center justify-center p-1 rounded-lg transition-all w-16",
-            isSettingsActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-          )}
+          aria-label="Profile"
+          className="flex items-center justify-center p-1 rounded-lg transition-all w-16 h-full"
         >
-          <div className="relative mb-0.5">
+          <div className="relative">
             <div
               className={cn(
-                "relative h-5 w-5 rounded-full overflow-hidden border transition-all flex items-center justify-center",
+                "relative h-6 w-6 rounded-full overflow-hidden border transition-all flex items-center justify-center",
                 isSettingsActive
-                  ? "border-primary ring-2 ring-primary/30"
+                  ? "border-primary ring-2 ring-primary/40 ring-offset-1 ring-offset-background"
                   : "border-border/60 bg-muted"
               )}
             >
@@ -78,11 +76,11 @@ export function MobileNav({ user }: { user: any }) {
                   src={avatarUrl}
                   alt=""
                   fill
-                  sizes="20px"
+                  sizes="24px"
                   className="object-cover"
                 />
               ) : (
-                <span className="text-[9px] font-bold text-foreground">
+                <span className="text-[10px] font-bold text-foreground">
                   {initials}
                 </span>
               )}
@@ -92,7 +90,6 @@ export function MobileNav({ user }: { user: any }) {
               <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-destructive rounded-full border border-background" />
             )}
           </div>
-          <span className="text-[10px] font-medium text-center">Profile</span>
         </Link>
       </nav>
     </div>
