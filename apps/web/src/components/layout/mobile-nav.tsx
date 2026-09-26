@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { CircleUser } from 'lucide-react';
 import { dashboardNav } from '../../config/dashboard';
 import { cn } from '../../lib/utils/cn';
 import { ApiService } from '../../services/api';
@@ -27,26 +27,19 @@ export function MobileNav({ user }: { user: any }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Hybrid Navigation Logic: Unified access for all account types
-  const navItems = [
-    ...dashboardNav,
-    {
-      title: 'Profile',
-      href: '/dashboard/settings?tab=profile',
-      icon: CircleUser,
-    }
-  ];
+  const avatarUrl = user?.avatarUrl;
+  const initials = `${user?.firstName?.[0] || 'U'}${user?.lastName?.[0] || ''}`.toUpperCase();
+
+  const isSettingsActive = pathname.startsWith('/dashboard/settings');
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-14 bg-background border-t border-border/40">
       <nav className="flex items-center justify-around h-full px-2">
-        {navItems.map((item) => {
+        {dashboardNav.map((item) => {
           const Icon = item.icon;
           const isActive = item.href === '/dashboard'
             ? pathname === item.href
             : pathname.startsWith(item.href);
-
-          const isProfileNode = item.title === 'Profile';
 
           return (
             <Link
@@ -57,16 +50,50 @@ export function MobileNav({ user }: { user: any }) {
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <div className="relative">
-                <Icon className={cn("h-5 w-5 mb-0.5", isActive && "fill-current/20")} />
-                {isProfileNode && hasUnread && (
-                  <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-destructive rounded-full border border-background" />
-                )}
-              </div>
+              <Icon className={cn("h-5 w-5 mb-0.5", isActive && "fill-current/20")} />
               <span className="text-[10px] font-medium text-center">{item.title}</span>
             </Link>
           );
         })}
+
+        {/* Profile Avatar Tab on Mobile Dock */}
+        <Link
+          href="/dashboard/settings"
+          className={cn(
+            "flex flex-col items-center justify-center p-1 rounded-lg transition-all w-16",
+            isSettingsActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <div className="relative mb-0.5">
+            <div
+              className={cn(
+                "relative h-5 w-5 rounded-full overflow-hidden border transition-all flex items-center justify-center",
+                isSettingsActive
+                  ? "border-primary ring-2 ring-primary/30"
+                  : "border-border/60 bg-muted"
+              )}
+            >
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt=""
+                  fill
+                  sizes="20px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className="text-[9px] font-bold text-foreground">
+                  {initials}
+                </span>
+              )}
+            </div>
+
+            {hasUnread && (
+              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-destructive rounded-full border border-background" />
+            )}
+          </div>
+          <span className="text-[10px] font-medium text-center">Profile</span>
+        </Link>
       </nav>
     </div>
   );
