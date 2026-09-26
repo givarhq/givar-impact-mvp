@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
     return (
         <PublicLayout>
-            <div className="pt-0 pb-12 -mt-8 sm:-mt-10 md:-mt-12 min-w-0 w-full">
+            <div className="pt-2 md:pt-4 pb-16 min-w-0 w-full">
                 <AboutContent />
             </div>
         </PublicLayout>
