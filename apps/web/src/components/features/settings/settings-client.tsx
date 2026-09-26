@@ -9,7 +9,8 @@ import {
     Activity,
     ChevronRight,
     ChevronLeft,
-    ShieldCheck
+    ShieldCheck,
+    LogOut
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { ProfileForm } from './profile-form';
@@ -18,7 +19,8 @@ import { PreferencesForm } from './preferences-form';
 import { UserAuditView } from './user-audit-view';
 import { VerificationWizard } from '../organization/verification-wizard';
 import { cn } from '../../../lib/utils/cn';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ApiService } from '../../../services/api';
+import { usePostHog } from 'posthog-js/react';
 
 interface SettingsClientProps {
     user: any;
@@ -70,6 +72,7 @@ const SETTINGS_OPTIONS = [
 
 export const SettingsClient = memo(function SettingsClient({ user, orgProfile }: SettingsClientProps) {
     const router = useRouter();
+    const posthog = usePostHog();
     const searchParams = useSearchParams();
     const activeTab = searchParams.get('tab');
     const effectiveTab = activeTab || 'profile';
@@ -84,6 +87,18 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile }:
         const params = new URLSearchParams(searchParams.toString());
         params.delete('tab');
         router.replace(`?${params.toString()}`, { scroll: false });
+    };
+
+    const handleLogout = async () => {
+        try {
+            posthog?.capture('user_logout');
+            posthog?.reset();
+            await ApiService.auth.logout();
+        } catch (error) {
+            // Silently fail if network is down
+        } finally {
+            window.location.href = '/api/auth/clear-session?reason=logged_out';
+        }
     };
 
     return (
@@ -116,7 +131,6 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile }:
                         <TabsContent value="verification" className="mt-0 outline-none">
                             <VerificationWizard user={user} initialProfile={orgProfile} />
                         </TabsContent>
-                        {/* --- GHOST FIX: Removed the dead TabsContent for 'recurring' --- */}
                         <TabsContent value="security" className="mt-0 outline-none"><SecurityForm user={user} /></TabsContent>
                         <TabsContent value="activity" className="mt-0 outline-none"><UserAuditView /></TabsContent>
                         <TabsContent value="preferences" className="mt-0 outline-none"><PreferencesForm user={user} /></TabsContent>
@@ -145,6 +159,23 @@ export const SettingsClient = memo(function SettingsClient({ user, orgProfile }:
                                 <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                             </button>
                         ))}
+
+                        {/* Sign Out Button At Bottom of Mobile Settings Lobby */}
+                        <button
+                            onClick={handleLogout}
+                            className="flex items-center justify-between p-4 bg-destructive/5 border border-destructive/10 rounded-3xl active:bg-destructive/10 transition-all group text-left mt-2"
+                        >
+                            <div className="flex items-center gap-4 min-w-0">
+                                <div className="h-10 w-10 rounded-3xl flex items-center justify-center border border-destructive/20 bg-destructive/10 text-destructive shrink-0">
+                                    <LogOut className="h-5 w-5" />
+                                </div>
+                                <div className="min-w-0">
+                                    <h4 className="font-bold text-sm text-destructive">Sign out</h4>
+                                    <p className="text-xs text-destructive/70 truncate">End your session securely</p>
+                                </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-destructive/40 shrink-0" />
+                        </button>
                     </div>
                 ) : (
                     <div className="space-y-4 animate-in slide-in-from-right-2 duration-300">
