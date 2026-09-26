@@ -139,7 +139,7 @@ export const LandingHeader = memo(function LandingHeader({
             <button
               className="md:hidden p-1.5 text-foreground flex items-center justify-center outline-none active:scale-95 transition-transform"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle Menu"
+              aria-label="Toggle navigation menu"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -147,58 +147,51 @@ export const LandingHeader = memo(function LandingHeader({
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
+      {/* Full-Screen Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-md md:hidden"
-              onClick={() => setIsMenuOpen(false)}
-            />
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="fixed inset-0 top-[56px] z-50 bg-background/95 dark:bg-background/98 backdrop-blur-2xl flex flex-col justify-between px-6 py-8 md:hidden overflow-y-auto"
+          >
+            <div className="flex flex-col w-full divide-y divide-border/40">
+              {NAV_ITEMS.map((item) => {
+                const active = isRouteActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "py-5 text-xl font-bold transition-colors flex items-center justify-between",
+                      active ? "text-primary" : "text-foreground hover:text-primary"
+                    )}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span>{item.title}</span>
+                    {active && <span className="h-2 w-2 rounded-full bg-primary" />}
+                  </Link>
+                );
+              })}
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed top-[60px] left-0 right-0 z-50 bg-card border-b border-border/40 shadow-2xl md:hidden overflow-hidden"
-            >
-              <div className="flex flex-col p-6 gap-6">
-                <nav className="flex flex-col gap-4">
-                  {NAV_ITEMS.map((item) => {
-                    const active = isRouteActive(item.href);
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                          "text-base transition-colors flex items-center justify-between py-1",
-                          active ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground font-semibold"
-                        )}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <span>{item.title}</span>
-                        {active && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
-                      </Link>
-                    );
-                  })}
-                  {!hideAuthButtons && (
-                    <Link
-                      href="/login"
-                      className="text-base font-semibold text-muted-foreground hover:text-foreground transition-colors pt-3 border-t border-border/40"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Sign in
-                    </Link>
-                  )}
-                </nav>
+            {!hideAuthButtons && (
+              <div className="pt-8 pb-6 flex flex-col gap-3 w-full border-t border-border/40 mt-auto">
+                <Link href="/signup" onClick={() => setIsMenuOpen(false)} className="w-full">
+                  <Button className="w-full h-12 rounded-full bg-primary hover:bg-primary/90 text-white font-bold text-base shadow-lg shadow-primary/20 border-0">
+                    Get started
+                  </Button>
+                </Link>
+                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="w-full">
+                  <Button variant="outline" className="w-full h-12 rounded-full font-bold text-base border-border/60 hover:bg-muted">
+                    Sign in
+                  </Button>
+                </Link>
               </div>
-            </motion.div>
-          </>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </>
