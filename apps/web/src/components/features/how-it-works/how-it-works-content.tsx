@@ -73,6 +73,10 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     transition={{ duration: 0.5 }}
                     className="text-center space-y-3 max-w-3xl mx-auto pb-2 sm:pb-3"
                 >
+                    {/* Kicker tag specifically restored for mobile view */}
+                    <p className="text-[11px] md:text-xs font-bold tracking-widest text-primary uppercase md:hidden">
+                        How It Works
+                    </p>
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.1]">
                         Transparent Impact. <span className="text-primary">Every Step.</span>
                     </h1>
@@ -82,7 +86,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     </div>
                 </motion.section>
 
-                {/* Steps Grid - Balanced breathing room below header */}
+                {/* Steps Grid - Unmodified paddings */}
                 <div className="relative mt-3 sm:mt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-0">
                         {steps.map((step, index) => (

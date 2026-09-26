@@ -7,11 +7,12 @@ export default function HowItWorksLoading() {
             <div className="container mx-auto px-4 pb-12 max-w-[1400px] pt-2 sm:pt-4 space-y-4 animate-in fade-in duration-500 w-full min-w-0">
                 {/* Header Skeleton */}
                 <div className="text-center space-y-2 pb-2 sm:pb-3">
+                    <Skeleton className="h-4 w-28 mx-auto rounded-3xl md:hidden" />
                     <Skeleton className="h-10 md:h-12 w-4/5 max-w-xl mx-auto rounded-3xl" />
                     <Skeleton className="h-4 w-full max-w-md mx-auto rounded-xl" />
                 </div>
 
-                {/* Steps Skeleton Grid - Balanced spacing matching content */}
+                {/* Steps Skeleton Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 pt-0 mt-3 sm:mt-4">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="flex flex-col items-center space-y-6 pt-6">
