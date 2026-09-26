@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Menu,
   X,
-  Compass,
   HelpCircle,
   Building2,
   Info,
@@ -208,7 +207,7 @@ export function Header({ user }: { user: any }) {
         </div>
       </header>
 
-      {/* Mobile Menu Dropdown Drawer */}
+      {/* Mobile Menu Dropdown Drawer - Without duplicate Explore Causes */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
@@ -239,14 +238,6 @@ export function Header({ user }: { user: any }) {
                 </Link>
 
                 <nav className="flex flex-col gap-4 pt-1">
-                  <Link
-                    href="/dashboard/impact"
-                    className="flex items-center gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Compass className="h-4 w-4 shrink-0" />
-                    <span>Explore causes</span>
-                  </Link>
                   <Link
                     href="/how-it-works"
                     className="flex items-center gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
