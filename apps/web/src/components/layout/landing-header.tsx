@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '../ui/button';
 import { useEffect, useState, memo, useCallback } from 'react';
 import { Menu, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { cn } from '../../lib/utils/cn';
 import { LandingHeaderProps } from '../../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,6 +15,7 @@ export const LandingHeader = memo(function LandingHeader({
   hideAuthButtons = false,
   variant = 'default',
 }: LandingHeaderProps) {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -30,7 +32,6 @@ export const LandingHeader = memo(function LandingHeader({
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -54,7 +55,7 @@ export const LandingHeader = memo(function LandingHeader({
                 ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl py-4 shadow-sm'
                 : scrolled
                   ? 'bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-border/40 py-3 shadow-sm'
-                  : 'bg-transparent py-6'
+                  : 'bg-transparent py-5'
             )
         )}
       >
@@ -77,7 +78,7 @@ export const LandingHeader = memo(function LandingHeader({
             </Link>
           </div>
 
-          {/* Desktop Nav vs App Search */}
+          {/* Desktop Navigation */}
           {isApp ? (
             <div className="hidden md:flex flex-[3] justify-center px-8">
               <div className="w-full max-w-6xl flex justify-center">
@@ -86,35 +87,67 @@ export const LandingHeader = memo(function LandingHeader({
             </div>
           ) : (
             <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-8 text-sm font-semibold text-muted-foreground">
-              <Link href="/explore" className="hover:text-primary transition-colors">
+              <Link
+                href="/explore"
+                className={cn(
+                  "hover:text-foreground transition-colors py-1 relative",
+                  pathname.startsWith('/explore') && "text-foreground font-bold"
+                )}
+              >
                 Explore Causes
+                {pathname.startsWith('/explore') && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                )}
               </Link>
-              <Link href="/how-it-works" className="hover:text-primary transition-colors">
+              <Link
+                href="/how-it-works"
+                className={cn(
+                  "hover:text-foreground transition-colors py-1 relative",
+                  pathname.startsWith('/how-it-works') && "text-foreground font-bold"
+                )}
+              >
                 How It Works
+                {pathname.startsWith('/how-it-works') && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                )}
               </Link>
-              <Link href="/for-companies" className="hover:text-primary transition-colors">
-                For Companies
-              </Link>
-              <Link href="/about" className="hover:text-primary transition-colors">
+              <Link
+                href="/about"
+                className={cn(
+                  "hover:text-foreground transition-colors py-1 relative",
+                  pathname.startsWith('/about') && "text-foreground font-bold"
+                )}
+              >
                 About
+                {pathname.startsWith('/about') && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                )}
+              </Link>
+              <Link
+                href="/for-companies"
+                className={cn(
+                  "hover:text-foreground transition-colors py-1 relative",
+                  pathname.startsWith('/for-companies') ? "text-primary font-bold" : "text-muted-foreground"
+                )}
+              >
+                For Companies
+                {pathname.startsWith('/for-companies') && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-[2.5px] bg-primary rounded-full" />
+                )}
               </Link>
             </nav>
           )}
 
-          <div className={cn("relative z-10 flex items-center justify-end gap-2 md:gap-3 shrink-0", isApp && "flex-1")}>
+          <div className={cn("relative z-10 flex items-center justify-end gap-3 shrink-0", isApp && "flex-1")}>
             {!hideAuthButtons && (
               <>
                 <Link href="/login" className="hidden md:flex items-center justify-center">
-                  <Button
-                    variant="ghost"
-                    className="w-auto text-foreground hover:text-primary font-bold hover:bg-primary/5 rounded-full px-6 transition-all"
-                  >
+                  <span className="text-sm font-semibold text-foreground hover:text-primary px-3 py-2 transition-colors cursor-pointer">
                     Sign In
-                  </Button>
+                  </span>
                 </Link>
-                {/* Visible on both Mobile and Desktop */}
                 <Link href="/signup" className="flex items-center justify-center">
-                  <Button className="h-9 md:h-10 w-auto rounded-full px-4 md:px-6 shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-xs md:text-sm">
+                  <Button className="h-10 px-6 rounded-xl bg-primary hover:bg-primary/90 transition-all active:scale-95 text-white font-bold border-0 text-sm shadow-sm">
                     Get Started
                   </Button>
                 </Link>
@@ -132,11 +165,10 @@ export const LandingHeader = memo(function LandingHeader({
         </div>
       </header>
 
-      {/* Mobile Menu Overlay and Dropdown */}
+      {/* Mobile Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
-            {/* Blurred Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -146,7 +178,6 @@ export const LandingHeader = memo(function LandingHeader({
               onClick={() => setIsMenuOpen(false)}
             />
 
-            {/* Menu Panel */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -162,14 +193,15 @@ export const LandingHeader = memo(function LandingHeader({
                   <Link href="/how-it-works" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
                     How It Works
                   </Link>
-                  <Link href="/for-companies" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
-                    For Companies
-                  </Link>
                   <Link href="/about" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
                     About
                   </Link>
+                  <Link href="/for-companies" className="text-base font-bold text-primary transition-colors flex items-center justify-between" onClick={() => setIsMenuOpen(false)}>
+                    <span>For Companies</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  </Link>
                   {!hideAuthButtons && (
-                    <Link href="/login" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors" onClick={() => setIsMenuOpen(false)}>
+                    <Link href="/login" className="text-base font-bold text-muted-foreground hover:text-foreground transition-colors pt-2 border-t border-border/40" onClick={() => setIsMenuOpen(false)}>
                       Sign In
                     </Link>
                   )}
