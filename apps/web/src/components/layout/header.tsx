@@ -34,6 +34,7 @@ import { NotificationBell } from './notification-bell';
 import { Skeleton } from '../ui/skeleton';
 import { usePostHog } from 'posthog-js/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../lib/utils/cn';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Home',
@@ -42,6 +43,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard/subscriptions': 'Recurring Donations',
   '/dashboard/settings': 'Settings',
 };
+
+const DASHBOARD_MENU_LINKS = [
+  { title: 'How it works', href: '/how-it-works', icon: HelpCircle },
+  { title: 'For companies', href: '/for-companies', icon: Building2 },
+  { title: 'About us', href: '/about', icon: Info },
+  { title: 'Contact support', href: '/contact', icon: Mail },
+];
 
 export function Header({ user }: { user: any }) {
   const posthog = usePostHog();
@@ -207,73 +215,55 @@ export function Header({ user }: { user: any }) {
         </div>
       </header>
 
-      {/* Mobile Menu Dropdown Drawer - Without duplicate Explore Causes */}
+      {/* Full-Screen Mobile Menu Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-40 bg-background/60 backdrop-blur-md md:hidden"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="fixed inset-0 top-[56px] z-50 bg-background/95 dark:bg-background/98 backdrop-blur-2xl flex flex-col justify-between px-6 py-8 md:hidden overflow-y-auto"
+          >
+            <div className="flex flex-col w-full space-y-6">
+              <Link
+                href="/dashboard/proposals/start"
+                className="flex items-center justify-center gap-2.5 h-12 rounded-full bg-primary text-white font-bold text-base shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Rocket className="h-5 w-5" />
+                <span>Submit a cause</span>
+              </Link>
 
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="fixed top-[56px] left-0 right-0 z-50 bg-card border-b border-border/40 shadow-2xl md:hidden overflow-hidden"
-            >
-              <div className="flex flex-col p-6 gap-5">
-                <Link
-                  href="/dashboard/proposals/start"
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm transition-all active:scale-[0.98]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <Rocket className="h-4.5 w-4.5 shrink-0" />
-                  <span>Submit a cause</span>
-                </Link>
-
-                <nav className="flex flex-col gap-4 pt-1">
-                  <Link
-                    href="/how-it-works"
-                    className="flex items-center gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <HelpCircle className="h-4 w-4 shrink-0" />
-                    <span>How it works</span>
-                  </Link>
-                  <Link
-                    href="/for-companies"
-                    className="flex items-center gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Building2 className="h-4 w-4 shrink-0" />
-                    <span>For companies</span>
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="flex items-center gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Info className="h-4 w-4 shrink-0" />
-                    <span>About us</span>
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="flex items-center gap-3 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <Mail className="h-4 w-4 shrink-0" />
-                    <span>Contact support</span>
-                  </Link>
-                </nav>
+              <div className="flex flex-col w-full divide-y divide-border/40">
+                {DASHBOARD_MENU_LINKS.map((item) => {
+                  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "py-5 text-xl font-bold transition-colors flex items-center justify-between",
+                        isActive ? "text-primary" : "text-foreground hover:text-primary"
+                      )}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className="h-5 w-5 text-muted-foreground" />
+                        <span>{item.title}</span>
+                      </div>
+                      {isActive && <span className="h-2 w-2 rounded-full bg-primary" />}
+                    </Link>
+                  );
+                })}
               </div>
-            </motion.div>
-          </>
+            </div>
+
+            <div className="pt-6 border-t border-border/40 mt-auto flex items-center justify-between text-xs text-muted-foreground font-medium">
+              <span>Givar Protocol</span>
+              <span>Verified Philanthropy</span>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>
