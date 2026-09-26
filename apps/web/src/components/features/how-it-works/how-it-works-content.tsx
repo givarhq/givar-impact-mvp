@@ -65,7 +65,7 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                 />
             </div>
 
-            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-0 md:-mt-6">
+            <div className="container mx-auto px-4 pb-12 max-w-[1400px] relative z-10 pt-4 md:pt-8">
                 {/* Header Section - Only Renders On Mobile */}
                 <motion.section
                     initial={{ opacity: 0, y: 15 }}
@@ -85,9 +85,9 @@ export function HowItWorksContent({ isAuthenticated = false }: { isAuthenticated
                     </div>
                 </motion.section>
 
-                {/* Steps Grid - Tight top alignment on desktop without pushing content down */}
-                <div className="relative mt-2 md:mt-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2 md:pt-0">
+                {/* Steps Grid - Balanced Spacing Without Header Overlap */}
+                <div className="relative mt-2 md:mt-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6 relative z-10 pt-2 md:pt-2">
                         {steps.map((step, index) => (
                             <motion.div
                                 key={step.num}
