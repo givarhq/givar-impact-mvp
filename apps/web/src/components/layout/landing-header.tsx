@@ -165,8 +165,8 @@ export const LandingHeader = memo(function LandingHeader({
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "py-5 text-xl font-bold transition-colors flex items-center justify-between",
-                      active ? "text-primary" : "text-foreground hover:text-primary"
+                      "py-5 text-xl font-medium transition-colors flex items-center justify-between",
+                      active ? "text-primary font-semibold" : "text-foreground hover:text-primary"
                     )}
                     onClick={() => setIsMenuOpen(false)}
                   >
