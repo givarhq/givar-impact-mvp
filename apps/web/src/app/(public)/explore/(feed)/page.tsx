@@ -15,21 +15,43 @@ export default async function ExplorePage({
     const cookieStore = await cookies();
     const token = cookieStore.get('givar_token')?.value;
 
-    const currentStatus = params.get('status') || 'ACTIVE';
+    const requestedStatus = params.get('status') as 'ACTIVE' | 'COMPLETED' | null;
+    const isDefaultView = !params.has('search') && !params.has('sort') && !params.has('category') && !params.has('subcategory');
 
-    // Smart Discovery (Grouped Rows) applies ONLY when viewing Active Causes with no search, sort, or category filter
-    const isSmartDiscovery = currentStatus === 'ACTIVE' && !params.has('search') && !params.has('sort') && !params.has('category');
-
+    let currentStatus: 'ACTIVE' | 'COMPLETED' = requestedStatus || 'ACTIVE';
+    let isSmartDiscovery = false;
     let projects: any[] = [];
     let groupedProjects: any[] = [];
     let meta = { total: 0, page: 1, lastPage: 1 };
 
-    // Initial Server-Side Fetch
-    if (isSmartDiscovery) {
+    if (!requestedStatus && isDefaultView) {
+        // First check if active causes exist in the grouped feed
         const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
-        groupedProjects = groupedFeedRes?.groups || [];
+        const activeGroups = (groupedFeedRes?.groups || []).filter(
+            (g: any) => g.projects && g.projects.length > 0
+        );
+
+        if (activeGroups.length > 0) {
+            currentStatus = 'ACTIVE';
+            isSmartDiscovery = true;
+            groupedProjects = activeGroups;
+        } else {
+            // No active causes available -> default automatically to Completed
+            currentStatus = 'COMPLETED';
+            params.set('status', 'COMPLETED');
+            const projectsResult = await ApiService.projects.list(token || '', params);
+            projects = projectsResult?.data || [];
+            meta = projectsResult?.meta || meta;
+        }
+    } else if (currentStatus === 'ACTIVE' && isDefaultView) {
+        // User explicitly chose ACTIVE tab on default view
+        const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
+        groupedProjects = (groupedFeedRes?.groups || []).filter(
+            (g: any) => g.projects && g.projects.length > 0
+        );
+        isSmartDiscovery = true;
     } else {
-        // Explicitly set the status param before querying the database
+        // User filtering, searching, or viewing COMPLETED
         params.set('status', currentStatus);
         const projectsResult = await ApiService.projects.list(token || '', params);
         projects = projectsResult?.data || [];
@@ -46,6 +68,7 @@ export default async function ExplorePage({
                     <ImpactFilters
                         categories={categories || []}
                         totalCount={meta.total}
+                        initialStatus={currentStatus}
                     />
                 </div>
 
@@ -54,7 +77,7 @@ export default async function ExplorePage({
                     {isSmartDiscovery ? (
                         <GroupedDiscoveryFeed
                             groupedData={groupedProjects}
-                            completedProjects={[]} // Never pass completed causes to the active view
+                            completedProjects={[]}
                             isPublic={true}
                         />
                     ) : (
