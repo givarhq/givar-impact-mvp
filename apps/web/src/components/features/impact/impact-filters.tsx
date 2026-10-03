@@ -14,9 +14,15 @@ interface ImpactFiltersProps {
   categories: any[];
   totalCount: number;
   hideSearch?: boolean;
+  initialStatus?: 'ACTIVE' | 'COMPLETED';
 }
 
-export const ImpactFilters = memo(function ImpactFilters({ categories, totalCount, hideSearch = false }: ImpactFiltersProps) {
+export const ImpactFilters = memo(function ImpactFilters({
+  categories,
+  totalCount,
+  hideSearch = false,
+  initialStatus = 'ACTIVE',
+}: ImpactFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -25,23 +31,33 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
   const [activeSubcategory, setActiveSubcategory] = useState(searchParams.get('subcategory') || 'all');
   const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
   const [activeStatus, setActiveStatus] = useState<'ACTIVE' | 'COMPLETED'>(
-    (searchParams.get('status') as 'ACTIVE' | 'COMPLETED') || 'ACTIVE'
+    (searchParams.get('status') as 'ACTIVE' | 'COMPLETED') || initialStatus
   );
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
   useEffect(() => {
-    const currentStatus = searchParams.get('status') || 'ACTIVE';
+    if (!searchParams.has('status')) {
+      setActiveStatus(initialStatus);
+    }
+  }, [initialStatus, searchParams]);
+
+  useEffect(() => {
+    const currentStatus = (searchParams.get('status') as 'ACTIVE' | 'COMPLETED') || initialStatus;
     const currentCategory = searchParams.get('category') || 'all';
     const currentSubcategory = searchParams.get('subcategory') || 'all';
     const currentSort = searchParams.get('sort') || 'newest';
     const currentSearch = searchParams.get('search') || '';
 
-    if (search === currentSearch &&
+    if (
+      search === currentSearch &&
       activeCategory === currentCategory &&
       activeSubcategory === currentSubcategory &&
       sort === currentSort &&
       activeStatus === currentStatus &&
-      searchParams.has('status')) return;
+      searchParams.has('status')
+    ) {
+      return;
+    }
 
     const params = new URLSearchParams(searchParams.toString());
 
@@ -50,7 +66,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
     if (activeSubcategory !== 'all') params.set('subcategory', activeSubcategory); else params.delete('subcategory');
     if (sort !== 'newest') params.set('sort', sort); else params.delete('sort');
 
-    // Explicitly set status in the URL so both ACTIVE and COMPLETED update the link
+    // Explicitly set status in the URL so both ACTIVE and COMPLETED update the state
     params.set('status', activeStatus);
 
     params.delete('page');
@@ -62,7 +78,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [search, activeCategory, activeSubcategory, sort, activeStatus, router, searchParams]);
+  }, [search, activeCategory, activeSubcategory, sort, activeStatus, initialStatus, router, searchParams]);
 
   const handleStatusChange = (status: 'ACTIVE' | 'COMPLETED') => {
     setActiveStatus(status);
@@ -73,7 +89,7 @@ export const ImpactFilters = memo(function ImpactFilters({ categories, totalCoun
     setActiveCategory('all');
     setActiveSubcategory('all');
     setSort('newest');
-    setActiveStatus('ACTIVE');
+    setActiveStatus(initialStatus);
   };
 
   const selectedCategoryObj = categories.find(c => c.slug === activeCategory);
