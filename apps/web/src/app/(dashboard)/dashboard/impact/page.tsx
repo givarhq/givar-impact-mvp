@@ -15,20 +15,34 @@ export default async function ImpactPage({
   const resolvedParams = await searchParams;
   const params = new URLSearchParams(resolvedParams as any);
 
-  // Logic: Smart Discovery applies ONLY on default active view with no filters/search
-  const isSmartDiscovery = !params.has('search') && !params.has('sort') && !params.has('category') && !params.has('status');
+  // 1. Direct database check: Do ANY active causes exist?
+  const activeCheck = await ApiService.projects.list(token, new URLSearchParams({ status: 'ACTIVE', limit: '1' }));
+  const hasActiveCauses = (activeCheck?.meta?.total || 0) > 0;
+
+  // 2. Resolve requested status: If no active causes exist, default to COMPLETED
+  const rawStatusParam = params.get('status') as 'ACTIVE' | 'COMPLETED' | null;
+  let targetStatus: 'ACTIVE' | 'COMPLETED';
+
+  if (!hasActiveCauses) {
+    targetStatus = rawStatusParam === 'ACTIVE' ? 'ACTIVE' : 'COMPLETED';
+  } else {
+    targetStatus = rawStatusParam || 'ACTIVE';
+  }
+
+  const isDefaultView = !params.has('search') && !params.has('sort') && !params.has('category') && !params.has('subcategory');
+  const isSmartDiscovery = targetStatus === 'ACTIVE' && isDefaultView;
 
   let projects: any[] = [];
   let groupedProjects: any[] = [];
-  let completedProjects: any[] = [];
   let meta = { total: 0, page: 1, lastPage: 1 };
 
-  // Fetch initial data
   if (isSmartDiscovery) {
     const groupedFeedRes = await ApiService.recommendations.getGroupedFeed(token);
-    groupedProjects = groupedFeedRes?.groups || [];
-    completedProjects = groupedFeedRes?.completed || [];
+    groupedProjects = (groupedFeedRes?.groups || []).filter(
+      (g: any) => g.projects && g.projects.length > 0
+    );
   } else {
+    params.set('status', targetStatus);
     const projectsResult = await ApiService.projects.list(token, params);
     projects = projectsResult?.data || [];
     meta = projectsResult?.meta || meta;
@@ -42,6 +56,8 @@ export default async function ImpactPage({
         <ImpactFilters
           categories={categories || []}
           totalCount={meta.total}
+          initialStatus={targetStatus}
+          hasActiveCauses={hasActiveCauses}
         />
       </div>
 
@@ -49,7 +65,7 @@ export default async function ImpactPage({
         {isSmartDiscovery ? (
           <GroupedDiscoveryFeed
             groupedData={groupedProjects}
-            completedProjects={completedProjects}
+            completedProjects={[]}
             isPublic={false}
           />
         ) : (
