@@ -15,6 +15,7 @@ interface ImpactFiltersProps {
   totalCount: number;
   hideSearch?: boolean;
   initialStatus?: 'ACTIVE' | 'COMPLETED';
+  hasActiveCauses?: boolean;
 }
 
 export const ImpactFilters = memo(function ImpactFilters({
@@ -22,6 +23,7 @@ export const ImpactFilters = memo(function ImpactFilters({
   totalCount,
   hideSearch = false,
   initialStatus = 'ACTIVE',
+  hasActiveCauses = true,
 }: ImpactFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,9 +32,14 @@ export const ImpactFilters = memo(function ImpactFilters({
   const [activeCategory, setActiveCategory] = useState(searchParams.get('category') || 'all');
   const [activeSubcategory, setActiveSubcategory] = useState(searchParams.get('subcategory') || 'all');
   const [sort, setSort] = useState(searchParams.get('sort') || 'newest');
-  const [activeStatus, setActiveStatus] = useState<'ACTIVE' | 'COMPLETED'>(
-    (searchParams.get('status') as 'ACTIVE' | 'COMPLETED') || initialStatus
-  );
+
+  // Fallback to initialStatus (which is COMPLETED when hasActiveCauses is false)
+  const [activeStatus, setActiveStatus] = useState<'ACTIVE' | 'COMPLETED'>(() => {
+    const fromUrl = searchParams.get('status') as 'ACTIVE' | 'COMPLETED' | null;
+    if (fromUrl) return fromUrl;
+    return initialStatus;
+  });
+
   const [isMobileSearchVisible, setIsMobileSearchVisible] = useState(!!searchParams.get('search'));
 
   useEffect(() => {
@@ -42,19 +49,19 @@ export const ImpactFilters = memo(function ImpactFilters({
   }, [initialStatus, searchParams]);
 
   useEffect(() => {
-    const currentStatus = (searchParams.get('status') as 'ACTIVE' | 'COMPLETED') || initialStatus;
+    const currentStatusInUrl = searchParams.get('status') as 'ACTIVE' | 'COMPLETED' | null;
     const currentCategory = searchParams.get('category') || 'all';
     const currentSubcategory = searchParams.get('subcategory') || 'all';
     const currentSort = searchParams.get('sort') || 'newest';
     const currentSearch = searchParams.get('search') || '';
 
+    // Prevent redundant replaces if state already matches URL
     if (
       search === currentSearch &&
       activeCategory === currentCategory &&
       activeSubcategory === currentSubcategory &&
       sort === currentSort &&
-      activeStatus === currentStatus &&
-      searchParams.has('status')
+      activeStatus === currentStatusInUrl
     ) {
       return;
     }
@@ -66,9 +73,8 @@ export const ImpactFilters = memo(function ImpactFilters({
     if (activeSubcategory !== 'all') params.set('subcategory', activeSubcategory); else params.delete('subcategory');
     if (sort !== 'newest') params.set('sort', sort); else params.delete('sort');
 
-    // Explicitly set status in the URL so both ACTIVE and COMPLETED update the state
+    // Sync status parameter cleanly
     params.set('status', activeStatus);
-
     params.delete('page');
 
     const timeout = setTimeout(() => {
@@ -78,7 +84,7 @@ export const ImpactFilters = memo(function ImpactFilters({
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [search, activeCategory, activeSubcategory, sort, activeStatus, initialStatus, router, searchParams]);
+  }, [search, activeCategory, activeSubcategory, sort, activeStatus, router, searchParams]);
 
   const handleStatusChange = (status: 'ACTIVE' | 'COMPLETED') => {
     setActiveStatus(status);
@@ -89,7 +95,7 @@ export const ImpactFilters = memo(function ImpactFilters({
     setActiveCategory('all');
     setActiveSubcategory('all');
     setSort('newest');
-    setActiveStatus(initialStatus);
+    setActiveStatus(hasActiveCauses ? 'ACTIVE' : 'COMPLETED');
   };
 
   const selectedCategoryObj = categories.find(c => c.slug === activeCategory);
@@ -113,7 +119,7 @@ export const ImpactFilters = memo(function ImpactFilters({
 
   return (
     <div className="space-y-3 w-full min-w-0">
-      {/* Mobile Page Header (md:hidden) */}
+      {/* Mobile Page Header */}
       <div className="md:hidden flex items-center justify-between gap-3 min-w-0">
         <h1 className="text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
           Explore Causes
@@ -132,7 +138,7 @@ export const ImpactFilters = memo(function ImpactFilters({
         </Button>
       </div>
 
-      {/* Row 1 (Desktop) / Row 2 (Mobile): Active Causes | Completed Causes Tabs + Desktop Search */}
+      {/* Row: Active Causes vs Completed Causes */}
       <div className="flex items-center justify-between gap-3 min-w-0">
         <div className="flex items-center gap-2">
           <button
@@ -173,7 +179,7 @@ export const ImpactFilters = memo(function ImpactFilters({
         )}
       </div>
 
-      {/* Row 2 (Desktop) / Row 3 (Mobile): Category Pills & Sort Dropdown */}
+      {/* Row: Category Browser & Sort */}
       <div className="flex items-center justify-between gap-4 pt-0.5">
         <div className="flex-1 min-w-0 overflow-hidden">
           <CategoryBrowser
@@ -191,7 +197,7 @@ export const ImpactFilters = memo(function ImpactFilters({
         </div>
       </div>
 
-      {/* Mobile Expanded Search */}
+      {/* Mobile Search Input */}
       <AnimatePresence>
         {isMobileSearchVisible && (
           <motion.div
