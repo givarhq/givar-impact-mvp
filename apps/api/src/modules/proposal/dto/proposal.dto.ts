@@ -102,6 +102,8 @@ export class CreateProposalDto {
 
   @IsOptional() @IsString() organizationName?: string;
   @IsOptional() @IsString() contactPhone?: string;
+
+  @IsOptional() @IsBoolean() isAssisted?: boolean;
 }
 
 export class UpdateProposalDto {
@@ -179,4 +181,6 @@ export class UpdateProposalDto {
 
   @IsOptional() @IsBoolean() hasPreCollectedFunds?: boolean;
   @IsOptional() @IsNumber() preCollectedAmount?: number;
+  
+  @IsOptional() @IsBoolean() isAssisted?: boolean;
 }

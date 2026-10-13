@@ -26,22 +26,26 @@ export class ProposalService {
   async createDraft(userId: string, dto: CreateProposalDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { emailVerified: true }
+      select: { emailVerified: true, role: true }
     });
 
     if (!user?.emailVerified) {
       throw new ForbiddenException('EMAIL_NOT_VERIFIED');
     }
 
-    // Organization Verification Check
-    const orgProfile = await this.prisma.organizationProfile.findUnique({
-      where: { userId },
-    });
+    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
 
-    if (!orgProfile || orgProfile.status !== 'VERIFIED') {
-      throw new BadRequestException(
-        'Your identity must be verified before you can start a cause.'
-      );
+    // Organization Verification Check (Bypassed for Admins doing Assisted Submissions)
+    if (!isAdmin || !dto.isAssisted) {
+      const orgProfile = await this.prisma.organizationProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!orgProfile || orgProfile.status !== 'VERIFIED') {
+        throw new BadRequestException(
+          'Your identity must be verified before you can start a cause.'
+        );
+      }
     }
 
     const result = await this.prisma.projectProposal.create({
@@ -57,6 +61,7 @@ export class ProposalService {
         beneficiaryContact: dto.beneficiaryContact,
         organizationName: dto.organizationName,
         contactPhone: dto.contactPhone,
+        isAssisted: dto.isAssisted || false,
         // Initialize empty structures
         budgetBreakdown: [],
         executionTimeline: [],
@@ -106,15 +111,24 @@ export class ProposalService {
   async submitProposal(userId: string, proposalId: string) {
     const proposal = await this.getProposalOrThrow(proposalId, userId);
 
-    // --- GATEKEEPER: Organization Verification Check ---
-    const orgProfile = await this.prisma.organizationProfile.findUnique({
-      where: { userId },
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, email: true, firstName: true, lastName: true }
     });
+    
+    const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
 
-    if (!orgProfile || orgProfile.status !== 'VERIFIED') {
-      throw new BadRequestException(
-        'Your organization must be VERIFIED before you can submit a proposal for review.'
-      );
+    // --- GATEKEEPER: Organization Verification Check ---
+    if (!isAdmin || !proposal.isAssisted) {
+      const orgProfile = await this.prisma.organizationProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!orgProfile || orgProfile.status !== 'VERIFIED') {
+        throw new BadRequestException(
+          'Your organization must be VERIFIED before you can submit a proposal for review.'
+        );
+      }
     }
 
     // --- Validation Gate: Content Requirements ---
@@ -157,7 +171,11 @@ export class ProposalService {
 
     const kyc = proposal.kycDocuments as string[];
     if (!kyc || kyc.length === 0) {
-      throw new BadRequestException('At least one cause evidence or procurement quote must be uploaded.');
+      if (proposal.isAssisted) {
+        throw new BadRequestException('An assisted cause submission authorisation document must be uploaded.');
+      } else {
+        throw new BadRequestException('At least one cause evidence or procurement quote must be uploaded.');
+      }
     }
 
     // --- Execution: State Transition ---
@@ -181,7 +199,7 @@ export class ProposalService {
           data: admins.map(admin => ({
             userId: admin.id,
             type: 'SYSTEM',
-            title: 'New proposal for review',
+            title: proposal.isAssisted ? 'New assisted proposal for review' : 'New proposal for review',
             content: `A new cause "${proposal.title}" has been submitted and requires technical vetting.`,
             link: `/admin/proposals/${proposalId}`
           }))
@@ -190,9 +208,6 @@ export class ProposalService {
 
       return updated;
     }).then(async (result) => {
-      // Logic: Explicitly fetch user details to provide proposer context to admins
-      const user = await this.prisma.user.findUnique({ where: { id: userId } });
-
       // BROADCAST TO ADMINS
       this.emailService.sendAdminProposalAlert({
         projectTitle: proposal.title || 'Untitled',

@@ -424,6 +424,8 @@ model Project {
   hasPreCollectedFunds    Boolean  @default(false)
   preCollectedAmount      BigInt?
 
+  isAssisted              Boolean  @default(false)
+
   donations    Donation[]
   subscriptions Subscription[]
   guestDonations GuestDonation[]
@@ -693,6 +695,8 @@ model ProjectProposal {
 
   hasPreCollectedFunds    Boolean  @default(false)
   preCollectedAmount      BigInt?
+
+  isAssisted              Boolean  @default(false)
 
   // Admin Operational Signal for Beneficiary Awareness
   awarenessStatus         String?
