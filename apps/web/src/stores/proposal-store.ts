@@ -79,6 +79,8 @@ interface ProposalState {
   preCollectedAmount: number | null;
   awarenessStatus: string | null;
 
+  isAssisted: boolean;
+
   setProposal: (proposal: any) => void;
   updateField: <K extends keyof Omit<ProposalState, 'setProposal' | 'updateField' | 'saveDraft' | 'addGalleryItem' | 'removeGalleryItem' | 'updateGalleryItem' | 'addKycDocument' | 'removeKycDocument' | 'addVendor' | 'removeVendor' | 'updateVendor'>>(
     field: K,
@@ -143,6 +145,8 @@ export const useProposalStore = create<ProposalState>()(
     hasPreCollectedFunds: false,
     preCollectedAmount: null,
     awarenessStatus: null,
+
+    isAssisted: false,
 
     setProposal: (proposal) => set(state => {
       const gallery = Array.isArray(proposal.gallery)
@@ -214,6 +218,8 @@ export const useProposalStore = create<ProposalState>()(
         vendors: loadedVendors,
         budgetBreakdown: budget,
         executionTimeline: timeline,
+
+        isAssisted: proposal.isAssisted || false,
       };
     }),
 

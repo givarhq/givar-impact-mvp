@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, FileText, ShieldAlert,
   LogOut, Lock, BadgeCheck, Database, Building,
-  BarChart3,
+  BarChart3, HeartHandshake, ArrowRight
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import { Button } from '../ui/button';
@@ -96,8 +96,30 @@ export function AdminSidebar({ user }: { user: any }) {
           </nav>
         </div>
 
+        {/* Action Card: Assisted Submission */}
+        <div className="p-3 mt-auto shrink-0 border-t border-border/40">
+          <Link href="/admin/proposals/start" className="block group">
+            <div className="relative overflow-hidden rounded-3xl bg-primary/5 border border-primary/20 p-4 transition-all hover:bg-primary/10">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 text-primary">
+                    <HeartHandshake className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                    Assisted Submission
+                  </span>
+                </div>
+                <ArrowRight className="h-3 w-3 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-tight mt-1 font-medium">
+                Submit a cause on behalf of a beneficiary.
+              </p>
+            </div>
+          </Link>
+        </div>
+
         {/* Footer Actions */}
-        <div className="p-2 mt-auto shrink-0 border-t border-border/40">
+        <div className="p-2 shrink-0 border-t border-border/40">
           <Button
             variant="ghost"
             className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 rounded-3xl transition-all font-bold text-xs"

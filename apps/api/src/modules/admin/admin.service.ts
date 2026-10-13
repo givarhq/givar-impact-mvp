@@ -510,6 +510,8 @@ export class AdminService {
 
           hasPreCollectedFunds: proposal.hasPreCollectedFunds,
           preCollectedAmount: proposal.preCollectedAmount,
+
+          isAssisted: proposal.isAssisted,
         },
       });
 
@@ -532,7 +534,8 @@ export class AdminService {
             proposalId: proposal.id,
             title: project.title,
             method: 'PROPOSAL_PROMOTION',
-            dataIntegrity: 'FULL_MIGRATION'
+            dataIntegrity: 'FULL_MIGRATION',
+            isAssisted: proposal.isAssisted
           },
         },
       });
