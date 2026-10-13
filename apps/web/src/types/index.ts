@@ -63,6 +63,7 @@ export interface Project {
   currentPhaseIndex?: number;
   waitlistEmails?: string[];
   isWaitlisted?: boolean;
+  isAssisted?: boolean;
 }
 
 export interface ProjectUpdate {
@@ -229,6 +230,7 @@ export interface ProjectProposal {
   hasPreCollectedFunds?: boolean;
   preCollectedAmount?: string | null;
   awarenessStatus?: string | null;
+  isAssisted?: boolean;
 
   status: 'DRAFT' | 'SUBMITTED' | 'UNDER_REVIEW' | 'CHANGES_REQUESTED' | 'RECOMMENDED' | 'APPROVED' | 'REJECTED';
   adminFeedback: string | null;
