@@ -18,7 +18,8 @@ import {
     History,
     Flag,
     Loader2,
-    ExternalLink
+    ExternalLink,
+    HeartHandshake
 } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectWithDetails } from '../../../types';
@@ -637,6 +638,15 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                     <CheckCircle2 className="h-3.5 w-3.5" /> Audited
                                 </div>
                             </div>
+
+                            {project.isAssisted && (
+                                <div className="mt-4 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 flex items-start gap-3">
+                                    <HeartHandshake className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-blue-800 font-medium leading-relaxed">
+                                        Submitted with assistance from Givar and with the beneficiary’s or guardian’s permission.
+                                    </p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 

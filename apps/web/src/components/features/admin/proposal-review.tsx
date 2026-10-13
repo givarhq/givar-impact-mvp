@@ -9,7 +9,7 @@ import {
     AlertTriangle, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
     AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2, Phone,
-    ChevronDown, ChevronRight, Mail, UserCheck
+    ChevronDown, ChevronRight, Mail, UserCheck, HeartHandshake
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -259,7 +259,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
         }
     };
 
-    const viewSecureDoc = async (key: string) => {
+    const viewSecureDoc = async (key: string, docName: string) => {
         const toastId = toast.loading('Decrypting asset...');
         try {
             const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, proposal.id);
@@ -270,7 +270,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
             } else {
                 setLightboxState({
                     isOpen: true,
-                    items: [{ url: viewUrl, type: 'IMAGE', alt: 'Secure document' }],
+                    items: [{ url: viewUrl, type: 'IMAGE', alt: docName }],
                     index: 0
                 });
             }
@@ -335,6 +335,19 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         </div>
                     </div>
                 </div>
+
+                {proposal.isAssisted && (
+                    <div className="flex animate-in slide-in-from-left-2 mt-4">
+                        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-700 shadow-sm w-full">
+                            <HeartHandshake className="h-4.5 w-4.5 shrink-0" />
+                            <div className="flex items-center gap-2 text-xs font-medium">
+                                <span>
+                                    <strong>Assisted Submission:</strong> Created by <strong>{proposal.user?.firstName} {proposal.user?.lastName}</strong> on behalf of <strong>{proposal.beneficiaryName || 'the beneficiary'}</strong>.
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
@@ -863,24 +876,29 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         </CardHeader>
                         <CardContent className="p-3 space-y-2">
                             {(proposal.kycDocuments as string[])?.length > 0 ? (
-                                (proposal.kycDocuments as string[]).map((doc, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => viewSecureDoc(doc)}
-                                        className="w-full flex items-center justify-between p-3 rounded-2xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
-                                    >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="h-8 w-8 rounded-xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 group-hover:border-primary/20">
-                                                <FileText className="h-3.5 w-3.5" />
+                                (proposal.kycDocuments as string[]).map((doc, i) => {
+                                    const docName = proposal.isAssisted && i === 0 ? 'Assisted Cause Authorisation' : `Legal record ${i + (proposal.isAssisted ? 0 : 1)}`;
+                                    return (
+                                        <button
+                                            key={i}
+                                            onClick={() => viewSecureDoc(doc, docName)}
+                                            className="w-full flex items-center justify-between p-3 rounded-2xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
+                                        >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                <div className="h-8 w-8 rounded-xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 group-hover:border-primary/20">
+                                                    <FileText className="h-3.5 w-3.5" />
+                                                </div>
+                                                <div className="text-left min-w-0">
+                                                    <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                                                        {docName}
+                                                    </p>
+                                                    <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate mt-0.5">Secure link</p>
+                                                </div>
                                             </div>
-                                            <div className="text-left min-w-0">
-                                                <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">Legal record {i + 1}</p>
-                                                <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate mt-0.5">Secure link</p>
-                                            </div>
-                                        </div>
-                                        <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
-                                    </button>
-                                ))
+                                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                                        </button>
+                                    );
+                                })
                             ) : (
                                 <div className="text-center py-8 border-2 border-dashed border-border/40 rounded-2xl bg-muted/5">
                                     <AlertCircle className="h-6 w-6 mx-auto text-destructive/40 mb-2" />

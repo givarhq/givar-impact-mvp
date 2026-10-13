@@ -128,7 +128,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                         <p className="text-sm font-semibold text-foreground truncate leading-tight">
                                                             {p.title || 'Untitled Proposal'}
                                                         </p>
-                                                        <div className="flex items-center gap-2 mt-1.5">
+                                                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                                             <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                                 ID: {p.id.split('-')[0]}
                                                             </span>
@@ -141,6 +141,11 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                                             >
                                                                 {formatStatus(p.status)}
                                                             </Badge>
+                                                            {p.isAssisted && (
+                                                                <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold tracking-tight border-blue-500/20 bg-blue-500/5 text-blue-600 shadow-none">
+                                                                    Assisted
+                                                                </Badge>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -231,7 +236,7 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="min-w-[200px]">
-                                                <p className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
+                                                <p className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm flex items-center gap-2">
                                                     {p.title || 'Untitled Proposal'}
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-0.5">
@@ -261,12 +266,19 @@ export const AdminProposalTable = memo(function AdminProposalTable({
                                             </div>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <Badge
-                                                variant="outline"
-                                                className={cn("text-[11px] font-semibold tracking-tight px-2 py-0 rounded-3xl border shadow-none", statusStyles[p.status] || 'bg-muted')}
-                                            >
-                                                {formatStatus(p.status)}
-                                            </Badge>
+                                            <div className="flex items-center gap-1.5 flex-wrap max-w-[200px]">
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn("text-[11px] font-semibold tracking-tight px-2 py-0 rounded-3xl border shadow-none", statusStyles[p.status] || 'bg-muted')}
+                                                >
+                                                    {formatStatus(p.status)}
+                                                </Badge>
+                                                {p.isAssisted && (
+                                                    <Badge variant="outline" className="text-[11px] font-semibold tracking-tight px-2 py-0 rounded-3xl border-blue-500/20 bg-blue-500/5 text-blue-600 shadow-none">
+                                                        Assisted
+                                                    </Badge>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-5 py-4 text-right whitespace-nowrap">
                                             <div className="flex items-center justify-end gap-1.5 text-muted-foreground font-medium text-xs">
