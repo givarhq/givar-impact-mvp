@@ -84,6 +84,12 @@ export const ProjectsPageClient = memo(function ProjectsPageClient({
                             >
                                 <Plus className="mr-2 h-4 w-4" /> Create Category
                             </Button>
+                        ) : activeTab === 'proposals' ? (
+                            <Link href="/admin/proposals/start">
+                                <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
+                                    <Plus className="mr-2 h-4 w-4" /> Assisted Cause
+                                </Button>
+                            </Link>
                         ) : (
                             <Link href="/admin/projects/new">
                                 <Button className="w-full md:w-auto rounded-3xl font-bold bg-primary text-white shadow-lg shadow-primary/20 h-12 px-8 border-0 active:scale-95 transition-all">
