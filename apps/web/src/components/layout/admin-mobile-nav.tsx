@@ -13,6 +13,7 @@ import {
   Building,
   MoreHorizontal,
   BarChart3,
+  HeartHandshake
 } from 'lucide-react';
 import { cn } from '../../lib/utils/cn';
 import {
@@ -35,6 +36,7 @@ const ALL_NAV_ITEMS = [
   { title: 'Ledger', href: '/admin/ledger', icon: Database },
   { title: 'Audit', href: '/admin/audit', icon: ShieldAlert },
   { title: 'Analytics', href: '/admin/finances', icon: BarChart3 },
+  { title: 'Assisted', href: '/admin/proposals/start', icon: HeartHandshake },
 ];
 
 export function AdminMobileNav({ user }: { user: any }) {
