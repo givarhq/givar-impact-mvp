@@ -26,7 +26,7 @@ export default function AdminTrustPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [categoryName, setCategoryName] = useState('');
 
-    // Modified Legal Declarations States for Assisted Submissions
+    // Legal Declarations States for Assisted Submissions
     const [hasBeneficiaryConsent, setHasBeneficiaryConsent] = useState(false);
     const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
     const [hasAgreedToNotifyExternalFunding, setHasAgreedToNotifyExternalFunding] = useState(false);
@@ -188,27 +188,27 @@ export default function AdminTrustPage() {
                     </div>
                     <CardTitle className="text-lg md:text-xl font-bold">Authorisation & Declarations</CardTitle>
                     <CardDescription className="text-xs font-medium">
-                        Upload the signed beneficiary authorisation and confirm legal permissions for this assisted cause.
+                        Provide supporting documentation and confirm beneficiary consent for this assisted cause.
                     </CardDescription>
                 </CardHeader>
 
                 <CardContent className="p-6 md:p-8 pt-8 space-y-10 min-w-0">
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300 min-w-0">
 
-                        {/* SECTION 1: EVIDENCE & AUTHORISATION DOCUMENTS */}
+                        {/* Section 1: Supporting Documents & Evidence */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                                 <FileText className="h-4.5 w-4.5 text-primary" />
                                 <div className="space-y-0.5">
-                                    <h3 className="font-bold text-base text-foreground">Supporting Documents & Authorisation</h3>
+                                    <h3 className="font-bold text-base text-foreground">Supporting Documents</h3>
                                     <p className="text-xs text-muted-foreground font-medium">
-                                        Upload the signed Assisted Cause Submission Authorisation along with supporting quotes.
+                                        Requirements generated for the {categoryName || 'selected'} category.
                                     </p>
                                 </div>
                             </div>
 
                             <div className="p-5 rounded-3xl bg-muted/20 border border-border/40 shadow-inner mb-6">
-                                <p className="text-xs font-bold text-foreground mb-3 tracking-widest uppercase">Required Uploads:</p>
+                                <p className="text-xs font-bold text-foreground mb-3 tracking-widest uppercase">Required uploads:</p>
                                 <ul className="space-y-2">
                                     {getDynamicDocuments().map((doc, i) => (
                                         <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
@@ -224,7 +224,7 @@ export default function AdminTrustPage() {
                             </div>
                         </div>
 
-                        {/* SECTION 2: PRE-COLLECTED FUNDS DECLARATION */}
+                        {/* Section 2: Pre-Collected Funds Declaration */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                                 <Landmark className="h-4.5 w-4.5 text-primary" />
@@ -279,7 +279,7 @@ export default function AdminTrustPage() {
                             </AnimatePresence>
                         </div>
 
-                        {/* SECTION 3: LEGAL & CONSENT DECLARATIONS */}
+                        {/* Section 3: Legal & Consent Declarations */}
                         <div className="space-y-4 pt-6 border-t border-border/40">
                             <div className="flex items-center gap-3 pb-3 px-1">
                                 <ShieldCheck className="h-4.5 w-4.5 text-primary" />
