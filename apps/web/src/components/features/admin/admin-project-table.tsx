@@ -103,7 +103,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
 
     return (
         <div className="w-full min-w-0 overflow-hidden">
-            {/* MOBILE: High-Density Card List */}
+            {/* Mobile: High-Density Card List */}
             <div className="grid gap-2 md:hidden min-w-0">
                 <div className={cn(
                     "flex items-center gap-2 px-2 mb-1 transition-opacity duration-200",
@@ -160,7 +160,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-sm font-semibold text-foreground truncate leading-tight">{project.title}</p>
-                                                    <div className="flex items-center gap-2 mt-1.5">
+                                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                                         <span className="text-[11px] font-mono bg-muted/60 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                             ID: {project.id.split('-')[0]}
                                                         </span>
@@ -170,6 +170,11 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                         <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold border-primary/20 bg-primary/5 text-primary shadow-none">
                                                             {project.status.replace(/_/g, ' ')}
                                                         </Badge>
+                                                        {project.isAssisted && (
+                                                            <Badge variant="outline" className="text-[10px] px-2 py-0 rounded-3xl font-semibold border-blue-500/20 bg-blue-500/5 text-blue-600 shadow-none">
+                                                                Assisted
+                                                            </Badge>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -205,7 +210,7 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                 </AnimatePresence>
             </div>
 
-            {/* DESKTOP: Table */}
+            {/* Desktop: Table */}
             <Card className="hidden md:block rounded-3xl border-border/40 bg-card shadow-sm overflow-hidden w-full">
                 <div className="overflow-x-auto no-scrollbar w-full">
                     <table className="w-full text-sm text-left border-collapse min-w-full">
@@ -262,9 +267,16 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="min-w-[200px]">
-                                                <p className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
-                                                    {project.title}
-                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1 text-sm">
+                                                        {project.title}
+                                                    </p>
+                                                    {project.isAssisted && (
+                                                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 rounded-full border-blue-500/20 bg-blue-500/10 text-blue-700 font-bold shrink-0">
+                                                            Assisted
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[11px] font-mono bg-muted/50 px-1.5 py-0.5 rounded-3xl border border-border/40 text-muted-foreground">
                                                         ID: {project.id.split('-')[0]}
