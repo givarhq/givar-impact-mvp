@@ -209,7 +209,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
             return;
         }
 
-        // For reject or changes
         if (!feedback.trim()) return toast.error('Verification feedback is required');
 
         setIsProcessing(true);
@@ -351,7 +350,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-                {/* LEFT COLUMN: Main Proposal Content */}
+                {/* Left Column: Main Proposal Content */}
                 <div className="lg:col-span-8 space-y-4 md:space-y-6">
                     {/* Visual Media Section */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
@@ -556,7 +555,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                                                 <div className="text-muted-foreground/50 group-hover:text-primary transition-colors mt-0.5">
                                                                     {isStageExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                                                 </div>
-                                                                <div className="font-bold text-foreground text-xs  tracking-widest">{stage}</div>
+                                                                <div className="font-bold text-foreground text-xs tracking-widest">{stage}</div>
                                                                 <Badge variant="secondary" className="px-2 py-0 h-4 text-[10px] bg-muted/60 border-none shadow-none font-semibold">
                                                                     {items.length} {items.length === 1 ? 'Item' : 'Items'}
                                                                 </Badge>
@@ -646,7 +645,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                                                                     >
                                                                                         <div className="px-14 py-4 border-t border-border/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                                                             <div className="space-y-1">
-                                                                                                <p className="text-[10px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5"><Mail className="h-3 w-3" /> Vendor Email</p>
+                                                                                                <p className="text-[10px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5"><Mail className="h-3 w-3" /> Vendor Email</p>
                                                                                                 {vendorContactEmail ? (
                                                                                                     <a href={`mailto:${vendorContactEmail}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactEmail}</a>
                                                                                                 ) : (
@@ -654,7 +653,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                                                                                 )}
                                                                                             </div>
                                                                                             <div className="space-y-1">
-                                                                                                <p className="text-[10px] font-bold text-muted-foreground  tracking-widest flex items-center gap-1.5"><Phone className="h-3 w-3" /> Vendor Phone</p>
+                                                                                                <p className="text-[10px] font-bold text-muted-foreground tracking-widest flex items-center gap-1.5"><Phone className="h-3 w-3" /> Vendor Phone</p>
                                                                                                 {vendorContactPhone ? (
                                                                                                     <a href={`tel:${vendorContactPhone}`} className="text-xs font-medium text-primary hover:underline transition-colors" onClick={(e) => e.stopPropagation()}>{vendorContactPhone}</a>
                                                                                                 ) : (
@@ -706,7 +705,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                         <div className="w-full max-w-lg p-5 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-left mb-2 shadow-sm animate-in fade-in">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <UserCheck className="h-4 w-4 text-teal-600" />
-                                                <h4 className="text-[11px] font-bold tracking-widest text-teal-700 ">Admin Recommendation Notes</h4>
+                                                <h4 className="text-[11px] font-bold tracking-widest text-teal-700">Admin Recommendation Notes</h4>
                                             </div>
                                             <p className="text-xs text-teal-900 font-medium italic leading-relaxed">
                                                 "{proposal.internalNotes}"
@@ -715,7 +714,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                     )}
 
                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-lg mx-auto mt-2">
-                                        {/* REJECT BUTTON (Superadmin Only) */}
                                         {isSuperAdmin && (
                                             <Dialog>
                                                 <DialogTrigger asChild>
@@ -747,7 +745,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                             </Dialog>
                                         )}
 
-                                        {/* REQUEST CHANGES (Admin & Superadmin) */}
                                         <Dialog>
                                             <DialogTrigger asChild>
                                                 <Button variant="outline" onClick={() => setActionType('changes')} className="w-full sm:flex-1 h-11 px-6 rounded-3xl border-border/60 text-foreground font-bold text-xs transition-all active:scale-95 bg-background shadow-sm hover:bg-muted">
@@ -773,7 +770,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                             </DialogContent>
                                         </Dialog>
 
-                                        {/* POSITIVE ACTION (Recommend for Admin, Launch for Superadmin) */}
                                         {!isSuperAdmin ? (
                                             <Dialog>
                                                 <DialogTrigger asChild>
@@ -837,9 +833,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
 
                 </div>
 
-                {/* RIGHT SIDEBAR: IDENTITY, AUDIT CHECKLISTS & RISK */}
+                {/* Right Sidebar: Identity, Audit Checklists & Risk */}
                 <div className="lg:col-span-4 space-y-6">
-                    {/* Proposer Information Card */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5 px-5">
                             <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -859,10 +854,9 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         </CardContent>
                     </Card>
 
-                    {/* Integrated Dialogue Hub */}
                     <FeedbackThread proposalId={proposal.id} title="Verification updates" />
 
-                    {/* Compliance Asset Vault */}
+                    {/* Cause Evidence Vault with Deterministic File Identification */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5 px-5">
                             <div className="flex justify-between items-center">
@@ -877,25 +871,46 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         <CardContent className="p-3 space-y-2">
                             {(proposal.kycDocuments as string[])?.length > 0 ? (
                                 (proposal.kycDocuments as string[]).map((doc, i) => {
-                                    const docName = proposal.isAssisted && i === 0 ? 'Assisted Cause Authorisation' : `Legal record ${i + (proposal.isAssisted ? 0 : 1)}`;
+                                    const isAuthDoc = doc.includes('/auth/') || doc.includes('assisted-auth');
+                                    const docName = isAuthDoc
+                                        ? 'Assisted Cause Authorisation'
+                                        : (proposal.isAssisted ? `Supporting document ${i + 1}` : `Legal record ${i + 1}`);
+
                                     return (
                                         <button
                                             key={i}
                                             onClick={() => viewSecureDoc(doc, docName)}
-                                            className="w-full flex items-center justify-between p-3 rounded-2xl bg-muted/20 border border-border/40 hover:bg-primary/5 hover:border-primary/20 transition-all group active:scale-[0.98]"
+                                            className={cn(
+                                                "w-full flex items-center justify-between p-3 rounded-2xl border transition-all group active:scale-[0.98]",
+                                                isAuthDoc
+                                                    ? "bg-primary/[0.04] border-primary/30 hover:bg-primary/[0.08]"
+                                                    : "bg-muted/20 border-border/40 hover:bg-primary/5 hover:border-primary/20"
+                                            )}
                                         >
                                             <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className="h-8 w-8 rounded-xl bg-background flex items-center justify-center text-primary shadow-sm border border-border/50 shrink-0 group-hover:border-primary/20">
-                                                    <FileText className="h-3.5 w-3.5" />
+                                                <div className={cn(
+                                                    "h-8 w-8 rounded-xl flex items-center justify-center shadow-sm border shrink-0 transition-colors",
+                                                    isAuthDoc
+                                                        ? "bg-primary/10 text-primary border-primary/20"
+                                                        : "bg-background text-primary border-border/50 group-hover:border-primary/20"
+                                                )}>
+                                                    {isAuthDoc ? <ShieldCheck className="h-4 w-4" /> : <FileText className="h-3.5 w-3.5" />}
                                                 </div>
                                                 <div className="text-left min-w-0">
-                                                    <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
-                                                        {docName}
-                                                    </p>
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                                                            {docName}
+                                                        </p>
+                                                        {isAuthDoc && (
+                                                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 rounded-full border-primary/30 bg-primary/10 text-primary font-bold">
+                                                                Authorisation
+                                                            </Badge>
+                                                        )}
+                                                    </div>
                                                     <p className="text-[10px] text-muted-foreground font-mono opacity-60 truncate mt-0.5">Secure link</p>
                                                 </div>
                                             </div>
-                                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all" />
+                                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:text-primary transition-all shrink-0 ml-2" />
                                         </button>
                                     );
                                 })
@@ -908,7 +923,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         </CardContent>
                     </Card>
 
-                    {/* Admin Cause Review Framework Checklists */}
+                    {/* Admin Review Framework Checklists */}
                     {!isTerminalState && (
                         <Card className="rounded-3xl border-primary/20 bg-primary/[0.02] overflow-hidden shadow-sm">
                             <CardHeader className="bg-primary/5 border-b border-primary/10 py-4 px-5">
@@ -1073,6 +1088,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                 items={lightboxState.items}
                 initialIndex={lightboxState.index}
             />
-        </motion.div >
+        </motion.div>
     );
 });

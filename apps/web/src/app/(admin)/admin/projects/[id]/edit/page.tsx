@@ -5,13 +5,14 @@ import { AdminProjectForm } from '../../../../../../components/features/admin/pr
 import { MilestoneManager } from '../../../../../../components/features/admin/milestone-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../components/ui/tabs';
 import { Button } from '../../../../../../components/ui/button';
-import { ArrowLeft, Settings, Activity, Fingerprint, Sparkles, MessageSquare, Flag } from 'lucide-react';
+import { ArrowLeft, Settings, Activity, Fingerprint, Sparkles, MessageSquare, Flag, HeartHandshake } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectVisibilityForm } from '../../../../../../components/features/admin/visibility/project-visibility-form';
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 import { ProjectReportsView } from '../../../../../../components/features/admin/project-reports-view';
 import { cn } from '../../../../../../lib/utils/cn';
 import { CorporateSponsorshipTrigger } from '../../../../../../components/features/admin/corporate-sponsorship-trigger';
+import { Badge } from '../../../../../../components/ui/badge';
 
 export const metadata = {
   title: 'Edit Project',
@@ -43,7 +44,6 @@ export default async function EditProjectPage({
 
     if (!project) notFound();
 
-    // Safely fallback to an empty array to prevent null-reference errors
     const reports = rawReports || [];
     const pendingReportsCount = reports.filter((r: any) => r.status === 'PENDING').length;
 
@@ -63,11 +63,16 @@ export default async function EditProjectPage({
               <h1 className="text-lg font-bold text-foreground md:hidden truncate">
                 {project.title}
               </h1>
-              <div className="flex items-center gap-2 mt-0.5">
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-3xl bg-muted border border-border/40 text-[11px] font-mono text-muted-foreground shrink-0">
                   <Fingerprint className="h-3 w-3" />
                   {id}
                 </div>
+                {project.isAssisted && (
+                  <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5 rounded-full border-blue-500/20 bg-blue-500/10 text-blue-700 shadow-none flex items-center gap-1">
+                    <HeartHandshake className="h-3 w-3" /> Assisted Cause
+                  </Badge>
+                )}
               </div>
             </div>
 
