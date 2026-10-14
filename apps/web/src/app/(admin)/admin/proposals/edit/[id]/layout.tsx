@@ -44,10 +44,10 @@ export default function AdminProposalEditLayout({ children }: { children: React.
         <div className="min-h-screen bg-background w-full max-w-full overflow-hidden">
             <nav
                 aria-label="Progress"
-                className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/40 px-4 py-4"
+                className="sticky top-0 z-20 bg-background/95 backdrop-blur-md px-4 py-4"
             >
                 <div className="mx-auto w-full max-w-4xl min-w-0">
-                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-border/30">
+                    <div className="flex items-center justify-between pb-3 mb-3">
                         <div className="flex items-center gap-2">
                             <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/10 text-primary">
                                 <HeartHandshake className="h-3.5 w-3.5" />
