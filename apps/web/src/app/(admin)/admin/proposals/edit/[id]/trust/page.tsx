@@ -274,15 +274,6 @@ export default function AdminTrustPage() {
 
                         {/* Section 1: Supporting Documents & Authorisation */}
                         <div className="space-y-6">
-                            <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
-                                <FileText className="h-4.5 w-4.5 text-primary" />
-                                <div className="space-y-0.5">
-                                    <h3 className="font-bold text-base text-foreground">Supporting Documents</h3>
-                                    <p className="text-xs text-muted-foreground font-medium">
-                                        Requirements generated for the {categoryName || 'selected'} category.
-                                    </p>
-                                </div>
-                            </div>
 
                             {/* Slot 1: Mandatory Assisted Cause Authorisation */}
                             <div className="p-5 md:p-6 rounded-3xl bg-primary/[0.03] border border-primary/20 space-y-4">
