@@ -157,7 +157,7 @@ export class StorageService {
   async getPresignedUploadUrl(
     userId: string,
     fileType: string,
-    useCase: 'public' | 'kyc' | 'docs'
+    useCase: 'public' | 'kyc' | 'docs' | 'auth'
   ) {
     try {
       // Logic: Intercept public uploads and route to Cloudinary if configured

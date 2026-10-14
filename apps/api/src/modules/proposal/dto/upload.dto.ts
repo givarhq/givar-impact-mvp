@@ -4,6 +4,7 @@ export enum UploadUseCase {
   PUBLIC = 'public', // Project Cover, Gallery
   KYC = 'kyc',       // CAC, Passport
   DOCS = 'docs',     // Vendor Quotes, Invoices
+  AUTH = 'auth',     // Assisted Cause Submission Authorisation
 }
 
 export class GetUploadUrlDto {

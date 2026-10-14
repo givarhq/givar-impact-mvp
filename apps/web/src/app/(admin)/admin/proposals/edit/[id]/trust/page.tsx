@@ -8,8 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { Button } from '../../../../../../../components/ui/button';
 import { Input } from '../../../../../../../components/ui/input';
 import { ApiService } from '../../../../../../../services/api';
-import { Send, Loader2, ShieldCheck, CheckCircle2, Landmark, FileText, AlertCircle, HeartHandshake } from 'lucide-react';
-import { DocumentUploader } from '../../../../../../../components/features/proposals/document-uploader';
+import { Send, Loader2, ShieldCheck, CheckCircle2, Landmark, FileText, AlertCircle, HeartHandshake, UploadCloud, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cn } from '../../../../../../../lib/utils/cn';
 import { formatNumberInput, parseFormattedNumber } from '../../../../../../../lib/utils/format';
@@ -24,6 +23,8 @@ export default function AdminTrustPage() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isUploadingAuth, setIsUploadingAuth] = useState(false);
+    const [isUploadingDoc, setIsUploadingDoc] = useState(false);
     const [categoryName, setCategoryName] = useState('');
 
     // Legal Declarations States for Assisted Submissions
@@ -59,6 +60,82 @@ export default function AdminTrustPage() {
         };
         fetchData();
     }, [proposalId, store.setProposal, router]);
+
+    // Deterministic Document Categorization based on storage path
+    const authDocKey = store.kycDocuments.find(k => k.includes('/auth/'));
+    const supportingDocKeys = store.kycDocuments.filter(k => !k.includes('/auth/'));
+
+    const handleAuthUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File size limit exceeded (max 10MB)');
+            return;
+        }
+
+        setIsUploadingAuth(true);
+        const toastId = toast.loading('Encrypting and attaching authorisation...');
+
+        try {
+            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
+                fileType: file.type,
+                useCase: 'auth' as any,
+            });
+
+            await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: { 'Content-Type': file.type },
+            });
+
+            if (authDocKey) {
+                store.removeKycDocument(authDocKey);
+            }
+
+            store.addKycDocument(key);
+            toast.success('Authorisation document securely attached', { id: toastId });
+        } catch (error) {
+            toast.error('Upload failed. Please try again.', { id: toastId });
+        } finally {
+            setIsUploadingAuth(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleSupportingDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('File size limit exceeded (max 10MB)');
+            return;
+        }
+
+        setIsUploadingDoc(true);
+        const toastId = toast.loading('Encrypting supporting document...');
+
+        try {
+            const { uploadUrl, key } = await ApiService.proposals.getUploadUrl({
+                fileType: file.type,
+                useCase: 'kyc',
+            });
+
+            await fetch(uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: { 'Content-Type': file.type },
+            });
+
+            store.addKycDocument(key);
+            toast.success('Supporting document uploaded', { id: toastId });
+        } catch (error) {
+            toast.error('Upload failed. Please try again.', { id: toastId });
+        } finally {
+            setIsUploadingDoc(false);
+            e.target.value = '';
+        }
+    };
 
     const handleSubmitForReview = async () => {
         setIsSubmitting(true);
@@ -150,7 +227,8 @@ export default function AdminTrustPage() {
     );
 
     const isPlanValid = isBudgetValid;
-    const isKycValid = store.kycDocuments && store.kycDocuments.length > 0;
+    const hasAuthDoc = !!authDocKey;
+    const isKycValid = hasAuthDoc;
     const isAllStepsValid = isHookValid && isMediaValid && isPlanValid && isKycValid;
 
     const canSubmit = !isSubmitting &&
@@ -169,14 +247,13 @@ export default function AdminTrustPage() {
     }
 
     const getDynamicDocuments = () => {
-        const defaultDocs = ['Signed Assisted Cause Submission Authorisation (Required)'];
         if (categoryName.includes('medical')) {
-            return [...defaultDocs, 'Medical report or diagnosis', 'Hospital invoice or estimate'];
+            return ['Medical report or diagnosis', 'Hospital invoice or estimate'];
         }
         if (categoryName.includes('education')) {
-            return [...defaultDocs, 'Admission letter or school approval', 'Fee invoice'];
+            return ['Admission letter or school approval', 'Fee invoice'];
         }
-        return [...defaultDocs, 'Quotation or estimate', 'Detailed project documentation'];
+        return ['Quotation or estimate', 'Detailed project documentation'];
     };
 
     return (
@@ -195,8 +272,8 @@ export default function AdminTrustPage() {
                 <CardContent className="p-6 md:p-8 pt-8 space-y-10 min-w-0">
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300 min-w-0">
 
-                        {/* Section 1: Supporting Documents & Evidence */}
-                        <div className="space-y-4">
+                        {/* Section 1: Supporting Documents & Authorisation */}
+                        <div className="space-y-6">
                             <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                                 <FileText className="h-4.5 w-4.5 text-primary" />
                                 <div className="space-y-0.5">
@@ -207,20 +284,126 @@ export default function AdminTrustPage() {
                                 </div>
                             </div>
 
-                            <div className="p-5 rounded-3xl bg-muted/20 border border-border/40 shadow-inner mb-6">
-                                <p className="text-xs font-bold text-foreground mb-3 tracking-widest uppercase">Required uploads:</p>
-                                <ul className="space-y-2">
-                                    {getDynamicDocuments().map((doc, i) => (
-                                        <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                                            <CheckCircle2 className={cn("h-3.5 w-3.5", i === 0 ? "text-primary" : "text-muted-foreground")} />
-                                            <span className={cn(i === 0 && "font-bold text-foreground")}>{doc}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                            {/* Slot 1: Mandatory Assisted Cause Authorisation */}
+                            <div className="p-5 md:p-6 rounded-3xl bg-primary/[0.03] border border-primary/20 space-y-4">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                                            <ShieldCheck className="h-4 w-4 text-primary" />
+                                            Assisted Cause Submission Authorisation
+                                        </h4>
+                                        <p className="text-xs text-muted-foreground font-medium">
+                                            Signed authorization document confirming consent from beneficiary or guardian.
+                                        </p>
+                                    </div>
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-widest shrink-0">
+                                        Mandatory
+                                    </span>
+                                </div>
+
+                                {authDocKey ? (
+                                    <div className="flex items-center justify-between p-4 bg-background border border-border/50 rounded-2xl shadow-sm">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                                                <FileText className="h-4.5 w-4.5" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-xs font-bold text-foreground truncate">{authDocKey.split('/').pop()}</p>
+                                                <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
+                                                    <CheckCircle2 className="h-3 w-3" /> Encrypted and tagged as authorisation
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => store.removeKycDocument(authDocKey)}
+                                            className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <label className={cn(
+                                        "flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-primary/30 rounded-2xl cursor-pointer bg-background/50 hover:bg-primary/5 hover:border-primary/50 transition-all text-center p-4",
+                                        isUploadingAuth && "opacity-50 cursor-wait pointer-events-none"
+                                    )}>
+                                        {isUploadingAuth ? (
+                                            <Loader2 className="h-6 w-6 text-primary animate-spin mb-2" />
+                                        ) : (
+                                            <UploadCloud className="h-6 w-6 text-primary mb-2" />
+                                        )}
+                                        <span className="text-xs font-bold text-foreground">Upload Signed Authorisation Document</span>
+                                        <span className="text-[10px] text-muted-foreground font-medium mt-0.5">PDF or image up to 10MB</span>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".pdf,.doc,.docx,image/png,image/jpeg,image/webp"
+                                            onChange={handleAuthUpload}
+                                            disabled={isUploadingAuth}
+                                        />
+                                    </label>
+                                )}
                             </div>
 
-                            <div className="min-w-0">
-                                <DocumentUploader />
+                            {/* Slot 2: General Category Invoices & Quotes */}
+                            <div className="space-y-4 pt-2">
+                                <div className="p-4 rounded-2xl bg-muted/20 border border-border/40 shadow-inner">
+                                    <p className="text-xs font-bold text-foreground mb-2 tracking-widest uppercase">Recommended Category Evidence:</p>
+                                    <ul className="space-y-1.5">
+                                        {getDynamicDocuments().map((doc, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                                                <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+                                                <span>{doc}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label className={cn(
+                                        "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-border/60 rounded-2xl cursor-pointer bg-muted/5 hover:bg-muted/20 transition-all text-center p-4",
+                                        isUploadingDoc && "opacity-50 cursor-wait pointer-events-none"
+                                    )}>
+                                        {isUploadingDoc ? (
+                                            <Loader2 className="h-5 w-5 text-muted-foreground animate-spin mb-1.5" />
+                                        ) : (
+                                            <UploadCloud className="h-5 w-5 text-muted-foreground mb-1.5" />
+                                        )}
+                                        <span className="text-xs font-bold text-foreground">Attach Procurement Quotes & Invoices</span>
+                                        <span className="text-[10px] text-muted-foreground font-medium mt-0.5">PDF, DOCX, PNG, JPG</span>
+                                        <input
+                                            type="file"
+                                            className="hidden"
+                                            accept=".pdf,.doc,.docx,image/png,image/jpeg,image/webp"
+                                            onChange={handleSupportingDocUpload}
+                                            disabled={isUploadingDoc}
+                                        />
+                                    </label>
+
+                                    {supportingDocKeys.length > 0 && (
+                                        <div className="space-y-2 pt-1">
+                                            {supportingDocKeys.map((key) => (
+                                                <div key={key} className="flex items-center justify-between p-3 bg-card border border-border/40 rounded-2xl shadow-sm">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="h-8 w-8 rounded-xl bg-muted/50 text-muted-foreground flex items-center justify-center shrink-0">
+                                                            <FileText className="h-4 w-4" />
+                                                        </div>
+                                                        <span className="text-xs font-medium text-foreground truncate">{key.split('/').pop()}</span>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => store.removeKycDocument(key)}
+                                                        className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                                    >
+                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -360,7 +543,7 @@ export default function AdminTrustPage() {
                                     {!descValid && <li>The cause description must be at least 20 characters.</li>}
                                     {!isMediaValid && <li>A primary hero image is required in the media section.</li>}
                                     {!isPlanValid && <li>All required budget fields must be fully completed.</li>}
-                                    {!isKycValid && <li>The signed Assisted Cause Submission Authorisation must be uploaded.</li>}
+                                    {!hasAuthDoc && <li>The signed Assisted Cause Submission Authorisation must be uploaded.</li>}
                                 </ul>
                             </div>
                         )}
