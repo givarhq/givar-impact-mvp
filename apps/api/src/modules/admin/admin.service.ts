@@ -3802,11 +3802,17 @@ export class AdminService {
       return { success: true, broadcastCount: 0, message: 'No users are currently opted in for new cause alerts.' };
     }
 
-    const frontendUrl = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000').replace(/\/$/, '');
+    // Defensive resolution: Fallback to the live production domain and strip accidental API port misconfigurations
+    let frontendUrl = (this.config.get<string>('FRONTEND_URL') || 'https://givarapp.com').trim().replace(/\/$/, '');
+
+    if (frontendUrl.includes('localhost:3001')) {
+      frontendUrl = frontendUrl.replace('localhost:3001', 'localhost:3000');
+    }
+
     const projectUrl = `${frontendUrl}/explore/${project.slug}`;
     const fmtAmount = (Number(project.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 });
 
-    this.logger.log(`📢 Broadcasting new cause "${project.title}" to ${optedInUsers.length} opted-in subscribers.`);
+    this.logger.log(`📢 Broadcasting new cause "${project.title}" to ${optedInUsers.length} opted-in subscribers via ${frontendUrl}`);
 
     // Stamp project with broadcast date immediately to prevent duplicate broadcasts
     await this.prisma.project.update({
@@ -3846,7 +3852,8 @@ export class AdminService {
         action: 'BROADCAST_NEW_CAUSE',
         targetCount: optedInUsers.length,
         projectTitle: project.title,
-        isRebroadcast: !!project.broadcastedAt
+        isRebroadcast: !!project.broadcastedAt,
+        resolvedBaseUrl: frontendUrl
       }
     });
 
