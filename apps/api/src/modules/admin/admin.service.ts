@@ -3780,4 +3780,70 @@ export class AdminService {
       status: result.updatedProject.status
     };
   }
+
+  async broadcastNewCause(adminId: string, projectId: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.status !== ProjectStatus.ACTIVE) {
+      throw new BadRequestException('Only active causes can be broadcasted to subscribers.');
+    }
+
+    // Fetch users to evaluate their JSON preferences dynamically
+    const users = await this.prisma.user.findMany({
+      select: { id: true, email: true, firstName: true, preferences: true },
+    });
+
+    const optedInUsers = users.filter(u => (u.preferences as any)?.newCauseAlerts === true);
+
+    if (optedInUsers.length === 0) {
+      return { success: true, broadcastCount: 0, message: 'No users are currently opted in for new cause alerts.' };
+    }
+
+    const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${project.slug}`;
+    const apiUrl = this.config.get('NEXT_PUBLIC_API_URL') || 'http://localhost:3001/api';
+    const v1ApiUrl = apiUrl.endsWith('/v1') ? apiUrl : `${apiUrl}/v1`;
+    const fmtAmount = (Number(project.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+    this.logger.log(`📢 Broadcasting new cause "${project.title}" to ${optedInUsers.length} opted-in subscribers.`);
+
+    // Fire and forget batch processing to prevent request blocking and gateway timeouts
+    (async () => {
+      const BATCH_SIZE = 50;
+      for (let i = 0; i < optedInUsers.length; i += BATCH_SIZE) {
+        const batch = optedInUsers.slice(i, i + BATCH_SIZE);
+        const batchPromises = batch.map(async (user) => {
+          const token = await this.authService.generateUnsubscribeToken(user.id);
+          const unsubscribeUrl = `${v1ApiUrl}/auth/unsubscribe?token=${token}`;
+
+          return this.emailService.sendNewCauseBroadcast(user.email, {
+            name: user.firstName,
+            projectTitle: project.title,
+            amount: fmtAmount,
+            currency: project.currency,
+            projectUrl,
+            unsubscribeUrl
+          });
+        });
+
+        await Promise.allSettled(batchPromises);
+      }
+    })().catch(err => this.logger.error(`Broadcast transmission failed: ${err.message}`));
+
+    await this.audit.log({
+      userId: adminId,
+      action: AuditAction.PROJECT_BROADCASTED,
+      entityId: project.id,
+      entityType: 'Project',
+      metadata: {
+        action: 'BROADCAST_NEW_CAUSE',
+        targetCount: optedInUsers.length,
+        projectTitle: project.title
+      }
+    });
+
+    return { success: true, broadcastCount: optedInUsers.length };
+  }
 }

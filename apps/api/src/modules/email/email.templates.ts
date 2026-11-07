@@ -785,4 +785,23 @@ export const EmailTemplates = {
     <p>Thank you for your interest in partnering with Givar.</p>
     <p>Our team will be in touch to learn more about your organisation’s CSR goals and how Givar can help turn them into verified impact.</p>
   `,
+
+  newCauseBroadcast: (data: { name: string; projectTitle: string; amount: string; currency: string; projectUrl: string; unsubscribeUrl: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>A new verified cause has just gone live on Givar: <strong>${data.projectTitle}</strong>.</p>
+    <div class="stat-box" style="text-align: center;">
+      <div style="font-size: 11px; text-transform: uppercase; color: #059669; font-weight: 800; letter-spacing: 0.05em; margin-bottom: 4px;">Funding Goal</div>
+      <div style="font-size: 32px; font-weight: 800; color: #064e3b;">${data.currency} ${data.amount}</div>
+    </div>
+    <p>This cause has been fully vetted by our compliance team and is now ready for community support.</p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.projectUrl}" class="button">View Cause</a>
+    </div>
+    <div style="text-align: center; margin-top: 48px; border-top: 1px solid #e5e7eb; padding-top: 24px;">
+      <p style="font-size: 11px; color: #6b7280; margin: 0; line-height: 1.5;">
+        You received this email because you opted in to new cause alerts on Givar.<br/>
+        <a href="${data.unsubscribeUrl}" style="color: #10b981; text-decoration: underline; background: none; padding: 0; box-shadow: none; font-weight: normal; font-size: 11px;">Unsubscribe from these alerts</a>
+      </p>
+    </div>
+  `,
 };

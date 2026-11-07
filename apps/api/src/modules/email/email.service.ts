@@ -533,4 +533,10 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Partner with Givar');
     return this.send(email, 'Givar: Enquiry received', html);
   }
+
+  async sendNewCauseBroadcast(email: string, data: { name: string; projectTitle: string; amount: string; currency: string; projectUrl: string; unsubscribeUrl: string }) {
+    const content = EmailTemplates.newCauseBroadcast(data);
+    const html = EmailTemplates.base(content, 'New Verified Cause on Givar');
+    return this.send(email, `Givar: Support a new cause - ${data.projectTitle}`, html);
+  }
 }
