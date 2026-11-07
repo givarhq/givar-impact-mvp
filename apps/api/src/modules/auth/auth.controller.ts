@@ -225,4 +225,15 @@ export class AuthController {
 
     return { success: true, message: 'Impersonation session securely terminated.' };
   }
+
+  @Public()
+  @Get('unsubscribe')
+  async unsubscribe(@Query('token') token: string, @Res() res: Response) {
+    if (!token) {
+      return res.status(400).send('Token is required.');
+    }
+    const htmlResponse = await this.authService.unsubscribeNewCauses(token);
+    res.header('Content-Type', 'text/html');
+    return res.send(htmlResponse);
+  }
 }

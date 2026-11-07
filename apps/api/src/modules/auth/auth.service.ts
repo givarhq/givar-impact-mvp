@@ -1076,4 +1076,96 @@ export class AuthService {
       }
     };
   }
+
+  async generateUnsubscribeToken(userId: string) {
+    const payload = { sub: userId, action: 'unsubscribe_new_causes' };
+    return this.jwtService.sign(payload, {
+      secret: this.config.get<string>('JWT_SECRET'),
+      expiresIn: '365d',
+    });
+  }
+
+  async unsubscribeNewCauses(token: string): Promise<string> {
+    const frontendUrl = this.config.get('FRONTEND_URL') || 'https://givarapp.com';
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: this.config.get<string>('JWT_SECRET'),
+      });
+
+      if (payload.action !== 'unsubscribe_new_causes') {
+        throw new Error('Invalid action payload.');
+      }
+
+      const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+      if (user) {
+        const currentPrefs = (user.preferences as any) || {};
+        const updatedPrefs = { ...currentPrefs, newCauseAlerts: false };
+
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { preferences: updatedPrefs }
+        });
+      }
+
+      return `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Unsubscribed | Givar</title>
+            <style>
+              body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f0fdf4; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+              .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center; max-width: 400px; border: 1px solid #dcfce7; }
+              h1 { color: #064e3b; margin-top: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+              p { color: #374151; line-height: 1.6; margin-bottom: 24px; font-weight: 500; font-size: 15px; }
+              a { display: inline-block; padding: 14px 28px; background: #10b981; color: white; text-decoration: none; border-radius: 30px; font-weight: bold; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2); }
+              a:hover { background: #059669; }
+              .icon { height: 64px; width: 64px; background: #d1fae5; color: #10b981; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+              <h1>Unsubscribed Successfully</h1>
+              <p>You have been removed from the new cause alerts mailing list. You will no longer receive these notifications.</p>
+              <a href="${frontendUrl}">Return to Givar</a>
+            </div>
+          </body>
+        </html>
+      `;
+    } catch (error) {
+      return `
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Invalid Link | Givar</title>
+            <style>
+              body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #fff1f2; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+              .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); text-align: center; max-width: 400px; border: 1px solid #ffe4e6; }
+              h1 { color: #e11d48; margin-top: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+              p { color: #374151; line-height: 1.6; margin-bottom: 24px; font-weight: 500; font-size: 15px; }
+              a { display: inline-block; padding: 14px 28px; background: #e11d48; color: white; text-decoration: none; border-radius: 30px; font-weight: bold; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.2); }
+              a:hover { background: #be123c; }
+              .icon { height: 64px; width: 64px; background: #ffe4e6; color: #e11d48; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px auto; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+              </div>
+              <h1>Invalid Link</h1>
+              <p>This unsubscribe link is invalid or has expired. Please manage your notification preferences directly from your dashboard.</p>
+              <a href="${frontendUrl}/dashboard/settings?tab=preferences">Go to Settings</a>
+            </div>
+          </body>
+        </html>
+      `;
+    }
+  }
 }
