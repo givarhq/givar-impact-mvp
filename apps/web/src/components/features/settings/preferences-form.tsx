@@ -15,6 +15,7 @@ interface UserPreferences {
     milestoneUpdates: boolean;
     securityAlerts: boolean;
     marketing: boolean;
+    newCauseAlerts: boolean;
 }
 
 interface PreferenceToggleProps {
@@ -79,6 +80,7 @@ export const PreferencesForm = memo(function PreferencesForm({ user }: { user: a
         milestoneUpdates: true,
         securityAlerts: true,
         marketing: false,
+        newCauseAlerts: false,
         ...user?.preferences
     });
 
@@ -162,6 +164,13 @@ export const PreferencesForm = memo(function PreferencesForm({ user }: { user: a
                             enabled={prefs.milestoneUpdates}
                             onToggle={() => togglePref('milestoneUpdates')}
                             isUpdating={updatingKey === 'milestoneUpdates'}
+                        />
+                        <PreferenceToggle
+                            title="New Cause Alerts"
+                            description="Receive an email when new verified causes are published on Givar."
+                            enabled={prefs.newCauseAlerts}
+                            onToggle={() => togglePref('newCauseAlerts')}
+                            isUpdating={updatingKey === 'newCauseAlerts'}
                         />
                         <PreferenceToggle
                             title="Security Watchtower"

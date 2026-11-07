@@ -25,6 +25,7 @@ const signupSchema = z.object({
   acceptTerms: z.literal(true, {
     errorMap: () => ({ message: 'You must accept the terms to continue' }),
   }),
+  optInNewCauses: z.boolean().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -46,6 +47,9 @@ export default function SignupPage() {
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     mode: 'onChange',
+    defaultValues: {
+      optInNewCauses: false
+    }
   });
 
   const passwordValue = watch('password', '');
@@ -205,7 +209,23 @@ export default function SignupPage() {
           />
         )}
 
-        <div className="space-y-3 pt-2">
+        <div className="space-y-4 pt-2">
+          {/* New Optional Checkbox */}
+          <div className="flex items-start gap-3 px-1">
+            <div className="flex items-center h-5">
+              <input
+                id="optInNewCauses"
+                type="checkbox"
+                {...register('optInNewCauses')}
+                className="h-4 w-4 rounded border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+              />
+            </div>
+            <label htmlFor="optInNewCauses" className="text-xs font-medium text-muted-foreground leading-snug cursor-pointer select-none space-y-0.5">
+              <span className="block font-bold text-foreground">Keep me updated on new causes</span>
+              <span className="block">Receive an email when new verified causes are published on Givar.</span>
+            </label>
+          </div>
+
           <div className="flex items-start gap-3 px-1">
             <div className="flex items-center h-5">
               <input
