@@ -64,6 +64,7 @@ export interface Project {
   waitlistEmails?: string[];
   isWaitlisted?: boolean;
   isAssisted?: boolean;
+  broadcastedAt?: string | null;
 }
 
 export interface ProjectUpdate {

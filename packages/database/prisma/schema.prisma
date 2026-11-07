@@ -426,6 +426,7 @@ model Project {
   preCollectedAmount      BigInt?
 
   isAssisted              Boolean  @default(false)
+  broadcastedAt           DateTime?
 
   donations    Donation[]
   subscriptions Subscription[]

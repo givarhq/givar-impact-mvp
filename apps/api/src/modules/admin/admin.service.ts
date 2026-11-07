@@ -3802,12 +3802,17 @@ export class AdminService {
       return { success: true, broadcastCount: 0, message: 'No users are currently opted in for new cause alerts.' };
     }
 
-    const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${project.slug}`;
-    const apiUrl = this.config.get('NEXT_PUBLIC_API_URL') || 'http://localhost:3001/api';
-    const v1ApiUrl = apiUrl.endsWith('/v1') ? apiUrl : `${apiUrl}/v1`;
+    const frontendUrl = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000').replace(/\/$/, '');
+    const projectUrl = `${frontendUrl}/explore/${project.slug}`;
     const fmtAmount = (Number(project.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 });
 
     this.logger.log(`📢 Broadcasting new cause "${project.title}" to ${optedInUsers.length} opted-in subscribers.`);
+
+    // Stamp project with broadcast date immediately to prevent duplicate broadcasts
+    await this.prisma.project.update({
+      where: { id: projectId },
+      data: { broadcastedAt: new Date() }
+    });
 
     // Fire and forget batch processing to prevent request blocking and gateway timeouts
     (async () => {
@@ -3816,7 +3821,7 @@ export class AdminService {
         const batch = optedInUsers.slice(i, i + BATCH_SIZE);
         const batchPromises = batch.map(async (user) => {
           const token = await this.authService.generateUnsubscribeToken(user.id);
-          const unsubscribeUrl = `${v1ApiUrl}/auth/unsubscribe?token=${token}`;
+          const unsubscribeUrl = `${frontendUrl}/api/v1/auth/unsubscribe?token=${token}`;
 
           return this.emailService.sendNewCauseBroadcast(user.email, {
             name: user.firstName,
@@ -3840,10 +3845,15 @@ export class AdminService {
       metadata: {
         action: 'BROADCAST_NEW_CAUSE',
         targetCount: optedInUsers.length,
-        projectTitle: project.title
+        projectTitle: project.title,
+        isRebroadcast: !!project.broadcastedAt
       }
     });
 
-    return { success: true, broadcastCount: optedInUsers.length };
+    return {
+      success: true,
+      broadcastCount: optedInUsers.length,
+      broadcastedAt: new Date().toISOString()
+    };
   }
 }
