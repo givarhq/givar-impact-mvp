@@ -5,9 +5,19 @@ import { useRouter } from 'next/navigation';
 import { Ban, Loader2, Trash2, PlayCircle, Megaphone } from 'lucide-react';
 import { ApiService } from '../../../services/api';
 import { ConfirmModal } from '../../ui/confirm-modal';
+import { formatDate } from '../../../lib/utils/format';
+import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
 
-export function AdminProjectActions({ id, status }: { id: string, status: string }) {
+export function AdminProjectActions({
+  id,
+  status,
+  broadcastedAt
+}: {
+  id: string;
+  status: string;
+  broadcastedAt?: string | null;
+}) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -27,7 +37,7 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         toast.success('Project deleted');
         setShowDeleteConfirm(false);
       } else if (action === 'reactivate') {
-        await ApiService.admin.approveProject(id); // approve sets status back to ACTIVE
+        await ApiService.admin.approveProject(id);
         toast.success('Project reactivated');
         setShowReactivateConfirm(false);
       } else if (action === 'broadcast') {
@@ -58,18 +68,21 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
   return (
     <>
       <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-        {/* Broadcast Action (Only if Active) */}
         {status === 'ACTIVE' && (
           <button
             onClick={() => setShowBroadcastConfirm(true)}
-            title="Notify Subscribers"
-            className="flex items-center justify-center text-primary hover:bg-primary/10 h-8 w-8 rounded-3xl transition-colors"
+            title={broadcastedAt ? "Re-notify Subscribers" : "Notify Subscribers"}
+            className={cn(
+              "flex items-center justify-center h-8 w-8 rounded-3xl transition-colors",
+              broadcastedAt
+                ? "text-muted-foreground hover:bg-muted"
+                : "text-primary hover:bg-primary/10"
+            )}
           >
             <Megaphone className="h-4 w-4" />
           </button>
         )}
 
-        {/* Reactivate Action (Only if Suspended) */}
         {status === 'SUSPENDED' && (
           <button
             onClick={() => setShowReactivateConfirm(true)}
@@ -80,7 +93,6 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
           </button>
         )}
 
-        {/* Suspension Action (Only if not Suspended) */}
         {status !== 'SUSPENDED' && (
           <button
             onClick={() => setShowSuspendConfirm(true)}
@@ -91,7 +103,6 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
           </button>
         )}
 
-        {/* Delete Action */}
         <button
           onClick={() => setShowDeleteConfirm(true)}
           title="Delete Project"
@@ -101,19 +112,21 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         </button>
       </div>
 
-      {/* Broadcast Confirmation */}
       <ConfirmModal
         isOpen={showBroadcastConfirm}
         onClose={() => setShowBroadcastConfirm(false)}
         onConfirm={() => executeAction('broadcast')}
         isLoading={isLoading}
-        variant="default"
-        title="Notify Subscribers"
-        description="Send an email notification about this verified cause to all users who have opted in to receive updates."
-        confirmText="Notify Subscribers"
+        variant={broadcastedAt ? "warning" : "default"}
+        title={broadcastedAt ? "Re-notify Subscribers" : "Notify Subscribers"}
+        description={
+          broadcastedAt
+            ? `This cause was already broadcasted to subscribers on ${formatDate(broadcastedAt).split(',')[0]}. Are you sure you want to notify them again?`
+            : "Send an email notification about this verified cause to all users who have opted in to receive updates."
+        }
+        confirmText={broadcastedAt ? "Re-notify Subscribers" : "Notify Subscribers"}
       />
 
-      {/* Suspend Confirmation */}
       <ConfirmModal
         isOpen={showSuspendConfirm}
         onClose={() => setShowSuspendConfirm(false)}
@@ -125,7 +138,6 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         confirmText="Suspend Now"
       />
 
-      {/* Reactivate Confirmation */}
       <ConfirmModal
         isOpen={showReactivateConfirm}
         onClose={() => setShowReactivateConfirm(false)}
@@ -137,7 +149,6 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         confirmText="Reactivate"
       />
 
-      {/* Delete Confirmation */}
       <ConfirmModal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}

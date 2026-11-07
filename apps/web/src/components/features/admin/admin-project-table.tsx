@@ -179,7 +179,11 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                                 </div>
                                             </div>
                                             <div className="shrink-0 flex items-center" onClick={(e) => e.stopPropagation()}>
-                                                <AdminProjectActions id={project.id} status={project.status} />
+                                                <AdminProjectActions
+                                                    id={project.id}
+                                                    status={project.status}
+                                                    broadcastedAt={project.broadcastedAt}
+                                                />
                                             </div>
                                         </div>
                                         <div className="flex justify-between items-end border-t border-border/40 pt-3 gap-4">
@@ -333,7 +337,11 @@ export const AdminProjectTable = memo(function AdminProjectTable({
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                            <AdminProjectActions id={project.id} status={project.status} />
+                                            <AdminProjectActions
+                                                id={project.id}
+                                                status={project.status}
+                                                broadcastedAt={project.broadcastedAt}
+                                            />
                                         </td>
                                     </tr>
                                 );
