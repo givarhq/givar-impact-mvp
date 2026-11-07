@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Ban, Loader2, Trash2, PlayCircle } from 'lucide-react';
+import { Ban, Loader2, Trash2, PlayCircle, Megaphone } from 'lucide-react';
 import { ApiService } from '../../../services/api';
 import { ConfirmModal } from '../../ui/confirm-modal';
 import toast from 'react-hot-toast';
@@ -13,8 +13,9 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSuspendConfirm, setShowSuspendConfirm] = useState(false);
   const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
+  const [showBroadcastConfirm, setShowBroadcastConfirm] = useState(false);
 
-  const executeAction = async (action: 'suspend' | 'delete' | 'reactivate') => {
+  const executeAction = async (action: 'suspend' | 'delete' | 'reactivate' | 'broadcast') => {
     setIsLoading(true);
     try {
       if (action === 'suspend') {
@@ -29,6 +30,14 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
         await ApiService.admin.approveProject(id); // approve sets status back to ACTIVE
         toast.success('Project reactivated');
         setShowReactivateConfirm(false);
+      } else if (action === 'broadcast') {
+        const res = await ApiService.admin.broadcastNewCause(id);
+        if (res.broadcastCount > 0) {
+          toast.success(`Notification sent to ${res.broadcastCount} subscribers`);
+        } else {
+          toast.success('No subscribers opted in to receive notifications');
+        }
+        setShowBroadcastConfirm(false);
       }
 
       router.refresh();
@@ -49,6 +58,17 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
   return (
     <>
       <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+        {/* Broadcast Action (Only if Active) */}
+        {status === 'ACTIVE' && (
+          <button
+            onClick={() => setShowBroadcastConfirm(true)}
+            title="Notify Subscribers"
+            className="flex items-center justify-center text-primary hover:bg-primary/10 h-8 w-8 rounded-3xl transition-colors"
+          >
+            <Megaphone className="h-4 w-4" />
+          </button>
+        )}
+
         {/* Reactivate Action (Only if Suspended) */}
         {status === 'SUSPENDED' && (
           <button
@@ -80,6 +100,18 @@ export function AdminProjectActions({ id, status }: { id: string, status: string
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Broadcast Confirmation */}
+      <ConfirmModal
+        isOpen={showBroadcastConfirm}
+        onClose={() => setShowBroadcastConfirm(false)}
+        onConfirm={() => executeAction('broadcast')}
+        isLoading={isLoading}
+        variant="default"
+        title="Notify Subscribers"
+        description="Send an email notification about this verified cause to all users who have opted in to receive updates."
+        confirmText="Notify Subscribers"
+      />
 
       {/* Suspend Confirmation */}
       <ConfirmModal

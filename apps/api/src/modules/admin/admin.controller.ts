@@ -423,4 +423,9 @@ export class AdminController {
   ) {
     return this.service.logCorporateSponsorship(req.user.id, projectId, dto);
   }
+
+  @Post('projects/:id/broadcast')
+  broadcastNewCause(@Req() req: any, @Param('id') id: string) {
+    return this.service.broadcastNewCause(req.user.id, id);
+  }
 }

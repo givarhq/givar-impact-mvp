@@ -366,7 +366,6 @@ export const ApiService = {
     suspendProject: (id: string) =>
       apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
 
-    // Endpoint to finalize a project and trigger donor notifications
     finalizeProject: (id: string, data: { publicImpactNote: string; donorUpdateMessage: string; imageUrl?: string; assets?: string[] }) =>
       apiClient.post(`/admin/projects/${id}/finalize`, data).then(r => r.data),
 
@@ -472,6 +471,9 @@ export const ApiService = {
 
     logCorporateSponsorship: (projectId: string, data: { sponsorName: string; sponsorEmail: string; amount: string; reference?: string; sponsorLogoUrl?: string }) =>
       apiClient.post(`/admin/projects/${projectId}/corporate-sponsorship`, data).then(r => r.data),
+
+    broadcastNewCause: (id: string) =>
+      apiClient.post(`/admin/projects/${id}/broadcast`).then(r => r.data),
 
     createCategory: (data: { name: string; description?: string; icon?: string }) =>
       apiClient.post('/admin/categories', data).then(r => r.data),
