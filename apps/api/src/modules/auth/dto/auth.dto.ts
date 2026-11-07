@@ -24,6 +24,10 @@ export class RegisterDto {
   @Equals(true, { message: 'TERMS_NOT_ACCEPTED' })
   acceptTerms!: boolean;
 
+  @IsOptional()
+  @IsBoolean()
+  optInNewCauses?: boolean;
+
   // Optional: Allow user to choose base currency, default to NGN
   @IsEnum(Currency)
   defaultCurrency: Currency = Currency.NGN;

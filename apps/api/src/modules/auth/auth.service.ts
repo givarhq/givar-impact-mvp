@@ -56,6 +56,9 @@ export class AuthService {
           lastName: dto.lastName,
           emailVerificationToken,
           emailVerified: false,
+          preferences: {
+            newCauseAlerts: dto.optInNewCauses ?? false
+          }
         },
       });
 
@@ -75,6 +78,7 @@ export class AuthService {
         metadata: {
           email: user.email,
           termsAccepted: true,
+          optInNewCauses: dto.optInNewCauses ?? false,
           legalVersion: '2026-03'
         },
         req,
