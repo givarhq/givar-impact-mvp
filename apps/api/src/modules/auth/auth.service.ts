@@ -728,7 +728,7 @@ export class AuthService {
     });
   }
 
-  async deleteAccount(userId: string, totpCode: string) {
+  async deleteAccount(userId: string, payload?: string | { totpCode?: string; password?: string; confirmation?: string }) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { _count: { select: { donations: true, projects: true } } }
@@ -736,9 +736,31 @@ export class AuthService {
 
     if (!user) throw new NotFoundException('Account node not found');
 
-    // 1. TOTP Verification
-    const isValidStepUp = await this.verifyStepUpAuth(userId, totpCode);
-    if (!isValidStepUp) throw new BadRequestException('Verification failed: Invalid authenticator code');
+    const totpCode = typeof payload === 'string' ? payload : payload?.totpCode;
+    const password = typeof payload === 'object' ? payload?.password : undefined;
+    const confirmation = typeof payload === 'object' ? payload?.confirmation : undefined;
+
+    // 1. Identity Verification Guard
+    if (user.twoFactorEnabled) {
+      if (!totpCode) {
+        throw new BadRequestException('Verification failed: Authenticator code is required');
+      }
+      const isValidStepUp = await this.verifyStepUpAuth(userId, totpCode);
+      if (!isValidStepUp) throw new BadRequestException('Verification failed: Invalid authenticator code');
+    } else if (user.passwordHash && user.passwordHash.length > 0) {
+      if (!password) {
+        throw new BadRequestException('Verification failed: Password is required to authorize deletion');
+      }
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!isMatch) throw new BadRequestException('Verification failed: Incorrect password');
+    } else {
+      // Google OAuth account without password or 2FA: require explicit email confirmation
+      const normalizedConfirmation = confirmation?.toLowerCase().trim();
+      const normalizedEmail = user.email.toLowerCase().trim();
+      if (normalizedConfirmation !== normalizedEmail && confirmation !== 'DELETE') {
+        throw new BadRequestException(`Verification failed: Please type your email to confirm deletion`);
+      }
+    }
 
     // 2. Ledger Integrity Check
     if (user._count.projects > 0) {
@@ -752,7 +774,12 @@ export class AuthService {
         action: AuditAction.ACCOUNT_DELETED,
         entityId: userId,
         entityType: 'User',
-        metadata: { email: user.email, totalDonations: user._count.donations, anonymized: user._count.donations > 0, stepUpTotpUsed: true }
+        metadata: {
+          email: user.email,
+          totalDonations: user._count.donations,
+          anonymized: user._count.donations > 0,
+          verificationMethod: user.twoFactorEnabled ? '2FA' : (password ? 'PASSWORD' : 'EMAIL_CONFIRMATION')
+        }
       }, tx);
 
       if (user._count.donations > 0) {
@@ -779,9 +806,7 @@ export class AuthService {
           }
         });
 
-        // Clean up any pending Organization KYC profiles connected to this user
         await tx.organizationProfile.deleteMany({ where: { userId } });
-
       } else {
         // Safe Physical Deletion: No ledger footprint
         await tx.organizationProfile.deleteMany({ where: { userId } });
@@ -791,7 +816,6 @@ export class AuthService {
 
       return { success: true };
     }).then(async (result) => {
-      // Best-effort S3 purge outside transaction to prevent rollback on network failure
       if (user.avatarKey) {
         this.storage.deleteFiles([user.avatarKey]).catch(err =>
           this.logger.error(`Avatar purge failed for deleted user: ${err.message}`)

@@ -150,8 +150,10 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Post('profile/delete')
   @HttpCode(HttpStatus.OK)
-  async deleteAccount(@Req() req: any, @Body('totpCode') totpCode: string) {
-    return this.authService.deleteAccount(req.user.id, totpCode);
+  async deleteAccount(@Req() req: any, @Body() body: any) {
+    // Gracefully handle both direct payload and legacy nested wrapper payloads
+    const payload = typeof body?.totpCode === 'object' ? body.totpCode : body;
+    return this.authService.deleteAccount(req.user.id, payload);
   }
 
   @UseGuards(AuthGuard('jwt'))
