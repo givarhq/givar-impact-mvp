@@ -113,8 +113,8 @@ export const ApiService = {
     updateAvatar: (key: string) =>
       apiClient.patch('/auth/profile/avatar', { key }).then(r => r.data),
 
-    deleteAccount: (totpCode: string) =>
-      apiClient.post('/auth/profile/delete', { totpCode }).then(r => r.data),
+    deleteAccount: (data: string | { totpCode?: string; password?: string; confirmation?: string }) =>
+      apiClient.post('/auth/profile/delete', typeof data === 'string' ? { totpCode: data } : data).then(r => r.data),
 
     generate2FA: () =>
       apiClient.post('/auth/2fa/generate').then(r => r.data),
