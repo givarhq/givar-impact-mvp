@@ -29,6 +29,7 @@ const startSchema = z.object({
     beneficiaryRelationship: z.string().optional().nullable(),
     beneficiaryName: z.string().optional().nullable(),
     beneficiaryAge: z.coerce.number().optional().nullable(),
+    isMinor: z.boolean().optional().nullable(),
     beneficiaryContact: z.string().optional().nullable(),
     organizationName: z.string().optional().nullable(),
     contactPhone: z.string().optional().nullable(),
@@ -72,13 +73,11 @@ export default function StartProposalPage() {
     const [targetType, setTargetType] = useState<'SELF' | 'OTHER' | 'INDIVIDUAL' | 'GROUP' | null>(null);
     const [isGateCheckComplete, setIsGateCheckComplete] = useState(false);
 
-    // New Phone Number State
     const [localUser, setLocalUser] = useState<any>(null);
     const [hasPhoneNumber, setHasPhoneNumber] = useState(true);
     const [phoneInput, setPhoneInput] = useState('');
     const [isSavingPhone, setIsSavingPhone] = useState(false);
 
-    // Relationship Dropdown State
     const [relSelect, setRelSelect] = useState<string>('');
 
     useEffect(() => {
@@ -144,14 +143,17 @@ export default function StartProposalPage() {
     } = useForm<StartFormValues>({
         resolver: zodResolver(startSchema),
         mode: 'onChange',
+        defaultValues: {
+            isMinor: null,
+        }
     });
 
     const selectedCategoryId = watch('categoryId');
     const selectedCategoryObj = categories.find(c => c.id === selectedCategoryId);
     const selectedCategoryName = selectedCategoryObj?.name?.toLowerCase() || '';
     const availableSubcategories = selectedCategoryObj?.subcategories || [];
+    const watchIsMinor = watch('isMinor');
 
-    // Contextual Label Generator
     const getDynamicLabels = () => {
         const isOrg = userAccountType === 'CORPORATE';
 
@@ -161,7 +163,6 @@ export default function StartProposalPage() {
                 optOther: isOrg ? "A patient" : "Another patient",
                 optGroup: "A facility or health initiative",
                 nameLabel: "Patient's full legal name",
-                ageLabel: "Patient's current age",
                 relLabel: "Your relationship to the patient",
                 orgLabel: "Name of clinic or hospital",
             };
@@ -172,7 +173,6 @@ export default function StartProposalPage() {
                 optOther: isOrg ? "A student" : "Another student",
                 optGroup: "A school or group",
                 nameLabel: "Student's full legal name",
-                ageLabel: "Student's current age",
                 relLabel: "Your relationship to the student",
                 orgLabel: "Name of school or institution",
             };
@@ -183,7 +183,6 @@ export default function StartProposalPage() {
                 optOther: isOrg ? "An individual or family" : "Another individual or family",
                 optGroup: "A community or region",
                 nameLabel: "Beneficiary's full legal name",
-                ageLabel: "Beneficiary's age",
                 relLabel: "Your relationship to the beneficiary",
                 orgLabel: "Name of community or region",
             };
@@ -193,7 +192,6 @@ export default function StartProposalPage() {
             optOther: isOrg ? "An individual" : "Someone else",
             optGroup: "A group or community",
             nameLabel: "Beneficiary full name",
-            ageLabel: "Current age",
             relLabel: "Your relationship to the beneficiary",
             orgLabel: "Name of group or community",
         };
@@ -207,6 +205,7 @@ export default function StartProposalPage() {
             setValue('beneficiaryRelationship', 'Self', { shouldValidate: true });
             setValue('beneficiaryName', null as any, { shouldValidate: true });
             setValue('beneficiaryAge', null as any, { shouldValidate: true });
+            setValue('isMinor', null as any, { shouldValidate: true });
             setValue('beneficiaryContact', null as any, { shouldValidate: true });
             setValue('organizationName', null as any, { shouldValidate: true });
             setValue('contactPhone', null as any, { shouldValidate: true });
@@ -215,12 +214,14 @@ export default function StartProposalPage() {
             setValue('beneficiaryRelationship', null as any, { shouldValidate: true });
             setValue('beneficiaryName', null as any, { shouldValidate: true });
             setValue('beneficiaryAge', null as any, { shouldValidate: true });
+            setValue('isMinor', null as any, { shouldValidate: true });
             setValue('beneficiaryContact', null as any, { shouldValidate: true });
             setRelSelect('');
         } else {
             setValue('organizationName', null as any, { shouldValidate: true });
             setValue('contactPhone', null as any, { shouldValidate: true });
             setValue('beneficiaryRelationship', null as any, { shouldValidate: true });
+            setValue('isMinor', null as any, { shouldValidate: true });
             setRelSelect('');
         }
     };
@@ -263,10 +264,16 @@ export default function StartProposalPage() {
             return;
         }
 
-        // Additional validation: Ensure relationship is specified if "Other" is selected
-        if ((targetType === 'OTHER' || targetType === 'INDIVIDUAL') && relSelect === 'Other' && !data.beneficiaryRelationship?.trim()) {
-            toast.error('Please specify your relationship to the beneficiary.');
-            return;
+        if ((targetType === 'OTHER' || targetType === 'INDIVIDUAL')) {
+            if (watchIsMinor === null || watchIsMinor === undefined) {
+                toast.error('Please indicate whether the beneficiary is under 18 years old.');
+                return;
+            }
+
+            if (relSelect === 'Other' && !data.beneficiaryRelationship?.trim()) {
+                toast.error('Please specify your relationship to the beneficiary.');
+                return;
+            }
         }
 
         setIsLoading(true);
@@ -312,7 +319,6 @@ export default function StartProposalPage() {
                     </div>
 
                     <CardContent className="p-6 md:p-8 space-y-4 flex flex-col">
-                        {/* Step 1: Email Verification */}
                         {isEmailUnverified ? (
                             <Link
                                 href="/dashboard/settings?tab=profile"
@@ -350,7 +356,6 @@ export default function StartProposalPage() {
                             </div>
                         )}
 
-                        {/* Step 2: Identity Verification */}
                         {orgStatus === 'VERIFIED' && !isUpgradeRequired ? (
                             <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border/40 bg-muted/10">
                                 <div className="flex items-center gap-4">
@@ -415,7 +420,6 @@ export default function StartProposalPage() {
                             </Link>
                         )}
 
-                        {/* Step 3: Contact Information */}
                         {!hasPhoneNumber ? (
                             <div className="flex flex-col gap-4 p-4 rounded-2xl border bg-muted/10 border-border/40">
                                 <div className="flex items-center gap-4">
@@ -468,7 +472,6 @@ export default function StartProposalPage() {
         <div className="max-w-5xl mx-auto min-w-0 animate-in fade-in duration-500 pt-2 pb-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
 
-                {/* Left Column: Form */}
                 <div className="lg:col-span-7 space-y-6">
                     <Card className="border-border/40 bg-card rounded-3xl shadow-sm overflow-hidden min-w-0">
                         <CardHeader className="p-6 md:p-8 border-b border-border/40 bg-muted/10">
@@ -630,13 +633,39 @@ export default function StartProposalPage() {
                                                         {...register('beneficiaryName')}
                                                         className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                                     />
-                                                    <Input
-                                                        label={dynamicLabels.ageLabel}
-                                                        type="number"
-                                                        placeholder="Age"
-                                                        {...register('beneficiaryAge')}
-                                                        className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                                    />
+
+                                                    {/* Binary Minor Verification Selector */}
+                                                    <div className="space-y-1.5 w-full">
+                                                        <label className="text-xs font-bold text-muted-foreground/80 ml-1">
+                                                            Is the beneficiary under 18 years old? *
+                                                        </label>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setValue('isMinor', true, { shouldValidate: true })}
+                                                                className={cn(
+                                                                    "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                                                                    watchIsMinor === true
+                                                                        ? "bg-primary/10 text-primary border-primary shadow-sm"
+                                                                        : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                                )}
+                                                            >
+                                                                Yes
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setValue('isMinor', false, { shouldValidate: true })}
+                                                                className={cn(
+                                                                    "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                                                                    watchIsMinor === false
+                                                                        ? "bg-primary/10 text-primary border-primary shadow-sm"
+                                                                        : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                                )}
+                                                            >
+                                                                No
+                                                            </button>
+                                                        </div>
+                                                    </div>
 
                                                     <div className="w-full space-y-1">
                                                         <label className="text-xs font-bold text-muted-foreground/80 ml-1">{dynamicLabels.relLabel}</label>
@@ -733,7 +762,6 @@ export default function StartProposalPage() {
                     </Card>
                 </div>
 
-                {/* Right Column: Preparation Checklist */}
                 <div className="lg:col-span-5 space-y-4 pt-2 lg:pt-0">
                     <div className="flex items-center gap-2 px-2 text-foreground">
                         <ListChecks className="h-5 w-5 text-primary" />

@@ -39,6 +39,7 @@ export default function HookPage() {
     title, shortDesc, description, personalMessage, location, endDate,
     categoryId, subcategoryId,
     beneficiaryName, beneficiaryAge, beneficiaryRelationship, beneficiaryContact,
+    isMinor,
     organizationName, contactPhone,
     setProposal, updateField
   } = useProposalStore();
@@ -121,7 +122,6 @@ export default function HookPage() {
         optOther: isOrg ? "A patient" : "Another patient",
         optGroup: "A facility or health initiative",
         nameLabel: "Patient's full legal name",
-        ageLabel: "Patient's current age",
         relLabel: "Your relationship to the patient",
         orgLabel: "Name of clinic or hospital",
       };
@@ -132,7 +132,6 @@ export default function HookPage() {
         optOther: isOrg ? "A student" : "Another student",
         optGroup: "A school or group",
         nameLabel: "Student's full legal name",
-        ageLabel: "Student's current age",
         relLabel: "Your relationship to the student",
         orgLabel: "Name of school or institution",
       };
@@ -143,7 +142,6 @@ export default function HookPage() {
         optOther: isOrg ? "An individual or family" : "Another individual or family",
         optGroup: "A community or region",
         nameLabel: "Beneficiary's full legal name",
-        ageLabel: "Beneficiary's age",
         relLabel: "Your relationship to the beneficiary",
         orgLabel: "Name of community or region",
       };
@@ -153,7 +151,6 @@ export default function HookPage() {
       optOther: isOrg ? "An individual" : "Someone else",
       optGroup: "A group or community",
       nameLabel: "Beneficiary full name",
-      ageLabel: "Current age",
       relLabel: "Your relationship to the beneficiary",
       orgLabel: "Name of group or community",
     };
@@ -180,6 +177,7 @@ export default function HookPage() {
       updateField('beneficiaryRelationship', 'Self');
       updateField('beneficiaryName', null);
       updateField('beneficiaryAge', null);
+      updateField('isMinor', null);
       updateField('beneficiaryContact', null);
       updateField('organizationName', null);
       updateField('contactPhone', null);
@@ -188,12 +186,14 @@ export default function HookPage() {
       updateField('beneficiaryRelationship', null);
       updateField('beneficiaryName', null);
       updateField('beneficiaryAge', null);
+      updateField('isMinor', null);
       updateField('beneficiaryContact', null);
       setRelSelect('');
     } else {
       updateField('organizationName', null);
       updateField('contactPhone', null);
       updateField('beneficiaryRelationship', null);
+      updateField('isMinor', null);
       setRelSelect('');
     }
   };
@@ -203,12 +203,15 @@ export default function HookPage() {
   const locationValid = !!(location && location.trim().length >= 2);
   const descValid = strippedDescription.length >= 20;
 
-  // Validation for "Other" relationship
   const relationshipValid = targetType === 'OTHER' || targetType === 'INDIVIDUAL'
     ? (relSelect === 'Other' ? !!(beneficiaryRelationship && beneficiaryRelationship.trim()) : !!relSelect)
     : true;
 
-  const isHookValid = titleValid && locationValid && descValid && relationshipValid;
+  const minorValid = (targetType === 'OTHER' || targetType === 'INDIVIDUAL')
+    ? isMinor !== null && isMinor !== undefined
+    : true;
+
+  const isHookValid = titleValid && locationValid && descValid && relationshipValid && minorValid;
 
   return (
     <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -375,14 +378,39 @@ export default function HookPage() {
                       onChange={(e) => updateField('beneficiaryName', e.target.value)}
                       className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                     />
-                    <Input
-                      label={dynamicLabels.ageLabel}
-                      type="number"
-                      placeholder="Age"
-                      value={beneficiaryAge || ''}
-                      onChange={(e) => updateField('beneficiaryAge', parseInt(e.target.value))}
-                      className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                    />
+
+                    {/* Binary Minor Verification Selector */}
+                    <div className="space-y-1.5 w-full">
+                      <label className="text-xs font-bold text-muted-foreground/80 ml-1">
+                        Is the beneficiary under 18 years old? *
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateField('isMinor', true)}
+                          className={cn(
+                            "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                            isMinor === true
+                              ? "bg-primary/10 text-primary border-primary shadow-sm"
+                              : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                          )}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateField('isMinor', false)}
+                          className={cn(
+                            "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                            isMinor === false
+                              ? "bg-primary/10 text-primary border-primary shadow-sm"
+                              : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                          )}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </div>
 
                     <div className="w-full space-y-1">
                       <label className="text-xs font-bold text-muted-foreground/80 ml-1">{dynamicLabels.relLabel}</label>
