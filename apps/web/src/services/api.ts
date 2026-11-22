@@ -348,6 +348,9 @@ export const ApiService = {
     bulkUpdateProposals: (data: { proposalIds: string[], action: 'APPROVE' | 'REJECT' }) =>
       apiClient.post('/admin/proposals/bulk', data).then(r => r.data),
 
+    updateProposal: (id: string, data: { title?: string; shortDesc?: string; description?: string; personalMessage?: string; location?: string }) =>
+      apiClient.patch(`/admin/proposals/${id}`, data).then(r => r.data),
+
     exportUsers: (params: URLSearchParams) =>
       apiClient.get(`/admin/users/export?${params.toString()}`, {
         responseType: 'blob',
