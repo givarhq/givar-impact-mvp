@@ -238,4 +238,15 @@ export class AuthController {
     res.header('Content-Type', 'text/html');
     return res.send(htmlResponse);
   }
+
+  @Public()
+  @Get('opt-in')
+  async optIn(@Query('token') token: string, @Res() res: Response) {
+    if (!token) {
+      return res.status(400).send('Token is required.');
+    }
+    const htmlResponse = await this.authService.optInNewCauses(token);
+    res.header('Content-Type', 'text/html');
+    return res.send(htmlResponse);
+  }
 }

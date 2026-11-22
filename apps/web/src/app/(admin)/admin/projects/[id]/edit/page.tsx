@@ -12,6 +12,7 @@ import { FeedbackThread } from '../../../../../../components/features/communicat
 import { ProjectReportsView } from '../../../../../../components/features/admin/project-reports-view';
 import { cn } from '../../../../../../lib/utils/cn';
 import { CorporateSponsorshipTrigger } from '../../../../../../components/features/admin/corporate-sponsorship-trigger';
+import { BroadcastCauseTrigger } from '../../../../../../components/features/admin/broadcast-cause-trigger';
 import { Badge } from '../../../../../../components/ui/badge';
 
 export const metadata = {
@@ -76,7 +77,12 @@ export default async function EditProjectPage({
               </div>
             </div>
 
-            <div className="flex items-center shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <BroadcastCauseTrigger
+                projectId={id}
+                projectStatus={project.status}
+                broadcastedAt={project.broadcastedAt}
+              />
               <CorporateSponsorshipTrigger projectId={id} projectCurrency={project.currency} projectStatus={project.status} />
             </div>
           </div>
