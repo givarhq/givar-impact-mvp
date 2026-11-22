@@ -97,6 +97,7 @@ export class CreateProposalDto {
 
   @IsOptional() @IsString() beneficiaryName?: string;
   @IsOptional() @IsNumber() beneficiaryAge?: number;
+  @IsOptional() @IsBoolean() isMinor?: boolean;
   @IsOptional() @IsString() beneficiaryRelationship?: string;
   @IsOptional() @IsString() beneficiaryContact?: string;
 
@@ -171,6 +172,7 @@ export class UpdateProposalDto {
 
   @IsOptional() @IsString() beneficiaryName?: string;
   @IsOptional() @IsNumber() beneficiaryAge?: number;
+  @IsOptional() @IsBoolean() isMinor?: boolean;
   @IsOptional() @IsString() beneficiaryRelationship?: string;
 
   @IsOptional() @IsString() vendorName?: string;
@@ -181,6 +183,6 @@ export class UpdateProposalDto {
 
   @IsOptional() @IsBoolean() hasPreCollectedFunds?: boolean;
   @IsOptional() @IsNumber() preCollectedAmount?: number;
-  
+
   @IsOptional() @IsBoolean() isAssisted?: boolean;
 }

@@ -415,6 +415,7 @@ model Project {
   beneficiaryName         String?
   beneficiaryAge          Int?
   beneficiaryRelationship String?
+  isMinor                 Boolean? @default(false)
 
   vendorName              String?
   vendorContactPerson     String?
@@ -688,6 +689,7 @@ model ProjectProposal {
   beneficiaryName         String?
   beneficiaryAge          Int?
   beneficiaryRelationship String?
+  isMinor                 Boolean?      @default(false)
 
   vendorName              String?
   vendorContactPerson     String?

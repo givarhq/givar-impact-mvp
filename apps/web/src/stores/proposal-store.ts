@@ -68,6 +68,7 @@ interface ProposalState {
   beneficiaryName: string | null;
   beneficiaryAge: number | null;
   beneficiaryRelationship: string | null;
+  isMinor: boolean | null;
 
   vendorName: string | null;
   vendorContactPerson: string | null;
@@ -135,6 +136,7 @@ export const useProposalStore = create<ProposalState>()(
     beneficiaryName: null,
     beneficiaryAge: null,
     beneficiaryRelationship: null,
+    isMinor: null,
 
     vendorName: null,
     vendorContactPerson: null,
@@ -157,14 +159,12 @@ export const useProposalStore = create<ProposalState>()(
         }))
         : [];
 
-      // Extract and hydrate loaded vendors
       const loadedVendors: VendorItem[] = Array.isArray(proposal.vendors) ? [...proposal.vendors] : [];
 
       const budget = Array.isArray(proposal.budgetBreakdown)
         ? proposal.budgetBreakdown.map((item: any) => {
           let resolvedVendorId = item.vendorId || '';
 
-          // Backwards compatibility for legacy budget items that used payTo/vendorContact directly
           if (!resolvedVendorId && (item.payTo || item.vendor)) {
             const legacyName = item.payTo || item.vendor;
             const existingVendor = loadedVendors.find(v => v.name === legacyName);
@@ -189,7 +189,7 @@ export const useProposalStore = create<ProposalState>()(
             costType: item.costType || item.type || 'SERVICE',
             amount: item.amount !== undefined ? item.amount : (item.cost || 0),
             description: item.description || item.item || '',
-            stage: item.stage || '' // Do not default to Main Stage to force selection
+            stage: item.stage || ''
           };
         })
         : [];
@@ -219,6 +219,13 @@ export const useProposalStore = create<ProposalState>()(
         budgetBreakdown: budget,
         executionTimeline: timeline,
 
+        beneficiaryName: proposal.beneficiaryName || null,
+        beneficiaryAge: proposal.beneficiaryAge || null,
+        beneficiaryRelationship: proposal.beneficiaryRelationship || null,
+        isMinor: proposal.isMinor !== undefined && proposal.isMinor !== null
+          ? proposal.isMinor
+          : (proposal.beneficiaryAge ? proposal.beneficiaryAge < 18 : null),
+
         isAssisted: proposal.isAssisted || false,
       };
     }),
@@ -239,7 +246,6 @@ export const useProposalStore = create<ProposalState>()(
 
         const currentTimeline = get().executionTimeline;
 
-        // Ensure auto-generated timelines inherit budget names and dynamically sync
         const newTimeline = uniqueStages.map(stage => {
           const existing = currentTimeline.find(t => t.phase === stage);
           const stageItems = newBudget.filter(b => b.stage === stage);
@@ -248,7 +254,6 @@ export const useProposalStore = create<ProposalState>()(
           if (existing) {
             return {
               ...existing,
-              // Always auto-sync deliverables since the Timeline UI was removed
               deliverables: autoDeliverables || 'Implementation'
             };
           }
@@ -267,9 +272,7 @@ export const useProposalStore = create<ProposalState>()(
       get().saveDraft();
     },
 
-    saveDraft: async () => {
-      // The useProposalAutoSave hook handles the actual network request.
-    },
+    saveDraft: async () => { },
 
     addGalleryItem: (item) => {
       set(state => ({ gallery: [...state.gallery, item] }));
@@ -301,9 +304,8 @@ export const useProposalStore = create<ProposalState>()(
     },
     removeVendor: (id) => {
       set(state => {
-        // Find if this vendor is assigned to any budget items
         const isAssigned = state.budgetBreakdown.some(b => b.vendorId === id);
-        if (isAssigned) return state; // Do not remove if assigned
+        if (isAssigned) return state;
         return { vendors: state.vendors.filter(v => v.id !== id) };
       });
       get().saveDraft();
