@@ -9,7 +9,7 @@ import {
     AlertTriangle, MapPin, ExternalLink,
     ShieldAlert, CheckCircle2, ClipboardList, Image as ImageIcon,
     AlertCircle, ShieldCheck, ListChecks, Landmark, Search, Quote, Loader2, Phone,
-    ChevronDown, ChevronRight, Mail, UserCheck, HeartHandshake
+    ChevronDown, ChevronRight, Mail, UserCheck, HeartHandshake, Edit2, Save, Info
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -19,6 +19,8 @@ import { SmartCurrency } from '../../ui/smart-currency';
 import { formatDate, formatCurrency } from '../../../lib/utils/format';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { Input } from '../../ui/input';
+import { Textarea } from '../../ui/textarea';
+import { RichTextEditor } from '../../ui/rich-text-editor';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import { ProjectProposal } from '../../../types';
 import { cn } from '../../../lib/utils/cn';
@@ -89,6 +91,14 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [expandedStages, setExpandedStages] = useState<Record<string, boolean>>({});
 
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isSavingEdit, setIsSavingEdit] = useState(false);
+    const [editTitle, setEditTitle] = useState(proposal.title || '');
+    const [editShortDesc, setEditShortDesc] = useState(proposal.shortDesc || '');
+    const [editDescription, setEditDescription] = useState(proposal.description || '');
+    const [editPersonalMessage, setEditPersonalMessage] = useState(proposal.personalMessage || '');
+    const [editBudgetItems, setEditBudgetItems] = useState<Array<{ id?: string; _index: number; description: string; amount: number; stage?: string }>>([]);
+
     const [subaccountModal, setSubaccountModal] = useState<{
         isOpen: boolean;
         budgetItemId: string | null;
@@ -143,6 +153,54 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                 .finally(() => setIsBankLoading(false));
         }
     }, [isTerminalState, banks.length]);
+
+    const openEditModal = () => {
+        setEditTitle(proposal.title || '');
+        setEditShortDesc(proposal.shortDesc || '');
+        setEditDescription(proposal.description || '');
+        setEditPersonalMessage(proposal.personalMessage || '');
+        setEditBudgetItems(
+            budgetBreakdown.map((item: any, idx: number) => ({
+                id: item.id,
+                _index: idx,
+                description: item.description || item.item || '',
+                amount: item.amount || item.cost || 0,
+                stage: item.stage || 'Main Stage'
+            }))
+        );
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editTitle.trim() || editTitle.trim().length < 5) {
+            return toast.error("Cause title must be at least 5 characters");
+        }
+
+        setIsSavingEdit(true);
+        const toastId = toast.loading("Saving editorial corrections...");
+
+        try {
+            await ApiService.admin.updateProposal(proposal.id, {
+                title: editTitle.trim(),
+                shortDesc: editShortDesc.trim(),
+                description: editDescription,
+                personalMessage: editPersonalMessage.trim(),
+                budgetBreakdown: editBudgetItems.map(b => ({
+                    id: b.id,
+                    _index: b._index,
+                    description: b.description.trim()
+                }))
+            } as any);
+
+            toast.success("Editorial corrections saved", { id: toastId });
+            setIsEditModalOpen(false);
+            router.refresh();
+        } catch (e: any) {
+            toast.error(e.response?.data?.message || "Failed to save editorial changes", { id: toastId });
+        } finally {
+            setIsSavingEdit(false);
+        }
+    };
 
     const handleCreateSubaccount = async () => {
         if (!bankCode || !accountNumber || !subaccountModal.vendorName) {
@@ -300,6 +358,15 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
         ? `${proposal.category?.name} • ${proposal.subcategoryName}`
         : (proposal.category?.name || 'General Impact');
 
+    const isMinorStatus = (proposal as any).isMinor;
+    const minorDisplayText = isMinorStatus === true
+        ? 'Yes'
+        : isMinorStatus === false
+            ? 'No'
+            : proposal.beneficiaryAge
+                ? (proposal.beneficiaryAge < 18 ? 'Yes' : 'No')
+                : 'Not specified';
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -309,30 +376,43 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
         >
             {/* Header & Meta */}
             <div className="flex flex-col bg-card p-5 md:p-6 rounded-3xl border border-border/40 shadow-sm relative overflow-hidden">
-                <div className="flex items-center gap-5 relative z-10 w-full min-w-0">
-                    <div className="hidden md:flex h-14 w-14 rounded-3xl bg-primary/10 items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
-                        <ClipboardList className="h-7 w-7" />
-                    </div>
-                    <div className="space-y-1 min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <Badge variant="secondary" className="rounded-3xl px-2.5 py-0.5 font-bold text-[10px] bg-muted border-none text-muted-foreground tracking-tight">
-                                {displayCategory}
-                            </Badge>
-                            <h1 className="text-lg font-bold text-foreground truncate max-w-full leading-tight">
-                                {proposal.title || 'Untitled Project Proposal'}
-                            </h1>
-                            <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px] border shrink-0 tracking-tight", statusColor)}>
-                                {displayStatus}
-                            </Badge>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 w-full min-w-0">
+                    <div className="flex items-center gap-5 min-w-0 flex-1">
+                        <div className="hidden md:flex h-14 w-14 rounded-3xl bg-primary/10 items-center justify-center text-primary border border-primary/20 shrink-0 shadow-inner">
+                            <ClipboardList className="h-7 w-7" />
                         </div>
-                        <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground mt-1.5">
-                            <span className="flex items-center gap-1 shrink-0"><Calendar className="h-3.5 w-3.5" /> {proposal.submittedAt ? formatDate(proposal.submittedAt).split(',')[0] : 'Draft'}</span>
-                            <span className="hidden sm:inline text-border">|</span>
-                            <span className="flex items-center gap-1 shrink-0"><MapPin className="h-3.5 w-3.5 text-primary" /> {proposal.location || 'Global Location'}</span>
-                            <span className="hidden sm:inline text-border">|</span>
-                            <span className="flex items-center gap-1 shrink-0 font-mono bg-muted/30 px-2 py-0.5 rounded-3xl border border-border/40">id: {proposal.id.split('-')[0]}</span>
+                        <div className="space-y-1 min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Badge variant="secondary" className="rounded-3xl px-2.5 py-0.5 font-bold text-[10px] bg-muted border-none text-muted-foreground tracking-tight">
+                                    {displayCategory}
+                                </Badge>
+                                <h1 className="text-lg font-bold text-foreground truncate max-w-full leading-tight">
+                                    {proposal.title || 'Untitled Project Proposal'}
+                                </h1>
+                                <Badge variant="outline" className={cn("rounded-3xl px-2.5 py-0.5 font-bold text-[11px] border shrink-0 tracking-tight", statusColor)}>
+                                    {displayStatus}
+                                </Badge>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-muted-foreground mt-1.5">
+                                <span className="flex items-center gap-1 shrink-0"><Calendar className="h-3.5 w-3.5" /> {proposal.submittedAt ? formatDate(proposal.submittedAt).split(',')[0] : 'Draft'}</span>
+                                <span className="hidden sm:inline text-border">|</span>
+                                <span className="flex items-center gap-1 shrink-0"><MapPin className="h-3.5 w-3.5 text-primary" /> {proposal.location || 'Global Location'}</span>
+                                <span className="hidden sm:inline text-border">|</span>
+                                <span className="flex items-center gap-1 shrink-0 font-mono bg-muted/30 px-2 py-0.5 rounded-3xl border border-border/40">id: {proposal.id.split('-')[0]}</span>
+                            </div>
                         </div>
                     </div>
+
+                    {!isTerminalState && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={openEditModal}
+                            className="rounded-3xl h-10 px-5 font-bold text-xs gap-2 border-border/60 bg-background hover:bg-muted shadow-sm shrink-0 transition-all active:scale-95 w-full sm:w-auto"
+                        >
+                            <Edit2 className="h-3.5 w-3.5 text-primary" /> Edit Details
+                        </Button>
+                    )}
                 </div>
 
                 {proposal.isAssisted && (
@@ -476,12 +556,17 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Age</p>
-                                            <p className="text-sm font-bold text-foreground">{proposal.beneficiaryAge || 'N/A'}</p>
+                                            <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Under 18 (Minor)</p>
+                                            <p className={cn(
+                                                "text-sm font-bold",
+                                                minorDisplayText === 'Yes' ? "text-amber-600" : "text-foreground"
+                                            )}>
+                                                {minorDisplayText}
+                                            </p>
                                         </div>
                                         <div>
                                             <p className="text-[11px] font-bold text-muted-foreground mb-0.5">Relationship</p>
-                                            <p className="text-sm font-bold text-foreground">{proposal.beneficiaryRelationship || 'N/A'}</p>
+                                            <p className="text-sm font-bold text-foreground">{proposal.beneficiaryRelationship || 'Not specified'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -528,9 +613,22 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                             <CardTitle className="text-sm font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
                                 <DollarSign className="h-4 w-4 text-emerald-500" /> Use of Funds
                             </CardTitle>
-                            <div className="flex items-center gap-2 bg-background border border-border/60 px-3 py-1 rounded-3xl shadow-sm">
-                                <span className="text-[11px] font-bold text-muted-foreground">Total:</span>
-                                <SmartCurrency amount={(budgetTotal * 100).toString()} currency="NGN" visible={true} size="small" className="text-foreground" />
+                            <div className="flex items-center gap-3">
+                                {!isTerminalState && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={openEditModal}
+                                        className="h-8 rounded-2xl text-xs font-bold text-primary hover:bg-primary/10 gap-1.5 px-3"
+                                    >
+                                        <Edit2 className="h-3.5 w-3.5" /> Edit Descriptions
+                                    </Button>
+                                )}
+                                <div className="flex items-center gap-2 bg-background border border-border/60 px-3 py-1 rounded-3xl shadow-sm">
+                                    <span className="text-[11px] font-bold text-muted-foreground">Total:</span>
+                                    <SmartCurrency amount={(budgetTotal * 100).toString()} currency="NGN" visible={true} size="small" className="text-foreground" />
+                                </div>
                             </div>
                         </CardHeader>
                         <div className="p-0 overflow-x-auto no-scrollbar">
@@ -696,8 +794,8 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                         <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">Administrative Decision</h3>
                                         <p className="text-xs text-muted-foreground font-medium max-w-sm mx-auto leading-relaxed">
                                             {isSuperAdmin
-                                                ? 'Finalize the project launch or reject the proposal.'
-                                                : 'Provide feedback to the organizer or recommend this cause to the Superadmin for final approval.'}
+                                                ? 'Edit details, finalize the project launch, or reject the proposal.'
+                                                : 'Edit details, provide feedback, or recommend this cause to the Superadmin for final approval.'}
                                         </p>
                                     </div>
 
@@ -713,7 +811,17 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                         </div>
                                     )}
 
-                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-lg mx-auto mt-2">
+                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-2xl mx-auto mt-2">
+                                        {/* Prominent Edit Details Button inside the Action Terminal */}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={openEditModal}
+                                            className="w-full sm:flex-1 h-11 px-5 rounded-3xl border-border/60 text-foreground font-bold text-xs transition-all active:scale-95 bg-background shadow-sm hover:bg-muted gap-2"
+                                        >
+                                            <Edit2 className="h-3.5 w-3.5 text-primary" /> Edit Details
+                                        </Button>
+
                                         {isSuperAdmin && (
                                             <Dialog>
                                                 <DialogTrigger asChild>
@@ -776,7 +884,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                                     <Button
                                                         onClick={() => setActionType('recommend')}
                                                         disabled={isProcessing}
-                                                        className="w-full sm:w-auto h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
+                                                        className="w-full sm:flex-1 h-11 px-6 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
                                                     >
                                                         <UserCheck className="h-4 w-4" /> Recommend cause
                                                     </Button>
@@ -807,7 +915,7 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                                             <Button
                                                 onClick={() => setShowApproveConfirm(true)}
                                                 disabled={isProcessing}
-                                                className="w-full sm:w-auto h-11 px-8 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
+                                                className="w-full sm:flex-1 h-11 px-6 rounded-3xl font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 text-xs text-white gap-2 border-0 transition-all active:scale-95 shrink-0"
                                             >
                                                 <Check className="h-4 w-4" /> Verify & launch
                                             </Button>
@@ -856,7 +964,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
 
                     <FeedbackThread proposalId={proposal.id} title="Verification updates" />
 
-                    {/* Cause Evidence Vault with Deterministic File Identification */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-3.5 px-5">
                             <div className="flex justify-between items-center">
@@ -923,7 +1030,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         </CardContent>
                     </Card>
 
-                    {/* Admin Review Framework Checklists */}
                     {!isTerminalState && (
                         <Card className="rounded-3xl border-primary/20 bg-primary/[0.02] overflow-hidden shadow-sm">
                             <CardHeader className="bg-primary/5 border-b border-primary/10 py-4 px-5">
@@ -956,7 +1062,6 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                         </Card>
                     )}
 
-                    {/* Risk Indicators */}
                     <Card className="rounded-3xl border-border/40 bg-card overflow-hidden shadow-sm">
                         <CardHeader className="bg-muted/30 border-b border-border/40 py-4 px-5">
                             <CardTitle className="text-xs font-bold text-muted-foreground flex items-center gap-2 tracking-tight">
@@ -982,6 +1087,117 @@ export const ProposalReview = memo(function ProposalReview({ proposal, isSuperAd
                     </Card>
                 </div>
             </div>
+
+            {/* Editorial Correction Modal */}
+            <Dialog open={isEditModalOpen} onOpenChange={(open) => !open && !isSavingEdit && setIsEditModalOpen(false)}>
+                <DialogContent className="rounded-3xl border-none shadow-2xl p-0 bg-card max-w-2xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden">
+                    <DialogHeader className="px-6 md:px-8 pt-6 pb-4 border-b border-border/40 shrink-0">
+                        <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-2">
+                            <Edit2 className="h-4.5 w-4.5 text-primary" /> Edit Cause Details
+                        </DialogTitle>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto no-scrollbar p-6 md:p-8 space-y-6">
+                        <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-3">
+                            <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                            <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                                Minor editorial corrections only (spelling, grammar, and clarity). Financial amounts and vendor routing remain locked and require organizer resubmission.
+                            </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Cause Title</label>
+                            <Input
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                disabled={isSavingEdit}
+                                className="h-11 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm font-bold"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Brief Summary</label>
+                            <Textarea
+                                value={editShortDesc}
+                                onChange={(e) => setEditShortDesc(e.target.value)}
+                                disabled={isSavingEdit}
+                                maxLength={140}
+                                className="h-20 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm resize-none"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Full Narrative</label>
+                            <RichTextEditor
+                                content={editDescription}
+                                onChange={setEditDescription}
+                                readOnly={isSavingEdit}
+                            />
+                        </div>
+
+                        {editPersonalMessage !== undefined && (
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-muted-foreground ml-1">Message from Organizer</label>
+                                <Textarea
+                                    value={editPersonalMessage}
+                                    onChange={(e) => setEditPersonalMessage(e.target.value)}
+                                    disabled={isSavingEdit}
+                                    className="h-24 rounded-2xl bg-muted/20 border-border/60 focus:bg-background text-sm resize-none"
+                                />
+                            </div>
+                        )}
+
+                        {editBudgetItems.length > 0 && (
+                            <div className="space-y-3 pt-4 border-t border-border/40">
+                                <label className="text-xs font-bold text-foreground block ml-1">Use of Funds Descriptions</label>
+                                <div className="space-y-3">
+                                    {editBudgetItems.map((item, idx) => (
+                                        <div key={item.id || idx} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-2xl bg-muted/20 border border-border/40">
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <Badge variant="outline" className="text-[10px] font-bold rounded-full bg-background border-border/60">
+                                                    {item.stage}
+                                                </Badge>
+                                                <span className="text-xs font-mono font-bold text-muted-foreground">
+                                                    {formatCurrency((item.amount * 100).toString(), proposal.currency || 'NGN')}
+                                                </span>
+                                            </div>
+                                            <Input
+                                                value={item.description}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setEditBudgetItems(prev => prev.map((b, i) => i === idx ? { ...b, description: val } : b));
+                                                }}
+                                                disabled={isSavingEdit}
+                                                className="h-10 rounded-xl bg-background border-border/60 text-xs font-medium flex-1"
+                                                placeholder="Item description"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="px-6 md:px-8 py-4 border-t border-border/40 bg-muted/10 flex justify-end gap-3 shrink-0">
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsEditModalOpen(false)}
+                            disabled={isSavingEdit}
+                            className="rounded-3xl h-11 px-6 font-bold text-xs"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSaveEdit}
+                            disabled={isSavingEdit || !editTitle.trim()}
+                            className="rounded-3xl h-11 px-8 font-bold text-xs shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white border-0 gap-2"
+                        >
+                            {isSavingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                            Save Corrections
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Launch Confirmation Overlay */}
             <ConfirmModal
