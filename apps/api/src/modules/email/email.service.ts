@@ -539,4 +539,10 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'New Verified Cause on Givar');
     return this.send(email, `Givar: Support a new cause - ${data.projectTitle}`, html);
   }
+
+  async sendNewCauseOptInInvite(email: string, data: { name: string; optInUrl: string; settingsUrl: string }) {
+    const content = EmailTemplates.newCauseOptInInvite(data);
+    const html = EmailTemplates.base(content, 'Stay Updated on New Causes');
+    return this.send(email, 'Givar: Would you like updates on new verified causes?', html);
+  }
 }

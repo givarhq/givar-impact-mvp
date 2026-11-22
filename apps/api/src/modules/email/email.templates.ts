@@ -804,4 +804,22 @@ export const EmailTemplates = {
       </p>
     </div>
   `,
+
+  newCauseOptInInvite: (data: { name: string; optInUrl: string; settingsUrl: string }) => `
+    <p>Hi ${data.name},</p>
+    <p>We have introduced a new way to stay informed whenever verified causes go live on <strong>Givar</strong>.</p>
+    <div class="stat-box">
+      <div style="font-size: 13px; color: #059669; font-weight: 800; margin-bottom: 6px;">New Cause Alerts</div>
+      <p style="font-size: 15px; color: #064e3b; margin: 0; line-height: 1.5;">
+        Receive a concise email when new verified causes are published, including a summary of the need and a direct link to support them.
+      </p>
+    </div>
+    <p>Would you like to receive these updates? You stay in complete control and can unsubscribe at any time.</p>
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${data.optInUrl}" class="button">Yes, Keep Me Updated</a>
+    </div>
+    <p style="font-size: 13px; color: #6b7280; text-align: center;">
+      If you prefer not to receive new cause notifications, simply ignore this email. You can also update your preferences anytime in <a href="${data.settingsUrl}" style="color: #10b981; text-decoration: underline;">Account Settings</a>.
+    </p>
+  `,
 };
