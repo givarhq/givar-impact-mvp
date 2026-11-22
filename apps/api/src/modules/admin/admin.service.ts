@@ -507,6 +507,7 @@ export class AdminService {
           beneficiaryName: proposal.beneficiaryName,
           beneficiaryAge: proposal.beneficiaryAge,
           beneficiaryRelationship: proposal.beneficiaryRelationship,
+          isMinor: proposal.isMinor,
 
           hasPreCollectedFunds: proposal.hasPreCollectedFunds,
           preCollectedAmount: proposal.preCollectedAmount,
@@ -3854,6 +3855,168 @@ export class AdminService {
       success: true,
       broadcastCount: optedInUsers.length,
       broadcastedAt: new Date().toISOString()
+    };
+  }
+
+  async updateProposalByAdmin(
+    adminId: string,
+    proposalId: string,
+    dto: {
+      title?: string;
+      shortDesc?: string;
+      description?: string;
+      personalMessage?: string;
+      location?: string;
+      budgetBreakdown?: Array<{ id?: string; _index?: number; description?: string }>;
+    }
+  ) {
+    const proposal = await this.prisma.projectProposal.findUnique({
+      where: { id: proposalId },
+      select: {
+        id: true,
+        status: true,
+        title: true,
+        shortDesc: true,
+        description: true,
+        personalMessage: true,
+        location: true,
+        budgetBreakdown: true
+      }
+    });
+
+    if (!proposal) throw new NotFoundException('Proposal not found');
+    if (proposal.status === ProposalStatus.APPROVED || proposal.status === ProposalStatus.REJECTED) {
+      throw new BadRequestException('Cannot edit a proposal that has already been finalized.');
+    }
+
+    let updatedBudget: any = undefined;
+    if (dto.budgetBreakdown && Array.isArray(dto.budgetBreakdown)) {
+      const existingBudget = Array.isArray(proposal.budgetBreakdown) ? (proposal.budgetBreakdown as any[]) : [];
+      updatedBudget = existingBudget.map((existingItem, idx) => {
+        const incomingItem = dto.budgetBreakdown!.find((b) =>
+          (existingItem.id && b.id === existingItem.id) || b._index === idx
+        );
+        if (incomingItem && typeof incomingItem.description === 'string') {
+          return {
+            ...existingItem,
+            description: incomingItem.description.trim()
+          };
+        }
+        return existingItem;
+      });
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.projectProposal.update({
+        where: { id: proposalId },
+        data: {
+          ...(dto.title !== undefined && { title: dto.title.trim() }),
+          ...(dto.shortDesc !== undefined && { shortDesc: dto.shortDesc?.trim() || null }),
+          ...(dto.description !== undefined && { description: dto.description?.trim() || null }),
+          ...(dto.personalMessage !== undefined && { personalMessage: dto.personalMessage?.trim() || null }),
+          ...(dto.location !== undefined && { location: dto.location?.trim() || null }),
+          ...(updatedBudget !== undefined && { budgetBreakdown: updatedBudget }),
+        }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROJECT_UPDATED,
+        entityId: proposalId,
+        entityType: 'ProjectProposal',
+        metadata: {
+          action: 'ADMIN_PROPOSAL_EDIT',
+          changes: dto,
+          previous: {
+            title: proposal.title,
+            shortDesc: proposal.shortDesc,
+            location: proposal.location
+          }
+        }
+      }, tx);
+
+      return {
+        ...updated,
+        targetAmount: updated.targetAmount?.toString(),
+        preCollectedAmount: updated.preCollectedAmount?.toString(),
+      };
+    });
+  }
+
+  async inviteExistingUsersToNewCauses(adminId: string, force: boolean = false) {
+    if (!force) {
+      const alreadySent = await this.prisma.auditLog.findFirst({
+        where: { entityType: 'CauseOptInInvitation' }
+      });
+
+      if (alreadySent) {
+        throw new BadRequestException('One-time opt-in invitation has already been dispatched.');
+      }
+    }
+
+    const now = new Date();
+    const users = await this.prisma.user.findMany({
+      where: {
+        email: { not: { endsWith: '@givar.local' } },
+        emailVerified: true,
+        OR: [
+          { accountLockedUntil: null },
+          { accountLockedUntil: { lt: now } }
+        ]
+      },
+      select: { id: true, email: true, firstName: true, preferences: true },
+    });
+
+    const eligibleUsers = users.filter(u => (u.preferences as any)?.newCauseAlerts === undefined);
+
+    if (eligibleUsers.length === 0) {
+      return {
+        success: true,
+        invitedCount: 0,
+        message: 'No eligible existing users found to invite.'
+      };
+    }
+
+    const frontendUrl = (this.config.get<string>('FRONTEND_URL') || 'http://localhost:3000').replace(/\/$/, '');
+    const settingsUrl = `${frontendUrl}/dashboard/settings?tab=preferences`;
+
+    this.logger.log(`📢 Dispatching one-time new cause opt-in invitation to ${eligibleUsers.length} verified users.`);
+
+    (async () => {
+      const BATCH_SIZE = 50;
+      for (let i = 0; i < eligibleUsers.length; i += BATCH_SIZE) {
+        const batch = eligibleUsers.slice(i, i + BATCH_SIZE);
+        const batchPromises = batch.map(async (user) => {
+          const token = await this.authService.generateOptInToken(user.id);
+          const optInUrl = `${frontendUrl}/api/v1/auth/opt-in?token=${token}`;
+
+          return this.emailService.sendNewCauseOptInInvite(user.email, {
+            name: user.firstName,
+            optInUrl,
+            settingsUrl
+          });
+        });
+
+        await Promise.allSettled(batchPromises);
+      }
+    })().catch(err => this.logger.error(`Opt-in invitation broadcast failed: ${err.message}`));
+
+    await this.audit.log({
+      userId: adminId,
+      action: AuditAction.PROJECT_BROADCASTED,
+      entityType: 'CauseOptInInvitation',
+      entityId: 'one-time-invite',
+      metadata: {
+        action: 'ONE_TIME_OPT_IN_INVITE',
+        targetCount: eligibleUsers.length,
+        forced: !!force
+      }
+    });
+
+    return {
+      success: true,
+      invitedCount: eligibleUsers.length,
+      message: `One-time opt-in invitation queued for ${eligibleUsers.length} eligible users.`
     };
   }
 }

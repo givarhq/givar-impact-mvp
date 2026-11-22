@@ -277,6 +277,22 @@ export class AdminController {
     return this.service.bulkUpdateProposals(req.user.id, dto);
   }
 
+  @Patch('proposals/:id')
+  updateProposal(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body() dto: {
+      title?: string;
+      shortDesc?: string;
+      description?: string;
+      personalMessage?: string;
+      location?: string;
+      budgetBreakdown?: Array<{ id?: string; _index?: number; description?: string }>;
+    }
+  ) {
+    return this.service.updateProposalByAdmin(req.user.id, id, dto);
+  }
+
   @Get('finances/report')
   async getFinanceReport(@Query() query: AdminFinanceQueryDto) {
     return this.service.getFinancialReport(query);
@@ -427,5 +443,14 @@ export class AdminController {
   @Post('projects/:id/broadcast')
   broadcastNewCause(@Req() req: any, @Param('id') id: string) {
     return this.service.broadcastNewCause(req.user.id, id);
+  }
+
+  @Post('users/invite-cause-alerts')
+  @Roles(UserRole.SUPERADMIN)
+  inviteCauseAlerts(
+    @Req() req: any,
+    @Body('force') force?: boolean
+  ) {
+    return this.service.inviteExistingUsersToNewCauses(req.user.id, force);
   }
 }
