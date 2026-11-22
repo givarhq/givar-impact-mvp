@@ -51,6 +51,7 @@ export interface Project {
   beneficiaryName?: string | null;
   beneficiaryAge?: number | null;
   beneficiaryRelationship?: string | null;
+  isMinor?: boolean | null;
   vendorName?: string | null;
   vendorContactPerson?: string | null;
   vendorEmail?: string | null;
@@ -81,7 +82,7 @@ export interface Disbursement {
   id: string;
   projectId: string;
   milestoneId: string;
-  amount: string; // Serialized BigInt
+  amount: string;
   currency: string;
   vendorName: string;
   reference: string;
@@ -171,7 +172,7 @@ export interface ProjectProposal {
   description: string;
   personalMessage: string | null;
   location: string;
-  targetAmount: string; // Serialized BigInt
+  targetAmount: string;
   currency: 'NGN' | 'USD' | 'GBP';
 
   coverImage: string | null;
@@ -185,7 +186,6 @@ export interface ProjectProposal {
     amount?: number;
     description?: string;
     stage?: string;
-    // Legacy fields allowed for alignment
     payTo?: string;
     vendorContact?: string;
     item?: string;
@@ -223,6 +223,7 @@ export interface ProjectProposal {
   beneficiaryName?: string | null;
   beneficiaryAge?: number | null;
   beneficiaryRelationship?: string | null;
+  isMinor?: boolean | null;
   vendorName?: string | null;
   vendorContactPerson?: string | null;
   vendorEmail?: string | null;

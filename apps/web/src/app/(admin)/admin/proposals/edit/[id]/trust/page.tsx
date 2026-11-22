@@ -27,7 +27,6 @@ export default function AdminTrustPage() {
     const [isUploadingDoc, setIsUploadingDoc] = useState(false);
     const [categoryName, setCategoryName] = useState('');
 
-    // Legal Declarations States for Assisted Submissions
     const [hasBeneficiaryConsent, setHasBeneficiaryConsent] = useState(false);
     const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
     const [hasAgreedToNotifyExternalFunding, setHasAgreedToNotifyExternalFunding] = useState(false);
@@ -61,7 +60,6 @@ export default function AdminTrustPage() {
         fetchData();
     }, [proposalId, store.setProposal, router]);
 
-    // Deterministic Document Categorization based on storage path
     const authDocKey = store.kycDocuments.find(k => k.includes('/auth/'));
     const supportingDocKeys = store.kycDocuments.filter(k => !k.includes('/auth/'));
 
@@ -184,6 +182,7 @@ export default function AdminTrustPage() {
             kycDocuments: store.kycDocuments,
             beneficiaryName: store.beneficiaryName,
             beneficiaryAge: store.beneficiaryAge,
+            isMinor: store.isMinor,
             beneficiaryRelationship: store.beneficiaryRelationship,
             beneficiaryContact: store.beneficiaryContact,
             hasPreCollectedFunds: store.hasPreCollectedFunds,
@@ -272,10 +271,8 @@ export default function AdminTrustPage() {
                 <CardContent className="p-6 md:p-8 pt-8 space-y-10 min-w-0">
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300 min-w-0">
 
-                        {/* Section 1: Supporting Documents & Authorisation */}
                         <div className="space-y-6">
 
-                            {/* Slot 1: Mandatory Assisted Cause Authorisation */}
                             <div className="p-5 md:p-6 rounded-3xl bg-primary/[0.03] border border-primary/20 space-y-4">
                                 <div className="flex items-center justify-between gap-2">
                                     <div className="space-y-0.5">
@@ -337,7 +334,6 @@ export default function AdminTrustPage() {
                                 )}
                             </div>
 
-                            {/* Slot 2: General Category Invoices & Quotes */}
                             <div className="space-y-4 pt-2">
                                 <div className="p-4 rounded-2xl bg-muted/20 border border-border/40 shadow-inner">
                                     <p className="text-xs font-bold text-foreground mb-2 tracking-widest uppercase">Recommended Category Evidence:</p>
@@ -398,7 +394,6 @@ export default function AdminTrustPage() {
                             </div>
                         </div>
 
-                        {/* Section 2: Pre-Collected Funds Declaration */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                                 <Landmark className="h-4.5 w-4.5 text-primary" />
@@ -453,7 +448,6 @@ export default function AdminTrustPage() {
                             </AnimatePresence>
                         </div>
 
-                        {/* Section 3: Legal & Consent Declarations */}
                         <div className="space-y-4 pt-6 border-t border-border/40">
                             <div className="flex items-center gap-3 pb-3 px-1">
                                 <ShieldCheck className="h-4.5 w-4.5 text-primary" />
@@ -522,7 +516,6 @@ export default function AdminTrustPage() {
                             </div>
                         </div>
 
-                        {/* Incomplete Validation Banner */}
                         {!isAllStepsValid && (
                             <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 mb-6 space-y-2 animate-in fade-in">
                                 <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
@@ -539,7 +532,6 @@ export default function AdminTrustPage() {
                             </div>
                         )}
 
-                        {/* Navigation & Submit Controls */}
                         <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
                             <Button
                                 variant="outline"
