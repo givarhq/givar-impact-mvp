@@ -13,8 +13,6 @@ export function useProposalAutoSave() {
   useEffect(() => {
     if (!proposal.id) return;
 
-    // Logic: Immediately kill any pending auto-save timers if the 
-    // proposal is moving out of an editable state (like submission).
     if (proposal.status && !['DRAFT', 'CHANGES_REQUESTED'].includes(proposal.status)) {
       clearTimeout(debounceTimer);
       return;
@@ -22,16 +20,8 @@ export function useProposalAutoSave() {
 
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(async () => {
-
-      // ----------------------------------------------------------------------
-      // BULLETPROOF PAYLOAD CONSTRUCTION
-      // Logic: Instead of destructuring and hoping we caught all bad properties,
-      // we explicitly map ONLY the properties permitted by UpdateProposalDto.
-      // This strictly prevents the NestJS forbidNonWhitelisted pipe from throwing 400s.
-      // ----------------------------------------------------------------------
       const payload: any = {};
 
-      // 1. Primitive Fields
       if (proposal.title !== undefined) payload.title = proposal.title;
       if (proposal.shortDesc !== undefined) payload.shortDesc = proposal.shortDesc;
       if (proposal.description !== undefined) payload.description = proposal.description;
@@ -47,23 +37,20 @@ export function useProposalAutoSave() {
       if (proposal.beneficiaryContact !== undefined) payload.beneficiaryContact = proposal.beneficiaryContact;
       if (proposal.beneficiaryName !== undefined) payload.beneficiaryName = proposal.beneficiaryName;
       if (proposal.beneficiaryAge !== undefined) payload.beneficiaryAge = proposal.beneficiaryAge;
+      if (proposal.isMinor !== undefined) payload.isMinor = proposal.isMinor;
       if (proposal.beneficiaryRelationship !== undefined) payload.beneficiaryRelationship = proposal.beneficiaryRelationship;
 
-      // Legacy fields
       if (proposal.vendorName !== undefined) payload.vendorName = proposal.vendorName;
       if (proposal.vendorContactPerson !== undefined) payload.vendorContactPerson = proposal.vendorContactPerson;
       if (proposal.vendorEmail !== undefined) payload.vendorEmail = proposal.vendorEmail;
       if (proposal.vendorPhone !== undefined) payload.vendorPhone = proposal.vendorPhone;
       if (proposal.vendorAddress !== undefined) payload.vendorAddress = proposal.vendorAddress;
 
-      // Financial Declarations
       if (proposal.hasPreCollectedFunds !== undefined) payload.hasPreCollectedFunds = proposal.hasPreCollectedFunds;
 
-      // Ensure UUIDs are valid or explicitly null to satisfy DTO constraints
       payload.categoryId = proposal.categoryId === '' ? null : proposal.categoryId;
       payload.subcategoryId = proposal.subcategoryId === '' ? null : proposal.subcategoryId;
 
-      // 2. Computed / Transformed Fields
       if (proposal.coverImageKey || proposal.coverImage) {
         payload.coverImage = proposal.coverImageKey || proposal.coverImage;
       }
@@ -76,11 +63,10 @@ export function useProposalAutoSave() {
         payload.preCollectedAmount = proposal.preCollectedAmount * 100;
       }
 
-      // 3. Array & Object Structures (Strictly mapped to strip backend-only data)
       if (Array.isArray(proposal.gallery)) {
         payload.gallery = proposal.gallery.map(item => ({
           id: item.id,
-          url: item.key || item.url, // Ensure permanent S3 key is used
+          url: item.key || item.url,
           type: item.type,
           caption: item.caption
         }));
@@ -105,7 +91,6 @@ export function useProposalAutoSave() {
             description: b.description,
           };
           if (b.vendorId) cleanItem.vendorId = b.vendorId;
-          // Legacy properties bypass TS interface limits using any type
           if (b.payTo) cleanItem.payTo = b.payTo;
           if (b.vendorContact) cleanItem.vendorContact = b.vendorContact;
           if (b.stage && b.stage !== '') cleanItem.stage = b.stage;
@@ -125,7 +110,6 @@ export function useProposalAutoSave() {
       try {
         await ApiService.proposals.update(proposal.id!, payload);
       } catch (error: any) {
-        // Prevent generic toast if it's an expected lock rejection mid-flight
         if (error?.response?.status === 403) return;
 
         console.error('Auto-save failed:', error);

@@ -35,7 +35,6 @@ export class ProposalService {
 
     const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
 
-    // Organization Verification Check (Bypassed for Admins doing Assisted Submissions)
     if (!isAdmin || !dto.isAssisted) {
       const orgProfile = await this.prisma.organizationProfile.findUnique({
         where: { userId },
@@ -57,12 +56,12 @@ export class ProposalService {
         status: ProposalStatus.DRAFT,
         beneficiaryName: dto.beneficiaryName,
         beneficiaryAge: dto.beneficiaryAge,
+        isMinor: dto.isMinor ?? null,
         beneficiaryRelationship: dto.beneficiaryRelationship,
         beneficiaryContact: dto.beneficiaryContact,
         organizationName: dto.organizationName,
         contactPhone: dto.contactPhone,
         isAssisted: dto.isAssisted || false,
-        // Initialize empty structures
         budgetBreakdown: [],
         executionTimeline: [],
         vendors: [],

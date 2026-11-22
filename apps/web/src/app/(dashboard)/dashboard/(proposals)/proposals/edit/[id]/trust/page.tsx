@@ -27,7 +27,6 @@ export default function TrustPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoryName, setCategoryName] = useState('');
 
-  // Legal Consent States
   const [hasBeneficiaryConsent, setHasBeneficiaryConsent] = useState(false);
   const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
   const [hasAgreedToNotifyExternalFunding, setHasAgreedToNotifyExternalFunding] = useState(false);
@@ -47,7 +46,6 @@ export default function TrustPage() {
 
         setCategoryName(proposalData.category?.name?.toLowerCase() || '');
 
-        // Fetch dynamic fee rule from the governance engine
         const feeRule = await ApiService.fees.getPublicCurrent().catch(() => null);
         if (feeRule?.percentage !== undefined) {
           setFeePercentage(feeRule.percentage);
@@ -67,10 +65,9 @@ export default function TrustPage() {
     setIsSubmitting(true);
     store.updateField('status', 'SUBMITTED');
 
-    // Bulletproof Payload Mapping: Strip out all internal UI states (like isNewDraft)
     const mappedGallery = store.gallery.map(item => ({
       id: item.id,
-      url: item.key || item.url, // Ensure we send the permanent key, not a JIT blob
+      url: item.key || item.url,
       type: item.type,
       caption: item.caption
     }));
@@ -111,6 +108,7 @@ export default function TrustPage() {
       kycDocuments: store.kycDocuments,
       beneficiaryName: store.beneficiaryName,
       beneficiaryAge: store.beneficiaryAge,
+      isMinor: store.isMinor,
       beneficiaryRelationship: store.beneficiaryRelationship,
       beneficiaryContact: store.beneficiaryContact,
       hasPreCollectedFunds: store.hasPreCollectedFunds,
@@ -125,9 +123,7 @@ export default function TrustPage() {
     }
 
     try {
-      // 1. Flush the exact current state to the DB immediately
       await ApiService.proposals.update(proposalId, payload);
-      // 2. Submit the synchronized proposal
       await ApiService.proposals.submit(proposalId);
 
       toast.success('Submitted for formal review');
@@ -144,7 +140,6 @@ export default function TrustPage() {
   const showFeedback = store.status === 'CHANGES_REQUESTED';
   const isThirdParty = store.beneficiaryRelationship !== 'Self' && store.beneficiaryRelationship !== null && store.beneficiaryRelationship !== '';
 
-  // Cross-Step Validation Gates (Refined for Granular UI Feedback)
   const strippedDescription = store.description ? store.description.replace(/<[^>]*>?/gm, '').replace(/&nbsp;/g, ' ').trim() : '';
 
   const titleValid = !!(store.title && store.title.trim().length >= 10);
@@ -154,7 +149,6 @@ export default function TrustPage() {
   const isHookValid = titleValid && locationValid && descValid;
   const isMediaValid = !!store.coverImage;
 
-  // Strict Validation: Ensure budget has stages and valid amounts
   const isBudgetValid = store.budgetBreakdown.length > 0 && store.budgetBreakdown.every(
     item => item.stage && item.costType && item.amount > 0 && item.description?.trim()
   );
@@ -165,7 +159,6 @@ export default function TrustPage() {
 
   const isAllStepsValid = isHookValid && isMediaValid && isPlanValid && isKycValid;
 
-  // Logic: Only enforce `hasAgreedToFee` validation if the fee is functionally > 0
   const canSubmit = !isSubmitting && hasAgreedToTerms && hasAgreedToNotifyExternalFunding && (feePercentage === 0 || hasAgreedToFee) && (!isThirdParty || hasBeneficiaryConsent) && isAllStepsValid;
 
   if (isLoading) {
@@ -203,7 +196,6 @@ export default function TrustPage() {
         <CardContent className="p-6 md:p-8 pt-8 space-y-10 min-w-0">
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300 min-w-0">
 
-            {/* SECTION 1: EVIDENCE AND VERIFICATION DOCUMENTS */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                 <FileText className="h-4.5 w-4.5 text-primary" />
@@ -229,7 +221,6 @@ export default function TrustPage() {
               </div>
             </div>
 
-            {/* SECTION 2: PRE-COLLECTED FUNDS DECLARATION */}
             <div className="space-y-4">
               <div className="flex items-center gap-3 border-b border-border/40 pb-3 px-1">
                 <Landmark className="h-4.5 w-4.5 text-primary" />
@@ -282,7 +273,6 @@ export default function TrustPage() {
               </AnimatePresence>
             </div>
 
-            {/* SECTION 3: LEGAL & CONSENT DECLARATIONS */}
             <div className="space-y-4 pt-6 border-t border-border/40">
               <div className="flex items-center gap-3 pb-3 px-1">
                 <ShieldCheck className="h-4.5 w-4.5 text-primary" />
@@ -354,7 +344,6 @@ export default function TrustPage() {
               </div>
             </div>
 
-            {/* Validation Banner (Refined Feedback) */}
             {!isAllStepsValid && (
               <div className="p-5 rounded-2xl bg-amber-50/50 border border-amber-200 mb-6 space-y-2 animate-in fade-in">
                 <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
@@ -371,7 +360,6 @@ export default function TrustPage() {
               </div>
             )}
 
-            {/* NAVIGATION AND SUBMIT */}
             <div className="flex items-center justify-between pt-6 border-t border-border/40 min-w-0 gap-4">
               <Button variant="outline" className="rounded-3xl h-12 px-6 text-xs font-bold border-border/60 text-muted-foreground hover:bg-muted transition-all active:scale-95 min-w-0" onClick={() => router.push(`/dashboard/proposals/edit/${proposalId}/plan`)} disabled={isSubmitting}>
                 <span>Back</span>
@@ -389,7 +377,6 @@ export default function TrustPage() {
         </CardContent>
       </Card>
 
-      {/* Gated Feedback Thread */}
       {showFeedback && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <FeedbackThread
