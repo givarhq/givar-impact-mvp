@@ -38,6 +38,8 @@ interface ProfileFormProps {
         role: string;
         accountType: string;
         emailVerified: boolean;
+        twoFactorEnabled?: boolean;
+        hasPassword?: boolean;
         avatarUrl?: string;
         organization?: {
             status: string;
@@ -120,7 +122,6 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
         try {
             await ApiService.auth.updateProfile(data);
             const fullUser = { ...user, ...data };
-            // Logic: Consistent 48h maxAge for identity sync
             setCookie('givar_user', JSON.stringify(fullUser), { maxAge: 172800, path: '/' });
             toast.success("Profile updated");
             setEditingField(null);
@@ -179,7 +180,6 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
 
     const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
 
-    // Mapping for UI Display
     const accountTypeLabel = user.accountType === 'INDIVIDUAL' ? 'Personal Account' : 'Corporate Account';
     const isCurrentlyVerified = user.organization?.status === 'VERIFIED';
 
@@ -339,7 +339,7 @@ export const ProfileForm = memo(function ProfileForm({ user }: ProfileFormProps)
                 </div>
             </div>
 
-            <DangerZone />
+            <DangerZone user={user} />
 
             <ConfirmModal
                 isOpen={switchModal.isOpen}

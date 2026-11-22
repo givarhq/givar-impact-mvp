@@ -3,7 +3,7 @@
 import React, { useState, useEffect, memo } from 'react';
 import {
     Trash2, Loader2, ShieldAlert, XCircle,
-    AlertCircle, Eye, EyeOff, Lock
+    AlertCircle, Eye, EyeOff
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -21,13 +21,16 @@ export const DangerZone = memo(function DangerZone({ user }: DangerZoneProps) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [totpCode, setTotpCode] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmation, setConfirmation] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [useRecoveryCode, setUseRecoveryCode] = useState(false);
     const [currentUser, setCurrentUser] = useState<any>(user || null);
 
     useEffect(() => {
-        if (!user) {
+        if (user) {
+            setCurrentUser(user);
+        } else {
             const userCookie = getCookie('givar_user');
             if (userCookie) {
                 try {
@@ -38,20 +41,34 @@ export const DangerZone = memo(function DangerZone({ user }: DangerZoneProps) {
     }, [user]);
 
     const has2FA = currentUser?.twoFactorEnabled ?? false;
+    const hasPassword = currentUser?.hasPassword ?? true;
+
+    const isConfirmDisabled = isLoading || (
+        has2FA
+            ? (!useRecoveryCode ? totpCode.length !== 6 : totpCode.length !== 8)
+            : hasPassword
+                ? !password.trim()
+                : confirmation.toLowerCase().trim() !== (currentUser?.email || '').toLowerCase().trim()
+    );
 
     const handleDelete = async () => {
         if (has2FA && !totpCode) {
             return toast.error("Authentication code required to authorize deletion");
         }
-        if (!has2FA && !password.trim()) {
+        if (!has2FA && hasPassword && !password.trim()) {
             return toast.error("Please enter your password to confirm deletion");
+        }
+        if (!has2FA && !hasPassword && confirmation.toLowerCase().trim() !== (currentUser?.email || '').toLowerCase().trim()) {
+            return toast.error("Please type your email address to confirm deletion");
         }
 
         setIsLoading(true);
         try {
             const payload = has2FA
                 ? { totpCode }
-                : { password: password.trim() };
+                : hasPassword
+                    ? { password: password.trim() }
+                    : { confirmation: confirmation.trim() };
 
             await ApiService.auth.deleteAccount(payload);
             toast.success("Account successfully deleted");
@@ -79,6 +96,7 @@ export const DangerZone = memo(function DangerZone({ user }: DangerZoneProps) {
                     onClick={() => {
                         setTotpCode('');
                         setPassword('');
+                        setConfirmation('');
                         setIsDialogOpen(true);
                     }}
                     className="h-10 rounded-3xl px-6 font-bold text-xs shadow-sm active:scale-95 transition-all"
@@ -102,7 +120,9 @@ export const DangerZone = memo(function DangerZone({ user }: DangerZoneProps) {
                             <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
                                 {has2FA
                                     ? "Enter your authenticator code or emergency recovery code to authorize account deletion."
-                                    : "Enter your password to confirm permanent account removal."}
+                                    : hasPassword
+                                        ? "Enter your password to confirm permanent account removal."
+                                        : `Type your email address (${currentUser?.email}) to confirm permanent account removal.`}
                             </p>
                         </div>
 
@@ -148,7 +168,7 @@ export const DangerZone = memo(function DangerZone({ user }: DangerZoneProps) {
                                         </button>
                                     </div>
                                 </>
-                            ) : (
+                            ) : hasPassword ? (
                                 <div className="space-y-2 text-left w-full">
                                     <label className="text-xs font-bold text-muted-foreground ml-1">Current password</label>
                                     <div className="relative">
@@ -168,6 +188,18 @@ export const DangerZone = memo(function DangerZone({ user }: DangerZoneProps) {
                                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
                                     </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-2 text-left w-full">
+                                    <label className="text-xs font-bold text-muted-foreground ml-1">Confirm email address</label>
+                                    <Input
+                                        type="email"
+                                        placeholder={currentUser?.email || "name@example.com"}
+                                        value={confirmation}
+                                        onChange={(e) => setConfirmation(e.target.value)}
+                                        disabled={isLoading}
+                                        className="h-12 rounded-2xl bg-muted/20 text-sm w-full"
+                                    />
                                 </div>
                             )}
 
@@ -189,7 +221,7 @@ export const DangerZone = memo(function DangerZone({ user }: DangerZoneProps) {
                             <Button
                                 variant="destructive"
                                 onClick={handleDelete}
-                                disabled={isLoading || (has2FA ? (!useRecoveryCode ? totpCode.length !== 6 : totpCode.length !== 8) : !password.trim())}
+                                disabled={isConfirmDisabled}
                                 className="rounded-full h-11 font-bold text-xs shadow-md border-0 active:scale-95 transition-all"
                             >
                                 {isLoading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Confirm Deletion'}
