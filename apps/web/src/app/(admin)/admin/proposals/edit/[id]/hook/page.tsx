@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from '../../../../../../../components/ui/textarea';
 import { RichTextEditor } from '../../../../../../../components/ui/rich-text-editor';
 import { ApiService } from '../../../../../../../services/api';
+import { cn } from '../../../../../../../lib/utils/cn';
 import { ArrowRight, Loader2, User, Tag, HeartHandshake } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { toTitleCase, toSentenceCase } from '../../../../../../../lib/utils/format';
@@ -37,6 +38,7 @@ export default function AdminHookPage() {
         title, shortDesc, description, personalMessage, location, endDate,
         categoryId, subcategoryId,
         beneficiaryName, beneficiaryAge, beneficiaryRelationship, beneficiaryContact,
+        isMinor,
         setProposal, updateField
     } = useProposalStore();
 
@@ -106,11 +108,12 @@ export default function AdminHookPage() {
     const locationValid = !!(location && location.trim().length >= 2);
     const descValid = strippedDescription.length >= 20;
     const beneficiaryValid = !!(beneficiaryName && beneficiaryName.trim().length >= 2);
+    const minorValid = isMinor !== null && isMinor !== undefined;
     const relationshipValid = relSelect === 'Other'
         ? !!(beneficiaryRelationship && beneficiaryRelationship.trim())
         : !!relSelect;
 
-    const isHookValid = titleValid && locationValid && descValid && beneficiaryValid && relationshipValid;
+    const isHookValid = titleValid && locationValid && descValid && beneficiaryValid && minorValid && relationshipValid;
 
     return (
         <div className="space-y-6 w-full min-w-0 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -217,14 +220,38 @@ export default function AdminHookPage() {
                                     onChange={(e) => updateField('beneficiaryName', e.target.value)}
                                     className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                 />
-                                <Input
-                                    label="Current age *"
-                                    type="number"
-                                    placeholder="Age"
-                                    value={beneficiaryAge || ''}
-                                    onChange={(e) => updateField('beneficiaryAge', parseInt(e.target.value) || null)}
-                                    className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                />
+
+                                <div className="space-y-1.5 w-full">
+                                    <label className="text-xs font-bold text-muted-foreground/80 ml-1">
+                                        Is the beneficiary under 18 years old? *
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => updateField('isMinor', true)}
+                                            className={cn(
+                                                "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                                                isMinor === true
+                                                    ? "bg-primary/10 text-primary border-primary shadow-sm"
+                                                    : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                            )}
+                                        >
+                                            Yes
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateField('isMinor', false)}
+                                            className={cn(
+                                                "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                                                isMinor === false
+                                                    ? "bg-primary/10 text-primary border-primary shadow-sm"
+                                                    : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                            )}
+                                        >
+                                            No
+                                        </button>
+                                    </div>
+                                </div>
 
                                 <div className="w-full space-y-1">
                                     <label className="text-xs font-bold text-muted-foreground/80 ml-1">Relationship to beneficiary *</label>

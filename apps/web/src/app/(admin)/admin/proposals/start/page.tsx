@@ -10,6 +10,7 @@ import { Button } from '../../../../../components/ui/button';
 import { Input } from '../../../../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../components/ui/select';
 import { ApiService } from '../../../../../services/api';
+import { cn } from '../../../../../lib/utils/cn';
 import toast from 'react-hot-toast';
 import { Loader2, ArrowRight, User, HeartHandshake, Tag, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -19,7 +20,11 @@ const startSchema = z.object({
     categoryId: z.string().uuid('Please select a sector'),
     subcategoryId: z.string().uuid('Please select a specific focus'),
     beneficiaryName: z.string().min(2, 'Beneficiary name is required'),
-    beneficiaryAge: z.coerce.number().min(1, 'Valid age required'),
+    beneficiaryAge: z.coerce.number().optional().nullable(),
+    isMinor: z.boolean({
+        required_error: 'Please indicate whether the beneficiary is under 18 years old',
+        invalid_type_error: 'Please indicate whether the beneficiary is under 18 years old',
+    }),
     beneficiaryRelationship: z.string().min(2, 'Relationship is required'),
     beneficiaryContact: z.string().optional().nullable(),
 });
@@ -81,11 +86,11 @@ export default function AdminStartProposalPage() {
     const selectedCategoryId = watch('categoryId');
     const selectedCategoryObj = categories.find(c => c.id === selectedCategoryId);
     const availableSubcategories = selectedCategoryObj?.subcategories || [];
+    const watchIsMinor = watch('isMinor');
 
     const onSubmit = async (data: StartFormValues) => {
         setIsLoading(true);
         try {
-            // Note: isAssisted is explicitly passed as true to trigger admin logic
             const newProposal = await ApiService.proposals.create({
                 ...data,
                 categoryId: data.categoryId === '' ? null : data.categoryId,
@@ -219,14 +224,39 @@ export default function AdminStartProposalPage() {
                                             error={errors.beneficiaryName?.message}
                                             className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
                                         />
-                                        <Input
-                                            label="Current age"
-                                            type="number"
-                                            placeholder="Age"
-                                            {...register('beneficiaryAge')}
-                                            error={errors.beneficiaryAge?.message}
-                                            className="h-12 rounded-2xl bg-card border-border/60 focus:bg-background"
-                                        />
+
+                                        <div className="space-y-1.5 w-full">
+                                            <label className="text-xs font-bold text-muted-foreground/80 ml-1">
+                                                Is the beneficiary under 18 years old? *
+                                            </label>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setValue('isMinor', true, { shouldValidate: true })}
+                                                    className={cn(
+                                                        "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                                                        watchIsMinor === true
+                                                            ? "bg-primary/10 text-primary border-primary shadow-sm"
+                                                            : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                    )}
+                                                >
+                                                    Yes
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setValue('isMinor', false, { shouldValidate: true })}
+                                                    className={cn(
+                                                        "flex-1 h-12 rounded-2xl text-xs font-bold border transition-all active:scale-[0.98]",
+                                                        watchIsMinor === false
+                                                            ? "bg-primary/10 text-primary border-primary shadow-sm"
+                                                            : "bg-card text-muted-foreground border-border/60 hover:bg-muted"
+                                                    )}
+                                                >
+                                                    No
+                                                </button>
+                                            </div>
+                                            {errors.isMinor && <p className="text-[11px] font-bold text-destructive mt-1 ml-1">{errors.isMinor.message}</p>}
+                                        </div>
 
                                         <div className="w-full space-y-1">
                                             <label className="text-xs font-bold text-muted-foreground/80 ml-1">Relationship to beneficiary</label>
