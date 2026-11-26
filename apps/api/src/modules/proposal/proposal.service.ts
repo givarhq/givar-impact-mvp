@@ -114,7 +114,7 @@ export class ProposalService {
       where: { id: userId },
       select: { role: true, email: true, firstName: true, lastName: true }
     });
-    
+
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
 
     // --- GATEKEEPER: Organization Verification Check ---
@@ -413,7 +413,6 @@ export class ProposalService {
    * (Disbursements or Proofs), allowing access even if the path owner differs.
    */
   async isProjectAsset(projectId: string, key: string): Promise<boolean> {
-    // 1. Check Disbursements (Admin uploaded receipts)
     const disbursement = await this.prisma.disbursement.findFirst({
       where: {
         projectId,
@@ -424,8 +423,6 @@ export class ProposalService {
 
     if (disbursement) return true;
 
-    // 2. Check Milestone Proofs (User uploaded evidence)
-    // Note: Array check logic
     const proof = await this.prisma.milestoneProof.findFirst({
       where: {
         projectId,
@@ -436,6 +433,17 @@ export class ProposalService {
 
     if (proof) return true;
 
+    const externalDonation = await this.prisma.guestDonation.findFirst({
+      where: {
+        projectId,
+        receiptKey: key,
+        isExternal: true
+      },
+      select: { id: true }
+    });
+
+    if (externalDonation) return true;
+
     return false;
   }
 
@@ -444,7 +452,6 @@ export class ProposalService {
    * Verifies if a file key is valid AND retrieves rich metadata for auditing.
    */
   async getAssetContext(projectId: string, key: string) {
-    // 1. Check Disbursements (Receipts uploaded by Admin)
     const disbursement = await this.prisma.disbursement.findFirst({
       where: { projectId, receiptKey: key },
       select: {
@@ -464,8 +471,6 @@ export class ProposalService {
       };
     }
 
-    // 2. Check Milestone Proofs (Evidence uploaded by Owner)
-    // Note: Project Owners usually own these paths, but this handles edge cases (e.g. multi-user orgs)
     const proof = await this.prisma.milestoneProof.findFirst({
       where: { projectId, imageKeys: { has: key } },
       select: {
@@ -482,6 +487,22 @@ export class ProposalService {
         title: proof.project.title,
         phase,
         type: 'MILESTONE_PROOF'
+      };
+    }
+
+    const externalDonation = await this.prisma.guestDonation.findFirst({
+      where: { projectId, receiptKey: key, isExternal: true },
+      select: {
+        project: { select: { title: true } }
+      }
+    });
+
+    if (externalDonation) {
+      return {
+        valid: true,
+        title: externalDonation.project.title,
+        phase: 'External Contribution',
+        type: 'EXTERNAL_CONTRIBUTION_RECEIPT'
       };
     }
 

@@ -22,7 +22,7 @@ export class RecommendationsRepository {
         return this.prisma.project.findMany({
             where: {
                 isActive: true,
-                status: { in: [ProjectStatus.ACTIVE, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] },
+                status: { in: [ProjectStatus.ACTIVE, ProjectStatus.PAUSED, ProjectStatus.FUNDED, ProjectStatus.COMPLETED] },
             },
             select: {
                 id: true,

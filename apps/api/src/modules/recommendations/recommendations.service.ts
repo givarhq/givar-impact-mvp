@@ -64,9 +64,9 @@ export class RecommendationsService {
 
         const pinnedIds = new Set(featuredSlots.map(s => s.projectId));
 
-        // Logic: Main feed rows ALWAYS ONLY show ACTIVE projects.
-        // The completed showcase is strictly isolated to the bottom section.
-        const filteredCandidates = projects.filter(p => p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p));
+        const filteredCandidates = projects.filter(
+            p => (p.status === ProjectStatus.ACTIVE || p.status === ProjectStatus.PAUSED) && !this.isPhaseFull(p)
+        );
 
         const projectIds = filteredCandidates.map((p) => p.id);
         const velocityMap = await this.repo.getDonationVelocityMap(projectIds);
@@ -166,12 +166,11 @@ export class RecommendationsService {
                 .filter(Boolean)
         }));
 
-        // --- NEW LOGIC: Fetch Completed Projects separately if toggled ON ---
         let completedProjects = [];
         if (config.showFundedProjects) {
             const completedRaw = await this.prisma.project.findMany({
                 where: { status: ProjectStatus.COMPLETED, isActive: true },
-                take: 8, // Fetch up to 8 recent completed projects
+                take: 8,
                 orderBy: { fundedAt: 'desc' },
                 include: {
                     category: { select: { name: true, slug: true, icon: true } },
@@ -349,8 +348,9 @@ export class RecommendationsService {
 
         if (projects.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
-        // Logic: Main feed rows ALWAYS ONLY show ACTIVE projects.
-        const filteredCandidates = projects.filter(p => p.status === ProjectStatus.ACTIVE && !this.isPhaseFull(p));
+        const filteredCandidates = projects.filter(
+            p => (p.status === ProjectStatus.ACTIVE || p.status === ProjectStatus.PAUSED) && !this.isPhaseFull(p)
+        );
 
         if (filteredCandidates.length === 0) return { data: [], meta: { total: 0, page: 1, lastPage: 1 } };
 
