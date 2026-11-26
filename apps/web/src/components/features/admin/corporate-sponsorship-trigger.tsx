@@ -16,33 +16,47 @@ import { Tabs, TabsList, TabsTrigger } from '../../ui/tabs';
 import { ImageUploader } from '../proposals/media-uploader';
 import { AnimatePresence, motion } from 'framer-motion';
 
-export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projectStatus }: { projectId: string; projectCurrency: string; projectStatus: string }) {
+export function CorporateSponsorshipTrigger({
+    projectId,
+    projectCurrency,
+    projectStatus,
+    open: controlledOpen,
+    onOpenChange: setControlledOpen,
+    hideTrigger = false
+}: {
+    projectId: string;
+    projectCurrency: string;
+    projectStatus: string;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    hideTrigger?: boolean;
+}) {
     const router = useRouter();
-    const [isOpen, setIsOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setIsOpen = (val: boolean) => {
+        if (setControlledOpen) setControlledOpen(val);
+        else setInternalOpen(val);
+    };
+
     const [isLoading, setIsLoading] = useState(false);
 
-    // Form State
     const [sponsorName, setSponsorName] = useState('');
     const [sponsorEmail, setSponsorEmail] = useState('');
     const [amount, setAmount] = useState('');
     const [reference, setReference] = useState('');
 
-    // FX State
     const [isForeign, setIsForeign] = useState(false);
     const [donorCurrency, setDonorCurrency] = useState('USD');
     const [donorAmount, setDonorAmount] = useState('');
     const [fxRates, setFxRates] = useState<Record<string, number>>({});
 
-    // Logo Crawler State
     const [logoMode, setLogoMode] = useState<'auto' | 'upload'>('auto');
     const [domain, setDomain] = useState('');
     const [logoStatus, setLogoStatus] = useState<'idle' | 'crawling' | 'success' | 'fallback'>('idle');
     const [resolvedLogoUrl, setResolvedLogoUrl] = useState<string>('');
     const [uploadedLogo, setUploadedLogo] = useState<{ key: string; previewUrl: string } | null>(null);
     const [logoError, setLogoError] = useState(false);
-
-    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
-    const autoLogoUrl = cleanDomain && !logoError ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128` : '';
 
     const isLocked = projectStatus === 'COMPLETED' || projectStatus === 'SUSPENDED';
 
@@ -193,14 +207,16 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projec
 
     return (
         <>
-            <Button
-                onClick={() => setIsOpen(true)}
-                disabled={isLocked}
-                className="rounded-3xl h-10 px-6 font-bold text-xs shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-95 gap-2"
-            >
-                {isLocked ? <Lock className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
-                <span>{isLocked ? 'Donation ended' : 'Log corporate sponsorship'}</span>
-            </Button>
+            {!hideTrigger && (
+                <Button
+                    onClick={() => setIsOpen(true)}
+                    disabled={isLocked}
+                    className="rounded-3xl h-10 px-6 font-bold text-xs shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-95 gap-2"
+                >
+                    {isLocked ? <Lock className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
+                    <span>{isLocked ? 'Donation ended' : 'Log corporate sponsorship'}</span>
+                </Button>
+            )}
 
             <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && setIsOpen(false)}>
                 <DialogContent className="max-w-lg w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-h-[90vh] flex flex-col">
@@ -222,7 +238,6 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projec
 
                     <div className="px-6 md:px-8 py-4 space-y-6 overflow-y-auto no-scrollbar flex-1">
 
-                        {/* LOGO RESOLUTION SECTION */}
                         <div className="space-y-3 p-4 rounded-3xl bg-muted/20 border border-border/40 shadow-sm">
                             <div className="flex items-center justify-between gap-4">
                                 <label className="text-[11px] font-bold text-muted-foreground">Company logo</label>
@@ -290,7 +305,6 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projec
                             </AnimatePresence>
                         </div>
 
-                        {/* SPONSOR DETAILS */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-muted-foreground ml-1">Corporate sponsor name *</label>
@@ -322,7 +336,6 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projec
                             </div>
                         </div>
 
-                        {/* FINANCIAL DETAILS */}
                         <div className="space-y-4 pt-4 border-t border-border/40">
                             <div className="flex items-center justify-between">
                                 <label className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
@@ -401,7 +414,6 @@ export function CorporateSponsorshipTrigger({ projectId, projectCurrency, projec
                                 </div>
                             </div>
 
-                            {/* Live FX Calculation Helper */}
                             {isForeign && fxRates[donorCurrency] && (
                                 <div className="flex items-start gap-2 mt-2 px-1">
                                     <Info className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />

@@ -16,14 +16,26 @@ import { AnimatePresence, motion } from 'framer-motion';
 export function ExternalContributionTrigger({
     projectId,
     projectCurrency,
-    projectStatus
+    projectStatus,
+    open: controlledOpen,
+    onOpenChange: setControlledOpen,
+    hideTrigger = false
 }: {
     projectId: string;
     projectCurrency: string;
     projectStatus: string;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    hideTrigger?: boolean;
 }) {
     const router = useRouter();
-    const [isOpen, setIsOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setIsOpen = (val: boolean) => {
+        if (setControlledOpen) setControlledOpen(val);
+        else setInternalOpen(val);
+    };
+
     const [isLoading, setIsLoading] = useState(false);
     const [isUploadingProof, setIsUploadingProof] = useState(false);
 
@@ -166,15 +178,17 @@ export function ExternalContributionTrigger({
 
     return (
         <>
-            <Button
-                variant="outline"
-                onClick={() => setIsOpen(true)}
-                disabled={isLocked}
-                className="rounded-3xl h-10 px-5 font-bold text-xs shadow-sm border-border/60 bg-background text-foreground hover:bg-muted transition-all active:scale-95 gap-2"
-            >
-                {isLocked ? <Lock className="h-4 w-4" /> : <FileText className="h-4 w-4 text-primary" />}
-                <span>{isLocked ? 'Donation ended' : 'Log External Contribution'}</span>
-            </Button>
+            {!hideTrigger && (
+                <Button
+                    variant="outline"
+                    onClick={() => setIsOpen(true)}
+                    disabled={isLocked}
+                    className="rounded-3xl h-10 px-5 font-bold text-xs shadow-sm border-border/60 bg-background text-foreground hover:bg-muted transition-all active:scale-95 gap-2"
+                >
+                    {isLocked ? <Lock className="h-4 w-4" /> : <FileText className="h-4 w-4 text-primary" />}
+                    <span>{isLocked ? 'Donation ended' : 'Log External Contribution'}</span>
+                </Button>
+            )}
 
             <Dialog open={isOpen} onOpenChange={(open) => !open && !isLoading && setIsOpen(false)}>
                 <DialogContent className="max-w-lg w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-card max-h-[90vh] flex flex-col">
