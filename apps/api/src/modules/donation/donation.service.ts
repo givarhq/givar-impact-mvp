@@ -189,6 +189,10 @@ export class DonationService implements OnModuleInit {
       throw new BadRequestException('Project is not active or does not exist');
     }
 
+    if (project.status === ProjectStatus.PAUSED) {
+      throw new BadRequestException('Donations are temporarily paused for this cause.');
+    }
+
     if (project.status !== ProjectStatus.ACTIVE) {
       throw new BadRequestException(`Project is currently ${project.status.toLowerCase()} and cannot accept donations.`);
     }
@@ -449,6 +453,10 @@ export class DonationService implements OnModuleInit {
       throw new BadRequestException('Project is not active or does not exist.');
     }
 
+    if (project.status === ProjectStatus.PAUSED) {
+      throw new BadRequestException('Donations are temporarily paused for this cause.');
+    }
+
     if (project.status !== ProjectStatus.ACTIVE) {
       throw new BadRequestException(`Project is currently ${project.status.toLowerCase()} and cannot accept donations.`);
     }
@@ -486,14 +494,12 @@ export class DonationService implements OnModuleInit {
 
     const netAmountMinor = baseAmountBig + feeAmountMinor + tipAmountBig;
 
-    // --- Dynamic Gateway Fee Math (Local vs International) ---
     let gatewayFeeMinor = 0n;
     if (netAmountMinor > 0n) {
       const isInternational = dto.donorCurrency && dto.donorCurrency !== 'NGN';
-      const threshold = 250000n; // 2500 NGN in kobo
-      const flatFee = 10000n; // 100 NGN in kobo
+      const threshold = 250000n;
+      const flatFee = 10000n;
 
-      // Paystack math: 1.5% local (1000-15=985), 3.9% international (1000-39=961)
       const divisor = isInternational ? 961n : 985n;
 
       let chargeMinor = (netAmountMinor * 1000n) / divisor;
@@ -503,7 +509,6 @@ export class DonationService implements OnModuleInit {
 
       gatewayFeeMinor = chargeMinor - netAmountMinor;
 
-      // Paystack caps local fees at 2000 NGN. International fees are uncapped.
       if (!isInternational && gatewayFeeMinor > 200000n) {
         gatewayFeeMinor = 200000n;
       }
@@ -563,9 +568,6 @@ export class DonationService implements OnModuleInit {
 
       if (activeContext.activeSubaccount) {
         paystackPayload.subaccount = activeContext.activeSubaccount;
-        // CRITICAL FIX: We only take our platform fee and tip as the transaction_charge.
-        // By setting bearer: 'subaccount', Paystack deducts its gateway fee directly from the subaccount.
-        // Since we already padded the gross amount with the exact gateway fee, the subaccount receives exactly the baseAmount.
         paystackPayload.transaction_charge = Number(feeAmountMinor + tipAmountBig);
         paystackPayload.bearer = 'subaccount';
       }

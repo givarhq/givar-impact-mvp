@@ -79,12 +79,13 @@ export class ProjectService {
 
     const phaseFullIds = await this.getPhaseFullProjectIds();
 
-    // 1. Dynamic Filter Construction: Strictly separate ACTIVE and COMPLETED
     const where: Prisma.ProjectWhereInput = {
       isActive: true,
       ...(status === ProjectStatus.COMPLETED
         ? { status: { in: [ProjectStatus.COMPLETED, ProjectStatus.FUNDED] } }
-        : { status: ProjectStatus.ACTIVE }),
+        : status === ProjectStatus.PAUSED
+          ? { status: ProjectStatus.PAUSED }
+          : { status: { in: [ProjectStatus.ACTIVE, ProjectStatus.PAUSED] } }),
       ...(category && { category: { slug: category } }),
       ...(subcategory && { subcategory: { slug: subcategory } }),
       ...(search && {
@@ -96,7 +97,6 @@ export class ProjectService {
       }),
     };
 
-    // Strictly exclude paused or fully funded causes from the Active Feed
     if (!status || status === ProjectStatus.ACTIVE) {
       where.id = { notIn: phaseFullIds };
     }
@@ -133,7 +133,6 @@ export class ProjectService {
     const data = await Promise.all(projects.map(async (p) => {
       const hydrated = await this.storage.hydrateEntityMedia(p);
 
-      // CRITICAL PRIVACY GUARD: Scrub the waitlist array containing plain-text emails before dispatch to frontend
       const { waitlistEmails, ...safeProject } = hydrated as any;
 
       const raised = Number(safeProject.raisedAmount || 0n);
@@ -557,7 +556,7 @@ export class ProjectService {
         type: 'INFLOW',
         amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
         currency: d.currency,
-        status: d.transaction?.status || 'COMPLETED', // <--- FIXED
+        status: d.transaction?.status || 'COMPLETED',
         reference: d.transaction?.reference || d.transactionId,
         createdAt: d.createdAt,
         actorName: isRequester ? `${d.user?.firstName} ${d.user?.lastName}` : maskName(d.user?.firstName, d.user?.lastName),
@@ -574,7 +573,7 @@ export class ProjectService {
       type: 'INFLOW',
       amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
       currency: d.currency,
-      status: 'COMPLETED', // <--- FIXED
+      status: 'COMPLETED',
       reference: d.reference,
       createdAt: d.createdAt,
       actorName: d.guestDonor?.isCorporate ? d.guestDonor.name : maskName(null, null, d.guestDonor?.name),
@@ -582,7 +581,9 @@ export class ProjectService {
       projectSlug: d.project.slug,
       phaseName: d.message?.startsWith('Phase') ? d.message : null,
       message: d.message,
-      isCorporate: d.guestDonor?.isCorporate
+      isCorporate: d.guestDonor?.isCorporate,
+      isExternal: d.isExternal,
+      receiptKey: d.receiptKey
     }));
 
     disbursements.forEach(d => entries.push({
@@ -590,7 +591,7 @@ export class ProjectService {
       type: 'OUTFLOW',
       amount: d.amount.toString(),
       currency: d.currency,
-      status: 'COMPLETED', // <--- FIXED
+      status: 'COMPLETED',
       reference: d.reference,
       createdAt: d.createdAt,
       actorName: d.vendorName,
