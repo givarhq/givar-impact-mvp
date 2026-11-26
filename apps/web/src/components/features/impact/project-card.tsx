@@ -3,7 +3,7 @@
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MapPin, UserCheck, BadgeCheck, Building2, Target, ArrowRight, BookOpen } from 'lucide-react';
+import { Heart, MapPin, UserCheck, BadgeCheck, Building2, Target, ArrowRight, BookOpen, Clock } from 'lucide-react';
 import { ProjectCardProps } from '../../../types';
 import { SmartCurrency } from '../../ui/smart-currency';
 import { Card } from '../../ui/card';
@@ -11,7 +11,6 @@ import { motion } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
 import { calculatePhaseFunding } from '@givar/types';
 
-// Utility to clean raw HTML tags and entities from descriptions for card previews
 const cleanDescription = (text?: string | null) => {
   if (!text) return '';
   return text
@@ -38,6 +37,7 @@ export const ProjectCard = memo(function ProjectCard({
   const {
     isCompleted,
     isFundedState,
+    isPaused,
     totalRaised,
     totalTarget,
     totalPercent
@@ -67,12 +67,10 @@ export const ProjectCard = memo(function ProjectCard({
     ? `${project.categoryName} • ${project.subcategoryName}`
     : (project.categoryName || 'Active cause');
 
-  // --- COMPLETED CARD LAYOUT (Ultra-compact on mobile, horizontal row on desktop) ---
   if (isActuallyCompleted) {
     return (
       <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
         <Card className="group flex flex-row rounded-3xl bg-card border-border/40 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none p-3 sm:p-4 gap-3 sm:gap-4">
-          {/* Left Thumbnail (Compact row thumbnail on mobile, wider on desktop) */}
           <div className="relative w-[100px] sm:w-[160px] md:w-[170px] aspect-[4/3] rounded-2xl overflow-hidden bg-muted shrink-0 my-auto sm:my-0">
             {project.imageUrl ? (
               <Image
@@ -89,7 +87,6 @@ export const ProjectCard = memo(function ProjectCard({
             )}
           </div>
 
-          {/* Right Details */}
           <div className="flex-1 flex flex-col justify-between min-w-0">
             <div>
               <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-500/10 text-emerald-600 mb-1 sm:mb-1.5 w-fit">
@@ -119,7 +116,6 @@ export const ProjectCard = memo(function ProjectCard({
     );
   }
 
-  // --- ACTIVE CARD LAYOUT (Horizontal row on mobile, vertical card on desktop) ---
   return (
     <Link href={detailsLink} onClick={handleProjectClick} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-3xl">
       <Card
@@ -167,6 +163,12 @@ export const ProjectCard = memo(function ProjectCard({
           </div>
 
           <div className="space-y-2 sm:space-y-3 mt-auto min-w-0 gap-2 sm:gap-3">
+            {isPaused && (
+              <div className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full mb-1 w-fit">
+                <Clock className="h-3 w-3" /> Paused
+              </div>
+            )}
+
             {isFundedState && (
               <div className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-emerald-600 mb-1">
                 Goal Reached

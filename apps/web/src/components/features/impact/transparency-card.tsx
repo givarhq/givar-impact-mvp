@@ -25,7 +25,6 @@ const SYMBOLS: Record<string, string> = {
 };
 
 export const TransparencyCard = memo(function TransparencyCard({ project }: TransparencyCardProps) {
-    // --- AGGREGATED PHASED FUNDING MATH ---
     const phaseMath = calculatePhaseFunding(project as any);
 
     const {
@@ -35,6 +34,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         totalPercent,
         isCompleted,
         isFundedState,
+        isPaused,
         isPhaseFull,
         currentStageDisplayName,
         raisedInCurrentPhase,
@@ -42,14 +42,12 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         phasePercent
     } = phaseMath;
 
-    // Waitlist State
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [waitlistEmail, setWaitlistEmail] = useState('');
     const [isWaitlistLoading, setIsWaitlistLoading] = useState(false);
     const [isWaitlisted, setIsWaitlisted] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    // Smart UI flag to suppress default boxes if a corporate sponsor is rendering instead
     const hasCorporateSponsorCompleted = project.corporateSponsor && (isCompleted || isFundedState);
 
     useEffect(() => {
@@ -64,7 +62,6 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
             } catch (e) { }
         }
 
-        // Rely on the secure boolean returned by the backend rather than the raw array
         if (project.isWaitlisted) {
             setIsWaitlisted(true);
         }
@@ -82,7 +79,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
         setIsWaitlistLoading(true);
         try {
             await ApiService.projects.joinWaitlist(project.id, waitlistEmail);
-            toast.success("You'll be notified when the next phase unlocks!");
+            toast.success(isPaused ? "You'll be notified when donations resume!" : "You'll be notified when the next phase unlocks!");
             setIsWaitlisted(true);
         } catch (e: any) {
             toast.error("Could not join waitlist. Please try again.");
@@ -98,7 +95,6 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
     return (
         <div className="space-y-4 md:space-y-5" id="transparency-card">
 
-            {/* Segment 1: Overall Progress */}
             <Card className="relative overflow-hidden bg-card border-border/40 rounded-3xl p-5 md:p-6 shadow-sm">
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -156,8 +152,7 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 </div>
             </Card>
 
-            {/* Segment 2: Phased Funding Note (Suppressed if Corporate Sponsor exists and project is funded) */}
-            {!hasCorporateSponsorCompleted && (!isCompleted && !isFundedState) && (
+            {!hasCorporateSponsorCompleted && (!isCompleted && !isFundedState && !isPaused) && (
                 <Card className="bg-primary/5 border border-primary/20 rounded-3xl p-4 shadow-sm">
                     <div className="flex items-start gap-3">
                         <div className="mt-0.5">
@@ -173,7 +168,6 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                 </Card>
             )}
 
-            {/* Segment 3: Current Funding Phase */}
             {(!isCompleted && !isFundedState) ? (
                 <div className="space-y-4 md:space-y-5">
                     <div className="flex items-center gap-4">
@@ -187,7 +181,56 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                             {currentStageDisplayName}
                         </h4>
 
-                        {isPhaseFull ? (
+                        {isPaused ? (
+                            <div className="space-y-4 animate-in fade-in">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200/60 w-fit">
+                                        <Clock className="h-3.5 w-3.5" /> Cause Paused
+                                    </div>
+                                    <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                                        Donations are temporarily paused for this cause.
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-border/40 space-y-3">
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <BellRing className="h-3.5 w-3.5" />
+                                        <h4 className="text-[11px] font-bold">Get notified when donations resume</h4>
+                                    </div>
+
+                                    {isWaitlisted ? (
+                                        <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl animate-in zoom-in duration-300">
+                                            <CheckCircle2 className="h-4 w-4 shrink-0" />
+                                            <span className="text-[11px] font-bold">You're on the list! We'll notify you soon.</span>
+                                        </div>
+                                    ) : isAuthenticated ? (
+                                        <Button
+                                            onClick={handleJoinWaitlist}
+                                            disabled={isWaitlistLoading}
+                                            className="h-9 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-[11px]"
+                                        >
+                                            {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Notify me when resumed'}
+                                        </Button>
+                                    ) : (
+                                        <div className="flex flex-col gap-2">
+                                            <Input
+                                                placeholder="your@email.com"
+                                                value={waitlistEmail}
+                                                onChange={e => setWaitlistEmail(e.target.value)}
+                                                className="h-9 rounded-2xl bg-muted/20 border-border/40 text-[11px] shadow-inner focus:bg-background"
+                                            />
+                                            <Button
+                                                onClick={handleJoinWaitlist}
+                                                disabled={isWaitlistLoading || !waitlistEmail}
+                                                className="h-9 rounded-2xl font-bold bg-muted/30 hover:bg-muted text-foreground border border-border/60 shadow-sm w-full transition-all active:scale-95 text-[11px]"
+                                            >
+                                                {isWaitlistLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Notify me when resumed'}
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ) : isPhaseFull ? (
                             <div className="space-y-4 animate-in fade-in">
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-xl border border-amber-200/60 w-fit">
@@ -257,7 +300,6 @@ export const TransparencyCard = memo(function TransparencyCard({ project }: Tran
                     </Card>
                 </div>
             ) : !hasCorporateSponsorCompleted ? (
-                // Only show this default "Cause Fully Funded" box if NO corporate sponsor exists
                 <Card className="p-5 md:p-6 rounded-3xl border border-primary/20 bg-primary/5 text-center space-y-2 shadow-sm">
                     <div className="h-12 w-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                         <CheckCircle2 className="h-6 w-6" />

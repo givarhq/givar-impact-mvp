@@ -64,7 +64,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
 
-    // Reporting State
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
     const [reportReason, setReportReason] = useState('');
@@ -86,6 +85,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
     const {
         isCompleted,
         isFundedState,
+        isPaused,
         isPhaseFull,
         currentStageLogicName,
         previousStages
@@ -164,6 +164,11 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                         <Badge variant="secondary" className="rounded-3xl font-bold text-xs px-3 py-1 border-none bg-muted">
                             {displayCategory}
                         </Badge>
+                        {project.status === 'PAUSED' && (
+                            <Badge variant="outline" className="rounded-3xl font-bold text-xs px-3 py-1 shadow-none gap-1.5 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                                <Clock className="h-3.5 w-3.5" /> Paused
+                            </Badge>
+                        )}
                         {project.status === 'SUSPENDED' && (
                             <Badge variant="destructive" className="rounded-3xl font-bold text-xs px-3 py-1 shadow-none gap-1.5">
                                 <AlertTriangle className="h-3.5 w-3.5" /> Suspended
@@ -359,12 +364,15 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                 const itemStage = item.stage || 'Main Stage';
 
                                                 const isItemCompleted = previousStages.includes(itemStage) || isCompleted || isFundedState;
-                                                const isItemCurrent = itemStage === currentStageLogicName && !isCompleted && !isFundedState && !isPhaseFull;
+                                                const isItemCurrent = itemStage === currentStageLogicName && !isCompleted && !isFundedState && !isPhaseFull && !isPaused;
                                                 const isItemFull = itemStage === currentStageLogicName && isPhaseFull;
+                                                const isItemPaused = itemStage === currentStageLogicName && isPaused;
 
                                                 let statusBadge;
                                                 if (isItemCompleted) {
                                                     statusBadge = <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><CheckCircle2 className="h-3.5 w-3.5" /> Completed</Badge>;
+                                                } else if (isItemPaused) {
+                                                    statusBadge = <Badge className="bg-amber-50 text-amber-600 border-amber-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> Paused</Badge>;
                                                 } else if (isItemCurrent || isItemFull) {
                                                     statusBadge = <Badge className="bg-blue-50 text-blue-600 border-blue-200 shadow-none gap-1 py-1 px-3 rounded-3xl whitespace-nowrap"><Clock className="h-3.5 w-3.5" /> In Progress</Badge>;
                                                 } else {
@@ -376,7 +384,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                                                     : (item.payTo || item.vendor || 'Pending vendor sourcing');
 
                                                 return (
-                                                    <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
+                                                    <tr key={i} className={cn("transition-colors", (isItemCurrent || isItemFull || isItemPaused) ? "bg-primary/[0.02]" : "hover:bg-muted/10")}>
                                                         <td className="px-6 py-4">
                                                             <div className="font-bold text-foreground text-sm mb-1">{item.description || item.item}</div>
                                                             <span className="text-[10px] font-bold text-muted-foreground tracking-tight">{itemStage}</span>
@@ -513,11 +521,9 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 <div className="sticky top-20 space-y-4 md:space-y-6">
                     <TransparencyCard project={project} />
 
-                    {/* Celebratory Corporate Sponsorship Showcase */}
                     {project.corporateSponsor && (isCompleted || isFundedState) && (
                         <div className="bg-[#f0fdf4] dark:bg-emerald-950/20 rounded-3xl p-4 sm:p-5 text-center flex flex-col gap-4 sm:gap-5 border border-emerald-100/80 dark:border-emerald-900/40 shadow-sm animate-in fade-in zoom-in-95 duration-500">
                             <div className="relative flex items-center justify-between w-full px-1">
-                                {/* Left Confetti Sparks */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 -rotate-[20deg] transition-transform">
                                     <line x1="50" y1="18" x2="48" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="32" y1="23" x2="24" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -526,7 +532,6 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                                 <h3 className="text-xs sm:text-sm font-bold text-foreground leading-tight px-1 whitespace-nowrap">Funding completed by</h3>
 
-                                {/* Right Confetti Sparks */}
                                 <svg width="56" height="32" viewBox="0 0 64 36" fill="none" className="text-emerald-600 shrink-0 rotate-[20deg] transition-transform">
                                     <line x1="14" y1="18" x2="16" y2="8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                     <line x1="32" y1="23" x2="40" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -564,7 +569,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
 
                     <div className="space-y-3">
                         <div className="hidden md:block space-y-3">
-                            {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') && (
+                            {(!isCompleted && !isFundedState && !isPhaseFull && !isPaused && project.status !== 'SUSPENDED') && (
                                 <Link href={donateLink} className="block w-full">
                                     <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
                                         Fund this impact
@@ -663,7 +668,7 @@ export const ProjectDetailsClient = memo(function ProjectDetailsClient({ project
                 "md:hidden fixed left-0 right-0 p-4 z-40 flex items-center gap-3 pointer-events-none",
                 isPublic ? "bottom-0 pb-[max(1rem,env(safe-area-inset-bottom))]" : "bottom-14"
             )}>
-                {(!isCompleted && !isFundedState && !isPhaseFull && project.status !== 'SUSPENDED') ? (
+                {(!isCompleted && !isFundedState && !isPhaseFull && !isPaused && project.status !== 'SUSPENDED') ? (
                     <>
                         <Link href={donateLink} className="flex-1 block w-full pointer-events-auto">
                             <Button size="lg" className="w-full h-12 rounded-3xl bg-primary text-white hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 transition-all active:scale-95 border-0">
