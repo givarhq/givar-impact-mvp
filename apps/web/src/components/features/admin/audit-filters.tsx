@@ -118,12 +118,16 @@ export const AuditFilters = memo(function AuditFilters() {
         <SelectItem value="DISBURSEMENT_RECORDED" className="text-xs">Disbursement Recorded</SelectItem>
         <SelectItem value="TRANSACTION_RESOLVED" className="text-xs">Ledger Entry Resolved</SelectItem>
         <SelectItem value="RECEIPT_VIEWED" className="text-xs">Receipt Access Logged</SelectItem>
+        <SelectItem value="CORPORATE_SPONSORSHIP_LOGGED" className="text-xs">Corporate Sponsorship Logged</SelectItem>
+        <SelectItem value="EXTERNAL_CONTRIBUTION_LOGGED" className="text-xs">External Contribution Logged</SelectItem>
       </SelectGroup>
 
       <SelectGroup>
         <SelectLabel className="text-[10px] font-black text-primary px-2 py-1.5  tracking-widest">Causes & Proposals</SelectLabel>
         <SelectItem value="PROJECT_CREATED" className="text-xs">Project Created</SelectItem>
         <SelectItem value="PROJECT_UPDATED" className="text-xs">Project Updated</SelectItem>
+        <SelectItem value="PROJECT_PAUSED" className="text-xs">Project Paused</SelectItem>
+        <SelectItem value="PROJECT_RESUMED" className="text-xs">Project Resumed</SelectItem>
         <SelectItem value="PROJECT_DELETED" className="text-xs">Project Deleted</SelectItem>
         <SelectItem value="PROJECT_SUSPENDED" className="text-xs">Project Suspended</SelectItem>
         <SelectItem value="PROPOSAL_REJECTED" className="text-xs">Proposal Rejected</SelectItem>

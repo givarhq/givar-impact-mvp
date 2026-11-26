@@ -50,6 +50,10 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
       config.label = 'Goal Reached';
     } else if (proposal.projectStatus === 'COMPLETED') {
       config.label = 'Impact Achieved';
+    } else if (proposal.projectStatus === 'PAUSED') {
+      config.label = 'Paused';
+      config.color = 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+      config.icon = Clock;
     } else if (proposal.projectStatus === 'SUSPENDED') {
       config.label = 'Suspended';
       config.color = 'text-amber-500 bg-amber-500/10 border-amber-500/20';
@@ -87,7 +91,6 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
       <Card className="group flex flex-col h-full bg-card rounded-3xl border-border/40 shadow-sm transition-all duration-200 hover:shadow-md min-w-0">
         <CardContent className="p-4 md:p-5 flex flex-col h-full gap-3 md:gap-4 min-w-0">
 
-          {/* Card Header: Status & Context */}
           <div className="flex justify-between items-start gap-2 min-w-0 shrink-0">
             <div className={cn(
               "flex items-center gap-1.5 px-2 md:px-2.5 py-0.5 md:py-1 rounded-full md:rounded-3xl border text-[10px] md:text-[11px] font-bold tracking-wider transition-colors min-w-0 truncate",
@@ -131,7 +134,6 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
             </DropdownMenu>
           </div>
 
-          {/* Content Body: Narrative */}
           <div className="flex-1 min-w-0 flex flex-col">
             <Link href={linkTarget} className={cn("block space-y-1 md:space-y-1.5 min-w-0 mb-3 md:mb-2", (proposal.status !== 'APPROVED' && !isEditable && proposal.status !== 'CHANGES_REQUESTED') && "cursor-pointer")}>
               <h3 className="font-bold text-sm leading-tight md:leading-snug text-foreground line-clamp-2 group-hover:text-primary transition-colors min-w-0">
@@ -152,7 +154,6 @@ export const ProposalCard = memo(function ProposalCard({ proposal }: ProposalCar
             </div>
           </div>
 
-          {/* Action Button: Footer Area */}
           <div className="shrink-0 mt-1 md:mt-0">
             {isApproved ? (
               <Link href={linkTarget} className="block w-full">

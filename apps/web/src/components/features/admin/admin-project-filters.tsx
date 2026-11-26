@@ -90,7 +90,6 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                     </Button>
 
                     <div className="hidden md:flex items-center gap-2">
-                        {/* System Projects Toggle */}
                         <Button
                             variant="outline"
                             onClick={() => setIsSystem(!isSystem)}
@@ -118,6 +117,7 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                                     {activeTab === 'live' ? (
                                         <>
                                             <SelectItem value="ACTIVE" className="text-xs">Active</SelectItem>
+                                            <SelectItem value="PAUSED" className="text-xs">Paused</SelectItem>
                                             <SelectItem value="FUNDED" className="text-xs">Funded</SelectItem>
                                             <SelectItem value="COMPLETED" className="text-xs">Completed</SelectItem>
                                             <SelectItem value="SUSPENDED" className="text-xs">Suspended</SelectItem>
@@ -189,7 +189,10 @@ export const AdminProjectFilters = memo(function AdminProjectFilters({ categorie
                                 <SelectContent className="rounded-3xl">
                                     <SelectItem value="all">All statuses</SelectItem>
                                     <SelectItem value="ACTIVE">Active</SelectItem>
+                                    <SelectItem value="PAUSED">Paused</SelectItem>
                                     <SelectItem value="FUNDED">Funded</SelectItem>
+                                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                                    <SelectItem value="SUSPENDED">Suspended</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
