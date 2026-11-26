@@ -12,6 +12,7 @@ import { RecordDisbursementDto } from './dto/admin-disbursement.dto';
 import { AdminProjectQueryDto, AdminProposalQueryDto, AdminUserQueryDto } from './dto/admin-project-query.dto';
 import { AdminFinanceQueryDto } from './dto/admin-finance.dto';
 import { LogCorporateSponsorshipDto } from './dto/admin-sponsorship.dto';
+import { LogExternalContributionDto } from './dto/admin-external-contribution.dto';
 
 @SkipThrottle()
 @Controller('admin')
@@ -452,5 +453,24 @@ export class AdminController {
     @Body('force') force?: boolean
   ) {
     return this.service.inviteExistingUsersToNewCauses(req.user.id, force);
+  }
+
+  @Patch('projects/:id/pause')
+  pauseProject(@Req() req: any, @Param('id') id: string) {
+    return this.service.pauseProject(req.user.id, id);
+  }
+
+  @Patch('projects/:id/resume')
+  resumeProject(@Req() req: any, @Param('id') id: string) {
+    return this.service.resumeProject(req.user.id, id);
+  }
+
+  @Post('projects/:id/external-contribution')
+  logExternalContribution(
+    @Req() req: any,
+    @Param('id') projectId: string,
+    @Body() dto: LogExternalContributionDto
+  ) {
+    return this.service.logExternalContribution(req.user.id, projectId, dto);
   }
 }

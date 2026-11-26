@@ -21,6 +21,7 @@ import { randomUUID } from 'crypto';
 import { calculatePhaseFunding } from '@givar/types';
 import { AuthService } from '../auth/auth.service';
 import { LogCorporateSponsorshipDto } from './dto/admin-sponsorship.dto';
+import { LogExternalContributionDto } from './dto/admin-external-contribution.dto';
 
 @Injectable()
 export class AdminService {
@@ -4017,6 +4018,302 @@ export class AdminService {
       success: true,
       invitedCount: eligibleUsers.length,
       message: `One-time opt-in invitation queued for ${eligibleUsers.length} eligible users.`
+    };
+  }
+
+  async pauseProject(adminId: string, id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      select: { id: true, title: true, status: true, userId: true }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.status !== ProjectStatus.ACTIVE) {
+      throw new BadRequestException('Only active causes can be paused.');
+    }
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const res = await tx.project.update({
+        where: { id },
+        data: { status: ProjectStatus.PAUSED, isActive: true }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROJECT_PAUSED,
+        entityId: id,
+        entityType: 'Project',
+        metadata: {
+          title: project.title,
+          previousStatus: project.status,
+          newStatus: ProjectStatus.PAUSED
+        }
+      }, tx);
+
+      await tx.notification.create({
+        data: {
+          userId: project.userId,
+          type: NotificationType.PROJECT_STATUS,
+          title: 'Cause donations paused',
+          content: `Donations for "${project.title}" have been temporarily paused.`,
+          link: `/dashboard/projects/${project.id}/manage`
+        }
+      });
+
+      return res;
+    });
+
+    return {
+      ...updated,
+      targetAmount: updated.targetAmount?.toString(),
+      raisedAmount: updated.raisedAmount?.toString(),
+      preCollectedAmount: updated.preCollectedAmount?.toString(),
+    };
+  }
+
+  async resumeProject(adminId: string, id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      select: { id: true, title: true, slug: true, status: true, userId: true, waitlistEmails: true }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.status !== ProjectStatus.PAUSED) {
+      throw new BadRequestException('Only paused causes can be resumed.');
+    }
+
+    const emailsToNotify = project.waitlistEmails || [];
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const res = await tx.project.update({
+        where: { id },
+        data: {
+          status: ProjectStatus.ACTIVE,
+          isActive: true,
+          waitlistEmails: []
+        }
+      });
+
+      await this.audit.log({
+        userId: adminId,
+        action: AuditAction.PROJECT_RESUMED,
+        entityId: id,
+        entityType: 'Project',
+        metadata: {
+          title: project.title,
+          previousStatus: project.status,
+          newStatus: ProjectStatus.ACTIVE,
+          notifiedWaitlistCount: emailsToNotify.length
+        }
+      }, tx);
+
+      await tx.notification.create({
+        data: {
+          userId: project.userId,
+          type: NotificationType.PROJECT_STATUS,
+          title: 'Cause donations resumed',
+          content: `Donations for "${project.title}" are now open again.`,
+          link: `/dashboard/impact/${project.slug}`
+        }
+      });
+
+      return res;
+    });
+
+    if (emailsToNotify.length > 0) {
+      const projectUrl = `${this.config.get('FRONTEND_URL')}/explore/${project.slug}`;
+      Promise.allSettled(
+        emailsToNotify.map(email =>
+          this.emailService.sendCauseResumedAlert(email, {
+            projectTitle: project.title,
+            projectUrl
+          })
+        )
+      ).catch(err => this.logger.error(`Waitlist resume broadcast failed: ${err.message}`));
+    }
+
+    return {
+      ...updated,
+      targetAmount: updated.targetAmount?.toString(),
+      raisedAmount: updated.raisedAmount?.toString(),
+      preCollectedAmount: updated.preCollectedAmount?.toString(),
+    };
+  }
+
+  async logExternalContribution(adminId: string, projectId: string, dto: LogExternalContributionDto) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: { user: { select: { email: true, firstName: true } } }
+    });
+
+    if (!project) throw new NotFoundException('Project not found');
+
+    if (project.status === ProjectStatus.COMPLETED || project.status === ProjectStatus.SUSPENDED) {
+      throw new BadRequestException('Cannot log external contributions for a closed or suspended cause.');
+    }
+
+    const amountMinor = BigInt(dto.amount);
+    if (amountMinor <= 0n) {
+      throw new BadRequestException('Amount must be greater than zero.');
+    }
+
+    const reference = dto.reference?.trim() || `EXT-${randomUUID().slice(0, 8).toUpperCase()}`;
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const normalizedEmail = dto.donorEmail.toLowerCase().trim();
+
+      const guestDonor = await tx.guestDonor.upsert({
+        where: { email: normalizedEmail },
+        update: {
+          totalDonated: { increment: amountMinor },
+          donationCount: { increment: 1 },
+          lastDonated: new Date(),
+        },
+        create: {
+          email: normalizedEmail,
+          name: dto.donorName.trim(),
+          totalDonated: amountMinor,
+          donationCount: 1,
+          isCorporate: false,
+        }
+      });
+
+      const guestDonation = await tx.guestDonation.create({
+        data: {
+          guestDonorId: guestDonor.id,
+          projectId,
+          amount: amountMinor,
+          baseAmount: amountMinor,
+          currency: project.currency,
+          reference,
+          status: 'COMPLETED',
+          message: 'External Contribution',
+          isExternal: true,
+          receiptKey: dto.receiptKey,
+        }
+      });
+
+      const updatedProject = await tx.project.update({
+        where: { id: projectId },
+        data: { raisedAmount: { increment: amountMinor } }
+      });
+
+      const previousPhaseMath = calculatePhaseFunding(project as any);
+      const previousPhaseMet = previousPhaseMath.remainingForPhaseMinor < 10000n;
+
+      const currentPhaseMath = calculatePhaseFunding(updatedProject as any);
+      const currentPhaseMet = currentPhaseMath.remainingForPhaseMinor < 10000n;
+
+      const projectRemaining = updatedProject.targetAmount - updatedProject.raisedAmount;
+      const isGoalMet = projectRemaining < 10000n && updatedProject.targetAmount > 0n;
+      const isPhaseNewlyMet = !isGoalMet && currentPhaseMet && !previousPhaseMet;
+
+      let finalStatus = updatedProject.status;
+
+      if (isGoalMet && updatedProject.status !== ProjectStatus.FUNDED && updatedProject.status !== ProjectStatus.COMPLETED) {
+        const fundedProj = await tx.project.update({
+          where: { id: projectId },
+          data: { status: ProjectStatus.FUNDED, fundedAt: new Date() }
+        });
+        finalStatus = fundedProj.status;
+      }
+
+      await tx.notification.create({
+        data: {
+          userId: project.userId,
+          type: 'DONATION_RECEIVED',
+          title: 'External contribution recorded',
+          content: `Your cause "${project.title}" received an external contribution of ${project.currency} ${(Number(amountMinor) / 100).toLocaleString()}.`,
+          link: `/dashboard/projects/${project.id}/manage`
+        }
+      });
+
+      if (isGoalMet) {
+        await tx.notification.create({
+          data: {
+            userId: project.userId,
+            type: 'PROJECT_STATUS',
+            title: 'Goal reached!',
+            content: `Success! "${project.title}" is now fully funded.`,
+            link: `/dashboard/projects/${project.id}/manage`
+          }
+        });
+      } else if (isPhaseNewlyMet) {
+        await tx.notification.create({
+          data: {
+            userId: project.userId,
+            type: 'MILESTONE_ALERT',
+            title: 'Stage funding complete',
+            content: `The full capital for "${currentPhaseMath.currentStageLogicName}" has been secured.`,
+            link: `/dashboard/projects/${project.id}/manage`
+          }
+        });
+
+        const admins = await tx.user.findMany({
+          where: { role: { in: [UserRole.ADMIN, UserRole.SUPERADMIN] } },
+          select: { id: true }
+        });
+
+        if (admins.length > 0) {
+          await tx.notification.createMany({
+            data: admins.map(admin => ({
+              userId: admin.id,
+              type: 'PROJECT_STATUS' as NotificationType,
+              title: 'Action required: stage funded',
+              content: `Stage "${currentPhaseMath.currentStageLogicName}" for "${project.title}" is 100% funded via external contribution.`,
+              link: `/admin/projects/${project.id}/edit`
+            }))
+          });
+        }
+      }
+
+      await tx.auditLog.create({
+        data: {
+          userId: adminId,
+          action: AuditAction.EXTERNAL_CONTRIBUTION_LOGGED,
+          entityId: guestDonation.id,
+          entityType: 'GuestDonation',
+          metadata: {
+            projectId,
+            donorName: dto.donorName.trim(),
+            donorEmail: normalizedEmail,
+            amount_naira: (Number(amountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+            reference,
+            receiptKey: dto.receiptKey,
+            isGoalMet,
+            isPhaseNewlyMet
+          }
+        }
+      });
+
+      return { updatedProject, finalStatus, isGoalMet };
+    });
+
+    this.emailService.sendDonationReceipt(dto.donorEmail.toLowerCase().trim(), {
+      amount: (Number(amountMinor) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+      currency: project.currency,
+      project: project.title,
+      phaseName: 'External Contribution',
+      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      ref: reference,
+      donorCurrency: dto.donorCurrency,
+      donorAmount: dto.donorAmount ? (Number(dto.donorAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) : undefined
+    }).catch(err => this.logger.error(`Failed to send external contribution receipt: ${err.message}`));
+
+    if (result.isGoalMet && project.user) {
+      this.emailService.sendProjectFundedAlert(project.user.email, {
+        name: project.user.firstName,
+        projectTitle: project.title,
+        amount: (Number(result.updatedProject.targetAmount) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }),
+        currency: project.currency,
+        projectId: project.id
+      }).catch(err => this.logger.error(`Project Funded Alert Failed: ${err.message}`));
+    }
+
+    return {
+      success: true,
+      raisedAmount: result.updatedProject.raisedAmount.toString(),
+      status: result.finalStatus
     };
   }
 }

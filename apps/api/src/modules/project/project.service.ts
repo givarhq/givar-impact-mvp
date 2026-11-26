@@ -553,6 +553,7 @@ export class ProjectService {
 
       entries.push({
         id: d.id,
+        projectId: d.projectId,
         type: 'INFLOW',
         amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
         currency: d.currency,
@@ -570,6 +571,7 @@ export class ProjectService {
 
     guestDonations.forEach(d => entries.push({
       id: d.id,
+      projectId: d.projectId,
       type: 'INFLOW',
       amount: (d.baseAmount > 0n ? d.baseAmount : d.amount).toString(),
       currency: d.currency,
@@ -588,6 +590,7 @@ export class ProjectService {
 
     disbursements.forEach(d => entries.push({
       id: d.id,
+      projectId: d.projectId,
       type: 'OUTFLOW',
       amount: d.amount.toString(),
       currency: d.currency,
@@ -603,6 +606,39 @@ export class ProjectService {
     entries.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     const paginatedData = entries.slice(skip, skip + limit);
     return { data: paginatedData, meta: { total: countD + countG + countDisp, page, lastPage: Math.ceil((countD + countG + countDisp) / limit) || 1, context: projectTitleContext } };
+  }
+
+  async getLedgerProofUrl(projectId: string, key: string, requestingUserId?: string, req?: any) {
+    const [disbursement, externalDonation] = await Promise.all([
+      this.prisma.disbursement.findFirst({
+        where: { projectId, receiptKey: key },
+        select: { id: true, project: { select: { title: true } } }
+      }),
+      this.prisma.guestDonation.findFirst({
+        where: { projectId, receiptKey: key, isExternal: true },
+        select: { id: true, project: { select: { title: true } } }
+      })
+    ]);
+
+    if (!disbursement && !externalDonation) {
+      throw new ForbiddenException('Access restricted');
+    }
+
+    await this.audit.log({
+      userId: requestingUserId,
+      action: AuditAction.RECEIPT_VIEWED,
+      entityId: projectId,
+      entityType: 'Project',
+      metadata: {
+        fileKey: key,
+        projectId,
+        projectName: disbursement?.project?.title || externalDonation?.project?.title,
+        assetType: disbursement ? 'DISBURSEMENT_RECEIPT' : 'EXTERNAL_CONTRIBUTION_RECEIPT'
+      },
+      req
+    });
+
+    return this.storage.getPresignedViewUrl(key);
   }
 
   async joinWaitlist(projectId: string, email: string) {
