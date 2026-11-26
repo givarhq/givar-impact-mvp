@@ -545,4 +545,10 @@ export class EmailService {
     const html = EmailTemplates.base(content, 'Stay Updated on New Causes');
     return this.send(email, 'Givar: Would you like updates on new verified causes?', html);
   }
+
+  async sendCauseResumedAlert(email: string, data: { projectTitle: string; projectUrl: string }) {
+    const content = EmailTemplates.causeResumed(data);
+    const html = EmailTemplates.base(content, 'Donations Resumed');
+    return this.send(email, `Givar: Donations resumed for ${data.projectTitle}`, html);
+  }
 }

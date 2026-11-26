@@ -822,4 +822,22 @@ export const EmailTemplates = {
       If you prefer not to receive new cause notifications, simply ignore this email. You can also update your preferences anytime in <a href="${data.settingsUrl}" style="color: #10b981; text-decoration: underline;">Account Settings</a>.
     </p>
   `,
+
+  causeResumed: (data: { projectTitle: string; projectUrl: string }) => `
+      <p>Hi there,</p>
+      <p>Good news! Donations for <strong>${data.projectTitle}</strong> have now resumed on Givar.</p>
+      
+      <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 32px 24px; margin: 24px 0; text-align: center;">
+        <p style="font-size: 13px; letter-spacing: 0.5px; color: #059669; margin-bottom: 8px; font-weight: 700;">Donations Resumed</p>
+        <p style="font-size: 22px; color: #064e3b; font-weight: 800; margin: 0; line-height: 1.2;">This cause is now open for contributions</p>
+      </div>
+
+      <p>Because you asked to be notified, we wanted to let you know as soon as donations reopened. Your support helps move this cause forward.</p>
+      
+      <div style="text-align: center; margin: 40px 0;">
+        <a href="${data.projectUrl}" class="button" style="background-color: #10b981; padding: 18px 40px; font-size: 16px;">View Cause</a>
+      </div>
+      
+      <p style="font-size: 13px; color: #6b7280;">Thank you for your patience and commitment to transparent impact.</p>
+  `,
 };

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UserRole } from '@givar/database';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -138,5 +138,19 @@ export class ProjectController {
     @Body() dto: { reporterEmail: string; reason: import('@givar/database').ReportReason; description?: string }
   ) {
     return this.service.reportProject(id, dto);
+  }
+
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get('ledger/proof')
+  getLedgerProofUrl(
+    @Req() req: any,
+    @Query('projectId') projectId: string,
+    @Query('key') key: string,
+  ) {
+    if (!projectId || !key) {
+      throw new BadRequestException('Project ID and file key are required');
+    }
+    return this.service.getLedgerProofUrl(projectId, key, req.user?.id, req);
   }
 }
