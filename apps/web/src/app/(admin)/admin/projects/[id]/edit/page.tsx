@@ -11,9 +11,6 @@ import { ProjectVisibilityForm } from '../../../../../../components/features/adm
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 import { ProjectReportsView } from '../../../../../../components/features/admin/project-reports-view';
 import { cn } from '../../../../../../lib/utils/cn';
-import { CorporateSponsorshipTrigger } from '../../../../../../components/features/admin/corporate-sponsorship-trigger';
-import { ExternalContributionTrigger } from '../../../../../../components/features/admin/external-contribution-trigger';
-import { BroadcastCauseTrigger } from '../../../../../../components/features/admin/broadcast-cause-trigger';
 import { AdminProjectActions } from '../../../../../../components/features/admin/project-actions';
 import { Badge } from '../../../../../../components/ui/badge';
 
@@ -89,15 +86,9 @@ export default async function EditProjectPage({
                 id={id}
                 status={project.status}
                 broadcastedAt={project.broadcastedAt}
+                projectCurrency={project.currency}
                 mode="header"
               />
-              <BroadcastCauseTrigger
-                projectId={id}
-                projectStatus={project.status}
-                broadcastedAt={project.broadcastedAt}
-              />
-              <ExternalContributionTrigger projectId={id} projectCurrency={project.currency} projectStatus={project.status} />
-              <CorporateSponsorshipTrigger projectId={id} projectCurrency={project.currency} projectStatus={project.status} />
             </div>
           </div>
         </div>
