@@ -252,6 +252,9 @@ export const ApiService = {
       return apiClient.get(`${endpoint}?${params.toString()}`).then(r => r.data);
     },
 
+    getLedgerProofUrl: (projectId: string, key: string) =>
+      apiClient.get(`/projects/ledger/proof?projectId=${encodeURIComponent(projectId)}&key=${encodeURIComponent(key)}`).then(r => r.data),
+
     joinWaitlist: (id: string, email: string) =>
       apiClient.post(`/projects/${id}/waitlist`, { email }).then(r => r.data),
 
@@ -369,6 +372,12 @@ export const ApiService = {
     suspendProject: (id: string) =>
       apiClient.patch(`/admin/projects/${id}/suspend`).then(r => r.data),
 
+    pauseProject: (id: string) =>
+      apiClient.patch(`/admin/projects/${id}/pause`).then(r => r.data),
+
+    resumeProject: (id: string) =>
+      apiClient.patch(`/admin/projects/${id}/resume`).then(r => r.data),
+
     finalizeProject: (id: string, data: { publicImpactNote: string; donorUpdateMessage: string; imageUrl?: string; assets?: string[] }) =>
       apiClient.post(`/admin/projects/${id}/finalize`, data).then(r => r.data),
 
@@ -474,6 +483,9 @@ export const ApiService = {
 
     logCorporateSponsorship: (projectId: string, data: { sponsorName: string; sponsorEmail: string; amount: string; reference?: string; sponsorLogoUrl?: string }) =>
       apiClient.post(`/admin/projects/${projectId}/corporate-sponsorship`, data).then(r => r.data),
+
+    logExternalContribution: (projectId: string, data: { donorName: string; donorEmail: string; amount: string; receiptKey: string; reference?: string; donorCurrency?: string; donorAmount?: string }) =>
+      apiClient.post(`/admin/projects/${projectId}/external-contribution`, data).then(r => r.data),
 
     broadcastNewCause: (id: string) =>
       apiClient.post(`/admin/projects/${id}/broadcast`).then(r => r.data),

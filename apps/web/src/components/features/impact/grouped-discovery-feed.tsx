@@ -38,16 +38,14 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
         setIsShareOpen(true);
     };
 
-    // Filter each group strictly for active causes
     const sanitizedGroups = (groupedData || []).map(group => ({
         ...group,
-        projects: (group.projects || []).filter(p => p.status === 'ACTIVE')
+        projects: (group.projects || []).filter(p => p.status === 'ACTIVE' || p.status === 'PAUSED')
     })).filter(group => group.projects.length > 0);
 
     const hasActiveGroups = sanitizedGroups.length > 0;
     const isEmpty = !hasActiveGroups && completedProjects.length === 0;
 
-    // Empty state matching Image 1
     if (isEmpty) {
         return (
             <div className="w-full rounded-[32px] border border-dashed border-border/60 bg-card/50 p-8 sm:p-14 flex flex-col items-center justify-center text-center space-y-3 min-w-0">
@@ -76,7 +74,6 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                         transition={{ duration: 0.5, delay: index * 0.1 }}
                         className="space-y-6 min-w-0"
                     >
-                        {/* Category Header */}
                         <div className="flex items-center justify-between px-1">
                             <div className="space-y-1">
                                 <h3 className="text-lg md:text-xl font-bold text-foreground tracking-tight">
@@ -94,7 +91,6 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                             </Link>
                         </div>
 
-                        {/* Active Project Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 min-w-0">
                             {group.projects.map((project, pIndex) => (
                                 <motion.div
@@ -118,7 +114,6 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                             ))}
                         </div>
 
-                        {/* Mobile "See All" Button */}
                         <div className="flex sm:hidden justify-center pt-2">
                             <Link
                                 href={isPublic ? `/explore?category=${group.category.slug}` : `/dashboard/impact?category=${group.category.slug}`}
@@ -134,7 +129,6 @@ export const GroupedDiscoveryFeed = memo(function GroupedDiscoveryFeed({
                 ))}
             </AnimatePresence>
 
-            {/* Completed Causes Section: ONLY displayed when viewing completed causes */}
             <AnimatePresence>
                 {!hasActiveGroups && completedProjects.length > 0 && (
                     <motion.section

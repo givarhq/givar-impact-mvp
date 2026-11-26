@@ -11,7 +11,7 @@ export type TxStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED' | 'SUSPEN
 export type TxCategory = 'FUNDING' | 'DONATION' | 'TRANSACTION_FEE' | 'VOLUNTARY_TIP' | 'DISBURSEMENT' | 'REFUND' | 'INTERNAL_TRANSFER' | 'WITHDRAWAL' | 'ADJUSTMENT';
 
 export type VerificationStatus = 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
-export type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'FUNDED' | 'COMPLETED' | 'SUSPENDED';
+export type ProjectStatus = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'FUNDED' | 'COMPLETED' | 'SUSPENDED';
 
 export interface Project {
   id: string;
@@ -47,7 +47,6 @@ export interface Project {
   donorCount?: number;
   subcategoryId?: string;
 
-  // Alignment Fields
   beneficiaryName?: string | null;
   beneficiaryAge?: number | null;
   beneficiaryRelationship?: string | null;
@@ -60,7 +59,6 @@ export interface Project {
   hasPreCollectedFunds?: boolean;
   preCollectedAmount?: string | null;
 
-  // Phased Funding Fields
   currentPhaseIndex?: number;
   waitlistEmails?: string[];
   isWaitlisted?: boolean;
@@ -219,7 +217,6 @@ export interface ProjectProposal {
   subcategoryId?: string;
   subcategoryName?: string;
 
-  // Alignment Fields
   beneficiaryName?: string | null;
   beneficiaryAge?: number | null;
   beneficiaryRelationship?: string | null;
@@ -241,7 +238,6 @@ export interface ProjectProposal {
   updatedAt: string;
   approvedAt: string | null;
 
-  // Relations
   user: {
     firstName: string;
     lastName: string;
