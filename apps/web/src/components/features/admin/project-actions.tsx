@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Ban, Loader2, Trash2, PlayCircle, Megaphone } from 'lucide-react';
+import { Ban, Loader2, Trash2, PlayCircle, Megaphone, PauseCircle } from 'lucide-react';
 import { ApiService } from '../../../services/api';
 import { ConfirmModal } from '../../ui/confirm-modal';
+import { Button } from '../../ui/button';
 import { formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import toast from 'react-hot-toast';
@@ -12,11 +13,13 @@ import toast from 'react-hot-toast';
 export function AdminProjectActions({
   id,
   status,
-  broadcastedAt
+  broadcastedAt,
+  mode = 'table'
 }: {
   id: string;
   status: string;
   broadcastedAt?: string | null;
+  mode?: 'table' | 'header';
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -24,8 +27,10 @@ export function AdminProjectActions({
   const [showSuspendConfirm, setShowSuspendConfirm] = useState(false);
   const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
   const [showBroadcastConfirm, setShowBroadcastConfirm] = useState(false);
+  const [showPauseConfirm, setShowPauseConfirm] = useState(false);
+  const [showResumeConfirm, setShowResumeConfirm] = useState(false);
 
-  const executeAction = async (action: 'suspend' | 'delete' | 'reactivate' | 'broadcast') => {
+  const executeAction = async (action: 'suspend' | 'delete' | 'reactivate' | 'broadcast' | 'pause' | 'resume') => {
     setIsLoading(true);
     try {
       if (action === 'suspend') {
@@ -40,6 +45,14 @@ export function AdminProjectActions({
         await ApiService.admin.approveProject(id);
         toast.success('Project reactivated');
         setShowReactivateConfirm(false);
+      } else if (action === 'pause') {
+        await ApiService.admin.pauseProject(id);
+        toast.success('Donations paused for this cause');
+        setShowPauseConfirm(false);
+      } else if (action === 'resume') {
+        await ApiService.admin.resumeProject(id);
+        toast.success('Donations resumed for this cause');
+        setShowResumeConfirm(false);
       } else if (action === 'broadcast') {
         const res = await ApiService.admin.broadcastNewCause(id);
         if (res.broadcastCount > 0) {
@@ -59,6 +72,57 @@ export function AdminProjectActions({
     }
   };
 
+  if (mode === 'header') {
+    if (status !== 'ACTIVE' && status !== 'PAUSED') return null;
+
+    return (
+      <>
+        {status === 'ACTIVE' ? (
+          <Button
+            variant="outline"
+            onClick={() => setShowPauseConfirm(true)}
+            disabled={isLoading}
+            className="rounded-3xl h-10 px-5 font-bold text-xs shadow-sm border-amber-500/30 bg-amber-500/5 text-amber-700 hover:bg-amber-500/10 transition-all active:scale-95 gap-2"
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PauseCircle className="h-4 w-4" />}
+            <span>Pause Donations</span>
+          </Button>
+        ) : (
+          <Button
+            onClick={() => setShowResumeConfirm(true)}
+            disabled={isLoading}
+            className="rounded-3xl h-10 px-5 font-bold text-xs shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white border-0 transition-all active:scale-95 gap-2"
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+            <span>Resume Donations</span>
+          </Button>
+        )}
+
+        <ConfirmModal
+          isOpen={showPauseConfirm}
+          onClose={() => setShowPauseConfirm(false)}
+          onConfirm={() => executeAction('pause')}
+          isLoading={isLoading}
+          variant="warning"
+          title="Pause Donations"
+          description="Temporarily pause incoming donations for this cause? It will remain visible on the public discovery feed with a paused notice and waitlist option."
+          confirmText="Pause Donations"
+        />
+
+        <ConfirmModal
+          isOpen={showResumeConfirm}
+          onClose={() => setShowResumeConfirm(false)}
+          onConfirm={() => executeAction('resume')}
+          isLoading={isLoading}
+          variant="default"
+          title="Resume Donations"
+          description="Reopen donations for this cause? Visitors on the waitlist will be automatically notified by email."
+          confirmText="Resume Donations"
+        />
+      </>
+    );
+  }
+
   if (isLoading) return (
     <div className="flex justify-end pr-2">
       <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -69,17 +133,37 @@ export function AdminProjectActions({
     <>
       <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
         {status === 'ACTIVE' && (
+          <>
+            <button
+              onClick={() => setShowBroadcastConfirm(true)}
+              title={broadcastedAt ? "Re-notify Subscribers" : "Notify Subscribers"}
+              className={cn(
+                "flex items-center justify-center h-8 w-8 rounded-3xl transition-colors",
+                broadcastedAt
+                  ? "text-muted-foreground hover:bg-muted"
+                  : "text-primary hover:bg-primary/10"
+              )}
+            >
+              <Megaphone className="h-4 w-4" />
+            </button>
+
+            <button
+              onClick={() => setShowPauseConfirm(true)}
+              title="Pause Donations"
+              className="flex items-center justify-center text-amber-600 hover:bg-amber-500/10 h-8 w-8 rounded-3xl transition-colors"
+            >
+              <PauseCircle className="h-4 w-4" />
+            </button>
+          </>
+        )}
+
+        {status === 'PAUSED' && (
           <button
-            onClick={() => setShowBroadcastConfirm(true)}
-            title={broadcastedAt ? "Re-notify Subscribers" : "Notify Subscribers"}
-            className={cn(
-              "flex items-center justify-center h-8 w-8 rounded-3xl transition-colors",
-              broadcastedAt
-                ? "text-muted-foreground hover:bg-muted"
-                : "text-primary hover:bg-primary/10"
-            )}
+            onClick={() => setShowResumeConfirm(true)}
+            title="Resume Donations"
+            className="flex items-center justify-center text-emerald-600 hover:bg-emerald-500/10 h-8 w-8 rounded-3xl transition-colors"
           >
-            <Megaphone className="h-4 w-4" />
+            <PlayCircle className="h-4 w-4" />
           </button>
         )}
 
@@ -111,6 +195,28 @@ export function AdminProjectActions({
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={showPauseConfirm}
+        onClose={() => setShowPauseConfirm(false)}
+        onConfirm={() => executeAction('pause')}
+        isLoading={isLoading}
+        variant="warning"
+        title="Pause Donations"
+        description="Temporarily pause incoming donations for this cause? It will remain visible on the public discovery feed with a paused notice and waitlist option."
+        confirmText="Pause Donations"
+      />
+
+      <ConfirmModal
+        isOpen={showResumeConfirm}
+        onClose={() => setShowResumeConfirm(false)}
+        onConfirm={() => executeAction('resume')}
+        isLoading={isLoading}
+        variant="default"
+        title="Resume Donations"
+        description="Reopen donations for this cause? Visitors on the waitlist will be automatically notified by email."
+        confirmText="Resume Donations"
+      />
 
       <ConfirmModal
         isOpen={showBroadcastConfirm}

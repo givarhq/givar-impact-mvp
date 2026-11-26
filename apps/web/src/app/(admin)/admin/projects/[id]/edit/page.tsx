@@ -5,14 +5,16 @@ import { AdminProjectForm } from '../../../../../../components/features/admin/pr
 import { MilestoneManager } from '../../../../../../components/features/admin/milestone-manager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../../../components/ui/tabs';
 import { Button } from '../../../../../../components/ui/button';
-import { ArrowLeft, Settings, Activity, Fingerprint, Sparkles, MessageSquare, Flag, HeartHandshake } from 'lucide-react';
+import { ArrowLeft, Settings, Activity, Fingerprint, Sparkles, MessageSquare, Flag, HeartHandshake, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { ProjectVisibilityForm } from '../../../../../../components/features/admin/visibility/project-visibility-form';
 import { FeedbackThread } from '../../../../../../components/features/communication/feedback-thread';
 import { ProjectReportsView } from '../../../../../../components/features/admin/project-reports-view';
 import { cn } from '../../../../../../lib/utils/cn';
 import { CorporateSponsorshipTrigger } from '../../../../../../components/features/admin/corporate-sponsorship-trigger';
+import { ExternalContributionTrigger } from '../../../../../../components/features/admin/external-contribution-trigger';
 import { BroadcastCauseTrigger } from '../../../../../../components/features/admin/broadcast-cause-trigger';
+import { AdminProjectActions } from '../../../../../../components/features/admin/project-actions';
 import { Badge } from '../../../../../../components/ui/badge';
 
 export const metadata = {
@@ -69,6 +71,11 @@ export default async function EditProjectPage({
                   <Fingerprint className="h-3 w-3" />
                   {id}
                 </div>
+                {project.status === 'PAUSED' && (
+                  <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5 rounded-full border-amber-500/20 bg-amber-500/10 text-amber-700 shadow-none flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Paused
+                  </Badge>
+                )}
                 {project.isAssisted && (
                   <Badge variant="outline" className="text-[10px] font-bold px-2 py-0.5 rounded-full border-blue-500/20 bg-blue-500/10 text-blue-700 shadow-none flex items-center gap-1">
                     <HeartHandshake className="h-3 w-3" /> Assisted Cause
@@ -78,11 +85,18 @@ export default async function EditProjectPage({
             </div>
 
             <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <AdminProjectActions
+                id={id}
+                status={project.status}
+                broadcastedAt={project.broadcastedAt}
+                mode="header"
+              />
               <BroadcastCauseTrigger
                 projectId={id}
                 projectStatus={project.status}
                 broadcastedAt={project.broadcastedAt}
               />
+              <ExternalContributionTrigger projectId={id} projectCurrency={project.currency} projectStatus={project.status} />
               <CorporateSponsorshipTrigger projectId={id} projectCurrency={project.currency} projectStatus={project.status} />
             </div>
           </div>
