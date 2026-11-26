@@ -12,7 +12,7 @@ import {
   Loader2, Save, X, Image as ImageIcon, Video,
   Briefcase, MapPin, ShieldCheck, ExternalLink,
   LockOpen, Fingerprint, FileText, Send, Trash2,
-  Tag, Clock, Landmark, CheckCircle2, RefreshCcw, Quote, AlertTriangle
+  Tag, Clock, CheckCircle2, RefreshCcw
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
@@ -24,7 +24,7 @@ import { MediaManager, ImageUploader, VideoUploader } from '../proposals/media-u
 import { formatNumberInput, parseFormattedNumber, toTitleCase, toSentenceCase, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
 import { Textarea } from '../../ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import { Card } from '../../ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { Badge } from '../../ui/badge';
@@ -110,7 +110,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
   const [coverPreview, setCoverPreview] = useState<string | null>(initialData?.imageUrl || null);
   const [videoPreview, setVideoPreview] = useState<string | null>(initialData?.videoUrl || null);
 
-  const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
+  const isLive = initialData?.status === 'ACTIVE' || initialData?.status === 'PAUSED' || initialData?.status === 'FUNDED' || initialData?.status === 'COMPLETED';
   const readOnly = initialData ? !isEditing : false;
   const isAdjustmentMode = isLive && isEditing;
 
@@ -264,12 +264,12 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
     setVideoPreview(data.previewUrl);
   };
 
-  const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE') => {
+  const onSubmit = async (data: ProjectFormValues, status: 'DRAFT' | 'ACTIVE' | 'PAUSED') => {
     if (!data.subcategoryId) {
       return toast.error("Please select a specific focus area before saving.");
     }
 
-    if (status === 'ACTIVE') {
+    if (status === 'ACTIVE' || status === 'PAUSED') {
       const unboundItems = data.budgetBreakdown.filter((item: any) => {
         if (!item.vendorId) return true;
         const vendor = data.vendors?.find((v: any) => v.id === item.vendorId);
@@ -379,6 +379,8 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
       ? "bg-muted/10 border-transparent shadow-none cursor-default resize-none opacity-80"
       : "bg-background border-border/60 shadow-inner focus:border-primary"
   );
+
+  const publishStatusTarget = initialData?.status === 'PAUSED' ? 'PAUSED' : 'ACTIVE';
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-40 animate-in fade-in duration-500 w-full overflow-hidden">
@@ -556,7 +558,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       </section>
 
-      {/* Visual Assets Section */}
       <section className={cn(
         "bg-card p-6 md:p-10 rounded-3xl border shadow-sm space-y-8 transition-all duration-500 relative group overflow-hidden",
         readOnly ? "border-border/40" : "border-primary/30 ring-4 ring-primary/5"
@@ -655,7 +656,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       </section>
 
-      {/* Financial Budget Section */}
       <Card id="budget-editor-section" className={cn(
         "p-6 md:p-10 bg-card rounded-3xl border space-y-8 transition-all duration-500 relative group overflow-hidden shadow-sm",
         readOnly ? "border-border/40" : "border-primary/30 shadow-lg"
@@ -686,7 +686,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         />
       </Card>
 
-      {/* Updates / Final Reports Viewer */}
       {initialData?.updates && initialData.updates.length > 0 && (
         <section className="bg-card p-6 md:p-10 rounded-3xl border border-border/40 shadow-sm space-y-8">
           <div className="flex items-center gap-4">
@@ -790,7 +789,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </section>
       )}
 
-      {/* Control Terminal Bar */}
       {(isEditing || !initialData) && (
         <div className="fixed md:bottom-0 bottom-14 left-0 md:left-[260px] right-0 p-4 md:p-5 bg-background/90 backdrop-blur-2xl border-t border-border/40 z-50 shadow-2xl">
           <div className="max-w-6xl mx-auto flex flex-row items-center justify-between gap-4">
@@ -828,7 +826,7 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
                 type="button"
                 disabled={isSubmitting || (isAdjustmentMode && (!reason || reason.length < 10))}
                 onClick={handleSubmit(
-                  (d) => onSubmit(d, 'ACTIVE'),
+                  (d) => onSubmit(d, publishStatusTarget),
                   (formErrors) => {
                     const firstError = Object.values(formErrors)[0]?.message as string;
                     toast.error(firstError || "Please review the form for missing or invalid fields.");
@@ -850,7 +848,6 @@ export const AdminProjectForm = memo(function AdminProjectForm({ initialData, ca
         </div>
       )}
 
-      {/* Floating Unlock Button for Read-Only Mode */}
       {initialData && !isEditing && (
         <div className="fixed bottom-20 md:bottom-10 right-6 md:right-10 z-50">
           <Button type="button" onClick={handleStartEditing} className="rounded-full h-14 px-8 font-bold gap-3 text-sm shadow-2xl shadow-primary/30 bg-primary text-white hover:bg-primary/90 transition-all active:scale-[0.98] border-0">
