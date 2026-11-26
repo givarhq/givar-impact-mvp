@@ -428,7 +428,7 @@ export class DonationService implements OnModuleInit {
     }
 
     if (baseAmountBig > this.MAX_DONATION_MINOR) {
-      const emailToContact = user ? user.email : dto.guestEmail;
+      const emailToContact = user ? user.email : (dto.guestEmail?.trim() || null);
 
       this.emailService.sendAdminHighCapitalAlert({
         userEmail: emailToContact || 'Anonymous Guest',
@@ -518,15 +518,19 @@ export class DonationService implements OnModuleInit {
 
     let emailToCharge: string;
     let internalUserId: string | null = null;
+    let actualGuestEmail: string | undefined = undefined;
 
     if (user) {
       emailToCharge = user.email;
       internalUserId = user.id;
     } else {
-      if (!dto.guestEmail?.trim()) {
-        throw new BadRequestException('Email is required for guest donations.');
+      const trimmedEmail = dto.guestEmail?.trim();
+      if (trimmedEmail) {
+        emailToCharge = trimmedEmail;
+        actualGuestEmail = trimmedEmail;
+      } else {
+        emailToCharge = 'anonymous@givarapp.com';
       }
-      emailToCharge = dto.guestEmail.trim();
     }
 
     try {
@@ -538,7 +542,7 @@ export class DonationService implements OnModuleInit {
         metadata: {
           donationType: 'DIRECT',
           userId: internalUserId ?? 'GUEST',
-          guestEmail: emailToCharge,
+          guestEmail: actualGuestEmail,
           guestName: dto.guestName?.trim() || 'Anonymous',
           projectId: dto.projectId,
           baseAmount: baseAmountBig.toString(),
@@ -549,7 +553,7 @@ export class DonationService implements OnModuleInit {
           donorCurrency: dto.donorCurrency,
           donorAmount: dto.donorAmount,
           fxRate: dto.fxRate,
-          wantsUpdates: dto.wantsUpdates ?? true,
+          wantsUpdates: actualGuestEmail ? (dto.wantsUpdates ?? true) : false,
           custom_fields: [
             {
               display_name: 'Project Title',
@@ -636,9 +640,6 @@ export class DonationService implements OnModuleInit {
       return { status: 'ignored_channel', reference };
     }
 
-    // --- CRITICAL SECURITY GUARD: Prevent Paystack Metadata Tampering ---
-    // Malicious users can intercept the initialization payload and alter the metadata
-    // to arbitrarily inflate the baseAmount (e.g. padding it with billions) or use negative fees.
     if (baseAmount < 0n || feeAmount < 0n || tipAmount < 0n) {
       this.logger.error(`[SECURITY] Negative metadata detected on ref ${reference}. Aborting ledger entry.`);
       throw new BadRequestException('Transaction metadata validation failed. Negative values are not permitted.');
@@ -646,12 +647,10 @@ export class DonationService implements OnModuleInit {
 
     const declaredInternalTotal = baseAmount + feeAmount + tipAmount;
 
-    // We strictly ensure the sum of internal splits does not exceed the actual charge verified cryptographically by the Paystack webhook.
     if (declaredInternalTotal > amount) {
       this.logger.error(`[SECURITY] Metadata tampering detected on ref ${reference}. Declared internal splits (${declaredInternalTotal}) exceed actual gateway charge (${amount}).`);
       throw new BadRequestException('Transaction metadata validation failed. Potential tampering detected.');
     }
-    // --------------------------------------------------------------------
 
     try {
       const result = await this.prisma.$transaction(async (tx) => {
@@ -773,7 +772,9 @@ export class DonationService implements OnModuleInit {
           });
           processedDonationId = donation.id;
         } else {
-          const normalizedEmail = guestEmail!.toLowerCase().trim();
+          const isActualGuestEmail = guestEmail && guestEmail.trim() !== '' && !guestEmail.includes('anonymous@givarapp.com');
+          const normalizedEmail = isActualGuestEmail ? guestEmail.toLowerCase().trim() : 'anonymous@givarapp.com';
+
           const guestDonor = await tx.guestDonor.upsert({
             where: { email: normalizedEmail },
             update: {
@@ -783,7 +784,7 @@ export class DonationService implements OnModuleInit {
             },
             create: {
               email: normalizedEmail,
-              name: guestName,
+              name: guestName || 'Anonymous Supporter',
               totalDonated: amount,
               donationCount: 1,
             }
@@ -803,7 +804,7 @@ export class DonationService implements OnModuleInit {
               reference,
               status: TxStatus.COMPLETED,
               message: formattedPhase,
-              wantsUpdates,
+              wantsUpdates: isActualGuestEmail ? wantsUpdates : false,
             }
           });
           processedDonationId = guestDonation.id;
@@ -931,17 +932,21 @@ export class DonationService implements OnModuleInit {
       });
 
       if (result.status === 'processed') {
-        await this.triggerReceipt(
-          userId === 'GUEST' ? null : userId,
-          guestEmail || null,
-          projectId,
-          amount,
-          currency,
-          reference,
-          donorCurrency,
-          donorAmount,
-          result.formattedPhase
-        );
+        const isActualGuestEmail = guestEmail && guestEmail.trim() !== '' && !guestEmail.includes('anonymous@givarapp.com');
+
+        if (userId !== 'GUEST' || isActualGuestEmail) {
+          await this.triggerReceipt(
+            userId === 'GUEST' ? null : userId,
+            isActualGuestEmail ? guestEmail : null,
+            projectId,
+            amount,
+            currency,
+            reference,
+            donorCurrency,
+            donorAmount,
+            result.formattedPhase
+          );
+        }
 
         if (result.isGoalMet) {
           this.prisma.user.findUnique({
@@ -959,7 +964,6 @@ export class DonationService implements OnModuleInit {
             }
           });
 
-          // FIX: Pass the project's targetAmount instead of the donor's amount to accurately reflect the cause goal
           this.broadcastProjectFunded(projectId, result.projectTitle, result.projectSlug, BigInt(result.targetAmount), currency);
         }
       }

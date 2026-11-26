@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, IsUUID, Matches, MaxLength, ValidateIf } from 'class-validator';
 import { Currency } from '@givar/database';
 
 // Centralized Regex for Money
@@ -56,7 +56,8 @@ export class InitiateDirectDonationDto {
   currency!: Currency;
 
   @IsOptional()
-  @IsEmail()
+  @ValidateIf((o, v) => v !== '' && v !== null && v !== undefined)
+  @IsEmail({}, { message: 'Please provide a valid email address' })
   guestEmail?: string;
 
   @IsOptional()
