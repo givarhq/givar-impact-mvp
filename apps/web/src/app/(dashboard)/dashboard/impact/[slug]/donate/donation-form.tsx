@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import {
     Loader2, CreditCard, CheckCircle2, Mail,
-    Eye, MailCheck, RefreshCw, Globe, Target, HandHeart
+    Eye, MailCheck, RefreshCw, Globe, Target, HandHeart, Clock
 } from 'lucide-react';
 import { Button } from '../../../../../../components/ui/button';
 import { Input } from '../../../../../../components/ui/input';
@@ -16,7 +16,6 @@ import { getCookie } from 'cookies-next';
 import { cn } from '../../../../../../lib/utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
-import { calculatePhaseFunding } from '@givar/types';
 
 export interface DonationFormProps {
     project: Project | null;
@@ -93,7 +92,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         setIsLoading(false);
 
         const detectCurrency = async () => {
-            // 1. Primary: freeipapi.com (Fastest, Highly Reliable)
             try {
                 const res = await fetch('https://freeipapi.com/api/json');
                 if (res.ok) {
@@ -106,7 +104,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 }
             } catch (e) { }
 
-            // 2. Secondary: ipapi.co
             try {
                 const res = await fetch('https://ipapi.co/currency/');
                 if (res.ok) {
@@ -118,7 +115,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 }
             } catch (e) { }
 
-            // 3. Tertiary: ipwho.is (Robust Fallback)
             try {
                 const res = await fetch('https://ipwho.is/');
                 if (res.ok) {
@@ -131,7 +127,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 }
             } catch (e) { }
 
-            // 4. Absolute Last Resort: OS/Browser Locale
             try {
                 const rawCurrency = Intl.NumberFormat().resolvedOptions().currency;
                 const userCurrency = rawCurrency ? String(rawCurrency).toUpperCase() : null;
@@ -208,6 +203,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
     const targetAmountMinor = BigInt(project.targetAmount || '0');
 
     const isCompleted = project.status === 'COMPLETED';
+    const isPaused = project.status === 'PAUSED';
     const isFundedState = project.status === 'FUNDED' || (raisedAmountMinor >= targetAmountMinor && targetAmountMinor > 0n && !isCompleted);
 
     const previousStages = timeline.slice(0, activeIndex).map((t: any) => t.phase);
@@ -319,7 +315,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
         ? ['1000', '5000', '10000', '25000']
         : ['10', '25', '50', '100'];
 
-    // Dynamic formatting hooks for proper symbol spacing
     const sym = SYMBOLS[detectedCurrency] || detectedCurrency;
     const spc = sym.length > 1 ? ' ' : '';
     const formatMoney = (val: number) => `${sym}${spc}${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -397,7 +392,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 donorCurrency: finalDonorCurrency,
                 donorAmount: finalDonorAmount,
                 fxRate: finalFxRate,
-                wantsUpdates // Send the user's opt-in preference to the backend
+                wantsUpdates
             };
 
             if (isGuest) {
@@ -413,6 +408,30 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             setIsLoading(false);
         }
     };
+
+    if (isPaused) {
+        return (
+            <div className="bg-card border border-border/40 rounded-3xl p-6 md:p-10 shadow-sm text-center space-y-6 animate-in zoom-in-95 duration-500">
+                <div className="h-20 w-20 bg-amber-500/10 text-amber-600 rounded-[28px] flex items-center justify-center mx-auto border border-amber-500/20 shadow-inner">
+                    <Clock className="h-10 w-10" />
+                </div>
+                <div className="space-y-3">
+                    <h3 className="text-2xl md:text-3xl font-black text-foreground tracking-tight">Donations Paused</h3>
+                    <p className="text-sm text-muted-foreground font-medium max-w-md mx-auto leading-relaxed">
+                        Donations are temporarily paused for this cause. Please return to the cause page to get notified when donations resume.
+                    </p>
+                </div>
+                <div className="pt-4">
+                    <Button
+                        onClick={() => router.push(isAuthenticated ? `/dashboard/impact/${project.slug}` : `/explore/${project.slug}`)}
+                        className="h-12 rounded-3xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 border-0 px-8 transition-all active:scale-95 text-xs"
+                    >
+                        Return to cause
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     if (isPhaseFull) {
         return (
@@ -738,7 +757,6 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     )}
                 </AnimatePresence>
 
-                {/* THE OPT-IN CHECKBOX */}
                 <div className="pt-2">
                     <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors cursor-pointer group">
                         <input

@@ -45,12 +45,12 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
     const current: any = projects[index];
     if (!current) return null;
 
-    // --- AGGREGATED PHASED FUNDING MATH ---
     const phaseMath = calculatePhaseFunding(current as any);
 
     const isPhaseFull = phaseMath.isPhaseFull;
     const isCompleted = phaseMath.isCompleted;
     const isFundedState = phaseMath.isFundedState;
+    const isPaused = phaseMath.isPaused;
     const currentStageDisplayName = phaseMath.currentStageDisplayName;
     const raisedInCurrentPhase = phaseMath.raisedInCurrentPhase;
     const currentPhaseTargetMinor = phaseMath.currentPhaseTargetMinor;
@@ -88,7 +88,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
         setWaitlistLoadingId(projectId);
         try {
             await ApiService.projects.joinWaitlist(projectId, email);
-            toast.success("You'll be notified when the next stage unlocks!");
+            toast.success(isPaused ? "You'll be notified when donations resume!" : "You'll be notified when the next stage unlocks!");
             setWaitlistedIds(prev => new Set(prev).add(projectId));
         } catch (e) {
             toast.error("Could not join waitlist");
@@ -164,21 +164,39 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                         {currentStageDisplayName}
                                     </h4>
 
-                                    {!isPhaseFull && (
+                                    {!isPhaseFull && !isPaused && (
                                         <p className="text-[10px] text-muted-foreground leading-snug mt-1">
                                             This cause is funded in stages. Each stage unlocks only after the previous one is fully verified.
                                         </p>
                                     )}
                                 </div>
 
-                                {isPhaseFull && (
+                                {isPaused ? (
+                                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-2xl border border-amber-200/60 shrink-0 whitespace-nowrap">
+                                        <Clock className="h-3.5 w-3.5" /> Cause Paused
+                                    </div>
+                                ) : isPhaseFull && (
                                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-2xl border border-amber-200/60 shrink-0 whitespace-nowrap">
                                         <Clock className="h-3.5 w-3.5" /> Verifying Stage
                                     </div>
                                 )}
                             </div>
 
-                            {isPhaseFull ? (
+                            {isPaused ? (
+                                <div className="space-y-1.5 animate-in fade-in">
+                                    <p className="text-[11px] font-medium text-muted-foreground leading-snug line-clamp-2">
+                                        Donations are temporarily paused for this cause.
+                                    </p>
+                                    <div className="h-1.5 w-full bg-primary/20 rounded-full overflow-hidden mt-1 lg:mt-2">
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${phasePercent}%` }}
+                                            transition={{ duration: 1, ease: "easeOut" }}
+                                            className="h-full bg-primary rounded-full"
+                                        />
+                                    </div>
+                                </div>
+                            ) : isPhaseFull ? (
                                 <div className="space-y-1.5 animate-in fade-in">
                                     <p className="text-[11px] font-medium text-muted-foreground leading-snug line-clamp-2">
                                         Donations are paused while execution is verified.
@@ -212,15 +230,14 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                             )}
                         </div>
 
-                        {/* CTA Actions */}
                         <div className="flex items-center gap-2 shrink-0 w-full mt-auto">
-                            {(!isCompleted && !isFundedState && !isPhaseFull) ? (
+                            {(!isCompleted && !isFundedState && !isPhaseFull && !isPaused) ? (
                                 <Link href={donateLink} className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
                                     <Button size="sm" className="w-full h-9 rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-xs shadow-md border-0 active:scale-95 truncate">
                                         Fund this impact
                                     </Button>
                                 </Link>
-                            ) : isPhaseFull ? (
+                            ) : (isPhaseFull || isPaused) ? (
                                 <Button
                                     size="sm"
                                     onClick={(e) => {
@@ -235,7 +252,7 @@ export const FeaturedCarousel = memo(function FeaturedCarousel({ projects }: { p
                                     ) : waitlistedIds.has(current.id) ? (
                                         <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-600" /> On Waitlist</>
                                     ) : (
-                                        <><BellRing className="h-3.5 w-3.5 mr-1.5" /> Notify me when unlocked</>
+                                        <><BellRing className="h-3.5 w-3.5 mr-1.5" /> {isPaused ? 'Notify me when resumed' : 'Notify me when unlocked'}</>
                                     )}
                                 </Button>
                             ) : (

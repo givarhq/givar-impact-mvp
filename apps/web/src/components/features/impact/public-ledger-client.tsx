@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, memo } from 'react';
-import { usePathname } from 'next/navigation';
 import {
     ArrowDownLeft,
     ArrowUpRight,
@@ -29,7 +28,7 @@ import { Button } from '../../ui/button';
 import { Pagination } from '../history/pagination';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TxStatus, TxType, Transaction } from '../../../types';
+import { TxStatus, TxType } from '../../../types';
 import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { generateImpactReceipt } from '../../../lib/utils/receipt-generator';
 import { Badge } from '../../ui/badge';
@@ -86,6 +85,10 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
             return { label: 'Payment Method', method: 'Direct Corporate Wire' };
         }
 
+        if (tx.isExternal) {
+            return { label: 'Payment Method', method: 'External Transfer' };
+        }
+
         if (tx.type === 'DEBIT' && tx.reference?.startsWith('DON-')) {
             return { label: 'Givar Wallet', method: 'Wallet Balance' };
         }
@@ -119,10 +122,6 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
     };
 
     const getFinancialBreakdown = (tx: any) => {
-        // Handle both authenticated user structure and guest structure natively
-        const financials = tx.financials || tx.donation || tx.guestDonation;
-
-        // Use explicit properties if available, fallback to metadata for older structures
         const meta = tx.metadata || {};
         const rawBase = tx.baseAmount || meta.baseAmount;
         const rawFee = tx.feeAmount || meta.feeAmount;
@@ -139,12 +138,15 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
         };
     };
 
-    const viewSecureReceipt = async (key: string) => {
+    const viewSecureReceipt = async (key: string, entryProjectId?: string) => {
         const toastId = toast.loading('Opening record...');
         try {
             const { ApiService } = await import('../../../services/api');
-            const contextId = isGlobalView ? selectedEntry?.projectId : project.id;
-            const { viewUrl } = await ApiService.proposals.getPreviewUrl(key, contextId);
+            const contextId = entryProjectId || (isGlobalView ? selectedEntry?.projectId : project?.id);
+            if (!contextId) {
+                throw new Error('Missing project context');
+            }
+            const { viewUrl } = await ApiService.projects.getLedgerProofUrl(contextId, key);
             toast.dismiss(toastId);
             const isDoc = key.toLowerCase().includes('.pdf') || key.toLowerCase().includes('.doc');
             if (isDoc) {
@@ -201,7 +203,11 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                     const statusStyle = statusStyles['COMPLETED'];
 
                                     const displayCategory = entry.type === 'INFLOW'
-                                        ? (entry.isCorporate ? 'CORPORATE SPONSORSHIP' : (entry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION'))
+                                        ? (entry.isCorporate
+                                            ? 'CORPORATE SPONSORSHIP'
+                                            : entry.isExternal
+                                                ? 'External Contribution'
+                                                : (entry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION'))
                                         : (entry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT');
 
                                     return (
@@ -217,8 +223,12 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 <div className="flex items-center gap-3 w-full min-w-0">
                                                     <div className={cn(
                                                         "h-10 w-10 shrink-0 flex items-center justify-center rounded-3xl shadow-sm border border-border/10",
-                                                        entry.isCorporate ? "bg-emerald-600/10 text-emerald-600" : typeStyle.bg,
-                                                        entry.isCorporate ? "" : typeStyle.text
+                                                        entry.isCorporate
+                                                            ? "bg-emerald-600/10 text-emerald-600"
+                                                            : entry.isExternal
+                                                                ? "bg-blue-500/10 text-blue-600"
+                                                                : typeStyle.bg,
+                                                        entry.isCorporate || entry.isExternal ? "" : typeStyle.text
                                                     )}>
                                                         {entry.isCorporate ? <Building2 className="h-5 w-5" /> : <typeStyle.icon className="h-5 w-5" />}
                                                     </div>
@@ -238,13 +248,30 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                             </p>
                                                         </div>
 
-                                                        <div className="flex items-center gap-3 mt-2 min-w-0">
+                                                        <div className="flex items-center gap-2 mt-2 min-w-0 flex-wrap">
                                                             <span className={cn(
-                                                                "px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-widest shrink-0 truncate max-w-[120px] md:max-w-none mr-1",
-                                                                entry.isCorporate ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted border-border/40 text-muted-foreground"
+                                                                "px-2 py-0.5 rounded-full border text-[9px] font-bold tracking-widest shrink-0 truncate max-w-[140px] md:max-w-none mr-1",
+                                                                !entry.isExternal && "uppercase",
+                                                                entry.isCorporate
+                                                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                                                                    : entry.isExternal
+                                                                        ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                                                                        : "bg-muted border-border/40 text-muted-foreground"
                                                             )}>
                                                                 {displayCategory}
                                                             </span>
+                                                            {entry.isExternal && entry.receiptKey && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        viewSecureReceipt(entry.receiptKey, entry.projectId);
+                                                                    }}
+                                                                    className="hidden md:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-background border border-border/60 hover:border-primary/40 text-[10px] font-bold text-primary hover:bg-primary/5 transition-all shadow-sm shrink-0 active:scale-95"
+                                                                >
+                                                                    <FileText className="h-3 w-3" /> View Proof
+                                                                </button>
+                                                            )}
                                                             <div className="md:hidden flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-tight min-w-0">
                                                                 <span className="h-1 w-1 rounded-full bg-border shrink-0" />
                                                                 <span className="flex items-center gap-1 shrink-0">
@@ -255,12 +282,25 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-3 md:hidden">
+                                                <div className="mt-3 md:hidden flex gap-2">
+                                                    {entry.isExternal && entry.receiptKey && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                viewSecureReceipt(entry.receiptKey, entry.projectId);
+                                                            }}
+                                                            className="rounded-3xl h-9 flex-1 px-4 text-xs font-bold shadow-none border-blue-200 text-blue-600 bg-blue-50/50 active:scale-95 transition-all gap-1.5"
+                                                        >
+                                                            <FileText className="h-3.5 w-3.5" /> View Proof
+                                                        </Button>
+                                                    )}
                                                     <Button
                                                         variant="secondary"
                                                         size="sm"
                                                         onClick={() => setSelectedEntry(entry)}
-                                                        className="rounded-3xl h-9 w-full mx-auto flex px-8 text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
+                                                        className="rounded-3xl h-9 flex-1 px-4 text-xs font-bold shadow-none border border-border/50 bg-background active:scale-95 transition-all"
                                                     >
                                                         View details
                                                     </Button>
@@ -310,11 +350,20 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 </div>
                                 <div className="absolute top-3 left-4">
                                     <span className={cn(
-                                        "px-2 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-widest",
-                                        selectedEntry.isCorporate ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-background/60 border-border/40 text-muted-foreground"
+                                        "px-2 py-0.5 rounded-full border text-[9px] font-bold tracking-widest",
+                                        !selectedEntry.isExternal && "uppercase",
+                                        selectedEntry.isCorporate
+                                            ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                            : selectedEntry.isExternal
+                                                ? "bg-blue-50 text-blue-600 border-blue-200"
+                                                : "bg-background/60 border-border/40 text-muted-foreground"
                                     )}>
                                         {selectedEntry.type === 'INFLOW'
-                                            ? (selectedEntry.isCorporate ? 'CORPORATE SPONSORSHIP' : (selectedEntry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION'))
+                                            ? (selectedEntry.isCorporate
+                                                ? 'CORPORATE SPONSORSHIP'
+                                                : selectedEntry.isExternal
+                                                    ? 'External Contribution'
+                                                    : (selectedEntry.category === 'ADJUSTMENT' ? 'SYSTEM ADJUSTMENT' : 'CONTRIBUTION'))
                                             : (selectedEntry.receiptKey ? 'VENDOR PAYMENT' : 'DISBURSEMENT')}
                                     </span>
                                 </div>
@@ -347,7 +396,6 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                 )}
                             </div>
 
-                            {/* --- HIDDEN RECEIPT GENERATION DOM --- */}
                             <div className="absolute left-[-9999px] top-[-9999px]">
                                 <div id={`receipt-${selectedEntry.id}`} className="w-[800px] p-16 bg-white text-slate-900 font-sans">
                                     <div className="flex justify-between items-start border-b-2 border-emerald-500 pb-10">
@@ -374,7 +422,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 Method: {getPaymentContext(selectedEntry).method}
                                             </p>
                                             <p className="text-sm text-slate-500 pt-1">
-                                                Record Type: {selectedEntry.type === 'INFLOW' ? (selectedEntry.isCorporate ? 'CORPORATE SPONSORSHIP' : 'CONTRIBUTION') : 'DISBURSEMENT'}
+                                                Record Type: {selectedEntry.type === 'INFLOW' ? (selectedEntry.isCorporate ? 'CORPORATE SPONSORSHIP' : selectedEntry.isExternal ? 'External Contribution' : 'CONTRIBUTION') : 'DISBURSEMENT'}
                                             </p>
                                         </div>
                                     </div>
@@ -499,6 +547,9 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                         {selectedEntry.isCorporate && (
                                             <Badge className="bg-emerald-500/10 text-emerald-600 border-none shadow-none text-[9px] px-2 py-0 h-4 ml-1">CORPORATE SPONSOR</Badge>
                                         )}
+                                        {selectedEntry.isExternal && (
+                                            <Badge className="bg-blue-500/10 text-blue-600 border-none shadow-none text-[9px] px-2 py-0 h-4 ml-1">External Contribution</Badge>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="p-3.5 rounded-3xl bg-card border border-border/40 shadow-sm min-w-0">
@@ -526,6 +577,16 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                             </div>
 
                             <div className="flex flex-col gap-2 pt-1">
+                                {selectedEntry.type === 'INFLOW' && selectedEntry.isExternal && selectedEntry.receiptKey && (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => viewSecureReceipt(selectedEntry.receiptKey, selectedEntry.projectId)}
+                                        className="w-full h-12 rounded-3xl font-bold gap-2 border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-100/50 active:scale-95 transition-all"
+                                    >
+                                        <FileText className="h-4 w-4" /> View Proof
+                                    </Button>
+                                )}
+
                                 {selectedEntry.type === 'INFLOW' && (
                                     <Button
                                         onClick={() => handleDownloadReceipt(selectedEntry)}
@@ -539,7 +600,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
 
                                 {selectedEntry.type === 'OUTFLOW' && selectedEntry.receiptKey && (
                                     <Button
-                                        onClick={() => viewSecureReceipt(selectedEntry.receiptKey)}
+                                        onClick={() => viewSecureReceipt(selectedEntry.receiptKey, selectedEntry.projectId)}
                                         className="w-full h-12 rounded-3xl font-bold gap-2 bg-primary text-white shadow-lg active:scale-95 transition-all border-0"
                                     >
                                         <FileText className="h-4 w-4" /> View proof of payment
