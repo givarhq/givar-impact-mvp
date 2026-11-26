@@ -362,6 +362,12 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
             return;
         }
 
+        const trimmedGuestEmail = guestEmail.trim();
+        if (isGuest && trimmedGuestEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedGuestEmail)) {
+            toast.error("Please enter a valid email address or leave it blank.");
+            return;
+        }
+
         let finalDonorCurrency = undefined;
         let finalDonorAmount = undefined;
         let finalFxRate = undefined;
@@ -392,11 +398,13 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                 donorCurrency: finalDonorCurrency,
                 donorAmount: finalDonorAmount,
                 fxRate: finalFxRate,
-                wantsUpdates
+                wantsUpdates: isGuest && !trimmedGuestEmail ? false : wantsUpdates
             };
 
             if (isGuest) {
-                payload.guestEmail = guestEmail.toLowerCase().trim();
+                if (trimmedGuestEmail) {
+                    payload.guestEmail = trimmedGuestEmail.toLowerCase();
+                }
                 payload.guestName = 'Anonymous Supporter';
             }
 
@@ -717,7 +725,7 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                             exit={{ opacity: 0, height: 0 }}
                             className="space-y-2.5 overflow-hidden pt-2"
                         >
-                            <label className="text-xs font-bold text-muted-foreground ml-1">Receipt delivery email</label>
+                            <label className="text-xs font-bold text-muted-foreground ml-1">Receipt delivery email (optional)</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -757,25 +765,27 @@ export function DonationForm({ project, isAuthenticated }: DonationFormProps) {
                     )}
                 </AnimatePresence>
 
-                <div className="pt-2">
-                    <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors cursor-pointer group">
-                        <input
-                            type="checkbox"
-                            className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
-                            checked={wantsUpdates}
-                            onChange={(e) => setWantsUpdates(e.target.value === 'true' || e.target.checked)}
-                            disabled={isLoading}
-                        />
-                        <span className="text-xs font-medium text-foreground leading-relaxed select-none">
-                            Keep me updated on the impact of my donation.
-                        </span>
-                    </label>
-                </div>
+                {(!isGuest || guestEmail.trim().length > 0) && (
+                    <div className="pt-2">
+                        <label className="flex items-start gap-3 p-4 rounded-2xl border border-border/60 bg-muted/10 transition-colors cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                className="mt-0.5 h-4 w-4 rounded-[4px] border-border/60 text-primary focus:ring-primary/20 transition-all cursor-pointer"
+                                checked={wantsUpdates}
+                                onChange={(e) => setWantsUpdates(e.target.value === 'true' || e.target.checked)}
+                                disabled={isLoading}
+                            />
+                            <span className="text-xs font-medium text-foreground leading-relaxed select-none">
+                                Keep me updated on the impact of my donation.
+                            </span>
+                        </label>
+                    </div>
+                )}
 
                 <div className="flex items-center justify-center pt-4 border-t border-border/40">
                     <Button
                         onClick={handleConfirm}
-                        disabled={isLoading || !displayAmount || (isGuest && !guestEmail)}
+                        disabled={isLoading || !displayAmount}
                         className="w-full sm:w-auto px-10 h-14 text-sm font-bold rounded-3xl shadow-lg shadow-primary/20 transition-all bg-primary text-white hover:bg-primary/90 border-0 active:scale-[0.98]"
                     >
                         {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CreditCard className="h-4 w-4 mr-2" />}

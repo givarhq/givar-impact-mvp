@@ -138,31 +138,6 @@ export function AdminProjectActions({
               </DropdownMenuItem>
             )}
 
-            {!isLockedForDonations && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground tracking-wider">
-                  Offline Contributions
-                </DropdownMenuLabel>
-                <DropdownMenuItem
-                  onSelect={() => setShowExternalModal(true)}
-                  className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5"
-                >
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span>Log External Contribution</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() => setShowCorporateModal(true)}
-                  className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5 text-emerald-600 focus:text-emerald-700 focus:bg-emerald-500/10"
-                >
-                  <Building2 className="h-4 w-4" />
-                  <span>Log Corporate Sponsorship</span>
-                </DropdownMenuItem>
-              </>
-            )}
-
-            <DropdownMenuSeparator />
-
             {status === 'SUSPENDED' ? (
               <DropdownMenuItem
                 onSelect={() => setShowReactivateConfirm(true)}
@@ -188,6 +163,29 @@ export function AdminProjectActions({
               <Trash2 className="h-4 w-4" />
               <span>Delete Project</span>
             </DropdownMenuItem>
+
+            {!isLockedForDonations && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground tracking-wider">
+                  Offline Contributions
+                </DropdownMenuLabel>
+                <DropdownMenuItem
+                  onSelect={() => setShowExternalModal(true)}
+                  className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5"
+                >
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span>Log External Contribution</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => setShowCorporateModal(true)}
+                  className="gap-2.5 cursor-pointer rounded-2xl font-bold text-xs py-2.5 text-emerald-600 focus:text-emerald-700 focus:bg-emerald-500/10"
+                >
+                  <Building2 className="h-4 w-4" />
+                  <span>Log Corporate Sponsorship</span>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Loader2, Mail, Hash, CheckCircle2, Banknote, UploadCloud, Trash2, Info, FileText, Lock } from 'lucide-react';
+import { User, Loader2, Mail, Hash, CheckCircle2, Banknote, UploadCloud, Trash2, Info, FileText, Lock, ChevronDown } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../ui/dialog';
@@ -50,7 +50,34 @@ export function ExternalContributionTrigger({
     const [donorAmount, setDonorAmount] = useState('');
     const [fxRates, setFxRates] = useState<Record<string, number>>({});
 
+    const [showScrollHint, setShowScrollHint] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const proofSectionRef = useRef<HTMLDivElement>(null);
+
     const isLocked = projectStatus === 'COMPLETED' || projectStatus === 'SUSPENDED';
+
+    const checkScrollPosition = useCallback(() => {
+        const el = scrollContainerRef.current;
+        if (!el) return;
+        const canScrollMore = el.scrollHeight > el.clientHeight + 16;
+        const isNearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 40;
+        setShowScrollHint(canScrollMore && !isNearBottom);
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            const timer = setTimeout(checkScrollPosition, 150);
+            window.addEventListener('resize', checkScrollPosition);
+            return () => {
+                clearTimeout(timer);
+                window.removeEventListener('resize', checkScrollPosition);
+            };
+        }
+    }, [isOpen, isForeign, checkScrollPosition]);
+
+    const scrollToProof = () => {
+        proofSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    };
 
     useEffect(() => {
         fetch('https://open.er-api.com/v6/latest/NGN')
@@ -208,7 +235,11 @@ export function ExternalContributionTrigger({
                         </div>
                     </DialogHeader>
 
-                    <div className="px-6 md:px-8 py-4 space-y-6 overflow-y-auto no-scrollbar flex-1">
+                    <div
+                        ref={scrollContainerRef}
+                        onScroll={checkScrollPosition}
+                        className="px-6 md:px-8 py-4 space-y-6 overflow-y-auto flex-1"
+                    >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <label className="text-[11px] font-bold text-muted-foreground ml-1">Donor name *</label>
@@ -328,7 +359,7 @@ export function ExternalContributionTrigger({
                             )}
                         </div>
 
-                        <div className="space-y-2 pt-4 border-t border-border/40">
+                        <div ref={proofSectionRef} className="space-y-2 pt-4 border-t border-border/40">
                             <label className="text-[11px] font-bold text-foreground ml-1">Proof Document (Hospital invoice or bank receipt) *</label>
                             {uploadedProof ? (
                                 <div className="flex items-center justify-between p-3.5 bg-muted/20 border border-border/60 rounded-2xl shadow-sm">
@@ -377,7 +408,20 @@ export function ExternalContributionTrigger({
                         </div>
                     </div>
 
-                    <div className="px-6 md:px-8 pb-6 pt-3 flex justify-end gap-3 min-w-0 border-t border-border/40 bg-muted/5">
+                    {showScrollHint && !uploadedProof && (
+                        <div className="px-6 md:px-8 py-2 bg-amber-500/10 border-t border-amber-500/20 flex items-center justify-center shrink-0">
+                            <button
+                                type="button"
+                                onClick={scrollToProof}
+                                className="flex items-center gap-1.5 text-[11px] font-bold text-amber-700 hover:text-amber-800 transition-colors"
+                            >
+                                <ChevronDown className="h-3.5 w-3.5 animate-bounce" />
+                                <span>Scroll down to upload proof document</span>
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="px-6 md:px-8 pb-6 pt-3 flex justify-end gap-3 min-w-0 border-t border-border/40 bg-muted/5 shrink-0">
                         <Button
                             variant="ghost"
                             onClick={() => setIsOpen(false)}
