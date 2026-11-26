@@ -86,6 +86,7 @@ enum GoalStatus {
 enum ProjectStatus {
   DRAFT
   ACTIVE
+  PAUSED
   FUNDED
   COMPLETED
   SUSPENDED
@@ -146,12 +147,15 @@ enum AuditAction {
   TRANSACTION_RESOLVED
   RECEIPT_VIEWED
   CORPORATE_SPONSORSHIP_LOGGED
+  EXTERNAL_CONTRIBUTION_LOGGED
   
   // Project/Admin
   PROJECT_CREATED
   PROJECT_UPDATED
   PROJECT_DELETED
   PROJECT_SUSPENDED
+  PROJECT_PAUSED
+  PROJECT_RESUMED
   PROJECT_BROADCASTED
   PROPOSAL_REJECTED
   PROPOSAL_RECOMMENDED
@@ -563,6 +567,9 @@ model GuestDonation {
   tipAmount          BigInt    @default(0)
 
   wantsUpdates       Boolean   @default(true) // Guest Opt-In for Impact Emails
+
+  isExternal         Boolean   @default(false)
+  receiptKey         String?
 
   status        TxStatus     @default(COMPLETED)
   

@@ -24,6 +24,7 @@ export function calculatePhaseFunding(project: {
   const target = BigInt(project.targetAmount || '0');
   const isCompleted = project.status === 'COMPLETED';
   const isFundedState = project.status === 'FUNDED' || (raised >= target && target > 0n && !isCompleted);
+  const isPaused = project.status === 'PAUSED';
 
   const totalRemaining = raised >= target ? 0n : target - raised;
   const totalPercent = target > 0n
@@ -90,6 +91,7 @@ export function calculatePhaseFunding(project: {
     totalPercent,
     isCompleted,
     isFundedState,
+    isPaused,
     currentStageLogicName,
     cleanStageName,
     currentStageDisplayName,
