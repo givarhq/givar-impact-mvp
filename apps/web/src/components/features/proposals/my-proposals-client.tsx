@@ -22,7 +22,6 @@ interface MyProposalsClientProps {
 export function MyProposalsClient({ proposals }: MyProposalsClientProps) {
     const [activeTab, setActiveTab] = useState('live');
 
-    // Group proposals based on their status and projectStatus
     const groupedProposals = useMemo(() => {
         const live: any[] = [];
         const inReview: any[] = [];
@@ -30,7 +29,7 @@ export function MyProposalsClient({ proposals }: MyProposalsClientProps) {
         const past: any[] = [];
 
         proposals.forEach((p) => {
-            if (p.status === 'APPROVED' && ['ACTIVE', 'FUNDED'].includes(p.projectStatus)) {
+            if (p.status === 'APPROVED' && ['ACTIVE', 'PAUSED', 'FUNDED'].includes(p.projectStatus)) {
                 live.push(p);
             } else if (['SUBMITTED', 'UNDER_REVIEW', 'RECOMMENDED', 'AWAITING_VERIFICATION'].includes(p.status)) {
                 inReview.push(p);

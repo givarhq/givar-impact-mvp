@@ -1115,6 +1115,7 @@ export class AdminService {
 
     const isLive = ([
       ProjectStatus.ACTIVE,
+      ProjectStatus.PAUSED,
       ProjectStatus.FUNDED,
       ProjectStatus.COMPLETED
     ] as ProjectStatus[]).includes(existing.status);
@@ -1223,7 +1224,6 @@ export class AdminService {
         });
       }
 
-      // Automatically resolve the associated message amendment request if provided
       if (dto.amendmentMessageId) {
         const msg = await tx.message.findUnique({
           where: { id: dto.amendmentMessageId },

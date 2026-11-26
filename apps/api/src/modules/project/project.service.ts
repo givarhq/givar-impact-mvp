@@ -415,11 +415,10 @@ export class ProjectService {
       a.toLowerCase().includes(searchTerm.toLowerCase()),
     ) as AuditAction[];
 
-    // --- GHOST FIX: Removed the costly Subscription database query entirely ---
     const [projects, proposals, transactions, auditLogs] = await Promise.all([
       this.prisma.project.findMany({
         where: {
-          status: ProjectStatus.ACTIVE,
+          status: { in: [ProjectStatus.ACTIVE, ProjectStatus.PAUSED] },
           isActive: true,
           OR: [
             { title: textFilter },
