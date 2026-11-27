@@ -607,7 +607,7 @@ export class ProjectService {
     return { data: paginatedData, meta: { total: countD + countG + countDisp, page, lastPage: Math.ceil((countD + countG + countDisp) / limit) || 1, context: projectTitleContext } };
   }
 
-  async getLedgerProofUrl(projectId: string, key: string, requestingUserId?: string, req?: any) {
+  async getLedgerProofUrl(projectId: string, key: string, requestingUserId?: string, userRole?: string, req?: any) {
     const [disbursement, externalDonation] = await Promise.all([
       this.prisma.disbursement.findFirst({
         where: { projectId, receiptKey: key },
@@ -621,6 +621,13 @@ export class ProjectService {
 
     if (!disbursement && !externalDonation) {
       throw new ForbiddenException('Access restricted');
+    }
+
+    if (externalDonation) {
+      const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPERADMIN;
+      if (!isAdmin) {
+        throw new ForbiddenException('Viewing external contribution receipts is restricted to platform administrators.');
+      }
     }
 
     await this.audit.log({

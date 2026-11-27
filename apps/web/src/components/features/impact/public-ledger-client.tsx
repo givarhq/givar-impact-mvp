@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
     ArrowDownLeft,
     ArrowUpRight,
@@ -17,7 +17,8 @@ import {
     ChevronRight,
     Download,
     Loader2,
-    Building2
+    Building2,
+    Lock
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils/format';
 import { cn } from '../../../lib/utils/cn';
@@ -33,6 +34,7 @@ import { ImageLightbox, LightboxItem } from '../../ui/image-lightbox';
 import { generateImpactReceipt } from '../../../lib/utils/receipt-generator';
 import { Badge } from '../../ui/badge';
 import Link from 'next/link';
+import { getCookie } from 'cookies-next';
 
 interface PublicLedgerClientProps {
     project?: any;
@@ -59,6 +61,17 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
     const [selectedEntry, setSelectedEntry] = useState<any>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [lightboxState, setLightboxState] = useState<{ isOpen: boolean; items: LightboxItem[]; index: number }>({ isOpen: false, items: [], index: 0 });
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        const userCookie = getCookie('givar_user');
+        if (userCookie) {
+            try {
+                const user = JSON.parse(userCookie as string);
+                setIsAdmin(user.role === 'ADMIN' || user.role === 'SUPERADMIN');
+            } catch (e) { }
+        }
+    }, []);
 
     const isGlobalView = !project || project.id === 'global';
 
@@ -158,8 +171,8 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                     index: 0
                 });
             }
-        } catch (e) {
-            toast.error('Access restricted', { id: toastId });
+        } catch (e: any) {
+            toast.error(e?.response?.data?.message || 'Access restricted', { id: toastId });
         }
     };
 
@@ -260,7 +273,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                             )}>
                                                                 {displayCategory}
                                                             </span>
-                                                            {entry.isExternal && entry.receiptKey && (
+                                                            {entry.isExternal && entry.receiptKey && isAdmin && (
                                                                 <button
                                                                     type="button"
                                                                     onClick={(e) => {
@@ -283,7 +296,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                                                 </div>
 
                                                 <div className="mt-3 md:hidden flex gap-2">
-                                                    {entry.isExternal && entry.receiptKey && (
+                                                    {entry.isExternal && entry.receiptKey && isAdmin && (
                                                         <Button
                                                             variant="outline"
                                                             size="sm"
@@ -577,7 +590,7 @@ export const PublicLedgerClient = memo(function PublicLedgerClient({ project, in
                             </div>
 
                             <div className="flex flex-col gap-2 pt-1">
-                                {selectedEntry.type === 'INFLOW' && selectedEntry.isExternal && selectedEntry.receiptKey && (
+                                {selectedEntry.type === 'INFLOW' && selectedEntry.isExternal && selectedEntry.receiptKey && isAdmin && (
                                     <Button
                                         variant="outline"
                                         onClick={() => viewSecureReceipt(selectedEntry.receiptKey, selectedEntry.projectId)}

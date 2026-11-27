@@ -151,6 +151,6 @@ export class ProjectController {
     if (!projectId || !key) {
       throw new BadRequestException('Project ID and file key are required');
     }
-    return this.service.getLedgerProofUrl(projectId, key, req.user?.id, req);
+    return this.service.getLedgerProofUrl(projectId, key, req.user?.id, req.user?.role, req);
   }
 }
